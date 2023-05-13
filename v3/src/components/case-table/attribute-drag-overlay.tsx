@@ -1,7 +1,6 @@
 import { DragOverlay, useDndContext } from "@dnd-kit/core"
 import React from "react"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { getDragAttributeId } from "../../hooks/use-drag-drop"
+import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 
 import "./attribute-drag-overlay.scss"
 
@@ -9,10 +8,9 @@ interface IProps {
   activeDragId?: string
 }
 export const AttributeDragOverlay = ({ activeDragId }: IProps) => {
-  const data = useDataSetContext()
   const { active } = useDndContext()
-  const dragAttrId = activeDragId ? getDragAttributeId(active) : undefined
-  const attr = dragAttrId ? data?.attrFromID(dragAttrId) : undefined
+  const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+  const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
   return (
     <DragOverlay dropAnimation={null}>
       {dragAttrId

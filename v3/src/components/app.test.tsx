@@ -6,7 +6,7 @@ import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App, handleImportDataSet } from "./app"
 
-describe.skip("App component", () => {
+describe("App component", () => {
   beforeEach(() => {
     gDataBroker.clear()
   })
@@ -27,8 +27,20 @@ describe.skip("App component", () => {
     expect(screen.getByTestId("app")).toBeInTheDocument()
   })
 
+  it("should render the App component with no data and dashboard", () => {
+    setUrlParams("?dashboard")
+    render(<App/>)
+    expect(screen.getByTestId("app")).toBeInTheDocument()
+  })
+
   it("should render the App component with mammals data", () => {
     setUrlParams("?sample=mammals")
+    render(<App/>)
+    expect(screen.getByTestId("app")).toBeInTheDocument()
+  })
+
+  it("should render the App component with mammals data and dashboard", () => {
+    setUrlParams("?sample=mammals&dashboard")
     render(<App/>)
     expect(screen.getByTestId("app")).toBeInTheDocument()
   })

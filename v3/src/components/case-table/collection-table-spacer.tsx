@@ -4,9 +4,10 @@ import React, { useMemo, useRef } from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
+import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
-// import { getNumericCssconstiable } from "../../utilities/css-utils"
+import { IDataSet } from "../../models/data/data-set"
+// import { getNumericCssVariable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
 import { ICaseTableModel } from "./case-table-model"
 import { kChildMostTableCollectionId } from "./case-table-types"
@@ -24,7 +25,7 @@ const kDividerWidth = 48,
 interface IProps {
   tableModel?: ICaseTableModel
   rowHeight: number
-  onDrop?: (attrId: string) => void
+  onDrop?: (dataSet: IDataSet, attrId: string) => void
 }
 export const CollectionTableSpacer = observer(function CollectionTableSpacer(props: IProps) {
   const { tableModel, rowHeight, onDrop } = props
@@ -37,10 +38,11 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const childCollectionId = childCollection?.id || kChildMostTableCollectionId
   const parentMost = !parentCollection
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
-    const dragAttributeID = getDragAttributeId(_active)
-    dragAttributeID && onDrop?.(dragAttributeID)
+    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
+    dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
   })
-  const classes = clsx("collection-table-spacer", { active: !!getDragAttributeId(active), over: isOver, parentMost })
+
+  const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
   const parentGridRef = useRef<HTMLElement | null>(null)

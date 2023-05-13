@@ -8,10 +8,12 @@ import {
   pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
-import {IDataSet} from "../../../models/data/data-set"
-import {ISharedModel} from "../../../models/shared/shared-model"
-import { ISharedCaseMetadata, isSharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
 import {isSharedDataSet} from "../../../models/shared/shared-data-set"
+import {
+  getDataSetFromId, getTileCaseMetadata, getTileDataSet, isTileLinkedToDataSet, linkTileToDataSet
+} from "../../../models/shared/shared-data-utils"
+import {ISharedModel} from "../../../models/shared/shared-model"
+import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
 import {
   defaultBackgroundColor,
@@ -60,15 +62,11 @@ export const GraphModel = TileContentModel
     showMeasuresForSelection: false
   })
   .views(self => ({
-    get data(): IDataSet | undefined {
-      const sharedModelManager = self.tileEnv?.sharedModelManager
-      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedDataSet(m))
-      return isSharedDataSet(sharedModel) ? sharedModel.dataSet : undefined
+    get data() {
+      return getTileDataSet(self)
     },
-    get metadata(): ISharedCaseMetadata | undefined {
-      const sharedModelManager = self.tileEnv?.sharedModelManager
-      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedCaseMetadata(m))
-      return isSharedCaseMetadata(sharedModel) ? sharedModel : undefined
+    get metadata() {
+      return getTileCaseMetadata(self)
     },
     pointColorAtIndex(plotIndex = 0) {
       return self._pointColors[plotIndex] ?? kellyColors[plotIndex % kellyColors.length]
@@ -108,8 +106,18 @@ export const GraphModel = TileContentModel
     }
   }))
   .actions(self => ({
-    updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
-      // TODO
+    afterAttach() {
+      if (self.data || self.metadata) {
+        self.config.setDataset(self.data, self.metadata)
+      }
+    },
+    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
+      if (type === "link") {
+        self.config.setDataset(self.data, self.metadata)
+      }
+      else if (type === "unlink" && isSharedDataSet(sharedModel)) {
+        self.config.setDataset(undefined, undefined)
+      }
     },
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
@@ -117,7 +125,13 @@ export const GraphModel = TileContentModel
     removeAxis(place: AxisPlace) {
       self.axes.delete(place)
     },
-    setAttributeID(role: GraphAttrRole, id: string) {
+    setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
+      const newDataSet = getDataSetFromId(self, dataSetID)
+      if (newDataSet && !isTileLinkedToDataSet(self, newDataSet)) {
+        linkTileToDataSet(self, newDataSet)
+        self.config.clearAttributes()
+        self.config.setDataset(newDataSet, getTileCaseMetadata(self))
+      }
       if (role === 'yPlus') {
         self.config.addYAttribute({attributeID: id})
       } else {
@@ -173,7 +187,7 @@ export function createGraphModel(snap?: IGraphModelSnapshot) {
 
 export interface SetAttributeIDAction extends ISerializedActionCall {
   name: "setAttributeID"
-  args: [GraphAttrRole, string]
+  args: [GraphAttrRole, string, string]
 }
 
 export function isSetAttributeIDAction(action: ISerializedActionCall): action is SetAttributeIDAction {

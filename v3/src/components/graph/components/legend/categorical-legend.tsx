@@ -42,7 +42,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   const dataConfiguration = useDataConfigurationContext(),
     dataset = dataConfiguration?.dataset,
     layout = useGraphLayoutContext(),
-    categoriesRef = useRef<Set<string> | undefined>(),
+    categoriesRef = useRef<string[] | undefined>(),
     categoryData = useRef<Key[]>([]),
     layoutData = useRef<Layout>({
         maxWidth: 0,
@@ -58,7 +58,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
 
     computeLayout = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
-      const numCategories = categoriesRef.current?.size,
+      const numCategories = categoriesRef.current?.length,
         lod: Layout = layoutData.current
       lod.fullWidth = layout.getAxisLength('bottom')
       lod.maxWidth = 0
@@ -93,7 +93,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
 
     setupKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
-      const numCategories = categoriesRef.current?.size
+      const numCategories = categoriesRef.current?.length
       if (keysElt && categoryData.current) {
         select(keysElt).selectAll('key').remove() // start fresh
 
@@ -126,7 +126,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
 
     refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
-      const numCategories = categoriesRef.current?.size
+      const numCategories = categoriesRef.current?.length
       select(keysElt)
         .selectAll('g')
         .data(range(0, numCategories ?? 0))
@@ -168,14 +168,13 @@ export const CategoricalLegend = memo(function CategoricalLegend(
   }, [refreshKeys, dataset, computeDesiredExtent])
 
   useEffect(function respondToCategorySetsChange() {
-    const disposer = reaction(
+    return reaction(
       () => dataConfiguration?.categorySetForAttrRole('legend'),
       () => {
         layout.setDesiredExtent('legend', computeDesiredExtent())
         setupKeys()
         refreshKeys()
       })
-    return disposer
   }, [setupKeys, refreshKeys, dataConfiguration, layout, computeDesiredExtent])
 
   useEffect(function respondToLayoutChange() {

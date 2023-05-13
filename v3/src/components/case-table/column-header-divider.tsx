@@ -6,7 +6,7 @@ import { IMoveAttributeOptions } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { getDragAttributeId, useTileDroppable } from "../../hooks/use-drag-drop"
+import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { kIndexColumnKey } from "./case-table-types"
 
 interface IProps {
@@ -23,10 +23,10 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const cellBounds = cellElt?.getBoundingClientRect()
 
   const { isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, active => {
-    const dragAttrId = getDragAttributeId(active)
-    if (!data || !dragAttrId) return
+    const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+    if (!dataSet || (dataSet !== data) || !dragAttrId) return
 
-    const srcCollection = data.getCollectionForAttribute(dragAttrId)
+    const srcCollection = dataSet.getCollectionForAttribute(dragAttrId)
     const firstAttr: IAttribute | undefined = getCollectionAttrs(collection, data)[0]
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: firstAttr?.id }

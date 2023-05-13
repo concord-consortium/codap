@@ -1,8 +1,6 @@
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { TileModelContext } from "../hooks/use-tile-model-context"
-import { DataSetContext } from "../hooks/use-data-set-context"
-import { gDataBroker } from "../models/data/data-broker"
 import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
 import { ITileBaseProps } from "./tiles/tile-base-props"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -27,7 +25,7 @@ export const CodapComponent = observer(function CodapComponent({
   onBottomLeftPointerDown, onBottomRightPointerDown
 }: IProps) {
   const info = getTileComponentInfo(tile.content.type)
-  const dataset = gDataBroker?.selectedDataSet || gDataBroker?.last
+
   function handleFocusTile() {
     uiState.setFocusedTile(tile.id)
   }
@@ -37,29 +35,27 @@ export const CodapComponent = observer(function CodapComponent({
   const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
   return (
     <TileModelContext.Provider value={tile}>
-      <DataSetContext.Provider value={dataset}>
-        <div className={`codap-component ${tileEltClass}`} key={tile.id}
-          onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
-          <TitleBar tile={tile} onCloseTile={onCloseTile}/>
-          <Component tile={tile} />
-          {onRightPointerDown && !isFixedWidth &&
-            <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
-          {onBottomPointerDown && !isFixedHeight &&
-            <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
-          {onLeftPointerDown && !isFixedWidth &&
-            <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
-          {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) &&
-            <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
-          }
-          {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) &&
-            <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
-              {uiState.isFocusedTile(tile.id) &&
-                <ResizeHandle className="component-resize-handle"/>}
-            </div>
-          }
-        </div>
-        <InspectorPanelWrapper tile={tile} />
-      </DataSetContext.Provider>
+      <div className={`codap-component ${tileEltClass}`} key={tile.id}
+        onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
+        <TitleBar tile={tile} onCloseTile={onCloseTile}/>
+        <Component tile={tile} />
+        {onRightPointerDown && !isFixedWidth &&
+          <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
+        {onBottomPointerDown && !isFixedHeight &&
+          <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
+        {onLeftPointerDown && !isFixedWidth &&
+          <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
+        {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) &&
+          <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
+        }
+        {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) &&
+          <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
+            {uiState.isFocusedTile(tile.id) &&
+              <ResizeHandle className="component-resize-handle"/>}
+          </div>
+        }
+      </div>
+      <InspectorPanelWrapper tile={tile} />
     </TileModelContext.Provider>
   )
 })

@@ -1,8 +1,6 @@
 import { observable } from "mobx"
 import { Instance, types } from "mobx-state-tree"
-import { IDataSet } from "../../models/data/data-set"
-import { ISharedCaseMetadata, isSharedCaseMetadata } from "../../models/shared/shared-case-metadata"
-import { isSharedDataSet } from "../../models/shared/shared-data-set"
+import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseTableTileType } from "./case-table-defs"
@@ -17,15 +15,11 @@ export const CaseTableModel = TileContentModel
     scrollTopMap: observable.map<string, number>(),
   }))
   .views(self => ({
-    get data(): IDataSet | undefined {
-      const sharedModelManager = self.tileEnv?.sharedModelManager
-      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedDataSet(m))
-      return isSharedDataSet(sharedModel) ? sharedModel.dataSet : undefined
+    get data() {
+      return getTileDataSet(self)
     },
-    get metadata(): ISharedCaseMetadata | undefined {
-      const sharedModelManager = self.tileEnv?.sharedModelManager
-      const sharedModel = sharedModelManager?.getTileSharedModels(self).find(m => isSharedCaseMetadata(m))
-      return isSharedCaseMetadata(sharedModel) ? sharedModel : undefined
+    get metadata() {
+      return getTileCaseMetadata(self)
     }
   }))
   .actions(self => ({

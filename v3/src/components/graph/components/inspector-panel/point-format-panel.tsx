@@ -27,7 +27,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
   const legendAttrID = graphModel?.getAttributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
-  const categoriesRef = useRef<Set<string> | undefined>()
+  const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categorySetForAttrRole('legend')
 
   if (!graphModel) return null

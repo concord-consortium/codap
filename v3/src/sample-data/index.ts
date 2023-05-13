@@ -17,10 +17,17 @@ const sampleMap: Record<SampleType, string> = {
   Mammals: mammalsCsv
 }
 
-export function importSample(sample: SampleType, onImportDataSet: (data: IDataSet) => void) {
+export function importSample(sample: SampleType): Promise<IDataSet> {
   const dataUrl = sampleMap[sample]
-  downloadCsvFile(dataUrl, (results: CsvParseResult) => {
-    const ds = convertParsedCsvToDataSet(results, sample)
-    ds && onImportDataSet(ds)
+  return new Promise((resolve, reject) => {
+    downloadCsvFile(dataUrl, (results: CsvParseResult) => {
+      const ds = convertParsedCsvToDataSet(results, sample)
+      if (ds) {
+        resolve(ds)
+      }
+      else {
+        reject()
+      }
+    })
   })
 }

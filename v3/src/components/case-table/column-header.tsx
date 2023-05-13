@@ -28,7 +28,9 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
   const dragging = !!active
   const attribute = data?.attrFromID(column.key)
 
-  const draggableOptions: IUseDraggableAttribute = { prefix: instanceId, attributeId: column.key }
+  const draggableOptions: IUseDraggableAttribute = {
+    prefix: instanceId, dataSet: data, attributeId: column.key
+  }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
   const setCellRef = (elt: HTMLDivElement | null) => {
