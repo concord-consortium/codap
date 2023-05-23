@@ -55,6 +55,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentScrollTop = parentCollectionId && tableModel?.scrollTopMap.get(parentCollectionId) || 0
   const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
+  const isScrollable = childGridRef.current && (childGridRef.current.scrollHeight < childGridRef.current.clientHeight)
 
   useEffect(() => {
     const bottomsArr: number[] = []
@@ -150,7 +151,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
                   <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                     onClick={() => {
                       caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))
-                      index === 0 && tableModel?.setScrollTopMap(childCollectionId, 0)
+                      if (index === 0 || !isScrollable) tableModel?.setScrollTopMap(childCollectionId, 0)
                     }}
                     styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
                   />
