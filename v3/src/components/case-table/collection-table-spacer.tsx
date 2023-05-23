@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useMemo, useRef } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -41,6 +41,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
     const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
     dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
   })
+  const [rowBottoms, setRowBottoms] = useState<number[]>([])
 
   const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
@@ -54,6 +55,26 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentScrollTop = parentCollectionId && tableModel?.scrollTopMap.get(parentCollectionId) || 0
   const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
+
+  useEffect(() => {
+    const bottomsArr: number[] = []
+    const getRowTop = (rowIndex: number) => rowIndex >= 1 ? rowIndex * rowHeight : 0
+    const getPreviousBottoms = (idx: number) => idx > 0 ? bottomsArr[idx-1] : 0
+    parentCases?.map((parentCase, index) => {
+      const parentCaseId = parentCase.__id__
+      const lastChildCaseOfParent = data?.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds
+                                      ? data?.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds?.slice(-1)
+                                      : data?.pseudoCaseMap[parentCaseId]?.childCaseIds.slice(-1)
+      const rowOfLastChild = lastChildCaseOfParent &&
+                                rows.find(row => row.__id__ === lastChildCaseOfParent[0])
+      const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
+      const rowBottom = rowIndexOfLastChild
+                          ? getRowTop(rowIndexOfLastChild + 1) - childScrollTop
+                          : getPreviousBottoms(index) + rowHeight
+      bottomsArr.push(rowBottom)
+    })
+    setRowBottoms(bottomsArr)
+  }, [caseMetadata, data?.pseudoCaseMap, rowHeight, rows, childScrollTop])
 
   const handleRef = (element: HTMLElement | null) => {
     const tableContent = element?.closest(".case-table-content") ?? null
@@ -69,6 +90,9 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   }
 
   if (!data) return null
+
+  const parentCases = parentCollection ? data.getCasesForCollection(parentCollection.id) : []
+  const everyCaseIsCollapsed = parentCases.every((value) => caseMetadata?.isCollapsed(value.__id__))
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -86,58 +110,48 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   //   }
   // }
 
-  const parentCases = parentCollection ? data.getCasesForCollection(parentCollection.id) : []
-  const everyCaseIsCollapsed = parentCases.every((value) => caseMetadata?.isCollapsed(value.__id__))
-
   function handleTopClick() {
-    parentCases.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
+    parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
   }
 
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
   const topButtonTooltip = t(topTooltipKey)
-  const bottomsArr: number[] = []
-  const getRowTop = (rowIndex: number) => rowIndex >= 1 ? rowIndex * rowHeight : 0
-  const getPreviousBottoms = (idx: number) => idx > 0 ? bottomsArr[idx-1] : 0
+
 
   return (
     <>
       <div className="collection-table-spacer-divider" />
       <div className={classes} ref={handleRef}>
         <div className="spacer-top">
-          {!parentMost && <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed} onClick={handleTopClick}
+          {!parentMost && <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
             title={topButtonTooltip} />}
         </div>
         {!parentMost &&
             <div className="spacer-mid">
               <svg className="spacer-mid-layer lower-layer">
-                {parentCases.map((parentCase, index) => {
+                {parentCases?.map((parentCase, index) => {
                   const parentCaseId = parentCase.__id__
+                  const isCollapsed = caseMetadata?.isCollapsed(parentCaseId)
                   const numChildCases = data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds?.length ??
                                         data.pseudoCaseMap[parentCaseId]?.childCaseIds.length
-                  const lastChildCaseOfParent = data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds
-                                                  ? data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds?.slice(-1)
-                                                  : data.pseudoCaseMap[parentCaseId]?.childCaseIds.slice(-1)
-                  const rowOfLastChild = lastChildCaseOfParent &&
-                                            rows.find(row => row.__id__ === lastChildCaseOfParent[0])
-                  const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
-                  const rowBottom = rowIndexOfLastChild
-                                      ? getRowTop(rowIndexOfLastChild + 1)
-                                      : getPreviousBottoms(index) + rowHeight
-                  bottomsArr.push(rowBottom)
                   return <CurvedSpline key={`${parentCaseId}-${index}`}
                                         y1={((index + 1) * rowHeight) - parentScrollTop}
-                                        y2={rowBottom - childScrollTop}
+                                        y2={rowBottoms[index]}
                                         numChildCases={numChildCases}
                                         even={(index + 1) % 2 === 0}
                                         rowHeight={rowHeight}
-                                        isCollapsed={caseMetadata?.isCollapsed(parentCaseId)}
+                                        isCollapsed={isCollapsed}
+                                        prevRowBottom={rowBottoms[index-1]}
                          />
                 })}
               </svg>
               <div className="spacer-mid-layer">
-                {parentCases.map((value, index) => (
+                {parentCases?.map((value, index) => (
                   <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                    onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
+                    onClick={() => {
+                      caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))
+                      index === 0 && tableModel?.setScrollTopMap(childCollectionId, 0)
+                    }}
                     styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
                   />
                 ))}
@@ -179,9 +193,10 @@ interface CurvedSplineProps {
   even: boolean;
   rowHeight: number;
   isCollapsed: string | boolean | undefined;
+  prevRowBottom: number
 }
 
-function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed }: CurvedSplineProps) {
+function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed, prevRowBottom }: CurvedSplineProps) {
   /**
     Builds the SVG path string which renders from the specified Y coordinate
     on the left table (iStartY) to the specified Y coordinate on the right
@@ -249,9 +264,9 @@ function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed }: C
         `${buildPathStr(iStartY1, iEndY1)} V${endPoint2.y} h${- kRelationChildMargin} Q${controlPoint2.x},${controlPoint2.y} ${midPoint2.x},${midPoint2.y} T${startPoint2.x},${startPoint2.y} h${- kRelationParentMargin} Z`
       )
     }
-  const collapsedCaseHeight = isCollapsed ? rowHeight : numChildCases * rowHeight
+
   const pathData = buildPathStr(y1, y2)
-  const fillData = buildFillPathStr((y1 - rowHeight), y2 - collapsedCaseHeight, y1, y2 || rowHeight)
+  const fillData = buildFillPathStr((y1 - rowHeight), prevRowBottom, y1, y2 || rowHeight)
   return (
     even
       ? <>
@@ -261,4 +276,3 @@ function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed }: C
       : <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
   )
 }
-// Adjust the initial movement

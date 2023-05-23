@@ -27,7 +27,6 @@ export const CaseTableModel = TileContentModel
       // TODO
     },
     setScrollTopMap(collectionId: string, topLocation: number) {
-      // console.log("in setScrollTopMap", collectionId, topLocation)
       self.scrollTopMap.set(collectionId, topLocation)
     },
     removeFromScrollTopMap(collectionId: string) {
