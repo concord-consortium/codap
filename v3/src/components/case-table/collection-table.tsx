@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kChildMostTableCollectionId, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
@@ -26,7 +26,7 @@ export const CollectionTable = observer(function CollectionTable() {
   const collectionGridRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     collectionGridRef.current = document.querySelector(`.collection-${collectionId} .rdg-light`)
-  }, [])
+  }, [collectionId])
 
   // columns
   const indexColumn = useIndexColumn()
@@ -36,24 +36,21 @@ export const CollectionTable = observer(function CollectionTable() {
   const { rows, handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
+  const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
+    const attr = dataSet.attrFromID(attrId)
+    attr && dataSet.moveAttributeToNewCollection(attrId, collection.id)
+  }, [collection.id])
+
   if (!data) return null
 
-  function handleNewCollectionDrop(dataSet: IDataSet, attrId: string) {
-    const attr = data?.attrFromID(attrId)
-    if (data && attr) {
-      data.moveAttributeToNewCollection(attrId, collection.id)
-    }
-  }
-
   function handleGridScroll() {
-    collectionGridRef.current?.scrollTop &&
+    (collectionGridRef.current?.scrollTop != null) &&
       tableModel?.setScrollTopMap(collectionId, collectionGridRef.current?.scrollTop)
   }
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer onDrop={handleNewCollectionDrop} rowHeight={+styles.bodyRowHeight}
-          tableModel={tableModel} />
+      <CollectionTableSpacer rows={rows} onDrop={handleNewCollectionDrop} rowHeight={+styles.bodyRowHeight} />
       <div className="collection-table-and-title">
         <CollectionTitle />
         <DataGrid ref={gridRef} className="rdg-light"
