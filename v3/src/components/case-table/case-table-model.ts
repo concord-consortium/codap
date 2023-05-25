@@ -26,11 +26,12 @@ export const CaseTableModel = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
-    setScrollTopMap(collectionId: string, topLocation: number) {
-      self.scrollTopMap.set(collectionId, topLocation)
-    },
-    removeFromScrollTopMap(collectionId: string) {
-      self.scrollTopMap.delete(collectionId)
+    setScrollTopMap(collectionId: string, scrollTop?: number) {
+      if (scrollTop != null) {
+        self.scrollTopMap.set(collectionId, scrollTop)
+      } else {
+        self.scrollTopMap.delete(collectionId)
+      }
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
