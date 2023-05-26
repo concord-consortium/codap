@@ -35,7 +35,7 @@ export const CodapComponent = observer(function CodapComponent({
   const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
   return (
     <TileModelContext.Provider value={tile}>
-      <div className={`codap-component ${tileEltClass}`} key={tile.id}
+      <div className={`codap-component ${tileEltClass} ${tile.isMinimized ? "minimized" : ""}`} key={tile.id}
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onCloseTile={onCloseTile}/>
         <Component tile={tile} />
@@ -50,7 +50,7 @@ export const CodapComponent = observer(function CodapComponent({
         }
         {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) &&
           <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
-            {uiState.isFocusedTile(tile.id) &&
+            {(uiState.isFocusedTile(tile.id) && !tile.isMinimized) &&
               <ResizeHandle className="component-resize-handle"/>}
           </div>
         }

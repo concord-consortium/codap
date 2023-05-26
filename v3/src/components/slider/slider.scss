@@ -1,11 +1,8 @@
 @import "./../vars.scss";
 
-$slider-component-height: 98px;
-
 .slider-wrapper {
   position: relative;
   overflow: clip;
-  height: calc($slider-component-height - $title-bar-height);
   background: #fff;
   border-radius: $border-radius-bottom-corners;
 

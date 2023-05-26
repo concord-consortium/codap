@@ -30,6 +30,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
     }
   }
 
+  const handleMinimizeTile = () => {
+    tile?.setIsMinimized(!tile.isMinimized)
+  }
+
   return (
     <Flex className={classes}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
@@ -43,7 +47,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
       </Editable>
       <Flex className="header-right">
         <Button className="component-minimize-button">
-          <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
+          <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}
+              onPointerDown={handleMinimizeTile}/>
         </Button>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
           onPointerDown={()=>onCloseTile?.(tileId)}/>
