@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react"
 import { isCaseTableModel } from "./case-table-model"
 import { ComponentTitleBar } from "../component-title-bar"
-import { Box, useOutsideClick } from "@chakra-ui/react"
+import { Box, Button, useOutsideClick } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -38,19 +38,20 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCl
 
   return (
     <ComponentTitleBar tile={tile} getTitle={getTitle} onCloseTile={onCloseTile}>
-      <div className="header-left"
-            title={cardTableToggleString}
+      <div className="header-left">
+        <Button className="card-table-toggle-button" title={cardTableToggleString}
             onClick={handleShowCardTableToggleMessage}>
-        {showCaseCard
-          ? <TableIcon className="table-icon" />
-          : <CardIcon className="card-icon"/>
-        }
-        {showSwitchMessage &&
-          <Box ref={cardTableToggleRef} className={`card-table-toggle-message`}
-                onClick={handleToggleCardTable}>
-            {cardTableToggleString}
-          </Box>
-        }
+          {showCaseCard
+            ? <TableIcon className="table-icon" />
+            : <CardIcon className="card-icon"/>
+          }
+          {showSwitchMessage &&
+            <Box ref={cardTableToggleRef} className={`card-table-toggle-message`}
+                  onClick={handleToggleCardTable}>
+              {cardTableToggleString}
+            </Box>
+          }
+        </Button>
       </div>
     </ComponentTitleBar>
   )

@@ -1,8 +1,17 @@
-@use "../vars.scss";
+@import "../vars.scss";
 
+.card-table-toggle-button {
+  border-radius: $border-radius-top-corners !important;
+  width: 24px;
+  height: $title-bar-height !important;
+  padding-inline-start: 0 !important;
+  padding-inline-end: 0 !important;
+  border: none !important;
+  background-color: transparent !important;
+}
 .card-icon {
   background-color: white;
-  fill: vars.$codap-teal-dark;
+  fill: $codap-teal-dark;
   height: 16px;
   width: 13px;
   border-radius: 2px;
@@ -16,7 +25,7 @@
 }
 
 .table-icon {
-  background-color: vars.$codap-teal-dark;
+  background-color: $codap-teal-dark;
   fill: white;
   color: white;
   margin-top: 2px;
