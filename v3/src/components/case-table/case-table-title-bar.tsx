@@ -10,7 +10,7 @@ import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 import "./case-table-title-bar.scss"
 
-export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCloseTile}: ITileTitleBarProps) {
+export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, ...others}: ITileTitleBarProps) {
   const data = isCaseTableModel(tile?.content) ? tile?.content.data : undefined
   const caseMetadata = isCaseTableModel(tile?.content) ? tile?.content.metadata  : undefined
   const getTitle = () => caseMetadata?.title || tile?.title || data?.name
@@ -45,7 +45,7 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCl
                                   : t("DG.DocumentController.toggleToCaseCard")
 
   return (
-    <ComponentTitleBar tile={tile} getTitle={getTitle} onCloseTile={onCloseTile}
+    <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
         onHandleTitleChange={handleChangeTitle}>
       <div className="header-left"
             title={cardTableToggleString}

@@ -16,7 +16,8 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   x: types.number,
   y: types.number,
   width: types.maybe(types.number),
-  height: types.maybe(types.number)
+  height: types.maybe(types.number),
+  isMinimized: types.maybe(types.boolean)
 })
 .views(self => ({
   get position() {
@@ -34,6 +35,10 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   setSize(width?: number, height?: number) {
     self.width = width
     self.height = height
+  },
+  setMinimized(isMinimized: boolean) {
+    // only store it if it's true
+    self.isMinimized = isMinimized || undefined
   }
 }))
 export interface IFreeTileLayout extends Instance<typeof FreeTileLayout> {}

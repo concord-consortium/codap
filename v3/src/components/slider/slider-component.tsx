@@ -13,12 +13,10 @@ import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-i
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
-import { kTitleBarHeight } from "../constants"
 
 import './slider.scss'
 
 const kAxisMargin = 30
-const kSliderComponentHeight = 98
 
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = tile?.content
@@ -55,12 +53,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     sliderModel.setName(name)
   }
 
-  const style = {height: tile?.isMinimized ? 0 : kSliderComponentHeight - kTitleBarHeight}
-
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <AxisLayoutContext.Provider value={layout}>
-        <div className={kSliderClass} style={style} ref={sliderRef}>
+        <div className={kSliderClass} ref={sliderRef}>
           <Flex className="slider-control">
             <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
               { running ? <PauseIcon /> : <PlayIcon /> }

@@ -11,7 +11,7 @@ import t from "../utilities/translation/translate"
 import "./component-title-bar.scss"
 
 export const ComponentTitleBar = observer(function ComponentTitleBar(
-    { tile, getTitle, children, onCloseTile, onHandleTitleChange }: ITileTitleBarProps) {
+    { tile, getTitle, children, onHandleTitleChange, onMinimizeTile, onCloseTile }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
   const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
   const [isEditing, setIsEditing] = useState(false)
@@ -30,10 +30,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
     }
   }
 
-  const handleMinimizeTile = () => {
-    tile?.setIsMinimized(!tile.isMinimized)
-  }
-
   return (
     <Flex className={classes}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
@@ -48,7 +44,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
       <Flex className="header-right">
         <Button className="component-minimize-button">
           <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}
-              onPointerDown={handleMinimizeTile}/>
+              onPointerDown={onMinimizeTile}/>
         </Button>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
           onPointerDown={()=>onCloseTile?.(tileId)}/>
