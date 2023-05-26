@@ -19,6 +19,7 @@ export const SharedCaseMetadata = SharedModel
   .named(kSharedCaseMetadataType)
   .props({
     type: types.optional(types.literal(kSharedCaseMetadataType), kSharedCaseMetadataType),
+    title: types.maybe(types.string),
     data: types.safeReference(DataSet),
     // key is collection id
     collections: types.map(CollectionTableMetadata),
@@ -46,6 +47,9 @@ export const SharedCaseMetadata = SharedModel
   .actions(self => ({
     setData(data?: IDataSet) {
       self.data = data
+    },
+    setTitle(title: string) {
+      self.title = title
     },
     setColumnWidth(attrId: string, width?: number) {
       if (width) {

@@ -11,7 +11,7 @@ import t from "../utilities/translation/translate"
 import "./component-title-bar.scss"
 
 export const ComponentTitleBar = observer(function ComponentTitleBar(
-    { tile, getTitle, children, onCloseTile }: ITileTitleBarProps) {
+    { tile, getTitle, children, onCloseTile, onHandleTitleChange }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
   const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
   const [isEditing, setIsEditing] = useState(false)
@@ -36,7 +36,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
       {children}
       <Editable value={title} className="title-bar" isPreviewFocusable={!dragging} submitOnBlur={true}
           onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)}
-          onChange={handleChangeTitle} onCancel={() => setIsEditing(false)}
+          onChange={onHandleTitleChange || handleChangeTitle} onCancel={() => setIsEditing(false)}
           data-testid="editable-component-title">
         <EditablePreview className="title-text"/>
         <EditableInput className="title-text-input"/>

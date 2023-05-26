@@ -6,7 +6,8 @@ import t from "../../utilities/translation/translate"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { appState } from "../../models/app-state"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
-import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata }
+  from "../../models/shared/shared-case-metadata"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { gDataBroker } from "../../models/data/data-broker"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -27,9 +28,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   const content = document.content
   const manager = getSharedModelManager(document)
   const datasets = manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
-  const existingTableTiles = document.content?.getTilesOfType(kCaseTableTileType)
-  const tileIds: string[] = []
-  existingTableTiles?.forEach(tile => tileIds.push(tile.id))
+  const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
   const row = content?.getRowByIndex(0)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [modalOpen, setModalOpen] = useState(false)
@@ -64,7 +63,6 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
     const model = manager?.getSharedModelsByType("SharedDataSet")
                     .find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
-    const caseMetadatas = manager?.getSharedModelsByType("SharedCaseMetadata") as ISharedCaseMetadata[] | undefined
     const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
     if (!model || !caseMetadata) return
     const tiles = manager?.getSharedModelTiles(model)
@@ -86,12 +84,17 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     <>
       <MenuList>
         {datasets?.map((dataset, idx) => {
+          const model = datasets.find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
+          const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
+          const tiles = manager?.getSharedModelTiles(model)
+          const tableTile = tiles?.find(tile => tile.content.type === kCaseTableTileType)
+          const tileTitle = caseMetadata?.title ? caseMetadata?.title
+                                                : tableTile?.title ? tableTile?.title : dataset.dataSet.name
           return (
             <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>handleOpenDataSetTable(dataset)}>
-              {dataset.dataSet.name}
+              {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
-                  onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)}
-              />
+                  onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}

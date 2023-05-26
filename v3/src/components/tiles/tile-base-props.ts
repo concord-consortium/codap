@@ -10,6 +10,7 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   getTitle?: () => string | undefined
   children?: ReactNode
   onHandleTitleBarClick?: (e: React.MouseEvent) => void
+  onHandleTitleChange?: () => void
   onCloseTile?: (tileId: string) => void
 }
 
