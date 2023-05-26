@@ -1,4 +1,5 @@
-import {Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
+import {reaction} from "mobx"
+import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {createContext, useContext} from "react"
 import {AxisPlace} from "../../axis/axis-types"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
@@ -8,7 +9,9 @@ import {
   pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend
 } from "../graphing-types"
 import {DataConfigurationModel} from "./data-configuration-model"
-import {isSharedDataSet} from "../../../models/shared/shared-data-set"
+import {
+  ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet
+} from "../../../models/shared/shared-data-set"
 import {
   getDataSetFromId, getTileCaseMetadata, getTileDataSet, isTileLinkedToDataSet, linkTileToDataSet
 } from "../../../models/shared/shared-data-utils"
@@ -106,10 +109,38 @@ export const GraphModel = TileContentModel
     }
   }))
   .actions(self => ({
-    afterAttach() {
-      if (self.data || self.metadata) {
-        self.config.setDataset(self.data, self.metadata)
-      }
+    afterAttachToDocument() {
+      // Monitor our parents and update our shared model when we have a document parent
+      addDisposer(self, reaction(() => {
+        const sharedModelManager = self.tileEnv?.sharedModelManager
+
+        const sharedDataSets: ISharedDataSet[] = sharedModelManager?.isReady
+          ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
+          : []
+
+        const tileSharedModels = sharedModelManager?.isReady
+          ? sharedModelManager?.getTileSharedModels(self)
+          : undefined
+
+        return { sharedModelManager, sharedDataSets, tileSharedModels }
+      },
+      // reaction/effect
+      ({sharedModelManager, sharedDataSets, tileSharedModels}) => {
+        if (!sharedModelManager?.isReady) {
+          // We aren't added to a document yet so we can't do anything yet
+          return
+        }
+
+        const tileDataSet = getTileDataSet(self)
+        if (self.data || self.metadata) {
+          self.config.setDataset(self.data, self.metadata)
+        }
+        // auto-link to DataSet if we aren't currently linked and there's only one available
+        else if (!tileDataSet && sharedDataSets.length === 1) {
+          linkTileToDataSet(self, sharedDataSets[0].dataSet)
+        }
+      },
+      {name: "sharedModelSetup", fireImmediately: true}))
     },
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
       if (type === "link") {
