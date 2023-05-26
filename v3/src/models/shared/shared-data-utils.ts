@@ -7,16 +7,20 @@ import {
 } from "./shared-case-metadata"
 import { ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared-data-set"
 
-export function getTileSharedModels(tile: ITileContentModel) {
-  const sharedModelManager = getSharedModelManager(tile)
-  return sharedModelManager?.getTileSharedModels(tile) ?? []
+export function getSharedDataSets(node: IAnyStateTreeNode): ISharedDataSet[] {
+  const sharedModelManager = getSharedModelManager(node)
+  return sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
 }
 
 export function getDataSetFromId(node: IAnyStateTreeNode, id: string): IDataSet | undefined {
-  const sharedModelManager = getSharedModelManager(node)
-  const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
-  const sharedDataSet = sharedDataSets?.find(model => model.dataSet.id === id) as ISharedDataSet | undefined
+  const sharedDataSets = getSharedDataSets(node)
+  const sharedDataSet = sharedDataSets.find(model => model.dataSet.id === id)
   return sharedDataSet?.dataSet
+}
+
+export function getTileSharedModels(tile: ITileContentModel) {
+  const sharedModelManager = getSharedModelManager(tile)
+  return sharedModelManager?.getTileSharedModels(tile) ?? []
 }
 
 export function getTileDataSet(tile: ITileContentModel): IDataSet | undefined {
@@ -41,10 +45,10 @@ export function isTileLinkedToOtherDataSet(tile: ITileContentModel, dataSet: IDa
 
 export function unlinkTileFromDataSets(tile: ITileContentModel) {
   const sharedModelManager = getSharedModelManager(tile)
-  const sharedModels = sharedModelManager?.getTileSharedModels(tile)
-  sharedModels?.forEach(sharedModel => {
+  const sharedModels = sharedModelManager?.getTileSharedModels(tile) ?? []
+  sharedModelManager && sharedModels.forEach(sharedModel => {
     if (sharedModel.type === kSharedDataSetType || sharedModel.type === kSharedCaseMetadataType) {
-      sharedModelManager?.removeTileSharedModel(tile, sharedModel)
+      sharedModelManager.removeTileSharedModel(tile, sharedModel)
     }
   })
 }
@@ -64,5 +68,20 @@ export function linkTileToDataSet(tile: ITileContentModel, dataSet: IDataSet) {
     const sharedCaseMetadata: ISharedCaseMetadata | undefined =
             sharedMetadata.find(model => model.data?.id === dataSet.id)
     sharedCaseMetadata && sharedModelManager.addTileSharedModel(tile, sharedCaseMetadata)
+  }
+}
+
+export function wrapSerialization<T>(node: IAnyStateTreeNode, serializeFn: () => T) {
+  const sharedDataSets = getSharedDataSets(node)
+  try {
+    // prepare each data set for serialization
+    sharedDataSets.forEach(model => model.dataSet.prepareSnapshot())
+
+    // perform the serialization with the prepared data sets
+    return serializeFn()
+  }
+  finally {
+    // complete the serialization process for each data set
+    sharedDataSets.forEach(model => model.dataSet.completeSnapshot())
   }
 }
