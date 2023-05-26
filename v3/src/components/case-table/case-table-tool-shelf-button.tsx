@@ -87,7 +87,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           const model = datasets.find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
           const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
           const tiles = manager?.getSharedModelTiles(model)
-          const tableTile = tiles?.find(tile => tile.content.type === "CodapCaseTable")
+          const tableTile = tiles?.find(tile => tile.content.type === kCaseTableTileType)
           const tileTitle = caseMetadata?.title ? caseMetadata?.title
                                                 : tableTile?.title ? tableTile?.title : dataset.dataSet.name
           return (

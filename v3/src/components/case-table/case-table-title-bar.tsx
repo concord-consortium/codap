@@ -34,8 +34,8 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, onCl
   }
 
   const handleChangeTitle = (nextValue?: string) => {
-    if (tile != null && nextValue) {
-      tile.setTitle(nextValue)
+    if (nextValue) {
+      tile?.setTitle(nextValue)
       caseMetadata?.setTitle(nextValue)
     }
   }
