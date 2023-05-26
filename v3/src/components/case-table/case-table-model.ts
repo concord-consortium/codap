@@ -1,3 +1,4 @@
+import { observable } from "mobx"
 import { Instance, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -9,6 +10,10 @@ export const CaseTableModel = TileContentModel
   .props({
     type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
   })
+  .volatile(self => ({
+    // map from collection IDs to scrollTops
+    scrollTopMap: observable.map<string, number>(),
+  }))
   .views(self => ({
     get data() {
       return getTileDataSet(self)
@@ -20,6 +25,13 @@ export const CaseTableModel = TileContentModel
   .actions(self => ({
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
+    },
+    setScrollTopMap(collectionId: string, scrollTop?: number) {
+      if (scrollTop != null) {
+        self.scrollTopMap.set(collectionId, scrollTop)
+      } else {
+        self.scrollTopMap.delete(collectionId)
+      }
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
