@@ -45,7 +45,7 @@ const isDevelopment = () => process.env.NODE_ENV !== "production"
 export type IValueType = string | number | boolean | undefined
 
 export function importValueToString(value: IValueType) {
-  return value == null ? "" : typeof value === "string" ? value : JSON.stringify(value)
+  return value == null ? "" : typeof value === "string" ? value : value.toString()
 }
 
 export const attributeTypes = [
