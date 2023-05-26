@@ -56,7 +56,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   const bottomsOfLastChildRowOfParent: number[] = []
   const getPrevRowBottom = (idx: number) => {
-    if (idx > 0 && bottomsOfLastChildRowOfParent[idx-1] >= 0)  { return bottomsOfLastChildRowOfParent[idx-1]}
+    if (idx > 0 && bottomsOfLastChildRowOfParent[idx-1] >= 0)  { return bottomsOfLastChildRowOfParent[idx-1] }
     else if (idx > 0)  { return bottomsOfLastChildRowOfParent[idx-1] - childScrollTop }
     else if (idx === 0 && isScrollable) { return -childScrollTop }
     else { return 0 }
