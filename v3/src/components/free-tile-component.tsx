@@ -5,8 +5,7 @@ import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
-
-const kComponentTitleHeight = 25
+import { kTitleBarHeight } from "./constants"
 
 interface IProps {
   row: IFreeTileRow;
@@ -82,7 +81,7 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
   const startStyleLeft = left || 0
   const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
     width, height}
-  const minimizedStyle = { left, top, width, height: kComponentTitleHeight}
+  const minimizedStyle = { left, top, width, height: kTitleBarHeight}
   const style = tile.isMinimized ? minimizedStyle
                                  : tileId === resizingTileId
                                     ? resizingTileStyle

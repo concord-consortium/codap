@@ -13,11 +13,11 @@ import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-i
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { CodapSliderThumb } from "./slider-thumb"
 import { EditableSliderValue } from "./editable-slider-value"
+import { kTitleBarHeight } from "../constants"
 
 import './slider.scss'
 
 const kAxisMargin = 30
-const kComponentTitleHeight = 25
 const kSliderComponentHeight = 98
 
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
@@ -55,7 +55,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     sliderModel.setName(name)
   }
 
-  const style = {height: tile?.isMinimized ? 0 : kSliderComponentHeight - kComponentTitleHeight}
+  const style = {height: tile?.isMinimized ? 0 : kSliderComponentHeight - kTitleBarHeight}
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
