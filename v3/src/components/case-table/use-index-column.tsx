@@ -1,6 +1,5 @@
 import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import { clsx } from "clsx"
-import { autorun } from "mobx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { kIndexColumnKey, TColSpanArgs, TColumn, TFormatterProps } from "./case-table-types"
@@ -53,22 +52,20 @@ export const useIndexColumn = () => {
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
-    // rebuild index column definition when referenced properties change
-    return autorun(function updateIndexColumn() {
-      indexColumn.current = {
-        key: kIndexColumnKey,
-        name: t("DG.CaseTable.indexColumnName"),
-        minWidth: 52,
-        width: 52,
-        headerCellClass: "codap-column-header index",
-        headerRenderer: ColumnHeader,
-        cellClass: "codap-index-cell",
-        colSpan(args: TColSpanArgs) {
-          return indexColumnSpan(args, { data, metadata: caseMetadata, collection })
-        },
-        formatter
-      }
-    })
+    // rebuild index column definition when necessary
+    indexColumn.current = {
+      key: kIndexColumnKey,
+      name: t("DG.CaseTable.indexColumnName"),
+      minWidth: 52,
+      width: 52,
+      headerCellClass: "codap-column-header index",
+      headerRenderer: ColumnHeader,
+      cellClass: "codap-index-cell",
+      colSpan(args: TColSpanArgs) {
+        return indexColumnSpan(args, { data, metadata: caseMetadata, collection })
+      },
+      formatter
+    }
   }, [caseMetadata, collection, data, formatter])
 
   return indexColumn.current
