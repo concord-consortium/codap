@@ -54,10 +54,14 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
   const isScrollable = childGridRef.current && (childGridRef.current.scrollHeight > childGridRef.current.clientHeight)
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
+  const bottomsOfLastChildRowOfParent: number[] = []
+  const getPrevRowBottom = (idx: number) => {
+    if (idx > 0 && bottomsOfLastChildRowOfParent[idx-1] >= 0)  { return bottomsOfLastChildRowOfParent[idx-1]}
+    else if (idx > 0)  { return bottomsOfLastChildRowOfParent[idx-1] - childScrollTop }
+    else if (idx === 0 && isScrollable) { return -childScrollTop }
+    else { return 0 }
+  }
 
-  const parentRowBottoms: number[] = []
-  const getRowTop = (rowIndex: number) => rowIndex >= 1 ? rowIndex * rowHeight : 0
-  const getPrevRowBottom = (idx: number) => idx > 0 ? parentRowBottoms[idx-1] : 0
   parentCases?.map((parentCase, index) => {
     const parentCaseId = parentCase.__id__
     const parentCaseGroup = data?.pseudoCaseMap[parentCaseId]
@@ -67,11 +71,10 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
                               rows.find(row => row.__id__ === lastChildCaseOfParent)
     const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
     const rowBottom = rowIndexOfLastChild
-                        ? getRowTop(rowIndexOfLastChild + 1) - childScrollTop
+                        ? ((rowIndexOfLastChild + 1) * rowHeight) - childScrollTop
                         : getPrevRowBottom(index) + rowHeight
-    parentRowBottoms.push(rowBottom)
+    bottomsOfLastChildRowOfParent.push(rowBottom)
   })
-
   const handleRef = (element: HTMLElement | null) => {
     const tableContent = element?.closest(".case-table-content") ?? null
 
@@ -125,27 +128,19 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
               <svg className="spacer-mid-layer lower-layer">
                 {parentCases?.map((parentCase, index) => {
                   const parentCaseId = parentCase.__id__
-                  const isCollapsed = caseMetadata?.isCollapsed(parentCaseId)
-                  const numChildCases = data.pseudoCaseMap[parentCaseId]?.childPseudoCaseIds?.length ??
-                                        data.pseudoCaseMap[parentCaseId]?.childCaseIds.length
                   return <CurvedSpline key={`${parentCaseId}-${index}`}
                                         y1={((index + 1) * rowHeight) - parentScrollTop}
-                                        y2={parentRowBottoms[index]}
-                                        numChildCases={numChildCases}
+                                        y2={bottomsOfLastChildRowOfParent[index]}
                                         even={(index + 1) % 2 === 0}
                                         rowHeight={rowHeight}
-                                        isCollapsed={isCollapsed}
-                                        prevRowBottom={parentRowBottoms[index-1]}
+                                        prevRowBottom={bottomsOfLastChildRowOfParent[index-1]}
                          />
                 })}
               </svg>
               <div className="spacer-mid-layer">
                 {parentCases?.map((value, index) => (
                   <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                    onClick={() => {
-                      caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))
-                      if (index === 0 || !isScrollable) tableModel?.setScrollTopMap(childCollectionId, 0)
-                    }}
+                    onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
                     styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
                   />
                 ))}
@@ -183,14 +178,12 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
 interface CurvedSplineProps {
   y1: number;
   y2: number;
-  numChildCases: number;
   even: boolean;
   rowHeight: number;
-  isCollapsed: string | boolean | undefined;
   prevRowBottom: number
 }
 
-function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed, prevRowBottom }: CurvedSplineProps) {
+function CurvedSpline({ y1, y2, even, rowHeight, prevRowBottom }: CurvedSplineProps) {
   /**
     Builds the SVG path string which renders from the specified Y coordinate
     on the left table (iStartY) to the specified Y coordinate on the right
@@ -261,7 +254,7 @@ function CurvedSpline({ y1, y2, numChildCases, even, rowHeight, isCollapsed, pre
     }
 
   const pathData = buildPathStr(y1, y2)
-  const fillData = buildFillPathStr((y1 - rowHeight), prevRowBottom, y1, y2 || rowHeight)
+  const fillData = buildFillPathStr((y1 - rowHeight), prevRowBottom, y1, y2)
   return (
     even
       ? <>
