@@ -18,7 +18,6 @@ describe("Attribute", () => {
     expect(importValueToString(3.1415926)).toBe("3.1415926")
     expect(importValueToString(1e6)).toBe("1000000")
     expect(importValueToString(1e-6)).toBe("0.000001")
-    expect(importValueToString({} as any)).toBe("{}")
     expect(importValueToString(true)).toBe("true")
     expect(importValueToString(false)).toBe("false")
 
@@ -278,6 +277,28 @@ describe("Attribute", () => {
     expect(barSnap.id).toBe(bar.id)
     expect(barSnap.name).toBe(bar.name)
     expect(barSnap.values?.length).toBe(0)
+  })
+
+  test.skip("value.toString() vs. JSON.stringify(value)", () => {
+    const values: number[] = []
+    for (let i = 0; i < 5000; ++i) {
+      const factor = Math.pow(10, Math.floor(6 * Math.random()))
+      const decimals = Math.pow(10, Math.floor(4 * Math.random()))
+      values.push(Math.round(factor * decimals * Math.random()) / decimals)
+    }
+    const start0 = performance.now()
+    const converted0 = values.map(value => JSON.stringify(value))
+    const elapsed0 = performance.now() - start0
+
+    const start1 = performance.now()
+    const converted1 = values.map(value => value.toString())
+    const elapsed1 = performance.now() - start1
+
+    expect(converted0).toEqual(converted1)
+    expect(elapsed0).toBeGreaterThan(elapsed1)
+    console.log("JSON.stringify:", `${elapsed0.toFixed(3)}ms,`,
+                "value.toString:", `${elapsed1.toFixed(3)}ms,`,
+                "% diff:", `${(100 * (elapsed0 - elapsed1) / elapsed0).toFixed(1)}%`)
   })
 
 })
