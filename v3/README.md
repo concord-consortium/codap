@@ -60,8 +60,8 @@ You *do not* need to build to deploy the code, that is automatic.  See more info
 ### Notes
 
 1. Make sure if you are using Visual Studio Code that you use the workspace version of TypeScript.
-   To ensure that you are open a TypeScript file in VSC and then click on the version number next to
-   `TypeScript React` in the status bar and select 'Use Workspace Version' in the popup menu.
+   To ensure that you are open a TypeScript file in VSC and then click on the `{}` button next to
+   `TypeScript JSX` in the status bar and select `Use Workspace Version` in the popup menu.
 
 ### Development
 
@@ -69,9 +69,9 @@ V3 pull requests should target the `main` branch and should apply the `v3` label
 
 ## Deployment
 
-Production releases to S3 are based on the contents of the `/dist` folder and are built automatically by GitHub Actions for each branch pushed to GitHub and each merge into the `v3-production` branch.
+Production releases to S3 are based on the contents of the `/dist` folder and are built automatically by GitHub Actions for each branch pushed to GitHub and each merge into the `main` branch.
 
-Merges into the `v3-production` branch are deployed to the root at http://codap3.concord.org.
+Production releases are deployed to the root at http://codap3.concord.org.
 
 Other branches are deployed to https://codap3.concord.org/branch/{branch-name}/, e.g. https://codap3.concord.org/branch/main/ for the `main` branch. Note that the trailing slash is required. For arcane reasons leaving off the slash results in a redirect to an invalid url. ¯\_(ツ)_/¯
 
@@ -97,7 +97,9 @@ To deploy a production release:
 - run `npm run test` to run the jest tests
 - run `npm run test -- a-particular.test` to run a particular test
 - run `npm run test:coverage` to run the jest tests and print out coverage statistics for the tested files
+- run `npm run test:coverage -- a-particular.test` to run a particular test and print out coverage statistics just for the specified tests
 - run `npm start` in one terminal and `npm run test:cypress` to run the cypress tests locally against a headless browser
+- run `npm start` in one terminal and `npm run test:cypress -- --spec cypress/e2e/a-particular.spec.ts` to run a particular cypress test locally
 - run `npm start` in one terminal and `npm run test:cypress:open` to run the cypress tests against an actual browser with the ability to debug, etc.
 
 ##### Cypress Run Options
@@ -117,6 +119,18 @@ Inside of your `package.json` file:
 1. `cypress run --browser chrome` will run cypress in a chrome browser
 2. `cypress run --headed --no-exit` will open cypress test runner when tests begin to run, and it will remain open when tests are finished running.
 3. `cypress run --spec 'cypress/integration/examples/smoke-test.js'` will point to a smoke-test file rather than running all of the test files for a project.
+
+### Debugging
+
+##### Why Did You Render?
+
+To debug React rendering problems, the [why-did-you-render](https://www.npmjs.com/package/@welldone-software/why-did-you-render) utility is available. To use it:
+- uncomment the `import "../why-did-you-render.ts"` line in `index.tsx`
+- by default, all "pure" components are tracked
+- this can be configured in the local `why-did-you-render.ts` file
+- individual components can be tracked by setting `MyComponent.whyDidYouRender = true`
+
+Remember not to commit any of these debug-only changes to the repository.
 
 ## License
 
