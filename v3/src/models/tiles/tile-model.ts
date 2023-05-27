@@ -125,6 +125,14 @@ export const TileModel = types
         content.doPostCreate(metadata)
       }
     },
+    afterAttach() {
+      // The afterAttach() method of the tile content gets called when the content is attached to the tile,
+      // which often occurs before the tile has been attached to the document. Therefore, the tile model
+      // will call the content's afterAttachToDocument() method when the tile model itself is attached.
+      if ("afterAttachToDocument" in self.content && typeof self.content.afterAttachToDocument === "function") {
+        self.content.afterAttachToDocument()
+      }
+    },
     onTileAction(call: ISerializedActionCall) {
       self.content.onTileAction?.(call)
     },
