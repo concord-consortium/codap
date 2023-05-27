@@ -1,24 +1,42 @@
 import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import { clsx } from "clsx"
-import { reaction } from "mobx"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { kIndexColumnKey, TColumn, TFormatterProps, TRow } from "./case-table-types"
+import { kIndexColumnKey, TColSpanArgs, TColumn, TFormatterProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
-import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { IAttribute } from "../../models/data/attribute"
+import { ICollectionPropsModel } from "../../models/data/collection"
+import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import t from "../../utilities/translation/translate"
+
+interface IColSpanProps {
+  data?: IDataSet
+  metadata?: ISharedCaseMetadata
+  collection: ICollectionPropsModel
+}
+function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: IColSpanProps) {
+  // collapsed rows span the entire table
+  if (args.type === "ROW") {
+    const row = args.row
+    const parentId = row[symParent]
+    if (parentId && metadata?.isCollapsed(parentId)) {
+      const visibleAttrCount = getCollectionAttrs(collection, data)
+                                .reduce((prev, attr) => metadata?.isHidden(attr.id) ? prev : ++prev, 0)
+      return visibleAttrCount + 1
+    }
+  }
+}
 
 export const useIndexColumn = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
-  const parentCollection = useParentCollectionContext()
   const collection = useCollectionContext()
   // formatter/renderer
   const formatter = useCallback(({ row: { __id__, [symIndex]: _index, [symParent]: parentId } }: TFormatterProps) => {
@@ -31,57 +49,26 @@ export const useIndexColumn = () => {
       <IndexCell caseId={__id__} index={index} collapsedCases={collapsedCases} />
     )
   }, [caseMetadata, data])
-  const [indexColumn, setIndexColumn] = useState<TColumn | undefined>()
+  const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
-    // rebuild index column definition when referenced properties change
-    const disposer = reaction(
-      () => {
-        const attrs: IAttribute[] = getCollectionAttrs(collection, data)
-        const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        const parentMetadata = caseMetadata && parentCollection
-                                ? caseMetadata?.collections.get(parentCollection.id)
-                                : undefined
-        const collapsed = new Set<string>()
-        data?.collectionGroups.forEach(collectionGroup => {
-          if (collectionGroup.collection.id === parentCollection?.id) {
-            parentMetadata?.collapsed.forEach((value, key) => {
-              const pCase = collectionGroup.groupsMap[key]?.pseudoCase
-              if (pCase) collapsed.add(pCase.__id__)
-            })
-          }
-        })
-        return { visible, collapsed }
+    // rebuild index column definition when necessary
+    indexColumn.current = {
+      key: kIndexColumnKey,
+      name: t("DG.CaseTable.indexColumnName"),
+      minWidth: 52,
+      width: 52,
+      headerCellClass: "codap-column-header index",
+      headerRenderer: ColumnHeader,
+      cellClass: "codap-index-cell",
+      colSpan(args: TColSpanArgs) {
+        return indexColumnSpan(args, { data, metadata: caseMetadata, collection })
       },
-      ({ visible, collapsed }) => {
-        setIndexColumn({
-          key: kIndexColumnKey,
-          name: t("DG.CaseTable.indexColumnName"),
-          minWidth: 52,
-          width: 52,
-          headerCellClass: "codap-column-header index",
-          headerRenderer: ColumnHeader,
-          cellClass: "codap-index-cell",
-          // TODO: better type
-          colSpan(args: any) {
-            // collapsed rows span the entire table
-            if (args.type === "ROW") {
-              const row: TRow = args.row
-              const parentId = row[symParent]
-              if (parentId && collapsed.has(parentId)) {
-                return visible.length + 1
-              }
-            }
-          },
-          formatter
-        })
-      },
-      { fireImmediately: true }
-    )
-    return disposer
-  }, [caseMetadata, collection, data, data?.collectionGroups, data?.ungroupedAttributes, formatter, parentCollection])
+      formatter
+    }
+  }, [caseMetadata, collection, data, formatter])
 
-  return indexColumn
+  return indexColumn.current
 }
 
 interface ICellProps {

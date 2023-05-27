@@ -1,6 +1,6 @@
 import {
-  CalculatedColumn, CellClickArgs, Column, EditorProps, FormatterProps, HeaderRendererProps, RowRendererProps,
-  RowsChangeData,
+  CalculatedColumn, CellClickArgs, ColSpanArgs, Column, EditorProps, FormatterProps, HeaderRendererProps,
+  RowRendererProps, RowsChangeData
 } from "react-data-grid"
 import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
 
@@ -23,6 +23,7 @@ export interface TFormatterProps extends FormatterProps<TRow> {}
 export interface THeaderRendererProps extends HeaderRendererProps<TRow> {}
 export interface TRowRendererProps extends RowRendererProps<TRow> {}
 export interface TCellClickArgs extends CellClickArgs<TRow> {}
+export type TColSpanArgs = ColSpanArgs<TRow, unknown>
 
 // used in lieu of attribute id for index column for ReactDataGrid
 export const kIndexColumnKey = "__index__"
