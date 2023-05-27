@@ -43,21 +43,22 @@ export const CodapComponent = observer(function CodapComponent({
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
         <Component tile={tile} isMinimized={isMinimized} />
-        {onRightPointerDown && !isFixedWidth &&
+        {onRightPointerDown && !isFixedWidth && !isMinimized &&
           <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
-        {onBottomPointerDown && !isFixedHeight &&
+        {onBottomPointerDown && !isFixedHeight && !isMinimized &&
           <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
-        {onLeftPointerDown && !isFixedWidth &&
+        {onLeftPointerDown && !isFixedWidth && !isMinimized &&
           <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
-        {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) &&
+        {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) && !isMinimized &&
           <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
         }
-        {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) &&
+        {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) && !isMinimized &&
           <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
-            {(uiState.isFocusedTile(tile.id) && !isMinimized) &&
+            {(uiState.isFocusedTile(tile.id)) && !isMinimized &&
               <ResizeHandle className="component-resize-handle"/>}
           </div>
         }
+
       </div>
       <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
     </TileModelContext.Provider>
