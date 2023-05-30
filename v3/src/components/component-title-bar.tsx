@@ -43,10 +43,11 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
       </Editable>
       <Flex className="header-right">
         <Button className="component-minimize-button">
-          <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}/>
+          <MinimizeIcon className="component-minimize-icon" title={t("DG.Component.minimizeComponent.toolTip")}
+          data-testid="component-minimize-icon"/>
         </Button>
         <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
-          onPointerDown={()=>onCloseTile?.(tileId)}/>
+          onPointerDown={()=>onCloseTile?.(tileId)} data-testid="component-close-button"/>
       </Flex>
     </Flex>
   )

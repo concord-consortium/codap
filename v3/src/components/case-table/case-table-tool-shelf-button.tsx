@@ -91,15 +91,20 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           const tileTitle = caseMetadata?.title ? caseMetadata?.title
                                                 : tableTile?.title ? tableTile?.title : dataset.dataSet.name
           return (
-            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>handleOpenDataSetTable(dataset)}>
+            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>handleOpenDataSetTable(dataset)}
+              data-testid={`toolshelf-table-${tileTitle}`}>
               {tileTitle}
-              <TrashIcon className="tool-shelf-menu-trash-icon"
+              <TrashIcon className="toolshelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem>{t("DG.AppController.caseTableMenu.clipboardDataset")}</MenuItem>
-        <MenuItem onClick={handleCreateNewDataSet}>{t("DG.AppController.caseTableMenu.newDataSet")}</MenuItem>
+        <MenuItem data-testid="toolshelf-table-new-clipboard">
+          {t("DG.AppController.caseTableMenu.clipboardDataset")}
+        </MenuItem>
+        <MenuItem onClick={handleCreateNewDataSet} data-testid="toolshelf-table-new">
+          {t("DG.AppController.caseTableMenu.newDataSet")}
+        </MenuItem>
       </MenuList>
       {modalOpen &&
         <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose}
