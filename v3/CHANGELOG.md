@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 3.0.0-pre.1225 - May 8, 2023
+
+### Features/Improvements
+- Hierachical case table -- sub-table titles can be edited by user [#184540405](https://www.pivotaltracker.com/story/show/184540405)
+
+### Bug Fixes
+- These elements contain a drag and drop feature that is currently inaccessible to screen reader and keyboard users [#183939719](https://www.pivotaltracker.com/story/show/183939719)
+- Slider initial value loads as NaN [#185024367](https://www.pivotaltracker.com/story/show/185024367)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   38996 bytes |                            0.08% |
+|  index.js | 3019991 bytes |                            0.03% |
+
 ## Version 3.0.0-pre.1220 - May 1, 2023
 
 ### Features/Improvements
