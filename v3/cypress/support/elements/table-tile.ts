@@ -138,15 +138,15 @@ export const TableTileElements = {
   },
   createNewTableFromToolshelf() {
     c.createFromToolshelf("table")
-    cy.get("[data-testid=toolshelf-table-new]").click()
+    cy.get("[data-testid=tool-shelf-table-new]").click()
   },
   createNewClipboardTableFromToolshelf() {
     c.createFromToolshelf("table")
-    cy.get("[data-testid=toolshelf-table-new-clipboard]").click()
+    cy.get("[data-testid=tool-shelf-table-new-clipboard]").click()
   },
   openExistingTableFromToolshelf(name) {
     c.createFromToolshelf("table")
-    cy.get(`[data-testid=toolshelf-table-${name}]`).click()
+    cy.get(`[data-testid=tool-shelf-table-${name}]`).click()
   },
   getToggleCardView() {
     return cy.get("[data-testid=case-table-toggle-view]")
