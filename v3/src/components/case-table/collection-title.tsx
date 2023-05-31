@@ -6,6 +6,7 @@ import {useResizeDetector} from "react-resize-detector"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import pluralize from "pluralize"
+import { uniqueName } from "../../utilities/js-utils"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
@@ -77,6 +78,12 @@ export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus
     }
   }
 
+  const handleAddNewAttribute = () => {
+    const newAttrName = uniqueName("newAttr",
+      (aName: string) => !data?.attributes.find(attr => aName === attr.name)
+     )
+    data?.addAttribute({name: newAttrName})  }
+
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
   const addIconClass = clsx("add-icon", { focused: isTileInFocus})
 
@@ -90,7 +97,7 @@ export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus
           <EditableInput value={title} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
-      <AddIcon className={addIconClass} style={addIconStyle}/>
+      <AddIcon className={addIconClass} style={addIconStyle} onClick={handleAddNewAttribute} />
     </div>
   )
 })
