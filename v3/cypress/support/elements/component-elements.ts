@@ -74,7 +74,7 @@ export const ComponentElements = {
     return cy.get("[data-testid=inspector-panel]")
   },
   getMinimizeButton(component, index = 0) {
-    return this.getComponentTile(component, index).find("[data-testid=component-minimize-icon]")
+    return this.getComponentTile(component, index).find("[data-testid=component-minimize-button]")
   },
   getCloseButton(component, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=component-close-button]")
