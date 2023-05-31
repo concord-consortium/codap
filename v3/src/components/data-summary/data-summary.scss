@@ -1,5 +1,12 @@
 @use "../vars.scss";
 
+.codap-component.codap-data-summary.minimized {
+  .data-summary {
+    visibility: hidden;
+    transition: visibility 0.25s;
+  }
+}
+
 .data-summary {
   position: relative;
   width: 100%;
