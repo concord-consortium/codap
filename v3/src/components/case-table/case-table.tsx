@@ -11,6 +11,7 @@ import { ICollectionPropsModel } from "../../models/data/collection"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
+import { uiState } from "../../models/ui-state"
 
 import "./case-table.scss"
 
@@ -22,6 +23,7 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
+  const isTileInFocus = uiState.isFocusedTile(tile?.id)
   return prf.measure("Table.render", () => {
     // disable the overlay for the index column
     const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
@@ -43,7 +45,7 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
               return (
                 <ParentCollectionContext.Provider key={key} value={parent}>
                   <CollectionContext.Provider key={key} value={collection}>
-                    <CollectionTable />
+                    <CollectionTable isTileInFocus={isTileInFocus}/>
                   </CollectionContext.Provider>
                 </ParentCollectionContext.Provider>
               )

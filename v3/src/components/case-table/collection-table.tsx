@@ -11,12 +11,16 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
-import { CollectionTitle } from './collection-title'
+import { CollectionTitle } from "./collection-title"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-export const CollectionTable = observer(function CollectionTable() {
+interface IProps {
+  isTileInFocus: boolean
+}
+
+export const CollectionTable = observer(function CollectionTable({ isTileInFocus }: IProps) {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const tableModel = useCaseTableModel()
@@ -52,7 +56,7 @@ export const CollectionTable = observer(function CollectionTable() {
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer rows={rows} onDrop={handleNewCollectionDrop} rowHeight={+styles.bodyRowHeight} />
       <div className="collection-table-and-title">
-        <CollectionTitle />
+        <CollectionTitle isTileInFocus={isTileInFocus}/>
         <DataGrid ref={gridRef} className="rdg-light"
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}

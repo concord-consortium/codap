@@ -4,13 +4,19 @@ import { Editable, EditableInput, EditablePreview } from "@chakra-ui/react"
 import throttle from "lodash/throttle"
 import {useResizeDetector} from "react-resize-detector"
 import { observer } from "mobx-react-lite"
+import { clsx } from "clsx"
 import pluralize from "pluralize"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import t from "../../utilities/translation/translate"
+import AddIcon from "../../assets/icons/icon-add-circle.svg"
 
-export const CollectionTitle = observer(function CollectionTitle() {
+interface IProps {
+  isTileInFocus: boolean
+}
+
+export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus }: IProps) {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const { setTitle, displayTitle } = collection
@@ -51,6 +57,8 @@ export const CollectionTitle = observer(function CollectionTitle() {
   const tileRect = tileRef.current?.getBoundingClientRect()
   const titleRect = titleRef.current?.getBoundingClientRect()
   const titleStyle: React.CSSProperties = { left: 0, right: 0 }
+  const addIconStyle: React.CSSProperties = { right: 0 }
+
   if (tileRect && titleRect) {
     const deltaLeft = titleRect.left - tileRect.left
     const deltaRight = titleRect.right - tileRect.right
@@ -59,6 +67,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
     }
     if (deltaRight > 0) {
       titleStyle.right = deltaRight
+      addIconStyle.right = deltaRight
     }
   }
 
@@ -69,6 +78,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
   }
 
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
+  const addIconClass = clsx("add-icon", { focused: isTileInFocus})
 
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
@@ -80,6 +90,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
           <EditableInput value={title} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
+      <AddIcon className={addIconClass} style={addIconStyle}/>
     </div>
   )
 })
