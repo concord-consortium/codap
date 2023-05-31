@@ -1,10 +1,12 @@
 import { useDndContext } from "@dnd-kit/core"
-import React, { useState } from "react"
+import { clsx } from "clsx"
+import React, { useCallback, useState } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document/free-tile-row"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { CodapComponent } from "./codap-component"
+import { kTitleBarHeight } from "./constants"
 
 interface IProps {
   row: IFreeTileRow;
@@ -32,6 +34,10 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
       }
     }
   })
+
+  const handleMinimizeTile = useCallback(() => {
+    rowTile?.setMinimized(!rowTile.isMinimized)
+  }, [rowTile])
 
   const handleResizePointerDown = (e: React.PointerEvent, mtile: IFreeTileLayout, direction: string) => {
     const startWidth = mtile.width
@@ -80,19 +86,25 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
   const startStyleLeft = left || 0
   const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
     width, height}
-  const style = tileId === resizingTileId
-                  ? resizingTileStyle
-                  : active && movingStyle
-                      ? movingStyle
-                      : tileStyle
+  const minimizedStyle = { left, top, width, height: kTitleBarHeight }
+  const style = rowTile?.isMinimized
+                  ? minimizedStyle
+                  : tileId === resizingTileId
+                    ? resizingTileStyle
+                    : active && movingStyle
+                        ? movingStyle
+                        : tileStyle
   // don't impose a width and height for fixed size components
   const info = getTileComponentInfo(tileType)
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
+  const classes = clsx("free-tile-component", { minimized: rowTile?.isMinimized })
   return (
-    <div className="free-tile-component" style={style} key={tileId} ref={setNodeRef}>
+    <div className={classes} style={style} key={tileId} ref={setNodeRef}>
       {tile && rowTile &&
         <CodapComponent tile={tile}
+          isMinimized={rowTile.isMinimized}
+          onMinimizeTile={handleMinimizeTile}
           onCloseTile={onCloseTile}
           onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
           onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}

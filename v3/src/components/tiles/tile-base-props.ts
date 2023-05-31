@@ -3,6 +3,7 @@ import { ITileModel } from "../../models/tiles/tile-model"
 
 export interface ITileBaseProps {
   tile?: ITileModel
+  isMinimized?: boolean
 }
 
 export interface ITileTitleBarProps extends ITileBaseProps {
@@ -11,6 +12,7 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   children?: ReactNode
   onHandleTitleBarClick?: (e: React.MouseEvent) => void
   onHandleTitleChange?: () => void
+  onMinimizeTile?: () => void
   onCloseTile?: (tileId: string) => void
 }
 
