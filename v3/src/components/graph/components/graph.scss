@@ -8,6 +8,12 @@ $graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
   graphEmptyLabelFont: $graph-empty-label-font;
 }
 
+.codap-component.codap-graph.minimized {
+  .graph-plot {
+    visibility: hidden;
+  }
+}
+
 .graph-plot {
   position: relative;
   width: 100%;
@@ -143,4 +149,3 @@ $graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
     opacity: 0.5;
   }
 }
-

@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 3.0.0-pre.1236 - May 30, 2023
+
+### Features/Improvements
+- Hierarchical case table -- grouping lines show case relationships [#184540510](https://www.pivotaltracker.com/story/show/184540510)
+- Case table button in tool shelf brings up menu [#184771808](https://www.pivotaltracker.com/story/show/184771808)
+- Slider axis animates to accommodate new value [#185022661](https://www.pivotaltracker.com/story/show/185022661)
+
+### Bug Fixes
+- Case table menu should show current table title [#185255625](https://www.pivotaltracker.com/story/show/185255625)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   40134 bytes |                            2.92% |
+|  index.js | 3034558 bytes |                            0.48% |
+
 ## Version 3.0.0-pre.1225 - May 8, 2023
 
 ### Features/Improvements
