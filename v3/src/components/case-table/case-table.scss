@@ -18,10 +18,12 @@ $table-body-font-size: 8pt;
     .collection-table {
       display: flex;
       align-items: stretch;
+      width: 100%;
 
       .collection-table-and-title {
         display: flex;
         flex-direction: column;
+        width: 100%;
 
         .collection-title-wrapper {
           position: relative;
