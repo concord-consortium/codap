@@ -16,11 +16,7 @@ import { CollectionTitle } from "./collection-title"
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-interface IProps {
-  isTileInFocus: boolean
-}
-
-export const CollectionTable = observer(function CollectionTable({ isTileInFocus }: IProps) {
+export const CollectionTable = observer(function CollectionTable() {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const tableModel = useCaseTableModel()
@@ -56,7 +52,7 @@ export const CollectionTable = observer(function CollectionTable({ isTileInFocus
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer rows={rows} onDrop={handleNewCollectionDrop} rowHeight={+styles.bodyRowHeight} />
       <div className="collection-table-and-title">
-        <CollectionTitle isTileInFocus={isTileInFocus}/>
+        <CollectionTitle />
         <DataGrid ref={gridRef} className="rdg-light"
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}

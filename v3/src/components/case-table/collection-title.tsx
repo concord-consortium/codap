@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { useDndContext } from "@dnd-kit/core"
-import { Editable, EditableInput, EditablePreview } from "@chakra-ui/react"
+import { Button, Editable, EditableInput, EditablePreview } from "@chakra-ui/react"
 import throttle from "lodash/throttle"
 import {useResizeDetector} from "react-resize-detector"
 import { observer } from "mobx-react-lite"
@@ -12,14 +12,12 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import t from "../../utilities/translation/translate"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 
-interface IProps {
-  isTileInFocus: boolean
-}
-
-export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus }: IProps) {
+export const CollectionTitle = observer(function CollectionTitle() {
   const data = useDataSetContext()
   const collection = useCollectionContext()
+  const { isTileSelected } = useTileModelContext()
   const { setTitle, displayTitle } = collection
   const defaultName = pluralize((getCollectionAttrs(collection, data)[0]?.name) ?? '')
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
@@ -32,6 +30,7 @@ export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus
   const { active } = useDndContext()
   const dragging = !!active
   const [isEditing, setIsEditing] = useState(false)
+  const isTileInFocus = isTileSelected()
 
   // re-render the component when either the tile or the title change size
   useResizeDetector({ targetRef: tileRef })
@@ -86,7 +85,7 @@ export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus
   }
 
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
-  const addIconClass = clsx("add-icon", { focused: isTileInFocus})
+  const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
@@ -98,7 +97,10 @@ export const CollectionTitle = observer(function CollectionTitle({ isTileInFocus
           <EditableInput value={title} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
-      <AddIcon className={addIconClass} style={addIconStyle} onClick={handleAddNewAttribute} />
+      <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
+          data-testid={"collection-add-attribute-icon-button"} style={addIconStyle} >
+        <AddIcon className={addIconClass} onClick={handleAddNewAttribute} />
+      </Button>
     </div>
   )
 })
