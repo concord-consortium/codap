@@ -9,27 +9,23 @@ import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
 import { CollectionTitle } from './collection-title'
-import { ITileModel } from "src/models/tiles/tile-model"
-import { uiState } from "../../models/ui-state"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-interface IProps {
-  tile?: ITileModel
-}
-
-export const CollectionTable = observer(function CollectionTable({ tile }: IProps) {
+export const CollectionTable = observer(function CollectionTable() {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const tableModel = useCaseTableModel()
   const collectionId = collection?.id || kChildMostTableCollectionId
   const gridRef = useRef<DataGridHandle>(null)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
-  const isFocused = uiState.isFocusedTile(tile?.id)
+  const { isTileSelected } = useTileModelContext()
+  const isFocused = isTileSelected()
 
   useEffect(()=>{
     if (isFocused && gridRef.current?.element) {

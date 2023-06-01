@@ -43,7 +43,7 @@ export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProp
               return (
                 <ParentCollectionContext.Provider key={key} value={parent}>
                   <CollectionContext.Provider key={key} value={collection}>
-                    <CollectionTable tile={tile}/>
+                    <CollectionTable />
                   </CollectionContext.Provider>
                 </ParentCollectionContext.Provider>
               )
