@@ -80,6 +80,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
       className={clsx("slider-thumb-icon", { dragging: isDragging })}
       onPointerDown={handlePointerDown}
       style={thumbStyle}
+      data-testid="slider-thumb-icon"
     />
   )
 })

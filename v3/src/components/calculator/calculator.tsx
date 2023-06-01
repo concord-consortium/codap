@@ -71,7 +71,8 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   calcButtonsArr.forEach((button:Record<string, any>) => {
     for (const key in button) {
       calcButtons.push(
-        <Button key={key} className="calc-button" onClick={button[key]}>
+        <Button key={key} className="calc-button" onClick={button[key]}
+        data-testid="calc-button">
          {key}
         </Button>
       )
@@ -80,10 +81,13 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   return (
     <Flex className="calculator-wrapper">
       <Flex className="calculator" data-testid="codap-calculator">
-        <Text className="calc-input">{calcValue}</Text>
+        <Text className="calc-input" data-testid="calc-input">{calcValue}</Text>
         <Flex className="calc-buttons">
             {calcButtons}
-            <Button className="calc-button wide" onClick={handleEvaluateButtonPress}>=</Button>
+            <Button className="calc-button wide" onClick={handleEvaluateButtonPress} 
+            data-testid="calc-button">
+              =
+            </Button>
         </Flex>
       </Flex>
     </Flex>

@@ -58,14 +58,15 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       <AxisLayoutContext.Provider value={layout}>
         <div className={kSliderClass} ref={sliderRef}>
           <Flex className="slider-control">
-            <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}>
+            <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning} 
+              data-testid="slider-play-pause">
               { running ? <PauseIcon /> : <PlayIcon /> }
             </Button>
             <Flex className="slider-inputs">
               <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
                   onChange={handleSliderNameInput} data-testid="slider-variable-name">
-                <EditablePreview className="name-text"/>
-                <EditableInput className="name-text-input text-input"/>
+                <EditablePreview className="name-text" data-testid="slider-variable-name-text"/>
+                <EditableInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"/>
               </Editable>
               <span className="equals-sign">&nbsp;=&nbsp;</span>
               <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale} />
@@ -77,7 +78,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
             />
             <div className="slider-axis-wrapper" style={axisStyle}>
               <div className="axis-end min" />
-              <svg className="slider-axis">
+              <svg className="slider-axis" data-testid="slider-axis">
                 <Axis
                   getAxisModel={() => sliderModel.axis}
                   enableAnimation={animationRef}
