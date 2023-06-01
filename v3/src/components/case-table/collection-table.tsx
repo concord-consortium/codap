@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kChildMostTableCollectionId, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
@@ -12,21 +12,30 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
 import { CollectionTitle } from './collection-title'
+import { ITileModel } from "src/models/tiles/tile-model"
+import { uiState } from "../../models/ui-state"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-export const CollectionTable = observer(function CollectionTable() {
+interface IProps {
+  tile?: ITileModel
+}
+
+export const CollectionTable = observer(function CollectionTable({ tile }: IProps) {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const tableModel = useCaseTableModel()
   const collectionId = collection?.id || kChildMostTableCollectionId
   const gridRef = useRef<DataGridHandle>(null)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
-  const collectionGridRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    collectionGridRef.current = document.querySelector(`.collection-${collectionId} .rdg-light`)
-  }, [collectionId])
+  const isFocused = uiState.isFocusedTile(tile?.id)
+
+  useEffect(()=>{
+    if (isFocused && gridRef.current?.element) {
+      gridRef.current.element.scrollTop = tableModel?.scrollTopMap.get(collectionId) ?? 0
+    }
+  }, [isFocused, collectionId, tableModel?.scrollTopMap])
 
   // columns
   const indexColumn = useIndexColumn()
@@ -44,8 +53,8 @@ export const CollectionTable = observer(function CollectionTable() {
   if (!data) return null
 
   function handleGridScroll() {
-    (collectionGridRef.current?.scrollTop != null) &&
-      tableModel?.setScrollTopMap(collectionId, collectionGridRef.current?.scrollTop)
+    (gridRef.current?.element?.scrollTop != null) &&
+      tableModel?.setScrollTopMap(collectionId, gridRef.current?.element?.scrollTop)
   }
 
   return (
