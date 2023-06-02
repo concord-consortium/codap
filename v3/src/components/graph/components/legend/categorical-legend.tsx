@@ -300,6 +300,8 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       },
       () => {
         layout.setDesiredExtent('legend', computeDesiredExtent())
+        // todo: Figure out whether this is cause extra calls to setupKeys and refreshKeys
+        setupKeys()
         refreshKeys()
       }, {fireImmediately: true}
     )
