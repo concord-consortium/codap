@@ -26,7 +26,7 @@ context("case table ui", () => {
           table.getCollectionTitle().should("contain", collectionName)
         })
         it("verify columns and tooltips", () => {
-            table.getColumnHeaders().should("have.length", 10)
+            table.getColumnHeaders().should("have.length", 9)
             table.getColumnHeader(0).invoke("text").then(columnName => {
                 const columnNameArr = columnName.split()
                 table.getColumnHeader(0).rightclick({force:true})
