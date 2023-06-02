@@ -1,14 +1,250 @@
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
+import { ComponentElements as c } from "../support/elements/component-elements"
+
+const sliderName = "v1"
+const newName = "v2"
+const initialSliderValue = "0.5"
+const finalSliderValue = "11.5"
+const newSliderValue = "0.6"
 
 context("Slider UI", () => {
-    beforeEach(function () {
-        const queryParams = "?sample=mammals&dashboard&mouseSensor"
-        const url = `${Cypress.config("index")}${queryParams}`
-        cy.visit(url)
-        cy.wait(2500)
+  beforeEach(function () {
+    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2500)
+  })
+  it("populates default title, variable name and value", () => {
+    c.getComponentTitle("slider").should("contain", sliderName)
+    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused()
+    slider.getSliderThumbIcon().should("be.visible")
+    slider.getSliderAxis().should("be.visible")
+  })
+  it("updates slider title", () => {
+    const newSliderName = "abc"
+    c.getComponentTitle("slider").should("have.text", sliderName)
+    c.changeComponentTitle("slider", newSliderName)
+    c.getComponentTitle("slider").should("have.text", newSliderName)
+    slider.getVariableName().should("have.text", sliderName)
+  })
+  it("updates variable name", () => {
+    slider.getVariableName().should("have.text", "v1")
+    slider.changeVariableName(newName)
+    slider.getVariableName().should("have.text", newName)
+    c.getComponentTitle("slider").should("have.text", newName)
+  })
+  it("adds new variable value", () => {
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.changeVariableValue(newSliderValue)
+    slider.getVariableValue().should("contain", newSliderValue)
+  })
+  it("plays and pauses slider", () => {
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    slider.pauseSliderButton()
+    slider.checkPlayButtonIsPaused()
+    slider.getVariableValue().should("not.contain", initialSliderValue)
+    slider.playSliderButton()
+    cy.wait(2500)
+    slider.checkPlayButtonIsPaused()
+    slider.getVariableValue().should("contain", finalSliderValue)
+  })
+  it("replays from initial value once it reaches the end", () => {
+    slider.setAnimationRate(3)
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    cy.wait(15000)
+    slider.checkPlayButtonIsPaused()
+    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.playSliderButton()
+    slider.getVariableValue().should("contain", "0")
+  })
+  it("plays low to high animation direction", () => {
+    slider.setAnimationRate(3)
+    slider.setAnimationDirection("lowToHigh")
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.checkPlayButtonIsPaused()
+  })
+  it("plays back and forth animation direction", () => {
+    slider.setAnimationRate(3)
+    slider.setAnimationDirection("backAndForth")
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", "2.5")
+    slider.checkPlayButtonIsPaused()
+  })
+  it("plays high to low animation direction", () => {
+    slider.setAnimationRate(3)
+    slider.setAnimationDirection("highToLow")
+    slider.changeVariableValue(finalSliderValue)
+    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused()
+  })
+  it("plays nonstop", () => {
+    slider.setAnimationRate(3)
+    slider.setAnimationRepetition("nonStop")
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", finalSliderValue)
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsRunning()
+  })
+  it("plays with restricting multiples", () => {
+    const initialValue = "0"
+    const finalValue = "60"
+    const multiple = "10"
+    const values = ["10", "20", "30", "40", "50", "60"]
+
+    slider.setAnimationRate(3)
+    slider.changeVariableValue(finalValue)
+    slider.setMultipleRestriction(multiple)
+    slider.changeVariableValue(initialValue)
+    slider.getVariableValue().should("contain", initialValue)
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+    slider.getVariableValue().should("contain", values[0])
+    slider.getVariableValue().should("contain", values[1])
+    slider.getVariableValue().should("contain", values[2])
+    slider.getVariableValue().should("contain", values[3])
+    slider.getVariableValue().should("contain", values[4])
+    slider.getVariableValue().should("contain", values[5])
+    slider.checkPlayButtonIsPaused()
+  })
+  it("creates another slider from toolshelf", () => {
+    c.createFromToolshelf("slider")
+
+    c.getComponentTitle("slider").should("contain", sliderName)
+    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused()
+
+    c.getComponentTitle("slider", 1).should("contain", newName)
+    slider.getVariableName(1).should("have.text", newName)
+    slider.getVariableValue(1).should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused(1)
+  })
+  it("checks editing variable name in one slider only affects that slider", () => {
+    const newSliderName = "xyz"
+    c.createFromToolshelf("slider")
+    
+    slider.changeVariableName(newSliderName, 1)
+    c.getComponentTitle("slider", 0).should("contain", sliderName)
+    c.getComponentTitle("slider", 1).should("contain", newSliderName)
+    slider.getVariableName(0).should("have.text", sliderName)
+    slider.getVariableName(1).should("have.text", newSliderName)
+  })
+  it("checks editing variable value in one slider only affects that slider", () => {
+    const newVariableValue = "100"
+    c.createFromToolshelf("slider")
+    
+    slider.changeVariableValue(newVariableValue, 1)
+    slider.getVariableValue(0).should("contain", initialSliderValue)
+    slider.getVariableValue(1).should("contain", newVariableValue)
+  })
+  it("checks playing in one slider only plays that slider", () => {
+    c.createFromToolshelf("slider")
+    slider.setAnimationRate(3, 1)
+
+    slider.checkPlayButtonIsPaused(0)
+    slider.checkPlayButtonIsPaused(1)
+
+    slider.playSliderButton(1)
+    slider.checkPlayButtonIsPaused(0)
+    slider.checkPlayButtonIsRunning(1)
+
+    slider.pauseSliderButton(1)
+    slider.checkPlayButtonIsPaused(0)
+    slider.checkPlayButtonIsPaused(1)
+
+    slider.playSliderButton(1)
+    slider.checkPlayButtonIsPaused(0)
+    slider.checkPlayButtonIsRunning(1)
+
+    cy.wait(2500)
+    slider.checkPlayButtonIsPaused(0)
+    slider.checkPlayButtonIsPaused(1)
+  })
+  it("creates sliders with incrementing names", () => {
+    c.createFromToolshelf("slider")
+
+    c.getComponentTitle("slider").should("contain", sliderName)
+    slider.getVariableName().should("have.text", sliderName)
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused()
+
+    c.getComponentTitle("slider", 1).should("contain", "v2")
+    slider.getVariableName(1).should("have.text", "v2")
+    slider.getVariableValue(1).should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused(1)
+
+    c.createFromToolshelf("slider")
+    c.getComponentTitle("slider", 2).should("contain", "v3")
+    slider.getVariableName(2).should("have.text", "v3")
+    slider.getVariableValue(2).should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused(2)
+  })
+  it("creates sliders with incrementing names when existing ones are closed", () => {
+    c.closeComponent("slider")
+    c.checkComponentDoesNotExist("slider")
+    c.createFromToolshelf("slider")
+
+    c.getComponentTitle("slider").should("contain", "v2")
+    slider.getVariableName().should("have.text", "v2")
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused()
+
+    c.closeComponent("slider")
+    c.checkComponentDoesNotExist("slider")
+    c.createFromToolshelf("slider")
+
+    c.getComponentTitle("slider").should("contain", "v3")
+    slider.getVariableName().should("have.text", "v3")
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.checkPlayButtonIsPaused()
+
+  })
+  it("checks all slider tooltips", () => {
+    c.selectTile("slider", 0)
+    c.getToolShelfIcon("slider").then($element => {
+      c.checkToolTip($element, c.tooltips.sliderToolShelfIcon)
     })
-    it("does not populate title bar from sample data", () => {
-      const sliderName = "v1"
-      slider.getComponentTitle().should("contain", sliderName)
+    c.getMinimizeButton("slider").then($element => {
+      c.checkToolTip($element, c.tooltips.minimizeComponent)
     })
+    c.getCloseButton("slider").then($element => {
+      c.checkToolTip($element, c.tooltips.closeComponent)
+    })
+    slider.getInspectorIcon().then($element => {
+      c.checkToolTip($element, c.tooltips.inspectorPanel)
+    })
+  })
+  it("checks min max slider values", () => {
+    slider.getVariableValue().should("contain", initialSliderValue)
+    slider.changeVariableValue("12345678901234567890")
+    slider.getVariableValue().should("contain", "1.235e+14")
+
+    // slider.changeVariableValue("0.12345678901234567890")
+    // slider.getVariableValue().should("contain", "0")
+
+    // slider.changeVariableValue("0.006")
+    // slider.getVariableValue().should("contain", "0")
+    
+    slider.changeVariableValue("abc")
+    slider.getVariableValue().should("contain", "")
+  })
 })

@@ -46,7 +46,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.multiples")}
               <NumberInput className="slider-input multiples" size="xs" defaultValue={sliderModel.multipleOf}
-                  step={0.5} onChange={handleMultiplesOfChange}>
+                  step={0.5} onChange={handleMultiplesOfChange} data-testid="slider-restrict-multiples">
                 <NumberInputField />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
@@ -60,7 +60,8 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
               <NumberInput className="slider-input animation-rate" size="xs"
-                  step={0.1} defaultValue={sliderModel._animationRate} onChange={handleAnimationRateChange}>
+                  step={0.1} defaultValue={sliderModel._animationRate} 
+                  onChange={handleAnimationRateChange} data-testid="slider-animation-rate">
                 <NumberInputField />
                   <NumberInputStepper>
                     <NumberIncrementStepper />
@@ -74,7 +75,8 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
               <Select className="slider-select direction" value={sliderModel.animationDirection}
-                      onChange={e => sliderModel.setAnimationDirection(e.target.value as AnimationDirection)}>
+                      onChange={e => sliderModel.setAnimationDirection(e.target.value as AnimationDirection)}
+                      data-testid="slider-animation-direction">
                 {AnimationDirections.map(direction => (
                   <option key={direction} value={direction}>{t(`DG.Slider.${direction}`)}</option>
                 ))}
@@ -86,7 +88,8 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
               <Select className="slider-select mode" value={sliderModel.animationMode}
-                      onChange={e => sliderModel.setAnimationMode(e.target.value as AnimationMode)}>
+                      onChange={e => sliderModel.setAnimationMode(e.target.value as AnimationMode)}
+                      data-testid="slider-animation-repetition">
                 {AnimationModes.map(mode => (
                   <option key={mode} value={mode}>{t(`DG.Slider.${mode}`)}</option>
                 ))}

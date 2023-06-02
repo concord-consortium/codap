@@ -49,7 +49,8 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, ...o
         onHandleTitleChange={handleChangeTitle}>
       <div className="header-left"
             title={cardTableToggleString}
-            onClick={handleShowCardTableToggleMessage}>
+            onClick={handleShowCardTableToggleMessage}
+            data-testid={"case-table-toggle-view"}>
         {showCaseCard
           ? <TableIcon className="table-icon" />
           : <CardIcon className="card-icon"/>
