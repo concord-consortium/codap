@@ -1,12 +1,13 @@
 import {ScaleBand} from "d3"
-import React, {useCallback} from "react"
+import {autorun} from "mobx"
+import React, {useCallback, useEffect} from "react"
 import {CaseData, selectDots} from "../d3-types"
 import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
+import {setPointCoordinates, setPointSelection, startAnimation} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
@@ -104,12 +105,12 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       primaryCellWidth = ((primOrdinalScale.bandwidth?.()) ?? 0) /
         (dataConfiguration?.numRepetitionsForPlace(primaryAxisPlace) ?? 1),
       primaryHeight = (secOrdinalScale.bandwidth ? secOrdinalScale.bandwidth()
-        : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0)) /
-            (dataConfiguration?.numRepetitionsForPlace(secondaryAxisPlace) ?? 1),
+          : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0)) /
+        (dataConfiguration?.numRepetitionsForPlace(secondaryAxisPlace) ?? 1),
       extraPrimCellWidth = (extraPrimOrdinalScale.bandwidth?.()) ?? 0,
       extraSecCellWidth = (extraSecOrdinalScale.bandwidth?.()) ?? 0,
       catMap: Record<string, Record<string, Record<string, Record<string,
-          { cell: { p: number, s: number, ep: number, es: number }, numSoFar: number }>>>> = {},
+        { cell: { p: number, s: number, ep: number, es: number }, numSoFar: number }>>>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
@@ -154,8 +155,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       cellParams = computeCellParams(),
 
       buildMapOfIndicesByCase = () => {
-        const indices: Record<string, { cell: { p: number, s: number, ep:number, es:number },
-            row: number, column: number }> = {},
+        const indices: Record<string, {
+            cell: { p: number, s: number, ep: number, es: number },
+            row: number, column: number
+          }> = {},
           primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
           secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? ''
         primaryAttrID && (dataConfiguration?.caseDataArray || []).forEach((aCaseData: CaseData) => {
@@ -213,8 +216,19 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor,
     enableAnimation, primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
+  useEffect(function respondToCategorySetChange() {
+    // todo: It would be more natural to use a reaction here instead of an autorun, but that doesn't work. Why?
+    return autorun(() => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const values = layout.getAxisMultiScale(primaryAxisPlace).categorySetValues
+      startAnimation(enableAnimation)
+      refreshPointPositions(false)
+    })
+  }, [layout, primaryAxisPlace, refreshPointPositions, enableAnimation])
+
   usePlotResponders({
-    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation })
+    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
+  })
 
   return (
     <></>
