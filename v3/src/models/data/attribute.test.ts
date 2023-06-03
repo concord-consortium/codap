@@ -296,6 +296,7 @@ describe("Attribute", () => {
 
     expect(converted0).toEqual(converted1)
     expect(elapsed0).toBeGreaterThan(elapsed1)
+    // eslint-disable-next-line no-console
     console.log("JSON.stringify:", `${elapsed0.toFixed(3)}ms,`,
                 "value.toString:", `${elapsed1.toFixed(3)}ms,`,
                 "% diff:", `${(100 * (elapsed0 - elapsed1) / elapsed0).toFixed(1)}%`)
