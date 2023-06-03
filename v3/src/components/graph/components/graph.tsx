@@ -33,7 +33,7 @@ import "./graph.scss"
 
 interface IProps {
   graphController: GraphController
-  graphRef: MutableRefObject<HTMLDivElement>
+  graphRef: MutableRefObject<HTMLDivElement | null>
   dotsRef: IDotsRef
 }
 
