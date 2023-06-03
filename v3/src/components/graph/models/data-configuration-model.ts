@@ -304,6 +304,17 @@ export const DataConfigurationModel = types
         }
         return categoryArray
       },
+      /**
+       * This is called when the user swaps categories in the legend, but not when the user swaps categories
+       * by dragging categories on an axis.
+       * @param role
+       */
+      storeAllCurrentColorsForAttrRole(role: GraphAttrRole) {
+        const categorySet = this.categorySetForAttrRole(role)
+        if (categorySet) {
+          categorySet.storeAllCurrentColors()
+        }
+      },
       swapCategoriesForAttrRole(role: GraphAttrRole, catIndex1: number, catIndex2: number) {
         const categoryArray = this.categoryArrayForAttrRole(role),
           numCategories = categoryArray.length,
@@ -316,7 +327,6 @@ export const DataConfigurationModel = types
         if (categorySet && numCategories > catIndex1 && numCategories > catIndex2) {
           const cat1 = categoryArray[catIndex1],
             beforeCat = catIndex2 < numCategories - 1 ? categoryArray[catIndex2 + 1] : undefined
-          categorySet.storeAllCurrentColors()
           categorySet.move(cat1, beforeCat)
         }
       },

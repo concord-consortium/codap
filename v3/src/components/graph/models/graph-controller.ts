@@ -137,13 +137,13 @@ export class GraphController {
         }
           break
         case 'categorical': {
-          const setOfValues = dataConfig.categoryArrayForAttrRole(attrRole)
+          const arrayOfValues = dataConfig.categoryArrayForAttrRole(attrRole)
           if (currentType !== 'categorical') {
             const newAxisModel = CategoricalAxisModel.create({place})
             graphModel.setAxis(place, newAxisModel)
             layout.setAxisScaleType(place, 'band')
           }
-          layout.getAxisMultiScale(place)?.setCategoricalDomain(setOfValues)
+          layout.getAxisMultiScale(place)?.setCategoricalDomain(arrayOfValues)
         }
           break
         case 'empty': {
