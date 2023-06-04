@@ -12,7 +12,7 @@ $slider-component-height: 98px;
   position: relative;
   overflow: clip;
   height: calc($slider-component-height - $title-bar-height);
-  transition: height 0.25s;
+  transition: $minimize-transition;
   background: #fff;
   border-radius: $border-radius-bottom-corners;
 

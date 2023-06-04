@@ -10,7 +10,7 @@
     position: absolute;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 25%);
     border-radius: 6px;
-    transition: height 0.5s ease-in-out 0s;
+    transition: $minimize-transition;
     &.minimized {
       height: $title-bar-height;
     }
