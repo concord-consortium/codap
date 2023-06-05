@@ -116,7 +116,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const topButtonTooltip = t(topTooltipKey)
 
   return (
-    <div className="collection-table-spacer-wrapper">
+    <div className="collection-table-spacer">
       <div className="collection-table-spacer-divider" />
       <div className={classes} ref={handleRef}>
         <div className="spacer-top">
