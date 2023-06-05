@@ -8,17 +8,15 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { ICollectionPropsModel } from "../../models/data/collection"
-import { ITileModel } from "../../models/tiles/tile-model"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
 
 import "./case-table.scss"
 
 interface IProps {
-  tile?: ITileModel
   setNodeRef: (element: HTMLElement | null) => void
 }
-export const CaseTable = observer(function CaseTable({ tile, setNodeRef }: IProps) {
+export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()

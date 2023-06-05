@@ -11,7 +11,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
-import { CollectionTitle } from './collection-title'
+import { CollectionTitle } from "./collection-title"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
