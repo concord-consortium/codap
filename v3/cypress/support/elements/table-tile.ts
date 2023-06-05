@@ -27,7 +27,7 @@ export const TableTileElements = {
   },
   openIndexMenuForRow(rowNum) {
     cy.get(`[data-testid=case-table] [role=grid] [role=row][aria-rowindex="${rowNum}"]
-            [data-testid=codap-index-content-button]`).click()
+            [data-testid=codap-index-content-button]`).click("top")
   },
   getIndexMenu() {
     return cy.get("[data-testid=index-menu-list]")
