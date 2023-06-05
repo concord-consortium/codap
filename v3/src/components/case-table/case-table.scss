@@ -44,6 +44,30 @@ $table-body-font-size: 8pt;
             font-style: italic;
             color: #0f2633; // Not used anywhere else at the moment, so we're leaving it unnamed
           }
+
+          .add-attribute-icon-button {
+            background-color: transparent;
+            width: 22px;
+            height: 22px;
+            border: none;
+            position: absolute;
+            top: 0;
+            padding-inline-start: 0;
+            padding-inline-end: 0;
+
+            .add-icon {
+              visibility: hidden;
+              fill: #8b8b8b;
+              &.focused {
+                visibility: visible;
+                opacity: 0.5;
+                cursor: pointer;
+                &:hover {
+                  opacity: 1;
+                }
+              }
+            }
+          }
         }
       }
 
