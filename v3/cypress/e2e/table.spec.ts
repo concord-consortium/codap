@@ -30,7 +30,7 @@ context("case table ui", () => {
     })
     it("verify columns and tooltips", () => {
       // css width specification caused grid virtualization to only have 9 attributes in the DOM
-      table.getColumnHeaders().should("be.within", 9, 10)
+      table.getColumnHeaders().should("have.length.be.within", 9, 10)
       table.getColumnHeader(0).invoke("text").then(columnName => {
         const columnNameArr = columnName.split()
         table.getColumnHeader(0).rightclick({ force: true })
