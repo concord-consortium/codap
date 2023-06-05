@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { TEditorProps } from "./case-table-types"
+import { TRenderEditCellProps } from "./case-table-types"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -21,7 +21,7 @@ function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.select()
 }
 
-export default function CellTextEditor({ row, column, onRowChange, onClose }: TEditorProps) {
+export default function CellTextEditor({ row, column, onRowChange, onClose }: TRenderEditCellProps) {
   const data = useDataSetContext()
   const initialValueRef = useRef(data?.getStrValue(row.__id__, column.key))
   const valueRef = useRef(initialValueRef.current)

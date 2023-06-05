@@ -2,7 +2,7 @@ import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { kIndexColumnKey, TColSpanArgs, TColumn, TFormatterProps } from "./case-table-types"
+import { kIndexColumnKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
@@ -38,8 +38,9 @@ export const useIndexColumn = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collection = useCollectionContext()
-  // formatter/renderer
-  const formatter = useCallback(({ row: { __id__, [symIndex]: _index, [symParent]: parentId } }: TFormatterProps) => {
+  // renderer
+  const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
+    const { __id__, [symIndex]: _index, [symParent]: parentId } = row
     const index = _index != null ? _index : data?.caseIndexFromID(__id__)
     const collapsedCases = (data && parentId && caseMetadata?.isCollapsed(parentId))
                             ? data.pseudoCaseMap[parentId]?.childPseudoCaseIds?.length ??
@@ -59,14 +60,14 @@ export const useIndexColumn = () => {
       minWidth: 52,
       width: 52,
       headerCellClass: "codap-column-header index",
-      headerRenderer: ColumnHeader,
+      renderHeaderCell: ColumnHeader,
       cellClass: "codap-index-cell",
       colSpan(args: TColSpanArgs) {
         return indexColumnSpan(args, { data, metadata: caseMetadata, collection })
       },
-      formatter
+      renderCell: RenderIndexCell
     }
-  }, [caseMetadata, collection, data, formatter])
+  }, [caseMetadata, collection, data, RenderIndexCell])
 
   return indexColumn.current
 }

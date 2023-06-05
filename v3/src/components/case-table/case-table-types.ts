@@ -1,6 +1,6 @@
 import {
-  CalculatedColumn, CellClickArgs, ColSpanArgs, Column, EditorProps, FormatterProps, HeaderRendererProps,
-  RowRendererProps, RowsChangeData
+  CalculatedColumn, CellClickArgs, ColSpanArgs, Column, RenderEditCellProps, RenderCellProps, RenderHeaderCellProps,
+  RenderRowProps, RowsChangeData
 } from "react-data-grid"
 import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
 
@@ -18,10 +18,10 @@ export interface TRow extends IGroupedCase {
 export interface TRowsChangeData extends RowsChangeData<TRow> {}
 export interface TColumn extends Column<TRow> {}
 export interface TCalculatedColumn extends CalculatedColumn<TRow> {}
-export interface TEditorProps extends EditorProps<TRow> {}
-export interface TFormatterProps extends FormatterProps<TRow> {}
-export interface THeaderRendererProps extends HeaderRendererProps<TRow> {}
-export interface TRowRendererProps extends RowRendererProps<TRow> {}
+export interface TRenderEditCellProps extends RenderEditCellProps<TRow> {}
+export interface TRenderCellProps extends RenderCellProps<TRow> {}
+export interface TRenderHeaderCellProps extends RenderHeaderCellProps<TRow> {}
+export interface TRenderRowProps extends RenderRowProps<TRow> {}
 export interface TCellClickArgs extends CellClickArgs<TRow> {}
 export type TColSpanArgs = ColSpanArgs<TRow, unknown>
 

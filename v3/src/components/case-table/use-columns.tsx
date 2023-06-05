@@ -8,7 +8,7 @@ import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
-import { symDom, TColumn, TFormatterProps } from "./case-table-types"
+import { symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
 
@@ -35,8 +35,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const collection = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
-  // cell formatter/renderer
-  const CellFormatter = useCallback(({ column, row }: TFormatterProps) => {
+  // cell renderer
+  const RenderCell = useCallback(({ column, row }: TRenderCellProps) => {
     const formatStr = data?.attrFromID(column.key)?.format || kDefaultFormatStr
     const formatter = getFormatter(formatStr)
     const str = data?.getValue(row.__id__, column.key) ?? ""
@@ -79,7 +79,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 headerCellClass: "codap-column-header",
                 headerRenderer: ColumnHeader,
                 cellClass: "codap-data-cell",
-                formatter: CellFormatter,
+                formatter: RenderCell,
                 editor: editable ? CellTextEditor : undefined
               }))
           ]
@@ -89,7 +89,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       { fireImmediately: true }
     )
     return () => disposer()
-  }, [CellFormatter, caseMetadata, collection, data, indexColumn, parentCollection])
+  }, [RenderCell, caseMetadata, collection, data, indexColumn, parentCollection])
 
   return columns
 }
