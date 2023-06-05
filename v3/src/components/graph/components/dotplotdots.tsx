@@ -243,7 +243,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         },
         getSecondaryScreenCoord = (anID: string) => {
           if (!binMap[anID]) {
-            return NaN
+            return null // Not NaN because NaN causes errors during transitions
           }
           const secondaryCat = binMap[anID].category,
             extraSecondaryCat = binMap[anID].extraCategory,
