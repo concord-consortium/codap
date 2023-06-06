@@ -4,8 +4,8 @@ import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import {clsx} from "clsx"
 import { AxisPlace } from "../axis-types"
-import { useAxisBounds } from "../hooks/use-axis-bounds"
 import { DropHint } from "../../graph/components/drop-hint"
+import {useGraphLayoutContext} from "../../graph/models/graph-layout";
 
 interface IProps {
   place: AxisPlace
@@ -17,7 +17,8 @@ interface IProps {
 }
 export const DroppableAxis = observer(function DroppableAxis(
   { place, portal, target, dropId, hintString, onIsActive }: IProps) {
-  const axisBounds = useAxisBounds(place)
+  const layout = useGraphLayoutContext(),
+    axisBounds = layout?.getComputedBounds(place)
 
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
