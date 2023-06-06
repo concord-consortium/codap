@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import {clsx} from "clsx"
 import { AxisPlace } from "../axis-types"
 import { DropHint } from "../../graph/components/drop-hint"
-import {useGraphLayoutContext} from "../../graph/models/graph-layout";
+import {useGraphLayoutContext} from "../../graph/models/graph-layout"
 
 interface IProps {
   place: AxisPlace

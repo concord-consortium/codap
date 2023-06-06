@@ -1,4 +1,4 @@
-import React, {MutableRefObject, useEffect} from "react"
+import React, {MutableRefObject, useEffect, useState} from "react"
 import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
 import {Active} from "@dnd-kit/core"
@@ -16,7 +16,6 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {DroppableAxis} from "../../axis/components/droppable-axis"
 import {AttributeLabel} from "./attribute-label"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
-import {useAxisBoundsProvider} from "../../axis/hooks/use-axis-bounds"
 
 interface IProps {
   place: AxisPlace
@@ -36,6 +35,9 @@ export const GraphAxis = observer(function GraphAxis(
     droppableId = `${instanceId}-${place}-axis-drop`,
     hintString = useDropHintString({role: axisPlaceToAttrRole[place]})
 
+  const [parentElt, setParentElt] = useState<HTMLDivElement | null>(null)
+  const [wrapperElt, setWrapperElt] = useState<SVGGElement | null>(null)
+
   const handleIsActive = (active: Active) => {
     const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
     if (isDropAllowed) {
@@ -44,15 +46,15 @@ export const GraphAxis = observer(function GraphAxis(
       return !!droppedAttrId
     }
   }
-
-  const {parentElt, wrapperElt,
-    setWrapperElt} = useAxisBoundsProvider(place, kGraphClassSelector)
-
   useDropHandler(droppableId, active => {
     const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
     dataSet && droppedAttrId && isDropAllowed(place, dataSet, droppedAttrId) &&
       onDropAttribute?.(place, dataSet, droppedAttrId)
   })
+
+  useEffect(() => {
+    setParentElt(wrapperElt?.closest(kGraphClassSelector) as HTMLDivElement ?? null)
+  }, [wrapperElt])
 
   useEffect(function cleanup () {
     return () => {
