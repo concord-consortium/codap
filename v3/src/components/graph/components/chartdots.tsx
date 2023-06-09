@@ -1,13 +1,12 @@
 import {ScaleBand} from "d3"
-import {autorun} from "mobx"
-import React, {useCallback, useEffect} from "react"
+import React, {useCallback} from "react"
 import {CaseData, selectDots} from "../d3-types"
 import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {setPointCoordinates, setPointSelection, startAnimation} from "../utilities/graph-utils"
+import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphModelContext} from "../models/graph-model"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
@@ -216,19 +215,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor,
     enableAnimation, primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
-  useEffect(function respondToCategorySetChange() {
-    // todo: It would be more natural to use a reaction here instead of an autorun, but that doesn't work. Why?
-    return autorun(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const values = layout.getAxisMultiScale(primaryAxisPlace).categorySetValues
-      startAnimation(enableAnimation)
-      refreshPointPositions(false)
-    })
-  }, [layout, primaryAxisPlace, refreshPointPositions, enableAnimation])
-
-  usePlotResponders({
-    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
-  })
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
 
   return (
     <></>

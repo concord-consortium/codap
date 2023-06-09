@@ -228,9 +228,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
-  usePlotResponders({
-    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
-  })
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
 
   return (
     <svg/>

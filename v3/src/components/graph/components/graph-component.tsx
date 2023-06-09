@@ -36,6 +36,12 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
     (width != null) && (height != null) && layout.setParentExtent(width, height)
   }, [width, height, layout])
 
+  useEffect(function cleanup() {
+    return () => {
+      layout.cleanup()
+    }
+  }, [layout])
+
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
   const {setNodeRef} = useDroppable({id: dropId})

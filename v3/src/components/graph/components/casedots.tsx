@@ -127,9 +127,7 @@ export const CaseDots = function CaseDots(props: {
     return () => disposer?.()
   }, [dataset])
 
-  usePlotResponders({
-    graphModel, dotsRef, layout, refreshPointPositions, refreshPointSelection, enableAnimation
-  })
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
 
   return (
     <></>

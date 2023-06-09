@@ -59,6 +59,10 @@ export class MultiScale {
     this.disposers.push(this.reactToCategorySetChange())
   }
 
+  cleanup() {
+    this.disposers.forEach(disposer => disposer())
+  }
+
   @computed get numericScale() {
     return ["linear", "log"].includes(this.scaleType)
       ? this.scale as ScaleNumericBaseType
