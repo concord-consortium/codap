@@ -1,9 +1,10 @@
+import {observer} from "mobx-react-lite"
 import {reaction} from "mobx"
 import {drag, range, select} from "d3"
-import React, {memo, useCallback, useEffect, useMemo, useRef} from "react"
+import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {Bounds, useGraphLayoutContext} from "../../models/graph-layout"
+import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
@@ -67,13 +68,12 @@ const coordinatesToCatIndex = (lod: LayoutData, numCategories: number, localPoin
     }
   }
 
-export const CategoricalLegend = memo(function CategoricalLegend(
+export const CategoricalLegend = observer(function CategoricalLegend(
   {transform}: ICategoricalLegendProps) {
   const transformRef = useRef(transform),
     dataConfiguration = useDataConfigurationContext(),
     dataset = dataConfiguration?.dataset,
     layout = useGraphLayoutContext(),
-    legendBoundsRef = useRef<Bounds>(layout?.getComputedBounds('legend')),
     categoriesRef = useRef<string[] | undefined>(),
     categoryData = useRef<Key[]>([]),
     layoutData = useRef<Layout>({
@@ -90,8 +90,6 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       currentDragPosition: {x: 0, y: 0}
     }),
     duration = useRef(0)
-
-  legendBoundsRef.current = layout?.getComputedBounds('legend')
 
   const // keyFunc = (index: number) => index,
     keysElt = useRef(null),
@@ -196,7 +194,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       const dI = dragInfo.current,
         lod = layoutData.current,
         numCategories = categoriesRef.current?.length ?? 0,
-        legendBounds = legendBoundsRef.current,
+        legendBounds = layout?.getComputedBounds('legend'),
         localPt = {
           x: event.x - legendBounds?.left ?? 0,
           y: event.y - labelHeight - legendBounds?.top ?? 0
@@ -207,7 +205,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       dI.initialOffset = {x: localPt.x - keyLocation.x, y: localPt.y - keyLocation.y}
       dI.currentDragPosition = localPt
       duration.current = 0
-    }, []),
+    }, [layout]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -307,7 +305,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
       }, {fireImmediately: true}
     )
     return () => disposer()
-  }, [layout, refreshKeys, computeDesiredExtent, dataConfiguration])
+  }, [layout, refreshKeys, computeDesiredExtent, dataConfiguration, setupKeys])
 
   useEffect(function setup() {
     if (keysElt.current && categoryData.current) {

@@ -34,8 +34,7 @@ export const GraphAxis = observer(function GraphAxis(
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
     droppableId = `${instanceId}-${place}-axis-drop`,
-    hintString = useDropHintString({role: axisPlaceToAttrRole[place]}),
-    getCategorySet = () => dataConfig?.categorySetForPlace(place)
+    hintString = useDropHintString({role: axisPlaceToAttrRole[place]})
 
   const handleIsActive = (active: Active) => {
     const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
@@ -68,7 +67,6 @@ export const GraphAxis = observer(function GraphAxis(
   return (
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
       <Axis getAxisModel={() => graphModel.getAxis(place)}
-            getCategorySet = {getCategorySet}
             label={''}  // Remove
             enableAnimation={enableAnimation}
             showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}

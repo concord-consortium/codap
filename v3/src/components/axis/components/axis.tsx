@@ -14,14 +14,12 @@ interface IProps {
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
-  getCategorySet?: () => ICategorySet | undefined  // only used for categorical axes
 }
 
 export const Axis = ({
                        label, getAxisModel, showScatterPlotGridLines = false,
                        enableAnimation,
                        centerCategoryLabels = true,
-                       getCategorySet
                      }: IProps) => {
   const
     axisModel = getAxisModel(),
@@ -43,7 +41,6 @@ export const Axis = ({
                       enableAnimation={enableAnimation}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       centerCategoryLabels={centerCategoryLabels}
-                      // getCategorySet={getCategorySet}
       />
     })
   }
