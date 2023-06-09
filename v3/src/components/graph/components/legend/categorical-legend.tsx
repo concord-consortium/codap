@@ -252,6 +252,7 @@ export const CategoricalLegend = memo(function CategoricalLegend(
             enter => enter
               .append('g')
               .attr('class', 'legend-key')
+              .attr('data-testid', 'legend-key')
               .call(dragBehavior)
           )
         keysSelection.each(function () {

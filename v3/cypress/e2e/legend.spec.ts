@@ -30,7 +30,7 @@ context("Test legend with various attribute types", () => {
     ah.openAxisAttributeMenu("x")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "x")
   })
-  it.skip("will draw categorical legend with categorical attribute on x axis", () => {
+  it("will draw categorical legend with categorical attribute on x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "x") // Diet => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[8])
@@ -41,7 +41,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[7])
   })
-  it.skip("will draw categorical legend with categorical attribute on y axis", () => {
+  it("will draw categorical legend with categorical attribute on y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "y") // Diet => y-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[8])
@@ -52,7 +52,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[7])
   })
-  it.skip("will draw categorical legend with numerical attribute on x axis", () => {
+  it("will draw categorical legend with numerical attribute on x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "x") // Diet => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
@@ -63,7 +63,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[7])
   })
-  it.skip("will draw categorical legend with numerical attribute on y axis", () => {
+  it("will draw categorical legend with numerical attribute on y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "y") // LifeSpan => y-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[2])
@@ -74,7 +74,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[7])
   })
-  it.skip("will draw numeric legend with categorical attribute on x axis", () => {
+  it("will draw numeric legend with categorical attribute on x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "x") // Diet => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[8])
@@ -85,7 +85,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[3])
   })
-  it.skip("will draw numeric legend with categorical attribute on y axis", () => {
+  it("will draw numeric legend with categorical attribute on y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "y") // Diet => y-axis
     lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[8])
@@ -96,7 +96,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[3])
   })
-  it.skip("will draw numeric legend with numerical attribute on x axis", () => {
+  it("will draw numeric legend with numerical attribute on x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "x") // LifeSpan => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
@@ -107,7 +107,7 @@ context("Test legend with various attribute types", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[3])
   })
-  it.skip("will draw numeric legend with numerical attribute on y axis", () => {
+  it("will draw numeric legend with numerical attribute on y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "y") // LifeSpan => y-axis
     lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[2])
@@ -127,7 +127,7 @@ context("Test drawing legend on existing legend", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it.skip("will draw categorical legend on existing categorical legend", () => {
+  it("will draw categorical legend on existing categorical legend", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "x") // LifeSpan => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
@@ -143,7 +143,7 @@ context("Test drawing legend on existing legend", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[8])
   })
-  it.skip("will draw categorical legend on existing numeric legend", () => {
+  it("will draw categorical legend on existing numeric legend", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "y") // LifeSpan => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[2])
@@ -160,7 +160,7 @@ context("Test drawing legend on existing legend", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[8])
   })
-  it.skip("will draw numeric legend on existing categorical legend", () => {
+  it("will draw numeric legend on existing categorical legend", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "x") // LifeSpan => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
@@ -176,7 +176,7 @@ context("Test drawing legend on existing legend", () => {
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[3])
   })
-  it.skip("will draw numeric legend on existing numeric legend", () => {
+  it("will draw numeric legend on existing numeric legend", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "y") // LifeSpan => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[2])
@@ -201,7 +201,7 @@ context("Test selecting and selecting categories in legend", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it.skip("will select and unselect categories in categorical legend with categorical x axis", () => {
+  it("will select and unselect categories in categorical legend with categorical x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "x") // Diet => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     lh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
