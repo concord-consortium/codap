@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 3.0.0-pre.1240 - June 5, 2023
+
+### Features/Improvements
+- Plots split by categorical attributes on top and right have shaded cells [#185057138](https://www.pivotaltracker.com/story/show/185057138)
+
+### Bug Fixes
+- Graphs with multiple numeric y attributes import correctly [#184599671](https://www.pivotaltracker.com/story/show/184599671)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   40477 bytes |                            0.85% |
+|  index.js | 3040194 bytes |                            0.19% |
+
 ## Version 3.0.0-pre.1236 - May 30, 2023
 
 ### Features/Improvements
