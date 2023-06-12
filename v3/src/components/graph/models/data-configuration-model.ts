@@ -6,7 +6,7 @@ import {getCategorySet, ISharedCaseMetadata} from "../../../models/shared/shared
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
-import {kellyColors, missingColor} from "../../../utilities/color-utils"
+import {missingColor} from "../../../utilities/color-utils"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {CaseData} from "../d3-types"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
@@ -279,13 +279,19 @@ export const DataConfigurationModel = types
           return acc.concat(values)
         }, allValues)
       },
+      categorySetForAttrRole(role: GraphAttrRole) {
+        if (self.metadata) {
+          const attributeID = self.attributeID(role) || ''
+          return getCategorySet(self.metadata, attributeID)
+        }
+      },
       /**
        * Todo: This method is inefficient since it has to go through all the cases in the graph to determine
        * which categories are present. It should be replaced by some sort of functionality that allows
        * caching of the categories that have been determined to be valid.
        * @param role
        */
-      categorySetForAttrRole(role: GraphAttrRole): string[] {
+      categoryArrayForAttrRole(role: GraphAttrRole): string[] {
         let categoryArray: string[] = []
         if (self.metadata) {
           const attributeID = self.attributeID(role) || '',
@@ -302,10 +308,10 @@ export const DataConfigurationModel = types
         let numRepetitions = 1
         switch (place) {
           case 'left':
-            numRepetitions = Math.max(this.categorySetForAttrRole('rightSplit').length, 1)
+            numRepetitions = Math.max(this.categoryArrayForAttrRole('rightSplit').length, 1)
             break
           case 'bottom':
-            numRepetitions = Math.max(this.categorySetForAttrRole('topSplit').length, 1)
+            numRepetitions = Math.max(this.categoryArrayForAttrRole('topSplit').length, 1)
         }
         return numRepetitions
       }
@@ -322,7 +328,7 @@ export const DataConfigurationModel = types
       const caseDataArray = this.getUnsortedCaseDataArray(caseArrayNumber),
         legendAttrID = self.attributeID('legend')
       if (legendAttrID) {
-        const categories = Array.from(self.categorySetForAttrRole('legend'))
+        const categories = Array.from(self.categoryArrayForAttrRole('legend'))
         caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
           const cd1_Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
             cd2_value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
@@ -368,8 +374,8 @@ export const DataConfigurationModel = types
   .views(self => (
     {
       getLegendColorForCategory(cat: string): string {
-        const catIndex = Array.from(self.categorySetForAttrRole('legend')).indexOf(cat)
-        return catIndex >= 0 ? kellyColors[catIndex % kellyColors.length] : missingColor
+        const categorySet = self.categorySetForAttrRole('legend')
+        return categorySet?.colorForCategory(cat) ?? missingColor
       },
 
       getLegendColorForNumericValue(value: number): string {
@@ -432,6 +438,12 @@ export const DataConfigurationModel = types
             : legendType === 'numeric' ? self.getLegendColorForNumericValue(Number(legendValue))
               : ''
       },
+      categorySetForPlace(place: AxisPlace) {
+        if (self.metadata) {
+          const role = graphPlaceToAttrRole[place]
+          return getCategorySet(self.metadata, self.attributeID(role) ?? '')
+        }
+      },
       /**
        * Called to determine whether the categories on an axis should be centered.
        * If the attribute is playing a primary role, then it should be centered.
@@ -464,6 +476,22 @@ export const DataConfigurationModel = types
       }
     }))
   .actions(self => ({
+    swapCategoriesForAttrRole(role: GraphAttrRole, catIndex1: number, catIndex2: number) {
+      const categoryArray = self.categoryArrayForAttrRole(role),
+        numCategories = categoryArray.length,
+        categorySet = self.categorySetForAttrRole(role)
+      if (catIndex2 < catIndex1) {
+        const temp = catIndex1
+        catIndex1 = catIndex2
+        catIndex2 = temp
+      }
+      if (categorySet && numCategories > catIndex1 && numCategories > catIndex2) {
+        const cat1 = categoryArray[catIndex1],
+          beforeCat = catIndex2 < numCategories - 1 ? categoryArray[catIndex2 + 1] : undefined
+        categorySet.storeAllCurrentColors()
+        categorySet.move(cat1, beforeCat)
+      }
+    },
     handleAction(actionCall: ISerializedActionCall) {
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return

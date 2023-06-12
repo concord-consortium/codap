@@ -88,13 +88,13 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       extraPrimaryAttrID = dataConfiguration?.attributeID(extraPrimaryAttrRole) ?? '',
       extraSecondaryAttrID = dataConfiguration?.attributeID(extraSecondaryAttrRole) ?? '',
       primCatsArray: string[] = (dataConfiguration && primaryAttrRole)
-        ? Array.from(dataConfiguration.categorySetForAttrRole(primaryAttrRole)) : [],
+        ? Array.from(dataConfiguration.categoryArrayForAttrRole(primaryAttrRole)) : [],
       secCatsArray: string[] = (dataConfiguration && secondaryAttrRole)
-        ? Array.from(dataConfiguration.categorySetForAttrRole(secondaryAttrRole)) : [],
+        ? Array.from(dataConfiguration.categoryArrayForAttrRole(secondaryAttrRole)) : [],
       extraPrimCatsArray: string[] = (dataConfiguration && extraPrimaryAttrRole)
-        ? Array.from(dataConfiguration.categorySetForAttrRole(extraPrimaryAttrRole)) : [],
+        ? Array.from(dataConfiguration.categoryArrayForAttrRole(extraPrimaryAttrRole)) : [],
       extraSecCatsArray: string[] = (dataConfiguration && extraSecondaryAttrRole)
-        ? Array.from(dataConfiguration.categorySetForAttrRole(extraSecondaryAttrRole)) : [],
+        ? Array.from(dataConfiguration.categoryArrayForAttrRole(extraSecondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
       selection = selectDots(dotsRef.current, selectedOnly),
       primOrdinalScale = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>,

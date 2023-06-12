@@ -247,8 +247,11 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           }
           const secondaryCat = binMap[anID].category,
             extraSecondaryCat = binMap[anID].extraCategory,
-            indexInBin = binMap[anID].indexInBin
-          return binMap[anID] ? computeSecondaryCoord({secondaryCat, extraSecondaryCat, indexInBin}) : null
+            indexInBin = binMap[anID].indexInBin,
+            onePixelOffset = primaryIsBottom ? -1 : 1 // Separate circles from axis line by 1 pixel
+          return binMap[anID]
+            ? computeSecondaryCoord({secondaryCat, extraSecondaryCat, indexInBin}) + onePixelOffset
+            : null
         },
         getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
         getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord,

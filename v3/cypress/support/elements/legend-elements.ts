@@ -9,7 +9,7 @@ export const LegendElements = {
     return this.getLegend().find(".attribute-label")
   },
   getCategoricalLegendCategories() {
-    return this.getLegend().find(".legend-categories>.key")
+    return this.getLegend().find("[data-testid=legend-key]")
   },
   getCategoricalLegendCategory(name) {
     return this.getCategoricalLegendCategories().contains(name)

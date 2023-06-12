@@ -1,3 +1,4 @@
+import { observable, runInAction } from "mobx"
 import { addDisposer, Instance, isValidReference, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -34,8 +35,9 @@ export const CategorySet = types.model("CategorySet", {
 .extend(self => {
   // map from category value to index
   const _indexMap = new Map<string, number>()
+  const observableValues = observable.array<string>()
   let _values = [] as string[]
-  let _isValid = false
+  const _isValid = observable.box(false)
 
   function rebuildIndexMap() {
     _indexMap.clear()
@@ -58,7 +60,7 @@ export const CategorySet = types.model("CategorySet", {
   }
 
   function refresh() {
-    if (!_isValid) {
+    if (!_isValid.get()) {
       _indexMap.clear()
       _values = []
 
@@ -116,7 +118,10 @@ export const CategorySet = types.model("CategorySet", {
         }
       })
 
-      _isValid = true
+      runInAction(() => {
+        observableValues.replace(_values)
+        _isValid.set(true)
+      })
     }
   }
 
@@ -124,7 +129,7 @@ export const CategorySet = types.model("CategorySet", {
     views: {
       get values() {
         refresh()
-        return _values
+        return observableValues
       },
       index(value: string) {
         return _indexMap.get(value)
@@ -132,7 +137,7 @@ export const CategorySet = types.model("CategorySet", {
     },
     actions: {
       invalidate() {
-        _isValid = false
+        _isValid.set(false)
       }
     }
   }
@@ -191,6 +196,19 @@ export const CategorySet = types.model("CategorySet", {
     if (self.index(value)) {
       self.colors.set(value, color)
     }
+  },
+  storeCurrentColorForCategory(value: string) {
+    const color = self.colorForCategory(value)
+    if (color) {
+      self.colors.set(value, color)
+    }
+  },
+  storeAllCurrentColors() {
+    self.values.forEach(value => {
+      if (!self.colors.get(value)) {
+        this.storeCurrentColorForCategory(value)
+      }
+    })
   }
 }))
 export interface ICategorySet extends Instance<typeof CategorySet> {}

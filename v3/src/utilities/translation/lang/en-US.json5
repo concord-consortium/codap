@@ -734,6 +734,7 @@
 
     // DG.CellAxis
     "DG.CellAxis.other": "OTHER",
+    "DG.CellAxis.dragCategory": "Click and drag to reorder categories",
 
     // DG.CellLinearAxisView
     "DG.CellLinearAxisView.midPanelTooltip": "Drag to translate axis scale",

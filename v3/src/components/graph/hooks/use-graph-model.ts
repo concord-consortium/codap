@@ -31,10 +31,6 @@ export function useGraphModel(props: IProps) {
     })
   }, [dataConfig, graphModel, dotsRef, enableAnimation, instanceId])
 
-  useEffect(function createCircles() {
-    callMatchCirclesToData()
-  }, [callMatchCirclesToData, dataConfig.caseDataArray])
-
   // respond to change in plotType
   useEffect(function installPlotTypeAction() {
     const disposer = onAnyAction(graphModel, action => {

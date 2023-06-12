@@ -4,6 +4,7 @@ import {useAxis} from "../hooks/use-axis"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
 import {SubAxis} from "./sub-axis"
+import {ICategorySet} from "../../../models/data/category-set"
 
 import "./axis.scss"
 
@@ -17,8 +18,8 @@ interface IProps {
 
 export const Axis = ({
                        label, getAxisModel, showScatterPlotGridLines = false,
+                       enableAnimation,
                        centerCategoryLabels = true,
-                       enableAnimation
                      }: IProps) => {
   const
     axisModel = getAxisModel(),
@@ -46,9 +47,9 @@ export const Axis = ({
 
   return (
     <>
-        <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}>
-          {getSubAxes()}
-        </g>
+      <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}>
+        {getSubAxes()}
+      </g>
     </>
   )
 }
