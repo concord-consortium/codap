@@ -58,7 +58,7 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
     rightNumeric: {
       numeric: {
         empty: "addAttribute",
-        existing: "addAttribute"
+        existing: "replaceAttribute"
       }
     },
     topSplit: {
