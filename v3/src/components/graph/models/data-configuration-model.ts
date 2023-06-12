@@ -476,6 +476,17 @@ export const DataConfigurationModel = types
       }
     }))
   .actions(self => ({
+      /**
+       * This is called when the user swaps categories in the legend, but not when the user swaps categories
+       * by dragging categories on an axis.
+       * @param role
+       */
+      storeAllCurrentColorsForAttrRole(role: GraphAttrRole) {
+        const categorySet = self.categorySetForAttrRole(role)
+        if (categorySet) {
+          categorySet.storeAllCurrentColors()
+        }
+      },
     swapCategoriesForAttrRole(role: GraphAttrRole, catIndex1: number, catIndex2: number) {
       const categoryArray = self.categoryArrayForAttrRole(role),
         numCategories = categoryArray.length,

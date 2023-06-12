@@ -4,7 +4,6 @@ import {useAxis} from "../hooks/use-axis"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
 import {SubAxis} from "./sub-axis"
-import {ICategorySet} from "../../../models/data/category-set"
 
 import "./axis.scss"
 

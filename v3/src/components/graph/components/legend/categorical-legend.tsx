@@ -220,10 +220,12 @@ export const CategoricalLegend = observer(function CategoricalLegend(
         if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
           // swap the two categories
           duration.current = transitionDuration / 2
+          dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
           dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
           dI.indexOfCategory = newCatIndex
+        } else {
+          refreshKeys()
         }
-        refreshKeys()
         dI.currentDragPosition = newDragPosition
       }
     }, [dataConfiguration, refreshKeys]),

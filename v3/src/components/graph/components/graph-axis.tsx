@@ -65,8 +65,6 @@ export const GraphAxis = observer(function GraphAxis(
     }
   }, [layout, place, graphModel])
 
-  place === 'bottom' && console.log('GraphAxis: render bottom axis')
-
   return (
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
       <Axis getAxisModel={() => graphModel.getAxis(place)}

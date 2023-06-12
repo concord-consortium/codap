@@ -1,8 +1,9 @@
-import {action, computed, makeObservable, observable} from "mobx"
+import {action, autorun, computed, IReactionDisposer, makeObservable, observable} from "mobx"
 import {
   format, NumberValue, ScaleBand, scaleBand, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
 import {AxisScaleType, IScaleType, ScaleNumericBaseType} from "../axis-types"
+import {ICategorySet} from "../../../models/data/category-set"
 
 interface IDataCoordinate {
   cell: number
@@ -45,28 +46,35 @@ export class MultiScale {
   @observable length = 0
   @observable orientation: "horizontal" | "vertical"
   @observable changeCount = 0
-  // Subaxes copy this scale to do their rendering because they need to change the range.
+  @observable categorySet: ICategorySet | undefined
+  // SubAxes copy this scale to do their rendering because they need to change the range.
   scale: AxisScaleType  // d3 scale whose range is the entire axis length.
+  disposers: IReactionDisposer[] = []
 
   constructor({scaleType, orientation}: IMultiScaleProps) {
     this.scaleType = scaleType
     this.orientation = orientation
     this.scale = scaleTypeToD3Scale(scaleType)
     makeObservable(this)
+    this.disposers.push(this.reactToCategorySetChange())
+  }
+
+  cleanup() {
+    this.disposers.forEach(disposer => disposer())
   }
 
   @computed get numericScale() {
     return ["linear", "log"].includes(this.scaleType)
-            ? this.scale as ScaleNumericBaseType
-            : undefined
+      ? this.scale as ScaleNumericBaseType
+      : undefined
   }
 
   @computed get categoricalScale() {
     return this.scaleType === "ordinal"
-            ? this.scale as ScaleOrdinal<string, any>
-            : this.scaleType === "band"
-                ? this.scale as ScaleBand<string>
-                : undefined
+      ? this.scale as ScaleOrdinal<string, any>
+      : this.scaleType === "band"
+        ? this.scale as ScaleBand<string>
+        : undefined
   }
 
   @computed get cellLength() {
@@ -85,6 +93,10 @@ export class MultiScale {
     return this.scale.range()
   }
 
+  @computed get categorySetValues() {
+    return this.categorySet?.values ?? []
+  }
+
   _setRangeFromLength() {
     this.scale.range(this.orientation === 'horizontal' ? [0, this.length] : [this.length, 0])
   }
@@ -95,6 +107,12 @@ export class MultiScale {
       this.scale = scaleTypeToD3Scale(scaleType)
       this._setRangeFromLength()
     }
+  }
+
+  @action setCategorySet(categorySet: ICategorySet | undefined) {
+    this.categorySet = categorySet
+    this.categoricalScale?.domain(categorySet?.values ?? [])
+    this.incrementChangeCount()
   }
 
   @action setLength(length: number) {
@@ -115,13 +133,23 @@ export class MultiScale {
     this.incrementChangeCount()
   }
 
+  @action reactToCategorySetChange() {
+    return autorun(() => {
+      const categories = this.categorySetValues
+      if (categories?.length) {
+        this.setCategoricalDomain(categories)
+        this.incrementChangeCount()
+      }
+    })
+  }
+
   @action incrementChangeCount() {
     this.changeCount++
   }
 
   getScreenCoordinate(dataCoord: IDataCoordinate): number {
     const scaleCoord = this.numericScale?.(Number(dataCoord.data)) ??
-                        this.categoricalScale?.(String(dataCoord.data)) ?? 0
+      this.categoricalScale?.(String(dataCoord.data)) ?? 0
     return dataCoord.cell * this.cellLength + scaleCoord
   }
 
@@ -135,8 +163,8 @@ export class MultiScale {
   }
 
   /** To display values for a numeric axis we use just the number of significant figures required to distinguish
-  *   the value for one screen pixel from the value for the adjacent screen pixel.
-  * **/
+   *   the value for one screen pixel from the value for the adjacent screen pixel.
+   * **/
   formatValueForScale(value: number) {
     function formatNumber(n: number, _domain: AxisExtent, _range: AxisExtent): string {
       // Calculate the number of significant digits based on domain and range
@@ -156,8 +184,8 @@ export class MultiScale {
 
     const domain = this.numericScale?.domain() as AxisExtent | undefined
     const range: AxisExtent = this.cellLength
-                                ? [0, this.cellLength]
-                                : this.numericScale?.range() as AxisExtent | undefined ?? [0, 1]
+      ? [0, this.cellLength]
+      : this.numericScale?.range() as AxisExtent | undefined ?? [0, 1]
     return domain ? formatNumber(value, domain, range) : String(value)
   }
 }

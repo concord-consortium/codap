@@ -268,9 +268,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef,
       enableAnimation, primaryIsBottom, pointColor, pointStrokeColor])
 
-  usePlotResponders({
-    graphModel, layout, dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation
-  })
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
 
   return (
     <></>

@@ -3,7 +3,7 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 
 const collectionName = "Mammals"
 const newCollectionName = "Animals"
-const newGraphName = "New Dataset"
+// const newGraphName = "New Dataset"
 const arrayOfPlots = [
   { attribute: "Mammal", axis: "x", collection: "mammals" },
   { attribute: "Order", axis: "y", collection: "mammals" },
@@ -41,7 +41,7 @@ context("Graph UI", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  
+
   it("updates graph title", () => {
     c.getComponentTitle("graph").should("have.text", collectionName)
     c.changeComponentTitle("graph", newCollectionName)
