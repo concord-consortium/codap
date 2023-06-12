@@ -1,5 +1,27 @@
 # Changelog
 
+## Version 3.0.0-pre.1248 - June 12, 2023
+
+### Features/Improvements
+- Minimize component [#184228105](https://www.pivotaltracker.com/story/show/184228105)
+- Maps have an inspector menu that allows changes to points' properties [#183929126](https://www.pivotaltracker.com/story/show/183929126)
+- Marquee selection of points in a graph a categorical axis goes across all categories [#181914402](https://www.pivotaltracker.com/story/show/181914402)
+- Graphs can have a background color other than white [#181909370](https://www.pivotaltracker.com/story/show/181909370)
+
+### Bug Fixes
+- Horizontal numeric axis labels (numbers) can overflow the component [#184838992](https://www.pivotaltracker.com/story/show/184838992)
+- Cases don't display in case table with Firefox [#184921505](https://www.pivotaltracker.com/story/show/184921505)
+- Plot points appear in invalid places [#185335006](https://www.pivotaltracker.com/story/show/185335006)
+- Allyant `#18`: These elements contain a drag and drop feature that is currently inaccessible to screen reader and keyboard users [#183939719](https://www.pivotaltracker.com/story/show/183939719)
+- x-axis attribute drop area is after/below the legend drop area instead of before/above it [#184764820](https://www.pivotaltracker.com/story/show/184764820)
+- Slider axis tick marks should not be clipped [#185094851](https://www.pivotaltracker.com/story/show/185094851)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   41369 bytes |                             2.2% |
+|  index.js | 3040823 bytes |                            0.02% |
+
 ## Version 3.0.0-pre.1240 - June 5, 2023
 
 ### Features/Improvements
