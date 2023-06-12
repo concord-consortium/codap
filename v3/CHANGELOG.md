@@ -12,7 +12,7 @@
 - Horizontal numeric axis labels (numbers) can overflow the component [#184838992](https://www.pivotaltracker.com/story/show/184838992)
 - Cases don't display in case table with Firefox [#184921505](https://www.pivotaltracker.com/story/show/184921505)
 - Plot points appear in invalid places [#185335006](https://www.pivotaltracker.com/story/show/185335006)
-- #18: These elements contain a drag and drop feature that is currently inaccessible to screen reader and keyboard users [#183939719](https://www.pivotaltracker.com/story/show/183939719)
+- Allyant `#18`: These elements contain a drag and drop feature that is currently inaccessible to screen reader and keyboard users [#183939719](https://www.pivotaltracker.com/story/show/183939719)
 - x-axis attribute drop area is after/below the legend drop area instead of before/above it [#184764820](https://www.pivotaltracker.com/story/show/184764820)
 - Slider axis tick marks should not be clipped [#185094851](https://www.pivotaltracker.com/story/show/185094851)
 
