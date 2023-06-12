@@ -193,16 +193,6 @@ export const useSubAxis = ({
     return () => disposer()
   }, [axisModel, layout, refreshSubAxis])
 
-  /*
-    useEffect(function respondToCategorySetsChange() {
-      return reaction(
-        () => dataConfiguration?.categoryArrayForAttrRole('legend'),
-        () => {
-          refreshSubAxis()
-        })
-    }, [dataConfiguration, refreshSubAxis])
-  */
-
   // update on component refresh
   useEffect(() => {
     refreshSubAxis()
