@@ -304,32 +304,6 @@ export const DataConfigurationModel = types
         }
         return categoryArray
       },
-      /**
-       * This is called when the user swaps categories in the legend, but not when the user swaps categories
-       * by dragging categories on an axis.
-       * @param role
-       */
-      storeAllCurrentColorsForAttrRole(role: GraphAttrRole) {
-        const categorySet = this.categorySetForAttrRole(role)
-        if (categorySet) {
-          categorySet.storeAllCurrentColors()
-        }
-      },
-      swapCategoriesForAttrRole(role: GraphAttrRole, catIndex1: number, catIndex2: number) {
-        const categoryArray = this.categoryArrayForAttrRole(role),
-          numCategories = categoryArray.length,
-          categorySet = this.categorySetForAttrRole(role)
-        if (catIndex2 < catIndex1) {
-          const temp = catIndex1
-          catIndex1 = catIndex2
-          catIndex2 = temp
-        }
-        if (categorySet && numCategories > catIndex1 && numCategories > catIndex2) {
-          const cat1 = categoryArray[catIndex1],
-            beforeCat = catIndex2 < numCategories - 1 ? categoryArray[catIndex2 + 1] : undefined
-          categorySet.move(cat1, beforeCat)
-        }
-      },
       numRepetitionsForPlace(place: GraphPlace) {
         let numRepetitions = 1
         switch (place) {
@@ -502,6 +476,17 @@ export const DataConfigurationModel = types
       }
     }))
   .actions(self => ({
+      /**
+       * This is called when the user swaps categories in the legend, but not when the user swaps categories
+       * by dragging categories on an axis.
+       * @param role
+       */
+      storeAllCurrentColorsForAttrRole(role: GraphAttrRole) {
+        const categorySet = self.categorySetForAttrRole(role)
+        if (categorySet) {
+          categorySet.storeAllCurrentColors()
+        }
+      },
     swapCategoriesForAttrRole(role: GraphAttrRole, catIndex1: number, catIndex2: number) {
       const categoryArray = self.categoryArrayForAttrRole(role),
         numCategories = categoryArray.length,
