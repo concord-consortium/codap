@@ -30,6 +30,7 @@ interface IGraphControllerProps {
 
 export class GraphController {
   graphModel?: IGraphModel
+  dotsRef?: IDotsRef
   layout: GraphLayout
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
@@ -42,18 +43,29 @@ export class GraphController {
 
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
+    this.dotsRef = props.dotsRef
     if (this.graphModel.config.dataset !== this.graphModel.data) {
       this.graphModel.config.setDataset(this.graphModel.data, this.graphModel.metadata)
     }
-    this.initializeGraph(props.dotsRef)
+    this.initializeGraph()
   }
 
-  initializeGraph(dotsRef: IDotsRef) {
-    const {graphModel,
-        enableAnimation,
-        instanceId, layout} = this,
+  callMatchCirclesToData() {
+    const {graphModel, dotsRef, enableAnimation, instanceId} = this
+    if (graphModel && dotsRef?.current) {
+      const { config: dataConfiguration, pointColor, pointStrokeColor } = graphModel,
+        pointRadius = graphModel.getPointRadius()
+      matchCirclesToData({
+        dataConfiguration, dotsElement: dotsRef.current,
+        pointRadius, enableAnimation, instanceId, pointColor, pointStrokeColor
+      })
+    }
+  }
+
+  initializeGraph() {
+    const {graphModel, dotsRef, layout} = this,
       dataConfig = graphModel?.config
-    if (dataConfig && layout && dotsRef.current) {
+    if (dataConfig && layout && dotsRef?.current) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
         const axisModel = graphModel.getAxis(axisPlace),
           attrRole = axisPlaceToAttrRole[axisPlace]
@@ -68,12 +80,7 @@ export class GraphController {
           }
         }
       })
-      matchCirclesToData({
-        dataConfiguration: dataConfig, dotsElement: dotsRef.current,
-        pointRadius: graphModel.getPointRadius(), enableAnimation, instanceId,
-        pointColor: graphModel.pointColor,
-        pointStrokeColor: graphModel.pointStrokeColor
-      })
+      this.callMatchCirclesToData()
     }
   }
 
@@ -84,6 +91,7 @@ export class GraphController {
     if (!(graphModel && layout && dataset && dataConfig)) {
       return
     }
+    this.callMatchCirclesToData()
     if (['plot', 'legend'].includes(graphPlace)) {
       // Since there is no axis associated with the legend and the plotType will not change, we bail
       return
