@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useMemo, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -11,6 +11,9 @@ import { IDataSet } from "../../models/data/data-set"
 import t from "../../utilities/translation/translate"
 import { kChildMostTableCollectionId, TRow } from "./case-table-types"
 import { useCaseTableModel } from "./use-case-table-model"
+import { useRowScrolling } from "./use-row-scrolling"
+import styles from "./case-table-shared.scss"
+import { symParent, symIndex, CaseGroup } from "../../models/data/data-set-types"
 
 const kDividerWidth = 48,
       kRelationParentMargin = 12,
@@ -39,45 +42,185 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
     const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
     dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
   })
-
   const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
-  const parentGridRef = useRef<HTMLElement | null>(null)
-  const childGridRef = useRef<HTMLElement | null>(null)
+  const parentGridRef = useRef<HTMLDivElement | null>(null)
+  const childGridRef = useRef<HTMLDivElement | null>(null)
+  const parentGridEl = parentGridRef.current
+  const childGridEl  = childGridRef.current
   const tableSpacerDivRef = useRef<HTMLElement | null>(null)
   const divHeight = tableSpacerDivRef.current?.getBoundingClientRect().height
+  const childGridHeight = childGridEl?.clientHeight
+  const { scrollRowToTop: childScrollToTop } = useRowScrolling(childGridEl)
+  const { scrollRowToTop: parentScrollToTop } = useRowScrolling(parentGridEl)
+
   const kMargin = 10
   const msgStyle: React.CSSProperties =
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentScrollTop = parentCollectionId && tableModel?.scrollTopMap.get(parentCollectionId) || 0
   const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
-  const isScrollable = childGridRef.current && (childGridRef.current.scrollHeight > childGridRef.current.clientHeight)
+  const isParentScrollable = parentGridEl &&
+                              (parentGridEl.scrollHeight > parentGridEl.clientHeight)
+  const isChildScrollable = childGridEl &&
+                              (childGridEl.scrollHeight > childGridEl.clientHeight)
+  // console.log("parentGridEl.scrollHeight ", parentGridEl?.scrollHeight)
+  // console.log("childGridEl.scrollHeight ", childGridEl?.scrollHeight)
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   const bottomsOfLastChildRowOfParent: number[] = []
+  const parentToChildrenMap: Record<string, string[] | undefined> = {}
+  const parentToChildrenRowIndicesMap: Record<string, number[]> = {}
+  const [childY, setChildY] = useState(childGridEl?.scrollTop)
+  const [parentY, setParentY] = useState(parentGridEl?.scrollTop)
+  const [parentScrolled, setParentScrolled] = useState(false)
+  const [childScrolled, setChildScrolled] = useState(false)
+  let numTotalChildCases = 0
+
   const getPrevRowBottom = (idx: number) => {
     if (idx > 0 && bottomsOfLastChildRowOfParent[idx-1] >= 0)  { return bottomsOfLastChildRowOfParent[idx-1] }
     else if (idx > 0)  { return bottomsOfLastChildRowOfParent[idx-1] - childScrollTop }
-    else if (idx === 0 && isScrollable) { return -childScrollTop }
+    else if (idx === 0 && isChildScrollable) { return -childScrollTop }
     else { return 0 }
   }
 
-  parentCases?.map((parentCase, index) => {
+  const getCaseIndexFromId = (caseId: string | undefined) => {
+    if (!caseId) return undefined
+    const caseRow = rows.find(row => row.__id__ === caseId)
+    if (caseRow) return rows.indexOf(caseRow)
+  }
+
+  const getVisibleIndexRange = (gridEl: HTMLDivElement) => {
+    const currentTopIdx = gridEl.scrollTop &&
+      Math.floor(gridEl.scrollTop/rowHeight)
+    // console.log("currentTopIdx", currentTopIdx)
+    const currentBottomIdx = (currentTopIdx !== undefined && gridEl.clientHeight) &&
+      Math.floor(currentTopIdx + (((gridEl.clientHeight - +styles.headerRowHeight - rowHeight)/rowHeight)))
+          // console.log("currentTopIdx", currentTopIdx, "currentBottomIdx", currentBottomIdx)
+    return {top: currentTopIdx, bottom: currentBottomIdx}
+  }
+
+  // Creates a map of parent to children row indices, and creates an array of row bottoms for each parent
+  parentCases?.map((parentCase, index: number) => {
+    const childrenIndicesArr: number[] = []
     const parentCaseId = parentCase.__id__
     const parentCaseGroup = data?.pseudoCaseMap[parentCaseId]
-    const lastChildCaseOfParent = parentCaseGroup?.childPseudoCaseIds?.at(-1) ||
+    parentToChildrenMap[parentCaseId] = parentCaseGroup?.childPseudoCaseIds || parentCaseGroup?.childCaseIds
+    parentToChildrenMap[parentCaseId]?.forEach((child) => {
+      const childRowIdx = getCaseIndexFromId(child)
+      childRowIdx && childrenIndicesArr.push(childRowIdx)
+    })
+    const lastIdChildCaseOfParent = parentCaseGroup?.childPseudoCaseIds?.at(-1) ||
                                     parentCaseGroup?.childCaseIds.at(-1)
-    const rowOfLastChild = lastChildCaseOfParent &&
-                              rows.find(row => row.__id__ === lastChildCaseOfParent)
-    const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
+    const rowIndexOfLastChild = getCaseIndexFromId(lastIdChildCaseOfParent)
     const rowBottom = rowIndexOfLastChild
                         ? ((rowIndexOfLastChild + 1) * rowHeight) - childScrollTop
                         : getPrevRowBottom(index) + rowHeight
     bottomsOfLastChildRowOfParent.push(rowBottom)
+    parentToChildrenRowIndicesMap[parentCaseId] = childrenIndicesArr
+    numTotalChildCases = numTotalChildCases + childrenIndicesArr.length
   })
+
+  const handleChildScroll = useCallback(() => {
+    // console.log("in handleChildScroll", "parentScrolled", parentScrolled, "childScrolled", childScrolled)
+    if (childScrolled) return
+    const getParentRowIdx = (childRow: TRow) => {
+      if (!childRow) {
+        console.log("No case: handleChildScroll")
+        return
+      }
+      const childRowParentId = childRow?.[symParent]
+      const childRowParent: CaseGroup | undefined = childRowParentId !== undefined && childRowParentId !== "undefined"
+                                                      ? data?.pseudoCaseMap[childRowParentId] : undefined
+      return childRowParent?.pseudoCase?.[symIndex]
+    }
+
+    const visibleParentIndexRange = parentGridEl && getVisibleIndexRange(parentGridEl)
+    const visibleChildIndexRange = childGridEl && getVisibleIndexRange(childGridEl)
+    setParentScrolled(false)
+
+    if (childY != null && childGridEl?.scrollTop && visibleChildIndexRange) {
+      const topChildCase = rows[visibleChildIndexRange.top]
+      const bottomChildCase = visibleChildIndexRange.bottom && rows[visibleChildIndexRange.bottom]
+      const topChildParentIdx = getParentRowIdx(topChildCase) //p0
+      const bottomChildParentIdx = bottomChildCase && getParentRowIdx(bottomChildCase) //pn
+      if (topChildParentIdx && bottomChildParentIdx && visibleParentIndexRange && parentCases) {
+        if (topChildParentIdx < visibleParentIndexRange.top) {
+          console.log("in child scroll if", topChildParentIdx, visibleParentIndexRange.top)
+          parentScrollToTop(topChildParentIdx)
+          setParentScrolled(true)
+        } else if (bottomChildParentIdx >= visibleParentIndexRange.bottom) {
+          console.log("in child scroll else if", bottomChildParentIdx, visibleParentIndexRange.bottom)
+          console.log("index to scroll to:", bottomChildParentIdx - Math.floor(parentGridEl.clientHeight/rowHeight - 1))
+          parentScrollToTop(bottomChildParentIdx - Math.floor(parentGridEl.clientHeight/rowHeight - 1))
+          setParentScrolled(true)
+        }
+      }
+    }
+    setChildY(childGridEl?.scrollTop)
+  }, [childY])
+
+  const handleParentScroll = useCallback(() => {
+    // console.log("In handleParentScroll", "parentScrolled", parentScrolled, "childScrolled", childScrolled)
+    if (parentScrolled) return
+    if (parentY != null && parentGridEl?.scrollTop && parentCases) {
+      const getChildCollectionRange = (parentId: string) => {
+        if (!parentId) {
+          console.log("No case: handleParentScroll")
+          return
+        }
+        const childrenIndices = parentToChildrenRowIndicesMap[parentId]
+        const firstChildRowIndexOfParent = childrenIndices[0] //c0
+        const lastChildRowIndexOfParent = childrenIndices.at(-1) //cn
+
+        let range
+        if (firstChildRowIndexOfParent !== undefined && caseMetadata?.isCollapsed(parentId)) {
+          range = {first: firstChildRowIndexOfParent, last: firstChildRowIndexOfParent}
+        } else if (firstChildRowIndexOfParent !== undefined && lastChildRowIndexOfParent !== undefined) {
+          range = {first: (firstChildRowIndexOfParent), last: lastChildRowIndexOfParent}
+        }
+        return range
+      }
+
+      const visibleChildIndexRange = childGridEl && getVisibleIndexRange(childGridEl)
+      const topParentCaseIndex = Math.floor(parentY/rowHeight)
+      const topParentCase = parentCases[topParentCaseIndex]
+      const childIndexRangeOfTopParentCase = getChildCollectionRange(topParentCase.__id__)
+      const bottomParentCaseIndex = (parentGridEl?.clientHeight) &&
+              (topParentCaseIndex) +
+                Math.floor(((parentGridEl?.clientHeight - +styles.headerRowHeight - rowHeight)/rowHeight))
+      const bottomParentCase = bottomParentCaseIndex < parentCases.length
+                                  ? parentCases[bottomParentCaseIndex] : parentCases[parentCases.length - 1]
+      const bottomChildOfBottomParentCase = getChildCollectionRange(bottomParentCase.__id__)
+      const numVisibleCases = childGridHeight && childGridHeight/rowHeight || 0
+      setChildScrolled(false)
+
+      if ((childIndexRangeOfTopParentCase && visibleChildIndexRange?.top !== undefined) &&
+          (childIndexRangeOfTopParentCase.first > visibleChildIndexRange.top)) {
+        childScrollToTop(childIndexRangeOfTopParentCase.first)
+        setChildScrolled(true)
+      } else if ((bottomChildOfBottomParentCase && visibleChildIndexRange?.bottom) &&
+          (bottomChildOfBottomParentCase.last < visibleChildIndexRange.bottom)) {
+        childScrollToTop(bottomChildOfBottomParentCase.last - numVisibleCases)
+        setChildScrolled(true)
+      }
+      setParentY(parentGridEl?.scrollTop)
+    }
+  }, [parentY, parentCases, rowHeight]
+)
+
+  useEffect(() => {
+    setChildY(childGridEl?.scrollTop)
+    setParentY(parentGridEl?.scrollTop)
+    childGridEl?.addEventListener("scroll", handleChildScroll)
+    parentGridEl?.addEventListener("scroll", handleParentScroll)
+    return () => {
+      childGridEl?.removeEventListener("scroll", handleChildScroll)
+      parentGridEl?.addEventListener("scroll", handleParentScroll)
+    }
+  }, [handleChildScroll, handleParentScroll, parentCollectionId])
+
   const handleRef = (element: HTMLElement | null) => {
     const tableContent = element?.closest(".case-table-content") ?? null
-
     if (parentCollection && tableContent) {
       parentGridRef.current = tableContent.querySelector(`.collection-${parentCollection.id} .rdg`) ?? null
     }
@@ -95,9 +238,9 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
   //   console.log('handleAreaClick')
-  //   const parentGridBounds = parentGridRef.current?.getBoundingClientRect()
-  //   const rowHeaderHeight = getNumericCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
-  //   const rowHeight = getNumericCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
+  //   const parentGridBounds = parentGridEl?.getBoundingClientRect()
+  //   const rowHeaderHeight = getNumericCssVariable(parentGridEl, "--rdg-header-row-height") ?? 30
+  //   const rowHeight = getNumericCssVariable(parentGridEl, "--rdg-row-height") ?? 18
   //   // TODO: real buttons; handle scrolled table
   //   const clickedRow = Math.floor((e.clientY - (parentGridBounds?.top ?? 0) - rowHeaderHeight) / rowHeight)
   //   const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
@@ -141,7 +284,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
                 {parentCases?.map((value, index) => (
                   <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                     onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
-                    styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
+                    expandCollapseStyle={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
                   />
                 ))}
               </div>
@@ -158,18 +301,18 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
 interface ExpandCollapseButtonProps {
   isCollapsed: boolean,
   onClick: () => void,
-  styles?: {
+  expandCollapseStyle?: {
     left?: string,
     top?: string,
   },
   title?: string,
 }
 
-function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCollapseButtonProps) {
+function ExpandCollapseButton({ isCollapsed, onClick, expandCollapseStyle, title }: ExpandCollapseButtonProps) {
   const tooltipKey = `DG.CaseTable.dividerView.${isCollapsed ? "expandGroupTooltip" : "collapseGroupTooltip"}`
   const tooltip = title ?? t(tooltipKey)
   return (
-    <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}>
+    <button type="button" className="expand-collapse-button" onClick={onClick} style={expandCollapseStyle}>
       <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} title={tooltip} />
     </button>
   )

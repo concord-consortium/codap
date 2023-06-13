@@ -27,23 +27,23 @@ describe("useRowScrolling", () => {
     rafMock.restore()
   })
 
-  describe("scrollToRow", () => {
+  describe("scrollRowToTop", () => {
     it("does nothing without a grid element", () => {
       const { result } = renderHook(() => useRowScrolling(null))
-      result.current.scrollToRow(1)
+      result.current.scrollRowToTop(1)
       expect(true).toBe(true)
     })
 
     it("doesn't scroll unnecessarily", () => {
       const { result } = renderHook(() => useRowScrolling(mockGridElt))
-      result.current.scrollToRow(0)
+      result.current.scrollRowToTop(0)
       expect(rafMock.mockRequest).toHaveBeenCalledTimes(0)
       expect(rafMock.queue.size).toBe(0)
     })
 
     it("scrolls to specified row in multiple steps", () => {
       const { result } = renderHook(() => useRowScrolling(mockGridElt))
-      result.current.scrollToRow(1)
+      result.current.scrollRowToTop(1)
       expect(rafMock.mockRequest).toHaveBeenCalledTimes(1)
       expect(rafMock.queue.size).toBe(1)
       // initial trigger -- initializes scroll
@@ -76,14 +76,14 @@ describe("useRowScrolling", () => {
 
     it("can be redirected before the scroll is complete", () => {
       const { result } = renderHook(() => useRowScrolling(mockGridElt))
-      result.current.scrollToRow(20)
+      result.current.scrollRowToTop(20)
       rafMock.triggerNext()
       // advance to half-way
       rafMock.triggerNext(250)
       expect(mockGridElt.scrollTop).toBeGreaterThan(170)
       expect(mockGridElt.scrollTop).toBeLessThan(190)
       // issue another request to a different location
-      result.current.scrollToRow(100)
+      result.current.scrollRowToTop(100)
       // still only one request queued
       expect(rafMock.queue.size).toBe(1)
       rafMock.triggerAll()
