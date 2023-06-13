@@ -116,41 +116,39 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const topButtonTooltip = t(topTooltipKey)
 
   return (
-    <div className="collection-table-spacer">
-      <div className="collection-table-spacer-divider" />
-      <div className={classes} ref={handleRef}>
-        <div className="spacer-top">
-          {!parentMost && <ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
-            title={topButtonTooltip} />}
-        </div>
-        {!parentMost &&
-            <div className="spacer-mid">
-              <svg className="spacer-mid-layer lower-layer">
-                {parentCases?.map((parentCase, index) => {
-                  const parentCaseId = parentCase.__id__
-                  return <CurvedSpline key={`${parentCaseId}-${index}`}
-                                        y1={((index + 1) * rowHeight) - parentScrollTop}
-                                        y2={bottomsOfLastChildRowOfParent[index]}
-                                        even={(index + 1) % 2 === 0}
-                                        rowHeight={rowHeight}
-                                        prevRowBottom={bottomsOfLastChildRowOfParent[index-1]}
-                         />
-                })}
-              </svg>
-              <div className="spacer-mid-layer">
-                {parentCases?.map((value, index) => (
-                  <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                    onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
-                    styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
-                  />
-                ))}
-              </div>
+    <div className={classes} ref={handleRef}>
+      {!parentMost &&
+        <>
+          <div className="spacer-top">
+            {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
+              title={topButtonTooltip} />}
+          </div>
+          <div className="spacer-mid">
+            <svg className="spacer-mid-layer lower-layer">
+              {parentCases?.map((parentCase, index) => {
+                const parentCaseId = parentCase.__id__
+                return <CurvedSpline key={`${parentCaseId}-${index}`}
+                                      y1={((index + 1) * rowHeight) - parentScrollTop}
+                                      y2={bottomsOfLastChildRowOfParent[index]}
+                                      even={(index + 1) % 2 === 0}
+                                      rowHeight={rowHeight}
+                                      prevRowBottom={bottomsOfLastChildRowOfParent[index-1]}
+                        />
+              })}
+            </svg>
+            <div className="spacer-mid-layer">
+              {parentCases?.map((value, index) => (
+                <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
+                  onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
+                  styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
+                />
+              ))}
             </div>
-        }
+          </div>
+        </>
+      }
 
-        <div className="drop-message" style={msgStyle}>{isOver ? dropMessage : ""}</div>
-      </div>
-      <div className="collection-table-spacer-divider" />
+      <div className="drop-message" style={msgStyle}>{isOver ? dropMessage : ""}</div>
     </div>
   )
 })

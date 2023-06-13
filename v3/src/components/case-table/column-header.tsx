@@ -12,7 +12,7 @@ import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 
-export const ColumnHeader = ({ column }: Pick<TRenderHeaderCellProps, "column">) => {
+export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">) {
   const { active } = useDndContext()
   const data = useDataSetContext()
   const instanceId = useInstanceIdContext() || "table"

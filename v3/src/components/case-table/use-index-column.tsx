@@ -78,7 +78,7 @@ interface ICellProps {
   collapsedCases?: number
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export const IndexCell = ({ caseId, index, collapsedCases, onClick }: ICellProps) => {
+export function IndexCell({ caseId, index, collapsedCases, onClick }: ICellProps) {
   const [menuButton, setMenuButton] = useState<HTMLButtonElement | null>(null)
   const cellElt: HTMLDivElement | null = menuButton?.closest(".rdg-cell") ?? null
   // Find the parent CODAP component to display the index menu above the grid

@@ -29,3 +29,5 @@ export type TColSpanArgs = ColSpanArgs<TRow, unknown>
 export const kIndexColumnKey = "__index__"
 
 export const kChildMostTableCollectionId = "child-most"
+
+export const kDefaultColumnWidth = 80

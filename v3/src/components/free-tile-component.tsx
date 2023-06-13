@@ -14,7 +14,7 @@ interface IProps {
   onCloseTile: (tileId: string) => void;
 }
 
-export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
+export function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width?: number, height?: number, transition: string}>()
   const [resizingTileId, setResizingTileId] = useState("")
@@ -39,7 +39,7 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
     rowTile?.setMinimized(!rowTile.isMinimized)
   }, [rowTile])
 
-  const handleResizePointerDown = (e: React.PointerEvent, mtile: IFreeTileLayout, direction: string) => {
+  const handleResizePointerDown = useCallback((e: React.PointerEvent, mtile: IFreeTileLayout, direction: string) => {
     const startWidth = mtile.width
     const startHeight = mtile.height
     const startPosition = {x: e.pageX, y: e.pageY}
@@ -81,7 +81,27 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
 
     document.body.addEventListener("pointermove", onPointerMove, { capture: true })
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
-  }
+  }, [])
+
+  const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {
+    rowTile && handleResizePointerDown(e, rowTile, "bottom-right")
+  }, [handleResizePointerDown, rowTile])
+
+  const handleBottomLeftPointerDown = useCallback((e: React.PointerEvent) => {
+    rowTile && handleResizePointerDown(e, rowTile, "bottom-left")
+  }, [handleResizePointerDown, rowTile])
+
+  const handleRightPointerDown = useCallback((e: React.PointerEvent) => {
+    rowTile && handleResizePointerDown(e, rowTile, "right")
+  }, [handleResizePointerDown, rowTile])
+
+  const handleBottomPointerDown = useCallback((e: React.PointerEvent) => {
+    rowTile && handleResizePointerDown(e, rowTile, "bottom")
+  }, [handleResizePointerDown, rowTile])
+
+  const handleLeftPointerDown = useCallback((e: React.PointerEvent) => {
+    rowTile && handleResizePointerDown(e, rowTile, "left")
+  }, [handleResizePointerDown, rowTile])
 
   const startStyleTop = top || 0
   const startStyleLeft = left || 0
@@ -107,11 +127,11 @@ export const FreeTileComponent = ({ row, tile, onCloseTile}: IProps) => {
           isMinimized={rowTile.isMinimized}
           onMinimizeTile={handleMinimizeTile}
           onCloseTile={onCloseTile}
-          onBottomRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-right")}
-          onBottomLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom-left")}
-          onRightPointerDown={(e)=>handleResizePointerDown(e, rowTile, "right")}
-          onBottomPointerDown={(e)=>handleResizePointerDown(e, rowTile, "bottom")}
-          onLeftPointerDown={(e)=>handleResizePointerDown(e, rowTile, "left")}
+          onBottomRightPointerDown={handleBottomRightPointerDown}
+          onBottomLeftPointerDown={handleBottomLeftPointerDown}
+          onRightPointerDown={handleRightPointerDown}
+          onBottomPointerDown={handleBottomPointerDown}
+          onLeftPointerDown={handleLeftPointerDown}
         />
       }
     </div>
