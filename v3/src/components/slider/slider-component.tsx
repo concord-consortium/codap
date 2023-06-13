@@ -80,7 +80,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               <div className="axis-end min" />
               <svg className="slider-axis" data-testid="slider-axis">
                 <Axis
-                  getAxisModel={() => sliderModel.axis}
+                  axisModel={sliderModel.axis}
                   enableAnimation={animationRef}
                 />
               </svg>

@@ -1,4 +1,4 @@
-import {action, autorun, computed, IReactionDisposer, makeObservable, observable} from "mobx"
+import {action, computed, IReactionDisposer, makeObservable, observable, reaction} from "mobx"
 import {
   format, NumberValue, ScaleBand, scaleBand, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
@@ -134,12 +134,11 @@ export class MultiScale {
   }
 
   @action reactToCategorySetChange() {
-    return autorun(() => {
-      const categories = this.categorySetValues
-      if (categories?.length) {
-        this.setCategoricalDomain(categories)
-        this.incrementChangeCount()
-      }
+    return reaction(() => {
+      return Array.from(this.categorySetValues)
+    }, (categories) => {
+      this.setCategoricalDomain(categories)
+      this.incrementChangeCount()
     })
   }
 

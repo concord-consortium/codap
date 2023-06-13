@@ -30,6 +30,7 @@ export const GraphAxis = observer(function GraphAxis(
   const dataConfig = useDataConfigurationContext(),
     isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     graphModel = useGraphModelContext(),
+    axisModel = graphModel?.getAxis(place),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
     droppableId = `${instanceId}-${place}-axis-drop`,
@@ -67,12 +68,13 @@ export const GraphAxis = observer(function GraphAxis(
 
   return (
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
-      <Axis getAxisModel={() => graphModel.getAxis(place)}
-            label={''}  // Remove
-            enableAnimation={enableAnimation}
-            showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
-            centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
-      />
+      {axisModel &&
+         <Axis axisModel={axisModel}
+             label={''}  // Remove
+             enableAnimation={enableAnimation}
+             showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
+             centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
+      />}
       <AttributeLabel
         place={place}
         onChangeAttribute={onDropAttribute}

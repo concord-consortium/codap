@@ -8,7 +8,7 @@ import {SubAxis} from "./sub-axis"
 import "./axis.scss"
 
 interface IProps {
-  getAxisModel: () => IAxisModel | undefined
+  axisModel: IAxisModel
   label?: string
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
@@ -16,12 +16,11 @@ interface IProps {
 }
 
 export const Axis = ({
-                       label, getAxisModel, showScatterPlotGridLines = false,
+                       label, axisModel, showScatterPlotGridLines = false,
                        enableAnimation,
                        centerCategoryLabels = true,
                      }: IProps) => {
   const
-    axisModel = getAxisModel(),
     layout = useAxisLayoutContext(),
     place = axisModel?.place || 'bottom',
     [axisElt, setAxisElt] = useState<SVGGElement | null>(null)
@@ -36,7 +35,7 @@ export const Axis = ({
       return <SubAxis key={i}
                       numSubAxes={numRepetitions}
                       subAxisIndex={i}
-                      getAxisModel={getAxisModel}
+                      axisModel={axisModel}
                       enableAnimation={enableAnimation}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       centerCategoryLabels={centerCategoryLabels}

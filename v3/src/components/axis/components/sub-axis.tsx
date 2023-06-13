@@ -1,4 +1,4 @@
-import React, {MutableRefObject, useRef, useState} from "react"
+import React, {memo, MutableRefObject, useRef, useState} from "react"
 import {useSubAxis} from "../hooks/use-sub-axis"
 import {IAxisModel, INumericAxisModel} from "../models/axis-model"
 import {NumericAxisDragRects} from "./numeric-axis-drag-rects"
@@ -8,20 +8,17 @@ import "./axis.scss"
 interface ISubAxisProps {
   numSubAxes: number
   subAxisIndex: number
-  getAxisModel: () => IAxisModel | undefined
+  axisModel: IAxisModel
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
-  // getCategorySet?: () => ICategorySet | undefined  // only used for categorical axes
 }
 
-
-export const SubAxis = ({
-                          numSubAxes, subAxisIndex, getAxisModel, showScatterPlotGridLines = false,
+export const SubAxis = memo(function SubAxis({
+                          numSubAxes, subAxisIndex, axisModel, showScatterPlotGridLines = false,
                           centerCategoryLabels = true, enableAnimation/*, getCategorySet*/
-                        }: ISubAxisProps) => {
+                        }: ISubAxisProps) {
   const
-    axisModel = getAxisModel(),
     subWrapperElt = useRef<SVGGElement | null>(null),
     [subAxisElt, setSubAxisElt] = useState<SVGGElement | null>(null)
 
@@ -52,4 +49,4 @@ export const SubAxis = ({
           }
     </g>
   )
-}
+})
