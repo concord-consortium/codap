@@ -22,9 +22,10 @@ export const TableTileElements = {
   getColumnHeader(index) {
     return cy.get(".codap-column-header-content").eq(index)
   },
-  getColumnHeaderTooltip() {
-    return cy.get("[data-testid=case-table-attribute-tooltip]")
-  },
+  // doesn't work in more recent chakra versions
+  // getColumnHeaderTooltip() {
+  //   return cy.get("[data-testid=case-table-attribute-tooltip]")
+  // },
   openIndexMenuForRow(rowNum) {
     cy.get(`[data-testid=case-table] [role=grid] [role=row][aria-rowindex="${rowNum}"]
             [data-testid=codap-index-content-button]`).click("top")

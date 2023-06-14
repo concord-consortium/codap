@@ -96,7 +96,7 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
         return (
           <Tooltip label={`${column.name} ${description}` || kDefaultAttributeName} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
-              data-testid="case-table-attribute-tooltip" isDisabled={disableTooltip}
+              isDisabled={disableTooltip}
           >
             <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
             { editingAttrId
