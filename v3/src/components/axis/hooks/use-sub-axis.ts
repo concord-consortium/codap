@@ -1,6 +1,6 @@
 import {format, ScaleBand, ScaleLinear, select} from "d3"
 import {autorun, reaction} from "mobx"
-import {MutableRefObject, useCallback, useEffect} from "react"
+import {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
@@ -11,7 +11,7 @@ import {collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
 
 export interface IUseSubAxis {
   subAxisIndex: number
-  axisModel?: IAxisModel
+  axisModel: IAxisModel
   subAxisElt: SVGGElement | null
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines: boolean
@@ -23,13 +23,14 @@ export const useSubAxis = ({
                              enableAnimation
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
-    isNumeric = axisModel && isNumericAxisModel(axisModel),
-    isCategorical = axisModel && isCategoricalAxisModel(axisModel),
-    multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0
+    isNumeric = isNumericAxisModel(axisModel),
+    isCategorical = isCategoricalAxisModel(axisModel),
+    multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
+    savedCategorySetValuesRef = useRef<string[]>([])
 
   const refreshSubAxis = useCallback(() => {
     const
-      place = axisModel?.place ?? 'bottom',
+      place = axisModel.place,
       multiScale = layout.getAxisMultiScale(place)
     if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
@@ -38,20 +39,20 @@ export const useSubAxis = ({
       rangeMax = rangeMin + subAxisLength,
       axisIsVertical = isVertical(place),
       axis = axisPlaceToAxisFn(place),
-      type = axisModel?.type ?? 'empty',
+      type = axisModel.type,
       axisBounds = layout.getComputedBounds(place) as AxisBounds,
       d3Scale: AxisScaleType = multiScale.scale.copy()
         .range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax]) as AxisScaleType,
-      ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : d3Scale as ScaleBand<string>,
+      ordinalScale = isNumeric || axisModel.type === 'empty' ? null : d3Scale as ScaleBand<string>,
       bandWidth = (ordinalScale?.bandwidth?.()) ?? 0,
-      duration = enableAnimation.current ? transitionDuration : 0,
       initialTransform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
         : (place === 'top') ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`
           : `translate(${axisBounds.left}, ${axisBounds.top})`
 
     const drawAxis = () => {
         const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
-          axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
+          axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9')),
+          duration = enableAnimation.current ? transitionDuration : 0
         if (!axisIsVertical && numericScale.ticks) {
           axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
         }
@@ -88,7 +89,8 @@ export const useSubAxis = ({
             categories = ordinalScale?.domain() ?? [],
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {translation, rotation, textAnchor} = getCategoricalLabelPlacement(place, centerCategoryLabels,
-              collision, bandWidth, textHeight)
+              collision, bandWidth, textHeight)/*,
+            duration = enableAnimation.current ? transitionDuration : 0*/
           if (!subAxisElt) return
           select(subAxisElt)
             .attr("transform", initialTransform)
@@ -97,7 +99,8 @@ export const useSubAxis = ({
             .selectAll('g').remove()
           // select(subAxisElt).selectAll('line').remove()
           select(subAxisElt).append('g')
-            .transition().duration(duration)
+            // todo: We would prefer to have this transition enabled, but it causes funky behavior
+            // .transition().duration(duration)
             .attr('transform', `translate(${axisIsVertical ? 0 : bandWidth / 2}, ` +
               `${axisIsVertical ? bandWidth / 2 : 0})`)
             .call(axis(ordinalScale).tickSizeInner(-tickLength))
@@ -129,29 +132,27 @@ export const useSubAxis = ({
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
-    if (axisModel) {
-      const disposer = reaction(
-        () => {
-          const {place: aPlace, scale: scaleType} = axisModel
-          return {place: aPlace, scaleType}
-        },
-        ({place: aPlace, scaleType}) => {
-          layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
-          refreshSubAxis()
-        }
-      )
-      return () => disposer()
-    }
+    const disposer = reaction(
+      () => {
+        const {place: aPlace, scale: scaleType} = axisModel
+        return {place: aPlace, scaleType}
+      },
+      ({place: aPlace, scaleType}) => {
+        layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
+        refreshSubAxis()
+      }
+    )
+    return () => disposer()
   }, [isNumeric, axisModel, layout, refreshSubAxis])
 
   // Install reaction to bring about rerender when layout's computedBounds changes
   useEffect(() => {
     const disposer = reaction(
-      () => layout.getComputedBounds(axisModel?.place ?? 'bottom'),
+      () => layout.getComputedBounds(axisModel.place),
       () => refreshSubAxis()
     )
     return () => disposer()
-  }, [layout, refreshSubAxis, axisModel?.place])
+  }, [layout, refreshSubAxis, axisModel.place])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
@@ -170,10 +171,16 @@ export const useSubAxis = ({
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {
     if (isCategorical) {
-      const disposer = autorun(() => {
-        const values = layout.getAxisMultiScale(axisModel.place)?.categorySetValues
-        if (values?.length) {
+      const disposer = reaction(() => {
+        const multiScale = layout.getAxisMultiScale(axisModel.place),
+          categorySet = multiScale?.categorySet,
+          categorySetValues = categorySet?.values
+        return Array.from(categorySetValues ?? [])
+      }, (values) => {
+        // todo: The above reaction is detecting changes to the set of values even when they haven't changed. Why?
+        if (JSON.stringify(values) !== JSON.stringify(savedCategorySetValuesRef.current)) {
           refreshSubAxis()
+          savedCategorySetValuesRef.current = values
         }
       })
       return () => disposer()
@@ -184,7 +191,7 @@ export const useSubAxis = ({
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.getAxisLength(axisModel?.place ?? 'bottom')
+        return layout.getAxisLength(axisModel.place)
       },
       () => {
         refreshSubAxis()
@@ -193,7 +200,7 @@ export const useSubAxis = ({
     return () => disposer()
   }, [axisModel, layout, refreshSubAxis])
 
-  // update on component refresh
+  // update on multiScaleChangeCount change
   useEffect(() => {
     refreshSubAxis()
   }, [refreshSubAxis, multiScaleChangeCount])
