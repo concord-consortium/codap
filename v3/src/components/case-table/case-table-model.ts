@@ -11,6 +11,7 @@ export const CaseTableModel = TileContentModel
     type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
   })
   .volatile(self => ({
+    scrollLeft: 0,
     // map from collection IDs to scrollTops
     scrollTopMap: observable.map<string, number>(),
   }))
@@ -26,7 +27,12 @@ export const CaseTableModel = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
-    setScrollTopMap(collectionId: string, scrollTop?: number) {
+    // entire hierarchical table scrolls as a unit horizontally
+    setScrollLeft(scrollLeft: number) {
+      self.scrollLeft = scrollLeft
+    },
+    // each sub-table scrolls independently vertically
+    setScrollTop(collectionId: string, scrollTop?: number) {
       if (scrollTop != null) {
         self.scrollTopMap.set(collectionId, scrollTop)
       } else {

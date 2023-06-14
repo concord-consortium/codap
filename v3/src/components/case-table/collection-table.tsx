@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kChildMostTableCollectionId, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
@@ -27,11 +27,16 @@ export const CollectionTable = observer(function CollectionTable() {
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
 
-  useEffect(()=>{
+  useEffect(function syncScrollTop() {
+    // There is a bug, seemingly in React, in which the scrollTop property gets reset
+    // to 0 when the order of tiles is changed (which happens on selecting/focusing tiles
+    // in the free tile layout), even though the CollectionTable and the RDG grid component
+    // are not re-rendered or unmounted/mounted. Therefore, we reset the scrollTop property
+    // from our saved cache on focus change.
     if (isFocused && gridRef.current?.element) {
       gridRef.current.element.scrollTop = tableModel?.scrollTopMap.get(collectionId) ?? 0
     }
-  }, [isFocused, collectionId, tableModel?.scrollTopMap])
+  }, [isFocused, collectionId, tableModel])
 
   // columns
   const indexColumn = useIndexColumn()
@@ -49,8 +54,9 @@ export const CollectionTable = observer(function CollectionTable() {
   if (!data) return null
 
   function handleGridScroll() {
-    (gridRef.current?.element?.scrollTop != null) &&
-      tableModel?.setScrollTopMap(collectionId, gridRef.current?.element?.scrollTop)
+    const gridElt = gridRef.current?.element
+    ;(gridElt != null) &&
+      tableModel?.setScrollTop(collectionId, gridElt.scrollTop)
   }
 
   return (
