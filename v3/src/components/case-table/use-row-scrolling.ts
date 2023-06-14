@@ -127,22 +127,5 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined) {
     }
   }, [gridElt, scrollRowIntoView])
 
-  const scrollParentRowIntoView = useCallback((rowIndex: number, options?: ScrollOptions) => {
-    if (!gridElt) return
-    const [rowTop, rowBottom] = getRowRange(rowIndex)
-    const [viewTop, viewBottom] = getVisibleRange(gridElt)
-    const visibleRows = (viewBottom - viewTop) / +styles.bodyRowHeight
-    // is row already visible?
-    if (rowTop >= viewTop && rowBottom <= viewBottom) return
-    // is row above visible rows?
-    if (rowTop < viewTop) {
-      scrollRowToTop(Math.max(0, rowIndex - 1), options)
-    }
-    // is row below visible rows
-    else if (rowBottom > viewBottom) {
-      scrollRowToTop(Math.max(0, rowIndex - visibleRows + 2), options)
-    }
-  }, [gridElt, scrollRowToTop])
-
-  return { scrollRowToTop, scrollRowIntoView, scrollClosestRowIntoView, scrollParentRowIntoView }
+  return { scrollRowToTop, scrollRowIntoView, scrollClosestRowIntoView }
 }

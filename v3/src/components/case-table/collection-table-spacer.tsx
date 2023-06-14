@@ -21,7 +21,9 @@ const kDividerWidth = 48,
       // The color of the lines bounding the relationship regions
       kRelationStrokeColor = '#808080', // middle gray
       // The color of the shaded area of the relationship regions
-      kRelationFillColor = '#EEEEEE'    // pale gray
+      kRelationFillColor = '#EEEEEE',    // pale gray
+      kMargin = 10,
+      kHeaderHeight = +styles.headerRowHeight
 
 interface IProps {
   rows: TRow[]
@@ -45,36 +47,34 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
+  const tableSpacerDivRef = useRef<HTMLElement | null>(null)
+  const divHeight = tableSpacerDivRef.current?.getBoundingClientRect().height
+  const msgStyle: React.CSSProperties =
+    { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentGridRef = useRef<HTMLDivElement | null>(null)
   const childGridRef = useRef<HTMLDivElement | null>(null)
   const parentGridEl = parentGridRef.current
   const childGridEl  = childGridRef.current
-  const tableSpacerDivRef = useRef<HTMLElement | null>(null)
-  const divHeight = tableSpacerDivRef.current?.getBoundingClientRect().height
   const childGridHeight = childGridEl?.clientHeight
-  const { scrollRowToTop: childScrollToTop } = useRowScrolling(childGridEl)
-  const { scrollRowToTop: parentScrollToTop } = useRowScrolling(parentGridEl)
-
-  const kMargin = 10
-  const msgStyle: React.CSSProperties =
-    { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentScrollTop = parentCollectionId && tableModel?.scrollTopMap.get(parentCollectionId) || 0
   const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
-  const isParentScrollable = parentGridEl &&
-                              (parentGridEl.scrollHeight > parentGridEl.clientHeight)
+  const { scrollRowToTop: childScrollToTop } = useRowScrolling(childGridEl)
+  const { scrollRowToTop: parentScrollToTop } = useRowScrolling(parentGridEl)
   const isChildScrollable = childGridEl &&
                               (childGridEl.scrollHeight > childGridEl.clientHeight)
-  // console.log("parentGridEl.scrollHeight ", parentGridEl?.scrollHeight)
-  // console.log("childGridEl.scrollHeight ", childGridEl?.scrollHeight)
-  const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
+  const parentCases = useMemo(
+    () => parentCollection ? data?.getCasesForCollection(parentCollection.id) : [], [data, parentCollection])
   const bottomsOfLastChildRowOfParent: number[] = []
   const parentToChildrenMap: Record<string, string[] | undefined> = {}
   const parentToChildrenRowIndicesMap: Record<string, number[]> = {}
-  const [childY, setChildY] = useState(childGridEl?.scrollTop)
-  const [parentY, setParentY] = useState(parentGridEl?.scrollTop)
-  const [parentScrolled, setParentScrolled] = useState(false)
-  const [childScrolled, setChildScrolled] = useState(false)
+  const parentScrolled =  useRef(false)
+  const childScrolled = useRef(false)
   let numTotalChildCases = 0
+  const propagationScrollCount = useRef(0)
+  const parentScrollEventCount = useRef(0)
+  const childScrollEventCount = useRef(0)
+  const scrollEventCount = useRef(0)
+  const didScroll = useRef(false)
 
   const getPrevRowBottom = (idx: number) => {
     if (idx > 0 && bottomsOfLastChildRowOfParent[idx-1] >= 0)  { return bottomsOfLastChildRowOfParent[idx-1] }
@@ -89,15 +89,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
     if (caseRow) return rows.indexOf(caseRow)
   }
 
-  const getVisibleIndexRange = (gridEl: HTMLDivElement) => {
-    const currentTopIdx = gridEl.scrollTop &&
-      Math.floor(gridEl.scrollTop/rowHeight)
-    // console.log("currentTopIdx", currentTopIdx)
+  const getVisibleIndexRange = useCallback((gridEl: HTMLDivElement) => {
+    const currentTopIdx = gridEl.scrollTop && Math.ceil(gridEl.scrollTop/rowHeight)
     const currentBottomIdx = (currentTopIdx !== undefined && gridEl.clientHeight) &&
-      Math.floor(currentTopIdx + (((gridEl.clientHeight - +styles.headerRowHeight - rowHeight)/rowHeight)))
-          // console.log("currentTopIdx", currentTopIdx, "currentBottomIdx", currentBottomIdx)
+        Math.floor(currentTopIdx + (((gridEl.clientHeight - kHeaderHeight)/rowHeight)))
     return {top: currentTopIdx, bottom: currentBottomIdx}
-  }
+  }, [rowHeight])
 
   // Creates a map of parent to children row indices, and creates an array of row bottoms for each parent
   parentCases?.map((parentCase, index: number) => {
@@ -121,8 +118,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   })
 
   const handleChildScroll = useCallback(() => {
-    // console.log("in handleChildScroll", "parentScrolled", parentScrolled, "childScrolled", childScrolled)
-    if (childScrolled) return
+    childScrolled.current = false
     const getParentRowIdx = (childRow: TRow) => {
       if (!childRow) {
         console.log("No case: handleChildScroll")
@@ -136,33 +132,27 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
 
     const visibleParentIndexRange = parentGridEl && getVisibleIndexRange(parentGridEl)
     const visibleChildIndexRange = childGridEl && getVisibleIndexRange(childGridEl)
-    setParentScrolled(false)
-
-    if (childY != null && childGridEl?.scrollTop && visibleChildIndexRange) {
+    if (childGridEl?.scrollTop && visibleChildIndexRange) {
       const topChildCase = rows[visibleChildIndexRange.top]
       const bottomChildCase = visibleChildIndexRange.bottom && rows[visibleChildIndexRange.bottom]
       const topChildParentIdx = getParentRowIdx(topChildCase) //p0
       const bottomChildParentIdx = bottomChildCase && getParentRowIdx(bottomChildCase) //pn
       if (topChildParentIdx && bottomChildParentIdx && visibleParentIndexRange && parentCases) {
         if (topChildParentIdx < visibleParentIndexRange.top) {
-          console.log("in child scroll if", topChildParentIdx, visibleParentIndexRange.top)
           parentScrollToTop(topChildParentIdx)
-          setParentScrolled(true)
+          parentScrolled.current = true
         } else if (bottomChildParentIdx >= visibleParentIndexRange.bottom) {
-          console.log("in child scroll else if", bottomChildParentIdx, visibleParentIndexRange.bottom)
-          console.log("index to scroll to:", bottomChildParentIdx - Math.floor(parentGridEl.clientHeight/rowHeight - 1))
-          parentScrollToTop(bottomChildParentIdx - Math.floor(parentGridEl.clientHeight/rowHeight - 1))
-          setParentScrolled(true)
+          parentScrollToTop(bottomChildParentIdx - Math.ceil((parentGridEl.clientHeight - kHeaderHeight)/rowHeight - 1))
+          parentScrolled.current = true
         }
       }
     }
-    setChildY(childGridEl?.scrollTop)
-  }, [childY])
+    return parentScrolled.current
+  }, [childGridEl, data?.pseudoCaseMap, getVisibleIndexRange, parentCases, parentGridEl, parentScrollToTop, rowHeight, rows])
 
   const handleParentScroll = useCallback(() => {
-    // console.log("In handleParentScroll", "parentScrolled", parentScrolled, "childScrolled", childScrolled)
-    if (parentScrolled) return
-    if (parentY != null && parentGridEl?.scrollTop && parentCases) {
+    parentScrolled.current = false
+    if (parentGridEl?.scrollTop && parentCases) {
       const getChildCollectionRange = (parentId: string) => {
         if (!parentId) {
           console.log("No case: handleParentScroll")
@@ -180,44 +170,77 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
         }
         return range
       }
-
-      const visibleChildIndexRange = childGridEl && getVisibleIndexRange(childGridEl)
-      const topParentCaseIndex = Math.floor(parentY/rowHeight)
+      parentScrolled.current = true
+      const topParentCaseIndex = Math.ceil(parentGridEl.scrollTop/rowHeight)
       const topParentCase = parentCases[topParentCaseIndex]
-      const childIndexRangeOfTopParentCase = getChildCollectionRange(topParentCase.__id__)
-      const bottomParentCaseIndex = (parentGridEl?.clientHeight) &&
-              (topParentCaseIndex) +
-                Math.floor(((parentGridEl?.clientHeight - +styles.headerRowHeight - rowHeight)/rowHeight))
-      const bottomParentCase = bottomParentCaseIndex < parentCases.length
+      const topParentChildrenIndexRange = getChildCollectionRange(topParentCase.__id__)
+      const visibleChildrenIndexRange = childGridEl && getVisibleIndexRange(childGridEl)
+      const visibleParentIndexRange = parentGridEl && getVisibleIndexRange(parentGridEl)
+      const bottomParentCaseIndex = visibleParentIndexRange.bottom
+      const bottomParentCase = bottomParentCaseIndex && (bottomParentCaseIndex < parentCases.length)
                                   ? parentCases[bottomParentCaseIndex] : parentCases[parentCases.length - 1]
       const bottomChildOfBottomParentCase = getChildCollectionRange(bottomParentCase.__id__)
       const numVisibleCases = childGridHeight && childGridHeight/rowHeight || 0
-      setChildScrolled(false)
-
-      if ((childIndexRangeOfTopParentCase && visibleChildIndexRange?.top !== undefined) &&
-          (childIndexRangeOfTopParentCase.first > visibleChildIndexRange.top)) {
-        childScrollToTop(childIndexRangeOfTopParentCase.first)
-        setChildScrolled(true)
-      } else if ((bottomChildOfBottomParentCase && visibleChildIndexRange?.bottom) &&
-          (bottomChildOfBottomParentCase.last < visibleChildIndexRange.bottom)) {
-        childScrollToTop(bottomChildOfBottomParentCase.last - numVisibleCases)
-        setChildScrolled(true)
+      if ((topParentChildrenIndexRange && visibleChildrenIndexRange?.top !== undefined) &&
+          (topParentChildrenIndexRange.first > visibleChildrenIndexRange.top)) {
+        childScrollToTop(topParentChildrenIndexRange.first)
+        childScrolled.current = true
+      } else if ((bottomChildOfBottomParentCase && visibleChildrenIndexRange?.bottom) &&
+          (bottomChildOfBottomParentCase.last < visibleChildrenIndexRange.bottom)) {
+        childScrollToTop(bottomChildOfBottomParentCase.last - numVisibleCases - 1)
+        childScrolled.current = true
       }
-      setParentY(parentGridEl?.scrollTop)
     }
-  }, [parentY, parentCases, rowHeight]
-)
+    return childScrolled.current
+  }, [caseMetadata, childGridEl, childGridHeight, childScrollToTop, getVisibleIndexRange, parentCases, parentGridEl, parentToChildrenRowIndicesMap, rowHeight])
+
+  const handleTableScroll = useCallback((gridEl: HTMLDivElement) => (evt: any) => {
+    if (parentGridEl) {
+      if (parentScrollEventCount.current < propagationScrollCount.current) {
+        parentScrollEventCount.current = propagationScrollCount.current
+      } else {
+        propagationScrollCount.current++
+        parentScrollEventCount.current = propagationScrollCount.current
+      }
+    }
+    if (childGridEl) {
+      if (childScrollEventCount.current < propagationScrollCount.current) {
+        childScrollEventCount.current = propagationScrollCount.current
+      } else {
+        propagationScrollCount.current++
+        childScrollEventCount.current = propagationScrollCount.current
+      }
+    }
+    didScroll.current = true
+    if (gridEl === parentGridEl) {
+      if (didScroll.current) {
+        didScroll.current = handleParentScroll()
+      }
+      if (!didScroll.current) {
+        scrollEventCount.current = propagationScrollCount.current
+        parentScrollEventCount.current = propagationScrollCount.current
+      }
+    }
+    didScroll.current = true
+    if (gridEl === childGridEl) {
+      if (didScroll.current) {
+        didScroll.current = handleChildScroll()
+      }
+      if (!didScroll.current) {
+        scrollEventCount.current = propagationScrollCount.current
+        childScrollEventCount.current = propagationScrollCount.current
+      }
+    }
+  }, [childGridEl, handleChildScroll, handleParentScroll, parentGridEl])
 
   useEffect(() => {
-    setChildY(childGridEl?.scrollTop)
-    setParentY(parentGridEl?.scrollTop)
-    childGridEl?.addEventListener("scroll", handleChildScroll)
-    parentGridEl?.addEventListener("scroll", handleParentScroll)
+    childGridEl?.addEventListener("scroll", handleTableScroll(childGridEl))
+    parentGridEl?.addEventListener("scroll", handleTableScroll(parentGridEl))
     return () => {
-      childGridEl?.removeEventListener("scroll", handleChildScroll)
-      parentGridEl?.addEventListener("scroll", handleParentScroll)
+      childGridEl?.removeEventListener("scroll", handleTableScroll(childGridEl))
+      parentGridEl?.removeEventListener("scroll", handleTableScroll(parentGridEl))
     }
-  }, [handleChildScroll, handleParentScroll, parentCollectionId])
+  },[handleChildScroll, handleParentScroll])
 
   const handleRef = (element: HTMLElement | null) => {
     const tableContent = element?.closest(".case-table-content") ?? null
