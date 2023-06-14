@@ -9,6 +9,7 @@ import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
 import { CollectionTitle } from "./collection-title"
@@ -23,10 +24,19 @@ export const CollectionTable = observer(function CollectionTable() {
   const collectionId = collection?.id || kChildMostTableCollectionId
   const gridRef = useRef<DataGridHandle>(null)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
-  const collectionGridRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    collectionGridRef.current = document.querySelector(`.collection-${collectionId} .rdg-light`)
-  }, [collectionId])
+  const { isTileSelected } = useTileModelContext()
+  const isFocused = isTileSelected()
+
+  useEffect(function syncScrollTop() {
+    // There is a bug, seemingly in React, in which the scrollTop property gets reset
+    // to 0 when the order of tiles is changed (which happens on selecting/focusing tiles
+    // in the free tile layout), even though the CollectionTable and the RDG grid component
+    // are not re-rendered or unmounted/mounted. Therefore, we reset the scrollTop property
+    // from our saved cache on focus change.
+    if (isFocused && gridRef.current?.element) {
+      gridRef.current.element.scrollTop = tableModel?.scrollTopMap.get(collectionId) ?? 0
+    }
+  }, [isFocused, collectionId, tableModel])
 
   // columns
   const indexColumn = useIndexColumn()
@@ -44,8 +54,9 @@ export const CollectionTable = observer(function CollectionTable() {
   if (!data) return null
 
   function handleGridScroll() {
-    (collectionGridRef.current?.scrollTop != null) &&
-      tableModel?.setScrollTopMap(collectionId, collectionGridRef.current?.scrollTop)
+    const gridElt = gridRef.current?.element
+    ;(gridElt != null) &&
+      tableModel?.setScrollTop(collectionId, gridElt.scrollTop)
   }
 
   return (
