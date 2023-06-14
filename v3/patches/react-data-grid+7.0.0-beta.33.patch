@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index b3e8235..bd4ac8e 100644
+index d16c062..696b1fe 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
 @@ -2845,5 +2845,6 @@ exports.renderSortPriority = renderSortPriority;
@@ -10,7 +10,7 @@ index b3e8235..bd4ac8e 100644
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 6460beb..97d9a5e 100644
+index 9de94fe..2fee6fa 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
 @@ -2827,5 +2827,6 @@ function textEditor({
