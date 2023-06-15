@@ -7,13 +7,13 @@ import "./attribute-drag-overlay.scss"
 interface IProps {
   activeDragId?: string
 }
-export const AttributeDragOverlay = ({ activeDragId }: IProps) => {
+export function AttributeDragOverlay ({ activeDragId }: IProps) {
   const { active } = useDndContext()
   const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
   const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
   return (
     <DragOverlay dropAnimation={null}>
-      {dragAttrId
+      {attr
         ? <div className="attribute-drag-overlay">
             {attr?.name}
           </div>

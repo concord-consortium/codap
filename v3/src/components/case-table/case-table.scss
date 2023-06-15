@@ -18,12 +18,10 @@ $table-body-font-size: 8pt;
     .collection-table {
       display: flex;
       align-items: stretch;
-      width: 100%;
 
       .collection-table-and-title {
         display: flex;
         flex-direction: column;
-        width: 100%;
 
         .collection-title-wrapper {
           position: relative;
@@ -113,7 +111,7 @@ $table-body-font-size: 8pt;
         }
 
         .spacer-top {
-          height: calc(vars.$title-bar-height + vars.$header-height - 1px);
+          height: calc(vars.$title-bar-height + vars.$header-height - 0.5px);
           background-color: #f9f9f9; // --rdg-header-background-color
           width: 100%;
           border-bottom: 1px solid var(--codap-colors-chakra-border-color);
@@ -178,12 +176,16 @@ $table-body-font-size: 8pt;
   }
 
   .rdg {
-    width: 100%;
-    height: 100%;
+    // RDG specifies `contain: strict` which prevents rendering in Firefox.
+    // We override to specify `contain: content`, which excludes `size`,
+    // thus allowing the size of the grid to be computed appropriately.
+    contain: content !important;
+
     font-family: 'Montserrat-Regular', sans-serif !important;
     font-size: $table-body-font-size !important;
     color: #222222;
     border-radius: vars.$border-radius-bottom-corners;
+    overflow-x: hidden;
 
     .rdg-header-row {
       line-height: 14px !important;

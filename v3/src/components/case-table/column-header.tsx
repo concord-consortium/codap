@@ -8,11 +8,11 @@ import { kDefaultAttributeName } from "../../models/data/attribute"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu"
 import { CaseTablePortal } from "./case-table-portal"
-import { kIndexColumnKey, THeaderRendererProps } from "./case-table-types"
+import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 
-export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) => {
+export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">) {
   const { active } = useDndContext()
   const data = useDataSetContext()
   const instanceId = useInstanceIdContext() || "table"
@@ -96,7 +96,7 @@ export const ColumnHeader = ({ column }: Pick<THeaderRendererProps, "column">) =
         return (
           <Tooltip label={`${column.name} ${description}` || kDefaultAttributeName} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
-              data-testid="case-table-attribute-tooltip" isDisabled={disableTooltip}
+              isDisabled={disableTooltip}
           >
             <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}>
             { editingAttrId

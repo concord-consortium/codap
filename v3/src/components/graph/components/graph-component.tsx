@@ -21,8 +21,9 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const instanceId = useNextInstanceId("graph")
   const { data } = useDataSet(graphModel?.data)
   const layout = useInitGraphLayout(graphModel)
-  // Removed deboucing, but we can bring it back if we find we need it
-  const {width, height, ref: graphRef} = useResizeDetector(/*{refreshMode: "debounce", refreshRate: 15}*/)
+  // Removed debouncing, but we can bring it back if we find we need it
+  const graphRef = useRef<HTMLDivElement | null>(null)
+  const {width, height} = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
   const enableAnimation = useRef(true)
   const dotsRef = useRef<DotsElt>(null)
   const graphController = useMemo(
@@ -45,7 +46,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
   const {setNodeRef} = useDroppable({id: dropId})
-  setNodeRef(graphRef.current)
+  setNodeRef(graphRef.current ?? null)
 
   if (!graphModel) return null
 

@@ -113,7 +113,7 @@ const DraggableAttribute = ({ data, attribute }: IDraggableAttributeProps) => {
   )
 }
 const OverlayAttribute = ({ attribute }: IDraggableAttributeProps) => {
-  return (
+  return (attribute &&
     <div className={`draggable-attribute overlay`} >
       {attribute.name}
     </div>

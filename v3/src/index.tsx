@@ -1,6 +1,6 @@
 // https://github.com/welldone-software/why-did-you-render#options
 // uncomment the line below to enable why-did-you-render (for development only)
-// import "../why-did-you-render.ts"
+// import "../why-did-you-render"
 import { ChakraProvider } from '@chakra-ui/react'
 import React from "react"
 import { createRoot } from "react-dom/client"

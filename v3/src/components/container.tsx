@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback } from "react"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
 import { IDocumentContentModel } from "../models/document/document-content"
@@ -15,9 +15,9 @@ interface IProps {
 export const Container: React.FC<IProps> = ({ content }) => {
   // TODO: handle the possibility of multiple rows
   const row = content?.getRowByIndex(0)
-  const getTile = (tileId: string) => content?.getTile(tileId)
+  const getTile = useCallback((tileId: string) => content?.getTile(tileId), [content])
 
-  const handleCloseTile = (tileId: string) => {
+  const handleCloseTile = useCallback((tileId: string) => {
     const manager = getSharedModelManager(content)
     const tile = getTile(tileId)
     const sharedModels = manager?.getTileSharedModels(tile?.content)
@@ -25,7 +25,7 @@ export const Container: React.FC<IProps> = ({ content }) => {
       manager?.removeTileSharedModel(tile?.content, model)
     })
     tileId && content?.deleteTile(tileId)
-  }
+  }, [content, getTile])
 
   const { setNodeRef } = useContainerDroppable("codap-container", evt => {
     const dragTileId = getDragTileId(evt.active)
