@@ -22,6 +22,7 @@ context("Test legend with various attribute types", () => {
     cy.visit(url)
     cy.wait(2500)
   })
+  
   it("will not draw legend if plot area is empty", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[7]) // Habitat => plot area
