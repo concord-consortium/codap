@@ -12,7 +12,7 @@ export function AttributeDragOverlay ({ activeDragId }: IProps) {
   const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
   const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
   return (
-    <DragOverlay dropAnimation={null}>
+    <DragOverlay /*dropAnimation={null}*/>
       {attr
         ? <div className="attribute-drag-overlay">
             {attr?.name}

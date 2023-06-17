@@ -1,4 +1,4 @@
-import {useDroppable} from '@dnd-kit/core'
+import {useDndContext, useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useMemo, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
@@ -14,6 +14,7 @@ import {GraphLayoutContext} from "../models/graph-layout"
 import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {DotsElt} from '../d3-types'
+import {AttributeDragOverlay} from "../../utility-components/attribute-drag-overlay"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
@@ -48,6 +49,10 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(graphRef.current ?? null)
 
+  const { active } = useDndContext()
+  const overlayDragId = active && `${active.id}`.startsWith(instanceId)
+    ? `${active.id}` : undefined
+
   if (!graphModel) return null
 
   return (
@@ -60,6 +65,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                       graphRef={graphRef}
                       dotsRef={dotsRef}
               />
+              <AttributeDragOverlay activeDragId={overlayDragId} />
             </GraphModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>
