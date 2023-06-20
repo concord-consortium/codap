@@ -1,7 +1,7 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useEffect, useRef } from "react"
-import { AttributeDragOverlay } from "./attribute-drag-overlay"
+import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { useCaseTableModel } from "./use-case-table-model"

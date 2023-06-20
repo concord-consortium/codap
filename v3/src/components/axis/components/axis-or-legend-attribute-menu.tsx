@@ -1,5 +1,5 @@
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
-import React, { CSSProperties, useRef, memo } from "react"
+import React, {CSSProperties, useRef, memo} from "react"
 import t from "../../../utilities/translation/translate"
 import {GraphPlace} from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../graph/graphing-types"
@@ -9,6 +9,8 @@ import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute"
 import { IDataSet } from "../../../models/data/data-set"
+import {IUseDraggableAttribute, useDraggableAttribute} from "../../../hooks/use-drag-drop"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IProps {
   place: GraphPlace,
@@ -34,13 +36,19 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
   const dataConfig = useDataConfigurationContext()
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfig?.attributeID(role) || ''
+  const instanceId = useInstanceIdContext()
   const attribute = attrId ? data?.attrFromID(attrId) : null
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
   const treatAs = dataConfig?.attributeType(role) === "numeric" ? "categorical" : "numeric"
-  const overlayBounds = useOverlayBounds({target, portal})
-  const buttonStyles: CSSProperties = { position: "absolute", color: "transparent" }
+  const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
+  const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
   const onCloseRef = useRef<() => void>()
+
+  const draggableOptions: IUseDraggableAttribute = {
+    prefix: instanceId, dataSet: data, attributeId: attrId
+  }
+  const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
   useOutsidePointerDown({ref: menuRef, handler: () => onCloseRef.current?.()})
 
@@ -50,8 +58,9 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
-            <>
-              <MenuButton style={{ ...overlayBounds, ...buttonStyles }}>{attribute?.name}</MenuButton>
+            <div className="codap-graph-attribute-label" ref={setDragNodeRef}
+                style={overlayStyle} {...attributes} {...listeners}>
+              <MenuButton style={buttonStyle}>{attribute?.name}</MenuButton>
               <MenuList>
                 { data?.attributes?.map((attr) => {
                   return (
@@ -73,7 +82,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
                   </>
                 }
               </MenuList>
-            </>
+            </div>
           )
         }}
       </Menu>
