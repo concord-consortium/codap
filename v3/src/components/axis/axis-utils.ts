@@ -1,7 +1,9 @@
-import {ScaleLinear} from "d3"
-import {AxisPlace} from "./axis-types"
+import {drag, ScaleLinear, select} from "d3"
+import {kAxisGap, kAxisTickLength, kGraphFont} from "../graph/graphing-types"
+import {AxisBounds, AxisPlace, otherPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
-import {kGraphFont} from "../graph/graphing-types"
+import {IAxisLayout} from "./models/axis-layout-context"
+import {isVertical} from "../axis-graph-shared"
 
 export const getStringBounds = (s = 'Wy', font = kGraphFont) => {
   return measureTextExtent(s, font)
@@ -148,3 +150,4 @@ export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): nu
 
   return Math.max(2, currentNumber)
 }
+

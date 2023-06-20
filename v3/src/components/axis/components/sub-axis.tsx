@@ -15,9 +15,9 @@ interface ISubAxisProps {
 }
 
 export const SubAxis = memo(function SubAxis({
-                          numSubAxes, subAxisIndex, axisModel, showScatterPlotGridLines = false,
-                          centerCategoryLabels = true, enableAnimation/*, getCategorySet*/
-                        }: ISubAxisProps) {
+                                               numSubAxes, subAxisIndex, axisModel, showScatterPlotGridLines = false,
+                                               centerCategoryLabels = true, enableAnimation/*, getCategorySet*/
+                                             }: ISubAxisProps) {
   const
     subWrapperElt = useRef<SVGGElement | null>(null),
     [subAxisElt, setSubAxisElt] = useState<SVGGElement | null>(null)
@@ -38,15 +38,7 @@ export const SubAxis = memo(function SubAxis({
           subAxisIndex={subAxisIndex}
         />
         : null
-        /* : axisModel?.type === 'categorical'
-          ? <CategoricalAxisDragRects
-            axisModel={axisModel as ICategoricalAxisModel}
-            axisWrapperElt={subWrapperElt.current}
-            numSubAxes={numSubAxes}
-            subAxisIndex={subAxisIndex}
-            getCategorySet={getCategorySet}
-          /> :*/
-          }
+      }
     </g>
   )
 })

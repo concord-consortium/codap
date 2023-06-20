@@ -31,6 +31,10 @@ $graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
     font: $graph-empty-label-font;
   }
 
+  .category-label {
+    cursor: pointer;
+  }
+
   svg {
     width: 100%;
     height: 100%;
@@ -44,6 +48,12 @@ $graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
 
   .axis {
     background-color: white;
+
+    /*
+    text {
+      rotate: -90deg;
+    }
+    */
 
     line {
       stroke: #DDDDDD;
