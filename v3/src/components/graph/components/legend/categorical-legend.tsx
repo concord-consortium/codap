@@ -94,7 +94,6 @@ export const CategoricalLegend = observer(function CategoricalLegend(
   const // keyFunc = (index: number) => index,
     keysElt = useRef(null),
 
-
     computeLayout = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,

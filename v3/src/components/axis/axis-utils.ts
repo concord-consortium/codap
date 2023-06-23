@@ -1,9 +1,7 @@
-import {drag, ScaleLinear, select} from "d3"
-import {kAxisGap, kAxisTickLength, kGraphFont} from "../graph/graphing-types"
-import {AxisBounds, AxisPlace, otherPlace} from "./axis-types"
+import {ScaleLinear} from "d3"
+import {kGraphFont} from "../graph/graphing-types"
+import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
-import {IAxisLayout} from "./models/axis-layout-context"
-import {isVertical} from "../axis-graph-shared"
 
 export const getStringBounds = (s = 'Wy', font = kGraphFont) => {
   return measureTextExtent(s, font)
