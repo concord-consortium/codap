@@ -29,6 +29,10 @@ export const CaseTableModel = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
+    setScrollLeft(scrollLeft: number) {
+      self.scrollLeft = scrollLeft
+    },
+    // will create a new model if necessary
     getCollectionTableModel(collectionId: string) {
       let collectionTableModel = self.collectionTableModels.get(collectionId)
       if (!collectionTableModel) {
@@ -36,12 +40,28 @@ export const CaseTableModel = TileContentModel
         self.collectionTableModels.set(collectionId, collectionTableModel)
       }
       return collectionTableModel
+    }
+  }))
+  .actions(self => ({
+    // synchronize a given collection's scrollCount to the global syncScrollCount
+    syncCollectionScrollCount(collectionId: string) {
+      self.getCollectionTableModel(collectionId).syncScrollCount(self.syncScrollCount)
+    }
+  }))
+  .actions(self => ({
+    // if the specified collection has a scrollCount lower than the global syncScrollCount,
+    // then this is a response echo -- synchronize the counts and return true
+    syncTrailingCollectionScrollCount(collectionId: string) {
+      const isTrailing = self.getCollectionTableModel(collectionId).scrollCount < self.syncScrollCount
+      isTrailing && self.syncCollectionScrollCount(collectionId)
+      return isTrailing
     },
-    incScrollCount() {
-      return ++self.syncScrollCount
-    },
-    setScrollLeft(scrollLeft: number) {
-      self.scrollLeft = scrollLeft
+  }))
+  .actions(self => ({
+    // increment the global syncScrollCount and synchronize the scrollCount of the specified collection
+    incScrollCount(collectionId: string) {
+      ++self.syncScrollCount
+      self.syncCollectionScrollCount(collectionId)
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}

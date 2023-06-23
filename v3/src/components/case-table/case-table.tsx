@@ -3,10 +3,11 @@ import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import {
-  ISetTableScrollInfo, OnTableScrollFn, kChildMostTableCollectionId, kIndexColumnKey
+  ISetTableScrollInfo, kChildMostTableCollectionId, kIndexColumnKey
 } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { useCaseTableModel } from "./use-case-table-model"
+import { useSyncScrolling } from "./use-sync-scrolling"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -52,39 +53,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     }
   }, [isFocused, tableModel])
 
-  const handleTableScroll = useCallback<OnTableScrollFn>((event, collectionId, element) => {
-    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
-    if (!tableModel || !collectionTableModel) return
-
-    // if this is a response echo, then ignore it
-    if (collectionTableModel.hasTrailingScrollCount(tableModel.syncScrollCount)) {
-      collectionTableModel.syncScrollCount(tableModel.syncScrollCount)
-      return
-    }
-
-    /*
-     * handle this as a direct user scroll, which should trigger synchronization
-     */
-
-    // increment scroll count globally and for triggered table
-    collectionTableModel.syncScrollCount(tableModel.incScrollCount())
-
-    // identify collections to be synchronized
-    const { collectionIds = [] } = data || {}
-    const triggerCollectionIndex = collectionIds.findIndex(id => id === collectionId)
-
-    // synchronize parent tables in succession
-    for (let i = triggerCollectionIndex - 1; i >= 0; --i) {
-      // const parentCollectionId = collectionIds[i]
-      // const childCollectionId = collectionIds[i + 1]
-    }
-
-    // synchronize child tables in succession
-    for (let i = triggerCollectionIndex + 1; i < collectionIds.length; ++i) {
-      // const childCollectionId = collectionIds[i]
-      // const parentCollectionId = collectionIds[i - 1]
-    }
-  }, [data, tableModel])
+  const { handleTableScroll } = useSyncScrolling()
 
   return prf.measure("Table.render", () => {
     // disable the overlay for the index column

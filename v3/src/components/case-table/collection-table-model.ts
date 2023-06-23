@@ -27,10 +27,6 @@ export class CollectionTableModel {
     makeObservable(this)
   }
 
-  hasTrailingScrollCount(syncScrollCount: number) {
-    return this.scrollCount < syncScrollCount
-  }
-
   @action syncScrollCount(syncScrollCount: number) {
     this.scrollCount = syncScrollCount
   }
