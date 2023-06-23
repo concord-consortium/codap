@@ -2,9 +2,8 @@ import { reaction } from "mobx"
 import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
-import { ICollectionPropsModel, isCollectionModel } from "../../models/data/collection"
-import { IDataSet } from "../../models/data/data-set"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
+import { collectionCaseIdFromIndex, collectionCaseIndexFromId } from "../../models/data/data-set-utils"
 import { TCellClickArgs } from "./case-table-types"
 import { useRowScrolling } from "./use-row-scrolling"
 import { useCollectionContext } from "../../hooks/use-collection-context"
@@ -16,30 +15,13 @@ interface UseSelectedRows {
   gridRef: React.RefObject<DataGridHandle | null>
 }
 
-// it may make sense to move these utilities into the DataSet at some point
-function caseIdFromIndex(index: number, data?: IDataSet, collection?: ICollectionPropsModel) {
-  if (!data) return undefined
-  if (!isCollectionModel(collection)) return data.caseIDFromIndex(index)
-  const cases = data.getCasesForCollection(collection.id)
-  return cases[index]?.__id__
-}
-
-function caseIndexFromId(caseId: string, data?: IDataSet, collection?: ICollectionPropsModel) {
-  if (!data) return undefined
-  if (!isCollectionModel(collection)) return data.caseIndexFromID(caseId)
-  const cases = data.getCasesForCollection(collection.id)
-  // for now, linear search through pseudo-cases; could index if performance becomes a problem.
-  const found = cases.findIndex(aCase => aCase.__id__ === caseId)
-  return found >= 0 ? found : undefined
-}
-
 export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const [selectedRows, _setSelectedRows] = useState<ReadonlySet<string>>(() => new Set())
   const syncCount = useRef(0)
 
-  const { scrollClosestRowIntoView } = useRowScrolling(gridRef.current?.element)
+  const { scrollClosestRowIntoView, scrollRowIntoView } = useRowScrolling(gridRef.current?.element)
 
   // sync table changes to the DataSet model
   const setSelectedRows = useCallback((rowSet: ReadonlySet<string>) => {
@@ -70,7 +52,7 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
       const rows = grid?.querySelectorAll(".rdg-row")
       rows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = caseIdFromIndex(rowIndex, data, collection)
+        const caseId = collectionCaseIdFromIndex(rowIndex, data, collection.id)
         const isSelected = row.getAttribute("aria-selected")
         const shouldBeSelected = caseId && data?.isCaseSelected(caseId)
         if (caseId && (isSelected !== shouldBeSelected)) {
@@ -104,7 +86,7 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
           }
           if (isPartialSelectionAction(action)) {
             const caseIds = action.args[0]
-            const caseIndices = caseIds.map(id => caseIndexFromId(id, data, collection))
+            const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collection.id))
                                        .filter(index => index != null) as number[]
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
             isSelecting && caseIndices.length && scrollClosestRowIntoView(caseIndices)
@@ -123,14 +105,14 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
     const isCaseSelected = data?.isCaseSelected(caseId)
     const isExtending = event.shiftKey || event.altKey || event.metaKey
     if (event.shiftKey && anchorCase.current) {
-      const targetIndex = caseIndexFromId(caseId, data, collection)
-      const anchorIndex = caseIndexFromId(anchorCase.current, data, collection)
+      const targetIndex = collectionCaseIndexFromId(caseId, data, collection.id)
+      const anchorIndex = collectionCaseIndexFromId(anchorCase.current, data, collection.id)
       const casesToSelect: string[] = []
       if (targetIndex != null && anchorIndex != null) {
         const start = Math.min(anchorIndex, targetIndex)
         const end = Math.max(anchorIndex, targetIndex)
         for (let i = start; i <= end; ++i) {
-          const id = caseIdFromIndex(i, data, collection)
+          const id = collectionCaseIdFromIndex(i, data, collection.id)
           id && casesToSelect.push(id)
           data?.selectCases(casesToSelect, true)
         }
@@ -147,5 +129,5 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
     }
   }, [collection, data])
 
-  return { selectedRows, setSelectedRows, handleCellClick }
+  return { selectedRows, setSelectedRows, handleCellClick, scrollRowIntoView }
 }

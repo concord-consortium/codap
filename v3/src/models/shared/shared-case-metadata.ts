@@ -1,4 +1,4 @@
-import { getType, Instance, types } from "mobx-state-tree"
+import { getType, Instance, ISerializedActionCall, types } from "mobx-state-tree"
 import { CategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { ISharedModel, SharedModel } from "./shared-model"
@@ -111,4 +111,13 @@ export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata>
 
 export function isSharedCaseMetadata(model?: ISharedModel): model is ISharedCaseMetadata {
   return model ? getType(model) === SharedCaseMetadata : false
+}
+
+export interface SetIsCollapsedAction extends ISerializedActionCall {
+  name: "setIsCollapsed"
+  args: [string, boolean] // [caseId, isCollapsed]
+}
+
+export function isSetIsCollapsedAction(action: ISerializedActionCall): action is SetIsCollapsedAction {
+  return action.name === "setIsCollapsed"
 }

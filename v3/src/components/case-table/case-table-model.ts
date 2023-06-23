@@ -1,9 +1,9 @@
-import { observable } from "mobx"
 import { Instance, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseTableTileType } from "./case-table-defs"
+import { CollectionTableModel } from "./collection-table-model"
 
 export const CaseTableModel = TileContentModel
   .named("CaseTableModel")
@@ -11,9 +11,11 @@ export const CaseTableModel = TileContentModel
     type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
   })
   .volatile(self => ({
+    // entire hierarchical table scrolls as a unit horizontally
     scrollLeft: 0,
-    // map from collection IDs to scrollTops
-    scrollTopMap: observable.map<string, number>(),
+    // global scroll count for synchronization
+    syncScrollCount: 0,
+    collectionTableModels: new Map<string, CollectionTableModel>()
   }))
   .views(self => ({
     get data() {
@@ -27,17 +29,19 @@ export const CaseTableModel = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
-    // entire hierarchical table scrolls as a unit horizontally
+    getCollectionTableModel(collectionId: string) {
+      let collectionTableModel = self.collectionTableModels.get(collectionId)
+      if (!collectionTableModel) {
+        collectionTableModel = new CollectionTableModel(collectionId)
+        self.collectionTableModels.set(collectionId, collectionTableModel)
+      }
+      return collectionTableModel
+    },
+    incScrollCount() {
+      return ++self.syncScrollCount
+    },
     setScrollLeft(scrollLeft: number) {
       self.scrollLeft = scrollLeft
-    },
-    // each sub-table scrolls independently vertically
-    setScrollTop(collectionId: string, scrollTop?: number) {
-      if (scrollTop != null) {
-        self.scrollTopMap.set(collectionId, scrollTop)
-      } else {
-        self.scrollTopMap.delete(collectionId)
-      }
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}

@@ -25,6 +25,21 @@ export interface TRenderRowProps extends RenderRowProps<TRow> {}
 export interface TCellClickArgs extends CellClickArgs<TRow> {}
 export type TColSpanArgs = ColSpanArgs<TRow, unknown>
 
+export interface IBaseTableScrollInfo {
+  element: HTMLDivElement
+  scrollRowIntoView: (rowIndex: number) => void
+}
+export interface ISetTableScrollInfo extends IBaseTableScrollInfo {
+  collectionId: string
+}
+export interface ITableScrollInfo extends IBaseTableScrollInfo {
+  scrollCount: number
+}
+export type ScrollRowIntoViewFn = (rowIndex: number) => void
+export type SetScrollInfoFn = (scrollInfo: ISetTableScrollInfo) => void
+export type TableScrollEvent = React.UIEvent<HTMLDivElement, UIEvent>
+export type OnTableScrollFn = (event: TableScrollEvent, collectionId: string, element: HTMLDivElement) => void
+
 // used in lieu of attribute id for index column for ReactDataGrid
 export const kIndexColumnKey = "__index__"
 

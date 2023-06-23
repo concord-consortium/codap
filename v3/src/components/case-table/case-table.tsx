@@ -1,8 +1,10 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useEffect, useRef } from "react"
+import React, { CSSProperties, useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
-import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
+import {
+  ISetTableScrollInfo, OnTableScrollFn, kChildMostTableCollectionId, kIndexColumnKey
+} from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { useCaseTableModel } from "./use-case-table-model"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
@@ -27,12 +29,19 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   const isFocused = isTileSelected()
   const contentRef = useRef<HTMLDivElement | null>(null)
 
+  const setScrollInfo = useCallback((scrollInfo: ISetTableScrollInfo) => {
+    if (!tableModel) return
+    const { collectionId, ...restScrollInfo } = scrollInfo
+    const collectionTableModel = tableModel.getCollectionTableModel(collectionId)
+    collectionTableModel.setScrollInfo({ scrollCount: tableModel.syncScrollCount, ...restScrollInfo })
+  }, [tableModel])
+
   function setTableRef(elt: HTMLDivElement | null) {
     contentRef.current = elt?.querySelector((".case-table-content")) ?? null
     setNodeRef(elt)
   }
 
-  useEffect(function syncScrollTop() {
+  useEffect(function syncScrollLeft() {
     // There is a bug, seemingly in React, in which the scrollLeft property gets reset
     // to 0 when the order of tiles is changed (which happens on selecting/focusing tiles
     // in the free tile layout), even though the CaseTable component is not re-rendered
@@ -42,6 +51,40 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
       contentRef.current.scrollLeft = tableModel?.scrollLeft ?? 0
     }
   }, [isFocused, tableModel])
+
+  const handleTableScroll = useCallback<OnTableScrollFn>((event, collectionId, element) => {
+    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+    if (!tableModel || !collectionTableModel) return
+
+    // if this is a response echo, then ignore it
+    if (collectionTableModel.hasTrailingScrollCount(tableModel.syncScrollCount)) {
+      collectionTableModel.syncScrollCount(tableModel.syncScrollCount)
+      return
+    }
+
+    /*
+     * handle this as a direct user scroll, which should trigger synchronization
+     */
+
+    // increment scroll count globally and for triggered table
+    collectionTableModel.syncScrollCount(tableModel.incScrollCount())
+
+    // identify collections to be synchronized
+    const { collectionIds = [] } = data || {}
+    const triggerCollectionIndex = collectionIds.findIndex(id => id === collectionId)
+
+    // synchronize parent tables in succession
+    for (let i = triggerCollectionIndex - 1; i >= 0; --i) {
+      // const parentCollectionId = collectionIds[i]
+      // const childCollectionId = collectionIds[i + 1]
+    }
+
+    // synchronize child tables in succession
+    for (let i = triggerCollectionIndex + 1; i < collectionIds.length; ++i) {
+      // const childCollectionId = collectionIds[i]
+      // const parentCollectionId = collectionIds[i - 1]
+    }
+  }, [data, tableModel])
 
   return prf.measure("Table.render", () => {
     // disable the overlay for the index column
@@ -68,7 +111,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               return (
                 <ParentCollectionContext.Provider key={key} value={parent}>
                   <CollectionContext.Provider key={key} value={collection}>
-                    <CollectionTable />
+                    <CollectionTable onSetScrollInfo={setScrollInfo} onTableScroll={handleTableScroll}/>
                   </CollectionContext.Provider>
                 </ParentCollectionContext.Provider>
               )

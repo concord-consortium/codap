@@ -78,7 +78,7 @@ const DataSelectPopup = () => {
   const data = useDataSetContext()
   const dataSetSummaries = gDataBroker?.summaries
   const renderOption = (name: string, id: string) => {
-    return <option key={name} value={id}>{name}</option>
+    return <option key={id} value={id}>{name}</option>
   }
 
   const handleDataSetSelection = (evt: React.ChangeEvent<HTMLSelectElement>) => {
