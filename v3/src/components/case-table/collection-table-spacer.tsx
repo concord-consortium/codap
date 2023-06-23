@@ -10,7 +10,7 @@ import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
 import { kChildMostTableCollectionId, TRow } from "./case-table-types"
-import { useCaseTableModel } from "./use-case-table-model"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kDividerWidth = 48,
       kRelationParentMargin = 12,
@@ -27,13 +27,14 @@ interface IProps {
 }
 export const CollectionTableSpacer = observer(function CollectionTableSpacer(props: IProps) {
   const { rows, rowHeight, onDrop } = props
-  const tableModel = useCaseTableModel()
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const parentCollection = useParentCollectionContext()
   const parentCollectionId = parentCollection?.id
+  const parentTableModel = useCollectionTableModel(parentCollectionId || "")
   const childCollection = useCollectionContext()
   const childCollectionId = childCollection?.id || kChildMostTableCollectionId
+  const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
     const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
@@ -50,8 +51,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const kMargin = 10
   const msgStyle: React.CSSProperties =
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
-  const parentScrollTop = parentCollectionId && tableModel?.scrollTopMap.get(parentCollectionId) || 0
-  const childScrollTop = childCollectionId && tableModel?.scrollTopMap.get(childCollectionId) || 0
+  const parentScrollTop = parentTableModel?.scrollTop || 0
+  const childScrollTop = childTableModel?.scrollTop || 0
   const isScrollable = childGridRef.current && (childGridRef.current.scrollHeight > childGridRef.current.clientHeight)
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   const bottomsOfLastChildRowOfParent: number[] = []

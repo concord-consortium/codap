@@ -35,7 +35,7 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined) {
   const rafRequestId = useRef(0)
 
   // smoothly scroll the grid so that the specified row is at the top
-  const scrollToRow = useCallback((rowIndex: number, options?: ScrollOptions) => {
+  const scrollRowToTop = useCallback((rowIndex: number, options?: ScrollOptions) => {
     if (!gridElt) return
 
     const { duration = kDefaultScrollDuration, throttle = kDefaultScrollThrottle } = options || {}
@@ -91,13 +91,13 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined) {
     if (rowTop >= viewTop && rowBottom <= viewBottom) return
     // is row above visible rows?
     if (rowTop < viewTop) {
-      scrollToRow(Math.max(0, rowIndex - 1), options)
+      scrollRowToTop(Math.max(0, rowIndex - 1), options)
     }
     // is row below visible rows
     else if (rowBottom > viewBottom) {
-      scrollToRow(Math.max(0, rowIndex - visibleRows + 2), options)
+      scrollRowToTop(Math.max(0, rowIndex - visibleRows + 2), options)
     }
-  }, [gridElt, scrollToRow])
+  }, [gridElt, scrollRowToTop])
 
   const scrollClosestRowIntoView = useCallback((rowIndices: number[], options?: ScrollOptions) => {
     if (!gridElt) return
@@ -127,5 +127,5 @@ export function useRowScrolling(gridElt: HTMLDivElement | null | undefined) {
     }
   }, [gridElt, scrollRowIntoView])
 
-  return { scrollToRow, scrollRowIntoView, scrollClosestRowIntoView }
+  return { scrollRowToTop, scrollRowIntoView, scrollClosestRowIntoView }
 }

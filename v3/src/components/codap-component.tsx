@@ -1,5 +1,6 @@
-import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import React from "react"
 import { TileModelContext } from "../hooks/use-tile-model-context"
 import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
@@ -30,7 +31,7 @@ export const CodapComponent = observer(function CodapComponent({
   const info = getTileComponentInfo(tile.content.type)
 
   function handleFocusTile() {
-    uiState.setFocusedTile(tile.id)
+    isAlive(tile) && uiState.setFocusedTile(tile.id)
   }
 
   if (!info) return null

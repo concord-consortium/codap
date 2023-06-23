@@ -1,8 +1,9 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-import { kChildMostTableCollectionId, TRow } from "./case-table-types"
+import { kChildMostTableCollectionId, OnTableScrollFn, SetScrollInfoFn, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
+import { CollectionTitle } from "./collection-title"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
@@ -11,21 +12,30 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
-import { useCaseTableModel } from "./use-case-table-model"
-import { CollectionTitle } from "./collection-title"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
-export const CollectionTable = observer(function CollectionTable() {
+
+interface IProps {
+  onSetScrollInfo: SetScrollInfoFn
+  onTableScroll: OnTableScrollFn
+}
+export const CollectionTable = observer(function CollectionTable({ onSetScrollInfo, onTableScroll }: IProps) {
   const data = useDataSetContext()
   const collection = useCollectionContext()
-  const tableModel = useCaseTableModel()
   const collectionId = collection?.id || kChildMostTableCollectionId
+  const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
-  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
+  const { selectedRows, setSelectedRows, handleCellClick, scrollRowIntoView } = useSelectedRows({ gridRef })
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
+
+  useEffect(function setScrollInfo() {
+    const element = gridRef.current?.element ?? undefined
+    element && onSetScrollInfo({ collectionId, element, scrollRowIntoView })
+  }, [collectionId, onSetScrollInfo, scrollRowIntoView])
 
   useEffect(function syncScrollTop() {
     // There is a bug, seemingly in React, in which the scrollTop property gets reset
@@ -33,17 +43,15 @@ export const CollectionTable = observer(function CollectionTable() {
     // in the free tile layout), even though the CollectionTable and the RDG grid component
     // are not re-rendered or unmounted/mounted. Therefore, we reset the scrollTop property
     // from our saved cache on focus change.
-    if (isFocused && gridRef.current?.element) {
-      gridRef.current.element.scrollTop = tableModel?.scrollTopMap.get(collectionId) ?? 0
-    }
-  }, [isFocused, collectionId, tableModel])
+    isFocused && collectionTableModel?.syncScrollTopToElement()
+  }, [collectionTableModel, isFocused])
 
   // columns
   const indexColumn = useIndexColumn()
   const columns = useColumns({ data, indexColumn })
 
   // rows
-  const { rows, handleRowsChange } = useRows()
+  const { handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
@@ -51,13 +59,16 @@ export const CollectionTable = observer(function CollectionTable() {
     attr && dataSet.moveAttributeToNewCollection(attrId, collection.id)
   }, [collection.id])
 
-  if (!data) return null
-
-  function handleGridScroll() {
+  const handleGridScroll = useCallback(function handleGridScroll(event: React.UIEvent<HTMLDivElement, UIEvent>) {
     const gridElt = gridRef.current?.element
-    ;(gridElt != null) &&
-      tableModel?.setScrollTop(collectionId, gridElt.scrollTop)
-  }
+    if (gridElt != null) {
+      collectionTableModel?.syncScrollTopFromElement()
+      onTableScroll(event, collectionId, gridElt)
+    }
+  }, [collectionId, collectionTableModel, onTableScroll])
+
+  const rows = collectionTableModel?.rows
+  if (!data || !rows) return null
 
   return (
     <div className={`collection-table collection-${collectionId}`}>

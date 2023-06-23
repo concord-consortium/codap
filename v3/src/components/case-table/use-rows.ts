@@ -1,8 +1,9 @@
 import { format } from "d3"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -12,6 +13,7 @@ import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../m
 import {
   AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
 } from "../../models/data/data-set-actions"
+import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 
@@ -19,10 +21,7 @@ export const useRows = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collection = useCollectionContext()
-  // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
-  // Therefore, we cache each case object and update it when appropriate.
-  const rowCache = useMemo(() => new Map<string, TRow>(), [])
-  const [rows, setRows] = useState<TRow[]>([])
+  const collectionTableModel = useCollectionTableModel()
 
   const cases = useMemo(() => data?.collectionGroups?.length
                                 ? data.getCasesForCollection(collection?.id ?? "")
@@ -33,6 +32,8 @@ export const useRows = () => {
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
+    if (!collectionTableModel) return
+    const { rowCache } = collectionTableModel
     rowCache.clear()
     let prevParent: string | undefined
     cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
@@ -40,15 +41,19 @@ export const useRows = () => {
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
       prevParent = parent
     })
-  }, [cases, rowCache])
+  }, [cases, collectionTableModel])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
+    if (!collectionTableModel) return
+    const { rowCache } = collectionTableModel
     const row = rowCache.get(caseId)
     if (row && !row[symDom]) row[symDom] = new Set<string>()
     row?.[symDom]?.add(attrId)
-  }, [rowCache])
+  }, [collectionTableModel])
 
   const syncRowsToRdg = useCallback(() => {
+    if (!collectionTableModel) return
+    const { rowCache } = collectionTableModel
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
       // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
       const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
@@ -60,10 +65,10 @@ export const useRows = () => {
         }).filter(c => !!c) as TRow[]
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
-        setRows(newRows || [])
+        collectionTableModel.resetRows(newRows || [])
       })
     })
-  }, [caseMetadata, cases, rowCache])
+  }, [caseMetadata, cases, collectionTableModel])
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
@@ -104,6 +109,9 @@ export const useRows = () => {
 
   const lowestIndex = useRef<number>(Infinity)
   useEffect(() => {
+    if (!collectionTableModel) return
+    const { rowCache } = collectionTableModel
+
     // initialize the cache
     resetRowCache()
     syncRowsToRdg()
@@ -179,19 +187,27 @@ export const useRows = () => {
 
     // update the cache on metadata changes
     const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
-      switch (action.name) {
-        case "setIsCollapsed":
-          resetRowCache()
-          break
+      if (isSetIsCollapsedAction(action)) {
+        const [caseId] = action.args
+        const caseGroup = data?.pseudoCaseMap[caseId]
+        const childCaseIds = caseGroup?.childPseudoCaseIds ?? caseGroup?.childCaseIds
+        const firstChildCaseId = childCaseIds?.[0]
+        if (firstChildCaseId) {
+          const row = rowCache.get(firstChildCaseId)
+          if (row) {
+            // copy the row to trigger re-render due to RDG memoization
+            rowCache.set(firstChildCaseId, { ...row })
+            syncRowsToRdg()
+          }
+        }
       }
-      syncRowsToRdg()
     })
     return () => {
       beforeDisposer?.()
       afterDisposer?.()
       metadataDisposer?.()
     }
-  }, [caseMetadata, data, resetRowCache, rowCache, syncRowsToDom, syncRowsToRdg])
+  }, [caseMetadata, collectionTableModel, data, resetRowCache, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
@@ -199,5 +215,5 @@ export const useRows = () => {
     data?.setCaseValues(caseValues)
   }, [data])
 
-  return { rows, handleRowsChange }
+  return { handleRowsChange }
 }

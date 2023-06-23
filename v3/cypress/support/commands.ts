@@ -13,9 +13,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
     graphTile: ".graph-plot svg",
     legend: ".graph-plot .droppable-legend",
     x_axis: ".codap-graph .droppable-axis.droppable-svg.bottom",
-    x_axis_label: ".codap-graph .axis-legend-attribute-menu.bottom>button",
+    x_axis_label: ".codap-graph .axis-legend-attribute-menu.bottom .chakra-menu__menu-button",
     y_axis: ".codap-graph .droppable-axis.droppable-svg.left",
-    y_axis_label: ".codap-graph .axis-legend-attribute-menu.left>button",
+    y_axis_label: ".codap-graph .axis-legend-attribute-menu.left .chakra-menu__menu-button",
     mapTile: ".dg.leaflet-container",
     newCollection: ".dg-table-drop-target"
   }

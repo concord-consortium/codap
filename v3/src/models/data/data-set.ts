@@ -442,6 +442,9 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .views(self => ({
+  get collectionIds() {
+    return [...self.collections.map(collection => collection.id), self.ungrouped.id]
+  },
   getCasesForCollection(collectionId?: string) {
     for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
       const collectionGroup = self.collectionGroups[i]
