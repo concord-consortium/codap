@@ -255,12 +255,11 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
   }
 }
 
-export function equationString(slope: number, intercept: number) {
-  const float = format('.4~r')
-  const kSlopeIntercept = `<p style="color:#4782B4"><i>y</i> = ${float(slope)} <i>x</i> + ${float(intercept)}</p>`/*,
-  // color,y,slope,x,signInt,Int
-    kInfiniteSlope = '<p style = "color:%@"><i>%@</i> = %@ %@</p>', // x,constant,unit
-    kSlopeOnly = '<p style = "color:%@">%@ = %@ %@</p>' // color, left side, numeric slope, slope unit*/
+export function equationString(slope: number, intercept: number, attrNames: any) {
+  const float = format('.4~r'),
+  slopeString = slope !== Infinity && slope !== 0 ? float(slope) : undefined,
+  displaySlope = slopeString ? `${slopeString} <em>${attrNames.x}</em> + ` : '',
+  kSlopeIntercept = `<em>${attrNames.y}</em> = ${displaySlope} ${float(intercept)}`
   return kSlopeIntercept
 }
 

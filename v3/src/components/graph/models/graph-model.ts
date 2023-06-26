@@ -24,6 +24,7 @@ import {
   defaultStrokeColor,
   kellyColors
 } from "../../../utilities/color-utils"
+import { AdornmentModelUnion } from "../adornments/adornment-models"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -45,6 +46,7 @@ export const GraphModel = TileContentModel
   .named("GraphModel")
   .props({
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
+    adornments: types.array(AdornmentModelUnion),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
@@ -201,7 +203,14 @@ export const GraphModel = TileContentModel
     },
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show
-    }
+    },
+    addAdornment(adornment: any) {
+      self.adornments.push(adornment)
+    },
+    removeAdornment(type: string) {
+      const updatedAdornments = self.adornments.filter(adornment => adornment.type !== type)
+      self.adornments.replace([...updatedAdornments])
+    },
   }))
 export interface IGraphModel extends Instance<typeof GraphModel> {}
 export interface IGraphModelSnapshot extends SnapshotIn<typeof GraphModel> {}

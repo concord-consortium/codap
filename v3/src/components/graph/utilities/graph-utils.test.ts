@@ -4,7 +4,7 @@ import {scaleLinear} from "d3"
 
 describe("equationString", () => {
   it("should give correct html", () => {
-    expect(equationString(1, 0)).toBe('<p style="color:#4782B4"><i>y</i> = 1 <i>x</i> + 0</p>')
+    expect(equationString(1, 0, {x: "Lifespan", y: "Speed"})).toBe('<em>Speed</em> = 1 <em>Lifespan</em> + 0')
   })
 })
 

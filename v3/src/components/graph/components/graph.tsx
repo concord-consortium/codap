@@ -28,6 +28,7 @@ import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {useDataTips} from "../hooks/use-data-tips"
 import {onAnyAction} from "../../../utilities/mst-utils"
+import { Adornments } from "../adornments/adornments"
 
 import "./graph.scss"
 
@@ -188,6 +189,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           />
         </svg>
         {renderDroppableAddAttributes()}
+        {graphModel.adornments.length > 0 && <Adornments />}
       </div>
     </DataConfigurationContext.Provider>
   )

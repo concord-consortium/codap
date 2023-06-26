@@ -1,11 +1,20 @@
 .movable-line {
   stroke: #4782B4;
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 
 .movable-line-cover {
+  pointer-events: all;
   stroke: rgba(210, 105, 30, 0.01);
   stroke-width: 8px;
+}
+
+.movable-line-handle {
+  fill: #fff;
+  height: 12px;
+  pointer-events: all;
+  stroke: #000;
+  width: 12px;
 }
 
 .movable-line-lower-cover {
@@ -21,10 +30,30 @@
 }
 
 .movable-line-equation-container {
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
   position: absolute;
-  background-color: rgba(255, 255, 0, 0.6);
+  top: 0;
+
+  p {
+    background-color: rgba(255, 255, 0, 0.6);
+    color: #4782b4;
+    font-family: "Montserrat-Bold", sans-serif;
+    font-size: 12px;
+    padding: 2px 5px;
+    pointer-events: all;
+    position: absolute;
+
+    &:hover {
+      background-color: rgba(255, 255, 0, 1)
+    }
+
+    em {
+      font-weight: bold;
+    }
+  }
 }
 
-.movable-line-equation {
-}
+.movable-line-equation {}
 

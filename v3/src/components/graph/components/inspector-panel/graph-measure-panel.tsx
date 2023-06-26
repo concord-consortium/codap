@@ -4,6 +4,7 @@ import t from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphModel } from "../../models/graph-model"
 import { InspectorPalette } from "../../../inspector-panel"
+import { MovableLineModel } from "../../adornments/adornment-models"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 
 import "./point-format-panel.scss"
@@ -53,6 +54,22 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       duration: 5000,
       isClosable: true,
     })
+    if (val && graphModel) {
+      let adornment = undefined
+      // TODO: Handle other adornment types
+      switch (measure) {
+        case 'Movable Line':
+          adornment = MovableLineModel.create({
+              type: measure
+          })
+          adornment.setLine({intercept: 0, slope: 45})
+      }
+      if (adornment) {
+        graphModel?.addAdornment(adornment)
+      }
+    } else {
+      graphModel?.removeAdornment(measure)
+    }
   }
 
   return (
@@ -66,9 +83,10 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
         {graphModel && measures[graphModel.plotType].map((title:string) => {
+           const isChecked = !!graphModel?.adornments?.find(a => a.type === title)
            return (
             <FormControl key={title}>
-              <Checkbox onChange={e => handleSetting(title, e.target.checked)}>
+              <Checkbox defaultChecked={isChecked} onChange={e => handleSetting(title, e.target.checked)}>
                 {title}
               </Checkbox>
             </FormControl>

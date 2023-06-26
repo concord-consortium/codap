@@ -42,7 +42,7 @@ const Adornment = types.model("Adornment", {
 export const MovableValueModel = Adornment
   .named('MovableValueModel')
   .props({
-    type: 'value',
+    type: 'Movable Value',
     value: types.number,
   })
   .actions(self => ({
@@ -52,27 +52,28 @@ export const MovableValueModel = Adornment
   }))
 export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
 
+export const MovableLineParams = types.model("MovableLineParams", {
+  intercept: types.number,
+  slope: types.number,
+  pivot1: types.optional(PointModel, kInfinitePoint),
+  pivot2: types.optional(PointModel, kInfinitePoint),
+})
+
 export const MovableLineModel = Adornment
   .named('MovableLineModel')
   .props({
-    type: 'line',
-    intercept: types.number,
-    slope: types.number,
-    pivot1: types.optional(PointModel, kInfinitePoint),
-    pivot2: types.optional(PointModel, kInfinitePoint)
+    type: 'Movable Line',
+    lines: types.map(MovableLineParams)
   })
+  .volatile(self => ({
+    pivot1: PointModel.create(),
+    pivot2: PointModel.create()
+  }))
   .actions(self => ({
-    setLine(aLine: {intercept:number, slope:number, pivot1?:Point, pivot2?:Point}) {
-      self.intercept = aLine.intercept
-      self.slope = aLine.slope
-        self.pivot1.set(aLine.pivot1 ?? kInfinitePoint)
-        self.pivot2.set(aLine.pivot2 ?? kInfinitePoint)
-    },
-    setPivot1(aPoint: Point) {
-      self.pivot1.set(aPoint)
-    },
-    setPivot2(aPoint: Point) {
-      self.pivot2.set(aPoint)
+    setLine(aLine: {intercept:number, slope:number, pivot1?:Point, pivot2?:Point}, key='') {
+      self.lines.set(key, aLine)
+      self.pivot1.set(aLine.pivot1 ?? kInfinitePoint)
+      self.pivot2.set(aLine.pivot2 ?? kInfinitePoint)
     }
   }))
 export interface IMovableLineModel extends Instance<typeof MovableLineModel> {}
