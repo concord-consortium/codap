@@ -4,11 +4,11 @@ import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
-import {ICategorySet} from "../../../models/data/category-set"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
-import {kAxisGap, kAxisTickLength, transitionDuration} from "../../graph/graphing-types"
-import {collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement, getStringBounds} from "../axis-utils"
+import {kAxisTickLength, transitionDuration} from "../../graph/graphing-types"
+import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
+  getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -17,18 +17,6 @@ export interface IUseSubAxis {
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines: boolean
   centerCategoryLabels: boolean
-}
-
-interface DragInfo {
-  indexOfCategory: number
-  catName: string
-  currentOffset: number
-  currentDragPosition: number
-  categorySet?: ICategorySet
-  categories: string[]
-  bandwidth: number
-  axisOrientation: 'horizontal' | 'vertical'
-  labelOrientation: 'horizontal' | 'vertical'
 }
 
 interface CatObject {
@@ -78,6 +66,7 @@ export const useSubAxis = ({
             : `translate(${axisBounds.left}, ${axisBounds.top})`
 
       const renderEmptyOrNumericAxis = () => {
+          select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
             axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9')),
             duration = enableAnimation.current ? transitionDuration : 0
@@ -89,7 +78,9 @@ export const useSubAxis = ({
             .transition().duration(duration)
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore types are incompatible
-            .call(axisScale)
+            .call(axisScale).selectAll("line,path")
+            .style("stroke", "lightgrey")
+            .style("stroke-opacity", "0.7")
         },
 
         renderScatterPlotGridLines = () => {
@@ -115,18 +106,16 @@ export const useSubAxis = ({
 
           const categorySet = multiScale?.categorySet,
             dividerLength = layout.getAxisLength(otherPlace(place)) ?? 0,
-            textHeight = getStringBounds().height,
             isRightCat = place === 'rightCat',
             isTop = place === 'top',
-            categories = Array.from(categorySet?.values ?? []).reverse(),
-            categoryData: CatObject[] = categories.map((cat, index) =>
-              ({cat, index})),
+            categories = Array.from(categorySet?.values ?? []),
             numCategories = categories.length,
             bandWidth = subAxisLength / numCategories,
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {rotation, textAnchor} = getCategoricalLabelPlacement(place, centerCategoryLabels,
-              collision, subAxisLength, textHeight)/*,
-            duration = enableAnimation.current ? transitionDuration : 0*/
+              collision),
+            duration = (enableAnimation.current && dragInfo.current.indexOfCategory === -1)
+              ? transitionDuration : 0
 
           // Fill out dragInfo for use in drag callbacks
           const dI = dragInfo.current
@@ -139,72 +128,54 @@ export const useSubAxis = ({
 
           const sAS = subAxisSelectionRef.current
 
-          sAS.select('line')
+          sAS.attr("transform", initialTransform)
+            .select('line')
             .attr('x1', axisIsVertical ? 0 : rangeMin)
             .attr('x2', axisIsVertical ? 0 : rangeMax)
             .attr('y1', axisIsVertical ? rangeMin : 0)
             .attr('y2', axisIsVertical ? rangeMax : 0)
 
-          const labelTextHeight = getStringBounds('12px sans-serif').height,
-            indexOffset = centerCategoryLabels ? 0.5 : (axisIsVertical ? 1 : 0),
-            getTickX = (index: number) => axisIsVertical ? 0
-              : rangeMin + (index + indexOffset) * subAxisLength / numCategories,
-            getTickY = (index: number) => axisIsVertical
-              ? rangeMin + (index + indexOffset) * subAxisLength / numCategories : 0,
-            getDividerX = (index: number) => axisIsVertical ? 0
-              : rangeMin + (index) * subAxisLength / numCategories,
-            getDividerY = (index: number) => axisIsVertical
-              ? rangeMin + (index + 1) * subAxisLength / numCategories : 0,
-            labelXOffset = axisIsVertical ? (collision ? 0 : 0.25 * labelTextHeight)
-              : 0,
-            getLabelX = (index: number) => getTickX(index) +
-              (axisIsVertical ? (isRightCat ? 1 : -1) * (kAxisTickLength + kAxisGap + labelXOffset)
-                : (collision ? 0.25 * labelTextHeight : 0)),
-            labelYOffset = axisIsVertical ? 0 : (collision ? 0 : (isTop ? -0.15 : 0.75) * labelTextHeight),
-            getLabelY = (index: number) => getTickY(index) + (axisIsVertical ? (collision ? 0.25 * labelTextHeight : 0)
-              : (isTop ? -1 : 1) * (kAxisTickLength + kAxisGap) + labelYOffset),
-            dragXOffset = (index: number) => (index === dI.indexOfCategory && dI.axisOrientation === 'horizontal')
-              ? dI.currentOffset : 0,
-            dragYOffset = (index: number) => (index === dI.indexOfCategory && dI.axisOrientation === 'vertical')
-              ? dI.currentOffset : 0
+          const props:IGetCoordFunctionsProps = {
+            numCategories, centerCategoryLabels, collision, axisIsVertical, rangeMin, rangeMax,
+            subAxisLength, isRightCat, isTop, dragInfo
+          },
+            fns = getCoordFunctions(props)
 
           categoriesSelectionRef.current
             .join(
               enter => enter,
               update => {
                 update.select('.tick')
-                  .attr('x1', (d, index) => getTickX(index) + dragXOffset(index))
-                  .attr('x2', (d, index) => axisIsVertical
-                    ? (isRightCat ? 1 : -1) * kAxisTickLength : getTickX(index))
-                  .attr('y1', (d, index) => getTickY(index) + dragYOffset(index))
-                  .attr('y2', (d, index) => axisIsVertical
-                    ? getTickY(index) : (isTop ? -1 : 1) * kAxisTickLength)
+                  .attr('x1', (d, i) => fns.getTickX(i) + fns.dragXOffset(i))
+                  .attr('x2', (d, i) => axisIsVertical
+                    ? (isRightCat ? 1 : -1) * kAxisTickLength : fns.getTickX(i))
+                  .attr('y1', (d, i) => fns.getTickY(i) + fns.dragYOffset(i))
+                  .attr('y2', (d, i) => axisIsVertical
+                    ? fns.getTickY(i) : (isTop ? -1 : 1) * kAxisTickLength)
                 // divider between groups
                 update.select('.divider')
-                  .attr('x1', (d, index) => getDividerX(index) + dragXOffset(index))
-                  .attr('x2', (d, index) => axisIsVertical
-                    ? (isRightCat ? -1 : 1) * dividerLength : getDividerX(index))
-                  .attr('y1', (d, index) => getDividerY(index) + dragYOffset(index))
-                  .attr('y2', (d, index) => axisIsVertical
-                    ? getDividerY(index) : (isTop ? 1 : -1) * dividerLength)
+                  .attr('x1', (d, i) => fns.getDividerX(i))
+                  .attr('x2', (d, i) => axisIsVertical
+                    ? (isRightCat ? -1 : 1) * dividerLength : fns.getDividerX(i))
+                  .attr('y1', (d, i) => fns.getDividerY(i))
+                  .attr('y2', (d, i) => axisIsVertical
+                    ? fns.getDividerY(i) : (isTop ? 1 : -1) * dividerLength)
                 // labels
                 update.select('.category-label')
-                  .attr('class', 'category-label')
-                  .attr('x', (d, index) => getLabelX(index) + dragXOffset(index))
-                  .attr('y', (d, index) => getLabelY(index) + dragXOffset(index))
-                  .attr('transform-origin', (d, index) => `${getLabelX(index)} ${getLabelY(index)}`)
                   .attr('transform', `${rotation}`)
                   .attr('text-anchor', textAnchor)
+                  .attr('transform-origin', (d, i) => {
+                    return `${fns.getLabelX(i) + fns.dragXOffset(i)} ${fns.getLabelY(i) + fns.dragYOffset(i)}`
+                  })
+                  .transition().duration(duration)
+                  .attr('class', 'category-label')
+                  .attr('x', (d, i) => fns.getLabelX(i) + fns.dragXOffset(i))
+                  .attr('y', (d, i) => fns.getLabelY(i) + fns.dragYOffset(i))
                   .text((catObject:CatObject) => String(catObject.cat))
                 return update
               }
             )
         }
-
-      // When switching from one axis type to another, e.g. a categorical axis to an
-      // empty axis, d3 will use existing ticks (in DOM) to initialize the new scale.
-      // To avoid that, we manually remove the ticks before initializing the axis.
-      // select(subAxisElt).selectAll('*').remove()
 
       d3Scale.range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax])
       switch (type) {
@@ -220,31 +191,39 @@ export const useSubAxis = ({
     }, [subAxisElt, layout, showScatterPlotGridLines, enableAnimation, centerCategoryLabels, axisModel,
       subAxisIndex]),
 
-    onDragStart = useCallback((event: { x: number; y: number }, catObject: any) => {
+    onDragStart = useCallback((event: any, catObject: any) => {
       const dI = dragInfo.current
-      dI.indexOfCategory = catObject.index
+      dI.indexOfCategory = dI.axisOrientation === 'horizontal' ? catObject.index
+        : dI.categories.length - catObject.index - 1
       dI.catName = catObject.cat
-      const eventCoord = dI.axisOrientation === 'horizontal' ? event.x : event.y
       dI.currentOffset = 0
-      dI.currentDragPosition = eventCoord
+      dI.currentDragPosition = dI.axisOrientation === 'horizontal' ? event.x : event.y
     }, []),
 
-    onDrag = useCallback((event: { dx: number; dy: number }) => {
-      if (event.dx !== 0 || event.dy !== 0) {
-        console.log('onDrag')
-        const dI = dragInfo.current,
-          increment = dI.axisOrientation === 'horizontal' ? event.dx : event.dy,
-          newDragPosition = dI.currentDragPosition + increment,
-          newCatIndex = Math.floor(newDragPosition / dI.bandwidth)
-        dI.currentOffset += increment
-        if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory && newCatIndex <= dI.categories.length) {
+    onDrag = useCallback((event:any) => {
+      const dI = dragInfo.current,
+        delta = dI.axisOrientation === 'horizontal'
+          ? event.x - dI.currentDragPosition : event.y - dI.currentDragPosition
+      if (delta !== 0) {
+        const
+          numCategories = dI.categories.length,
+          newDragPosition = dI.currentDragPosition + delta,
+          cellIndex = Math.floor(newDragPosition / dI.bandwidth),
+          newCatIndex = dI.axisOrientation === 'horizontal' ? cellIndex
+            : dI.categories.length - cellIndex - 1
+        dI.currentOffset += delta
+        if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory && newCatIndex < dI.categories.length) {
           // swap the two categories
-          // duration.current = transitionDuration / 2
-          const newCatName = newCatIndex < dI.categories.length ? dI.categories[newCatIndex] : '',
-            catToMove = dI.indexOfCategory < newCatIndex ? dI.catName : newCatName,
-            catToMoveBefore = dI.indexOfCategory < newCatIndex ? newCatName : dI.catName
-          dI.categorySet?.move(catToMove, catToMoveBefore)
+          // Adjust the currentOffset to match the new category position
+          dI.currentOffset = newDragPosition - (cellIndex + 0.5) * dI.bandwidth
+
+          // Figure out the label of the category before which the dragged category should be placed
+          const moveToGreater = newCatIndex > dI.indexOfCategory,
+            catToMoveBefore = moveToGreater
+              ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex + 1])
+              : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
+          dI.categorySet?.move(dI.catName, catToMoveBefore)
         } else {
           renderSubAxis()
         }
@@ -253,10 +232,10 @@ export const useSubAxis = ({
     }, [renderSubAxis]),
 
     onDragEnd = useCallback(() => {
-      console.log('onDragEnd')
       const dI = dragInfo.current
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
-    }, []),
+      renderSubAxis()
+    }, [renderSubAxis]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)
@@ -271,22 +250,17 @@ export const useSubAxis = ({
       const
         place = axisModel.place,
         multiScale = layout.getAxisMultiScale(place),
-        axisBounds = layout.getComputedBounds(place) as AxisBounds,
-        initialTransform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
-          : (place === 'top') ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`
-            : `translate(${axisBounds.left}, ${axisBounds.top})`,
         categorySet = multiScale?.categorySet,
-        categories = Array.from(categorySet?.values ?? []).reverse(),
+        categories = Array.from(categorySet?.values ?? []),
         categoryData: CatObject[] = categories.map((cat, index) =>
-          ({cat, index}))
+          ({cat, index: isVertical(place) ? categories.length - index - 1 : index}))
 
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
-
-      sAS.selectAll('*').remove()  // start over
-      sAS.attr("transform", initialTransform)
-        .attr('class', 'axis')
-        .append('line')
+      if (sAS.select('line').size() === 0) {  // only draw the axis line once
+        sAS.attr('class', 'axis')
+          .append('line')
+      }
       categoriesSelectionRef.current = sAS.selectAll('g')
         .data(categoryData)
         .join(
@@ -307,6 +281,8 @@ export const useSubAxis = ({
         // labels
         catGroup.append('text')
           .attr('class', 'category-label')
+          .attr('x', 0)
+          .attr('y', 0)
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           .call(dragBehavior)
@@ -387,9 +363,11 @@ export const useSubAxis = ({
 
   // update on multiScaleChangeCount change
   useEffect(() => {
+    isCategorical && setupCategories()
     renderSubAxis()
-  }, [renderSubAxis, multiScaleChangeCount])
+  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories])
 
+  // We only need to do this for categorical axes
   useEffect(function setup() {
     if (subAxisElt && isCategorical) {
       setupCategories()

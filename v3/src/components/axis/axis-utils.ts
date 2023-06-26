@@ -1,7 +1,9 @@
 import {ScaleLinear} from "d3"
-import {kGraphFont} from "../graph/graphing-types"
+import {kAxisGap, kAxisTickLength, kGraphFont} from "../graph/graphing-types"
 import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
+import {ICategorySet} from "../../models/data/category-set"
+import {MutableRefObject} from "react"
 
 export const getStringBounds = (s = 'Wy', font = kGraphFont) => {
   return measureTextExtent(s, font)
@@ -27,7 +29,6 @@ export const collisionExists = (props: ICollisionProps) => {
 }
 
 interface ILabelPlacement {
-  translation?: string
   rotation?: string
   textAnchor: "start" | "middle" | "end"
 }
@@ -37,54 +38,53 @@ type CollisionOptions = "collision" | "fit"
 type CenterCollisionPlacementMap = Record<CenterOptions, Record<CollisionOptions, ILabelPlacement>>
 
 export const getCategoricalLabelPlacement = (
-  axisPlace: AxisPlace, centerCategoryLabels: boolean, collision: boolean, bandWidth: number, textHeight: number) => {
+  axisPlace: AxisPlace, centerCategoryLabels: boolean, collision: boolean) => {
 
   const rotation = 'rotate(-90)'  // the only rotation value we use
   const labelPlacementMap: Partial<Record<AxisPlace, CenterCollisionPlacementMap>> = {
     left: {
       center: {
-        collision: {translation: `translate(0, ${-bandWidth / 2})`, textAnchor: 'end'},
-        fit: {translation: `translate(${-textHeight / 2}, ${-bandWidth / 2})`, rotation, textAnchor: 'middle'}
+        collision: {textAnchor: 'end'},
+        fit: {rotation, textAnchor: 'middle'}
       },
       justify: {
-        collision: {translation: `translate(0, ${-textHeight / 2})`, textAnchor: 'end'},
-        fit: {translation: `translate(${-textHeight / 2}, 0)`, rotation, textAnchor: 'start'}
+        collision: {textAnchor: 'end'},
+        fit: {rotation, textAnchor: 'start'}
       }
     },
     rightCat: {
       center: {
-        collision: {translation: `translate(0, ${-bandWidth / 2})`, textAnchor: 'start'},
-        fit: {translation: `translate(${textHeight / 2}, ${-bandWidth / 2})`, rotation, textAnchor: 'middle'}
+        collision: {textAnchor: 'start'},
+        fit: {rotation, textAnchor: 'middle'}
       },
       justify: {
-        collision: {translation: `translate(0, ${-textHeight / 2})`, textAnchor: 'end'},
-        fit: {translation: `translate(${-textHeight / 2}, 0)`, rotation, textAnchor: 'start'}
+        collision: {textAnchor: 'end'},
+        fit: {rotation, textAnchor: 'start'}
       }
     },
     bottom: {
       center: {
         collision: {
-          translation: `translate(${-bandWidth / 2 - textHeight / 2}, ${textHeight / 3})`, rotation, textAnchor: 'end'
+          rotation, textAnchor: 'end'
         },
-        fit: {translation: `translate(${-bandWidth / 2}, 0)`, textAnchor: 'middle'}
+        fit: {textAnchor: 'middle'}
       },
       justify: {
-        collision: {translation: `translate(${-bandWidth}, ${textHeight / 3})`, rotation, textAnchor: 'end'},
-        fit: {translation: `translate(${-bandWidth}, ${textHeight / 3})`, textAnchor: 'start'}
+        collision: {rotation, textAnchor: 'end'},
+        fit: {textAnchor: 'start'}
       }
     },
     top: {
       center: {
         collision: {
-          translation: `translate(${-bandWidth / 2 + textHeight / 2}, ${-textHeight / 3})`,
           rotation,
           textAnchor: 'start'
         },
-        fit: {translation: `translate(${-bandWidth / 2}, 0)`, textAnchor: 'middle'}
+        fit: {textAnchor: 'middle'}
       },
       justify: {
-        collision: {translation: `translate(${-bandWidth}, ${textHeight / 3})`, rotation, textAnchor: 'end'},
-        fit: {translation: `translate(${-bandWidth}, ${textHeight / 3})`, textAnchor: 'start'}
+        collision: {rotation, textAnchor: 'end'},
+        fit: {textAnchor: 'start'}
       }
     }
   }
@@ -93,6 +93,87 @@ export const getCategoricalLabelPlacement = (
   const collisionOrFit = collision ? "collision" : "fit"
   const labelPlacement = labelPlacementMap[axisPlace]?.[centerOrJustify][collisionOrFit]
   return {translation: '', rotation: '', textAnchor: 'none', ...labelPlacement}
+}
+
+export interface DragInfo {
+  indexOfCategory: number
+  catName: string
+  currentOffset: number
+  currentDragPosition: number
+  categorySet?: ICategorySet
+  categories: string[]
+  bandwidth: number
+  axisOrientation: 'horizontal' | 'vertical'
+  labelOrientation: 'horizontal' | 'vertical'
+}
+
+export interface IGetCoordFunctionsProps {
+  numCategories: number
+  centerCategoryLabels: boolean
+  collision: boolean
+  axisIsVertical: boolean
+  rangeMin: number
+  rangeMax: number
+  subAxisLength: number
+  isRightCat: boolean
+  isTop: boolean
+  dragInfo: MutableRefObject<DragInfo>
+}
+
+interface ICoordFunctions {
+  getTickX: (i: number) => number
+  getTickY: (i: number) => number
+  getDividerX: (i: number) => number
+  getDividerY: (i: number) => number
+  getLabelX: (i: number) => number
+  getLabelY: (i: number) => number
+  dragXOffset: (i: number) => number
+  dragYOffset: (i: number) => number
+}
+
+export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctions => {
+  const {numCategories, centerCategoryLabels, collision,
+    axisIsVertical,
+    rangeMin, rangeMax, subAxisLength,
+    isRightCat, isTop, dragInfo} = props,
+    labelTextHeight = getStringBounds('12px sans-serif').height,
+    indexOffset = centerCategoryLabels ? 0.5 : (axisIsVertical ? 1 : 0),
+    dI = dragInfo.current
+  let labelXOffset = 0, labelYOffset = 0
+  const getTickX = (i: number) => rangeMin + (i + indexOffset) * subAxisLength / numCategories,
+    getTickY = (i: number) => rangeMax - (i + indexOffset) * subAxisLength / numCategories
+  switch (axisIsVertical) {
+    case true:
+      labelXOffset = collision ? 0 : 0.25 * labelTextHeight
+      return { getTickX: () => 0,
+      getTickY,
+      getDividerX: () => 0,
+      getDividerY: (i) => rangeMax - (i + 1) * subAxisLength / numCategories,
+      getLabelX: () => (isRightCat ? 1 : -1) * (kAxisTickLength + kAxisGap + labelXOffset),
+      getLabelY: (i) =>
+        (getTickY ? getTickY(i) : 0) + (collision ? 0.25 * labelTextHeight : 0),
+      dragXOffset: () => 0,
+      dragYOffset: (i) => {
+        (i === dI.indexOfCategory) && console.log(
+          `dragging category ${dI.indexOfCategory} with offset ${dI.currentOffset}`
+        )
+        return i === dI.indexOfCategory ? dI.currentOffset : 0
+      }
+    }
+    case false:
+      labelYOffset = collision ? 0 : (isTop ? -0.15 : 0.75) * labelTextHeight
+    return {
+      getTickX,
+      getTickY: () => 0,
+      getDividerX: (i) => rangeMin + i * subAxisLength / numCategories,
+      getDividerY: () => 0,
+      getLabelX: (i) => (getTickX ? getTickX(i) : 0) +
+        (collision ? 0.25 * labelTextHeight : 0),
+      getLabelY: () => (isTop ? -1 : 1) * (kAxisTickLength + kAxisGap) + labelYOffset,
+      dragXOffset: (i) => i === dI.indexOfCategory ? dI.currentOffset : 0,
+      dragYOffset: () => 0
+    }
+  }
 }
 
 /**
