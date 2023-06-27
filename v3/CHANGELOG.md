@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 3.0.0-pre.1258 - June 26, 2023
+
+### Features/Improvements
+- Categories can be reordered by dragging the category keys [#181909789](https://www.pivotaltracker.com/story/show/181909789)
+- Category reordering propagates to legends and graph axes [#185325780](https://www.pivotaltracker.com/story/show/185325780)
+- Users can drag attributes from graph axes and legend [#185386878](https://www.pivotaltracker.com/story/show/185386878)
+
+### Bug Fixes
+- Duplicate droppable areas shown in right y axis [#184758581](https://www.pivotaltracker.com/story/show/184758581)
+- Problems plotting points in graph [#185384939](https://www.pivotaltracker.com/story/show/185384939)
+- Laggy behavior on resizing components vertically [#185325649](https://www.pivotaltracker.com/story/show/185325649)
+- Categorical axis failure to refresh [#185393868](https://www.pivotaltracker.com/story/show/185393868)
+- Case Table goes blank when dragging attribute in certain conditions [#184918620](https://www.pivotaltracker.com/story/show/184918620)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   41352 bytes |                           -0.04% |
+|  index.js | 3055443 bytes |                            0.48% |
+
 ## Version 3.0.0-pre.1248 - June 12, 2023
 
 ### Features/Improvements
