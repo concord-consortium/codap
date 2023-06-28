@@ -36,6 +36,7 @@ export const useSubAxis = ({
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
       catName: '',
+      initialOffset: 0,
       currentOffset: 0,
       currentDragPosition: 0,
       categories: [],
@@ -146,10 +147,10 @@ export const useSubAxis = ({
               enter => enter,
               update => {
                 update.select('.tick')
-                  .attr('x1', (d, i) => fns.getTickX(i) + fns.dragXOffset(i))
+                  .attr('x1', (d, i) => fns.getTickX(i))
                   .attr('x2', (d, i) => axisIsVertical
                     ? (isRightCat ? 1 : -1) * kAxisTickLength : fns.getTickX(i))
-                  .attr('y1', (d, i) => fns.getTickY(i) + fns.dragYOffset(i))
+                  .attr('y1', (d, i) => fns.getTickY(i))
                   .attr('y2', (d, i) => axisIsVertical
                     ? fns.getTickY(i) : (isTop ? -1 : 1) * kAxisTickLength)
                 // divider between groups
@@ -198,8 +199,15 @@ export const useSubAxis = ({
       dI.catName = catObject.cat
       dI.currentOffset = 0
       dI.currentDragPosition = dI.axisOrientation === 'horizontal' ? event.x : event.y
+      dI.initialOffset = dI.currentDragPosition - (catObject.index + 0.5) * dI.bandwidth
     }, []),
 
+    /**
+     * Note: The event actually includes 'dx' and 'dy' properties, but they are not
+     * used here because there was an episode during which they didn't work reliably
+     * and the current less straightforward approach was adopted. It may be worth
+     * revisiting this at some point.
+     */
     onDrag = useCallback((event:any) => {
       const dI = dragInfo.current,
         delta = dI.axisOrientation === 'horizontal'
@@ -215,7 +223,7 @@ export const useSubAxis = ({
         if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory && newCatIndex < dI.categories.length) {
           // swap the two categories
           // Adjust the currentOffset to match the new category position
-          dI.currentOffset = newDragPosition - (cellIndex + 0.5) * dI.bandwidth
+          dI.currentOffset = newDragPosition - (cellIndex + 0.5) * dI.bandwidth - dI.initialOffset
 
           // Figure out the label of the category before which the dragged category should be placed
           const moveToGreater = newCatIndex > dI.indexOfCategory,
@@ -234,6 +242,7 @@ export const useSubAxis = ({
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
+      enableAnimation.current = false // disable animation for final placement
       renderSubAxis()
     }, [renderSubAxis]),
 

@@ -92,12 +92,13 @@ export const getCategoricalLabelPlacement = (
   const centerOrJustify = centerCategoryLabels ? "center" : "justify"
   const collisionOrFit = collision ? "collision" : "fit"
   const labelPlacement = labelPlacementMap[axisPlace]?.[centerOrJustify][collisionOrFit]
-  return {translation: '', rotation: '', textAnchor: 'none', ...labelPlacement}
+  return {rotation: '', textAnchor: 'none', ...labelPlacement}
 }
 
 export interface DragInfo {
   indexOfCategory: number
   catName: string
+  initialOffset: number
   currentOffset: number
   currentDragPosition: number
   categorySet?: ICategorySet
@@ -149,16 +150,11 @@ export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctio
       getTickY,
       getDividerX: () => 0,
       getDividerY: (i) => rangeMax - (i + 1) * subAxisLength / numCategories,
-      getLabelX: () => (isRightCat ? 1 : -1) * (kAxisTickLength + kAxisGap + labelXOffset),
+      getLabelX: () => (isRightCat ? 1.5 : -1) * (kAxisTickLength + kAxisGap + labelXOffset),
       getLabelY: (i) =>
         (getTickY ? getTickY(i) : 0) + (collision ? 0.25 * labelTextHeight : 0),
       dragXOffset: () => 0,
-      dragYOffset: (i) => {
-        (i === dI.indexOfCategory) && console.log(
-          `dragging category ${dI.indexOfCategory} with offset ${dI.currentOffset}`
-        )
-        return i === dI.indexOfCategory ? dI.currentOffset : 0
-      }
+      dragYOffset: (i) => i === dI.indexOfCategory ? dI.currentOffset : 0
     }
     case false:
       labelYOffset = collision ? 0 : (isTop ? -0.15 : 0.75) * labelTextHeight
