@@ -4,12 +4,12 @@
 
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
-import {Point} from "../graphing-types"
+import {Point, kMovableLineType} from "../graphing-types"
 
 export const PointModel = types.model("Point", {
-  x: types.optional(types.number, NaN),
-  y: types.optional(types.number, NaN)
-})
+    x: types.optional(types.number, NaN),
+    y: types.optional(types.number, NaN)
+  })
   .views(self=>({
     isValid() {
       return isFinite(self.x) && isFinite(self.y)
@@ -26,18 +26,38 @@ export const PointModel = types.model("Point", {
 export interface IPointModel extends Instance<typeof PointModel> {}
 export const kInfinitePoint = {x:NaN, y:NaN}
 
-const Adornment = types.model("Adornment", {
-  id: types.optional(types.identifier, () => typedId("ADRN")),
-  type: types.optional(types.string, () => {
-    throw "type must be overridden"
-  }),
-  isVisible: true
-})
+export const Adornment = types.model("Adornment", {
+    id: types.optional(types.identifier, () => typedId("ADRN")),
+    type: types.optional(types.string, () => {
+      throw "type must be overridden"
+    }),
+    isVisible: true
+  })
   .actions(self => ({
     setVisibility(isVisible: boolean) {
       self.isVisible = isVisible
+    },
+    setInstanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
+      if ((xCats.length === 0 && yCats.length === 0) || xCats[index] === '') {
+        return ''
+      } else if (xCats.length > 0 &&  yCats.length > 0) {
+        return `{x: ${xCats[index % xCats.length]}, y: ${yCats[Math.floor(index / xCats.length)]}}`
+      } else if (xCats.length > 0) {
+        return `{x: ${xCats[index]}}`
+      } else if (yCats.length > 0) {
+        return `{y: ${yCats[index]}}`
+      }
+    },
+    setClassNameFromKey(key: string) {
+      const className = key.replace(/\{/g, '')
+        .replace(/\}/g, '')
+        .replace(/: /g, '-')
+        .replace(/, /g, '-')
+
+      return className
     }
   }))
+export interface IAdornmentModel extends Instance<typeof Adornment> {}
 
 export const MovableValueModel = Adornment
   .named('MovableValueModel')
@@ -53,11 +73,21 @@ export const MovableValueModel = Adornment
 export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
 
 export const MovableLineParams = types.model("MovableLineParams", {
-  intercept: types.number,
-  slope: types.number,
-  pivot1: types.optional(PointModel, kInfinitePoint),
-  pivot2: types.optional(PointModel, kInfinitePoint),
-})
+    intercept: types.number,
+    slope: types.number,
+  })
+  .volatile(self => ({
+    pivot1: PointModel.create(),
+    pivot2: PointModel.create()
+  }))
+  .actions(self => ({
+    setPivot1(point: Point) {
+      self.pivot1.set(point)
+    },
+    setPivot2(point: Point) {
+      self.pivot2.set(point)
+    }
+  }))
 
 export const MovableLineModel = Adornment
   .named('MovableLineModel')
@@ -65,18 +95,18 @@ export const MovableLineModel = Adornment
     type: 'Movable Line',
     lines: types.map(MovableLineParams)
   })
-  .volatile(self => ({
-    pivot1: PointModel.create(),
-    pivot2: PointModel.create()
-  }))
   .actions(self => ({
-    setLine(aLine: {intercept:number, slope:number, pivot1?:Point, pivot2?:Point}, key='') {
+    setLine(aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point}, key='') {
       self.lines.set(key, aLine)
-      self.pivot1.set(aLine.pivot1 ?? kInfinitePoint)
-      self.pivot2.set(aLine.pivot2 ?? kInfinitePoint)
+      const line = self.lines.get(key)
+      line?.setPivot1(aLine.pivot1 ?? kInfinitePoint)
+      line?.setPivot2(aLine.pivot2 ?? kInfinitePoint)
     }
   }))
 export interface IMovableLineModel extends Instance<typeof MovableLineModel> {}
+export function isMovableLine(adornment: IAdornmentModel): adornment is IMovableLineModel {
+  return adornment.type === kMovableLineType
+}
 
 export const AdornmentModelUnion = types.union(MovableValueModel, MovableLineModel)
 export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel

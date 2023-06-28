@@ -5,6 +5,8 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphModel } from "../../models/graph-model"
 import { InspectorPalette } from "../../../inspector-panel"
 import { MovableLineModel } from "../../adornments/adornment-models"
+import { computeSlopeAndIntercept} from "../../utilities/graph-utils"
+import { kMovableLineType } from "../../graphing-types"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 
 import "./point-format-panel.scss"
@@ -56,13 +58,18 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
     })
     if (val && graphModel) {
       let adornment = undefined
-      // TODO: Handle other adornment types
+      // get the xAxis and yAxis from the graphModel
+      const xAxis = graphModel.getAxis('bottom'),
+        yAxis = graphModel.getAxis('left')
+      const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis)
+
       switch (measure) {
-        case 'Movable Line':
+        // TODO: Handle other adornment types
+        case kMovableLineType:
           adornment = MovableLineModel.create({
               type: measure
           })
-          adornment.setLine({intercept: 0, slope: 45})
+          adornment.setLine({intercept, slope})
       }
       if (adornment) {
         graphModel?.addAdornment(adornment)

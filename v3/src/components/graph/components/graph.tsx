@@ -189,7 +189,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           />
         </svg>
         {renderDroppableAddAttributes()}
-        {graphModel.adornments.length > 0 && <Adornments />}
+        <Adornments />
       </div>
     </DataConfigurationContext.Provider>
   )
