@@ -244,7 +244,7 @@ export const useSubAxis = ({
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
       enableAnimation.current = false // disable animation for final placement
       renderSubAxis()
-    }, [renderSubAxis]),
+    }, [enableAnimation, renderSubAxis]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)
