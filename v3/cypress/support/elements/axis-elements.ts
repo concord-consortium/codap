@@ -22,10 +22,10 @@ export const AxisElements = {
     return this.getAxisElement(axis).find(".empty-label")
   },
   getTickMarks(axis) {
-    return this.getAxisElement(axis).find(".tick line")
+    return this.getAxisElement(axis).find("line.tick")
   },
   getTickMark(axis, index) {
-    return this.getAxisElement(axis).find(".tick line").eq(index)
+    return this.getAxisElement(axis).find("line.tick").eq(index)
   },
   getTickLength(axis, attr) {
     return this.getTickMark(axis, 0).invoke("attr", attr).then(tickLength => {
@@ -33,19 +33,19 @@ export const AxisElements = {
     })
   },
   getGridLines(axis) {
-    return this.getAxisElement(axis).find(".tick line")
+    return this.getAxisElement(axis).find("line.tick")
   },
   getGridLine(axis, index) {
-    return this.getAxisElement(axis).find(".tick line").eq(index)
+    return this.getAxisElement(axis).find("line.tick").eq(index)
   },
   getAxisTickLabels(axis) {
-    return this.getAxisElement(axis).find(".tick text")
+    return this.getAxisElement(axis).find("text.category-label")
   },
   getAxisTickLabel(axis, index) {
-    return this.getAxisElement(axis).find(".tick text").eq(index)
+    return this.getAxisElement(axis).find("text.category-label").eq(index)
   },
   isAxisTickLabelOrientationTransformed(axis, index) {
-    return this.getAxisElement(axis).find(".tick text").eq(index).invoke("attr", "transform").should("exist")
+    return this.getAxisElement(axis).find("text.category-label").eq(index).invoke("attr", "transform").should("exist")
   },
   dragAttributeToAxis(name, axis) {
     cy.dragAttributeToTarget("graph", name, axis)
