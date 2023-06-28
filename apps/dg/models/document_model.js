@@ -122,7 +122,7 @@ DG.Document.createDocument = function( iProperties) {
   if (tProperties.globalValues) {
     tProperties.globalValues.forEach( function (gv) {
       gv.document = tDocument;
-      DG.GlobalValue.createGlobalValue(gv);
+      DG.globalsController.createGlobalValue(gv);
     });
   }
   if (tProperties.components) {
