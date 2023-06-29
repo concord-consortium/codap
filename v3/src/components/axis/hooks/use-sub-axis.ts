@@ -7,8 +7,10 @@ import {IAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
 import {kAxisTickLength, transitionDuration} from "../../graph/graphing-types"
-import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
-  getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
+import {
+  DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
+  getCoordFunctions, IGetCoordFunctionsProps
+} from "../axis-utils"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -136,10 +138,10 @@ export const useSubAxis = ({
             .attr('y1', axisIsVertical ? rangeMin : 0)
             .attr('y2', axisIsVertical ? rangeMax : 0)
 
-          const props:IGetCoordFunctionsProps = {
-            numCategories, centerCategoryLabels, collision, axisIsVertical, rangeMin, rangeMax,
-            subAxisLength, isRightCat, isTop, dragInfo
-          },
+          const props: IGetCoordFunctionsProps = {
+              numCategories, centerCategoryLabels, collision, axisIsVertical, rangeMin, rangeMax,
+              subAxisLength, isRightCat, isTop, dragInfo
+            },
             fns = getCoordFunctions(props)
 
           categoriesSelectionRef.current
@@ -172,7 +174,7 @@ export const useSubAxis = ({
                   .attr('class', 'category-label')
                   .attr('x', (d, i) => fns.getLabelX(i) + fns.dragXOffset(i))
                   .attr('y', (d, i) => fns.getLabelY(i) + fns.dragYOffset(i))
-                  .text((catObject:CatObject) => String(catObject.cat))
+                  .text((catObject: CatObject) => String(catObject.cat))
                 return update
               }
             )
@@ -208,7 +210,7 @@ export const useSubAxis = ({
      * and the current less straightforward approach was adopted. It may be worth
      * revisiting this at some point.
      */
-    onDrag = useCallback((event:any) => {
+    onDrag = useCallback((event: any) => {
       const dI = dragInfo.current,
         delta = dI.axisOrientation === 'horizontal'
           ? event.x - dI.currentDragPosition : event.y - dI.currentDragPosition
@@ -266,10 +268,10 @@ export const useSubAxis = ({
 
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
-      if (sAS.select('line').size() === 0) {  // only draw the axis line once
-        sAS.attr('class', 'axis')
-          .append('line')
-      }
+
+      select(subAxisElt).selectAll('*').remove()  // start over
+
+      sAS.attr('class', 'axis').append('line')
       categoriesSelectionRef.current = sAS.selectAll('g')
         .data(categoryData)
         .join(

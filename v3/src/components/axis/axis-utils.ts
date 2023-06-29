@@ -138,7 +138,7 @@ export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctio
     rangeMin, rangeMax, subAxisLength,
     isRightCat, isTop, dragInfo} = props,
     labelTextHeight = getStringBounds('12px sans-serif').height,
-    indexOffset = centerCategoryLabels ? 0.5 : (axisIsVertical ? 1 : 0),
+    indexOffset = centerCategoryLabels ? 0.5 : 0/*(axisIsVertical ? 1 : 0)*/,
     dI = dragInfo.current
   let labelXOffset = 0, labelYOffset = 0
   const getTickX = (i: number) => rangeMin + (i + indexOffset) * subAxisLength / numCategories,
