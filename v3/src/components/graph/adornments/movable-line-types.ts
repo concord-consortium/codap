@@ -1,0 +1,5 @@
+export const kMovableLineClass = "movabe-line"
+export const kMovableLineType = "Movable Line"
+export const kMovableLinePrefix = "ADRN"
+export const kMovableLineLabel = "Movable Line"
+export const kMovableLineHint = ""

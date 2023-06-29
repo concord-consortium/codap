@@ -16,7 +16,7 @@ export const Adornments = observer(function Adornments() {
     layout = useGraphLayoutContext(),
     adornments = graphModel.adornments
 
-  if (adornments.length === 0) return null
+  if (adornments?.length === 0) return null
 
   const setCategories = () => {
     // Build an array containing each category label present in the top axis
