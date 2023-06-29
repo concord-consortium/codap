@@ -1,5 +1,5 @@
 import {
-  Adornment, MovableLineModel, MovableLineParams, MovableValueModel, PointModel
+  AdornmentModel, MovableLineModel, MovableLineParams, MovableValueModel, PointModel
 } from "./adornment-models"
 
 describe("PointModel", () => {
@@ -23,22 +23,22 @@ describe("PointModel", () => {
   })
 })
 
-describe("Adornment", () => {
+describe("AdornmentModel", () => {
   it("throws an error when type is not specified on creation", () => {
-    expect(() => Adornment.create()).toThrow("type must be overridden")
+    expect(() => AdornmentModel.create()).toThrow("type must be overridden")
   })
   it("has an ID that begins with 'ADRN'", () => {
-    const adornment = Adornment.create({type: "Movable Line"})
+    const adornment = AdornmentModel.create({type: "Movable Line"})
     expect(adornment.id).toMatch(/^ADRN/)
   })
   it("is visible by default and can have its visibility property changed", () => {
-    const adornment = Adornment.create({type: "Movable Line"})
+    const adornment = AdornmentModel.create({type: "Movable Line"})
     expect(adornment.isVisible).toBe(true)
     adornment.setVisibility(false)
     expect(adornment.isVisible).toBe(false)
   })
   it("will create an instance key value from given category values", () => {
-    const adornment = Adornment.create({type: "Movable Line"})
+    const adornment = AdornmentModel.create({type: "Movable Line"})
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const index = 0
@@ -46,7 +46,7 @@ describe("Adornment", () => {
     expect(adornment.setInstanceKey(xCategories, yCategories, index)).toEqual("{x: pizza, y: red}")
   })
   it("will create a class name from a given instance key", () => {
-    const adornment = Adornment.create({type: "Movable Line"})
+    const adornment = AdornmentModel.create({type: "Movable Line"})
     const key = "{x: pizza, y: red}"
     expect(adornment.setClassNameFromKey(key)).toEqual("x-pizza-y-red")
   })

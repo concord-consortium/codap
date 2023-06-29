@@ -279,6 +279,9 @@ export const MovableLine = (props: {
           equationDiv.remove()
         })
     }
+  // This effect should only run once on mount, otherwise it would create multiple 
+  // instances of the line elements
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

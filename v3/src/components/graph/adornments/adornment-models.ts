@@ -26,17 +26,14 @@ export const PointModel = types.model("Point", {
 export interface IPointModel extends Instance<typeof PointModel> {}
 export const kInfinitePoint = {x:NaN, y:NaN}
 
-export const Adornment = types.model("Adornment", {
+export const AdornmentModel = types.model("AdornmentModel", {
     id: types.optional(types.identifier, () => typedId("ADRN")),
     type: types.optional(types.string, () => {
       throw "type must be overridden"
     }),
     isVisible: true
   })
-  .actions(self => ({
-    setVisibility(isVisible: boolean) {
-      self.isVisible = isVisible
-    },
+  .views(self => ({
     setInstanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
       if ((xCats.length === 0 && yCats.length === 0) || xCats[index] === '') {
         return ''
@@ -57,9 +54,14 @@ export const Adornment = types.model("Adornment", {
       return className
     }
   }))
-export interface IAdornmentModel extends Instance<typeof Adornment> {}
+  .actions(self => ({
+    setVisibility(isVisible: boolean) {
+      self.isVisible = isVisible
+    }
+  }))
+export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
 
-export const MovableValueModel = Adornment
+export const MovableValueModel = AdornmentModel
   .named('MovableValueModel')
   .props({
     type: 'Movable Value',
@@ -89,7 +91,7 @@ export const MovableLineParams = types.model("MovableLineParams", {
     }
   }))
 
-export const MovableLineModel = Adornment
+export const MovableLineModel = AdornmentModel
   .named('MovableLineModel')
   .props({
     type: 'Movable Line',
