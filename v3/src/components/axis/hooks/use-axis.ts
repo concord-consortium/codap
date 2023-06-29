@@ -26,7 +26,8 @@ export const useAxis = ({
     isNumeric = axisModel && isNumericAxisModel(axisModel),
     place = axisModel?.place ?? 'bottom',
     multiScale = layout.getAxisMultiScale(place),
-    ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>
+    ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>,
+    categories = ordinalScale?.domain() ?? []
   const
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
@@ -49,7 +50,6 @@ export const useAxis = ({
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
       bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
-      categories = ordinalScale?.domain() ?? [],
       collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
       maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? []),
       d3Scale = multiScale?.scale ?? (type === 'numeric' ? scaleLinear() : scaleOrdinal())
@@ -70,7 +70,8 @@ export const useAxis = ({
       }
     }
     return desiredExtent
-  }, [centerCategoryLabels, ordinalScale, axisPlace, attrRole, dataConfiguration, axisTitle, type, multiScale])
+  }, [dataConfiguration, axisPlace, axisTitle, multiScale?.repetitions, multiScale?.scale,
+    ordinalScale, categories, centerCategoryLabels, attrRole, type])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {

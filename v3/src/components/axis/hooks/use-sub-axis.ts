@@ -69,7 +69,19 @@ export const useSubAxis = ({
           : (place === 'top') ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`
             : `translate(${axisBounds.left}, ${axisBounds.top})`
 
-      const renderEmptyOrNumericAxis = () => {
+      const renderEmptyAxis = () => {
+          select(subAxisElt).selectAll('*').remove()
+          select(subAxisElt)
+            .attr("transform", initialTransform)
+            .append('line')
+            .attr('x1', 0)
+            .attr('x2', axisIsVertical ? 0 : subAxisLength)
+            .attr('y1', 0)
+            .attr('y2', axisIsVertical ? subAxisLength : 0)
+            .style("stroke", "lightgrey")
+            .style("stroke-opacity", "0.7")
+        },
+        renderNumericAxis = () => {
           select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
             axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9')),
@@ -183,9 +195,11 @@ export const useSubAxis = ({
 
       d3Scale.range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax])
       switch (type) {
-        case 'numeric':
         case 'empty':
-          renderEmptyOrNumericAxis()
+          renderEmptyAxis()
+          break
+        case 'numeric':
+          renderNumericAxis()
           showScatterPlotGridLines && renderScatterPlotGridLines()
           break
         case 'categorical':
@@ -285,7 +299,7 @@ export const useSubAxis = ({
           }
         )
       categoriesSelectionRef.current.each(function () {
-        const catGroup = select(this)/*.select('g')*/
+        const catGroup = select(this)
         // ticks
         catGroup.append('line').attr('class', 'tick')
         // divider between groups
