@@ -255,12 +255,11 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
   }
 }
 
-export function equationString(slope: number, intercept: number) {
-  const float = format('.4~r')
-  const kSlopeIntercept = `<p style="color:#4782B4"><i>y</i> = ${float(slope)} <i>x</i> + ${float(intercept)}</p>`/*,
-  // color,y,slope,x,signInt,Int
-    kInfiniteSlope = '<p style = "color:%@"><i>%@</i> = %@ %@</p>', // x,constant,unit
-    kSlopeOnly = '<p style = "color:%@">%@ = %@ %@</p>' // color, left side, numeric slope, slope unit*/
+export function equationString(slope: number, intercept: number, attrNames: any) {
+  const float = format('.4~r'),
+  slopeString = slope !== Infinity && slope !== 0 ? float(slope) : undefined,
+  displaySlope = slopeString ? `${slopeString} <em>${attrNames.x}</em> +` : '',
+  kSlopeIntercept = `<em>${attrNames.y}</em> = ${displaySlope} ${float(intercept)}`
   return kSlopeIntercept
 }
 
@@ -458,4 +457,23 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
 
     theSelection = selectDots(dotsRef.current, selectedOnly)
   setPoints()
+}
+
+
+/**
+ Use the bounds of the given axes to compute slope and intercept.
+*/
+export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel) {
+  const xLower = xAxis && isNumericAxisModel(xAxis) ? xAxis.min : 0,
+    xUpper = xAxis && isNumericAxisModel(xAxis) ? xAxis.max : 0,
+    yLower = yAxis && isNumericAxisModel(yAxis) ? yAxis.min : 0,
+    yUpper = yAxis && isNumericAxisModel(yAxis) ? yAxis.max : 0
+
+  // Make the default a bit steeper so it's less likely to look like
+  // it fits a typical set of points
+  const adjustedXUpper = xLower + (xUpper - xLower) / 2,
+    slope = (yUpper - yLower) / (adjustedXUpper - xLower),
+    intercept = yLower - slope * xLower
+
+  return {slope, intercept}
 }

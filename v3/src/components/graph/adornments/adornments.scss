@@ -1,0 +1,14 @@
+.graph-adornments-grid {
+  display: grid;
+  gap: 0;
+  height: 100%;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  .graph-adornments-grid__cell {
+    position: relative;
+  }
+}
