@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-import { kChildMostTableCollectionId, OnTableScrollFn, SetScrollInfoFn, TRow } from "./case-table-types"
+import { kChildMostTableCollectionId, OnTableScrollFn, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
 import { useColumns } from "./use-columns"
@@ -17,25 +17,31 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
 
+type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 
 interface IProps {
-  onSetScrollInfo: SetScrollInfoFn
+  onMount: (collectionId: string) => void
+  onNewCollectionDrop: OnNewCollectionDropFn
   onTableScroll: OnTableScrollFn
 }
-export const CollectionTable = observer(function CollectionTable({ onSetScrollInfo, onTableScroll }: IProps) {
+export const CollectionTable = observer(function CollectionTable(props: IProps) {
+  const { onMount, onNewCollectionDrop, onTableScroll } = props
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const collectionId = collection?.id || kChildMostTableCollectionId
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
-  const { selectedRows, setSelectedRows, handleCellClick, scrollRowIntoView } = useSelectedRows({ gridRef })
+  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
 
-  useEffect(function setScrollInfo() {
+  useEffect(function setGridElement() {
     const element = gridRef.current?.element ?? undefined
-    element && onSetScrollInfo({ collectionId, element, scrollRowIntoView })
-  }, [collectionId, onSetScrollInfo, scrollRowIntoView])
+    if (element && collectionTableModel) {
+      collectionTableModel.setElement(element)
+      onMount(collectionId)
+    }
+  }, [collectionId, collectionTableModel, gridRef.current?.element, onMount])
 
   useEffect(function syncScrollTop() {
     // There is a bug, seemingly in React, in which the scrollTop property gets reset
@@ -56,8 +62,8 @@ export const CollectionTable = observer(function CollectionTable({ onSetScrollIn
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
     const attr = dataSet.attrFromID(attrId)
-    attr && dataSet.moveAttributeToNewCollection(attrId, collection.id)
-  }, [collection.id])
+    attr && onNewCollectionDrop(dataSet, attrId, collection.id)
+  }, [collection.id, onNewCollectionDrop])
 
   const handleGridScroll = useCallback(function handleGridScroll(event: React.UIEvent<HTMLDivElement, UIEvent>) {
     const gridElt = gridRef.current?.element
@@ -72,7 +78,7 @@ export const CollectionTable = observer(function CollectionTable({ onSetScrollIn
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer rows={rows} onDrop={handleNewCollectionDrop} rowHeight={+styles.bodyRowHeight} />
+      <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <CollectionTitle />
         <DataGrid ref={gridRef} className="rdg-light"

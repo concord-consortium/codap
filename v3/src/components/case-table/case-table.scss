@@ -30,6 +30,7 @@ $table-body-font-size: 8pt;
           background-color: vars.$codap-teal-lighter;
           display: flex;
           align-items: center;
+          flex-shrink: 0;
 
           .collection-title {
             position: absolute;
@@ -51,9 +52,9 @@ $table-body-font-size: 8pt;
             height: 22px;
             border: none;
             position: absolute;
-            top: 0;
-            padding-inline-start: 0;
+            padding-inline-start: 12px;
             padding-inline-end: 0;
+            z-index: 6;
 
             .add-icon {
               visibility: hidden;
@@ -111,7 +112,7 @@ $table-body-font-size: 8pt;
         }
 
         .spacer-top {
-          height: calc(vars.$title-bar-height + vars.$header-height - 0.5px);
+          height: calc(vars.$title-bar-height + vars.$header-height + 1px);
           background-color: #f9f9f9; // --rdg-header-background-color
           width: 100%;
           border-bottom: 1px solid var(--codap-colors-chakra-border-color);
@@ -180,6 +181,7 @@ $table-body-font-size: 8pt;
     // We override to specify `contain: content`, which excludes `size`,
     // thus allowing the size of the grid to be computed appropriately.
     contain: content !important;
+    scroll-behavior: smooth;
 
     font-family: 'Montserrat-Regular', sans-serif !important;
     font-size: $table-body-font-size !important;

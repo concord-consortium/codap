@@ -437,6 +437,7 @@ export const DataSet = types.model("DataSet", {
         const collection = CollectionModel.create()
         this.addCollection(collection, beforeCollectionId)
         this.setCollectionForAttribute(attributeId, { collection: collection.id })
+        return collection
       }
     }
   }
@@ -444,6 +445,9 @@ export const DataSet = types.model("DataSet", {
 .views(self => ({
   get collectionIds() {
     return [...self.collections.map(collection => collection.id), self.ungrouped.id]
+  },
+  get collectionModels(): ICollectionPropsModel[] {
+    return [...self.collections, self.ungrouped]
   },
   getCasesForCollection(collectionId?: string) {
     for (let i = self.collectionGroups.length - 1; i >= 0; --i) {

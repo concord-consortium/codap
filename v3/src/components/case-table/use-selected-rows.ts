@@ -5,7 +5,7 @@ import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
 import { collectionCaseIdFromIndex, collectionCaseIndexFromId } from "../../models/data/data-set-utils"
 import { TCellClickArgs } from "./case-table-types"
-import { useRowScrolling } from "./use-row-scrolling"
+import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -18,10 +18,9 @@ interface UseSelectedRows {
 export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
   const data = useDataSetContext()
   const collection = useCollectionContext()
+  const collectionTableModel = useCollectionTableModel()
   const [selectedRows, _setSelectedRows] = useState<ReadonlySet<string>>(() => new Set())
   const syncCount = useRef(0)
-
-  const { scrollClosestRowIntoView, scrollRowIntoView } = useRowScrolling(gridRef.current?.element)
 
   // sync table changes to the DataSet model
   const setSelectedRows = useCallback((rowSet: ReadonlySet<string>) => {
@@ -75,10 +74,14 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
   }, [syncRowSelectionToRdg])
 
   useEffect(() => {
+    // synchronizing the DOM directly doesn't work with virtualization because we may
+    // end up scrolling to a row that wasn't in the DOM at the time of the selection event
+    // TODO: evaluate whether it's worth re-enabling direct DOM synchronization
+    const kEnablePerformanceMode = false
     const disposer = data && onAnyAction(data, action => {
       prf.measure("Table.useSelectedRows[onAnyAction]", () => {
         if (isSelectionAction(action)) {
-          if (appState.appMode === "performance") {
+          if (kEnablePerformanceMode && appState.appMode === "performance") {
             syncRowSelectionToDom()
           }
           else {
@@ -89,13 +92,14 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
             const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collection.id))
                                        .filter(index => index != null) as number[]
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
-            isSelecting && caseIndices.length && scrollClosestRowIntoView(caseIndices)
+            isSelecting && caseIndices.length &&
+              collectionTableModel?.scrollClosestRowIntoView(caseIndices)
           }
         }
       })
     })
     return () => disposer?.()
-  }, [collection, data, scrollClosestRowIntoView, syncRowSelectionToDom, syncRowSelectionToRdg])
+  }, [collection, collectionTableModel, data, syncRowSelectionToDom, syncRowSelectionToRdg])
 
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
@@ -129,5 +133,5 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
     }
   }, [collection, data])
 
-  return { selectedRows, setSelectedRows, handleCellClick, scrollRowIntoView }
+  return { selectedRows, setSelectedRows, handleCellClick }
 }

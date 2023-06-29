@@ -47,9 +47,8 @@ export const useDraggableAttribute = ({ prefix, dataSet, attributeId, ...others 
 // Collision-detection code uses drop overlays to identify the tile that should handle the drag.
 // Passes its dropProps argument to useDroppable and returns an object with the return value
 // of useDroppable plus the generated id.
-export const useTileDropOverlay = (baseId?: string, dropProps?: UseDroppableArguments) => {
-  const instanceId = useInstanceIdContext() || baseId
-  const id = `${instanceId}-drop-overlay`
+export const useTileDropOverlay = (baseId: string, dropProps?: UseDroppableArguments) => {
+  const id = `${baseId}-drop-overlay`
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
 

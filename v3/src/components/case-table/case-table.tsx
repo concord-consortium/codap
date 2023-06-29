@@ -2,9 +2,7 @@ import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
-import {
-  ISetTableScrollInfo, kChildMostTableCollectionId, kIndexColumnKey
-} from "./case-table-types"
+import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
@@ -12,7 +10,7 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
-import { ICollectionPropsModel } from "../../models/data/collection"
+import { IDataSet } from "../../models/data/data-set"
 import { prf } from "../../utilities/profiler"
 import t from "../../utilities/translation/translate"
 
@@ -29,13 +27,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
   const contentRef = useRef<HTMLDivElement | null>(null)
-
-  const setScrollInfo = useCallback((scrollInfo: ISetTableScrollInfo) => {
-    if (!tableModel) return
-    const { collectionId, ...restScrollInfo } = scrollInfo
-    const collectionTableModel = tableModel.getCollectionTableModel(collectionId)
-    collectionTableModel.setScrollInfo({ scrollCount: tableModel.syncScrollCount, ...restScrollInfo })
-  }, [tableModel])
+  const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
   function setTableRef(elt: HTMLDivElement | null) {
     contentRef.current = elt?.querySelector((".case-table-content")) ?? null
@@ -53,7 +45,20 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     }
   }, [isFocused, tableModel])
 
-  const { handleTableScroll } = useSyncScrolling()
+  const { handleTableScroll, syncTableScroll } = useSyncScrolling()
+
+  const handleCollectionTableMount = useCallback((collectionId: string) => {
+    if (collectionId === lastNewCollectionDrop.current?.newCollectionId) {
+      syncTableScroll(lastNewCollectionDrop.current.beforeCollectionId)
+    }
+  }, [syncTableScroll])
+
+  const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
+    if (dataSet.attrFromID(attrId)) {
+      const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
+      lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
+    }
+  }, [])
 
   return prf.measure("Table.render", () => {
     // disable the overlay for the index column
@@ -62,10 +67,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     if (!tableModel || !data) return null
 
-    const collections: ICollectionPropsModel[] = data.collections.map(collection => collection)
-    // add the ungrouped "collection"
-    collections.push(data.ungrouped)
-
+    const collections = data.collectionModels
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
       tableModel?.setScrollLeft(contentRef.current?.scrollLeft ?? 0)
     }
@@ -80,7 +82,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               return (
                 <ParentCollectionContext.Provider key={key} value={parent}>
                   <CollectionContext.Provider key={key} value={collection}>
-                    <CollectionTable onSetScrollInfo={setScrollInfo} onTableScroll={handleTableScroll}/>
+                    <CollectionTable onMount={handleCollectionTableMount}
+                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}/>
                   </CollectionContext.Provider>
                 </ParentCollectionContext.Provider>
               )

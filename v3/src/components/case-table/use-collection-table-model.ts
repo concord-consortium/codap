@@ -9,7 +9,8 @@ export function useCollectionTableModel(collectionId?: string) {
   const collectionTableModel = useRef<CollectionTableModel | undefined>()
 
   useEffect(() => {
-    if (!collectionTableModel.current) {
+    const isMismatch = collectionTableModel.current?.collectionId !== collectionId
+    if (!collectionTableModel.current || isMismatch) {
       collectionTableModel.current = tableModel?.getCollectionTableModel(collectionId ?? collection.id)
     }
   })

@@ -21,19 +21,9 @@ export function useSyncScrolling() {
    * event from propagation and bypasses further propagation. If it has an event
    * count higher, it is a new event, so propagation should occur.
    */
-  const handleTableScroll = useCallback<OnTableScrollFn>((event, collectionId, element) => {
+  const syncTableScroll = useCallback((collectionId: string) => {
     const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
     if (!tableModel || !collectionTableModel) return
-
-    // if this is a response echo, then ignore it
-    if (tableModel.syncTrailingCollectionScrollCount(collectionId)) return
-
-    /*
-     * handle this as a direct user scroll, which should trigger synchronization
-     */
-
-    // increment scroll count globally and for triggered table
-    tableModel.incScrollCount(collectionId)
 
     // identify collections to be synchronized
     const { collectionIds = [] } = data || {}
@@ -41,26 +31,37 @@ export function useSyncScrolling() {
 
     // synchronize parent tables in succession
     for (let i = triggerCollectionIndex - 1; i >= 0; --i) {
-      // const parentCollectionId = collectionIds[i]
-      // const childCollectionId = collectionIds[i + 1]
-      // if (!scrollParentToAlignWithChild(parentCollectionId, childCollectionId)) {
-      //   // if we didn't scroll, sync the count here
-      //   // if we did scroll, count will be synchronized in syncTrailingCollectionScrollCount
-      //   tableModel.syncCollectionScrollCount(parentCollectionId)
-      // }
+      const parentCollectionId = collectionIds[i]
+      const parentTableModel = tableModel.getCollectionTableModel(parentCollectionId)
+      const childTableModel = tableModel.getCollectionTableModel(collectionIds[i + 1])
+      parentTableModel.scrollToAlignWithChild(childTableModel)
     }
 
     // synchronize child tables in succession
     for (let i = triggerCollectionIndex + 1; i < collectionIds.length; ++i) {
-      // const childCollectionId = collectionIds[i]
-      // const parentCollectionId = collectionIds[i - 1]
-      // if (!scrollChildToAlignWithParent(parentCollectionId, childCollectionId)) {
-      //   // if we didn't scroll, sync the count here
-      //   // if we did scroll, count will be synchronized in syncTrailingCollectionScrollCount
-      //   tableModel.syncCollectionScrollCount(childCollectionId)
-      // }
+      const childCollectionId = collectionIds[i]
+      const childTableModel = tableModel.getCollectionTableModel(childCollectionId)
+      const parentTableModel = tableModel.getCollectionTableModel(collectionIds[i - 1])
+      childTableModel.scrollToAlignWithParent(parentTableModel)
     }
   }, [data, tableModel])
 
-  return { handleTableScroll }
+  const handleTableScroll = useCallback<OnTableScrollFn>((event, collectionId, element) => {
+    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+    if (!tableModel || !collectionTableModel) return
+
+    // if this is a response echo, then ignore it
+    if (!collectionTableModel.shouldHandleScrollEvent()) {
+      return
+    }
+
+    /*
+     * handle this as a direct user scroll, which should trigger synchronization
+     */
+    collectionTableModel.setTargetScrollTop(collectionTableModel.scrollTop)
+
+    syncTableScroll(collectionId)
+  }, [syncTableScroll, tableModel])
+
+  return { handleTableScroll, syncTableScroll }
 }
