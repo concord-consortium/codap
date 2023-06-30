@@ -12,7 +12,7 @@ export const AxisElements = {
       case "y":
         return this.getGraphTile().find("[data-testid=axis-left]").parent()
       case "legend":
-        return this.getGraphTile().find(".axis-legend-attribute-menu.legend .chakra-menu__menu-button")
+        return this.getGraphTile().find(".axis-legend-attribute-menu.legend>button")
     }
   },
   getAxisLabel(axis) {
@@ -21,31 +21,51 @@ export const AxisElements = {
   getDefaultAxisLabel(axis) {
     return this.getAxisElement(axis).find(".empty-label")
   },
-  getTickMarks(axis) {
-    return this.getAxisElement(axis).find("line.tick")
+  getTickMarks(axis, categorical = false) {
+    switch(categorical) {
+      case true:
+        return this.getAxisElement(axis).find("line.tick")
+      case false:
+        return this.getAxisElement(axis).find(".tick line")
+    }
   },
-  getTickMark(axis, index) {
-    return this.getAxisElement(axis).find("line.tick").eq(index)
+  getTickMark(axis, index, categorical = false) {
+    return this.getTickMarks(axis, categorical).eq(index)
   },
-  getTickLength(axis, attr) {
-    return this.getTickMark(axis, 0).invoke("attr", attr).then(tickLength => {
+  getTickLength(axis, attr, categorical = false) {
+    return this.getTickMark(axis, 0, categorical).invoke("attr", attr).then(tickLength => {
       return parseInt(tickLength, 10)
     })
   },
-  getGridLines(axis) {
-    return this.getAxisElement(axis).find("line.tick")
+  getGridLineLength(axis, attr, categorical = false) {
+    return this.getGridLine(axis, 0, categorical).invoke("attr", attr).then(lineLength => {
+      return parseInt(lineLength, 10)
+    })
   },
-  getGridLine(axis, index) {
-    return this.getAxisElement(axis).find("line.tick").eq(index)
+  getGridLines(axis, categorical = false) {
+    switch(categorical) {
+      case true:
+        return this.getAxisElement(axis).find("[data-testid=category-on-axis] line.divider")
+      case false:
+        return this.getAxisElement(axis).find(".tick line")
+    }
   },
-  getAxisTickLabels(axis) {
-    return this.getAxisElement(axis).find("text.category-label")
+  getGridLine(axis, index, categorical = false) {
+    return this.getGridLines(axis, categorical).eq(index)
   },
-  getAxisTickLabel(axis, index) {
-    return this.getAxisElement(axis).find("text.category-label").eq(index)
+  getAxisTickLabels(axis, categorical = false) {
+    switch(categorical) {
+      case true:
+        return this.getAxisElement(axis).find("[data-testid=category-on-axis] text.category-label")
+      case false:
+        return this.getAxisElement(axis).find(".tick text")
+    }
   },
-  isAxisTickLabelOrientationTransformed(axis, index) {
-    return this.getAxisElement(axis).find("text.category-label").eq(index).invoke("attr", "transform").should("exist")
+  getAxisTickLabel(axis, index, categorical = false) {
+    return this.getAxisTickLabels(axis, categorical).eq(index)
+  },
+  isAxisTickLabelOrientationTransformed(axis, index, categorical = false) {
+    return this.getAxisTickLabels(axis, categorical).eq(index).invoke("attr", "transform").should("exist")
   },
   dragAttributeToAxis(name, axis) {
     cy.dragAttributeToTarget("graph", name, axis)
@@ -55,12 +75,12 @@ export const AxisElements = {
       case "X":
       case "x":
       default:
-        return this.getGraphTile().find(".axis-legend-attribute-menu.bottom .chakra-menu__menu-button")
+        return this.getGraphTile().find(".axis-legend-attribute-menu.bottom .codap-graph-attribute-label")
       case "Y":
       case "y":
-        return this.getGraphTile().find(".axis-legend-attribute-menu.left .chakra-menu__menu-button")
+        return this.getGraphTile().find(".axis-legend-attribute-menu.left .codap-graph-attribute-label")
       case "legend":
-        return this.getGraphTile().find(".axis-legend-attribute-menu.legend .chakra-menu__menu-button")
+        return this.getGraphTile().find(".axis-legend-attribute-menu.legend .codap-graph-attribute-label")
     }
   },
   getAttributeFromAttributeMenu(axis) {
