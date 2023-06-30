@@ -1,12 +1,12 @@
 import {select} from "d3"
 import React, {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
-import {IGraphModel} from "../models/graph-model"
-import {IDotsRef, transitionDuration} from "../graphing-types"
 import {IDataSet} from "../../../models/data/data-set"
+import { CaseData } from "../../data-display/d3-types"
+import {IDotsRef, transitionDuration} from "../../data-display/data-display-types"
+import {IGraphContentModel} from "../models/graph-content-model"
 import {getPointTipText} from "../utilities/graph-utils"
-import {RoleAttrIDPair} from "../models/data-configuration-model"
-import { CaseData } from "../d3-types"
+import {RoleAttrIDPair} from "../../data-display/models/data-configuration-model"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -17,17 +17,17 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
 interface IUseDataTips {
   dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
-  graphModel: IGraphModel,
+  graphModel: IGraphContentModel,
   enableAnimation: React.MutableRefObject<boolean>
 }
 export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUseDataTips) => {
   const hoverPointRadius = graphModel.getPointRadius('hover-drag'),
     pointRadius = graphModel.getPointRadius(),
     selectedPointRadius = graphModel.getPointRadius('select'),
-    roleAttrIDPairs:RoleAttrIDPair[] = graphModel.config.uniqueTipAttributes,
-    yAttrIDs = graphModel.config.yAttributeIDs
+    yAttrIDs = graphModel.dataConfiguration.yAttributeIDs
 
   useEffect(() => {
+    const roleAttrIDPairs: RoleAttrIDPair[] = graphModel.dataConfiguration.uniqueTipAttributes ?? []
 
     function okToTransition(target: any) {
       return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
@@ -45,7 +45,7 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
           }).map((aPair) => {
             return plotNum === 0
               ? aPair.attributeID
-              : aPair.role === 'y' ? yAttrIDs[plotNum] : aPair.attributeID
+              : aPair.role === 'y' ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID
           })
         const tipText = getPointTipText(caseID, attrIDsToUse, dataset)
         tipText !== '' && dataTip.show(tipText, event.target)
@@ -68,6 +68,6 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
       .on('mouseover', showDataTip)
       .on('mouseout', hideDataTip)
       .call(dataTip)
-  }, [dotsRef, dataset, enableAnimation, roleAttrIDPairs, yAttrIDs,
-    hoverPointRadius, pointRadius, selectedPointRadius])
+    }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
+      graphModel.dataConfiguration.uniqueTipAttributes])
 }

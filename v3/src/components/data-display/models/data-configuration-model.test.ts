@@ -1,12 +1,13 @@
 import { reaction } from "mobx"
+import {Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import { DataConfigurationModel } from "./data-configuration-model"
-import {getSnapshot, Instance, types} from "mobx-state-tree"
 import {SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 
 const TreeModel = types.model("Tree", {
   data: DataSet,
-  metadata: SharedCaseMetadata
+  metadata: SharedCaseMetadata,
+  config: DataConfigurationModel
 })
 
 let tree: Instance<typeof TreeModel>
@@ -14,8 +15,9 @@ let tree: Instance<typeof TreeModel>
 describe("DataConfigurationModel", () => {
   beforeEach(() => {
     tree = TreeModel.create({
-      data: getSnapshot(DataSet.create()),
-      metadata: getSnapshot(SharedCaseMetadata.create())
+      data: {},
+      metadata: {},
+      config: {}
     })
     tree.data.addAttribute({ id: "nId", name: "n" })
     tree.data.addAttribute({ id: "xId", name: "x" })
@@ -27,7 +29,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("behaves as expected when empty", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     expect(config.defaultCaptionAttributeID).toBeUndefined()
     expect(config.attributeID("x")).toBeUndefined()
     expect(config.attributeID("y")).toBeUndefined()
@@ -43,7 +45,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("behaves as expected with empty/case plot", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     expect(config.defaultCaptionAttributeID).toBe("nId")
     expect(config.attributeID("x")).toBeUndefined()
@@ -64,7 +66,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("behaves as expected with dot chart on x axis", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "nId" })
     expect(config.defaultCaptionAttributeID).toBe("nId")
@@ -86,7 +88,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("behaves as expected with dot plot on x axis", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "xId" })
     expect(config.defaultCaptionAttributeID).toBe("nId")
@@ -109,7 +111,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("behaves as expected with scatter plot and explicit caption attribute", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "xId" })
     config.setAttribute("y", { attributeID: "yId" })
@@ -179,7 +181,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("selection behaves as expected", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setAttribute("x", { attributeID: "xId" })
     expect(config.selection.length).toBe(0)
 
@@ -200,7 +202,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("calls action listeners when appropriate", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "xId" })
 
@@ -227,7 +229,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("only allows x and y as primary place", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setPrimaryRole('y')
     expect(config.primaryRole).toBe("y")
@@ -240,7 +242,7 @@ describe("DataConfigurationModel", () => {
       { __id__: "c4", n: "n1", x: 1, y: 1 },
       { __id__: "c5", n: "", x: 6, y: 1 },
       { __id__: "c6", n: "n1", x: 6, y: 6 }]))
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "xId" })
     config.setAttribute("y", { attributeID: "yId" })

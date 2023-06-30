@@ -8,7 +8,7 @@ import t from "../../../../utilities/translation/translate"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { missingColor } from "../../../../utilities/color-utils"
 import { ITileModel } from "../../../../models/tiles/tile-model"
-import { isGraphModel } from "../../models/graph-model"
+import {isGraphContentModel} from "../../models/graph-content-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 
@@ -24,7 +24,7 @@ interface IProps {
 export const PointFormatPalette = observer(function PointFormatPalette({tile, panelRect, buttonRect,
     setShowPalette}: IProps) {
   const dataConfiguration = useDataConfigurationContext()
-  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const legendAttrID = graphModel?.getAttributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
   const categoriesRef = useRef<string[] | undefined>()

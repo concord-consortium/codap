@@ -1,5 +1,6 @@
 import {ScaleLinear} from "d3"
-import {kAxisGap, kAxisTickLength, kGraphFont} from "../graph/graphing-types"
+import {kAxisGap, kAxisTickLength} from "../graph/graphing-types"
+import {kGraphFont} from "../data-display/data-display-types"
 import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import {ICategorySet} from "../../models/data/category-set"

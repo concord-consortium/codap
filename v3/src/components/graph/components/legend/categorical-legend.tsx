@@ -8,8 +8,8 @@ import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
-import {kGraphFont, transitionDuration} from "../../graphing-types"
 import {getStringBounds} from "../../../axis/axis-utils"
+import {kGraphFont, transitionDuration} from "../../../data-display/data-display-types"
 import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'

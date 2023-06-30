@@ -1,21 +1,5 @@
-// Copyright 2021, Observable Inc.
-// Released under the ISC license.
-// https://observablehq.com/@d3/scale-legend
-import {
-  axisBottom,
-  /*
-  interpolate,
-  interpolateRound,
-  quantize,
-  scaleBand,
-  ScaleContinuousNumeric,
-*/
-  scaleLinear,
-  format,
-  // range,
-  select, range, min, max, ScaleQuantile, NumberValue
-} from "d3"
-import {kChoroplethHeight} from "../../../graphing-types"
+import {axisBottom, scaleLinear, format, select, range, min, max, ScaleQuantile, NumberValue} from "d3"
+import {kChoroplethHeight} from "../../../../data-display/data-display-types"
 import {neededSigDigitsArrayForQuantiles} from "../../../../../utilities/math-utils"
 
 export type ChoroplethLegendProps = {

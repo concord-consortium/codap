@@ -5,7 +5,7 @@
 import {Instance, types} from "mobx-state-tree"
 import { IAxisModel } from "../../axis/models/axis-model"
 import {typedId} from "../../../utilities/js-utils"
-import {Point} from "../graphing-types"
+import {Point} from "../../data-display/data-display-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -24,7 +24,6 @@ export const PointModel = types.model("Point", {
       }
     }
   }))
-export interface IPointModel extends Instance<typeof PointModel> {}
 export const kInfinitePoint = {x:NaN, y:NaN}
 
 export interface IUpdateCategoriesOptions {

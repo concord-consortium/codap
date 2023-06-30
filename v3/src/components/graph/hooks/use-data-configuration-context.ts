@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import { IDataConfigurationModel } from "../models/data-configuration-model"
+import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
 
 export const DataConfigurationContext = createContext<IDataConfigurationModel | undefined>(undefined)
 

@@ -1,7 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
+import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel,
          kInfinitePoint } from "../adornment-models"
-import { Point } from "../../graphing-types"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
 import { kMovableLineType } from "./movable-line-types"

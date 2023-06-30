@@ -368,7 +368,7 @@ Version 3.0.0-pre.1089 has some bug fixes with accessibility that were found by 
 
 ## Version 3.0.0-pre.1085 - Jan 3, 2023
 
-Version 3.0.0-pre.1085 is the first weekly build for codap v3. This build has features to show the inspector menu, legend labels menu, brush palette menu and the slider play button. It also has a few bug fixes related to legends and accessibility that were found by Allyant. 
+Version 3.0.0-pre.1085 is the first weekly build for codap v3. This build has features to show the inspector menu, legend labels menu, brush palette menu and the slider play button. It also has a few bug fixes related to legends and accessibility that were found by Allyant.
 
 ### Features/Improvements
 - Components have an (optional) inspector pane that shows when they are clicked [#181465538](https://www.pivotaltracker.com/story/show/181465538)
