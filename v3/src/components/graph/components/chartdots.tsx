@@ -1,19 +1,19 @@
 import {ScaleBand} from "d3"
 import React, {useCallback} from "react"
-import {CaseData, selectDots} from "../d3-types"
+import {CaseData, selectDots} from "../../data-display/d3-types"
 import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
-import {useGraphModelContext} from "../models/graph-model"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
 
 export const ChartDots = function ChartDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
-    graphModel = useGraphModelContext(),
+    graphModel = useGraphContentModelContext(),
     {pointColor, pointStrokeColor} = graphModel,
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),

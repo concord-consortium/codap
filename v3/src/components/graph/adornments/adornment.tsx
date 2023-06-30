@@ -3,10 +3,10 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { IAdornmentModel } from "./adornment-models"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { useGraphModelContext } from "../models/graph-model"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import { INumericAxisModel } from "../../axis/models/axis-model"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
-import { transitionDuration } from "../graphing-types"
+import {transitionDuration} from "../../data-display/data-display-types"
 
 import "./adornment.scss"
 
@@ -18,7 +18,7 @@ interface IProps {
 }
 
 export const Adornment = observer(function Adornment({ adornment, index, xCategories, yCategories}: IProps) {
-  const graphModel = useGraphModelContext(),
+  const graphModel = useGraphContentModelContext(),
     layout = useGraphLayoutContext(),
     subPlotWidth = xCategories.length > 0
                      ? layout.plotWidth / xCategories.length

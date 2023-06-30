@@ -2,7 +2,7 @@ import React from "react"
 import { Box, Button, Checkbox, Flex, FormControl, useToast} from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
-import { isGraphModel } from "../../models/graph-model"
+import {isGraphContentModel} from "../../models/graph-content-model"
 import { InspectorPalette } from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 import { getAdornmentContentInfo } from "../../adornments/adornment-content-info"
@@ -18,7 +18,7 @@ interface IProps {
 
 export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}: IProps) => {
   const toast = useToast()
-  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
   const measures = {
     "casePlot": [ t("DG.Inspector.graphCount")],

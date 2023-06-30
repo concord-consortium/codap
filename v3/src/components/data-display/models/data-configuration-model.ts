@@ -1,16 +1,15 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
-import {ICase} from "../../../models/data/data-set-types"
-import {IDataSet} from "../../../models/data/data-set"
-import {getCategorySet, ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
+import {DataSet, IDataSet} from "../../../models/data/data-set"
+import {getCategorySet, ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {CaseData} from "../d3-types"
-import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../graphing-types"
+import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles, TipAttrRoles} from "../../graph/graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 
@@ -51,10 +50,10 @@ export const DataConfigurationModel = types
     _attributeDescriptions: types.map(AttributeDescription),
     // all attributes for (left) y role
     _yAttributeDescriptions: types.array(AttributeDescription),
+    dataset: types.safeReference(DataSet),
+    metadata: types.safeReference(SharedCaseMetadata),
   })
   .volatile(() => ({
-    dataset: undefined as IDataSet | undefined,
-    metadata: undefined as ISharedCaseMetadata | undefined,
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases[] | undefined,
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),

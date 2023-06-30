@@ -1,16 +1,15 @@
 import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
 import {autorun, reaction} from "mobx"
 import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import {transitionDuration} from "../../data-display/data-display-types"
 import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
-import {kAxisTickLength, transitionDuration} from "../../graph/graphing-types"
-import {
-  DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
-  getCoordFunctions, IGetCoordFunctionsProps
-} from "../axis-utils"
+import {kAxisTickLength} from "../../graph/graphing-types"
+import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
+  getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 
 export interface IUseSubAxis {
   subAxisIndex: number

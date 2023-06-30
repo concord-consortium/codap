@@ -1,16 +1,16 @@
 import {useEffect} from "react"
-import {IDotsRef} from "../graphing-types"
+import {IDotsRef} from "../../data-display/data-display-types"
 import {GraphController} from "../models/graph-controller"
-import {IGraphModel} from "../models/graph-model"
+import {IGraphContentModel} from "../models/graph-content-model"
 
 export interface IUseGraphControllerProps {
   graphController: GraphController,
-  graphModel?: IGraphModel,
+  graphContentModel?: IGraphContentModel,
   dotsRef: IDotsRef
 }
 
-export const useGraphController = ({graphController, graphModel, dotsRef}: IUseGraphControllerProps) => {
+export const useGraphController = ({graphController, graphContentModel, dotsRef}: IUseGraphControllerProps) => {
   useEffect(() => {
-    graphModel && graphController.setProperties({graphModel, dotsRef})
-  }, [graphController, graphModel, dotsRef])
+    graphContentModel && graphController.setProperties({graphContentModel, dotsRef})
+  }, [graphController, graphContentModel, dotsRef])
 }

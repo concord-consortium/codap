@@ -7,8 +7,8 @@ import {Active} from "@dnd-kit/core"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {useGraphModelContext} from "../models/graph-model"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {AxisPlace} from "../../axis/axis-types"
@@ -31,7 +31,7 @@ export const GraphAxis = observer(function GraphAxis(
   {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
   const dataConfig = useDataConfigurationContext(),
     isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
-    graphModel = useGraphModelContext(),
+    graphModel = useGraphContentModelContext(),
     axisModel = graphModel?.getAxis(place),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
@@ -93,12 +93,12 @@ export const GraphAxis = observer(function GraphAxis(
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
       <rect className='axis-background'/>
       {axisModel &&
-         <Axis axisModel={axisModel}
-               label={''}  // Remove
-               enableAnimation={enableAnimation}
-               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
-               centerCategoryLabels={graphModel.config.categoriesForAxisShouldBeCentered(place)}
-         />}
+        <Axis axisModel={axisModel}
+              label={''}  // Remove
+              enableAnimation={enableAnimation}
+              showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
+              centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
+        />}
       <AttributeLabel
         place={place}
         onChangeAttribute={onDropAttribute}

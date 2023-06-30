@@ -2,10 +2,10 @@ import { reaction } from "mobx"
 import { useEffect } from "react"
 import { useMemo } from "use-memo-one"
 import { AxisPlace } from "../../axis/axis-types"
+import {IGraphContentModel} from "../models/graph-content-model"
 import { GraphLayout } from "../models/graph-layout"
-import { IGraphModel } from "../models/graph-model"
 
-export function useInitGraphLayout(model?: IGraphModel) {
+export function useInitGraphLayout(model?: IGraphContentModel) {
   const layout = useMemo(() => new GraphLayout(), [])
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export function useInitGraphLayout(model?: IGraphModel) {
       () => {
         const repetitions: Partial<Record<AxisPlace, number>> = {}
         layout.axisScales.forEach((multiScale, place) => {
-          repetitions[place] = model?.config.numRepetitionsForPlace(place) ?? 1
+          repetitions[place] = model?.dataConfiguration.numRepetitionsForPlace(place) ?? 1
         })
         return repetitions
       },
@@ -24,7 +24,7 @@ export function useInitGraphLayout(model?: IGraphModel) {
         })
       }
     )
-  }, [layout, model?.config])
+  }, [layout, model?.dataConfiguration])
 
   return layout
 }

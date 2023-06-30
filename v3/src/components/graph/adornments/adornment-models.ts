@@ -5,7 +5,7 @@
 import {Instance, types} from "mobx-state-tree"
 import { IAxisModel } from "../../axis/models/axis-model"
 import {typedId} from "../../../utilities/js-utils"
-import {Point} from "../graphing-types"
+import {Point} from "../../data-display/data-display-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -24,7 +24,6 @@ export const PointModel = types.model("Point", {
       }
     }
   }))
-export interface IPointModel extends Instance<typeof PointModel> {}
 export const kInfinitePoint = {x:NaN, y:NaN}
 
 export interface IUpdateCategoriesOptions {
@@ -42,7 +41,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     }),
     isVisible: true
   })
-  .views(self => ({
+  .views(() => ({
     instanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
       if (xCats.length > 0 && yCats.length > 0) {
         return `{x: ${xCats[index % xCats.length]}, y: ${yCats[Math.floor(index / xCats.length)]}}`
@@ -54,12 +53,10 @@ export const AdornmentModel = types.model("AdornmentModel", {
       return ''
     },
     classNameFromKey(key: string) {
-      const className = key.replace(/\{/g, '')
+      return key.replace(/\{/g, '')
         .replace(/\}/g, '')
         .replace(/: /g, '-')
         .replace(/, /g, '-')
-
-      return className
     }
   }))
   .actions(self => ({

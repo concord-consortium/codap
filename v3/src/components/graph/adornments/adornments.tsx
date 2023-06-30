@@ -3,7 +3,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { kGraphAdornmentsClass } from "../graphing-types"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { useGraphModelContext } from "../models/graph-model"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import { Adornment } from "./adornment"
 import { getAdornmentContentInfo } from "./adornment-content-info"
 import { IAdornmentModel } from "./adornment-models"
@@ -13,7 +13,7 @@ import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import "./adornments.scss"
 
 export const Adornments = observer(function Adornments() {
-  const graphModel = useGraphModelContext(),
+  const graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
     { isTileSelected } = useTileModelContext(),
@@ -25,8 +25,8 @@ export const Adornments = observer(function Adornments() {
   // per sub-plot. We create a CSS grid in which to place the adornments, with each cell
   // of the grid corresponding to one sub-plot.
   const
-    xCategories = graphModel.config.categoryArrayForAttrRole("topSplit", []),
-    yCategories = graphModel.config.categoryArrayForAttrRole("rightSplit", []),
+    xCategories = graphModel.dataConfiguration.categoryArrayForAttrRole("topSplit", []),
+    yCategories = graphModel.dataConfiguration.categoryArrayForAttrRole("rightSplit", []),
     colCount = xCategories.length,
     rowCount = yCategories.length,
     { left, top, width, height } = layout.computedBounds.plot,

@@ -1,12 +1,12 @@
 import {extent, format, select, timeout} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
-import {CaseData, DotsElt, selectCircles, selectDots} from "../d3-types"
-import {IDotsRef, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../graphing-types"
+import {IDataSet} from "../../../models/data/data-set"
+import {CaseData, DotsElt, selectCircles, selectDots} from "../../data-display/d3-types"
 import {between} from "../../../utilities/math-utils"
+import {IDotsRef, kGraphFont, Point, Rect, rTreeRect, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {IDataSet} from "../../../models/data/data-set"
 import {
   defaultSelectedColor,
   defaultSelectedStroke,
@@ -15,7 +15,7 @@ import {
   defaultStrokeOpacity,
   defaultStrokeWidth
 } from "../../../utilities/color-utils"
-import {IDataConfigurationModel} from "../models/data-configuration-model"
+import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {measureText} from "../../../hooks/use-measure-text"
 
 /**

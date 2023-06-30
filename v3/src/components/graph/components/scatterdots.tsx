@@ -2,26 +2,21 @@ import {ScaleBand, ScaleLinear, select} from "d3"
 import React, {useCallback, useRef, useState} from "react"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {CaseData} from "../d3-types"
+import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
-import {
-  getScreenCoord,
-  handleClickOnDot,
-  setPointCoordinates,
-  setPointSelection,
-  startAnimation
-} from "../utilities/graph-utils"
-import {useGraphModelContext} from "../models/graph-model"
+import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection, startAnimation}
+  from "../utilities/graph-utils"
 
 export const ScatterDots = function ScatterDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
-    graphModel = useGraphModelContext(),
+    graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useDataConfigurationContext(),
     dataset = useDataSetContext(),

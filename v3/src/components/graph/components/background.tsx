@@ -2,22 +2,23 @@ import {autorun} from "mobx"
 import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {drag, select, color, range} from "d3"
 import RTreeLib from 'rtree'
-type RTree = ReturnType<typeof RTreeLib>
-import {CaseData} from "../d3-types"
-import {InternalizedData, rTreeRect} from "../graphing-types"
+import {CaseData} from "../../data-display/d3-types"
+import {rTreeRect} from "../../data-display/data-display-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {MarqueeState} from "../models/marquee-state"
-import {useGraphModelContext} from "../models/graph-model"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {InternalizedData} from "../graphing-types"
 
 interface IProps {
   marqueeState: MarqueeState
 }
 
+type RTree = ReturnType<typeof RTreeLib>
 const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
     const selectionTree = RTreeLib(10)
     select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
@@ -48,7 +49,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     instanceId = useInstanceIdContext() || 'background',
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
-    graphModel = useGraphModelContext(),
+    graphModel = useGraphContentModelContext(),
     bgRef = ref as MutableRefObject<SVGGElement | null>,
     startX = useRef(0),
     startY = useRef(0),

@@ -10,19 +10,19 @@ import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
+import {GraphContentModelContext, isGraphContentModel} from "../models/graph-content-model"
 import {GraphLayoutContext} from "../models/graph-layout"
-import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import {DotsElt} from '../d3-types'
+import {DotsElt} from '../../data-display/d3-types'
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
-  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
+  const graphContentModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
-  const { data } = useDataSet(graphModel?.data)
-  const layout = useInitGraphLayout(graphModel)
+  const { data } = useDataSet(graphContentModel?.dataset)
+  const layout = useInitGraphLayout(graphContentModel)
   // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
@@ -33,7 +33,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
     [layout, instanceId]
   )
 
-  useGraphController({graphController, graphModel, dotsRef})
+  useGraphController({graphController, graphContentModel, dotsRef})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height)
@@ -54,20 +54,20 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const overlayDragId = active && `${active.id}`.startsWith(instanceId)
     ? `${active.id}` : undefined
 
-  if (!graphModel) return null
+  if (!graphContentModel) return null
 
   return (
     <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <AxisLayoutContext.Provider value={layout}>
-            <GraphModelContext.Provider value={graphModel}>
+            <GraphContentModelContext.Provider value={graphContentModel}>
               <Graph graphController={graphController}
                       graphRef={graphRef}
                       dotsRef={dotsRef}
               />
               <AttributeDragOverlay activeDragId={overlayDragId} />
-            </GraphModelContext.Provider>
+            </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>

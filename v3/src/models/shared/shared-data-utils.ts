@@ -18,6 +18,13 @@ export function getDataSetFromId(node: IAnyStateTreeNode, id: string): IDataSet 
   return sharedDataSet?.dataSet
 }
 
+export function getSharedCaseMetadataFromDataset(dataset: IDataSet): ISharedCaseMetadata {
+  const sharedModelManager = getSharedModelManager(dataset)
+  const sharedCaseMetadata = sharedModelManager?.getSharedModelsByType<typeof SharedCaseMetadata>(
+    kSharedCaseMetadataType).find(model => model.id === dataset.id)
+  return sharedCaseMetadata as ISharedCaseMetadata
+}
+
 export function getTileSharedModels(tile: ITileContentModel) {
   const sharedModelManager = getSharedModelManager(tile)
   return sharedModelManager?.getTileSharedModels(tile) ?? []

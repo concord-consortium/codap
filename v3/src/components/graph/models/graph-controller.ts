@@ -1,12 +1,13 @@
 import React from "react"
-import {IGraphModel} from "./graph-model"
-import {GraphLayout} from "./graph-layout"
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
+import {IDotsRef} from "../../data-display/data-display-types"
+import {IGraphContentModel} from "./graph-content-model"
+import {GraphLayout} from "./graph-layout"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {axisPlaceToAttrRole, graphPlaceToAttrRole, IDotsRef, PlotType} from "../graphing-types"
+import {axisPlaceToAttrRole, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 
@@ -24,12 +25,12 @@ interface IGraphControllerConstructorProps {
 }
 
 interface IGraphControllerProps {
-  graphModel: IGraphModel
+  graphContentModel: IGraphContentModel
   dotsRef: IDotsRef
 }
 
 export class GraphController {
-  graphModel?: IGraphModel
+  graphContentModel?: IGraphContentModel
   dotsRef?: IDotsRef
   layout: GraphLayout
   enableAnimation: React.MutableRefObject<boolean>
@@ -42,20 +43,21 @@ export class GraphController {
   }
 
   setProperties(props: IGraphControllerProps) {
-    this.graphModel = props.graphModel
+    this.graphContentModel = props.graphContentModel
     this.dotsRef = props.dotsRef
-    if (this.graphModel.config.dataset !== this.graphModel.data) {
-      this.graphModel.config.setDataset(this.graphModel.data, this.graphModel.metadata)
+    if (this.graphContentModel.dataConfiguration.dataset !== this.graphContentModel.dataset) {
+      this.graphContentModel.dataConfiguration.setDataset(
+        this.graphContentModel.dataset, this.graphContentModel.metadata)
     }
     this.initializeGraph()
   }
 
   callMatchCirclesToData() {
-    const {graphModel, dotsRef, enableAnimation, instanceId} = this
-    if (graphModel && dotsRef?.current) {
-      const { config: dataConfiguration, pointColor, pointStrokeColor } = graphModel,
-        pointRadius = graphModel.getPointRadius()
-      matchCirclesToData({
+    const {graphContentModel, dotsRef, enableAnimation, instanceId} = this
+    if (graphContentModel && dotsRef?.current) {
+      const { dataConfiguration, pointColor, pointStrokeColor } = graphContentModel,
+        pointRadius = graphContentModel.getPointRadius()
+      dataConfiguration && matchCirclesToData({
         dataConfiguration, dotsElement: dotsRef.current,
         pointRadius, enableAnimation, instanceId, pointColor, pointStrokeColor
       })
@@ -63,11 +65,11 @@ export class GraphController {
   }
 
   initializeGraph() {
-    const {graphModel, dotsRef, layout} = this,
-      dataConfig = graphModel?.config
+    const {graphContentModel, dotsRef, layout} = this,
+      dataConfig = graphContentModel?.dataConfiguration
     if (dataConfig && layout && dotsRef?.current) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
-        const axisModel = graphModel.getAxis(axisPlace),
+        const axisModel = graphContentModel.getAxis(axisPlace),
           attrRole = axisPlaceToAttrRole[axisPlace]
         if (axisModel) {
           layout.setAxisScaleType(axisPlace, axisModel.scale)
@@ -88,10 +90,10 @@ export class GraphController {
   }
 
   handleAttributeAssignment(graphPlace: GraphPlace, dataSetID: string, attrID: string) {
-    const {graphModel, layout} = this,
-      dataset = getDataSetFromId(graphModel, dataSetID),
-      dataConfig = graphModel?.config
-    if (!(graphModel && layout && dataset && dataConfig)) {
+    const {graphContentModel, layout} = this,
+      dataset = getDataSetFromId(graphContentModel, dataSetID),
+      dataConfig = graphContentModel?.dataConfiguration
+    if (!(graphContentModel && layout && dataset && dataConfig)) {
       return
     }
     this.callMatchCirclesToData()
@@ -100,7 +102,7 @@ export class GraphController {
       return
     } else if (graphPlace === 'yPlus') {
       // The yPlus attribute utilizes the left numeric axis for plotting but doesn't change anything else
-      const yAxisModel = graphModel.getAxis('left')
+      const yAxisModel = graphContentModel.getAxis('left')
       yAxisModel && setNiceDomain(dataConfig.numericValuesForYAxis, yAxisModel)
       return
     }
@@ -121,7 +123,7 @@ export class GraphController {
             : attributeType === 'numeric' ? graphAttributeRole
               : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
         dataConfig.setPrimaryRole(primaryRole)
-        graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
+        graphContentModel.setPlotType(plotChoices[primaryType][otherAttributeType])
       }
       if (dataConfig.attributeID(graphAttributeRole) !== attrID) {
         dataConfig.setAttribute(graphAttributeRole, {attributeID: attrID})
@@ -133,13 +135,13 @@ export class GraphController {
         attributeID = dataConfig.attributeID(attrRole),
         attr = attributeID ? dataset?.attrFromID(attributeID) : undefined,
         attrType = dataConfig.attributeType(attrRole) ?? 'empty',
-        currAxisModel = graphModel.getAxis(place),
+        currAxisModel = graphContentModel.getAxis(place),
         currentType = currAxisModel?.type ?? 'empty'
       switch (attrType) {
         case 'numeric': {
           if (!currAxisModel || !isNumericAxisModel(currAxisModel)) {
             const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
-            graphModel.setAxis(place, newAxisModel)
+            graphContentModel.setAxis(place, newAxisModel)
             layout.setAxisScaleType(place, 'linear')
             setNiceDomain(attr?.numValues || [], newAxisModel)
           } else {
@@ -150,7 +152,7 @@ export class GraphController {
         case 'categorical': {
           if (currentType !== 'categorical') {
             const newAxisModel = CategoricalAxisModel.create({place})
-            graphModel.setAxis(place, newAxisModel)
+            graphContentModel.setAxis(place, newAxisModel)
             layout.setAxisScaleType(place, 'band')
           }
           layout.getAxisMultiScale(place)?.setCategorySet(dataConfig.categorySetForAttrRole(attrRole))
@@ -160,10 +162,10 @@ export class GraphController {
           if (currentType !== 'empty') {
             layout.setAxisScaleType(place, 'ordinal')
             if (['left', 'bottom'].includes(place)) {
-              graphModel.setAxis(place, EmptyAxisModel.create({place}))
+              graphContentModel.setAxis(place, EmptyAxisModel.create({place}))
             }
             else {
-              graphModel.removeAxis(place)
+              graphContentModel.removeAxis(place)
             }
           }
         }

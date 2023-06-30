@@ -10,7 +10,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
 import {graphPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
-import {useGraphModelContext} from "../models/graph-model"
+import {useGraphContentModelContext} from "../models/graph-content-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
@@ -27,7 +27,7 @@ interface IAttributeLabelProps {
 
 export const AttributeLabel = observer(
   function AttributeLabel({place, onTreatAttributeAs, onRemoveAttribute, onChangeAttribute}: IAttributeLabelProps) {
-    const graphModel = useGraphModelContext(),
+    const graphModel = useGraphContentModelContext(),
       dataConfiguration = useDataConfigurationContext(),
       layout = useGraphLayoutContext(),
       {isTileSelected} = useTileModelContext(),

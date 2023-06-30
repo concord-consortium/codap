@@ -1,16 +1,16 @@
-import { GraphModel } from './graph-model'
+import {GraphContentModel} from "./graph-content-model"
 import { kGraphTileType } from '../graph-defs'
 import { defaultBackgroundColor, defaultPointColor, defaultStrokeColor } from "../../../utilities/color-utils"
 import { MovablePointModel } from '../adornments/movable-point/movable-point-model'
 
-describe('GraphModel', () => {
+describe('GraphContentModel', () => {
   it('should create an instance with defaults', () => {
-    const graphModel = GraphModel.create()
+    const graphModel = GraphContentModel.create()
     expect(graphModel.type).toBe(kGraphTileType)
     expect(graphModel.adornments.length).toBe(0)
     expect(graphModel.axes.size).toBe(0)
     expect(graphModel.plotType).toBe('casePlot')
-    expect(graphModel.config).toBeTruthy()
+    expect(graphModel.dataConfiguration).toBeTruthy()
     expect(graphModel._pointColors).toStrictEqual([defaultPointColor])
     expect(graphModel._pointStrokeColor).toBe(defaultStrokeColor)
     expect(graphModel.pointStrokeSameAsFill).toBe(false)
@@ -23,7 +23,7 @@ describe('GraphModel', () => {
     expect(graphModel.showMeasuresForSelection).toBe(false)
   })
   it('should show and hide adornments', () => {
-    const graphModel = GraphModel.create()
+    const graphModel = GraphContentModel.create()
     expect(graphModel.adornments.length).toBe(0)
     const testAdornment = MovablePointModel.create({id: 'test', type: 'Movable Point', isVisible: true})
     graphModel.showAdornment(testAdornment, 'Movable Point')
