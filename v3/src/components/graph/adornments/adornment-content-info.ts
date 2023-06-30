@@ -1,7 +1,9 @@
 import { AdornmentModel } from "./adornment-models"
+import { PlotType } from "../graphing-types"
 
 export interface IAdornmentContentInfo {
   modelClass: typeof AdornmentModel
+  plots: PlotType[]
   prefix: string
   type: string
 }

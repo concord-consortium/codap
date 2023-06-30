@@ -7,6 +7,7 @@ import { MovableLine } from "./movable-line"
 
 registerAdornmentContentInfo({
   type: kMovableLineType,
+  plots: ['scatterPlot'],
   prefix: kMovableLinePrefix,
   modelClass: MovableLineModel
 })
