@@ -42,7 +42,7 @@ export function registerTileContentInfo(tileContentInfo: ITileContentInfo) {
 }
 
 // ToolContent type, e.g. kDrawingTileType, kGeometryTileType, etc.
-// undefined is supported so callers do not need to check the id before passing
+// undefined is supported so callers do not need to check the type before passing
 // it in.
 export function getTileContentInfo(type?: string) {
   // toLowerCase() for legacy support of tool names

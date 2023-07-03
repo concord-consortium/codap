@@ -15,6 +15,7 @@ import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
 import {DotsElt} from '../d3-types'
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
+import "../register-adornment-types"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined

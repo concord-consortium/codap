@@ -49,7 +49,7 @@ export function getTileComponentKeys() {
 }
 
 // Tool id, e.g. kDrawingTileType, kGeometryTileType, etc.
-// undefined is supported so callers do not need to check the id before passing it in
+// undefined is supported so callers do not need to check the type before passing it in
 export function getTileComponentInfo(type?: string) {
   // toLowerCase() for legacy support of tool names
   return type ? gTileComponentInfoMap.get(type.toLowerCase()) : undefined
