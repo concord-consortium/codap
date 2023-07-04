@@ -46,6 +46,7 @@ export const useSubAxis = ({
       axisOrientation: 'horizontal',
       labelOrientation: 'horizontal'
     }),
+    swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
 
@@ -117,8 +118,8 @@ export const useSubAxis = ({
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {rotation, textAnchor} = getCategoricalLabelPlacement(place, centerCategoryLabels,
               collision),
-            duration = (enableAnimation.current && dragInfo.current.indexOfCategory === -1)
-              ? transitionDuration : 0
+            duration = (enableAnimation.current && !swapInProgress.current &&
+              dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
 
           // Fill out dragInfo for use in drag callbacks
           const dI = dragInfo.current
@@ -168,12 +169,12 @@ export const useSubAxis = ({
                   .attr('transform', `${rotation}`)
                   .attr('text-anchor', textAnchor)
                   .attr('transform-origin', (d, i) => {
-                    return `${fns.getLabelX(i) + fns.dragXOffset(i)} ${fns.getLabelY(i) + fns.dragYOffset(i)}`
+                    return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
                   })
                   .transition().duration(duration)
                   .attr('class', 'category-label')
-                  .attr('x', (d, i) => fns.getLabelX(i) + fns.dragXOffset(i))
-                  .attr('y', (d, i) => fns.getLabelY(i) + fns.dragYOffset(i))
+                  .attr('x', (d, i) => fns.getLabelX(i))
+                  .attr('y', (d, i) => fns.getLabelY(i))
                   .text((catObject: CatObject) => String(catObject.cat))
                 return update
               }
@@ -194,14 +195,15 @@ export const useSubAxis = ({
     }, [subAxisElt, layout, showScatterPlotGridLines, enableAnimation, centerCategoryLabels, axisModel,
       subAxisIndex]),
 
-    onDragStart = useCallback((event: any, catObject: any) => {
+    onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
-      dI.indexOfCategory = dI.axisOrientation === 'horizontal' ? catObject.index
-        : dI.categories.length - catObject.index - 1
-      dI.catName = catObject.cat
-      dI.currentOffset = 0
       dI.currentDragPosition = dI.axisOrientation === 'horizontal' ? event.x : event.y
-      dI.initialOffset = dI.currentDragPosition - (catObject.index + 0.5) * dI.bandwidth
+      dI.indexOfCategory = dI.axisOrientation === 'horizontal'
+        ? Math.floor(dI.currentDragPosition / dI.bandwidth)
+        : dI.categories.length - 1 - Math.floor(dI.currentDragPosition / dI.bandwidth)
+      dI.catName = dI.categories[dI.indexOfCategory]
+      dI.currentOffset = 0
+      dI.initialOffset = dI.currentDragPosition - (dI.indexOfCategory + 0.5) * dI.bandwidth
     }, []),
 
     /**
@@ -212,8 +214,7 @@ export const useSubAxis = ({
      */
     onDrag = useCallback((event: any) => {
       const dI = dragInfo.current,
-        delta = dI.axisOrientation === 'horizontal'
-          ? event.x - dI.currentDragPosition : event.y - dI.currentDragPosition
+        delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy
       if (delta !== 0) {
         const
           numCategories = dI.categories.length,
@@ -223,8 +224,6 @@ export const useSubAxis = ({
             : dI.categories.length - cellIndex - 1
         dI.currentOffset += delta
         if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory && newCatIndex < dI.categories.length) {
-          // swap the two categories
-          // Adjust the currentOffset to match the new category position
           dI.currentOffset = newDragPosition - (cellIndex + 0.5) * dI.bandwidth - dI.initialOffset
 
           // Figure out the label of the category before which the dragged category should be placed
@@ -280,6 +279,9 @@ export const useSubAxis = ({
               .append('g')
               .attr('class', 'category-group')
               .attr('data-testid', 'category-on-axis')
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              .call(dragBehavior)
           }
         )
       categoriesSelectionRef.current.each(function () {
@@ -294,9 +296,6 @@ export const useSubAxis = ({
           .attr('class', 'category-label')
           .attr('x', 0)
           .attr('y', 0)
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          .call(dragBehavior)
       })
 
     }, [axisModel.place, dragBehavior, layout, subAxisElt])
@@ -351,8 +350,10 @@ export const useSubAxis = ({
         // todo: The above reaction is detecting changes to the set of values even when they haven't changed. Why?
         if (JSON.stringify(values) !== JSON.stringify(savedCategorySetValuesRef.current)) {
           setupCategories()
+          swapInProgress.current = true
           renderSubAxis()
           savedCategorySetValuesRef.current = values
+          swapInProgress.current = false
         }
       })
       return () => disposer()
