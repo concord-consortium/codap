@@ -63,7 +63,11 @@ export const Adornments = observer(function Adornments() {
   const adornmentNodes = []
   while (cellsRendered < cellsRequired) {
     adornmentNodes.push(
-      <div key={`graph-adornments-cell-${cellsRendered}`} className="graph-adornments-grid__cell">
+      <div
+        key={`${kGraphAdornmentsClass}-${cellsRendered}`}
+        className={`${kGraphAdornmentsClass}__cell`}
+        data-testid={`${kGraphAdornmentsClass}__cell`}
+      >
         {
           adornments.map((adornment: IAdornmentModel) => {
             return <Adornment
@@ -81,7 +85,7 @@ export const Adornments = observer(function Adornments() {
   }
 
   return (
-    <div className={`${kGraphAdornmentsClass} ${instanceId}`} style={gridStyle}>
+    <div className={`${kGraphAdornmentsClass} ${instanceId}`} data-testid={kGraphAdornmentsClass} style={gridStyle}>
       {adornmentNodes}
     </div>
   )

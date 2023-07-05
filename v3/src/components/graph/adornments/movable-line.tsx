@@ -56,22 +56,22 @@ export const MovableLine = (props: {
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1
 
-  const setEquationContainerClass = () => {
+  const setEquationContainerClass = useCallback(() => {
     const classFromKey = model.setClassNameFromKey(lineKey),
       equationContainerClass =
         `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`
     
     return equationContainerClass
-  }
+  }, [lineKey, model])
 
-  const setEquationContainerSelector = () => {
+  const setEquationContainerSelector = useCallback(() => {
     const gridContainerClass = `graph-adornments-grid.${instanceId}`,
       equationContainerClass = setEquationContainerClass(),
       equationContainerSelector =
         `.${gridContainerClass} .${equationContainerClass}`
     
     return equationContainerSelector
-  }
+  }, [instanceId, setEquationContainerClass])
 
   // add lines that don't already exist in the model
   useEffect(function addLine() {
@@ -111,25 +111,26 @@ export const MovableLine = (props: {
 
         function refreshEquation() {
           if (!pointsOnAxes.current) return
-            const
-              screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount,
-              screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount,
-              attrNames = {x: xAttrName, y: yAttrName},
-              string = equationString(slope, intercept, attrNames),
-              equationContainerSelector = setEquationContainerSelector(),
-              equation = select(equationContainerSelector).select('p')
-              select(equationContainerSelector)
-                .style('width', `${plotWidth}px`)
-                .style('height', `${plotHeight}px`)
-              equation.html(string)
-              // The equation may have been unpinned from the line if the user
-              // dragged it away from the line. Only move the equation if it
-              // is still pinned.
-              if (!equation.classed('unpinned')) {
-                equation.style('left', `${screenX}px`)
-                  .style('top', `${screenY}px`)
-              }
+          const
+            screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount,
+            screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount,
+            attrNames = {x: xAttrName, y: yAttrName},
+            string = equationString(slope, intercept, attrNames),
+            equationContainerSelector = setEquationContainerSelector(),
+            equation = select(equationContainerSelector).select('p')
+  
+          select(equationContainerSelector)
+            .style('width', `${plotWidth}px`)
+            .style('height', `${plotHeight}px`)
+          equation.html(string)
+          // The equation may have been unpinned from the line if the user
+          // dragged it away from the line. Only move the equation if it
+          // is still pinned.
+          if (!equation.classed('unpinned')) {
+            equation.style('left', `${screenX}px`)
+              .style('top', `${screenY}px`)
           }
+        }
 
         const
           // The coordinates at which the line intersects the axes
@@ -169,7 +170,7 @@ export const MovableLine = (props: {
       return () => disposer()
     }, [instanceId, pointsOnAxes, lineKey, lineObject, plotHeight, plotWidth, transform, 
         xScale, yScale, model, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount,
-        yAxis, xRange, yRange]
+        yAxis, xRange, yRange, setEquationContainerSelector]
   )
 
   const
@@ -241,7 +242,7 @@ export const MovableLine = (props: {
           .style('left', `${left}px`)
           .style('top', `${top}px`)
       }
-    }, [instanceId, lineKey, model])
+    }, [setEquationContainerSelector])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -275,6 +276,7 @@ export const MovableLine = (props: {
     // Set up the line and its cover segments and handles
     newLineObject.line = selection.append('line')
       .attr('class', 'movable-line')
+      .attr('data-testid', `movable-line`)
     newLineObject.lower = selection.append('line')
       .attr('class', 'movable-line-cover movable-line-lower-cover')
     newLineObject.middle = selection.append('line')
@@ -297,11 +299,13 @@ export const MovableLine = (props: {
 
     const equationDiv = select(adornmentContainer).append('div')
       .attr('class', `movable-line-equation-container ${equationContainerClass}`)
+      .attr('data-testid', `movable-line-equation-container-${model.setClassNameFromKey(lineKey)}`)
       .style('width', `${plotWidth}px`)
       .style('height', `${plotHeight}px`)
     newLineObject.equation = equationDiv
       .append('p')
       .attr('class', 'movable-line-equation')
+      .attr('data-testid', `movable-line-equation-${model.setClassNameFromKey(lineKey)}`)
       .on('mouseover', () => { newLineObject.line.style('stroke-width', 2) })
       .on('mouseout', () => { newLineObject.line.style('stroke-width', 1) })
 
@@ -313,7 +317,6 @@ export const MovableLine = (props: {
       .style('opacity', 1)
 
     return () => {
-      select(lineRef.current).remove()
       equationDiv.remove()
     }
   // This effect should only run once on mount, otherwise it would create multiple 
