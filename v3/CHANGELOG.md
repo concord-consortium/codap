@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 3.0.0-pre.1262 - July 5, 2023
+
+### Features/Improvements
+- Case table -- floating button for adding new attribute to data set or collection [#184540601](https://www.pivotaltracker.com/story/show/184540601)
+- Using a scatterplot's ruler menu the user can add a **movable line**  [#181923044](https://www.pivotaltracker.com/story/show/181923044)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   43918 bytes |                            6.21% |
+|  index.js | 3070242 bytes |                            0.48% |
+
 ## Version 3.0.0-pre.1258 - June 26, 2023
 
 ### Features/Improvements
