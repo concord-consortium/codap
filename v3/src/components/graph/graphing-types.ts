@@ -77,7 +77,9 @@ export const
   pointRadiusSelectionAddend = 1,
   hoverRadiusFactor = 1.5,
   kGraphFont = '12px sans-serif',
-  kChoroplethHeight = 16
+  kChoroplethHeight = 16,
+  kAxisTickLength = 4,
+  kAxisGap = 2
 
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]

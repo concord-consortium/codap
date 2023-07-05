@@ -7,70 +7,70 @@ export const AxisHelper = {
   verifyAxisLabel(axis, name) {
     ae.getAxisLabel(axis).should("have.text", name)
   },
-  verifyTickMarksDoNotExist(axis) {
+  verifyTickMarksDoNotExist(axis, categorical = false) {
     cy.log(`Check no tick marks for axis ${axis}`)
-    ae.getTickMarks(axis).should("not.exist")
+    ae.getTickMarks(axis, categorical).should("not.exist")
   },
-  verifyGridLinesDoNotExist(axis) {
+  verifyGridLinesDoNotExist(axis, categorical = false) {
     cy.log(`Check no grid lines for axis ${axis}`)
-    ae.getTickMarks(axis).should("not.exist")
+    ae.getGridLines(axis, categorical).should("not.exist")
   },
-  verifyXAxisTickMarksNotDisplayed() {
+  verifyXAxisTickMarksNotDisplayed(categorical = false) {
     cy.log(`Check tick marks not displayed for x axis`)
-    ae.getTickLength("x", "y2").then($length => {
+    ae.getTickLength("x", "y2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
-  verifyXAxisTickMarksDisplayed() {
+  verifyXAxisTickMarksDisplayed(categorical = false) {
     cy.log(`Check tick marks displayed for x axis`)
-    ae.getTickLength("x", "y2").then($length => {
+    ae.getTickLength("x", "y2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
-  verifyYAxisTickMarksNotDisplayed() {
+  verifyYAxisTickMarksNotDisplayed(categorical = false) {
     cy.log(`Check tick marks not displayed for y axis`)
-    ae.getTickLength("y", "x2").then($length => {
+    ae.getTickLength("y", "x2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
-  verifyYAxisTickMarksDisplayed() {
+  verifyYAxisTickMarksDisplayed(categorical = false) {
     cy.log(`Check tick marks displayed for y axis`)
-    ae.getTickLength("y", "x2").then($length => {
+    ae.getTickLength("y", "x2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
-  verifyXAxisGridLinesNotDisplayed() {
+  verifyXAxisGridLinesNotDisplayed(categorical = false) {
     cy.log(`Check grid lines not displayed for x axis`)
-    ae.getTickLength("x", "y2").then($length => {
+    ae.getGridLineLength("x", "y2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
-  verifyXAxisGridLinesDisplayed() {
+  verifyXAxisGridLinesDisplayed(categorical = false) {
     cy.log(`Check grid lines displayed for x axis`)
-    ae.getTickLength("x", "y2").then($length => {
+    ae.getGridLineLength("x", "y2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
-  verifyYAxisGridLinesNotDisplayed() {
+  verifyYAxisGridLinesNotDisplayed(categorical = false) {
     cy.log(`Check grid lines not displayed for y axis`)
-    ae.getTickLength("y", "x2").then($length => {
+    ae.getGridLineLength("y", "x2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
-  verifyYAxisGridLinesDisplayed() {
+  verifyYAxisGridLinesDisplayed(categorical = false) {
     cy.log(`Check grid lines displayed for y axis`)
-    ae.getTickLength("y", "x2").then($length => {
+    ae.getGridLineLength("y", "x2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
-  verifyAxisTickLabels(axis, attributeValues) {
-    ae.getAxisTickLabels(axis).should('have.length', attributeValues.length)
+  verifyAxisTickLabels(axis, attributeValues, categorical = false) {
+    ae.getAxisTickLabels(axis, categorical).should('have.length', attributeValues.length)
     for (let index = 0; index < attributeValues; index++) {
-      this.verifyAxisTickLabel(axis, attributeValues[index], index)
+      this.verifyAxisTickLabel(axis, attributeValues[index], index, categorical)
     }
   },
-  verifyAxisTickLabel(axis, attributeValue, index) {
-    ae.getAxisTickLabel(axis, index).invoke("text").should("eq", attributeValue)
+  verifyAxisTickLabel(axis, attributeValue, index, categorical = false) {
+    ae.getAxisTickLabel(axis, index, categorical).invoke("text").should("eq", attributeValue)
   },
   verifyRemoveAttributeDoesNotExist(axis) {
     ae.getAttributeFromAttributeMenu(axis).contains(`Remove`).should("not.exist")
