@@ -22,7 +22,7 @@ export const AxisElements = {
     return this.getAxisElement(axis).find(".empty-label")
   },
   getTickMarks(axis, categorical = false) {
-    switch(categorical) {
+    switch (categorical) {
       case true:
         return this.getAxisElement(axis).find("line.tick")
       case false:
@@ -43,7 +43,7 @@ export const AxisElements = {
     })
   },
   getGridLines(axis, categorical = false) {
-    switch(categorical) {
+    switch (categorical) {
       case true:
         return this.getAxisElement(axis).find("[data-testid=category-on-axis] line.divider")
       case false:
@@ -54,7 +54,7 @@ export const AxisElements = {
     return this.getGridLines(axis, categorical).eq(index)
   },
   getAxisTickLabels(axis, categorical = false) {
-    switch(categorical) {
+    switch (categorical) {
       case true:
         return this.getAxisElement(axis).find("[data-testid=category-on-axis] text.category-label")
       case false:
