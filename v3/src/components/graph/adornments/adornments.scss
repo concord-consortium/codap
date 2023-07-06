@@ -8,6 +8,10 @@
   top: 0;
   width: 100%;
 
+  &.tile-selected .show-on-tile-selected {
+    display: block;
+  }
+
   .graph-adornments-grid__cell {
     position: relative;
   }

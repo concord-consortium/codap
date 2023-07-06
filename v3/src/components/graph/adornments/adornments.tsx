@@ -7,6 +7,8 @@ import { observer } from "mobx-react-lite"
 import { IAdornmentModel } from "./adornment-models"
 import { Adornment } from "./adornment"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { clsx } from "clsx"
 
 import "./adornments.scss"
 
@@ -14,6 +16,7 @@ export const Adornments = observer(function Adornments() {
   const graphModel = useGraphModelContext(),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
+    { isTileSelected } = useTileModelContext(),
     adornments = graphModel.adornments
 
   if (!adornments?.length) return null
@@ -84,8 +87,12 @@ export const Adornments = observer(function Adornments() {
     cellsRendered++
   }
 
+  const containerClass = clsx(
+    `${kGraphAdornmentsClass} ${instanceId}`,
+    { [`tile-selected`]: isTileSelected() }
+  )
   return (
-    <div className={`${kGraphAdornmentsClass} ${instanceId}`} data-testid={kGraphAdornmentsClass} style={gridStyle}>
+    <div className={containerClass} data-testid={kGraphAdornmentsClass} style={gridStyle}>
       {adornmentNodes}
     </div>
   )

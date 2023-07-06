@@ -10,9 +10,10 @@
 }
 
 .movable-line-handle {
+  display: none;
   fill: #fff;
   height: 12px;
-  pointer-events: all;
+  pointer-events: none;
   stroke: #000;
   width: 12px;
 }
