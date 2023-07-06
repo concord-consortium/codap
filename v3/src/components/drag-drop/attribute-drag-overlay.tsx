@@ -17,7 +17,6 @@ export function AttributeDragOverlay ({ activeDragId }: IProps) {
      * If there has been no drop we would like to animate the overlay back to its original position.
      * Otherwise, we don't want to animate it at all.
      */
-    // console.log("handleDropAnimation", params)
   }
   return (
     <DragOverlay dropAnimation={handleDropAnimation}>

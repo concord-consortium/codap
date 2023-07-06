@@ -9,29 +9,20 @@ import { measureText } from "../../hooks/use-measure-text"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
-import { kChildMostTableCollectionId, TRow } from "./case-table-types"
+import { kChildMostTableCollectionId } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
-
-const kDividerWidth = 48,
-      kRelationParentMargin = 12,
-      kRelationChildMargin = 4,
-      // The color of the lines bounding the relationship regions
-      kRelationStrokeColor = '#808080', // middle gray
-      // The color of the shaded area of the relationship regions
-      kRelationFillColor = '#EEEEEE'    // pale gray
+import { CurvedSpline } from "./curved-spline"
 
 interface IProps {
-  rows: TRow[]
-  rowHeight: number
   onDrop?: (dataSet: IDataSet, attrId: string) => void
 }
-export const CollectionTableSpacer = observer(function CollectionTableSpacer(props: IProps) {
-  const { rows, rowHeight, onDrop } = props
+export const CollectionTableSpacer = observer(function CollectionTableSpacer({ onDrop }: IProps) {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const parentCollection = useParentCollectionContext()
   const parentCollectionId = parentCollection?.id
-  const parentTableModel = useCollectionTableModel(parentCollectionId || "")
+  const parentTableModel = useCollectionTableModel(parentCollectionId)
+  const parentScrollTop = parentTableModel?.scrollTop ?? 0
   const childCollection = useCollectionContext()
   const childCollectionId = childCollection?.id || kChildMostTableCollectionId
   const childTableModel = useCollectionTableModel()
@@ -44,47 +35,15 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
   const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
-  const parentGridRef = useRef<HTMLElement | null>(null)
-  const childGridRef = useRef<HTMLElement | null>(null)
   const tableSpacerDivRef = useRef<HTMLElement | null>(null)
   const divHeight = tableSpacerDivRef.current?.getBoundingClientRect().height
   const kMargin = 10
   const msgStyle: React.CSSProperties =
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
-  const parentScrollTop = parentTableModel?.scrollTop || 0
-  const childScrollTop = childTableModel?.scrollTop || 0
-  const isScrollable = childGridRef.current && (childGridRef.current.scrollHeight > childGridRef.current.clientHeight)
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-  const bottomsOfLastChildRowOfParent: number[] = []
-  const getPrevRowBottom = (idx: number) => {
-    if (idx > 0 && bottomsOfLastChildRowOfParent[idx-1] >= 0)  { return bottomsOfLastChildRowOfParent[idx-1] }
-    else if (idx > 0)  { return bottomsOfLastChildRowOfParent[idx-1] - childScrollTop }
-    else if (idx === 0 && isScrollable) { return -childScrollTop }
-    else { return 0 }
-  }
+  const indexRanges = childTableModel?.parentIndexRanges
 
-  parentCases?.map((parentCase, index) => {
-    const parentCaseId = parentCase.__id__
-    const parentCaseGroup = data?.pseudoCaseMap[parentCaseId]
-    const lastChildCaseOfParent = parentCaseGroup?.childPseudoCaseIds?.at(-1) ||
-                                    parentCaseGroup?.childCaseIds.at(-1)
-    const rowOfLastChild = lastChildCaseOfParent &&
-                              rows.find(row => row.__id__ === lastChildCaseOfParent)
-    const rowIndexOfLastChild = rowOfLastChild && rows.indexOf(rowOfLastChild)
-    const rowBottom = rowIndexOfLastChild
-                        ? ((rowIndexOfLastChild + 1) * rowHeight) - childScrollTop
-                        : getPrevRowBottom(index) + rowHeight
-    bottomsOfLastChildRowOfParent.push(rowBottom)
-  })
   const handleRef = (element: HTMLElement | null) => {
-    const tableContent = element?.closest(".case-table-content") ?? null
-
-    if (parentCollection && tableContent) {
-      parentGridRef.current = tableContent.querySelector(`.collection-${parentCollection.id} .rdg`) ?? null
-    }
-    if (childCollection && tableContent) {
-      childGridRef.current = tableContent.querySelector(`.collection-${childCollection.id} .rdg`) ?? null
-    }
     tableSpacerDivRef.current = element
     setNodeRef(element)
   }
@@ -95,7 +54,6 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
-  //   console.log('handleAreaClick')
   //   const parentGridBounds = parentGridRef.current?.getBoundingClientRect()
   //   const rowHeaderHeight = getNumericCssVariable(parentGridRef.current, "--rdg-header-row-height") ?? 30
   //   const rowHeight = getNumericCssVariable(parentGridRef.current, "--rdg-row-height") ?? 18
@@ -118,7 +76,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
 
   return (
     <div className={classes} ref={handleRef}>
-      {!parentMost &&
+      {parentCollectionId && parentTableModel && childTableModel &&
         <>
           <div className="spacer-top">
             {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
@@ -126,14 +84,13 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
           </div>
           <div className="spacer-mid">
             <svg className="spacer-mid-layer lower-layer">
-              {parentCases?.map((parentCase, index) => {
-                const parentCaseId = parentCase.__id__
+              {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
                 return <CurvedSpline key={`${parentCaseId}-${index}`}
-                                      y1={((index + 1) * rowHeight) - parentScrollTop}
-                                      y2={bottomsOfLastChildRowOfParent[index]}
+                                      prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
+                                      y1={parentTableModel.getBottomOfRowModuloScroll(index)}
+                                      prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
+                                      y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
                                       even={(index + 1) % 2 === 0}
-                                      rowHeight={rowHeight}
-                                      prevRowBottom={bottomsOfLastChildRowOfParent[index-1]}
                         />
               })}
             </svg>
@@ -141,7 +98,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer(pro
               {parentCases?.map((value, index) => (
                 <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
                   onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
-                  styles={{ left: '3px', top: `${((index * rowHeight) - parentScrollTop) + 4}px`}}
+                  styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
                 />
               ))}
             </div>
@@ -171,95 +128,5 @@ function ExpandCollapseButton({ isCollapsed, onClick, styles, title }: ExpandCol
     <button type="button" className="expand-collapse-button" onClick={onClick} style={styles}>
       <img className={`expand-collapse-image ${isCollapsed ? 'closed' : 'open'}`} title={tooltip} />
     </button>
-  )
-}
-
-interface CurvedSplineProps {
-  y1: number;
-  y2: number;
-  even: boolean;
-  rowHeight: number;
-  prevRowBottom: number
-}
-
-function CurvedSpline({ y1, y2, even, rowHeight, prevRowBottom }: CurvedSplineProps) {
-  /**
-    Builds the SVG path string which renders from the specified Y coordinate
-    on the left table (iStartY) to the specified Y coordinate on the right
-    table (iEndY). The path consists of a short horizontal segment (width
-    specified by RDV_RELATION_MARGINs) on each side and a Bezier curve
-    which connects them.
-    @param    {Number}  iStartY   The Y coordinate on the left table where the path should start
-    @param    {Number}  iEndY     The Y coordinate on the right table where the path should end
-    @returns  {String}            The SVG path string
-  */
-    const buildPathStr = (iStartY: number, iEndY: number) => {
-      // All we need is a horizontal line
-      if (iStartY === iEndY) {
-        return `M0, ${iStartY} h${kDividerWidth}`
-      }
-      // startPoint, endPoint, midPoint, controlPoint relate to the Bezier portion of the path
-      const startPoint = { x: kRelationParentMargin, y: iStartY },
-          endPoint = { x: kDividerWidth - kRelationChildMargin, y: iEndY },
-          midPoint = { x: (startPoint.x + endPoint.x) / 2,
-                        y: (startPoint.y + endPoint.y) / 2 },
-          controlPoint = { x: midPoint.x, y: startPoint.y }
-      // startPoint.y: Start point,
-      // kRelationParentMargin: Horizontal segment,
-      // controlPoint.x, controlPoint.y: Bezier control point,
-      // midPoint.x, midPoint.y: Midpoint of curve (endpoint of first Bezier curve),
-      // endPoint.x, endPoint.y: Endpoint of second Bezier curve (assumes reflected control point),
-      // kRelationChildMargin: Horizontal segment
-      // console.log("startPoint", startPoint, "endPoint", endPoint, "midPoint", midPoint, "controlPoint", controlPoint)
-      // M0,${y1} H12 Q28,${y1},28,${y1 + 18} T44,${y2} H48
-
-      return (
-        `M0,${startPoint.y} h${kRelationParentMargin} Q${controlPoint.x},${controlPoint.y} ${midPoint.x},${midPoint.y}
-          T${endPoint.x},${endPoint.y} h${kRelationChildMargin}`
-      )
-    }
-
-    /**
-      Builds the SVG path string which defines the boundary of the area to be
-      shaded when shading the area between a parent row in the left table and
-      its child rows in the right table. The area is bounded on the top and
-      bottom by the same Bezier curves used to draw the paths and on the left
-      and right by the edge of the corresponding table.
-      @param    {Number}  iStartY1  The Y coordinate on the left table where the path should start
-      @param    {Number}  iEndY1    The Y coordinate on the right table where the path should end
-      @param    {Number}  iStartY2  The Y coordinate on the left table where the path should start
-      @param    {Number}  iEndY2    The Y coordinate on the right table where the path should end
-      @returns  {String}            The SVG path string
-      */
-    const  buildFillPathStr = (iStartY1: number, iEndY1: number, iStartY2: number, iEndY2: number) => {
-          // startPoint, endPoint relate to the Bezier portion of the path
-      const startPoint2 = { x: kRelationParentMargin, y: iStartY2 },
-            endPoint2 = { x: kDividerWidth - kRelationChildMargin, y: iEndY2 },
-            midPoint2 = { x: (startPoint2.x + endPoint2.x) / 2,
-                          y: (startPoint2.y + endPoint2.y) / 2 },
-            controlPoint2 = { x: midPoint2.x, y: endPoint2.y }
-      // Use existing function for the first section buildPathStr( iStartY1, iEndY1),
-      // vertical line (V) endPoint2.y,
-      // horizontal line (h) - kRelationChildMargin,
-      // Quadratic Bezier curve (Q) controlPoint2.x, controlPoint2.y,
-      // Midpoint midPoint2.x, midPoint2.y,
-      // Shorthand quadratic Bezier curve (T) (assumes reflected control point) startPoint2.x, startPoint2.y,
-      // horizontal line (h) - kRelationParentMargin
-      // close path (Z)
-      return (
-        // eslint-disable-next-line max-len
-        `${buildPathStr(iStartY1, iEndY1)} V${endPoint2.y} h${- kRelationChildMargin} Q${controlPoint2.x},${controlPoint2.y} ${midPoint2.x},${midPoint2.y} T${startPoint2.x},${startPoint2.y} h${- kRelationParentMargin} Z`
-      )
-    }
-
-  const pathData = buildPathStr(y1, y2)
-  const fillData = buildFillPathStr((y1 - rowHeight), prevRowBottom, y1, y2)
-  return (
-    even
-      ? <>
-          <path d={fillData} fill={kRelationFillColor} stroke ="none" />
-          <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
-        </>
-      : <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
   )
 }

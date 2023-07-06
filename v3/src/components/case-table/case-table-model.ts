@@ -13,8 +13,6 @@ export const CaseTableModel = TileContentModel
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
     scrollLeft: 0,
-    // global scroll count for synchronization
-    syncScrollCount: 0,
     collectionTableModels: new Map<string, CollectionTableModel>()
   }))
   .views(self => ({
@@ -40,28 +38,6 @@ export const CaseTableModel = TileContentModel
         self.collectionTableModels.set(collectionId, collectionTableModel)
       }
       return collectionTableModel
-    }
-  }))
-  .actions(self => ({
-    // synchronize a given collection's scrollCount to the global syncScrollCount
-    syncCollectionScrollCount(collectionId: string) {
-      self.getCollectionTableModel(collectionId).syncScrollCount(self.syncScrollCount)
-    }
-  }))
-  .actions(self => ({
-    // if the specified collection has a scrollCount lower than the global syncScrollCount,
-    // then this is a response echo -- synchronize the counts and return true
-    syncTrailingCollectionScrollCount(collectionId: string) {
-      const isTrailing = self.getCollectionTableModel(collectionId).scrollCount < self.syncScrollCount
-      isTrailing && self.syncCollectionScrollCount(collectionId)
-      return isTrailing
-    },
-  }))
-  .actions(self => ({
-    // increment the global syncScrollCount and synchronize the scrollCount of the specified collection
-    incScrollCount(collectionId: string) {
-      ++self.syncScrollCount
-      self.syncCollectionScrollCount(collectionId)
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
