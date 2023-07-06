@@ -40,6 +40,14 @@ export interface IAddCaseOptions {
   after?: string | string[];
 }
 
+export interface IAddAttributeOptions {
+  // id of attribute before which to insert new cases
+  // if not specified, new attribute is appended
+  before?: string;
+  // optional id of collection to which the attribute should be added
+  collection?: string;
+}
+
 export interface IMoveAttributeOptions {
   before?: string;  // id of attribute before which the moved attribute should be placed
   after?: string;   // id of attribute after which the moved attribute should be placed

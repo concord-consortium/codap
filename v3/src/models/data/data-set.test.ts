@@ -123,7 +123,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[0].length).toBe(0)
 
   // add string attribute before numeric attribute
-  dataset.addAttribute({ name: "str" }, numAttrID)
+  dataset.addAttribute({ name: "str" }, { before: numAttrID })
   let strAttr = dataset.attrFromName("str")
   const strAttrID = dataset.attributes[0].id
   expect(dataset.attributes.length).toBe(2)
@@ -157,7 +157,7 @@ test("DataSet basic functionality", () => {
   dataset.setAttributeName("foo", "bar")
 
   // add/remove attribute
-  dataset.addAttribute({ name: "redShirt" }, numAttrID)
+  dataset.addAttribute({ name: "redShirt" }, { before: numAttrID })
   const redShirtID = dataset.attributes[1].id
   expect(dataset.attributes.length).toBe(3)
   const redShirt = dataset.attrFromID(redShirtID)
@@ -166,7 +166,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes.length).toBe(2)
   expect(dataset.attrFromID(redShirtID)).toBeUndefined()
   expect(dataset.attrFromName("redShirt")).toBeUndefined()
-  dataset.addAttribute({ name: "goner" }, "bogus")
+  dataset.addAttribute({ name: "goner" }, { before: "bogus" })
   expect(dataset.attributes.length).toBe(3)
   expect(dataset.attributes[2].name).toBe("goner")
   dataset.removeAttribute(dataset.attributes[2].id)
