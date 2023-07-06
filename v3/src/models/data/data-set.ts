@@ -49,8 +49,9 @@ import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
 } from "./collection"
 import {
-  CaseGroup, CaseID, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions,
-  IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
+  CaseGroup, CaseID, IAddAttributeOptions, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
+  IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions,
+  symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
@@ -752,7 +753,8 @@ export const DataSet = types.model("DataSet", {
       setDescription(description: string) {
         self.description = description
       },
-      addAttribute(snapshot: IAttributeSnapshot, beforeID?: string) {
+      addAttribute(snapshot: IAttributeSnapshot, options?: IAddAttributeOptions) {
+        const { before: beforeID, collection: collectionId } = options || {}
         let beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeIndex >= 0) {
           self.attributes.splice(beforeIndex, 0, snapshot)
@@ -765,6 +767,10 @@ export const DataSet = types.model("DataSet", {
         attrNameMap[attribute.name] = attribute.id
         for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
           attribute.addValue()
+        }
+        if (collectionId) {
+          const collection = self.getCollection(collectionId)
+          collection?.addAttribute(attribute)
         }
         return attribute
       },

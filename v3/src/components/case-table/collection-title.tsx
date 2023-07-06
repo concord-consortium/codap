@@ -81,7 +81,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
     const newAttrName = uniqueName("newAttr",
       (aName: string) => !data?.attributes.find(attr => aName === attr.name)
      )
-    data?.addAttribute({name: newAttrName})
+    data?.addAttribute({ name: newAttrName }, { collection: collection.id })
   }
 
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
