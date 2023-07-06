@@ -1,3 +1,10 @@
+svg[class^="line-"] {
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+}
+
 .movable-line {
   stroke: #4782B4;
   stroke-width: 1px;

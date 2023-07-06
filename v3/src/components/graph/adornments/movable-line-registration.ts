@@ -17,6 +17,6 @@ registerAdornmentComponentInfo({
   Component: MovableLine,
   hint: kMovableLineHint,
   label: kMovableLineLabel,
-  order: 1,
+  order: 2,
   type: kMovableLineType
 })

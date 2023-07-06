@@ -1,0 +1,41 @@
+svg[class^="point-"] {
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+}
+
+.movable-point {
+  pointer-events: all;
+
+  circle {
+    cursor: move;
+    opacity: .6;
+    shape-rendering: geometricPrecision;
+    stroke-opacity: .8;
+  }
+  rect {
+    opacity: .6;
+    shape-rendering: geometricPrecision;
+    stroke-opacity: .8;    
+  }
+}
+
+.coordinates-container {
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+}
+.coordinates-text {
+  background: rgba(255, 255, 204, .6);
+  border: solid 1px rgba(0, 0, 0, .8);
+  box-shadow: 3px 3px 0 rgba(153, 153, 102, .6);
+  display: none;
+  // font-family: "Montserrat-Bold", sans-serif;
+  font-size: 10px;
+  padding: 3px 5px;
+  position: fixed; // TODO: Should be absolute, but that's not working?
+  transition: .2s;
+  white-space: nowrap;
+}

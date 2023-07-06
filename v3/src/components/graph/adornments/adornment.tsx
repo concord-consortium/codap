@@ -34,7 +34,7 @@ export const Adornment = ({ adornment, index, xCategories, yCategories}: IProps)
   return (
     <Component
       key={adornmentKey}
-      lineKey={instanceKey}
+      instanceKey={instanceKey}
       model={adornment}
       plotHeight={subPlotHeight}
       plotIndex={index}

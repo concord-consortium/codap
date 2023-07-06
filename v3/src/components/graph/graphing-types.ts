@@ -89,3 +89,4 @@ export const kGraphClassSelector = `.${kGraphClass}`
 export const kGraphAdornmentsClass = "graph-adornments-grid"
 export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
 export const kMovableLineType = "Movable Line"
+export const kMovablePointType = "Movable Point"

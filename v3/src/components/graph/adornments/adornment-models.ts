@@ -4,7 +4,7 @@
 
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
-import {Point, kMovableLineType} from "../graphing-types"
+import {Point, kMovableLineType, kMovablePointType} from "../graphing-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -116,5 +116,21 @@ export function isMovableLine(adornment: IAdornmentModel): adornment is IMovable
   return adornment.type === kMovableLineType
 }
 
-export const AdornmentModelUnion = types.union(MovableValueModel, MovableLineModel)
-export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel
+export const MovablePointModel = AdornmentModel
+  .named('MovablePointModel')
+  .props({
+    type: 'Movable Point',
+    points: types.map(PointModel)
+  })
+  .actions(self => ({
+    setPoint(aPoint: Point, key='') {
+      self.points.set(key, aPoint)
+    }
+  }))
+export interface IMovablePointModel extends Instance<typeof MovablePointModel> {}
+export function isMovablePoint(adornment: IAdornmentModel): adornment is IMovablePointModel {
+  return adornment.type === kMovablePointType
+}
+
+export const AdornmentModelUnion = types.union(MovableValueModel, MovableLineModel, MovablePointModel)
+export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel | IMovablePointModel
