@@ -286,3 +286,8 @@ $table-body-font-size: 8pt;
     padding: 0 5px 0 20px;
   }
 }
+
+// turn off `scroll-behavior: smooth` when necessary (e.g. for cypress tests)
+.scroll-behavior-auto .case-table .collection-table .rdg {
+  scroll-behavior: auto
+}

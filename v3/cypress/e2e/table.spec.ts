@@ -11,7 +11,8 @@ const renamedCollectionName = "Animals"
 const newCollectionName = "New Dataset"
 
 beforeEach(() => {
-  const queryParams = "?sample=mammals&dashboard"
+  // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+  const queryParams = "?sample=mammals&dashboard&scrollBehavior=auto"
   const url = `${Cypress.config("index")}${queryParams}`
   cy.visit(url)
   cy.wait(2000)
