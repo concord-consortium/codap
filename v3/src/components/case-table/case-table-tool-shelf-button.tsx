@@ -66,7 +66,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
     if (!model || !caseMetadata) return
     const tiles = manager?.getSharedModelTiles(model)
-    const tableTile = tiles?.find(tile => tile.content.type === "CodapCaseTable")
+    const tableTile = tiles?.find(tile => tile.content.type === kCaseTableTileType)
     if (tableTile) { // a case table for the data set already exists in document
       uiState.setFocusedTile(tableTile.id)
     }

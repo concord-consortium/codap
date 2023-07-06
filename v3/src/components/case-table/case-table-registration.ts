@@ -22,7 +22,7 @@ registerTileContentInfo({
 })
 
 registerTileComponentInfo({
-  type: "CodapCaseTable",
+  type: kCaseTableTileType,
   TitleBar: CaseTableTitleBar,
   Component: CaseTableComponent,
   InspectorPanel: CaseTableInspector,

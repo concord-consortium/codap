@@ -1,2 +1,2 @@
-export const kCaseTableTileType = "CodapCaseTable"
+export const kCaseTableTileType = "CaseTable"
 export const kCaseTableTileClass = "codap-case-table"
