@@ -54,7 +54,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
 
   return (
     <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef}>
-      <Menu>
+      <Menu boundary="scrollParent">
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
