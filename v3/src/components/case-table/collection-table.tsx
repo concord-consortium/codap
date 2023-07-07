@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-import { kChildMostTableCollectionId, OnTableScrollFn, TRow } from "./case-table-types"
+import { kChildMostTableCollectionId, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
 import { useColumns } from "./use-columns"
@@ -23,15 +23,16 @@ interface IProps {
   onMount: (collectionId: string) => void
   onNewCollectionDrop: OnNewCollectionDropFn
   onTableScroll: OnTableScrollFn
+  onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
-  const { onMount, onNewCollectionDrop, onTableScroll } = props
+  const { onMount, onNewCollectionDrop, onTableScroll, onScrollClosestRowIntoView } = props
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const collectionId = collection?.id || kChildMostTableCollectionId
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
-  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef })
+  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
 

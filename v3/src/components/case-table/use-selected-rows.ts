@@ -4,7 +4,7 @@ import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
 import { collectionCaseIdFromIndex, collectionCaseIndexFromId } from "../../models/data/data-set-utils"
-import { TCellClickArgs } from "./case-table-types"
+import { OnScrollClosestRowIntoViewFn, TCellClickArgs } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -13,9 +13,10 @@ import { prf } from "../../utilities/profiler"
 
 interface UseSelectedRows {
   gridRef: React.RefObject<DataGridHandle | null>
+  onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
 }
 
-export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
+export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSelectedRows) => {
   const data = useDataSetContext()
   const collection = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
@@ -92,14 +93,14 @@ export const useSelectedRows = ({ gridRef }: UseSelectedRows) => {
             const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collection.id))
                                        .filter(index => index != null) as number[]
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
-            isSelecting && caseIndices.length &&
-              collectionTableModel?.scrollClosestRowIntoView(caseIndices)
+            isSelecting && caseIndices.length && onScrollClosestRowIntoView(collection.id, caseIndices)
           }
         }
       })
     })
     return () => disposer?.()
-  }, [collection, collectionTableModel, data, syncRowSelectionToDom, syncRowSelectionToRdg])
+  }, [collection, collectionTableModel, data, onScrollClosestRowIntoView,
+      syncRowSelectionToDom, syncRowSelectionToRdg])
 
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
