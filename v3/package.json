@@ -163,7 +163,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@chakra-ui/react": "^2.7.0",
+    "@chakra-ui/react": "^2.7.1",
     "@concord-consortium/mobx-state-tree": "^5.1.8-cc.1",
     "@dnd-kit/core": "^6.0.8",
     "clsx": "^1.2.1",
@@ -172,7 +172,7 @@
     "escape-string-regexp": "^5.0.0",
     "expr-eval": "^2.0.2",
     "lodash": "^4.17.21",
-    "mathjs": "^11.8.1",
+    "mathjs": "^11.8.2",
     "mobx": "^6.9.0",
     "mobx-react-lite": "^3.4.3",
     "nanoid": "^4.0.2",
@@ -180,12 +180,12 @@
     "pluralize": "^8.0.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
-    "react-data-grid": "7.0.0-beta.33",
+    "react-data-grid": "7.0.0-beta.34",
     "react-dom": "^18.2.0",
     "react-resize-detector": "^9.1.0",
     "rtree": "^1.4.2",
-    "tslib": "^2.5.3",
-    "type-fest": "^3.11.1",
+    "tslib": "^2.6.0",
+    "type-fest": "^3.12.0",
     "ulid": "^2.3.0",
     "use-memo-one": "^1.1.3"
   }

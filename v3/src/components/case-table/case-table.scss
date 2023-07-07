@@ -177,10 +177,6 @@ $table-body-font-size: 8pt;
   }
 
   .rdg {
-    // RDG specifies `contain: strict` which prevents rendering in Firefox.
-    // We override to specify `contain: content`, which excludes `size`,
-    // thus allowing the size of the grid to be computed appropriately.
-    contain: content !important;
     scroll-behavior: smooth;
 
     font-family: 'Montserrat-Regular', sans-serif !important;
