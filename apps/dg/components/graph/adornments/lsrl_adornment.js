@@ -33,7 +33,8 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
   lineColor: function() {
 
     var tLegendAttrDescription = this.getPath('model.plotModel.dataConfiguration.legendAttributeDescription');
-    if(!tLegendAttrDescription || tLegendAttrDescription.isNull() || tLegendAttrDescription.get('isNumeric')) {
+    if(!tLegendAttrDescription || tLegendAttrDescription.isNull() || tLegendAttrDescription.get('isNumeric') ||
+        tLegendAttrDescription.get('isColor')) {
       return sc_super();
     }
     var tColor = DG.ColorUtilities.calcCaseColor(this.getPath( 'model.categoryName'),
