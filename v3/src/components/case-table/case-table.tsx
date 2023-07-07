@@ -47,6 +47,14 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
   const { handleTableScroll, syncTableScroll } = useSyncScrolling()
 
+  const handleScrollClosestRowIntoView = useCallback((collectionId: string, rowIndices: number[]) => {
+    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+    if (collectionTableModel) {
+      collectionTableModel.scrollClosestRowIntoView(rowIndices)
+      syncTableScroll(collectionId)
+    }
+  }, [syncTableScroll, tableModel])
+
   const handleCollectionTableMount = useCallback((collectionId: string) => {
     if (collectionId === lastNewCollectionDrop.current?.newCollectionId) {
       syncTableScroll(lastNewCollectionDrop.current.beforeCollectionId)
@@ -83,7 +91,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
                 <ParentCollectionContext.Provider key={key} value={parent}>
                   <CollectionContext.Provider key={key} value={collection}>
                     <CollectionTable onMount={handleCollectionTableMount}
-                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}/>
+                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
+                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
                   </CollectionContext.Provider>
                 </ParentCollectionContext.Provider>
               )
