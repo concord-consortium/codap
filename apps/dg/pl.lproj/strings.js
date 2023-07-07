@@ -959,7 +959,7 @@ SC.stringsFor("pl", {
     "DG.plugin.Scrambler.description": "Testuj hipotezy, losowo zmieniając atrybut.",
     "DG.plugin.Scrambler.language": "angielski",
     "DG.plugin.Scrambler.static.scramblerTitle": "Mieszacz",
-    "DG.plugin.Scrambler.static.cantScrambleStripe": "Napraw to, aby kontynuować.",
+    "DG.plugin.Scrambler.static.cantScrambleStripe": "Zrób to, aby kontynuować.",
     "DG.plugin.Scrambler.static.howManyLabel": "ile?",
     "DG.plugin.Scrambler.static.scrambledDataButtonName": "pokaż zmieszane",
     "DG.plugin.Scrambler.sScramble": "zmieszaj",
@@ -1067,5 +1067,5 @@ SC.stringsFor("pl", {
     "DG.plugin.Transformers.title": "Transformers",
     "DG.plugin.Transformers.description": "Transformuj zbiory danych za pomocą zestawu zaawansowanych narzędzi.",
     "DG.Locale.name.ko": "koreański",
-    "DG.Locale.name.pl": "Polski"
+    "DG.Locale.name.pl": "polski"
 });

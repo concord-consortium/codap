@@ -1,2 +1,2 @@
-version: 1.6.2
-commit: 679d262e1679e8e561bc34724f2e778db73d1956
+version: 1.7.0
+commit: ee4885d9ba8efef375f16bf5ac2ab2a104c3be30
