@@ -45,6 +45,10 @@ export const EmptyAxisModel = AxisModel
 export interface IEmptyAxisModel extends Instance<typeof CategoricalAxisModel> {}
 export interface IEmptyAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
 
+export function isEmptyAxisModel(axisModel: IAxisModel): axisModel is IEmptyAxisModel {
+  return axisModel.type === "empty"
+}
+
 export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
   .props({
