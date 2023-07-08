@@ -27,6 +27,7 @@ export const useAxis = ({
     place = axisModel?.place ?? 'bottom',
     multiScale = layout.getAxisMultiScale(place),
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>,
+    // eslint-disable-next-line react-hooks/exhaustive-deps  --  see note below
     categories = ordinalScale?.domain() ?? []
   const
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
@@ -41,6 +42,17 @@ export const useAxis = ({
     attributeID = dataConfiguration?.attributeID(attrRole)
   previousAxisModel.current = axisModel
 
+  /** Todo: from Kirk
+   * Looking at the overall format of this code, the computeDesiredExtent() callback lists almost everything that
+   * could possibly change as a dependency, meaning that a new callback will be generated after nearly every change.
+   * Then there are four useEffects whose primary purpose is to call computeDesiredExtent(), meaning that nearly every
+   * change will result in four calls to something like:
+   *         layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+   * Seems like a situation where a single autorun or possibly reaction would make more sense. Another approach
+   * might be to introduce something like an AxisViewModel which could encapsulate some of these computations
+   * analogous to the way the CollectionTableModel is a MobX class which encapsulates a number of table-related
+   * computations. Then the desiredExtent could be a computed property which is cached automatically.
+   */
   const computeDesiredExtent = useCallback(() => {
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0
