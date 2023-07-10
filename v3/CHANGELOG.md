@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 3.0.0-pre.1270 - July 10, 2023
+
+### Features/Improvements
+- Serialization model for adornments [#185406920](https://www.pivotaltracker.com/story/show/185406920)
+
+### Bug Fixes
+- Graph rehydration bug [#185496498](https://www.pivotaltracker.com/story/show/185496498)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   44015 bytes |                            0.22% |
+|  index.js | 3085135 bytes |                            0.49% |
+
 ## Version 3.0.0-pre.1262 - July 5, 2023
 
 ### Features/Improvements
