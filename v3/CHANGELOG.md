@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-pre.1270 - July 10, 2023
+
+### Features/Improvements
+- Categories displayed on a categorical axis can be reordered through dragging [#181912254](https://www.pivotaltracker.com/story/show/181912254)
+- Vertical scrolling of a table keeps the tables roughly in sync [#181846540](https://www.pivotaltracker.com/story/show/181846540)
+- Serialization model for adornments [#185406920](https://www.pivotaltracker.com/story/show/185406920)
+- Case table -- floating button for adding new attribute to data set or collection [#184540601](https://www.pivotaltracker.com/story/show/184540601)
+
+### Bug Fixes
+- Case table collection banner is too small [#185496585](https://www.pivotaltracker.com/story/show/185496585)
+- Graph rehydration bug [#185496498](https://www.pivotaltracker.com/story/show/185496498)
+- Graph attribute menu gets clipped by browser window [#185495543](https://www.pivotaltracker.com/story/show/185495543)
+- When case is selected the case table scrolls to selected row and brings appropriate parent and child rows into view as well [#185556092](https://www.pivotaltracker.com/story/show/185556092)
+
+### Breaking
+- Changed tile ids for case table (`CodapCaseTable` => `CaseTable`), graph (`CodapGraph` => `Graph`), and data summary (`CodapDataSummary` => `DataSummary`) components.
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   44015 bytes |                            0.22% |
+|  index.js | 3085135 bytes |                            0.49% |
+
 ## Version 3.0.0-pre.1262 - July 5, 2023
 
 ### Features/Improvements
