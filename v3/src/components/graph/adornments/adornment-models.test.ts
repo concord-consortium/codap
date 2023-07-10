@@ -62,9 +62,7 @@ describe("MovableLineModel", () => {
       intercept: 1,
       slope: 1,
       pivot1: {x: 2, y: 2},
-      pivot2: {x: 3, y: 3},
-      equationPinned: true,
-      equationCoords: {x: 0, y: 0}
+      pivot2: {x: 3, y: 3}
     }
     const movableLine = MovableLineModel.create()
     movableLine.setLine(line1)
@@ -76,17 +74,13 @@ describe("MovableLineModel", () => {
       intercept: 1,
       slope: 1,
       pivot1: {x: 2, y: 2},
-      pivot2: {x: 3, y: 3},
-      equationPinned: true,
-      equationCoords: {x: 0, y: 0}
+      pivot2: {x: 3, y: 3}
     }
     const line2 = {
       intercept: 2,
       slope: 2,
       pivot1: {x: 3, y: 3},
-      pivot2: {x: 4, y: 4},
-      equationPinned: true,
-      equationCoords: {x: 0, y: 0}
+      pivot2: {x: 4, y: 4}
     }
     const movableLine = MovableLineModel.create()
     movableLine.setLine(line1, "line1key")
@@ -112,15 +106,12 @@ describe("MovableLineParams", () => {
     expect(lineParams.pivot2.x).toEqual(2)
     expect(lineParams.pivot2.y).toEqual(2)
   })
-  it("can have equationPinned and equationCoords properties changed", () => {
+  it("can have equationCoords property set", () => {
     const lineParams = MovableLineParams.create({intercept: 1, slope: 1})
-    expect(lineParams.equationPinned).toEqual(true)
-    expect(lineParams.equationCoords.x).toEqual(0)
-    expect(lineParams.equationCoords.y).toEqual(0)
-    lineParams.setEquationPinned(false, {x: 100, y: 100})
-    expect(lineParams.equationPinned).toEqual(false)
-    expect(lineParams.equationCoords.x).toEqual(100)
-    expect(lineParams.equationCoords.y).toEqual(100)
+    expect(lineParams.equationCoords).toBeUndefined()
+    lineParams.setEquationCoords({x: 50, y: 50})
+    expect(lineParams.equationCoords?.x).toEqual(50)
+    expect(lineParams.equationCoords?.y).toEqual(50)
   })
 })
 

@@ -118,7 +118,7 @@ export const MovableLine = (props: {
           // The equation may have been unpinned from the line if the user
           // dragged it away from the line. Only move the equation if it
           // is still pinned.
-          if (lineModel?.equationPinned) {
+          if (!lineModel?.equationCoords?.isValid()) {
             equation.style('left', `${screenX}px`)
               .style('top', `${screenY}px`)
           }
@@ -169,11 +169,11 @@ export const MovableLine = (props: {
     // Middle cover drag handler
     continueTranslate = useCallback((event: MouseEvent) => {
       const lineParams = model.lines?.get(lineKey),
-        equationPinned = lineParams?.equationPinned,
-        slope = lineParams?.slope || 45
-      const tWorldX = xScaleCopy.invert(event.x),
+        slope = lineParams?.slope || 45,
+        equationCoords = lineParams?.equationCoords,
+        tWorldX = xScaleCopy.invert(event.x),
         tWorldY = yScaleCopy.invert(event.y)
-      model.setLine({slope, intercept: tWorldY - slope * tWorldX, equationPinned}, lineKey)
+      model.setLine({slope, intercept: tWorldY - slope * tWorldX, equationCoords}, lineKey)
     }, [lineKey, model, xScaleCopy, yScaleCopy]),
 
     // Lower cover drag handler
@@ -181,7 +181,7 @@ export const MovableLine = (props: {
       if (!pointsOnAxes.current) return
       const lineParams = model.lines?.get(lineKey),
         currentPivot2 = lineParams?.pivot2,
-        equationPinned = lineParams?.equationPinned
+        equationCoords = lineParams?.equationCoords
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
         const newPivot1 = {x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y)},
@@ -197,7 +197,8 @@ export const MovableLine = (props: {
                            : (pivot2.y - newPivot1.y) / (pivot2.x - newPivot1.x),
           newIntercept = isVertical ? pivot2.x : (newPivot1.y - newSlope * newPivot1.x)
         model.setLine(
-          {slope: newSlope, intercept: newIntercept, pivot1: newPivot1, pivot2, equationPinned}, lineKey
+          {slope: newSlope, intercept: newIntercept, pivot1: newPivot1, pivot2, equationCoords},
+          lineKey
         )
       }
     }, [lineKey, model, xScaleCopy, yScaleCopy]),
@@ -207,7 +208,7 @@ export const MovableLine = (props: {
       if (!pointsOnAxes.current) return
       const lineParams = model.lines?.get(lineKey),
         currentPivot1 = lineParams?.pivot1,
-        equationPinned = lineParams?.equationPinned
+        equationCoords = lineParams?.equationCoords
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
         const newPivot2 = {x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y)},
@@ -223,7 +224,8 @@ export const MovableLine = (props: {
                            : (newPivot2.y - pivot1.y) / (newPivot2.x - pivot1.x),
           newIntercept = isVertical ? pivot1.x : (newPivot2.y - newSlope * newPivot2.x)
         model.setLine(
-          {slope: newSlope, intercept: newIntercept, pivot1, pivot2: newPivot2, equationPinned}, lineKey
+          {slope: newSlope, intercept: newIntercept, pivot1, pivot2: newPivot2, equationCoords},
+            lineKey
         )
       }
     }, [lineKey, model, xScaleCopy, yScaleCopy]),
@@ -236,13 +238,17 @@ export const MovableLine = (props: {
           equationHeight = equationNode?.getBoundingClientRect().height || 0,
           left = event.x - equationWidth / 2,
           top = event.y - equationHeight / 2,
-          lineModel = model.lines.get(lineKey)
+          lineModel = model.lines.get(lineKey),
+          // Get the percentage of plotWidth of the equation box's coordinates
+          // for a more accurate placement of the equation box.
+          x = left / plotWidth,
+          y = top / plotHeight
 
-        lineModel?.setEquationPinned(false, {x: left, y: top})
+        lineModel?.setEquationCoords({x, y})
         equation.style('left', `${left}px`)
           .style('top', `${top}px`)
       }
-    }, [lineKey, model.lines, equationContainerSelector])
+    }, [equationContainerSelector, model.lines, lineKey, plotWidth, plotHeight])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -300,22 +306,25 @@ export const MovableLine = (props: {
       .attr('data-testid', `movable-line-equation-container-${model.setClassNameFromKey(lineKey)}`)
       .style('width', `${plotWidth}px`)
       .style('height', `${plotHeight}px`)
-
-    // If the equation box is not pinned to the line, set its initial coordinates to
-    // the values specified in the model.
-    const lineModel = model.lines?.get(lineKey)
-    if (!lineModel?.equationPinned) {
-      equationDiv
-        .style('left', `${lineModel?.equationCoords?.x}px`)
-        .style('top', `${lineModel?.equationCoords?.y}px`)
-    }
   
-    newLineObject.equation = equationDiv
+    const equationP = equationDiv
       .append('p')
       .attr('class', 'movable-line-equation')
       .attr('data-testid', `movable-line-equation-${model.setClassNameFromKey(lineKey)}`)
       .on('mouseover', () => { newLineObject.line.style('stroke-width', 2) })
       .on('mouseout', () => { newLineObject.line.style('stroke-width', 1) })
+
+    // If the equation is not pinned to the line, set its initial coordinates to
+    // the values specified in the model.
+    const equationCoords = model.lines?.get(lineKey)?.equationCoords
+    if (equationCoords?.isValid()) {
+      const left = equationCoords.x * 100,
+        top = equationCoords.y * 100
+      equationP.style('left', `${left}%`)
+        .style('top', `${top}%`)
+    }
+
+    newLineObject.equation = equationDiv
 
     setLineObject(newLineObject)
 
