@@ -75,6 +75,8 @@ export const MovableValueModel = AdornmentModel
 export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
 
 export const MovableLineParams = types.model("MovableLineParams", {
+    equationCoords: types.optional(PointModel, {x: 0, y: 0}),
+    equationPinned: types.optional(types.boolean, true),
     intercept: types.number,
     slope: types.number,
   })
@@ -83,6 +85,10 @@ export const MovableLineParams = types.model("MovableLineParams", {
     pivot2: PointModel.create()
   }))
   .actions(self => ({
+    setEquationPinned(isPinned: boolean, coords: Point) {
+      self.equationCoords.set(coords)
+      self.equationPinned = isPinned
+    },
     setPivot1(point: Point) {
       self.pivot1.set(point)
     },
@@ -98,7 +104,9 @@ export const MovableLineModel = AdornmentModel
     lines: types.map(MovableLineParams)
   })
   .actions(self => ({
-    setLine(aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point}, key='') {
+    setLine(
+      aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point, equationPinned?: boolean}, key=''
+    ) {
       self.lines.set(key, aLine)
       const line = self.lines.get(key)
       line?.setPivot1(aLine.pivot1 ?? kInfinitePoint)

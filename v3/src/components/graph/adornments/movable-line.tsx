@@ -3,7 +3,7 @@ import {autorun} from "mobx"
 import {drag, select} from "d3"
 import {useAxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {kGraphAdornmentsClassSelector} from "../graphing-types"
+import {kGraphAdornmentsClassSelector, transitionDuration} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {computeSlopeAndIntercept, equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph-utils"
 import {IMovableLineModel} from "./adornment-models"
@@ -56,22 +56,15 @@ export const MovableLine = (props: {
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1
 
-  const setEquationContainerClass = useCallback(() => {
-    const classFromKey = model.setClassNameFromKey(lineKey),
-      equationContainerClass =
-        `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`
-    
-    return equationContainerClass
+  const equationContainerClass = useCallback(() => {
+    const classFromKey = model.setClassNameFromKey(lineKey)
+    return `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`
   }, [lineKey, model])
 
-  const setEquationContainerSelector = useCallback(() => {
-    const gridContainerClass = `graph-adornments-grid.${instanceId}`,
-      equationContainerClass = setEquationContainerClass(),
-      equationContainerSelector =
-        `.${gridContainerClass} .${equationContainerClass}`
-    
-    return equationContainerSelector
-  }, [instanceId, setEquationContainerClass])
+  const equationContainerSelector = useCallback(() => {
+    const gridContainerClass = `graph-adornments-grid.${instanceId}`
+    return `.${gridContainerClass} .${equationContainerClass()}`
+  }, [instanceId, equationContainerClass])
 
   // add lines that don't already exist in the model
   useEffect(function addLine() {
@@ -116,17 +109,16 @@ export const MovableLine = (props: {
             screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount,
             attrNames = {x: xAttrName, y: yAttrName},
             string = equationString(slope, intercept, attrNames),
-            equationContainerSelector = setEquationContainerSelector(),
-            equation = select(equationContainerSelector).select('p')
+            equation = select(equationContainerSelector()).select('p')
   
-          select(equationContainerSelector)
+          select(equationContainerSelector())
             .style('width', `${plotWidth}px`)
             .style('height', `${plotHeight}px`)
           equation.html(string)
           // The equation may have been unpinned from the line if the user
           // dragged it away from the line. Only move the equation if it
           // is still pinned.
-          if (!equation.classed('unpinned')) {
+          if (lineModel?.equationPinned) {
             equation.style('left', `${screenX}px`)
               .style('top', `${screenY}px`)
           }
@@ -169,23 +161,27 @@ export const MovableLine = (props: {
       })
       return () => disposer()
     }, [instanceId, pointsOnAxes, lineKey, lineObject, plotHeight, plotWidth, transform, 
-        xScale, yScale, model, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount,
-        yAxis, xRange, yRange, setEquationContainerSelector]
+        xScale, yScale, model, model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount,
+        yAxis, xRange, yRange, equationContainerSelector]
   )
 
   const
     // Middle cover drag handler
     continueTranslate = useCallback((event: MouseEvent) => {
-      const slope = model.lines?.get(lineKey)?.slope || 45
+      const lineParams = model.lines?.get(lineKey),
+        equationPinned = lineParams?.equationPinned,
+        slope = lineParams?.slope || 45
       const tWorldX = xScaleCopy.invert(event.x),
         tWorldY = yScaleCopy.invert(event.y)
-      model.setLine({slope, intercept: tWorldY - slope * tWorldX}, lineKey)
+      model.setLine({slope, intercept: tWorldY - slope * tWorldX, equationPinned}, lineKey)
     }, [lineKey, model, xScaleCopy, yScaleCopy]),
 
     // Lower cover drag handler
     continueRotation1 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (!pointsOnAxes.current) return
-      const currentPivot2 = model.lines?.get(lineKey)?.pivot2
+      const lineParams = model.lines?.get(lineKey),
+        currentPivot2 = lineParams?.pivot2,
+        equationPinned = lineParams?.equationPinned
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
         const newPivot1 = {x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y)},
@@ -200,14 +196,18 @@ export const MovableLine = (props: {
                            ? Number.POSITIVE_INFINITY
                            : (pivot2.y - newPivot1.y) / (pivot2.x - newPivot1.x),
           newIntercept = isVertical ? pivot2.x : (newPivot1.y - newSlope * newPivot1.x)
-        model.setLine({slope: newSlope, intercept: newIntercept, pivot1: newPivot1, pivot2}, lineKey)
+        model.setLine(
+          {slope: newSlope, intercept: newIntercept, pivot1: newPivot1, pivot2, equationPinned}, lineKey
+        )
       }
     }, [lineKey, model, xScaleCopy, yScaleCopy]),
 
     // Upper cover drag handler
     continueRotation2 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (!pointsOnAxes.current) return
-      const currentPivot1 = model.lines?.get(lineKey)?.pivot1
+      const lineParams = model.lines?.get(lineKey),
+        currentPivot1 = lineParams?.pivot1,
+        equationPinned = lineParams?.equationPinned
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
         const newPivot2 = {x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y)},
@@ -222,27 +222,27 @@ export const MovableLine = (props: {
                            ? Number.POSITIVE_INFINITY
                            : (newPivot2.y - pivot1.y) / (newPivot2.x - pivot1.x),
           newIntercept = isVertical ? pivot1.x : (newPivot2.y - newSlope * newPivot2.x)
-        model.setLine({slope: newSlope, intercept: newIntercept, pivot1, pivot2: newPivot2}, lineKey)
+        model.setLine(
+          {slope: newSlope, intercept: newIntercept, pivot1, pivot2: newPivot2, equationPinned}, lineKey
+        )
       }
     }, [lineKey, model, xScaleCopy, yScaleCopy]),
 
     moveEquation = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
-        const equationContainerSelector = setEquationContainerSelector(),
-          equation = select(`${equationContainerSelector} p`).node() as Element,
-          equationWidth = equation?.getBoundingClientRect().width || 0,
-          equationHeight = equation?.getBoundingClientRect().height || 0,
+        const equation = select(`${equationContainerSelector()} p`),
+          equationNode = equation.node() as Element,
+          equationWidth = equationNode?.getBoundingClientRect().width || 0,
+          equationHeight = equationNode?.getBoundingClientRect().height || 0,
           left = event.x - equationWidth / 2,
-          top = event.y - equationHeight / 2
+          top = event.y - equationHeight / 2,
+          lineModel = model.lines.get(lineKey)
 
-        select(`${equationContainerSelector} p`)
-          // The `unpinned` class will be used to determine if the equation
-          // should move when the line is dragged.
-          .attr('class', 'movable-line-equation unpinned')
-          .style('left', `${left}px`)
+        lineModel?.setEquationPinned(false, {x: left, y: top})
+        equation.style('left', `${left}px`)
           .style('top', `${top}px`)
       }
-    }, [setEquationContainerSelector])
+    }, [lineKey, model.lines, equationContainerSelector])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -270,7 +270,7 @@ export const MovableLine = (props: {
 
     selection.style('opacity', 0)
       .transition()
-      .duration(1000)
+      .duration(transitionDuration)
       .style('opacity', 1)
 
     // Set up the line and its cover segments and handles
@@ -293,15 +293,23 @@ export const MovableLine = (props: {
     // Set up the corresponding equation box
     // Define the selector that corresponds with this specific movable line's adornment container
     const adornmentContainer =
-      `.graph-adornments-grid.${instanceId} > ${kGraphAdornmentsClassSelector}__cell:nth-child(${plotIndex + 1})`,
-      // Define the class name for the equation container
-      equationContainerClass = setEquationContainerClass()
+      `.graph-adornments-grid.${instanceId} > ${kGraphAdornmentsClassSelector}__cell:nth-child(${plotIndex + 1})`
 
     const equationDiv = select(adornmentContainer).append('div')
-      .attr('class', `movable-line-equation-container ${equationContainerClass}`)
+      .attr('class', `movable-line-equation-container ${equationContainerClass()}`)
       .attr('data-testid', `movable-line-equation-container-${model.setClassNameFromKey(lineKey)}`)
       .style('width', `${plotWidth}px`)
       .style('height', `${plotHeight}px`)
+
+    // If the equation box is not pinned to the line, set its initial coordinates to
+    // the values specified in the model.
+    const lineModel = model.lines?.get(lineKey)
+    if (!lineModel?.equationPinned) {
+      equationDiv
+        .style('left', `${lineModel?.equationCoords?.x}px`)
+        .style('top', `${lineModel?.equationCoords?.y}px`)
+    }
+  
     newLineObject.equation = equationDiv
       .append('p')
       .attr('class', 'movable-line-equation')
@@ -313,7 +321,7 @@ export const MovableLine = (props: {
 
     equationDiv.style('opacity', 0)
       .transition()
-      .duration(1000)
+      .duration(transitionDuration)
       .style('opacity', 1)
 
     return () => {
