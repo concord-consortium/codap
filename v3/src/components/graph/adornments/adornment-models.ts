@@ -84,8 +84,8 @@ export const MovableLineParams = types.model("MovableLineParams", {
     pivot2: PointModel.create()
   }))
   .actions(self => ({
-    setEquationCoords(coords: any) {
-      self.equationCoords = coords
+    setEquationCoords(coords: Point) {
+      self.equationCoords = PointModel.create(coords)
     },
     setPivot1(point: Point) {
       self.pivot1.set(point)
