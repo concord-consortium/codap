@@ -291,11 +291,11 @@ export const MovableLine = (props: {
     newLineObject.upper = selection.append('line')
       .attr('class', 'movable-line-cover movable-line-upper-cover')
     newLineObject.handleLower = selection.append('rect')
-        .attr('class', 'movable-line-handle movable-line-lower-handle')
+        .attr('class', 'movable-line-handle movable-line-lower-handle show-on-tile-selected')
     newLineObject.handleMiddle = selection.append('rect')
-        .attr('class', 'movable-line-handle movable-line-middle-handle')
+        .attr('class', 'movable-line-handle movable-line-middle-handle show-on-tile-selected')
     newLineObject.handleUpper = selection.append('rect')
-        .attr('class', 'movable-line-handle movable-line-upper-handle')
+        .attr('class', 'movable-line-handle movable-line-upper-handle show-on-tile-selected')
 
     // Set up the corresponding equation box
     // Define the selector that corresponds with this specific movable line's adornment container
