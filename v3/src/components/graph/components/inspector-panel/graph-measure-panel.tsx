@@ -91,9 +91,14 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
         <Box className="form-title">Show ...</Box>
         {graphModel && measures[graphModel.plotType].map((title:string) => {
            const isChecked = !!graphModel?.adornments?.find(a => a.type === title)
+           const titleSlug = title.replace(/ /g, "-").toLowerCase()
            return (
             <FormControl key={title}>
-              <Checkbox defaultChecked={isChecked} onChange={e => handleSetting(title, e.target.checked)}>
+              <Checkbox
+                data-testid={`adornment-checkbox-${titleSlug}`}
+                defaultChecked={isChecked}
+                onChange={e => handleSetting(title, e.target.checked)}
+              >
                 {title}
               </Checkbox>
             </FormControl>

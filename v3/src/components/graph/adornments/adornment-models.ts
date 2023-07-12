@@ -34,7 +34,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     isVisible: true
   })
   .views(self => ({
-    setInstanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
+    instanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
       if ((xCats.length === 0 && yCats.length === 0) || xCats[index] === '') {
         return ''
       } else if (xCats.length > 0 &&  yCats.length > 0) {
@@ -45,7 +45,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
         return `{y: ${yCats[index]}}`
       }
     },
-    setClassNameFromKey(key: string) {
+    classNameFromKey(key: string) {
       const className = key.replace(/\{/g, '')
         .replace(/\}/g, '')
         .replace(/: /g, '-')
@@ -75,6 +75,7 @@ export const MovableValueModel = AdornmentModel
 export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
 
 export const MovableLineParams = types.model("MovableLineParams", {
+    equationCoords: types.maybe(PointModel),
     intercept: types.number,
     slope: types.number,
   })
@@ -83,6 +84,9 @@ export const MovableLineParams = types.model("MovableLineParams", {
     pivot2: PointModel.create()
   }))
   .actions(self => ({
+    setEquationCoords(coords: Point) {
+      self.equationCoords = PointModel.create(coords)
+    },
     setPivot1(point: Point) {
       self.pivot1.set(point)
     },
@@ -98,7 +102,9 @@ export const MovableLineModel = AdornmentModel
     lines: types.map(MovableLineParams)
   })
   .actions(self => ({
-    setLine(aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point}, key='') {
+    setLine(
+      aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point, equationCoords?: Point}, key=''
+    ) {
       self.lines.set(key, aLine)
       const line = self.lines.get(key)
       line?.setPivot1(aLine.pivot1 ?? kInfinitePoint)

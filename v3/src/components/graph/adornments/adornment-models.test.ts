@@ -42,13 +42,13 @@ describe("AdornmentModel", () => {
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const index = 0
-    expect(adornment.setInstanceKey([], [], index)).toEqual("")
-    expect(adornment.setInstanceKey(xCategories, yCategories, index)).toEqual("{x: pizza, y: red}")
+    expect(adornment.instanceKey([], [], index)).toEqual("")
+    expect(adornment.instanceKey(xCategories, yCategories, index)).toEqual("{x: pizza, y: red}")
   })
   it("will create a class name from a given instance key", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const key = "{x: pizza, y: red}"
-    expect(adornment.setClassNameFromKey(key)).toEqual("x-pizza-y-red")
+    expect(adornment.classNameFromKey(key)).toEqual("x-pizza-y-red")
   })
 })
 
@@ -58,15 +58,30 @@ describe("MovableLineModel", () => {
     expect(movableLine.lines.size).toEqual(0)
   })
   it("can have a line added to its lines property", () => {
-    const line1 = {intercept: 1, slope: 1, pivot1: {x: 2, y: 2}, pivot2: {x: 3, y: 3}}
+    const line1 = {
+      intercept: 1,
+      slope: 1,
+      pivot1: {x: 2, y: 2},
+      pivot2: {x: 3, y: 3}
+    }
     const movableLine = MovableLineModel.create()
     movableLine.setLine(line1)
     expect(movableLine.lines.size).toEqual(1)
     expect(movableLine.lines.get('')).toEqual(line1)
   })
   it("can have multiple lines added to its lines property", () => {
-    const line1 = {intercept: 1, slope: 1, pivot1: {x: 2, y: 2}, pivot2: {x: 3, y: 3}}
-    const line2 = {intercept: 2, slope: 2, pivot1: {x: 3, y: 3}, pivot2: {x: 4, y: 4}}
+    const line1 = {
+      intercept: 1,
+      slope: 1,
+      pivot1: {x: 2, y: 2},
+      pivot2: {x: 3, y: 3}
+    }
+    const line2 = {
+      intercept: 2,
+      slope: 2,
+      pivot1: {x: 3, y: 3},
+      pivot2: {x: 4, y: 4}
+    }
     const movableLine = MovableLineModel.create()
     movableLine.setLine(line1, "line1key")
     movableLine.setLine(line2, "line2key")
@@ -90,6 +105,13 @@ describe("MovableLineParams", () => {
     expect(lineParams.pivot1.y).toEqual(1)
     expect(lineParams.pivot2.x).toEqual(2)
     expect(lineParams.pivot2.y).toEqual(2)
+  })
+  it("can have equationCoords property set", () => {
+    const lineParams = MovableLineParams.create({intercept: 1, slope: 1})
+    expect(lineParams.equationCoords).toBeUndefined()
+    lineParams.setEquationCoords({x: 50, y: 50})
+    expect(lineParams.equationCoords?.x).toEqual(50)
+    expect(lineParams.equationCoords?.y).toEqual(50)
   })
 })
 
