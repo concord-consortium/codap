@@ -1,4 +1,5 @@
 import React from "react"
+import { clsx } from "clsx"
 import { useGraphLayoutContext } from "../models/graph-layout"
 import { AxisScaleType } from "../../axis/axis-types"
 import { kGraphAdornmentsClass } from "../graphing-types"
@@ -8,7 +9,6 @@ import { IAdornmentModel } from "./adornment-models"
 import { Adornment } from "./adornment"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { clsx } from "clsx"
 
 import "./adornments.scss"
 
@@ -89,7 +89,7 @@ export const Adornments = observer(function Adornments() {
 
   const containerClass = clsx(
     `${kGraphAdornmentsClass} ${instanceId}`,
-    { [`tile-selected`]: isTileSelected() }
+    { 'tile-selected': isTileSelected() }
   )
   return (
     <div className={containerClass} data-testid={kGraphAdornmentsClass} style={gridStyle}>
