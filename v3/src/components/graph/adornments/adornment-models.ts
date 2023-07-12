@@ -34,7 +34,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     isVisible: true
   })
   .views(self => ({
-    setInstanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
+    instanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
       if ((xCats.length === 0 && yCats.length === 0) || xCats[index] === '') {
         return ''
       } else if (xCats.length > 0 &&  yCats.length > 0) {
@@ -45,7 +45,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
         return `{y: ${yCats[index]}}`
       }
     },
-    setClassNameFromKey(key: string) {
+    classNameFromKey(key: string) {
       const className = key.replace(/\{/g, '')
         .replace(/\}/g, '')
         .replace(/: /g, '-')

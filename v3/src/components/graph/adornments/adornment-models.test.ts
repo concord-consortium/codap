@@ -42,13 +42,13 @@ describe("AdornmentModel", () => {
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const index = 0
-    expect(adornment.setInstanceKey([], [], index)).toEqual("")
-    expect(adornment.setInstanceKey(xCategories, yCategories, index)).toEqual("{x: pizza, y: red}")
+    expect(adornment.instanceKey([], [], index)).toEqual("")
+    expect(adornment.instanceKey(xCategories, yCategories, index)).toEqual("{x: pizza, y: red}")
   })
   it("will create a class name from a given instance key", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const key = "{x: pizza, y: red}"
-    expect(adornment.setClassNameFromKey(key)).toEqual("x-pizza-y-red")
+    expect(adornment.classNameFromKey(key)).toEqual("x-pizza-y-red")
   })
 })
 

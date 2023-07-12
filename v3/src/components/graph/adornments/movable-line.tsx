@@ -12,6 +12,14 @@ import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 
 import "./movable-line.scss"
 
+function equationContainer(model: IMovableLineModel, instanceId: string, lineKey: string) {
+  const classFromKey = model.classNameFromKey(lineKey),
+    equationContainerClass = `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`,
+    gridContainerClass = `graph-adornments-grid.${instanceId}`,
+    equationContainerSelector = `.${gridContainerClass} .${equationContainerClass}`
+    return { equationContainerClass, equationContainerSelector }
+}
+
 export const MovableLine = (props: {
   lineKey?: string
   model: IMovableLineModel
@@ -34,6 +42,7 @@ export const MovableLine = (props: {
     yScaleCopy = yScale.copy(),
     kTolerance = 4, // pixels to snap to horizontal or vertical
     kHandleSize = 12,
+    {equationContainerClass, equationContainerSelector} = equationContainer(model, instanceId, lineKey),
     lineRef = useRef() as React.RefObject<SVGSVGElement>,
     [lineObject, setLineObject] = useState<{ [index: string]: any }>({
       line: null, lower: null, middle: null, upper: null, equation: null
@@ -56,15 +65,7 @@ export const MovableLine = (props: {
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1
 
-  const equationContainerClass = useCallback(() => {
-    const classFromKey = model.setClassNameFromKey(lineKey)
-    return `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`
-  }, [lineKey, model])
 
-  const equationContainerSelector = useCallback(() => {
-    const gridContainerClass = `graph-adornments-grid.${instanceId}`
-    return `.${gridContainerClass} .${equationContainerClass()}`
-  }, [instanceId, equationContainerClass])
 
   // add lines that don't already exist in the model
   useEffect(function addLine() {
@@ -109,9 +110,9 @@ export const MovableLine = (props: {
             screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount,
             attrNames = {x: xAttrName, y: yAttrName},
             string = equationString(slope, intercept, attrNames),
-            equation = select(equationContainerSelector()).select('p')
+            equation = select(equationContainerSelector).select('p')
   
-          select(equationContainerSelector())
+          select(equationContainerSelector)
             .style('width', `${plotWidth}px`)
             .style('height', `${plotHeight}px`)
           equation.html(string)
@@ -232,7 +233,7 @@ export const MovableLine = (props: {
 
     moveEquation = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
-        const equation = select(`${equationContainerSelector()} p`),
+        const equation = select(`${equationContainerSelector} p`),
           equationNode = equation.node() as Element,
           equationWidth = equationNode?.getBoundingClientRect().width || 0,
           equationHeight = equationNode?.getBoundingClientRect().height || 0,
@@ -302,15 +303,15 @@ export const MovableLine = (props: {
       `.graph-adornments-grid.${instanceId} > ${kGraphAdornmentsClassSelector}__cell:nth-child(${plotIndex + 1})`
 
     const equationDiv = select(adornmentContainer).append('div')
-      .attr('class', `movable-line-equation-container ${equationContainerClass()}`)
-      .attr('data-testid', `movable-line-equation-container-${model.setClassNameFromKey(lineKey)}`)
+      .attr('class', `movable-line-equation-container ${equationContainerClass}`)
+      .attr('data-testid', `movable-line-equation-container-${model.classNameFromKey(lineKey)}`)
       .style('width', `${plotWidth}px`)
       .style('height', `${plotHeight}px`)
   
     const equationP = equationDiv
       .append('p')
       .attr('class', 'movable-line-equation')
-      .attr('data-testid', `movable-line-equation-${model.setClassNameFromKey(lineKey)}`)
+      .attr('data-testid', `movable-line-equation-${model.classNameFromKey(lineKey)}`)
       .on('mouseover', () => { newLineObject.line.style('stroke-width', 2) })
       .on('mouseout', () => { newLineObject.line.style('stroke-width', 1) })
 
@@ -343,7 +344,7 @@ export const MovableLine = (props: {
 
   return (
     <svg
-      className={`line-${model.setClassNameFromKey(lineKey)}`}
+      className={`line-${model.classNameFromKey(lineKey)}`}
       style={{height: `${plotHeight}px`, overflow: 'hidden', width: `${plotWidth}px`}}
       x={0}
       y={0}

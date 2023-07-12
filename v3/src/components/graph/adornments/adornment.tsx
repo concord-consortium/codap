@@ -24,7 +24,7 @@ export const Adornment = ({ adornment, index, xCategories, yCategories}: IProps)
 
   // The instanceKey is used by the adornment model to uniquely identify an instance of the adornment in its
   // map of instances. If there is only one instance of the adornment, the instanceKey is an empty string.
-  const instanceKey = adornment.setInstanceKey(xCategories, yCategories, index)
+  const instanceKey = adornment.instanceKey(xCategories, yCategories, index)
   // The adornmentKey is a unique value used for React's key prop. We can't use the instanceKey because that
   // value may be duplicated if there are multiple types of adornments active on the graph.
   const adornmentKey = `${adornment.id}${instanceKey ? `-${instanceKey}` : ''}`
