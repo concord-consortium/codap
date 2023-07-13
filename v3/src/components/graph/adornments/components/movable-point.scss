@@ -3,6 +3,10 @@ svg[class^="point-"] {
   overflow: hidden;
   position: absolute;
   top: 0;
+
+  &.dragging {
+    z-index: 1000;
+  }
 }
 
 .movable-point {

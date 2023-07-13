@@ -40,8 +40,6 @@ export const MovablePoint = (props: {
       point: null, shadow: null, coordinatesBox: null
     })
 
-  console.log("model", model)
-
   // compute initial x and y coordinates
   const [xMin, xMax] = xScale.domain(),
     [yMin, yMax] = yScale.domain(),
@@ -67,8 +65,10 @@ export const MovablePoint = (props: {
   }, [instanceKey, model.points, xAttrName, yAttrName])
 
   const hideCoordinates = useCallback(() => {
+    select(`.point-${classFromKey}`)
+      .classed('dragging', false)
     dataTip.hide()
-  }, [])
+  }, [classFromKey])
 
   const movePoint = useCallback((xPoint: number, yPoint: number) => {
     if (pointObject.point === null) return
@@ -86,10 +86,12 @@ export const MovablePoint = (props: {
       yValue = Math.round(yScale.invert(yPoint * ySubAxesCount) * 10) / 10,
       string = `${xAttrName}: ${xValue}<br />${yAttrName}: ${yValue}`
 
+    select(`.point-${classFromKey}`)
+      .classed('dragging', true)
     dataTip.show(string, event.target)
     movePoint(xPoint, yPoint)
     model.setPoint({x: xValue, y: yValue}, instanceKey)
-  }, [instanceKey, model, movePoint, xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
+  }, [classFromKey, instanceKey, model, movePoint, xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
     if (!model.points) return
