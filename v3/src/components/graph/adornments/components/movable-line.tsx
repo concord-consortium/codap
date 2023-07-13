@@ -1,14 +1,15 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {drag, select} from "d3"
-import {useAxisLayoutContext} from "../../axis/models/axis-layout-context"
-import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {kGraphAdornmentsClassSelector, transitionDuration} from "../graphing-types"
-import {INumericAxisModel} from "../../axis/models/axis-model"
-import {computeSlopeAndIntercept, equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph-utils"
-import {IMovableLineModel} from "./adornment-models"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
+import {ScaleNumericBaseType} from "../../../axis/axis-types"
+import {kGraphAdornmentsClassSelector, transitionDuration} from "../../graphing-types"
+import {INumericAxisModel} from "../../../axis/models/axis-model"
+import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
+        lineToAxisIntercepts} from "../../utilities/graph-utils"
+import {IMovableLineModel} from "../adornment-models"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 
 import "./movable-line.scss"
 

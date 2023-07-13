@@ -3,7 +3,7 @@ import { registerAdornmentContentInfo } from "./adornment-content-info"
 import { MovablePointModel } from "./adornment-models"
 import { kMovablePointClass, kMovablePointHint, kMovablePointLabel,
           kMovablePointPrefix, kMovablePointType } from "./movable-point-types"
-import { MovablePoint } from "./movable-point"
+import { MovablePoint } from "./components/movable-point"
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kMovablePointClass,

@@ -3,7 +3,7 @@ import { registerAdornmentContentInfo } from "./adornment-content-info"
 import { MovableLineModel } from "./adornment-models"
 import { kMovableLineClass, kMovableLineHint, kMovableLineLabel,
          kMovableLinePrefix, kMovableLineType } from "./movable-line-types"
-import { MovableLine } from "./movable-line"
+import { MovableLine } from "./components/movable-line"
 
 registerAdornmentContentInfo({
   type: kMovableLineType,
