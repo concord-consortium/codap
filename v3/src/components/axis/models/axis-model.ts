@@ -42,8 +42,8 @@ export const EmptyAxisModel = AxisModel
     min: 0,
     max: 0
   })
-export interface IEmptyAxisModel extends Instance<typeof CategoricalAxisModel> {}
-export interface IEmptyAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
+export interface IEmptyAxisModel extends Instance<typeof EmptyAxisModel> {}
+export interface IEmptyAxisModelSnapshot extends SnapshotIn<typeof EmptyAxisModel> {}
 
 export function isEmptyAxisModel(axisModel: IAxisModel): axisModel is IEmptyAxisModel {
   return axisModel.type === "empty"

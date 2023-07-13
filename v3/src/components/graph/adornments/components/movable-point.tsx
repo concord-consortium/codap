@@ -131,6 +131,7 @@ export const MovablePoint = (props: {
       .attr('stroke-width', 2)
 
     newPointObject.point = selection.append('circle')
+      .attr('data-testid', `movable-point`)
       .attr('cx', xScale(initX) / xSubAxesCount)
       .attr('cy', yScale(initY) / ySubAxesCount)
       .attr('r', 8)

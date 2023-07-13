@@ -5,6 +5,7 @@
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
 import {Point, kMovableLineType, kMovablePointType} from "../graphing-types"
+import { kMovableValueType } from "./movable-value-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -61,6 +62,17 @@ export const AdornmentModel = types.model("AdornmentModel", {
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
 
+export const UnknownAdornmentModel = AdornmentModel
+  .named("UnknownAdornmentModel")
+  .props({
+    type: "Unknown"
+  })
+export interface IUnknownAdornmentModel extends Instance<typeof UnknownAdornmentModel> {}
+
+export function isUnknownAdornmentModel(adornmentModel: IAdornmentModel): adornmentModel is IUnknownAdornmentModel {
+  return adornmentModel.type === "Unknown"
+}
+
 export const MovableValueModel = AdornmentModel
   .named('MovableValueModel')
   .props({
@@ -73,6 +85,9 @@ export const MovableValueModel = AdornmentModel
     }
   }))
 export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
+export function isMovableValue(adornment: IAdornmentModel): adornment is IMovableValueModel {
+  return adornment.type === kMovableValueType
+}
 
 export const MovableLineParams = types.model("MovableLineParams", {
     equationCoords: types.maybe(PointModel),
@@ -132,5 +147,15 @@ export function isMovablePoint(adornment: IAdornmentModel): adornment is IMovabl
   return adornment.type === kMovablePointType
 }
 
-export const AdornmentModelUnion = types.union(MovableValueModel, MovableLineModel, MovablePointModel)
-export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel | IMovablePointModel
+const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
+  switch (adornmentSnap.type) {
+    case "Movable Line": return MovableLineModel
+    case "Movable Point": return MovablePointModel
+    case "Movable Value": return MovableValueModel
+    default: return UnknownAdornmentModel
+  }
+}
+
+export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
+  MovableValueModel, MovableLineModel, MovablePointModel, UnknownAdornmentModel)
+export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel | IMovablePointModel | IUnknownAdornmentModel
