@@ -874,6 +874,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
               }),
               tChangeIsRelevant = (tChangedCollectionID === tPlottedCollectionID) ||
                   (tChangedCollectionIDs && tChangedCollectionIDs.indexOf(tPlottedCollectionID) >= 0);
+          // Newly created cases are never selected, so if displayOnlySelected is true, bail
+          tChangeIsRelevant = tChangeIsRelevant && !this.get('displayOnlySelected');
           if (!tChangeIsRelevant)
             return;
 

@@ -563,16 +563,19 @@ DG.GraphView = SC.View.extend(
           '*topAxisView.categoriesDragged', '*rightAxisView.categoriesDragged'),
 
       selectionOrDisplayOnlySelectedDidChange: function() {
-        var tMsgs = [];
-        if(this.getPath('model.dataConfiguration.displayOnlySelected') &&
-            this.getPath('model.dataConfiguration.selection').length === 0) {
-          tMsgs = [0, 1,2,3,4,5].map( function(i) {
-            return ('DG.PlotBackgroundView.msg' + i).loc();
+        // Delay updating the messages until after the selection has been updated
+        this.invokeLater( function() {
+          var tMsgs = [];
+          if(this.getPath('model.dataConfiguration.displayOnlySelected') &&
+              this.getPath('model.dataConfiguration.selection').length === 0) {
+            tMsgs = [0, 1,2,3,4,5].map( function(i) {
+              return ('DG.PlotBackgroundView.msg' + i).loc();
+            });
+          }
+          this.get('plotBackgroundViewArray').forEach(function( iBackgroundViewSubArray) {
+            iBackgroundViewSubArray[0].setIfChanged('messages', tMsgs);
           });
-        }
-        this.get('plotBackgroundViewArray').forEach(function( iBackgroundViewSubArray) {
-          iBackgroundViewSubArray[0].setIfChanged('messages', tMsgs);
-        });
+        }, 200);
       }.observes('model.dataConfiguration.displayOnlySelected',
           'model.dataConfiguration.selection'),
 
