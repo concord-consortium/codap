@@ -16,17 +16,19 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')
     return `<p>${d}</p>`
   })
 
-export const MovablePoint = observer(function MovablePoint(props: {
+interface IProps {
+  containerId: string
   instanceKey?: string
   model: IMovablePointModel
   plotHeight: number
   plotIndex: number
   plotWidth: number
-  transform?: string
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
-}) {
-  const {instanceKey='', model, plotHeight, plotWidth, xAxis, yAxis} = props,
+}
+
+export const MovablePoint = observer(function MovablePoint(props: IProps) {
+  const {instanceKey = '', model, plotHeight, plotWidth, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
