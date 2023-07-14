@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import {drag, select} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
+import { observer } from "mobx-react-lite"
 import { IMovablePointModel } from "../adornment-models"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
@@ -15,7 +16,7 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')
     return `<p>${d}</p>`
   })
 
-export const MovablePoint = (props: {
+export const MovablePoint = observer(function MovablePoint(props: {
   instanceKey?: string
   model: IMovablePointModel
   plotHeight: number
@@ -24,8 +25,8 @@ export const MovablePoint = (props: {
   transform?: string
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
-}) => {
-  const {instanceKey='', model, plotHeight, plotWidth} = props,
+}) {
+  const {instanceKey='', model, plotHeight, plotWidth, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
@@ -34,6 +35,8 @@ export const MovablePoint = (props: {
     graphWidth = layout.getAxisLength('bottom') ?? 0,
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1,
+    xDomain = xAxis.domain,
+    yDomain = yAxis.domain,
     classFromKey = model.classNameFromKey(instanceKey),
     pointRef = useRef() as React.RefObject<any>,
     [pointObject, setPointObject] = useState<{ [index: string]: any }>({
@@ -41,8 +44,8 @@ export const MovablePoint = (props: {
     })
 
   // compute initial x and y coordinates
-  const [xMin, xMax] = xScale.domain(),
-    [yMin, yMax] = yScale.domain(),
+  const [xMin, xMax] = xDomain,
+    [yMin, yMax] = yDomain,
     initX = xMax - (xMax - xMin) / 4,
     initY = yMax - (yMax - yMin) / 4
 
@@ -81,8 +84,11 @@ export const MovablePoint = (props: {
   }, [pointObject.point, pointObject.shadow])
 
   const handleDragPoint = useCallback((event: MouseEvent) => {
-    const { x: xPoint, y: yPoint } = event,
-      xValue = Math.round(xScale.invert(xPoint * xSubAxesCount) * 10) / 10,
+    const { x: xPoint, y: yPoint } = event
+    // don't allow point to be dragged outside plot area
+    if (xPoint < 0 || xPoint > plotWidth || yPoint < 0 || yPoint > plotHeight) return
+
+    const xValue = Math.round(xScale.invert(xPoint * xSubAxesCount) * 10) / 10,
       yValue = Math.round(yScale.invert(yPoint * ySubAxesCount) * 10) / 10,
       string = `${xAttrName}: ${xValue}<br />${yAttrName}: ${yValue}`
 
@@ -91,7 +97,8 @@ export const MovablePoint = (props: {
     dataTip.show(string, event.target)
     movePoint(xPoint, yPoint)
     model.setPoint({x: xValue, y: yValue}, instanceKey)
-  }, [classFromKey, instanceKey, model, movePoint, xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
+  }, [classFromKey, instanceKey, model, movePoint, plotHeight, plotWidth,
+      xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
     if (!model.points) return
@@ -102,7 +109,7 @@ export const MovablePoint = (props: {
 
       movePoint(xPoint, yPoint)
   }, [graphHeight, graphWidth, instanceKey, model.points, movePoint, 
-      xScale, xSubAxesCount, yScale, ySubAxesCount])
+      xAxis.domain, xScale, xSubAxesCount, yAxis.domain, yScale, ySubAxesCount])
 
   // add points that don't already exist in the model
   useEffect(function addPoint() {
@@ -160,4 +167,4 @@ export const MovablePoint = (props: {
       </g>
     </svg>
   )
-}
+})
