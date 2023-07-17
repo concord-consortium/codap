@@ -1,5 +1,5 @@
-import { getAdornmentComponentInfo } from "./adornment-component-info"
-import { getAdornmentContentInfo } from "./adornment-content-info"
+import { getAdornmentComponentInfo } from "../adornment-component-info"
+import { getAdornmentContentInfo } from "../adornment-content-info"
 import { kMovablePointClass, kMovablePointPrefix, kMovablePointType } from "./movable-point-types"
 import "./movable-point-registration"
 

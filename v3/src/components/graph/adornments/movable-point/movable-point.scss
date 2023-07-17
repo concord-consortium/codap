@@ -1,0 +1,20 @@
+svg[class^="point-"] {
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+
+  &.dragging {
+    z-index: 1000;
+  }
+}
+
+.movable-point {
+  pointer-events: all;
+
+  circle {
+    cursor: move;
+    opacity: .6;
+    stroke-opacity: .8;
+  }
+}

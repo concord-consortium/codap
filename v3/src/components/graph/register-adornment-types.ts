@@ -1,2 +1,2 @@
-import "./adornments/movable-line-registration"
-import "./adornments/movable-point-registration"
+import "./adornments/movable-line/movable-line-registration"
+import "./adornments/movable-point/movable-point-registration"

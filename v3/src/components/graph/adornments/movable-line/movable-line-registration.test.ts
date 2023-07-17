@@ -1,5 +1,5 @@
-import { getAdornmentComponentInfo } from "./adornment-component-info"
-import { getAdornmentContentInfo } from "./adornment-content-info"
+import { getAdornmentComponentInfo } from "../adornment-component-info"
+import { getAdornmentContentInfo } from "../adornment-content-info"
 import { kMovableLineClass, kMovableLinePrefix, kMovableLineType } from "./movable-line-types"
 import "./movable-line-registration"
 

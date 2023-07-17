@@ -4,8 +4,10 @@
 
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
-import {Point, kMovableLineType, kMovablePointType} from "../graphing-types"
-import { kMovableValueType } from "./movable-value-types"
+import {Point} from "../graphing-types"
+import { kMovableLineType } from "./movable-line/movable-line-types"
+import { kMovablePointType } from "./movable-point/movable-point-types"
+import { kMovableValueType } from "./movable-value/movable-value-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
