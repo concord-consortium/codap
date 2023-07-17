@@ -1,5 +1,5 @@
 import { GraphModel } from './graph-model'
-import { MovablePointModel } from '../adornments/adornment-models'
+import { MovablePointModel } from '../adornments/movable-point/movable-point-model'
 import { kGraphTileType } from '../graph-defs'
 import { defaultBackgroundColor, defaultPointColor, defaultStrokeColor } from "../../../utilities/color-utils"
 

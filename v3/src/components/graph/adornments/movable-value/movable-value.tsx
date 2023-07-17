@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {drag, select} from "d3"
 import {autorun, reaction} from "mobx"
-import {IMovableValueModel} from "../adornment-models"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {kGraphClassSelector} from "../../graphing-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
+import { IMovableValueModel } from "./movable-value-model"
 
 import "./movable-value.scss"
 

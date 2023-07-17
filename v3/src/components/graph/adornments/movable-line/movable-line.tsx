@@ -7,7 +7,7 @@ import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
-import {IMovableLineModel} from "../adornment-models"
+import {IMovableLineModel} from "./movable-line-model"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 
