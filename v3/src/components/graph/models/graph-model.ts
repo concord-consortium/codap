@@ -24,7 +24,7 @@ import {
   defaultStrokeColor,
   kellyColors
 } from "../../../utilities/color-utils"
-import { AdornmentModelUnion } from "../adornments/adornment-models"
+import { AdornmentModelUnion, IAdornmentModel } from "../adornments/adornment-models"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -204,7 +204,7 @@ export const GraphModel = TileContentModel
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show
     },
-    addAdornment(adornment: any) {
+    addAdornment(adornment: IAdornmentModel) {
       self.adornments.push(adornment)
     },
     removeAdornment(type: string) {

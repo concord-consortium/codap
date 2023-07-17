@@ -3,8 +3,7 @@ import React from "react"
 export interface IAdornmentComponentInfo {
   adornmentEltClass: string
   Component: React.ComponentType<any>
-  hint: string
-  label: string
+  labelKey: string
   order: number
   type: string
 }

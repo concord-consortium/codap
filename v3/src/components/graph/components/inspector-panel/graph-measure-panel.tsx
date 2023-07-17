@@ -4,10 +4,8 @@ import t from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphModel } from "../../models/graph-model"
 import { InspectorPalette } from "../../../inspector-panel"
-import { MovableLineModel } from "../../adornments/adornment-models"
-import { computeSlopeAndIntercept} from "../../utilities/graph-utils"
-import { kMovableLineType } from "../../graphing-types"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
+import { getAdornmentContentInfo } from "../../adornments/adornment-content-info"
 
 import "./point-format-panel.scss"
 
@@ -57,23 +55,11 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       isClosable: true,
     })
     if (val && graphModel) {
-      let adornment = undefined
-      // get the xAxis and yAxis from the graphModel
-      const xAxis = graphModel.getAxis('bottom'),
-        yAxis = graphModel.getAxis('left')
-      const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis)
-
-      switch (measure) {
-        // TODO: Handle other adornment types
-        case kMovableLineType:
-          adornment = MovableLineModel.create({
-              type: measure
-          })
-          adornment.setLine({intercept, slope})
-      }
-      if (adornment) {
-        graphModel?.addAdornment(adornment)
-      }
+      const componentContentInfo = getAdornmentContentInfo(measure)
+      if (!componentContentInfo) return null
+      const { modelClass } = componentContentInfo,
+        adornment = modelClass.create({ type: measure })
+      graphModel?.addAdornment(adornment)
     } else {
       graphModel?.removeAdornment(measure)
     }

@@ -1,14 +1,15 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {drag, select} from "d3"
-import {useAxisLayoutContext} from "../../axis/models/axis-layout-context"
-import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {kGraphAdornmentsClassSelector, transitionDuration} from "../graphing-types"
-import {INumericAxisModel} from "../../axis/models/axis-model"
-import {computeSlopeAndIntercept, equationString, IAxisIntercepts, lineToAxisIntercepts} from "../utilities/graph-utils"
-import {IMovableLineModel} from "./adornment-models"
-import { useDataConfigurationContext } from "../hooks/use-data-configuration-context"
-import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
+import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
+import {ScaleNumericBaseType} from "../../../axis/axis-types"
+import {kGraphAdornmentsClassSelector, transitionDuration} from "../../graphing-types"
+import {INumericAxisModel} from "../../../axis/models/axis-model"
+import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
+        lineToAxisIntercepts} from "../../utilities/graph-utils"
+import {IMovableLineModel} from "../adornment-models"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 
 import "./movable-line.scss"
 
@@ -21,7 +22,7 @@ function equationContainer(model: IMovableLineModel, instanceId: string, lineKey
 }
 
 export const MovableLine = (props: {
-  lineKey?: string
+  instanceKey?: string
   model: IMovableLineModel
   plotHeight: number
   plotIndex: number
@@ -30,7 +31,7 @@ export const MovableLine = (props: {
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
 }) => {
-  const {lineKey='', model, plotHeight, plotIndex, plotWidth, transform, xAxis, yAxis} = props,
+  const {instanceKey='', model, plotHeight, plotIndex, plotWidth, transform, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     instanceId = useInstanceIdContext(),
@@ -42,7 +43,7 @@ export const MovableLine = (props: {
     yScaleCopy = yScale.copy(),
     kTolerance = 4, // pixels to snap to horizontal or vertical
     kHandleSize = 12,
-    {equationContainerClass, equationContainerSelector} = equationContainer(model, instanceId, lineKey),
+    {equationContainerClass, equationContainerSelector} = equationContainer(model, instanceId, instanceKey),
     lineRef = useRef() as React.RefObject<SVGSVGElement>,
     [lineObject, setLineObject] = useState<{ [index: string]: any }>({
       line: null, lower: null, middle: null, upper: null, equation: null
@@ -65,26 +66,23 @@ export const MovableLine = (props: {
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1
 
-
-
   // add lines that don't already exist in the model
   useEffect(function addLine() {
-    if (!model.lines.has(lineKey)) {
+    if (!model.lines.has(instanceKey)) {
       const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis)
-      model.setLine({slope, intercept}, lineKey)
+      model.setLine({slope, intercept}, instanceKey)
     }
-  }, [model, lineKey, xAxis, yAxis])
+  }, [instanceKey, model, xAxis, yAxis])
 
   // Refresh the line
   useEffect(function refresh() {
       const disposer = autorun(() => {
-        const lineModel = model.lines.get(lineKey)
-        if (!lineObject.line || !lineModel) {
-          return
-        }
-        const { slope, intercept } = lineModel
-        const {domain: xDomain} = xAxis
-        const {domain: yDomain} = yAxis
+        const lineModel = model.lines.get(instanceKey)
+        if (!lineObject.line || !lineModel) return
+
+        const { slope, intercept } = lineModel,
+          {domain: xDomain} = xAxis,
+          {domain: yDomain} = yAxis
         pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
         function fixEndPoints(iLine: any, index: number) {
@@ -161,7 +159,7 @@ export const MovableLine = (props: {
         refreshEquation()
       })
       return () => disposer()
-    }, [instanceId, pointsOnAxes, lineKey, lineObject, plotHeight, plotWidth, transform, 
+    }, [instanceId, pointsOnAxes, instanceKey, lineObject, plotHeight, plotWidth, transform, 
         xScale, yScale, model, model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount,
         yAxis, xRange, yRange, equationContainerSelector]
   )
@@ -169,18 +167,18 @@ export const MovableLine = (props: {
   const
     // Middle cover drag handler
     continueTranslate = useCallback((event: MouseEvent) => {
-      const lineParams = model.lines?.get(lineKey),
+      const lineParams = model.lines?.get(instanceKey),
         slope = lineParams?.slope || 45,
         equationCoords = lineParams?.equationCoords,
         tWorldX = xScaleCopy.invert(event.x),
         tWorldY = yScaleCopy.invert(event.y)
-      model.setLine({slope, intercept: tWorldY - slope * tWorldX, equationCoords}, lineKey)
-    }, [lineKey, model, xScaleCopy, yScaleCopy]),
+      model.setLine({slope, intercept: tWorldY - slope * tWorldX, equationCoords}, instanceKey)
+    }, [instanceKey, model, xScaleCopy, yScaleCopy]),
 
     // Lower cover drag handler
     continueRotation1 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (!pointsOnAxes.current) return
-      const lineParams = model.lines?.get(lineKey),
+      const lineParams = model.lines?.get(instanceKey),
         currentPivot2 = lineParams?.pivot2,
         equationCoords = lineParams?.equationCoords
       if (event.dx !== 0 || event.dy !== 0) {
@@ -199,15 +197,15 @@ export const MovableLine = (props: {
           newIntercept = isVertical ? pivot2.x : (newPivot1.y - newSlope * newPivot1.x)
         model.setLine(
           {slope: newSlope, intercept: newIntercept, pivot1: newPivot1, pivot2, equationCoords},
-          lineKey
+          instanceKey
         )
       }
-    }, [lineKey, model, xScaleCopy, yScaleCopy]),
+    }, [instanceKey, model, xScaleCopy, yScaleCopy]),
 
     // Upper cover drag handler
     continueRotation2 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (!pointsOnAxes.current) return
-      const lineParams = model.lines?.get(lineKey),
+      const lineParams = model.lines?.get(instanceKey),
         currentPivot1 = lineParams?.pivot1,
         equationCoords = lineParams?.equationCoords
       if (event.dx !== 0 || event.dy !== 0) {
@@ -226,10 +224,10 @@ export const MovableLine = (props: {
           newIntercept = isVertical ? pivot1.x : (newPivot2.y - newSlope * newPivot2.x)
         model.setLine(
           {slope: newSlope, intercept: newIntercept, pivot1, pivot2: newPivot2, equationCoords},
-            lineKey
+          instanceKey
         )
       }
-    }, [lineKey, model, xScaleCopy, yScaleCopy]),
+    }, [instanceKey, model, xScaleCopy, yScaleCopy]),
 
     moveEquation = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -239,7 +237,7 @@ export const MovableLine = (props: {
           equationHeight = equationNode?.getBoundingClientRect().height || 0,
           left = event.x - equationWidth / 2,
           top = event.y - equationHeight / 2,
-          lineModel = model.lines.get(lineKey),
+          lineModel = model.lines.get(instanceKey),
           // Get the percentage of plotWidth of the equation box's coordinates
           // for a more accurate placement of the equation box.
           x = left / plotWidth,
@@ -249,7 +247,7 @@ export const MovableLine = (props: {
         equation.style('left', `${left}px`)
           .style('top', `${top}px`)
       }
-    }, [equationContainerSelector, model.lines, lineKey, plotWidth, plotHeight])
+    }, [equationContainerSelector, model.lines, instanceKey, plotWidth, plotHeight])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -304,20 +302,20 @@ export const MovableLine = (props: {
 
     const equationDiv = select(adornmentContainer).append('div')
       .attr('class', `movable-line-equation-container ${equationContainerClass}`)
-      .attr('data-testid', `movable-line-equation-container-${model.classNameFromKey(lineKey)}`)
+      .attr('data-testid', `movable-line-equation-container-${model.classNameFromKey(instanceKey)}`)
       .style('width', `${plotWidth}px`)
       .style('height', `${plotHeight}px`)
   
     const equationP = equationDiv
       .append('p')
       .attr('class', 'movable-line-equation')
-      .attr('data-testid', `movable-line-equation-${model.classNameFromKey(lineKey)}`)
+      .attr('data-testid', `movable-line-equation-${model.classNameFromKey(instanceKey)}`)
       .on('mouseover', () => { newLineObject.line.style('stroke-width', 2) })
       .on('mouseout', () => { newLineObject.line.style('stroke-width', 1) })
 
     // If the equation is not pinned to the line, set its initial coordinates to
     // the values specified in the model.
-    const equationCoords = model.lines?.get(lineKey)?.equationCoords
+    const equationCoords = model.lines?.get(instanceKey)?.equationCoords
     if (equationCoords?.isValid()) {
       const left = equationCoords.x * 100,
         top = equationCoords.y * 100
@@ -344,8 +342,8 @@ export const MovableLine = (props: {
 
   return (
     <svg
-      className={`line-${model.classNameFromKey(lineKey)}`}
-      style={{height: `${plotHeight}px`, overflow: 'hidden', width: `${plotWidth}px`}}
+      className={`line-${model.classNameFromKey(instanceKey)}`}
+      style={{height: `${plotHeight}px`, width: `${plotWidth}px`}}
       x={0}
       y={0}
     >

@@ -1,6 +1,7 @@
-import {
-  AdornmentModel, MovableLineModel, MovableLineParams, MovableValueModel, PointModel
-} from "./adornment-models"
+import { getSnapshot, types } from "mobx-state-tree"
+import { AdornmentModel, AdornmentModelUnion, IAdornmentModelUnion, MovableLineModel,
+         MovableLineParams, MovablePointModel, MovableValueModel, PointModel,
+         UnknownAdornmentModel, isMovableLine, isMovablePoint, isMovableValue } from "./adornment-models"
 
 describe("PointModel", () => {
   it("is valid if x and y are finite", () => {
@@ -52,9 +53,17 @@ describe("AdornmentModel", () => {
   })
 })
 
+describe("UnknownAdornmentModel", () => {
+  it("is created with its type property set to 'Unknown'", () => {
+    const unknownAdornment = UnknownAdornmentModel.create()
+    expect(unknownAdornment.type).toEqual("Unknown")
+  })
+})
+
 describe("MovableLineModel", () => {
-  it("is created with its lines property set to an empty map", () => {
+  it("is created with its type property set to 'Movable Line' and with its lines property set to an empty map", () => {
     const movableLine = MovableLineModel.create()
+    expect(movableLine.type).toEqual("Movable Line")
     expect(movableLine.lines.size).toEqual(0)
   })
   it("can have a line added to its lines property", () => {
@@ -124,5 +133,71 @@ describe("MovableValueModel", () => {
     const movableValue = MovableValueModel.create({value: 1})
     movableValue.setValue(2)
     expect(movableValue.value).toEqual(2)
+  })
+})
+
+describe("MovablePointModel", () => {
+  it("is created with its type set to 'Movable Point' and with its points property set to an empty map", () => {
+    const movablePoint = MovablePointModel.create()
+    expect(movablePoint.type).toEqual("Movable Point")
+    expect(movablePoint.points.size).toEqual(0)
+  })
+  it("can have a point added to its points property", () => {
+    const point1 = { x: 1, y: 1 }
+    const movablePoint = MovablePointModel.create()
+    movablePoint.setPoint(point1)
+    expect(movablePoint.points.size).toEqual(1)
+    expect(movablePoint.points.get('')).toEqual(point1)
+  })
+  it("can have multiple points added to its points property", () => {
+    const point1 = { x: 1, y: 1 }
+    const point2 = { x: 2, y: 2 }
+    const movablePoint = MovablePointModel.create()
+    movablePoint.setPoint(point1, "point1key")
+    movablePoint.setPoint(point2, "point2key")
+    expect(movablePoint.points.size).toEqual(2)
+    expect(movablePoint.points.get('point1key')).toEqual(point1)
+    expect(movablePoint.points.get('point2key')).toEqual(point2)
+  })
+})
+
+describe("Deserialization", () => {
+  it("provides the information required for deserialization of adornments to the appropriate type", () => {
+    const M = types.model("Test", {
+      adornment: AdornmentModelUnion
+    })
+    .actions(self => ({
+      setAdornment(adornment: IAdornmentModelUnion) {
+        self.adornment = adornment
+      }
+    }))
+
+    const movableLine = MovableLineModel.create({ type: "Movable Line", lines: {} })
+    const testModel = M.create({ adornment: movableLine })
+    expect(isMovableLine(testModel.adornment) && testModel.adornment.lines).toBeDefined()
+    const snap1 = getSnapshot(testModel)
+    const testModel2 = M.create(snap1)
+    expect(isMovableLine(testModel2.adornment) && testModel2.adornment.lines).toBeDefined()
+
+    const movablePoint = MovablePointModel.create({ type: "Movable Point", points: {} })
+    testModel.setAdornment(movablePoint)
+    expect(isMovablePoint(testModel.adornment) && testModel.adornment.points).toBeDefined()
+    const snap2 = getSnapshot(testModel)
+    const testModel3 = M.create(snap2)
+    expect(isMovablePoint(testModel3.adornment) && testModel3.adornment.points).toBeDefined()
+
+    const movableValue = MovableValueModel.create({ type: "Movable Value", value: 1 })
+    testModel.setAdornment(movableValue)
+    expect(isMovablePoint(testModel.adornment) && testModel.adornment.points).toBeDefined()
+    const snap3 = getSnapshot(testModel)
+    const testModel4 = M.create(snap3)
+    expect(isMovableValue(testModel4.adornment) && testModel4.adornment.value).toBeDefined()
+
+    const unknownAdornment = UnknownAdornmentModel.create()
+    testModel.setAdornment(unknownAdornment)
+    expect(testModel.adornment.type).toEqual("Unknown")
+    const snap4 = getSnapshot(testModel)
+    const testModel5 = M.create(snap4)
+    expect(testModel5.adornment.type).toEqual("Unknown")
   })
 })

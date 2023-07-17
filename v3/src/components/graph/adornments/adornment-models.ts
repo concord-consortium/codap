@@ -4,7 +4,10 @@
 
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
-import {Point, kMovableLineType} from "../graphing-types"
+import {Point} from "../graphing-types"
+import { kMovableLineType } from "./movable-line/movable-line-types"
+import { kMovablePointType } from "./movable-point/movable-point-types"
+import { kMovableValueType } from "./movable-value/movable-value-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -61,6 +64,17 @@ export const AdornmentModel = types.model("AdornmentModel", {
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
 
+export const UnknownAdornmentModel = AdornmentModel
+  .named("UnknownAdornmentModel")
+  .props({
+    type: "Unknown"
+  })
+export interface IUnknownAdornmentModel extends Instance<typeof UnknownAdornmentModel> {}
+
+export function isUnknownAdornmentModel(adornmentModel: IAdornmentModel): adornmentModel is IUnknownAdornmentModel {
+  return adornmentModel.type === "Unknown"
+}
+
 export const MovableValueModel = AdornmentModel
   .named('MovableValueModel')
   .props({
@@ -73,6 +87,9 @@ export const MovableValueModel = AdornmentModel
     }
   }))
 export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
+export function isMovableValue(adornment: IAdornmentModel): adornment is IMovableValueModel {
+  return adornment.type === kMovableValueType
+}
 
 export const MovableLineParams = types.model("MovableLineParams", {
     equationCoords: types.maybe(PointModel),
@@ -116,5 +133,31 @@ export function isMovableLine(adornment: IAdornmentModel): adornment is IMovable
   return adornment.type === kMovableLineType
 }
 
-export const AdornmentModelUnion = types.union(MovableValueModel, MovableLineModel)
-export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel
+export const MovablePointModel = AdornmentModel
+  .named('MovablePointModel')
+  .props({
+    type: 'Movable Point',
+    points: types.map(PointModel)
+  })
+  .actions(self => ({
+    setPoint(aPoint: Point, key='') {
+      self.points.set(key, aPoint)
+    }
+  }))
+export interface IMovablePointModel extends Instance<typeof MovablePointModel> {}
+export function isMovablePoint(adornment: IAdornmentModel): adornment is IMovablePointModel {
+  return adornment.type === kMovablePointType
+}
+
+const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
+  switch (adornmentSnap.type) {
+    case "Movable Line": return MovableLineModel
+    case "Movable Point": return MovablePointModel
+    case "Movable Value": return MovableValueModel
+    default: return UnknownAdornmentModel
+  }
+}
+
+export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
+  MovableValueModel, MovableLineModel, MovablePointModel, UnknownAdornmentModel)
+export type IAdornmentModelUnion = IMovableValueModel | IMovableLineModel | IMovablePointModel | IUnknownAdornmentModel
