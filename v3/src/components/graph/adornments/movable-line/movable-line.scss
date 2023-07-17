@@ -26,15 +26,15 @@ svg[class^="line-"] {
 }
 
 .movable-line-lower-cover {
-  cursor: url("../../../../assets/LinePivotBotLeft.png") 8 8, grab;
+  cursor: url("../assets/pivot-bot-left-cursor.png") 8 8, grab;
 }
 
 .movable-line-middle-cover {
-  cursor: url("../../../../assets/LineSlide.png") 8 8, grab;
+  cursor: url("../assets/up-down-cursor.png") 8 8, grab;
 }
 
 .movable-line-upper-cover {
-  cursor: url("../../../../assets/LinePivotTopRight.png") 8 8, grab;
+  cursor: url("../assets/pivot-top-right-cursor.png") 8 8, grab;
 }
 
 .movable-line-equation-container {
