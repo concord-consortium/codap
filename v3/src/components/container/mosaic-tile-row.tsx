@@ -1,11 +1,11 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { IDocumentContentModel } from "../models/document/document-content"
-import { IMosaicTileNode, IMosaicTileRow } from "../models/document/mosaic-tile-row"
-import { getTileComponentInfo } from "../models/tiles/tile-component-info"
-import { ITileModel } from "../models/tiles/tile-model"
-import { CodapComponent } from "./codap-component"
+import { IDocumentContentModel } from "../../models/document/document-content"
+import { IMosaicTileRow, IMosaicTileNode } from "../../models/document/mosaic-tile-row"
+import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { CodapComponent } from "../codap-component"
 
 import "./mosaic-tile-row.scss"
 

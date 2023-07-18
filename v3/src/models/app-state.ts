@@ -32,6 +32,7 @@ class AppState {
     makeObservable(this)
   }
 
+  @computed
   get document() {
     return this.currentDocument
   }
@@ -43,11 +44,9 @@ class AppState {
       if (document) {
         this.currentDocument = document
 
-        // clear data sets from the data broker
-        gDataBroker.clear()
-
         // update data broker with the new data sets
         const manager = getSharedModelManager(document)
+        manager && gDataBroker.setSharedModelManager(manager)
         manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
           gDataBroker.addSharedDataSet(model)
         })

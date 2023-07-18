@@ -1,9 +1,9 @@
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
-import { IFreeTileRow } from "../models/document/free-tile-row"
-import { ITileModel } from "../models/tiles/tile-model"
-import { uiState } from "../models/ui-state"
+import { IFreeTileRow } from "../../models/document/free-tile-row"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { uiState } from "../../models/ui-state"
 import { FreeTileComponent } from "./free-tile-component"
 
 import "./free-tile-row.scss"
