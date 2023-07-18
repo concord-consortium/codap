@@ -57,7 +57,12 @@ export const Adornment = observer(function Adornment({ adornment, index, xCatego
   )
 
   return (
-    <div id={adornmentKey} className={adornmentWrapperClass} style={{animationDuration: `${transitionDuration}ms`}}>
+    <div
+      id={adornmentKey}
+      className={adornmentWrapperClass}
+      style={{animationDuration: `${transitionDuration}ms`}}
+      data-testid={'adornment-wrapper'}
+    >
       <Component
         containerId={adornmentKey}
         key={adornmentKey}
