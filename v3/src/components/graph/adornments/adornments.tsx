@@ -9,6 +9,7 @@ import { IAdornmentModel } from "./adornment-models"
 import { Adornment } from "./adornment"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { getAdornmentContentInfo } from "./adornment-content-info"
 
 import "./adornments.scss"
 
@@ -73,6 +74,10 @@ export const Adornments = observer(function Adornments() {
       >
         {
           adornments.map((adornment: IAdornmentModel) => {
+            // skip adornments that don't support current plot type
+            const adornmentContentInfo = getAdornmentContentInfo(adornment.type)
+            if (!adornmentContentInfo.plots.includes(graphModel.plotType)) return
+
             return <Adornment
                      key={`graph-adornment-${adornment.id}-${cellsRendered}`}
                      adornment={adornment}

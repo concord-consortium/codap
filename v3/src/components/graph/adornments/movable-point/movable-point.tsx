@@ -51,17 +51,19 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     initX = xMax - (xMax - xMin) / 4,
     initY = yMax - (yMax - yMin) / 4
 
-  // get attributes for use in coordinates box
+  // get attributes for use in coordinates box and for determining when to reset the point
+  // to the initial position when the attributes have changed
   const allAttributes = dataConfig?.dataset?.attributes,
     xAttrId = dataConfig?.attributeID('x') || '',
     yAttrId = dataConfig?.attributeID('y') || '',
     xAttr = allAttributes?.find(attr => attr.id === xAttrId),
     yAttr = allAttributes?.find(attr => attr.id === yAttrId),
     xAttrName = xAttr?.name ?? '',
-    yAttrName = yAttr?.name ?? ''
+    yAttrName = yAttr?.name ?? '',
+    xAttrNameRef = useRef(xAttrName),
+    yAttrNameRef = useRef(yAttrName)
 
   const showCoordinates = useCallback((event: MouseEvent) => {
-    if (!model.points) return
     const xValue = model.points.get(instanceKey)?.x ?? 0,
       yValue = model.points.get(instanceKey)?.y ?? 0,
       string = `${xAttrName}: ${xValue}<br />${yAttrName}: ${yValue}`
@@ -103,23 +105,28 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
-    if (!model.points) return
+    // if attributes have changed, reset the point to the initial position
+    if (xAttrName !== xAttrNameRef.current || yAttrName !== yAttrNameRef.current) {
+      model.setPoint({x: initX, y: initY}, instanceKey)
+      xAttrNameRef.current = xAttrName
+      yAttrNameRef.current = yAttrName
+    }
+
     const xValue = model.points.get(instanceKey)?.x ?? 0,
       yValue = model.points.get(instanceKey)?.y ?? 0,
       xPoint = xScale(xValue) / xSubAxesCount,
       yPoint = yScale(yValue) / ySubAxesCount
 
       movePoint(xPoint, yPoint)
-  }, [graphHeight, graphWidth, instanceKey, model.points, movePoint, 
-      xAxis.domain, xScale, xSubAxesCount, yAxis.domain, yScale, ySubAxesCount])
+  }, [graphHeight, graphWidth, initX, initY, instanceKey, model, model.points, movePoint,
+      xAttrName, xAxis.domain, xScale, xSubAxesCount, yAttrName, yAxis.domain, yScale, ySubAxesCount])
 
-  // add points that don't already exist in the model
-  useEffect(function addPoint() {
-    if (!model.points) return
-    if (!model.points.has(instanceKey)) {
-      model.setPoint({x: initX, y: initY}, instanceKey)
-    }
-  }, [model, instanceKey, initX, initY])
+  useEffect(function initializePoint() {
+    model.setPoint({x: initX, y: initY}, instanceKey)
+    // This effect should only run once on mount, otherwise it can incorrectly
+    // set the point's coordinates to the initial values afterward
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Add behaviors to the point
   useEffect(function addBehaviors() {
@@ -132,8 +139,8 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       newPointObject: any = {}
 
     newPointObject.shadow = selection.append('circle')
-      .attr('cx', xScale(initX) + 1)
-      .attr('cy', yScale(initY) + 1)
+      .attr('cx', xScale(initX) / xSubAxesCount + 1)
+      .attr('cy', yScale(initY) / ySubAxesCount + 1)
       .attr('r', 8)
       .attr('fill', 'none')
       .attr('stroke', '#a9a9a9')

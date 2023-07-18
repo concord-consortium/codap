@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
+import { observer } from "mobx-react-lite"
 import {drag, select} from "d3"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
@@ -30,7 +31,7 @@ interface IProps {
   yAxis: INumericAxisModel
 }
 
-export function MovableLine (props: IProps) {
+export const MovableLine = observer(function MovableLine(props: IProps) {
   const {containerId, instanceKey='', model, plotHeight, plotWidth, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
@@ -338,4 +339,4 @@ export function MovableLine (props: IProps) {
       </g>
     </svg>
   )
-}
+})
