@@ -6,15 +6,12 @@
 - The box containing a movable line's equation can be repositioned by the user [#185472784](https://www.pivotaltracker.com/story/show/185472784)
 - A **movable line**'s "drag handles" should disappear if the graph is not the active component [#185473022](https://www.pivotaltracker.com/story/show/185473022)
 - The position of a movable line's equation should be saved and restored when it has become unpinned from the line [#185556213](https://www.pivotaltracker.com/story/show/185556213)
-- Hierarchical case table -- synchronized scrolling across collections [#184540561](https://www.pivotaltracker.com/story/show/184540561)
-- Eliminate (or hide behind a URL parameter) default dashboard content [#184210690](https://www.pivotaltracker.com/story/show/184210690)
 
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
 | index.css |   44443 bytes |                            0.97% |
 |  index.js | 3091787 bytes |                            0.22% |
-
 
 ## Version 3.0.0-pre.1270 - July 10, 2023
 
