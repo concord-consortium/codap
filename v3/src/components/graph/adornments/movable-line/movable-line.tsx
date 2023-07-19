@@ -5,7 +5,8 @@ import {drag, select} from "d3"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
-import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../../utilities/graph-utils"
+import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
+        lineToAxisIntercepts} from "../../utilities/graph-utils"
 import {IMovableLineModel} from "../adornment-models"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
@@ -160,12 +161,26 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
     // Middle cover drag handler
     continueTranslate = useCallback((event: MouseEvent) => {
       const lineParams = model.lines?.get(instanceKey),
-        slope = lineParams?.slope || 45,
+        slope = lineParams?.slope || 0,
         equationCoords = lineParams?.equationCoords,
         tWorldX = xScaleCopy.invert(event.x),
         tWorldY = yScaleCopy.invert(event.y)
-      model.setLine({slope, intercept: tWorldY - slope * tWorldX, equationCoords}, instanceKey)
-    }, [instanceKey, model, xScaleCopy, yScaleCopy]),
+
+      // If the line is dragged outside plot area, reset it to the initial state
+      if (
+          tWorldX < xScaleCopy.domain()[0] ||
+          tWorldX > xScaleCopy.domain()[1] ||
+          tWorldY < yScaleCopy.domain()[0] ||
+          tWorldY > yScaleCopy.domain()[1]
+      ) {
+        const { intercept, slope: initSlope } = computeSlopeAndIntercept(xAxis, yAxis)
+        model.setLine({slope: initSlope, intercept}, instanceKey)
+        return
+      }
+
+      const newIntercept = isFinite(slope) ? tWorldY - slope * tWorldX : tWorldX
+      model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
+    }, [instanceKey, model, xAxis, xScaleCopy, yAxis, yScaleCopy]),
 
     // Lower cover drag handler
     continueRotation1 = useCallback((event: { x: number, y: number, dx: number, dy: number }) => {
