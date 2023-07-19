@@ -27,6 +27,10 @@ svg[class^="line-"] {
 
 .movable-line-lower-cover {
   cursor: url("../assets/pivot-bot-left-cursor.png") 8 8, grab;
+
+  &.negative-slope {
+    cursor: url("../assets/pivot-top-left-cursor.png") 8 8, grab;
+  }
 }
 
 .movable-line-middle-cover {
@@ -35,6 +39,10 @@ svg[class^="line-"] {
 
 .movable-line-upper-cover {
   cursor: url("../assets/pivot-top-right-cursor.png") 8 8, grab;
+
+  &.negative-slope {
+    cursor: url("../assets/pivot-bot-right-cursor.png") 8 8, grab;
+  }
 }
 
 .movable-line-equation-container {
