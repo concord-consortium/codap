@@ -23,13 +23,12 @@ sc_require('utilities/clipboard_utilities');
 
 /** @class
 
-  Top-level coordinating controller for the DG application.
+   Top-level coordinating controller for the DG application.
 
  @extends SC.Object
  */
-DG.appController = SC.Object.create((function () // closure
-/** @scope DG.appController.prototype */ {
-
+DG.appController = SC.Object.create((function() // closure
+   /** @scope DG.appController.prototype */ {
 
   return {  // return from closure
 
@@ -64,11 +63,15 @@ DG.appController = SC.Object.create((function () // closure
         var containerView = view.parentView;
         containerView.removeComponentView(view);
       }
-      function selectView (componentView) {
-        if (componentView) {
-          componentView.invokeLater(function () { componentView.showAndSelect(); });
+
+      function selectView(componentView) {
+        if(componentView) {
+          componentView.invokeLater(function() {
+            componentView.showAndSelect();
+          });
         }
       }
+
       // is there a data context? if so, is there a case table for it? If so,
       // select it. If not create it. If there is no data context, create a
       // new one.
@@ -78,36 +81,36 @@ DG.appController = SC.Object.create((function () // closure
       var foundView;
       var caseTable;
       // If no data context, we create a new one.
-      if (SC.none(dataContext) && action === 'openCaseTableForNewContext') {
+      if(SC.none(dataContext) && action === 'openCaseTableForNewContext') {
         DG.UndoHistory.execute(DG.Command.create({
           name: 'dataContext.create',
           undoString: 'DG.Undo.dataContext.create',
           redoString: 'DG.Redo.dataContext.create',
           log: 'createNewEmptyDataSet',
           isUndoable: false,
-          execute: function () {
+          execute: function() {
             dataContext = DG.appController.createMinimalDataContext(
-                'DG.AppController.createDataSet.initialAttribute'.loc(), /*'AttributeName'*/
-                'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */);
+               'DG.AppController.createDataSet.initialAttribute'.loc(), /*'AttributeName'*/
+               'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */);
             caseTable = documentController.addCaseTable(
-                DG.mainPage.get('docView'), null,
-                {position: 'top', dataContext: dataContext});
-            this.invokeLater(function () {
+               DG.mainPage.get('docView'), null,
+               { position: 'top', dataContext: dataContext });
+            this.invokeLater(function() {
               caseTable.setFocusToComponentTitle();
             }, 1000);
           },
-          undo: function () {
+          undo: function() {
             documentController.destroyDataContext(dataContext.get('id'));
           },
-          redo: function () {
+          redo: function() {
             this.execute();
           }
         }));
-      } else if (SC.none(dataContext) && action === 'openNewDataSetFromClipboard') {
+      } else if(SC.none(dataContext) && action === 'openNewDataSetFromClipboard') {
         this.openNewDataSetFromClipboard();
       } else {
         foundView = documentController.tableCardRegistry.getViewForContext(dataContext);
-        if (foundView) {
+        if(foundView) {
           // find its view and make it selected
           selectView(foundView);
         } else {
@@ -116,18 +119,18 @@ DG.appController = SC.Object.create((function () // closure
             undoString: 'DG.Undo.caseTable.open',
             redoString: 'DG.Redo.caseTable.open',
             log: 'openCaseTable: {name: "%@"}'.fmt(dataContext.get('name')),
-            executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'table'),
-            undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'table'),
-            execute: function () {
+            executeNotification: DG.UndoHistory.makeComponentNotification('create', 'table'),
+            undoNotification: DG.UndoHistory.makeComponentNotification('delete', 'table'),
+            execute: function() {
               caseTable = documentController.addCaseTable(
-                  DG.mainPage.get('docView'), null,
-                  {position: 'top', dataContext: dataContext});
+                 DG.mainPage.get('docView'), null,
+                 { position: 'top', dataContext: dataContext });
               selectView(caseTable);
             },
-            undo: function () {
+            undo: function() {
               removeCaseDisplay(caseTable.getPath('model.id'));
             },
-            redo: function () {
+            redo: function() {
               this.execute();
             }
           }));
@@ -139,7 +142,7 @@ DG.appController = SC.Object.create((function () // closure
     /**
      * Initialization function.
      */
-    init: function () {
+    init: function() {
       sc_super();
 
       // Without the SC.run() we get warnings about invokeOnce() being called
@@ -148,103 +151,102 @@ DG.appController = SC.Object.create((function () // closure
       // in a run loop to quiet the warnings.
       SC.run(function() {
         this.tileMenuPane = DG.MenuPane.create({
-          showTileList: function (iAnchor) {
+          showTileList: function(iAnchor) {
             this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
             this.popup(iAnchor);
           },
-          layout: {width: 150},
-          menuItemDidChange: function () {
+          layout: { width: 150 },
+          menuItemDidChange: function() {
             var tItemView = this.getPath('currentMenuItem.content.target'),
-              tPrevItemView = this.getPath('previousMenuItem.content.target');
-            if (tItemView) {
+               tPrevItemView = this.getPath('previousMenuItem.content.target');
+            if(tItemView) {
               tItemView.get('parentView').bringToFront(tItemView);
               tItemView.$().addClass('dg-component-view-staging');
               tItemView.scrollToVisible();
             }
-            if (tPrevItemView && tPrevItemView !== tItemView)
+            if(tPrevItemView && tPrevItemView !== tItemView)
               tPrevItemView.$().removeClass('dg-component-view-staging');
           }.observes('currentMenuItem', 'previousMenuItem'),
-          willRemoveFromDocument: function () {
+          willRemoveFromDocument: function() {
             var tItem = this.get('currentMenuItem'),
-              tPrevItem = this.get('previousMenuItem');
-            if (tItem)
+               tPrevItem = this.get('previousMenuItem');
+            if(tItem)
               tItem.getPath('content.target').$().removeClass('dg-component-view-staging');
-            if (tPrevItem)
+            if(tPrevItem)
               tPrevItem.getPath('content.target').$().removeClass('dg-component-view-staging');
           }
         });
         this.caseTableMenuPane = DG.MenuPane.create({
-          showMenu: function (iAnchor) {
+          showMenu: function(iAnchor) {
             this.set('items', DG.appController.get('caseTableMenuItems'));
             this.popup(iAnchor);
           },
-          selectedItemDidChange: function () {
+          selectedItemDidChange: function() {
             DG.appController.showCaseDisplayFor(this.get('selectedItem'));
           }.observes('selectedItem'),
           itemLayerIdKey: 'id',
-          layout: {width: 150}
+          layout: { width: 150 }
         });
         this.pluginMenuPane = DG.MenuPane.create({
-          init: function () {
+          init: function() {
             sc_super();
             var pluginMetadataURL = DG.get('pluginMetadataURL');
-            if (!pluginMetadataURL) {
+            if(!pluginMetadataURL) {
               DG.logWarn('Plugin metadata URL absent.');
             }
             // Retrieve plugin metadata for later reference
             $.ajax(pluginMetadataURL, {
-              success: function (data) {
-                SC.run(function () {
-                DG.set('pluginMetadata', data);
-                this.set('items', DG.appController.get('pluginMenuItems'));
+              success: function(data) {
+                SC.run(function() {
+                  DG.set('pluginMetadata', data);
+                  this.set('items', DG.appController.get('pluginMenuItems'));
                 }.bind(this));
               }.bind(this),
-              error: function () {
+              error: function() {
                 DG.logError('Plugin Metadata Get failed: ' + pluginMetadataURL);
               }
             });
           },
-          showMenu: function (iAnchor) {
+          showMenu: function(iAnchor) {
             this.popup(iAnchor);
           },
-          openStandardPlugin: function (pluginDef) {
+          openStandardPlugin: function(pluginDef) {
             var doc = DG.currDocumentController();
             var tComponent = DG.Component.createComponent({
               type: "DG.GameView",
-              document: doc.get('content') ,
+              document: doc.get('content'),
               componentStorage: {
                 currentGameName: pluginDef.title,
                 currentGameUrl: pluginDef.url,
                 allowInitGameOverride: true
               }
             });
-            doc.createComponentAndView( tComponent);
+            doc.createComponentAndView(tComponent);
           },
-          selectedItemDidChange: function () {
+          selectedItemDidChange: function() {
             var selectedItem = this.get('selectedItem');
-            if (selectedItem) {
+            if(selectedItem) {
               this.openStandardPlugin(selectedItem);
               this.set('selectedItem', null);
             }
           }.observes('selectedItem'),
           itemLayerIdKey: 'id',
-          layout: {width: 150}
+          layout: { width: 150 }
         });
         this.optionMenuPane = DG.MenuPane.create({
           items: this.get('optionMenuItems'),
           itemLayerIdKey: 'id',
-          layout: {width: 150}
+          layout: { width: 150 }
         });
         this.guideMenuPane = SC.MenuPane.create({
-          layout: {width: 250}
+          layout: { width: 250 }
         });
         this.helpMenuPane = DG.MenuPane.create({
           items: this.get('helpMenuItems'),
           itemLayerIdKey: 'id',
-          layout: {width: 150}
+          layout: { width: 150 }
         });
       }.bind(this));
-
 
       // Give the user a chance to confirm/cancel before closing, reloading,
       // or navigating away from the page. The sites listed below provide some
@@ -257,25 +259,24 @@ DG.appController = SC.Object.create((function () // closure
       // https://bugzilla.mozilla.org/show_bug.cgi?id=588292 for discussion of Firefox functionality.
       // TODO: This confirmation message can cause an unescapable loop if
       // TODO: saving fails. Need a way out in these circumstances.
-      window.onbeforeunload = function (iEvent) {
-        if (DG.currDocumentController().get('hasUnsavedChanges') &&
-            (DG.get('embeddedMode') === 'no') &&
-            (DG.get('componentMode') === 'no')) {
+      window.onbeforeunload = function(iEvent) {
+        if(DG.currDocumentController().get('hasUnsavedChanges') &&
+           (DG.get('embeddedMode') === 'no') &&
+           (DG.get('componentMode') === 'no')) {
           return 'DG.AppController.beforeUnload.confirmationMessage'.loc();
         }
       };
     },
 
-
     dataSetDeleteAgent: SC.Object.extend({
-      deleteWithAlert: function (menu) {
+      deleteWithAlert: function(menu) {
         DG.AlertPane.warn({
           dataContext: this.dataContext,
-          doDelete: function () {
+          doDelete: function() {
             DG.currDocumentController().destroyDataContext(this.get('dataContext').get('id'));
           },
           message: 'DG.TableController.deleteDataSet.confirmMessage'.loc(
-              this.get('dataContext').get('title')),
+             this.get('dataContext').get('title')),
           description: 'DG.TableController.deleteDataSet.confirmDescription'.loc(),
           buttons: [{
             title: 'DG.TableController.deleteDataSet.okButtonTitle',
@@ -289,20 +290,20 @@ DG.appController = SC.Object.create((function () // closure
         });
       }
     }),
-    caseTableMenuItems: function () {
+    caseTableMenuItems: function() {
       var documentController = DG.currDocumentController();
       var dataContexts = documentController.get('contexts');
-      var menuItems = dataContexts.map(function (dataContext) {
+      var menuItems = dataContexts.map(function(dataContext) {
         var viewType = documentController.tableCardRegistry.getActiveViewTypeForContext(dataContext.get('id'));//'DG.CaseTable' || 'DG.CaseCard'
         return {
           localize: false,
           title: dataContext.get('title'),
           toolTip: 'DG.AppController.caseTableMenu.openCaseTableToolTip',
           target: DG.appController,
-          icon: viewType==='DG.CaseCard'? 'tile-icon-card': 'tile-icon-table',
+          icon: viewType === 'DG.CaseCard' ? 'tile-icon-card' : 'tile-icon-table',
           dataContext: dataContext,
           rightIcon: 'dg-trash-icon',
-          rightTarget: this.dataSetDeleteAgent.create({dataContext: dataContext}),
+          rightTarget: this.dataSetDeleteAgent.create({ dataContext: dataContext }),
           rightAction: 'deleteWithAlert',
           rightToolTip: 'DG.AppController.caseTableMenu.deleteDataSetToolTip'
         };
@@ -326,49 +327,61 @@ DG.appController = SC.Object.create((function () // closure
       });
       return menuItems;
     }.property(),
-    pluginMenuItems: function () {
+    pluginMenuItems: function() {
       // DG.log('Making plugin menu items');
       var baseURL = DG.get('pluginURL');
       var pluginMetadata = DG.get('pluginMetadata');
-      var items = pluginMetadata? pluginMetadata.map(function (pluginData) {
+      var items = pluginMetadata ? pluginMetadata.map(function(pluginData) {
         return {
           localize: true,
-          title: pluginData["title-string"]?pluginData["title-string"].loc():pluginData.title,
+          title: pluginData["title-string"] ? pluginData["title-string"].loc() : pluginData.title,
           url: baseURL + pluginData.path,
           target: this,
-          toolTip: pluginData["description-string"]?pluginData["description-string"].loc():pluginData.description,
+          toolTip: pluginData["description-string"] ? pluginData["description-string"].loc() : pluginData.description,
           dgAction: 'openPlugin',
           dimensions: {
             width: pluginData.width || 400,
             height: pluginData.height || 300
           },
-          icon: pluginData.icon? baseURL + pluginData.icon: 'tile-icon-mediaTool',
+          icon: pluginData.icon ? baseURL + pluginData.icon : 'tile-icon-mediaTool',
           // replace spaces with hyphens when creating the id
           id: 'dg-pluginMenuItem-' + pluginData.title.replace(/ /g, '-')
         };
-      }): [];
+      }) : [];
       return items;
     }.property(),
 
-    optionMenuItems: function () {
+    optionMenuItems: function() {
       return [
-        { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
-          target: this, dgAction: 'viewWebPage', id: 'dg-optionMenuItem-view_webpage' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
-          target: this, dgAction: 'configureGuide', id: 'dg-optionMenuItem-configure-guide' }
+        {
+          localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
+          target: this, dgAction: 'viewWebPage', id: 'dg-optionMenuItem-view_webpage'
+        },
+        {
+          localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
+          target: this, dgAction: 'configureGuide', id: 'dg-optionMenuItem-configure-guide'
+        }
       ];
     }.property(),
 
-    helpMenuItems: function () {
+    helpMenuItems: function() {
       return [
-        { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
-          target: this, dgAction: 'showHelpSite', id: 'dg-optionMenuItem-help-website' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.help-forum', // "Help...",
-          target: this, dgAction: 'showHelpForum', id: 'dg-optionMenuItem-help-forum' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
-          target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.toPrivacyPage', // "CODAP privacy...",
-          target: this, dgAction: 'showPrivacyPage', id: 'dg-optionMenuItem-privacy-page' }
+        {
+          localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
+          target: this, dgAction: 'showHelpSite', id: 'dg-optionMenuItem-help-website'
+        },
+        {
+          localize: true, title: 'DG.AppController.optionMenuItems.help-forum', // "Help...",
+          target: this, dgAction: 'showHelpForum', id: 'dg-optionMenuItem-help-forum'
+        },
+        {
+          localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
+          target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website'
+        },
+        {
+          localize: true, title: 'DG.AppController.optionMenuItems.toPrivacyPage', // "CODAP privacy...",
+          target: this, dgAction: 'showPrivacyPage', id: 'dg-optionMenuItem-privacy-page'
+        }
         // { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
         //   target: this, dgAction: 'reportProblem', id: 'dg-optionMenuItems-report-problem' }
       ];
@@ -378,47 +391,48 @@ DG.appController = SC.Object.create((function () // closure
       var _this = this;
 
       window.focus();
-      if (document.activeElement) {
+      if(document.activeElement) {
         document.activeElement.blur();
       }
 
       window.navigator.clipboard.readText().then(
-          function(data) {
-            SC.run(function () {
-              if (/^https?:\/\/[^\n]*$/.test(data)) {
-                _this.importURL(data);
-              } else {
-                _this.openCSVImporter({
-                  contentType: 'text/csv',
-                  text: data,
-                  datasetName: 'clipboard data',
-                  showCaseTable: true
-                });
-              }
-            });
-          },
-          function (err) {
-            // maybe user didn't grant access to read from clipboard
-            console.log('Error importing from clipboard: ', err);
-          }
+         function(data) {
+           SC.run(function() {
+             if(/^https?:\/\/[^\n]*$/.test(data)) {
+               _this.importURL(data);
+             } else {
+               _this.openCSVImporter({
+                 contentType: 'text/csv',
+                 text: data,
+                 datasetName: 'clipboard data',
+                 showCaseTable: true
+               });
+             }
+           });
+         },
+         function(err) {
+           // maybe user didn't grant access to read from clipboard
+           console.log('Error importing from clipboard: ', err);
+         }
       );
     },
 
-    extractNameFromURLPath: function (iURL) {
+    extractNameFromURLPath: function(iURL) {
       function parseURL(url) {
         var a = document.createElement('a');
         a.href = url;
         return a;
       }
+
       var parsedURL = parseURL(iURL);
-      if (parsedURL.protocol === 'data:') {
+      if(parsedURL.protocol === 'data:') {
         return 'data';
       }
       var fullPathname = parsedURL.pathname;
-      var path = fullPathname?fullPathname
-          .replace(/\/$/, '')
-          .replace(/.*\//, '')
-          .replace(/\.[^.]*$/, '')||iURL:iURL;
+      var path = fullPathname ? fullPathname
+                                   .replace(/\/$/, '')
+                                   .replace(/.*\//, '')
+                                   .replace(/\.[^.]*$/, '') || iURL : iURL;
       return path;
     },
     /**
@@ -428,7 +442,7 @@ DG.appController = SC.Object.create((function () // closure
      * @param {Boolean} iShowCaseTable
      * @return {Deferred|undefined}
      */
-    importTextFromUrl: function (iURL, iShowCaseTable, iName) {
+    importTextFromUrl: function(iURL, iShowCaseTable, iName) {
       var name = iName || this.extractNameFromURLPath(iURL);
       this.openCSVImporter({
         contentType: 'text/csv',
@@ -437,7 +451,7 @@ DG.appController = SC.Object.create((function () // closure
         showCaseTable: iShowCaseTable
       });
     },
-    importGeoJSONFromURL: function (iURL) {
+    importGeoJSONFromURL: function(iURL) {
       var name = this.extractNameFromURLPath(iURL);
       this.openGeoJSONImporter({
         contentType: 'application/geo+json',
@@ -475,19 +489,19 @@ DG.appController = SC.Object.create((function () // closure
      *                           showCaseTable: whether to display the case
      *                                  table for the new context
      */
-    openCSVImporter: function (iConfig) {
+    openCSVImporter: function(iConfig) {
       this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
-    openGeoJSONImporter: function (iConfig) {
+    openGeoJSONImporter: function(iConfig) {
       this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
-    openHTMLImporter: function (iConfig) {
+    openHTMLImporter: function(iConfig) {
       this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
-    openGoogleSheetsImporter: function (iConfig) {
+    openGoogleSheetsImporter: function(iConfig) {
       this.openImporterPlugin('Importer', '/Importer/', iConfig);
     },
 
@@ -497,27 +511,25 @@ DG.appController = SC.Object.create((function () // closure
      * @param {string} iURL The url of a text (e.g. CSV) file as a data uri
      * @return {Deferred|undefined}
      */
-    importCSVFromDataUri: function (iURL) {
-      if (iURL) {
+    importCSVFromDataUri: function(iURL) {
+      if(iURL) {
         var urlParts = iURL.match(/^data:text\/csv;((base64),|(charset)=([^,]+),)?(.*)$/);
-        if (urlParts) {
+        if(urlParts) {
           var doc = urlParts[5];
-          if (urlParts[2] === "base64") {
+          if(urlParts[2] === "base64") {
             try {
               doc = atob(doc);
-            }
-            catch (e) {
+            } catch (e) {
               doc = null;
               DG.logWarn(e);
             }
-          }
-          else {
+          } else {
             // keep decoding until there are no encoded characters (to ensure against double encoding)
             while (doc.match(/%[0-9a-f]{2}/i)) {
               doc = decodeURIComponent(doc);
             }
           }
-          if (doc !== null) {
+          if(doc !== null) {
             SC.run(function() {
               return this.importText(doc, "Imported CSV");
             }.bind(this));
@@ -532,18 +544,18 @@ DG.appController = SC.Object.create((function () // closure
      * @param iContextName {string}
      * @return {DG.DataContext}
      */
-    createMinimalDataContext: function (iColumnName, iContextName) {
+    createMinimalDataContext: function(iColumnName, iContextName) {
       // Create document-specific store.
       var context, contextRecord,
-          documentController = DG.currDocumentController(),
-          baseContextName = iContextName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
-          contextName = baseContextName,
-          collectionName = 'DG.AppController.createDataSet.collectionName'.loc(),
-          i = 1;
+         documentController = DG.currDocumentController(),
+         baseContextName = iContextName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
+         contextName = baseContextName,
+         collectionName = 'DG.AppController.createDataSet.collectionName'.loc(),
+         i = 1;
 
       // guarantee uniqueness of data context name/title
       while (documentController.getContextByName(contextName) ||
-              documentController.getContextByTitle(contextName)) {
+             documentController.getContextByTitle(contextName)) {
         contextName = baseContextName + " " + (++i);
       }
 
@@ -574,7 +586,7 @@ DG.appController = SC.Object.create((function () // closure
      * @param { Boolean } iShowCaseTable Defaults to true
      * @returns {Boolean}
      */
-    importText: function( iText, iName, iFilename, iShowCaseTable) {
+    importText: function(iText, iName, iFilename, iShowCaseTable) {
       this.openCSVImporter({
         contentType: 'text/csv',
         text: iText,
@@ -585,7 +597,7 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
-    importHTMLTable: function (iText) {
+    importHTMLTable: function(iText) {
       this.openHTMLImporter({
         contentType: 'text/html',
         text: iText
@@ -593,7 +605,7 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
-    importGoogleSheets: function (iURL) {
+    importGoogleSheets: function(iURL) {
       var config = {
         contentType: 'application/vnd.google-apps.spreadsheet',
         url: iURL,
@@ -614,13 +626,16 @@ DG.appController = SC.Object.create((function () // closure
 
         newImg.src = imgSrc; // this must be done AFTER setting onload
       }
+
       var documentController = DG.currDocumentController();
-      var tName = iName? iName.slice(0,30): '';
-      determineImageSize(iURL, function (iWidth, iHeight) {
-        SC.run(function () {
-          documentController.addImageView(  DG.mainPage.get('docView'), null,
-              iURL, tName, {width: Math.min(iWidth, 480),
-                height: Math.min(iHeight + 25, 385) });
+      var tName = iName ? iName.slice(0, 30) : '';
+      determineImageSize(iURL, function(iWidth, iHeight) {
+        SC.run(function() {
+          documentController.addImageView(DG.mainPage.get('docView'), null,
+             iURL, tName, {
+               width: Math.min(iWidth, 480),
+               height: Math.min(iHeight + 25, 385)
+             });
         });
       });
     },
@@ -631,27 +646,27 @@ DG.appController = SC.Object.create((function () // closure
      * @param iComponentType - (optional) the type of the component, defaults to DG.GameView
      * @returns {Boolean}
      */
-    importURL: function (iURL, iComponentType, iName) {
+    importURL: function(iURL, iComponentType, iName) {
 
-      var addInteractive = function () {
+      var addInteractive = function() {
         var tDoc = DG.currDocumentController(),
-            tComponent;
+           tComponent;
 
         switch (iComponentType || "DG.GameView") {
           case "DG.GameView":
             tComponent = DG.Component.createComponent({
               "type": "DG.GameView",
-              "document": tDoc.get('content') ,
+              "document": tDoc.get('content'),
               "componentStorage": {
                 "currentGameName": "",
                 "currentGameUrl": iURL,
                 allowInitGameOverride: true
               }
             });
-            tDoc.createComponentAndView( tComponent);
+            tDoc.createComponentAndView(tComponent);
             break;
           case "DG.WebView":
-            tDoc.addWebView(DG.mainPage.get('docView'), null, iURL, 'Web Page', {width: 600, height: 400});
+            tDoc.addWebView(DG.mainPage.get('docView'), null, iURL, 'Web Page', { width: 600, height: 400 });
             break;
         }
       }.bind(this);
@@ -663,9 +678,11 @@ DG.appController = SC.Object.create((function () // closure
 
       var mimeSpec = this.matchMimeSpec(baseURL, iComponentType);
 
-      if (!mimeSpec) { mimeSpec = {group:'UNKOWN',mime: ['unkown']}; }
+      if(!mimeSpec) {
+        mimeSpec = { group: 'UNKOWN', mime: ['unkown'] };
+      }
       DG.log('Opening url "%@" of type %@'.loc(iURL, mimeSpec.mime[0]));
-      if (mimeSpec) {
+      if(mimeSpec) {
         switch (mimeSpec.group) {
           case 'TEXT':
             this.importTextFromUrl(iURL, false, iName);
@@ -692,35 +709,56 @@ DG.appController = SC.Object.create((function () // closure
 
     importDrawToolWithDataURL: function(iDataURL, iTitle) {
       var kWidth = 600, kHeight = 400,
-          kComponentType = 'DG.GameView',
-          layout = { width : kWidth, height: kHeight },
-          drawToolUrl = DG.get('drawToolPluginURL'),
-          title = "DG.DataDisplayMenu.imageOfTitle".loc(iTitle),
-          tDoc = DG.currDocumentController(),
-          tComponent = DG.Component.createComponent({
-            type: kComponentType,
-            document: tDoc.get('content'),
-            layout: layout,
-            componentStorage: {
-              currentGameName: title,
-              currentGameUrl: drawToolUrl,
-              allowInitGameOverride: true
-            }
-          }),
-          tComponentArgs = { initiatedViaCommand: true },
-          tView = tDoc.createComponentAndView(tComponent, kComponentType, tComponentArgs),
-          tSuperView = tView && tView.get('parentView'),
-          tController = tView && tView.get('controller');
-      if (tSuperView && tSuperView.positionNewComponent)
+         kComponentType = 'DG.GameView',
+         layout = { width: kWidth, height: kHeight },
+         drawToolUrl = DG.get('drawToolPluginURL'),
+         title = "DG.DataDisplayMenu.imageOfTitle".loc(iTitle),
+         tDoc = DG.currDocumentController(),
+         tComponent = DG.Component.createComponent({
+           type: kComponentType,
+           document: tDoc.get('content'),
+           layout: layout,
+           componentStorage: {
+             currentGameName: title,
+             currentGameUrl: drawToolUrl,
+             allowInitGameOverride: true
+           }
+         }),
+         tComponentArgs = { initiatedViaCommand: true },
+         tView = tDoc.createComponentAndView(tComponent, kComponentType, tComponentArgs),
+         tSuperView = tView && tView.get('parentView'),
+         tController = tView && tView.get('controller');
+      if(tSuperView && tSuperView.positionNewComponent) {
         tSuperView.positionNewComponent(tView, 'top', true);
-      if (tController && tController.sendCommand)
-        tController.sendCommand({ action: 'update', resource: 'backgroundImage', values: { image: iDataURL }});
+        /**
+         * The following is a workaround for a bug that occurs in Safari where the draw tool
+         * doesn't display the graph image until it receives notification of a resize event
+         * It appears to be necessary to delay the notification until after the draw tool
+         * has been displayed and settled down.
+         * We don't special case Safari because this work around has the beneficial effect
+         * of getting rid of a gray strip on the right edge of the draw tool canvas.
+         */
+        this.invokeLater(function() {
+          DG.currDocumentController().notificationManager.sendNotification({
+            action: 'notify',
+            resource: 'component',
+            values: {
+              "operation": "resize",
+              "type": "DG.GameView",
+              "id": tView.getPath('model.id'),
+              "title": "DrawTool"
+            }
+          });
+        }, 1000);
+      }
+      if(tController && tController.sendCommand)
+        tController.sendCommand({ action: 'update', resource: 'backgroundImage', values: { image: iDataURL } });
     },
 
     /**
      Close the current document and all its components.
      */
-    closeDocument: function () {
+    closeDocument: function() {
       // Destroy the document and its contents
       DG.currDocumentController().closeDocument();
       DG.store = null;
@@ -734,44 +772,45 @@ DG.appController = SC.Object.create((function () // closure
      *
      * @param {object} sender: unused by the function.
      */
-    closeCurrentDocument: function (sender) {
+    closeCurrentDocument: function(sender) {
       this.closeDocumentWithConfirmation(null);
     },
 
     /**
      Closes the document after confirming with the user that that is desired.
      */
-    closeDocumentWithConfirmation: function (iDefaultGameName) {
+    closeDocumentWithConfirmation: function(iDefaultGameName) {
       var docName = DG.currDocumentController().get('documentName');
 
-      var closeDocumentAfterConfirmation = function () {
+      var closeDocumentAfterConfirmation = function() {
         this.closeAndNewDocument(iDefaultGameName);
         DG.logUser("closeDocument: '%@'", docName);
       }.bind(this);
 
-      var cancelCloseDocument = function () {
+      var cancelCloseDocument = function() {
         DG.logUser("cancelCloseDocument: '%@'", docName);
       };
 
-      if (DG.currDocumentController().get('hasUnsavedChanges')) {
+      if(DG.currDocumentController().get('hasUnsavedChanges')) {
         DG.logUser("confirmCloseDocument?: '%@'", docName);
         DG.AlertPane.warn({
           message: 'DG.AppController.closeDocument.warnMessage',
           description: 'DG.AppController.closeDocument.warnDescription',
           buttons: [
-            { title: 'DG.AppController.closeDocument.okButtonTitle',
+            {
+              title: 'DG.AppController.closeDocument.okButtonTitle',
               action: closeDocumentAfterConfirmation,
               localize: YES
             },
-            { title: 'DG.AppController.closeDocument.cancelButtonTitle',
+            {
+              title: 'DG.AppController.closeDocument.cancelButtonTitle',
               action: cancelCloseDocument,
               localize: YES
             }
           ],
           localize: YES
         });
-      }
-      else {
+      } else {
         closeDocumentAfterConfirmation();
       }
     },
@@ -779,7 +818,7 @@ DG.appController = SC.Object.create((function () // closure
     /**
      Close the current document and open up a new empty document.
      */
-    closeAndNewDocument: function (iDefaultGameName) {
+    closeAndNewDocument: function(iDefaultGameName) {
 
       // Close the current document
       this.closeDocument();
@@ -811,7 +850,7 @@ DG.appController = SC.Object.create((function () // closure
       },
       {
         group: 'GEOJSON',
-        mime: ['application/geo+json','application/vnd.geo+json'],
+        mime: ['application/geo+json', 'application/vnd.geo+json'],
         extensions: ['geojson']
       },
       {
@@ -822,7 +861,7 @@ DG.appController = SC.Object.create((function () // closure
       {
         group: 'IMAGE',
         mime: ['image/jpeg'],
-        extensions: ['jpeg','jpg']
+        extensions: ['jpeg', 'jpg']
       },
       {
         group: 'IMAGE',
@@ -851,46 +890,45 @@ DG.appController = SC.Object.create((function () // closure
      * @param name: a filename or URL
      * @param type: a type string. May be missing.
      */
-    matchMimeSpec: function (name, type) {
+    matchMimeSpec: function(name, type) {
       var isSheetsURL = /docs.google.com\/spreadsheets/.test(name);
       var isDataURIMatch = /^data:([^;]+);.+$/.exec(name);
       var match = name && name.match(/\.([^.\/]+)$/);
       var mySuffix = match && match[1].toLowerCase();
       var typeDesc;
       // if we haven't a type and its a data URI, use its mime type
-      if (type == null && isDataURIMatch) {
+      if(type == null && isDataURIMatch) {
         type = isDataURIMatch[1];
       }
-      if (isSheetsURL) {
+      if(isSheetsURL) {
         type = 'application/vnd.google-apps.spreadsheet';
       }
-      typeDesc = typeDesc || type && this.mimeTypesAndExtensions.find(function (mimeDef) {
-        return (type != null) && mimeDef.mime.find(function (str) {
+      typeDesc = typeDesc || type && this.mimeTypesAndExtensions.find(function(mimeDef) {
+        return (type != null) && mimeDef.mime.find(function(str) {
           return str === type;
         });
       });
-      typeDesc = typeDesc || this.mimeTypesAndExtensions.find(function (mimeDef) {
-        return mySuffix && mimeDef.extensions.find(function (ext) {
+      typeDesc = typeDesc || this.mimeTypesAndExtensions.find(function(mimeDef) {
+        return mySuffix && mimeDef.extensions.find(function(ext) {
           return mySuffix === ext;
         });
       });
       return typeDesc;
     },
     /**
-      Imports a dragged or selected file
-      */
-    importFile: function ( iFile) {
+     Imports a dragged or selected file
+     */
+    importFile: function(iFile) {
       var typeDesc = this.matchMimeSpec(iFile.name, iFile.type);
-      var handlingGroup = typeDesc? typeDesc.group: 'JSON';
+      var handlingGroup = typeDesc ? typeDesc.group : 'JSON';
 
       var tAlertDialog = {
-        showAlert: function( iError) {
+        showAlert: function(iError) {
           var message = 'DG.AppController.dropFile.error'.loc(iError.message);
-          if (DG.cfmClient) {
+          if(DG.cfmClient) {
             DG.cfmClient.alert(message);
-          }
-          else {
-            DG.AlertPane.show( {
+          } else {
+            DG.AlertPane.show({
               message: message
             });
           }
@@ -900,7 +938,7 @@ DG.appController = SC.Object.create((function () // closure
         }
       };
 
-      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc? typeDesc.mime[0]: 'unknown'));
+      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc ? typeDesc.mime[0] : 'unknown'));
       this.importFileWithConfirmation(iFile, handlingGroup, tAlertDialog);
     },
 
@@ -918,22 +956,21 @@ DG.appController = SC.Object.create((function () // closure
      * @param {String} iType 'JSON' or 'TEXT'
      * @param {{showAlert:function,close:function}} iDialog optional error alert.
      */
-    importFileWithConfirmation: function( iFile, iType, iDialog) {
+    importFileWithConfirmation: function(iFile, iType, iDialog) {
 
       var finishImport = function() {
         function handleAbnormal() {
           console.log("Abort or error on file read.");
         }
 
-        var handleRead = function () {
+        var handleRead = function() {
           SC.run(function() {
             try {
-              if (iType === 'JSON') {
+              if(iType === 'JSON') {
                 DG.cfmClient.openLocalFile(iFile);
                 window.location.hash = '';
                 DG.log('Opened: ' + iFile.name);
-              }
-              else if (iType === 'GEOJSON') {
+              } else if(iType === 'GEOJSON') {
                 that.openGeoJSONImporter({
                   contentType: 'application/geo+json',
                   text: this.result,
@@ -941,20 +978,17 @@ DG.appController = SC.Object.create((function () // closure
                   filename: iFile.name,
                   showCaseTable: true
                 });
-              }
-              else if (iType === 'TEXT') {
+              } else if(iType === 'TEXT') {
                 that.importText(this.result,
-                    iFile.name.replace(/\.[^.]*$/, ''), iFile.name);
-              }
-              else if (iType === 'IMAGE') {
+                   iFile.name.replace(/\.[^.]*$/, ''), iFile.name);
+              } else if(iType === 'IMAGE') {
                 that.importImage(this.result, iFile.name);
               }
-              if (iDialog)
+              if(iDialog)
                 iDialog.close();
-            }
-            catch (er) {
+            } catch (er) {
               console.log(er);
-              if (iDialog) {
+              if(iDialog) {
                 iDialog.showAlert(er);
               }
             }
@@ -962,93 +996,94 @@ DG.appController = SC.Object.create((function () // closure
         };
 
         var that = this;
-        DG.busyCursor.show( function() {
+        DG.busyCursor.show(function() {
           var reader = new FileReader();
-          if (iFile) {
+          if(iFile) {
             reader.onabort = handleAbnormal;
             reader.onerror = handleAbnormal;
             reader.onload = handleRead;
-            if (iType === 'IMAGE') {
+            if(iType === 'IMAGE') {
               reader.readAsDataURL(iFile);
             } else {
               reader.readAsText(iFile);
             }
           }
         });
-      }.bind( this);
+      }.bind(this);
 
       var docName;
 
-      var cancelCloseDocument = function () {
+      var cancelCloseDocument = function() {
         DG.logUser("cancelCloseDocument: '%@'", docName);
       };
 
-      if ((iType === 'JSON') && DG.currDocumentController().get('hasUnsavedChanges')) {
+      if((iType === 'JSON') && DG.currDocumentController().get('hasUnsavedChanges')) {
         docName = DG.currDocumentController().get('documentName');
         DG.logUser("confirmCloseDocument?: '%@'", docName);
         DG.AlertPane.warn({
           message: 'DG.AppController.closeDocument.warnMessage',
           description: 'DG.AppController.closeDocument.warnDescription',
           buttons: [
-            { title: 'DG.AppController.closeDocument.okButtonTitle',
+            {
+              title: 'DG.AppController.closeDocument.okButtonTitle',
               action: finishImport,
               localize: YES
             },
-            { title: 'DG.AppController.closeDocument.cancelButtonTitle',
+            {
+              title: 'DG.AppController.closeDocument.cancelButtonTitle',
               action: cancelCloseDocument,
               localize: YES
             }
           ],
           localize: YES
         });
-      }
-      else {
+      } else {
         DG.busyCursor.show(function() {
           finishImport();
         });
       }
-      if( iDialog)
+      if(iDialog)
         iDialog.close();
     },
 
     /**
      Bring up the bug report page.
      */
-    reportProblem: function () {
+    reportProblem: function() {
 
-      var submitFeedback= function() {
+      var submitFeedback = function() {
         console.log(feedbackPane.contentView.subjectText.value);
         console.log(feedbackPane.contentView.feedbackText.value);
-        console.log("Build #"+DG.BUILD_NUM);
-        console.log("Browser: "+SC.browser.name+" v."+SC.browser.version);
-        console.log("Device: "+SC.browser.device);
-        console.log("OS: "+SC.browser.os+ " v."+SC.browser.osVersion);
+        console.log("Build #" + DG.BUILD_NUM);
+        console.log("Browser: " + SC.browser.name + " v." + SC.browser.version);
+        console.log("Device: " + SC.browser.device);
+        console.log("OS: " + SC.browser.os + " v." + SC.browser.osVersion);
 
         //SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
-        SC.Request.postUrl('https://codap.concord.org/help/contact?'+
-          'device='+ SC.browser.device +
-          '&os='+SC.browser.os+
-          '&os_version='+SC.browser.osVersion+
-          '&cf_browser='+SC.browser.name+
-          '&cf_browser_version='+SC.browser.version+
-          '&version='+DG.BUILD_NUM+
-          // '&name='+iUser+
-          '&description='+feedbackPane.contentView.subjectText.value+
-          '&comments='+feedbackPane.contentView.feedbackText.value)
-        //  .notify()
+        SC.Request.postUrl('https://codap.concord.org/help/contact?' +
+                           'device=' + SC.browser.device +
+                           '&os=' + SC.browser.os +
+                           '&os_version=' + SC.browser.osVersion +
+                           '&cf_browser=' + SC.browser.name +
+                           '&cf_browser_version=' + SC.browser.version +
+                           '&version=' + DG.BUILD_NUM +
+                           // '&name='+iUser+
+                           '&description=' + feedbackPane.contentView.subjectText.value +
+                           '&comments=' + feedbackPane.contentView.feedbackText.value)
+           //  .notify()
           .send();
         feedbackPane.remove();
-        feedbackPane=null;
+        feedbackPane = null;
       };
 
-      var cancelFeedback= function() {
+      var cancelFeedback = function() {
         feedbackPane.remove();
-        feedbackPane=null;
+        feedbackPane = null;
       };
 
       //Begin feedback form
 
-      var feedbackPane=SC.PanelPane.create({
+      var feedbackPane = SC.PanelPane.create({
 
         layout: { top: 175, centerX: 0, width: 405, height: 350 },
         contentView: SC.View.extend({
@@ -1056,7 +1091,7 @@ DG.appController = SC.Object.create((function () // closure
           childViews: 'feedbackHeader codapLogo feedbackImage subHeaderText messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
 
           feedbackHeader: SC.LabelView.design({
-            layout: { top: 27,  height: 20 },
+            layout: { top: 27, height: 20 },
             controlSize: SC.LARGE_CONTROL_SIZE,
             fontWeight: SC.BOLD_WEIGHT,
             textAlign: SC.ALIGN_CENTER,
@@ -1065,19 +1100,19 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           codapLogo: SC.ImageView.design({
-            layout: {top:10, left:10, height:35, width:35},
+            layout: { top: 10, left: 10, height: 35, width: 35 },
             value: static_url('images/codap_logo.png')
           }),
 
           subHeaderText: SC.LabelView.design({
-            layout: { top: 55, left: 10},
+            layout: { top: 55, left: 10 },
             fontWeight: SC.BOLD_WEIGHT,
             value: 'DG.AppController.feedbackDialog.subHeaderText',
             localize: YES
           }),
 
           messageText: SC.LabelView.design({
-            layout: { top: 70, left: 10, right: 0, width: 395},
+            layout: { top: 70, left: 10, right: 0, width: 395 },
             textAlign: SC.ALIGN_LEFT,
             value: 'DG.AppController.feedbackDialog.messageText',
             localize: YES
@@ -1095,7 +1130,7 @@ DG.appController = SC.Object.create((function () // closure
             isTextArea: true,
             autoCorrect: false,
             autoCapitalize: false,
-            hint:'DG.AppController.feedbackDialog.feedbackHint'
+            hint: 'DG.AppController.feedbackDialog.feedbackHint'
           }),
 
           submitFeedbackButton: SC.ButtonView.design({
@@ -1119,54 +1154,55 @@ DG.appController = SC.Object.create((function () // closure
       feedbackPane.contentView.subjectText.becomeFirstResponder();
     },
 
-
     /**
      Pass responsibility to document controller
      */
-    viewWebPage: function () {
+    viewWebPage: function() {
       DG.currDocumentController().viewWebPage();
     },
 
     /**
      Pass responsibility to document controller
      */
-    configureGuide: function () {
+    configureGuide: function() {
       DG.currDocumentController().configureGuide();
     },
 
     /**
      Show the help window.
      */
-    showHelp: function () {
+    showHelp: function() {
       var kWidth = 600, kHeight = 400,
-          tLayout = { width : kWidth, height: kHeight };
+         tLayout = { width: kWidth, height: kHeight };
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        (DG.showHelpURL),
-        'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
-          tLayout);
+         (DG.showHelpURL),
+         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
+         tLayout);
 
     },
 
-    openWebView: function( iURL, iTitle, iWidth, iHeight) {
+    openWebView: function(iURL, iTitle, iWidth, iHeight) {
       var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
-          tLayout = { left: (tDocFrame.width - iWidth) / 2, top: (tDocFrame.height - iHeight) / 2,
-            width: iWidth, height: iHeight };
+         tLayout = {
+           left: (tDocFrame.width - iWidth) / 2, top: (tDocFrame.height - iHeight) / 2,
+           width: iWidth, height: iHeight
+         };
 
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          iURL, iTitle, tLayout);
+         iURL, iTitle, tLayout);
     },
 
     /**
      Open a new tab with the CODAP website.
      */
-    showWebSite: function () {
+    showWebSite: function() {
       var kWebsiteURL = DG.get('showWebSiteURL');
 
       window.open(kWebsiteURL); //If tab with site is already open, no new tabs are generated, but tab with page does not come forward
     },
 
-    showPrivacyPage: function () {
+    showPrivacyPage: function() {
       var kWebsiteURL = DG.get('showPrivacyURL');
       window.open(kWebsiteURL);
     },
@@ -1174,29 +1210,28 @@ DG.appController = SC.Object.create((function () // closure
     /**
      Open a new tab with the CODAP help pages.
      */
-    showHelpSite: function () {
+    showHelpSite: function() {
       var tLang = DG.get('currentLanguage');
       var tHelpURL = DG.get('showHelpURL_' + tLang) || DG.get('showHelpURL'),
-          tWidth = 400, tHeight = 400;
-      this.openWebView( tHelpURL, 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
+         tWidth = 400, tHeight = 400;
+      this.openWebView(tHelpURL, 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
     },
 
     /**
      Open a new tab with the CODAP help forum.
      */
-    showHelpForum: function () {
+    showHelpForum: function() {
       var tHelpForumURL = DG.get('showHelpForumURL'),
-          tWidth = 400, tHeight = 400,
-          tBrowser = SC.browser;
+         tWidth = 400, tHeight = 400,
+         tBrowser = SC.browser;
       if(tBrowser.name === SC.BROWSER.safari && tBrowser.os === SC.OS.ios) {
-        this.openWebView( tHelpForumURL, 'DG.AppController.showHelpForumTitle'.loc(), tWidth, tHeight);
-      }
-      else {
+        this.openWebView(tHelpForumURL, 'DG.AppController.showHelpForumTitle'.loc(), tWidth, tHeight);
+      } else {
         window.open(tHelpForumURL);
       }
     },
 
-    openPlugin: function (iURL) {
+    openPlugin: function(iURL) {
       this.importURL(iURL);
     }
 

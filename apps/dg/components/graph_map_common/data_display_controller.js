@@ -132,7 +132,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           );
         }
         return tBackgroundItems.concat([
-          { title: ('DG.DataDisplayMenu.copyAsImage'), isEnabled: (SC.browser.name !== SC.BROWSER.safari),
+          { title: ('DG.DataDisplayMenu.copyAsImage'), isEnabled: true/*(SC.browser.name !== SC.BROWSER.safari)*/,
             target: this, action: 'copyAsImage' },
           { title: ('DG.DataDisplayMenu.exportPngImage'), isEnabled: true,
             target: this, action: 'makePngImage' },

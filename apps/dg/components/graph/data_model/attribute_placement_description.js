@@ -228,6 +228,13 @@ DG.AttributePlacementDescription = SC.Object.extend(
       /**
        @property {Boolean}
        */
+      isColor: function () {
+        return this.get('attributeType') === DG.Analysis.EAttributeType.eColor;
+      }.property('attributeType'),
+
+      /**
+       @property {Boolean}
+       */
       noAttributes: function () {
         var tAttributes = this.get('attributes');
         return !tAttributes || !SC.isArray(tAttributes) || (tAttributes.length === 0);

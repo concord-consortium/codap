@@ -197,7 +197,7 @@ DG.MapPointDataConfiguration = DG.MapDataConfiguration.extend(
                   tLongs = [];
               this.get('cases').forEach(function (iCase) {
                 var tLong = iCase.getNumValue(tLongID);
-                if (isFinite(tLong))
+                if (isFinite(tLong) && tLong >= -360 && tLong <= 360)
                   tLongs.push(tLong);
               });
               tLongs.sort(function (iV1, iV2) {

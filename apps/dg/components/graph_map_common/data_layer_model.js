@@ -677,6 +677,14 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           name: 'graph.display.showAllCases',
           undoString: 'DG.Undo.showAllCases',
           redoString: 'DG.Redo.showAllCases',
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'showAllCases',
+              type: ''
+            }
+          },
           log: "Show all cases",
           execute: function() {
             self.setPath('dataConfiguration.displayOnlySelected', false );
@@ -694,6 +702,14 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
           name: 'graph.display.displayOnlySelected',
           undoString: 'DG.Undo.displayOnlySelected',
           redoString: 'DG.Redo.displayOnlySelected',
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'displayOnlySelected',
+              type: ''
+            }
+          },
           log: "Display only selected cases",
           execute: function() {
             self.setPath('dataConfiguration.displayOnlySelected', true );
