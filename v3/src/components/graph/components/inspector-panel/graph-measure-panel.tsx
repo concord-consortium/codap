@@ -59,9 +59,9 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       if (!componentContentInfo) return null
       const { modelClass } = componentContentInfo,
         adornment = modelClass.create({ type: measure })
-      graphModel?.addAdornment(adornment)
+      graphModel?.showAdornment(adornment, measure)
     } else {
-      graphModel?.removeAdornment(measure)
+      graphModel?.hideAdornment(measure)
     }
   }
 
@@ -76,7 +76,7 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
         {graphModel && measures[graphModel.plotType].map((title:string) => {
-           const isChecked = !!graphModel?.adornments?.find(a => a.type === title)
+           const isChecked = !!graphModel?.adornments?.find(a => a.type === title && a.isVisible)
            const titleSlug = title.replace(/ /g, "-").toLowerCase()
            return (
             <FormControl key={title}>

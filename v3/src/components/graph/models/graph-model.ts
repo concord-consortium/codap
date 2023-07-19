@@ -204,13 +204,18 @@ export const GraphModel = TileContentModel
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show
     },
-    addAdornment(adornment: IAdornmentModel) {
-      self.adornments.push(adornment)
+    showAdornment(adornment: IAdornmentModel, type: string) {
+      const adornmentExists = self.adornments.find(a => a.type === type)
+      if (adornmentExists) {
+        adornmentExists.setVisibility(true)
+      } else {
+        self.adornments.push(adornment)
+      }
     },
-    removeAdornment(type: string) {
-      const updatedAdornments = self.adornments.filter(adornment => adornment.type !== type)
-      self.adornments.replace([...updatedAdornments])
-    },
+    hideAdornment(type: string) {
+      const adornment = self.adornments.find(a => a.type === type)
+      adornment?.setVisibility(false)
+    }
   }))
 export interface IGraphModel extends Instance<typeof GraphModel> {}
 export interface IGraphModelSnapshot extends SnapshotIn<typeof GraphModel> {}

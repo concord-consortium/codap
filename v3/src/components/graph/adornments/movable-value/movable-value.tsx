@@ -10,13 +10,14 @@ import {valueLabelString} from "../../utilities/graph-utils"
 
 import "./movable-value.scss"
 
-export const MovableValue = (props: {
+interface IProps {
   model: IMovableValueModel
   axis: INumericAxisModel
   transform: string
-}) => {
-  const {model, axis, transform} = props,
-    layout = useAxisLayoutContext(),
+}
+
+export function MovableValue ({model, axis, transform}: IProps) {
+  const layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.getAxisScale("left"),
     valueRef = useRef<SVGSVGElement>(null),

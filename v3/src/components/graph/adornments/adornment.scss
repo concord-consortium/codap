@@ -1,0 +1,29 @@
+.adornment-wrapper {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  &.fadeIn {
+    animation-name: adornmentFadeIn;
+    opacity: 1;
+  }
+  &.fadeOut {
+    animation-name: adornmentFadeOut;
+    opacity: 0;
+  }
+  &.hidden {
+    display: none;
+  }
+}
+
+@keyframes adornmentFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes adornmentFadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}

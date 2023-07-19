@@ -3,7 +3,6 @@ import {autorun} from "mobx"
 import {drag, select} from "d3"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
-import {kGraphAdornmentsClassSelector, transitionDuration} from "../../graphing-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
@@ -13,25 +12,26 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 
 import "./movable-line.scss"
 
-function equationContainer(model: IMovableLineModel, instanceId: string, lineKey: string) {
+function equationContainer(model: IMovableLineModel, lineKey: string, containerId: string) {
   const classFromKey = model.classNameFromKey(lineKey),
     equationContainerClass = `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`,
-    gridContainerClass = `graph-adornments-grid.${instanceId}`,
-    equationContainerSelector = `.${gridContainerClass} .${equationContainerClass}`
+    equationContainerSelector = `#${containerId} .${equationContainerClass}`
     return { equationContainerClass, equationContainerSelector }
 }
 
-export const MovableLine = (props: {
+interface IProps {
+  containerId: string
   instanceKey?: string
   model: IMovableLineModel
   plotHeight: number
   plotIndex: number
   plotWidth: number
-  transform?: string
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
-}) => {
-  const {instanceKey='', model, plotHeight, plotIndex, plotWidth, transform, xAxis, yAxis} = props,
+}
+
+export function MovableLine (props: IProps) {
+  const {containerId, instanceKey='', model, plotHeight, plotWidth, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     instanceId = useInstanceIdContext(),
@@ -43,7 +43,7 @@ export const MovableLine = (props: {
     yScaleCopy = yScale.copy(),
     kTolerance = 4, // pixels to snap to horizontal or vertical
     kHandleSize = 12,
-    {equationContainerClass, equationContainerSelector} = equationContainer(model, instanceId, instanceKey),
+    {equationContainerClass, equationContainerSelector} = equationContainer(model, instanceKey, containerId),
     lineRef = useRef() as React.RefObject<SVGSVGElement>,
     [lineObject, setLineObject] = useState<{ [index: string]: any }>({
       line: null, lower: null, middle: null, upper: null, equation: null
@@ -159,9 +159,9 @@ export const MovableLine = (props: {
         refreshEquation()
       })
       return () => disposer()
-    }, [instanceId, pointsOnAxes, instanceKey, lineObject, plotHeight, plotWidth, transform, 
-        xScale, yScale, model, model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount,
-        yAxis, xRange, yRange, equationContainerSelector]
+    }, [instanceId, pointsOnAxes, instanceKey, lineObject, plotHeight, plotWidth,
+        xScale, yScale, model, model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName,
+        ySubAxesCount, yAxis, xRange, yRange, equationContainerSelector]
   )
 
   const
@@ -273,11 +273,6 @@ export const MovableLine = (props: {
     const selection = select(lineRef.current),
       newLineObject: any = {}
 
-    selection.style('opacity', 0)
-      .transition()
-      .duration(transitionDuration)
-      .style('opacity', 1)
-
     // Set up the line and its cover segments and handles
     newLineObject.line = selection.append('line')
       .attr('class', 'movable-line')
@@ -297,10 +292,7 @@ export const MovableLine = (props: {
 
     // Set up the corresponding equation box
     // Define the selector that corresponds with this specific movable line's adornment container
-    const adornmentContainer =
-      `.graph-adornments-grid.${instanceId} > ${kGraphAdornmentsClassSelector}__cell:nth-child(${plotIndex + 1})`
-
-    const equationDiv = select(adornmentContainer).append('div')
+    const equationDiv = select(`#${containerId}`).append('div')
       .attr('class', `movable-line-equation-container ${equationContainerClass}`)
       .attr('data-testid', `movable-line-equation-container-${model.classNameFromKey(instanceKey)}`)
       .style('width', `${plotWidth}px`)
@@ -324,13 +316,7 @@ export const MovableLine = (props: {
     }
 
     newLineObject.equation = equationDiv
-
     setLineObject(newLineObject)
-
-    equationDiv.style('opacity', 0)
-      .transition()
-      .duration(transitionDuration)
-      .style('opacity', 1)
 
     return () => {
       equationDiv.remove()
