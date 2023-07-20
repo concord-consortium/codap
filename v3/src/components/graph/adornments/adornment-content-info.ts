@@ -1,14 +1,8 @@
-import { AdornmentModel, IAdornmentModel } from "./adornment-models"
+import { AdornmentModel } from "./adornment-models"
 import { PlotType } from "../graphing-types"
-import { IGraphModel } from "../models/graph-model"
-
-export interface ICreateAdornmentOptions {
-  graphModel: IGraphModel
-}
 
 export interface IAdornmentContentInfo {
   modelClass: typeof AdornmentModel
-  createModel?: (options?: ICreateAdornmentOptions) => IAdornmentModel
   plots: PlotType[]
   prefix: string
   type: string

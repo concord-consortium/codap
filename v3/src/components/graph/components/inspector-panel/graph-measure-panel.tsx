@@ -46,26 +46,26 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
                     ]
   }
 
-  const handleSetting = (measure: string, val: boolean) => {
+  const handleSetting = (measure: string, checked: boolean) => {
     const componentContentInfo = getAdornmentContentInfo(measure)
     // Show toast pop-ups for adornments that haven't been implemented yet.
     // TODO: Remove pop-ups when all adornments are implemented.
-    if (!componentContentInfo) {
+    if (!graphModel || !componentContentInfo) {
       toast({
         title: 'Item clicked',
-        description: `You clicked on ${measure} ${val}`,
+        description: `You clicked on ${measure} ${checked}`,
         status: 'success',
         duration: 5000,
         isClosable: true,
       })
       return null
     }
-    if (val && graphModel) {
-      const { createModel, modelClass } = componentContentInfo,
-        adornment = createModel?.({ graphModel }) || modelClass.create()
-      graphModel?.showAdornment(adornment, measure)
+    if (checked) {
+      const adornment = componentContentInfo.modelClass.create()
+      adornment.updateCategories(graphModel.getUpdateCategoriesOptions())
+      graphModel.showAdornment(adornment, measure)
     } else {
-      graphModel?.hideAdornment(measure)
+      graphModel.hideAdornment(measure)
     }
   }
 

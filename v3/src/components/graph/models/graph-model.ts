@@ -1,6 +1,7 @@
 import {reaction} from "mobx"
 import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {createContext, useContext} from "react"
+import { AdornmentModelUnion, IAdornmentModel, IUpdateCategoriesOptions } from "../adornments/adornment-models"
 import {AxisPlace} from "../../axis/axis-types"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
 import {kGraphTileType} from "../graph-defs"
@@ -19,12 +20,9 @@ import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ITileContentModel, TileContentModel} from "../../../models/tiles/tile-content"
 import {
-  defaultBackgroundColor,
-  defaultPointColor,
-  defaultStrokeColor,
-  kellyColors
+  defaultBackgroundColor, defaultPointColor, defaultStrokeColor, kellyColors
 } from "../../../utilities/color-utils"
-import { AdornmentModelUnion, IAdornmentModel } from "../adornments/adornment-models"
+import { onAnyAction } from "../../../utilities/mst-utils"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -66,6 +64,10 @@ export const GraphModel = TileContentModel
     showParentToggles: false,
     showMeasuresForSelection: false
   })
+  .volatile(self => ({
+    prevDataSetId: "",
+    disposeDataSetListener: undefined as (() => void) | undefined
+  }))
   .views(self => ({
     get data() {
       return getTileDataSet(self)
@@ -110,6 +112,36 @@ export const GraphModel = TileContentModel
       return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
     }
   }))
+  .views(self => ({
+    getUpdateCategoriesOptions(): IUpdateCategoriesOptions {
+      return {
+        xAxis: self.getAxis("bottom"),
+        yAxis: self.getAxis("left"),
+        xCategories: self.config.categoryArrayForAttrRole("topSplit", []) ?? [],
+        yCategories: self.config.categoryArrayForAttrRole("rightSplit", []) ?? []
+      }
+    }
+  }))
+  .actions(self => ({
+    setDataSetListener() {
+      const actionsAffectingCategories = [
+        "addCases", "removeAttribute", "removeCases", "setCaseValues"
+      ]
+      self.disposeDataSetListener?.()
+      self.disposeDataSetListener = self.data
+        ? onAnyAction(self.data, action => {
+            // TODO: check whether categories have actually changed before updating
+            if (actionsAffectingCategories.includes(action.name)) {
+              this.updateAdornments()
+            }
+          })
+        : undefined
+    },
+    updateAdornments() {
+      const options = self.getUpdateCategoriesOptions()
+      self.adornments.forEach(adornment => adornment.updateCategories(options))
+    }
+  }))
   .actions(self => ({
     afterAttachToDocument() {
       // Monitor our parents and update our shared model when we have a document parent
@@ -142,7 +174,10 @@ export const GraphModel = TileContentModel
           linkTileToDataSet(self, sharedDataSets[0].dataSet)
         }
       },
-      {name: "sharedModelSetup", fireImmediately: true}))
+      {name: "GraphModel.sharedModelSetup", fireImmediately: true}))
+    },
+    beforeDestroy() {
+      self.disposeDataSetListener?.()
     },
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
       if (type === "link") {
@@ -150,6 +185,11 @@ export const GraphModel = TileContentModel
       }
       else if (type === "unlink" && isSharedDataSet(sharedModel)) {
         self.config.setDataset(undefined, undefined)
+      }
+      const currDataSetId = self.data?.id ?? ""
+      if (self.prevDataSetId !== currDataSetId) {
+        self.setDataSetListener()
+        self.prevDataSetId = currDataSetId
       }
     },
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
@@ -170,6 +210,7 @@ export const GraphModel = TileContentModel
       } else {
         self.config.setAttribute(role, {attributeID: id})
       }
+      self.updateAdornments()
     },
     setPlotType(type: PlotType) {
       self.plotType = type
