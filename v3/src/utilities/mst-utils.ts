@@ -2,7 +2,6 @@ import {
   IAnyStateTreeNode, IDisposer, isAlive, ISerializedActionCall, getParent, getType,
   IOnActionOptions, onAction, hasParent, types
 } from "mobx-state-tree"
-import { IDocumentContentModel } from "../models/document/document-content"
 
 /**
  * This creates the definition for a type field in MST.
@@ -30,10 +29,6 @@ export function getParentWithTypeName(target: IAnyStateTreeNode, typeName: strin
       current = parent
   }
   return undefined
-}
-
-export function getDocumentContentFromNode(target: IAnyStateTreeNode): IDocumentContentModel | undefined {
-  return getParentWithTypeName(target, "DocumentContent") as IDocumentContentModel
 }
 
 /**

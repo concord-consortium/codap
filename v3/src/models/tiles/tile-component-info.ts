@@ -27,12 +27,11 @@ export interface ITileComponentInfo {
    */
   tileHandlesOwnSelection?: boolean;
   /**
-   * REsizable components should have a default width and height. Plugins will specify their own height and width
+   * Resizable components should have a default width and height. Plugins will specify their own height and width
    */
   defaultWidth?: number;
   defaultHeight?: number;
   /* Tool shelf specific properties */
-  isSingleton?: boolean; // Only one instance of a tile is open per document so tool shelf button opens and closes tile
   isFixedWidth?: boolean;
   isFixedHeight?: boolean;
 }

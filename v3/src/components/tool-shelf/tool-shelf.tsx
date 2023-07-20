@@ -13,10 +13,9 @@ type IShelfTileComponentInfo = SetRequired<ITileComponentInfo, "shelf">
 
 interface IProps {
   content?: IDocumentContentModel
-  createTileOfType?: (tileType: string, content?: IDocumentContentModel) => void
 }
 
-export const ToolShelf = ({ content, createTileOfType }: IProps) => {
+export const ToolShelf = ({ content }: IProps) => {
   const keys = getTileComponentKeys()
   const entries = keys.map(key => getTileComponentInfo(key))
                       .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
@@ -30,8 +29,7 @@ export const ToolShelf = ({ content, createTileOfType }: IProps) => {
           const { type, shelf: { ButtonComponent = ToolShelfButton, label, hint } } = entry
           return (
             ButtonComponent
-              ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
-                  content={content} createTileOfType={createTileOfType}/>
+              ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint} content={content}/>
               : null
           )
         })}
@@ -45,10 +43,9 @@ export interface IToolShelfButtonProps {
   label: string
   hint: string
   content?: IDocumentContentModel
-  createTileOfType?: (tileType: string, content?: IDocumentContentModel) => void
 }
 
-export const ToolShelfButton = ({tileType, label, hint, content, createTileOfType}: IToolShelfButtonProps) => {
+export const ToolShelfButton = ({tileType, label, hint, content}: IToolShelfButtonProps) => {
   const Icon = getTileComponentIcon(tileType)
 
   return (
@@ -56,7 +53,7 @@ export const ToolShelfButton = ({tileType, label, hint, content, createTileOfTyp
       as='button'
       bg='white'
       title={t(hint)}
-      onClick={() => createTileOfType?.(tileType, content)}
+      onClick={() => content?.createOrShowTile?.(tileType)}
       data-testid={`tool-shelf-button-${t(label)}`}
       className="tool-shelf-button"
       _hover={{ boxShadow: '1px 1px 1px 0px rgba(0, 0, 0, 0.5)' }}

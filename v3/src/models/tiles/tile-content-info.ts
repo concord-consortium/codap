@@ -27,6 +27,7 @@ export interface ITileContentInfo {
   defaultContent: (options?: IDefaultContentOptions) => ITileContentModel;
   titleBase?: string;
   metadataClass?: typeof TileMetadataModel;
+  isSingleton?: boolean; // Only one instance of a tile is open per document
   addSidecarNotes?: boolean;
   defaultHeight?: number;
   exportNonDefaultHeight?: boolean;

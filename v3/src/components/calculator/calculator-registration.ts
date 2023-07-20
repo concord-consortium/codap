@@ -16,7 +16,8 @@ registerTileContentInfo({
   type: kCalculatorTileType,
   prefix: kCalculatorIdPrefix,
   modelClass: CalculatorModel,
-  defaultContent: () => CalculatorModel.create()
+  defaultContent: () => CalculatorModel.create(),
+  isSingleton: true
 })
 
 registerTileComponentInfo({
@@ -30,7 +31,6 @@ registerTileComponentInfo({
     label: "DG.ToolButtonData.calcButton.title",
     hint: "DG.ToolButtonData.calcButton.toolTip"
   },
-  isSingleton: true,
   isFixedWidth: true,
   isFixedHeight: true,
   // must be in sync with rendered size for auto placement code
