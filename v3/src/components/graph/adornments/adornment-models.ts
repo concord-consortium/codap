@@ -3,6 +3,7 @@
  */
 
 import {Instance, types} from "mobx-state-tree"
+import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {typedId} from "../../../utilities/js-utils"
 import {Point} from "../graphing-types"
 import { kMovableLineType } from "./movable-line/movable-line-types"
@@ -139,9 +140,21 @@ export const MovablePointModel = AdornmentModel
     type: 'Movable Point',
     points: types.map(PointModel)
   })
+  .views(self => ({
+    getInitialPosition(axis?: IAxisModel) {
+      if (!isNumericAxisModel(axis)) return 0
+      const [min, max] = axis.domain
+      return max - (max - min) / 4
+    }
+  }))
   .actions(self => ({
     setPoint(aPoint: Point, key='') {
       self.points.set(key, aPoint)
+    }
+  }))
+  .actions(self => ({
+    setInitialPoint(xAxis?: IAxisModel, yAxis?: IAxisModel, key='') {
+      self.setPoint({ x: self.getInitialPosition(xAxis), y: self.getInitialPosition(yAxis) }, key)
     }
   }))
 export interface IMovablePointModel extends Instance<typeof MovablePointModel> {}

@@ -45,8 +45,8 @@ export const EmptyAxisModel = AxisModel
 export interface IEmptyAxisModel extends Instance<typeof EmptyAxisModel> {}
 export interface IEmptyAxisModelSnapshot extends SnapshotIn<typeof EmptyAxisModel> {}
 
-export function isEmptyAxisModel(axisModel: IAxisModel): axisModel is IEmptyAxisModel {
-  return axisModel.type === "empty"
+export function isEmptyAxisModel(axisModel?: IAxisModel): axisModel is IEmptyAxisModel {
+  return axisModel?.type === "empty"
 }
 
 export const CategoricalAxisModel = AxisModel
@@ -58,8 +58,8 @@ export const CategoricalAxisModel = AxisModel
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
 export interface ICategoricalAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
 
-export function isCategoricalAxisModel(axisModel: IAxisModel): axisModel is ICategoricalAxisModel {
-  return axisModel.isCategorical
+export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICategoricalAxisModel {
+  return !!axisModel?.isCategorical
 }
 
 export const NumericAxisModel = AxisModel
@@ -91,8 +91,8 @@ export const NumericAxisModel = AxisModel
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 export interface INumericAxisModelSnapshot extends SnapshotIn<typeof NumericAxisModel> {}
 
-export function isNumericAxisModel(axisModel: IAxisModel): axisModel is INumericAxisModel {
-  return axisModel.isNumeric
+export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel {
+  return !!axisModel?.isNumeric
 }
 
 const axisTypeDispatcher = (axisSnap: any) => {

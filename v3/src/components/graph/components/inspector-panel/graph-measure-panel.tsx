@@ -61,8 +61,8 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       return null
     }
     if (val && graphModel) {
-      const { modelClass } = componentContentInfo,
-        adornment = modelClass.create({ type: measure })
+      const { createModel, modelClass } = componentContentInfo,
+        adornment = createModel?.({ graphModel }) || modelClass.create()
       graphModel?.showAdornment(adornment, measure)
     } else {
       graphModel?.hideAdornment(measure)

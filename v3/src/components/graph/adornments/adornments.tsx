@@ -1,15 +1,14 @@
 import React from "react"
 import { clsx } from "clsx"
-import { useGraphLayoutContext } from "../models/graph-layout"
-import { AxisScaleType } from "../../axis/axis-types"
-import { kGraphAdornmentsClass } from "../graphing-types"
-import { useGraphModelContext } from "../models/graph-model"
 import { observer } from "mobx-react-lite"
-import { IAdornmentModel } from "./adornment-models"
+import { kGraphAdornmentsClass } from "../graphing-types"
+import { useGraphLayoutContext } from "../models/graph-layout"
+import { useGraphModelContext } from "../models/graph-model"
 import { Adornment } from "./adornment"
+import { getAdornmentContentInfo } from "./adornment-content-info"
+import { IAdornmentModel } from "./adornment-models"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { getAdornmentContentInfo } from "./adornment-content-info"
 
 import "./adornments.scss"
 
@@ -22,32 +21,12 @@ export const Adornments = observer(function Adornments() {
 
   if (!adornments?.length) return null
 
-  const setCategories = () => {
-    // Build an array containing each category label present in the top axis
-    const topAxisMultiScale = layout.getAxisMultiScale('top'),
-      topAxisLength = topAxisMultiScale?.cellLength ?? 0,
-      topAxisRangeMin = topAxisLength,
-      topAxisRangeMax = topAxisRangeMin + topAxisLength,
-      topAxisScale = topAxisMultiScale?.scale.copy()
-        .range([topAxisRangeMin, topAxisRangeMax]) as AxisScaleType,
-      xCatLabels = topAxisScale.domain() ?? []
-
-    // Build an array containing each category label present in the right axis
-    const rightAxisMultiScale = layout.getAxisMultiScale('rightCat'),
-      rightAxisLength = rightAxisMultiScale?.cellLength ?? 0,
-      rightAxisRangeMin = rightAxisLength,
-      rightAxisRangeMax = rightAxisRangeMin + rightAxisLength,
-      rightAxisScale = rightAxisMultiScale?.scale.copy()
-        .range([rightAxisRangeMin, rightAxisRangeMax]) as AxisScaleType,
-      yCatLabels = rightAxisScale.domain() ?? []
-
-    return { xCategories: xCatLabels, yCategories: yCatLabels }
-  }
-
   // When a graph contains multiple sub-plots, each adornment needs to be rendered once
   // per sub-plot. We create a CSS grid in which to place the adornments, with each cell
   // of the grid corresponding to one sub-plot.
-  const { xCategories, yCategories } = setCategories(),
+  const
+    xCategories = graphModel.config.categoryArrayForAttrRole("topSplit", []),
+    yCategories = graphModel.config.categoryArrayForAttrRole("rightSplit", []),
     colCount = xCategories.length,
     rowCount = yCategories.length,
     { left, top, width, height } = layout.computedBounds.plot,

@@ -291,16 +291,17 @@ export const DataConfigurationModel = types
        * caching of the categories that have been determined to be valid.
        * @param role
        */
-      categoryArrayForAttrRole(role: GraphAttrRole): string[] {
+      categoryArrayForAttrRole(role: GraphAttrRole, emptyCategoryArray = ['__main__']): string[] {
         let categoryArray: string[] = []
         if (self.metadata) {
           const attributeID = self.attributeID(role) || '',
             categorySet = getCategorySet(self.metadata, attributeID),
             validValues: Set<string> = new Set(this.valuesForAttrRole(role))
-          categoryArray = (categorySet?.values || ['__main__']).filter((aValue: string) => validValues.has(aValue))
+          categoryArray = (categorySet?.values || emptyCategoryArray)
+                            .filter((aValue: string) => validValues.has(aValue))
         }
         if (categoryArray.length === 0) {
-          categoryArray = ['__main__']
+          categoryArray = emptyCategoryArray
         }
         return categoryArray
       },

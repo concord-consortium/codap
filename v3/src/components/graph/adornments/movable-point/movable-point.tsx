@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import {drag, select} from "d3"
+import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import { observer } from "mobx-react-lite"
 import { IMovablePointModel } from "../adornment-models"
@@ -15,6 +15,11 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')
   .html((d: string) => {
     return `<p>${d}</p>`
   })
+
+interface IPointObject {
+  point?: Selection<SVGCircleElement, unknown, null, undefined>
+  shadow?: Selection<SVGCircleElement, unknown, null, undefined>
+}
 
 interface IProps {
   containerId: string
@@ -37,19 +42,9 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     graphWidth = layout.getAxisLength('bottom'),
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1,
-    xDomain = xAxis.domain,
-    yDomain = yAxis.domain,
     classFromKey = model.classNameFromKey(instanceKey),
-    pointRef = useRef() as React.RefObject<any>,
-    [pointObject, setPointObject] = useState<{ [index: string]: any }>({
-      point: null, shadow: null, coordinatesBox: null
-    })
-
-  // compute initial x and y coordinates
-  const [xMin, xMax] = xDomain,
-    [yMin, yMax] = yDomain,
-    initX = xMax - (xMax - xMin) / 4,
-    initY = yMax - (yMax - yMin) / 4
+    pointRef = useRef<SVGGElement | null>(null),
+    [pointObject, setPointObject] = useState<IPointObject>({})
 
   // get attributes for use in coordinates box and for determining when to reset the point
   // to the initial position when the attributes have changed
@@ -78,7 +73,7 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
   }, [classFromKey])
 
   const movePoint = useCallback((xPoint: number, yPoint: number) => {
-    if (pointObject.point === null) return
+    if (!pointObject.point || !pointObject.shadow) return
     pointObject.point
       .attr('cx', xPoint)
       .attr('cy', yPoint)
@@ -106,8 +101,10 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
 
   useEffect(function repositionPoint() {
     // if attributes have changed, reset the point to the initial position
+    // TODO: this should really be handled by a model-level response, e.g. autorun, reaction, onAnyAction
+    // so that the response can be captured for undo purposes
     if (xAttrName !== xAttrNameRef.current || yAttrName !== yAttrNameRef.current) {
-      model.setPoint({x: initX, y: initY}, instanceKey)
+      model.setInitialPoint(xAxis, yAxis, instanceKey)
       xAttrNameRef.current = xAttrName
       yAttrNameRef.current = yAttrName
     }
@@ -117,49 +114,43 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       xPoint = xScale(xValue) / xSubAxesCount,
       yPoint = yScale(yValue) / ySubAxesCount
 
-      movePoint(xPoint, yPoint)
-  }, [graphHeight, graphWidth, initX, initY, instanceKey, model, model.points, movePoint,
-      xAttrName, xAxis.domain, xScale, xSubAxesCount, yAttrName, yAxis.domain, yScale, ySubAxesCount])
-
-  useEffect(function initializePoint() {
-    model.setPoint({x: initX, y: initY}, instanceKey)
-    // This effect should only run once on mount, otherwise it can incorrectly
-    // set the point's coordinates to the initial values afterward
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    movePoint(xPoint, yPoint)
+  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint,
+      xAttrName, xAxis, xScale, xSubAxesCount, yAttrName, yAxis, yScale, ySubAxesCount])
 
   // Add behaviors to the point
   useEffect(function addBehaviors() {
-    pointObject.point?.call(drag().on("drag", handleDragPoint))
+    pointObject.point?.call(drag<SVGCircleElement, unknown>().on("drag", handleDragPoint))
   }, [pointObject, handleDragPoint])
 
-  // Set up the point, shadow, and coordinates box
+  // Set up the point and shadow
   useEffect(function createElements() {
     const selection = select(pointRef.current),
-      newPointObject: any = {}
-
-    newPointObject.shadow = selection.append('circle')
-      .attr('cx', xScale(initX) / xSubAxesCount + 1)
-      .attr('cy', yScale(initY) / ySubAxesCount + 1)
-      .attr('r', 8)
-      .attr('fill', 'none')
-      .attr('stroke', '#a9a9a9')
-      .attr('stroke-width', 2)
-
-    newPointObject.point = selection.append('circle')
-      .attr('data-testid', `movable-point`)
-      .attr('cx', xScale(initX) / xSubAxesCount)
-      .attr('cy', yScale(initY) / ySubAxesCount)
-      .attr('r', 8)
-      .attr('fill', '#ffff00')
-      .attr('stroke', '#000000')
-      .on('mouseover', showCoordinates)
-      .on('mouseout', hideCoordinates)
-      .call(dataTip)
+      { x, y } = model.points.get(instanceKey) ??
+                  { x: model.getInitialPosition(xAxis), y: model.getInitialPosition(yAxis) },
+      newPointObject: IPointObject = {
+        shadow: selection.append('circle')
+                  .attr('cx', xScale(x) / xSubAxesCount + 1)
+                  .attr('cy', yScale(y) / ySubAxesCount + 1)
+                  .attr('r', 8)
+                  .attr('fill', 'none')
+                  .attr('stroke', '#a9a9a9')
+                  .attr('stroke-width', 2),
+        point: selection.append('circle')
+                  .attr('data-testid', `movable-point`)
+                  .attr('cx', xScale(x) / xSubAxesCount)
+                  .attr('cy', yScale(y) / ySubAxesCount)
+                  .attr('r', 8)
+                  .attr('fill', '#ffff00')
+                  .attr('stroke', '#000000')
+                  .on('mouseover', showCoordinates)
+                  .on('mouseout', hideCoordinates)
+                  .call(dataTip)
+      }
 
     setPointObject(newPointObject)
 
-  // This effect should only run once on mount, otherwise it would create multiple 
+  // This effect should only run once on mount, otherwise it would create multiple
   // instances of the point elements
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
