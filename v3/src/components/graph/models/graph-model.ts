@@ -113,12 +113,13 @@ export const GraphModel = TileContentModel
     }
   }))
   .views(self => ({
-    getUpdateCategoriesOptions(): IUpdateCategoriesOptions {
+    getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
       return {
         xAxis: self.getAxis("bottom"),
         yAxis: self.getAxis("left"),
         xCategories: self.config.categoryArrayForAttrRole("topSplit", []) ?? [],
-        yCategories: self.config.categoryArrayForAttrRole("rightSplit", []) ?? []
+        yCategories: self.config.categoryArrayForAttrRole("rightSplit", []) ?? [],
+        resetPoints
       }
     }
   }))
@@ -137,8 +138,8 @@ export const GraphModel = TileContentModel
           })
         : undefined
     },
-    updateAdornments() {
-      const options = self.getUpdateCategoriesOptions()
+    updateAdornments(resetPoints=false) {
+      const options = self.getUpdateCategoriesOptions(resetPoints)
       self.adornments.forEach(adornment => adornment.updateCategories(options))
     }
   }))
@@ -210,7 +211,7 @@ export const GraphModel = TileContentModel
       } else {
         self.config.setAttribute(role, {attributeID: id})
       }
-      self.updateAdornments()
+      self.updateAdornments(true)
     },
     setPlotType(type: PlotType) {
       self.plotType = type

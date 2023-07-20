@@ -5,8 +5,7 @@ import {drag, select} from "d3"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
-import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
-        lineToAxisIntercepts} from "../../utilities/graph-utils"
+import {equationString, IAxisIntercepts, lineToAxisIntercepts} from "../../utilities/graph-utils"
 import {IMovableLineModel} from "../adornment-models"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
@@ -66,14 +65,6 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
     yAttrName = yAttr?.name ?? '',
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1
-
-  // add lines that don't already exist in the model
-  useEffect(function addLine() {
-    if (!model.lines.has(instanceKey)) {
-      const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis)
-      model.setLine({slope, intercept}, instanceKey)
-    }
-  }, [instanceKey, model, xAxis, yAxis])
 
   // Refresh the line
   useEffect(function refresh() {

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
+import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { IMovablePointModel } from "../adornment-models"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
@@ -55,8 +56,8 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     yAttr = allAttributes?.find(attr => attr.id === yAttrId),
     xAttrName = xAttr?.name ?? '',
     yAttrName = yAttr?.name ?? '',
-    xAttrNameRef = useRef(xAttrName),
-    yAttrNameRef = useRef(yAttrName)
+    prevXAttrIdRef = useRef<string>(xAttrId),
+    prevYAttrIdRef = useRef<string>(yAttrId)
 
   const showCoordinates = useCallback((event: MouseEvent) => {
     const xValue = model.points.get(instanceKey)?.x ?? 0,
@@ -100,23 +101,23 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
-    // if attributes have changed, reset the point to the initial position
-    // TODO: this should really be handled by a model-level response, e.g. autorun, reaction, onAnyAction
-    // so that the response can be captured for undo purposes
-    if (xAttrName !== xAttrNameRef.current || yAttrName !== yAttrNameRef.current) {
-      model.setInitialPoint(xAxis, yAxis, instanceKey)
-      xAttrNameRef.current = xAttrName
-      yAttrNameRef.current = yAttrName
-    }
+    return autorun(() => {
+      // if attributes have changed, reset the point to the initial position
+      if (xAttrId !== prevXAttrIdRef.current || yAttrId !== prevYAttrIdRef.current) {
+        prevXAttrIdRef.current = xAttrId
+        prevYAttrIdRef.current = yAttrId
+        model.setInitialPoint(xAxis, yAxis, instanceKey)
+      }
 
-    const xValue = model.points.get(instanceKey)?.x ?? 0,
-      yValue = model.points.get(instanceKey)?.y ?? 0,
-      xPoint = xScale(xValue) / xSubAxesCount,
-      yPoint = yScale(yValue) / ySubAxesCount
+      const xValue = model.points.get(instanceKey)?.x ?? 0,
+        yValue = model.points.get(instanceKey)?.y ?? 0,
+        xPoint = xScale(xValue) / xSubAxesCount,
+        yPoint = yScale(yValue) / ySubAxesCount
 
-    movePoint(xPoint, yPoint)
-  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint,
-      xAttrName, xAxis, xScale, xSubAxesCount, yAttrName, yAxis, yScale, ySubAxesCount])
+      movePoint(xPoint, yPoint)
+    })
+  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint, xAttrId, xAttrName, xAxis,
+      xAxis.domain, xScale, xSubAxesCount, yAttrId, yAttrName, yAxis, yAxis.domain, yScale, ySubAxesCount])
 
   // Add behaviors to the point
   useEffect(function addBehaviors() {
@@ -147,7 +148,6 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
                   .on('mouseout', hideCoordinates)
                   .call(dataTip)
       }
-
     setPointObject(newPointObject)
 
   // This effect should only run once on mount, otherwise it would create multiple
