@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import {drag, select} from "d3"
+import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
+import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { IMovablePointModel } from "../adornment-models"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
@@ -15,6 +16,11 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')
   .html((d: string) => {
     return `<p>${d}</p>`
   })
+
+interface IPointObject {
+  point?: Selection<SVGCircleElement, unknown, null, undefined>
+  shadow?: Selection<SVGCircleElement, unknown, null, undefined>
+}
 
 interface IProps {
   containerId: string
@@ -37,31 +43,23 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     graphWidth = layout.getAxisLength('bottom'),
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1,
-    xDomain = xAxis.domain,
-    yDomain = yAxis.domain,
     classFromKey = model.classNameFromKey(instanceKey),
-    pointRef = useRef() as React.RefObject<any>,
-    [pointObject, setPointObject] = useState<{ [index: string]: any }>({
-      point: null, shadow: null, coordinatesBox: null
-    })
+    pointRef = useRef<SVGGElement | null>(null),
+    [pointObject, setPointObject] = useState<IPointObject>({})
 
-  // compute initial x and y coordinates
-  const [xMin, xMax] = xDomain,
-    [yMin, yMax] = yDomain,
-    initX = xMax - (xMax - xMin) / 4,
-    initY = yMax - (yMax - yMin) / 4
-
-  // get attributes for use in coordinates box
+  // get attributes for use in coordinates box and for determining when to reset the point
+  // to the initial position when the attributes have changed
   const allAttributes = dataConfig?.dataset?.attributes,
     xAttrId = dataConfig?.attributeID('x') || '',
     yAttrId = dataConfig?.attributeID('y') || '',
     xAttr = allAttributes?.find(attr => attr.id === xAttrId),
     yAttr = allAttributes?.find(attr => attr.id === yAttrId),
     xAttrName = xAttr?.name ?? '',
-    yAttrName = yAttr?.name ?? ''
+    yAttrName = yAttr?.name ?? '',
+    prevXAttrIdRef = useRef<string>(xAttrId),
+    prevYAttrIdRef = useRef<string>(yAttrId)
 
   const showCoordinates = useCallback((event: MouseEvent) => {
-    if (!model.points) return
     const xValue = model.points.get(instanceKey)?.x ?? 0,
       yValue = model.points.get(instanceKey)?.y ?? 0,
       string = `${xAttrName}: ${xValue}<br />${yAttrName}: ${yValue}`
@@ -76,7 +74,7 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
   }, [classFromKey])
 
   const movePoint = useCallback((xPoint: number, yPoint: number) => {
-    if (pointObject.point === null) return
+    if (!pointObject.point || !pointObject.shadow) return
     pointObject.point
       .attr('cx', xPoint)
       .attr('cy', yPoint)
@@ -103,56 +101,56 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
-    if (!model.points) return
-    const xValue = model.points.get(instanceKey)?.x ?? 0,
-      yValue = model.points.get(instanceKey)?.y ?? 0,
-      xPoint = xScale(xValue) / xSubAxesCount,
-      yPoint = yScale(yValue) / ySubAxesCount
+    return autorun(() => {
+      // if attributes have changed, reset the point to the initial position
+      if (xAttrId !== prevXAttrIdRef.current || yAttrId !== prevYAttrIdRef.current) {
+        prevXAttrIdRef.current = xAttrId
+        prevYAttrIdRef.current = yAttrId
+        model.setInitialPoint(xAxis, yAxis, instanceKey)
+      }
+
+      const xValue = model.points.get(instanceKey)?.x ?? 0,
+        yValue = model.points.get(instanceKey)?.y ?? 0,
+        xPoint = xScale(xValue) / xSubAxesCount,
+        yPoint = yScale(yValue) / ySubAxesCount
 
       movePoint(xPoint, yPoint)
-  }, [graphHeight, graphWidth, instanceKey, model.points, movePoint, 
-      xAxis.domain, xScale, xSubAxesCount, yAxis.domain, yScale, ySubAxesCount])
-
-  // add points that don't already exist in the model
-  useEffect(function addPoint() {
-    if (!model.points) return
-    if (!model.points.has(instanceKey)) {
-      model.setPoint({x: initX, y: initY}, instanceKey)
-    }
-  }, [model, instanceKey, initX, initY])
+    })
+  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint, xAttrId, xAttrName, xAxis,
+      xAxis.domain, xScale, xSubAxesCount, yAttrId, yAttrName, yAxis, yAxis.domain, yScale, ySubAxesCount])
 
   // Add behaviors to the point
   useEffect(function addBehaviors() {
-    pointObject.point?.call(drag().on("drag", handleDragPoint))
+    pointObject.point?.call(drag<SVGCircleElement, unknown>().on("drag", handleDragPoint))
   }, [pointObject, handleDragPoint])
 
-  // Set up the point, shadow, and coordinates box
+  // Set up the point and shadow
   useEffect(function createElements() {
     const selection = select(pointRef.current),
-      newPointObject: any = {}
-
-    newPointObject.shadow = selection.append('circle')
-      .attr('cx', xScale(initX) + 1)
-      .attr('cy', yScale(initY) + 1)
-      .attr('r', 8)
-      .attr('fill', 'none')
-      .attr('stroke', '#a9a9a9')
-      .attr('stroke-width', 2)
-
-    newPointObject.point = selection.append('circle')
-      .attr('data-testid', `movable-point`)
-      .attr('cx', xScale(initX) / xSubAxesCount)
-      .attr('cy', yScale(initY) / ySubAxesCount)
-      .attr('r', 8)
-      .attr('fill', '#ffff00')
-      .attr('stroke', '#000000')
-      .on('mouseover', showCoordinates)
-      .on('mouseout', hideCoordinates)
-      .call(dataTip)
-
+      { x, y } = model.points.get(instanceKey) ??
+                  { x: model.getInitialPosition(xAxis), y: model.getInitialPosition(yAxis) },
+      newPointObject: IPointObject = {
+        shadow: selection.append('circle')
+                  .attr('cx', xScale(x) / xSubAxesCount + 1)
+                  .attr('cy', yScale(y) / ySubAxesCount + 1)
+                  .attr('r', 8)
+                  .attr('fill', 'none')
+                  .attr('stroke', '#a9a9a9')
+                  .attr('stroke-width', 2),
+        point: selection.append('circle')
+                  .attr('data-testid', `movable-point`)
+                  .attr('cx', xScale(x) / xSubAxesCount)
+                  .attr('cy', yScale(y) / ySubAxesCount)
+                  .attr('r', 8)
+                  .attr('fill', '#ffff00')
+                  .attr('stroke', '#000000')
+                  .on('mouseover', showCoordinates)
+                  .on('mouseout', hideCoordinates)
+                  .call(dataTip)
+      }
     setPointObject(newPointObject)
 
-  // This effect should only run once on mount, otherwise it would create multiple 
+  // This effect should only run once on mount, otherwise it would create multiple
   // instances of the point elements
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

@@ -3,11 +3,13 @@
  */
 
 import {Instance, types} from "mobx-state-tree"
+import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {typedId} from "../../../utilities/js-utils"
 import {Point} from "../graphing-types"
 import { kMovableLineType } from "./movable-line/movable-line-types"
 import { kMovablePointType } from "./movable-point/movable-point-types"
 import { kMovableValueType } from "./movable-value/movable-value-types"
+import { computeSlopeAndIntercept } from "../utilities/graph-utils"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -29,6 +31,14 @@ export const PointModel = types.model("Point", {
 export interface IPointModel extends Instance<typeof PointModel> {}
 export const kInfinitePoint = {x:NaN, y:NaN}
 
+export interface IUpdateCategoriesOptions {
+  xAxis?: IAxisModel
+  yAxis?: IAxisModel
+  xCategories: string[]
+  yCategories: string[]
+  resetPoints?: boolean
+}
+
 export const AdornmentModel = types.model("AdornmentModel", {
     id: types.optional(types.identifier, () => typedId("ADRN")),
     type: types.optional(types.string, () => {
@@ -38,15 +48,14 @@ export const AdornmentModel = types.model("AdornmentModel", {
   })
   .views(self => ({
     instanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
-      if ((xCats.length === 0 && yCats.length === 0) || xCats[index] === '') {
-        return ''
-      } else if (xCats.length > 0 &&  yCats.length > 0) {
+      if (xCats.length > 0 && yCats.length > 0) {
         return `{x: ${xCats[index % xCats.length]}, y: ${yCats[Math.floor(index / xCats.length)]}}`
       } else if (xCats.length > 0) {
         return `{x: ${xCats[index]}}`
       } else if (yCats.length > 0) {
         return `{y: ${yCats[index]}}`
       }
+      return ''
     },
     classNameFromKey(key: string) {
       const className = key.replace(/\{/g, '')
@@ -60,6 +69,9 @@ export const AdornmentModel = types.model("AdornmentModel", {
   .actions(self => ({
     setVisibility(isVisible: boolean) {
       self.isVisible = isVisible
+    },
+    updateCategories(options: IUpdateCategoriesOptions) {
+      // derived models should override to update their models when categories change
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
@@ -128,6 +140,26 @@ export const MovableLineModel = AdornmentModel
       line?.setPivot2(aLine.pivot2 ?? kInfinitePoint)
     }
   }))
+  .actions(self => ({
+    setInitialLine(xAxis?: IAxisModel, yAxis?: IAxisModel, key='') {
+      const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis)
+      self.setLine({ intercept, slope }, key)
+    }
+  }))
+  .actions(self => ({
+    updateCategories(options: IUpdateCategoriesOptions) {
+      const { xAxis, yAxis, xCategories, yCategories, resetPoints } = options
+      const columnCount = xCategories?.length || 1
+      const rowCount = yCategories?.length || 1
+      const totalCount = rowCount * columnCount
+      for (let i = 0; i < totalCount; ++i) {
+        const instanceKey = self.instanceKey(xCategories, yCategories, i)
+        if (!self.lines.get(instanceKey) || resetPoints) {
+          self.setInitialLine(xAxis, yAxis, instanceKey)
+        }
+      }
+    }
+  }))
 export interface IMovableLineModel extends Instance<typeof MovableLineModel> {}
 export function isMovableLine(adornment: IAdornmentModel): adornment is IMovableLineModel {
   return adornment.type === kMovableLineType
@@ -139,9 +171,35 @@ export const MovablePointModel = AdornmentModel
     type: 'Movable Point',
     points: types.map(PointModel)
   })
+  .views(self => ({
+    getInitialPosition(axis?: IAxisModel) {
+      if (!isNumericAxisModel(axis)) return 0
+      const [min, max] = axis.domain
+      return max - (max - min) / 4
+    }
+  }))
   .actions(self => ({
     setPoint(aPoint: Point, key='') {
       self.points.set(key, aPoint)
+    }
+  }))
+  .actions(self => ({
+    setInitialPoint(xAxis?: IAxisModel, yAxis?: IAxisModel, key='') {
+      self.setPoint({ x: self.getInitialPosition(xAxis), y: self.getInitialPosition(yAxis) }, key)
+    }
+  }))
+  .actions(self => ({
+    updateCategories(options: IUpdateCategoriesOptions) {
+      const { xAxis, yAxis, xCategories, yCategories, resetPoints } = options
+      const columnCount = xCategories?.length || 1
+      const rowCount = yCategories?.length || 1
+      const totalCount = rowCount * columnCount
+      for (let i = 0; i < totalCount; ++i) {
+        const instanceKey = self.instanceKey(xCategories, yCategories, i)
+        if (!self.points.get(instanceKey) || resetPoints) {
+          self.setInitialPoint(xAxis, yAxis, instanceKey)
+        }
+      }
     }
   }))
 export interface IMovablePointModel extends Instance<typeof MovablePointModel> {}
