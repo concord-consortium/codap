@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 3.0.0-pre.1278 - July 24, 2023
+
+### Bug Fixes
+- Remove placeholder green toast when movable line is selected/unselected in ruler menu [#185639719](https://www.pivotaltracker.com/story/show/185639719)
+- Removing one or more of the axes attributes from a graph with a movable line does not remove the movable line and its equation [#185639677](https://www.pivotaltracker.com/story/show/185639677)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   45013 bytes |                            1.28% |
+|  index.js | 3095134 bytes |                            0.11% |
+
 ## Version 3.0.0-pre.1274 - July 18, 2023
 
 ### Features/Improvements
