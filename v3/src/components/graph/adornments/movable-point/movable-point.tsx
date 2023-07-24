@@ -62,9 +62,9 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
   const showCoordinates = useCallback((event: MouseEvent) => {
     const xValue = model.points.get(instanceKey)?.x ?? 0,
       yValue = model.points.get(instanceKey)?.y ?? 0,
-      string = `${xAttrName}: ${xValue}<br />${yAttrName}: ${yValue}`
+      dataTipContent = `${xAttrName}: ${xValue}<br />${yAttrName}: ${yValue}`
 
-    dataTip.show(string, event.target)
+    dataTip.show(dataTipContent, event.target)
   }, [instanceKey, model.points, xAttrName, yAttrName])
 
   const hideCoordinates = useCallback(() => {
@@ -121,8 +121,11 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
 
   // Add behaviors to the point
   useEffect(function addBehaviors() {
-    pointObject.point?.call(drag<SVGCircleElement, unknown>().on("drag", handleDragPoint))
-  }, [pointObject, handleDragPoint])
+    pointObject.point?.on('mouseover', showCoordinates)
+      .on('mouseout', hideCoordinates)
+      .call(dataTip)
+      .call(drag<SVGCircleElement, unknown>().on("drag", handleDragPoint))
+  }, [pointObject, handleDragPoint, showCoordinates, hideCoordinates])
 
   // Set up the point and shadow
   useEffect(function createElements() {
@@ -144,9 +147,6 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
                   .attr('r', 8)
                   .attr('fill', '#ffff00')
                   .attr('stroke', '#000000')
-                  .on('mouseover', showCoordinates)
-                  .on('mouseout', hideCoordinates)
-                  .call(dataTip)
       }
     setPointObject(newPointObject)
 
