@@ -126,8 +126,3 @@ export const DocumentContentModel = BaseDocumentContentModel
 
 export type IDocumentContentModel = Instance<typeof DocumentContentModel>
 export type IDocumentContentSnapshotIn = SnapshotIn<typeof DocumentContentModel>
-
-// export function cloneContentWithUniqueIds(content?: DocumentContentModelType,
-//                                           asTemplate?: boolean): DocumentContentModelType | undefined {
-//   return content && DocumentContentModel.create(content.snapshotWithUniqueIds(asTemplate))
-// }
