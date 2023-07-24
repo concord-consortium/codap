@@ -1,12 +1,12 @@
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import React, { useCallback, useState } from "react"
-import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
-import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../models/document/free-tile-row"
-import { getTileComponentInfo } from "../models/tiles/tile-component-info"
-import { ITileModel } from "../models/tiles/tile-model"
-import { CodapComponent } from "./codap-component"
-import { kTitleBarHeight } from "./constants"
+import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
+import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
+import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { CodapComponent } from "../codap-component"
+import { kTitleBarHeight } from "../constants"
 
 interface IProps {
   row: IFreeTileRow;

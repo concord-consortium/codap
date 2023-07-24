@@ -76,15 +76,16 @@ export const SliderModel = TileContentModel
         }
       ))
     },
-    afterAttach() {
+    afterAttachToDocument() {
       // register our link to the global value manager when we're attached to the document
       addDisposer(self, reaction(
         () => {
           const sharedModelManager = getSharedModelManager(self)
+          const isReady = sharedModelManager?.isReady
           const globalValueManager = self.globalValueManager
-          return { sharedModelManager, globalValueManager }
+          return { sharedModelManager, isReady, globalValueManager }
         },
-        ({ sharedModelManager, globalValueManager }) => {
+        ({ sharedModelManager, isReady, globalValueManager }) => {
           if (sharedModelManager?.isReady) {
             // once we're added to the document, update the shared model reference
             globalValueManager && sharedModelManager.addTileSharedModel(self, globalValueManager)
@@ -94,7 +95,10 @@ export const SliderModel = TileContentModel
     },
     beforeDestroy() {
       // destroying the slider component removes the underlying global value
-      self.globalValueManager?.removeValue(self.globalValue)
+      // unfortunately, removing the global value here invalidates the reference and leads to MST warnings.
+      // TODO: figure out a mechanism to remove the slider model and its global value safely
+      // for now, the global value stays in the registry when the slider model is removed
+      // self.globalValue && self.globalValueManager?.removeValue(self.globalValue)
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // nothing to do

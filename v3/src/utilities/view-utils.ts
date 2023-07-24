@@ -7,6 +7,7 @@ const kGap = 5 // Also used to increment during search
 export const getPositionOfNewComponent = (iViewRect: {width?: number, height?: number}, iPosition = "top") => {
   // note that this will only work when the document content is a single FreeTileRow
   const parentEl = document.getElementsByClassName("free-tile-row")
+  if (!parentEl?.[0]) return { x: 100, y: 100 }
   const rowRect = parentEl[0].getBoundingClientRect()
   const existingEls = document.getElementsByClassName("free-tile-component")
   const existingRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
