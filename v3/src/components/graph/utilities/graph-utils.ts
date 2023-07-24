@@ -255,12 +255,13 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
   }
 }
 
-export function equationString(slope: number, intercept: number, attrNames: any) {
-  const float = format('.4~r'),
-  slopeString = slope !== Infinity && slope !== 0 ? float(slope) : undefined,
-  displaySlope = slopeString ? `${slopeString} <em>${attrNames.x}</em> +` : '',
-  kSlopeIntercept = `<em>${attrNames.y}</em> = ${displaySlope} ${float(intercept)}`
-  return kSlopeIntercept
+export function equationString(slope: number, intercept: number, attrNames: {x: string, y: string}) {
+  const float = format('.4~r')
+  if (isFinite(slope) && slope !== 0) {
+    return `<em>${attrNames.y}</em> = ${float(slope)} <em>${attrNames.x}</em> + ${float(intercept)}`
+  } else {
+    return `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${float(intercept)}`
+  }
 }
 
 export function valueLabelString(value: number) {
