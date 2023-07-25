@@ -1,7 +1,7 @@
 import { GraphModel } from './graph-model'
-import { MovablePointModel } from '../adornments/adornment-models'
 import { kGraphTileType } from '../graph-defs'
 import { defaultBackgroundColor, defaultPointColor, defaultStrokeColor } from "../../../utilities/color-utils"
+import { MovablePointModel } from '../adornments/movable-point/movable-point-model'
 
 describe('GraphModel', () => {
   it('should create an instance with defaults', () => {

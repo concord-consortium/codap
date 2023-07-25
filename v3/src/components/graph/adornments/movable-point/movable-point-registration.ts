@@ -1,6 +1,6 @@
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { registerAdornmentContentInfo } from "../adornment-content-info"
-import { MovablePointModel } from "../adornment-models"
+import { MovablePointModel } from "./movable-point-model"
 import { kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix,
          kMovablePointType } from "./movable-point-types"
 import { MovablePoint } from "./movable-point"

@@ -1,6 +1,6 @@
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { registerAdornmentContentInfo } from "../adornment-content-info"
-import { MovableLineModel } from "../adornment-models"
+import { MovableLineModel } from "./movable-line-model"
 import { kMovableLineClass, kMovableLineLabelKey, kMovableLinePrefix, kMovableLineType } from "./movable-line-types"
 import { MovableLine } from "./movable-line"
 

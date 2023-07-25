@@ -1,7 +1,7 @@
 import {reaction} from "mobx"
 import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {createContext, useContext} from "react"
-import { AdornmentModelUnion, IAdornmentModel, IUpdateCategoriesOptions } from "../adornments/adornment-models"
+import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornments/adornment-models"
 import {AxisPlace} from "../../axis/axis-types"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
 import {kGraphTileType} from "../graph-defs"
@@ -23,6 +23,7 @@ import {
   defaultBackgroundColor, defaultPointColor, defaultStrokeColor, kellyColors
 } from "../../../utilities/color-utils"
 import { onAnyAction } from "../../../utilities/mst-utils"
+import { AdornmentModelUnion } from "../adornments/adornment-types"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
