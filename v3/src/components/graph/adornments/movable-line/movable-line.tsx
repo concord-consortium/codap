@@ -182,40 +182,50 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
       model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
     }, [instanceKey, model, xAxis, xScaleCopy, yAxis, yScaleCopy]),
 
-
     continueRotation = useCallback((
       event: { x: number, y: number, dx: number, dy: number },
       lineSection: string
     ) => {
       if (!pointsOnAxes.current) return
       const lineParams = model.lines?.get(instanceKey)
+      // The current pivot is the pivot point on the line section not being dragged.
+      // lineParams.pivot1 is the pivot point on the lower section, lineParams.pivot2 is the
+      // pivot point on the upper section
       const currentPivot = lineSection === "lower" ? lineParams?.pivot2 : lineParams?.pivot1
       const equationCoords = lineParams?.equationCoords
     
       if (event.dx !== 0 || event.dy !== 0) {
         let isVertical = false
+        // The new pivot will be the point on the line section where it is being dragged.
         const newPivot = { x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y) }
+        // If the current pivot isn't valid, use the point where the other line section intersects the
+        // axes as the pivot point.
         const pivot = currentPivot?.isValid()
                         ? currentPivot
                         : lineSection === "lower"
                           ? pointsOnAxes.current.pt2
                           : pointsOnAxes.current.pt1
     
-        if (Math.abs(xScaleCopy(newPivot.x) - xScaleCopy(pivot.x)) < kTolerance) {
+        // If the line is perfectly vertical, set the new pivot's x coordinate to the x coordinate of the
+        // original pivot. If the line is perfectly horizontal, set the new pivot's y coordinate to the y
+        // coordinate of the original pivot.
+        if (Math.abs(xScaleCopy(newPivot.x) - xScaleCopy(pivot.x)) < kTolerance) { // vertical
           newPivot.x = pivot.x
           isVertical = true
-        } else if (Math.abs(yScaleCopy(newPivot.y) - yScaleCopy(pivot.y)) < kTolerance) {
+        } else if (Math.abs(yScaleCopy(newPivot.y) - yScaleCopy(pivot.y)) < kTolerance) { // horizontal
           newPivot.y = pivot.y
         }
-    
-        const newSlope = isVertical
-          ? Number.POSITIVE_INFINITY
-          : (lineSection === "lower"
-              ? pivot.y - newPivot.y
-              : newPivot.y - pivot.y) /
-            (lineSection === "lower" ? pivot.x - newPivot.x : newPivot.x - pivot.x)
-    
-        const newIntercept = isVertical ? pivot.x : newPivot.y - newSlope * newPivot.x
+
+        let newSlope, newIntercept
+        if (isVertical) {
+          newSlope = Number.POSITIVE_INFINITY
+          newIntercept = pivot.x
+        } else {
+          newSlope = lineSection === "lower"
+            ? (pivot.y - newPivot.y) / (pivot.x - newPivot.x)
+            : (newPivot.y - pivot.y) / (newPivot.x - pivot.x)
+          newIntercept = newPivot.y - newSlope * newPivot.x
+        }
 
         lineObject.lower.classed('negative-slope', newSlope < 0)
         lineObject.upper.classed('negative-slope', newSlope < 0)
