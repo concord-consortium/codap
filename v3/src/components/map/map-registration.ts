@@ -21,8 +21,8 @@ registerTileComponentInfo({
   Icon: MapIcon,
   shelf: {
     position: 3,
-    label: "DG.ToolButtonData.mapButton.title",
-    hint: "DG.ToolButtonData.mapButton.toolTip"
+    labelKey: "DG.ToolButtonData.mapButton.title",
+    hintKey: "DG.ToolButtonData.mapButton.toolTip"
   },
   defaultWidth: 300,
   defaultHeight: 300

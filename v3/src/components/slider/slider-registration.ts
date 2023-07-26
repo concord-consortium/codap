@@ -47,8 +47,8 @@ registerTileComponentInfo({
   Icon: SliderIcon,
   shelf: {
     position: 4,
-    label: "DG.ToolButtonData.sliderButton.title",
-    hint: "DG.ToolButtonData.sliderButton.toolTip"
+    labelKey: "DG.ToolButtonData.sliderButton.title",
+    hintKey: "DG.ToolButtonData.sliderButton.toolTip"
   },
   defaultWidth: 300,
   isFixedHeight: true,

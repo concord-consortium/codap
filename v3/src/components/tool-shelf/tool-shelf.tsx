@@ -97,7 +97,7 @@ export const ToolShelf = ({ content }: IProps) => {
       <Flex className="tool-shelf-component-buttons">
         {entries.map((entry, idx) => {
           if (!entry) return null
-          const { type, shelf: { ButtonComponent = ToolShelfTileButton, label: labelKey, hint: hintKey } } = entry
+          const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = entry
           const label = t(labelKey)
           const hint = t(hintKey)
           return (

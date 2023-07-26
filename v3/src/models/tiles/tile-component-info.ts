@@ -5,8 +5,8 @@ import { type IToolShelfTileButtonProps } from "../../components/tool-shelf/tool
 export interface IToolShelfOptions {
   position: number
   ButtonComponent?: React.FC<IToolShelfTileButtonProps>
-  label: string
-  hint: string
+  labelKey: string
+  hintKey: string
 }
 
 export interface ITileComponentInfo {
