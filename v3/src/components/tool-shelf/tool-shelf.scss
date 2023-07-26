@@ -5,7 +5,7 @@ $deleteButton: #4B8ADD;
 .tool-shelf {
   height: $tool-shelf-height;
   width: 100%;
-  background-color: #ececec;
+  background-color: $codap-tool-shelf-gray;
   border-bottom: 1px solid #dcdbd8;
   box-shadow: 0 0 0 1px #888888!important;
   display: flex;
@@ -13,8 +13,33 @@ $deleteButton: #4B8ADD;
   align-items: center;
 
   .tool-shelf-component-buttons {
-    height: $tool-shelf-height;
     background-color: white;
+  }
+
+  .tool-shelf-right-buttons {
+    background-color: $codap-tool-shelf-gray;
+
+    .tool-shelf-button {
+      // separate undo/redo buttons from other buttons
+      &.redo-button {
+        margin-left: -8px;
+        margin-right: 12px;
+      }
+
+      svg {
+        height: 24px;
+        // separate label from icon
+        margin-bottom: 1px;
+
+        &.icon-tile-list {
+          width: 33px;
+        }
+      }
+    }
+  }
+
+  .tool-shelf-component-buttons, .tool-shelf-right-buttons {
+    height: $tool-shelf-height;
     border-right: solid #888888;
     align-items: center;
     padding: 0 5px;
@@ -22,12 +47,11 @@ $deleteButton: #4B8ADD;
     .tool-shelf-button {
       height: 40px;
       width: 40px;
-      margin-top: 5px;
       display: flex;
       flex-direction: column;
       justify-items: center;
       align-items: center;
-      margin: 0 5px;
+      margin: 10px 3px 0 3px;
       &:active {
         box-shadow: 2px 2px 2px 0px rgb(0, 0, 0, 0.5) !important
       }
@@ -38,11 +62,9 @@ $deleteButton: #4B8ADD;
         font-weight: 500;
         padding: 0;
         min-height: 6px;
-        background-color: white;
 
         &.menu {
           background-color: white;
-
         }
       }
     }

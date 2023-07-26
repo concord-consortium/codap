@@ -1,10 +1,10 @@
 import React, { SVGProps } from "react"
 import { ITileBaseProps, ITileInspectorPanelProps, ITileTitleBarProps } from "../../components/tiles/tile-base-props"
-import { type IToolShelfButtonProps } from "../../components/tool-shelf/tool-shelf"
+import { type IToolShelfTileButtonProps } from "../../components/tool-shelf/tool-shelf-buttons"
 
 export interface IToolShelfOptions {
   position: number
-  ButtonComponent?: React.FC<IToolShelfButtonProps>
+  ButtonComponent?: React.FC<IToolShelfTileButtonProps>
   label: string
   hint: string
 }
