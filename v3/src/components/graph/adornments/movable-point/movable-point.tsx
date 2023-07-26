@@ -3,11 +3,11 @@ import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import { IMovablePointModel } from "../adornment-models"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { IMovablePointModel } from "./movable-point-model"
 
 import "./movable-point.scss"
 
