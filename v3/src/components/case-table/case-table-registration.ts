@@ -31,8 +31,8 @@ registerTileComponentInfo({
   shelf: {
     ButtonComponent: CaseTableToolShelfButton,
     position: 1,
-    label: "DG.ToolButtonData.tableButton.title",
-    hint: "DG.ToolButtonData.tableButton.toolTip"
+    labelKey: "DG.ToolButtonData.tableButton.title",
+    hintKey: "DG.ToolButtonData.tableButton.toolTip"
   },
   defaultWidth: 580,
   defaultHeight: 275

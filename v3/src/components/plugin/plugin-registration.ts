@@ -21,8 +21,8 @@ registerTileComponentInfo({
   Icon: PluginsIcon,
   shelf: {
     position: 7,
-    label: "DG.ToolButtonData.pluginMenu.title",
-    hint: "DG.ToolButtonData.pluginMenu.toolTip"
+    labelKey: "DG.ToolButtonData.pluginMenu.title",
+    hintKey: "DG.ToolButtonData.pluginMenu.toolTip"
   },
   defaultWidth: 300,
   defaultHeight: 300

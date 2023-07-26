@@ -21,8 +21,8 @@ registerTileComponentInfo({
   Icon: TextIcon,
   shelf: {
     position: 6,
-    label: "DG.ToolButtonData.textButton.title",
-    hint: "DG.ToolButtonData.textButton.toolTip"
+    labelKey: "DG.ToolButtonData.textButton.title",
+    hintKey: "DG.ToolButtonData.textButton.toolTip"
   },
   defaultWidth: 300,
   defaultHeight: 300

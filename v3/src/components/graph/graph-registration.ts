@@ -25,8 +25,8 @@ registerTileComponentInfo({
   Icon: GraphIcon,
   shelf: {
     position: 2,
-    label: "DG.ToolButtonData.graphButton.title",
-    hint: "DG.ToolButtonData.graphButton.toolTip"
+    labelKey: "DG.ToolButtonData.graphButton.title",
+    hintKey: "DG.ToolButtonData.graphButton.toolTip"
   },
   defaultWidth: 300,
   defaultHeight: 300

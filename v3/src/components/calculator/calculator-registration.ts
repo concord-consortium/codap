@@ -28,8 +28,8 @@ registerTileComponentInfo({
   Icon: CalcIcon,
   shelf: {
     position: 5,
-    label: "DG.ToolButtonData.calcButton.title",
-    hint: "DG.ToolButtonData.calcButton.toolTip"
+    labelKey: "DG.ToolButtonData.calcButton.title",
+    hintKey: "DG.ToolButtonData.calcButton.toolTip"
   },
   isFixedWidth: true,
   isFixedHeight: true,
