@@ -112,7 +112,7 @@ export const ToolShelf = ({ content }: IProps) => {
       <Flex className="tool-shelf-right-buttons">
         {rightButtons.map(entry => {
           const { className, icon, label, hint } = entry
-          return <ToolShelfButton key={entry.label} className={className} icon={icon} label={label} hint={hint}
+          return <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
                     background="#ececec" onClick={() => handleRightButtonClick(entry)} />
         })}
       </Flex>
