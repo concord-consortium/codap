@@ -10,7 +10,7 @@ import {SharedModelChangeType} from "../../../models/shared/shared-model-manager
 import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
   from "../../../models/shared/shared-data-set"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
-import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileDataSet, linkTileToDataSet}
+import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
   from "../../../models/shared/shared-data-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 // todo: Deal with the cycle
@@ -64,10 +64,10 @@ export const GraphContentModel = DataDisplayContentModel
       return this.graphPointLayerModel.dataConfiguration
     },
     get dataset() {
-      return this.dataConfiguration.dataset
+      return getTileDataSet(self)
     },
     get metadata() {
-      return this.dataConfiguration.metadata
+      return getTileCaseMetadata(self)
     },
   }))
   .views(self => ({
