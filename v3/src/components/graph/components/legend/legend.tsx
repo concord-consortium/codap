@@ -70,7 +70,7 @@ export const Legend = function Legend({
           .attr('height', legendBounds.height)
       }
     })
-  }, [legendBounds, legendRef, transform])
+  }, [layout.graphWidth, legendBounds, legendRef, transform])
 
   return legendAttrID ? (
     <>
