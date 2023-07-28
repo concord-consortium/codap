@@ -144,6 +144,14 @@ export const DataConfigurationModel = types
     placeShouldShowClickHereCue(place: GraphPlace, tileHasFocus: boolean) {
       return this.placeAlwaysShowsClickHereCue(place) ||
         (this.placeCanShowClickHereCue(place) && tileHasFocus)
+    },
+    isCaseInSubPlot(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
+      const numOfKeys = Object.keys(subPlotKey).length
+      let matchedValCount = 0
+      Object.keys(subPlotKey).forEach(key => {
+        if (!subPlotKey[key] || subPlotKey[key] === caseData[key]) matchedValCount++
+      })
+      return matchedValCount === numOfKeys
     }
   }))
   .views(self => ({
@@ -162,6 +170,18 @@ export const DataConfigurationModel = types
         }
       })
       return allGraphCaseIds
+    },
+    subPlotCases(subPlotKey: Record<string, string>) {
+      const casesInPlot = [] as any[]
+      self.filteredCases?.forEach(aFilteredCases => {
+        aFilteredCases.caseIds.forEach((id) => {
+          const caseData = self.dataset?.getCase(id)
+          if (caseData) {
+            self.isCaseInSubPlot(subPlotKey, caseData) && casesInPlot.push(caseData)
+          }
+        })
+      })
+      return casesInPlot
     }
   }))
   .actions(self => ({
@@ -307,6 +327,7 @@ export const DataConfigurationModel = types
         return categoryArray
       },
       numRepetitionsForPlace(place: GraphPlace) {
+        // numRepetitions is the number of times an axis is repeated in the graph
         let numRepetitions = 1
         switch (place) {
           case 'left':

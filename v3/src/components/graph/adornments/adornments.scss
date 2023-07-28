@@ -1,12 +1,21 @@
 .graph-adornments-grid {
   display: grid;
   gap: 0;
-  height: 100%;
-  left: 0;
+  grid-auto-flow: column;
   pointer-events: none;
   position: absolute;
-  top: 0;
-  width: 100%;
+
+  & > div {
+    display: grid;
+    gap: 0;
+    grid-auto-flow: row;
+    font-size: 12px;
+    height: auto;
+    padding-right: 3px;
+    pointer-events: none;
+    text-align: right;
+    width: auto;
+  }
 
   &.tile-selected .show-on-tile-selected {
     display: block;

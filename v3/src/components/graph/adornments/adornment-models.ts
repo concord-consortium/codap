@@ -29,9 +29,15 @@ export const kInfinitePoint = {x:NaN, y:NaN}
 
 export interface IUpdateCategoriesOptions {
   xAxis?: IAxisModel
+  xAttrId: string
+  xCats: string[]
   yAxis?: IAxisModel
-  xCategories: string[]
-  yCategories: string[]
+  yAttrId: string
+  yCats: string[]
+  topSplitCats: string[]
+  topSplitAttrId: string
+  rightSplitCats: string[]
+  rightSplitAttrId: string
   resetPoints?: boolean
 }
 
@@ -43,22 +49,15 @@ export const AdornmentModel = types.model("AdornmentModel", {
     isVisible: true
   })
   .views(self => ({
-    instanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
-      if (xCats.length > 0 && yCats.length > 0) {
-        return `{x: ${xCats[index % xCats.length]}, y: ${yCats[Math.floor(index / xCats.length)]}}`
-      } else if (xCats.length > 0) {
-        return `{x: ${xCats[index]}}`
-      } else if (yCats.length > 0) {
-        return `{y: ${yCats[index]}}`
-      }
-      return ''
+    instanceKey(subPlotKey: Record<string, string>) {
+      const key = Object.keys(subPlotKey).length > 0 ? JSON.stringify(subPlotKey) : ""
+      return key
     },
-    classNameFromKey(key: string) {
-      const className = key.replace(/\{/g, '')
-        .replace(/\}/g, '')
-        .replace(/: /g, '-')
-        .replace(/, /g, '-')
-
+    classNameFromKey(subPlotKey: Record<string, string>) {
+      let className = ''
+      Object.entries(subPlotKey).forEach(([key, value]) => {
+        className += `${key}-${value}-`
+      })
       return className
     }
   }))
@@ -68,6 +67,15 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     updateCategories(options: IUpdateCategoriesOptions) {
       // derived models should override to update their models when categories change
+    },
+    setSubPlotKey(options: IUpdateCategoriesOptions, index: number) {
+      const { xAttrId, xCats, yAttrId, yCats, topSplitAttrId, topSplitCats, rightSplitAttrId, rightSplitCats } = options
+      const subPlotKey: Record<string, string> = {}
+      if (topSplitAttrId) subPlotKey[topSplitAttrId] = topSplitCats?.[index % topSplitCats.length]
+      if (rightSplitAttrId) subPlotKey[rightSplitAttrId] = rightSplitCats?.[Math.floor(index / topSplitCats.length)]
+      if (yAttrId) subPlotKey[yAttrId] = yCats?.[index % yCats.length]
+      if (xAttrId) subPlotKey[xAttrId] = xCats?.[index % xCats.length]
+      return subPlotKey
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}

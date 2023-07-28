@@ -5,7 +5,7 @@ import { kCountType } from "./count-types"
 export const CountModel = AdornmentModel
   .named('CountModel')
   .props({
-    type: 'Count',
+    type: 'Count'
   })
 export interface ICountModel extends Instance<typeof CountModel> {}
 export function isCount(adornment: IAdornmentModel): adornment is ICountModel {

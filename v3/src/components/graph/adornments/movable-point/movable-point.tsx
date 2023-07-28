@@ -23,18 +23,17 @@ interface IPointObject {
 }
 
 interface IProps {
-  containerId: string
-  instanceKey?: string
+  containerId?: string
   model: IMovablePointModel
   plotHeight: number
-  plotIndex: number
   plotWidth: number
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
+  subPlotKey: Record<string, string>
+  xAxis?: INumericAxisModel
+  yAxis?: INumericAxisModel
 }
 
 export const MovablePoint = observer(function MovablePoint(props: IProps) {
-  const {instanceKey = '', model, plotHeight, plotWidth, xAxis, yAxis} = props,
+  const {model, plotHeight, plotWidth, subPlotKey = {}, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
@@ -43,7 +42,8 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     graphWidth = layout.getAxisLength('bottom'),
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1,
-    classFromKey = model.classNameFromKey(instanceKey),
+    classFromKey = model.classNameFromKey(subPlotKey),
+    instanceKey = model.instanceKey(subPlotKey),
     pointRef = useRef<SVGGElement | null>(null),
     [pointObject, setPointObject] = useState<IPointObject>({})
 
@@ -97,8 +97,8 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     dataTip.show(string, event.target)
     movePoint(xPoint, yPoint)
     model.setPoint({x: xValue, y: yValue}, instanceKey)
-  }, [classFromKey, instanceKey, model, movePoint, plotHeight, plotWidth,
-      xAttrName, xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
+  }, [classFromKey, instanceKey, model, movePoint, plotHeight, plotWidth, xAttrName,
+      xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
     return autorun(() => {
@@ -116,8 +116,9 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
 
       movePoint(xPoint, yPoint)
     })
-  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint, xAttrId, xAttrName, xAxis,
-      xAxis.domain, xScale, xSubAxesCount, yAttrId, yAttrName, yAxis, yAxis.domain, yScale, ySubAxesCount])
+  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint, xAttrId, xAttrName,
+      xAxis, xAxis?.domain, xScale, xSubAxesCount, yAttrId, yAttrName, yAxis, yAxis?.domain,
+      yScale, ySubAxesCount])
 
   // Add behaviors to the point
   useEffect(function addBehaviors() {

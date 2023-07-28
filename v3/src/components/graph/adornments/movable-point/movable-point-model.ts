@@ -30,12 +30,14 @@ export const MovablePointModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAxis, yAxis, xCategories, yCategories, resetPoints } = options
-      const columnCount = xCategories?.length || 1
-      const rowCount = yCategories?.length || 1
+      const { xAxis, xAttrId, xCats, yAxis, yAttrId, yCats, topSplitAttrId, topSplitCats,
+              rightSplitAttrId, rightSplitCats, resetPoints } = options
+      const columnCount = topSplitCats?.length || 1
+      const rowCount = rightSplitCats?.length || 1
       const totalCount = rowCount * columnCount
       for (let i = 0; i < totalCount; ++i) {
-        const instanceKey = self.instanceKey(xCategories, yCategories, i)
+        const subPlotKey = self.setSubPlotKey(options, i)
+        const instanceKey = self.instanceKey(subPlotKey)
         if (!self.points.get(instanceKey) || resetPoints) {
           self.setInitialPoint(xAxis, yAxis, instanceKey)
         }
