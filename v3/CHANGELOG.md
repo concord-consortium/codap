@@ -1,5 +1,32 @@
 # Changelog
 
+## Version 3.0.0-pre.1286 - July 31, 2023
+
+### Features/Improvements
+- Using the ruler menu a **Movable Point** can be added to a scatterplot [#181922730](https://www.pivotaltracker.com/story/show/181922730)
+- Tool shelf right buttons [#185700500](https://www.pivotaltracker.com/story/show/185700500)
+- When a csv file is imported its case table opens automatically. [#185567223](https://www.pivotaltracker.com/story/show/185567223)
+- The **movable line**'s custom pivot and "slide" mouse cursors should change depending on the orientation of the line [#185631489](https://www.pivotaltracker.com/story/show/185631489)
+
+### Bug Fixes
+- Changing attributes from numeric to categorical after movable line is drawn should remove the movable line [#185639448](https://www.pivotaltracker.com/story/show/185639448)
+- It shouldn't be possible to drag movable line off the axes so that it becomes invisible and inaccessible [#185640617](https://www.pivotaltracker.com/story/show/185640617)
+- Changing axis attribute doesn't update Movable Point coordinate information box [#185648727](https://www.pivotaltracker.com/story/show/185648727)
+- Changing x-axis attribute removes Movable Point and it never shows again for that graph [#185646724](https://www.pivotaltracker.com/story/show/185646724)
+- Movable line shows wrong equation when the line is vertical [#185638862](https://www.pivotaltracker.com/story/show/185638862)
+- Changing attributes in graph axes after drawing movable line should update the line equation [#185639335](https://www.pivotaltracker.com/story/show/185639335)
+- Replacing one of the axis attributes with a categorical attribute after a movable point is added crashes CODAP [#185646788](https://www.pivotaltracker.com/story/show/185646788)
+- Removing one of the axis attributes after a movable point is added crashes CODAP [#185646770](https://www.pivotaltracker.com/story/show/185646770)
+- Dragging a csv or codap file into V3 twice causes error. [#183689090](https://www.pivotaltracker.com/story/show/183689090)
+- CSV not importing into existing document [#185567221](https://www.pivotaltracker.com/story/show/185567221)
+- Transparent background for graph not working [#185707586](https://www.pivotaltracker.com/story/show/185707586)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+| index.css |   48875 bytes |                            8.58% |
+|  index.js | 3108980 bytes |                            0.45% |
+
 ## Version 3.0.0-pre.1278 - July 24, 2023
 
 ### Bug Fixes
