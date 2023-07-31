@@ -544,7 +544,6 @@ export const DataSet = types.model("DataSet", {
   function setCaseValues(caseValues: ICase) {
     const index = self.caseIDMap[caseValues.__id__]
     if (index == null) { return }
-
     for (const key in caseValues) {
       if (key !== "__id__") {
         const attribute = attrIDMap[key]
@@ -554,8 +553,6 @@ export const DataSet = types.model("DataSet", {
         }
       }
     }
-
-    self.invalidateCollectionGroups()
   }
 
   return {
@@ -860,7 +857,7 @@ export const DataSet = types.model("DataSet", {
             setCaseValues(caseValues)
           })
         }
-        self.invalidateCollectionGroups()
+        ungroupedCases.length > 0 && self.invalidateCollectionGroups()
       },
 
       removeCases(caseIDs: string[]) {

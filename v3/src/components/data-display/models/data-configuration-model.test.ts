@@ -30,7 +30,7 @@ describe("DataConfigurationModel", () => {
 
   it("behaves as expected when empty", () => {
     const config = tree.config
-    expect(config.defaultCaptionAttributeID).toBeUndefined()
+    expect(config.attributeID('caption')).toBeUndefined()
     expect(config.attributeID("x")).toBeUndefined()
     expect(config.attributeID("y")).toBeUndefined()
     expect(config.attributeID("caption")).toBeUndefined()
@@ -47,7 +47,7 @@ describe("DataConfigurationModel", () => {
   it("behaves as expected with empty/case plot", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
-    expect(config.defaultCaptionAttributeID).toBe("nId")
+    expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBeUndefined()
     expect(config.attributeID("y")).toBeUndefined()
     expect(config.attributeID("caption")).toBe("nId")
@@ -69,7 +69,7 @@ describe("DataConfigurationModel", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "nId" })
-    expect(config.defaultCaptionAttributeID).toBe("nId")
+    expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBe("nId")
     expect(config.attributeID("y")).toBeUndefined()
     expect(config.attributeID("caption")).toBe("nId")
@@ -91,7 +91,7 @@ describe("DataConfigurationModel", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     config.setAttribute("x", { attributeID: "xId" })
-    expect(config.defaultCaptionAttributeID).toBe("nId")
+    expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBe("xId")
     expect(config.attributeID("y")).toBeUndefined()
     expect(config.attributeID("caption")).toBe("nId")
@@ -116,7 +116,7 @@ describe("DataConfigurationModel", () => {
     config.setAttribute("x", { attributeID: "xId" })
     config.setAttribute("y", { attributeID: "yId" })
     config.setAttribute("caption", { attributeID: "nId" })
-    expect(config.defaultCaptionAttributeID).toBe("nId")
+    expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBe("xId")
     expect(config.attributeID("y")).toBe("yId")
     expect(config.attributeID("caption")).toBe("nId")
@@ -134,7 +134,7 @@ describe("DataConfigurationModel", () => {
 
     // behaves as expected after removing x-axis attribute
     config.setAttribute("x")
-    expect(config.defaultCaptionAttributeID).toBe("nId")
+    expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBeUndefined()
     expect(config.attributeID("y")).toBe("yId")
     expect(config.attributeID("caption")).toBe("nId")

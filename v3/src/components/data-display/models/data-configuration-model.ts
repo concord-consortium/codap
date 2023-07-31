@@ -3,6 +3,8 @@ import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "m
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
+import {IDataSet} from "../../../models/data/data-set"
+import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
 import {getCategorySet, ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -97,11 +99,6 @@ export const DataConfigurationModel = types
       }
       return descriptions
     },
-    get defaultCaptionAttributeID() {
-      // In v2, the caption is the attribute left-most in the child-most collection among plotted attributes
-      // Until we have better support for hierarchical attributes, we just return the left-most attribute.
-      return self.dataset?.attributes[0]?.id
-    },
     /**
      * For the 'y' role we return the first y-attribute, for 'rightNumeric' we return the last y-attribute.
      * For all other roles we return the attribute description for the role.
@@ -112,9 +109,30 @@ export const DataConfigurationModel = types
           : this.attributeDescriptions[role]
     },
     attributeID(role: GraphAttrRole) {
+
+      const defaultCaptionAttributeID = () => {
+        // We find the childmost collection and return the first attribute in that collection. If there is no
+        // childmost collection, we return the first attribute in the dataset.
+        const attrIDs = ['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit']
+            .map(
+              aRole => this.attributeID(aRole as GraphAttrRole)
+            )
+            .filter(id => !!id),
+          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs as string[], self.dataset)
+        if (childmostCollectionID) {
+          const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
+            childmostCollectionAttributes = childmostCollection?.attributes
+          if (childmostCollectionAttributes?.length) {
+            const firstAttribute = childmostCollectionAttributes[0]
+            return firstAttribute?.id
+          }
+        }
+        return self.dataset?.ungroupedAttributes[0]?.id
+      }
+
       let attrID = this.attributeDescriptionForRole(role)?.attributeID
       if ((role === "caption") && !attrID) {
-        attrID = this.defaultCaptionAttributeID
+        attrID = defaultCaptionAttributeID()
       }
       return attrID
     },
@@ -319,7 +337,7 @@ export const DataConfigurationModel = types
             categorySet = getCategorySet(self.metadata, attributeID),
             validValues: Set<string> = new Set(this.valuesForAttrRole(role))
           categoryArray = (categorySet?.values || emptyCategoryArray)
-                            .filter((aValue: string) => validValues.has(aValue))
+            .filter((aValue: string) => validValues.has(aValue))
         }
         if (categoryArray.length === 0) {
           categoryArray = emptyCategoryArray
@@ -442,14 +460,13 @@ export const DataConfigurationModel = types
           legendID = self.attributeID('legend'),
           thresholds = self.legendQuantileScale.quantiles(),
           min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
-          max = quantile === thresholds.length ? Infinity : thresholds[quantile],
-          selection: string[] = legendID && legendID !== ''
-            ? self.caseDataArray.filter((aCaseData: CaseData) => {
-              const value = dataset?.getNumeric(aCaseData.caseID, legendID)
-              return value !== undefined && value >= min && value < max
-            }).map((aCaseData: CaseData) => aCaseData.caseID)
-            : []
-        return selection
+          max = quantile === thresholds.length ? Infinity : thresholds[quantile]
+        return legendID && legendID !== ''
+          ? self.caseDataArray.filter((aCaseData: CaseData) => {
+            const value = dataset?.getNumeric(aCaseData.caseID, legendID)
+            return value !== undefined && value >= min && value < max
+          }).map((aCaseData: CaseData) => aCaseData.caseID)
+          : []
       },
       selectCasesForLegendQuantile(quantile: number, extend = false) {
         const selection = this.selectedCasesForLegendQuantile(quantile)
@@ -511,18 +528,195 @@ export const DataConfigurationModel = types
         }
       }
     }))
-  .actions(self => ({
-      /**
-       * This is called when the user swaps categories in the legend, but not when the user swaps categories
-       * by dragging categories on an axis.
-       * @param role
-       */
-      storeAllCurrentColorsForAttrRole(role: GraphAttrRole) {
-        const categorySet = self.categorySetForAttrRole(role)
-        if (categorySet) {
-          categorySet.storeAllCurrentColors()
+  .extend(self => {
+
+    return {
+      actions: {
+        handleAction(actionCall: ISerializedActionCall) {
+          // forward all actions from dataset except "setCaseValues" which requires intervention
+          if (actionCall.name === "setCaseValues") return
+          if (actionCall.name === "invalidateCollectionGroups") {
+            this._updateFilteredCasesCollectionID()
+            this._invalidateCases()
+          }
+          self.handlers.forEach(handler => handler(actionCall))
+        },
+        handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
+          if (!isSetCaseValuesAction(actionCall)) return
+          let [affectedCases, affectedAttrIDs] = actionCall.args
+          // this is called by the FilteredCases object with additional information about
+          // whether the value changes result in adding/removing any cases from the filtered set
+          // a single call to setCaseValues can result in up to three calls to the handlers
+          if (cases.added.length) {
+            const newCases = self.dataset?.getCases(cases.added)
+            self.handlers.forEach(handler => handler({name: "addCases", args: [newCases]}))
+          }
+          if (cases.removed.length) {
+            self.handlers.forEach(handler => handler({name: "removeCases", args: [cases.removed]}))
+          }
+          if (cases.changed.length) {
+            const idSet = new Set(cases.changed)
+            const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
+            self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
+          }
+          // Changes to case values require that existing cached categorySets be wiped.
+          // But if we know the ids of the attributes involved, we can determine whether
+          // an attribute that has a cache is involved
+          if (!affectedAttrIDs && affectedCases.length === 1) {
+            affectedAttrIDs = Object.keys(affectedCases[0])
+          }
+          if (affectedAttrIDs) {
+            for (const [key, desc] of Object.entries(self.attributeDescriptions)) {
+              if (affectedAttrIDs.includes(desc.attributeID)) {
+                if (key === "legend") {
+                  self.invalidateQuantileScale()
+                }
+              }
+            }
+          } else {
+            self.invalidateQuantileScale()
+          }
+        },
+        _updateFilteredCasesCollectionID() {
+          const childmostCollectionID = idOfChildmostCollectionForAttributes(self.attributes, self.dataset)
+          self.filteredCases?.forEach((aFilteredCases) => {
+            aFilteredCases.setCollectionID(childmostCollectionID)
+          })
+        },
+        _invalidateCases() {
+          self.filteredCases?.forEach((aFilteredCases) => {
+            aFilteredCases.invalidateCases()
+          })
+        },
+        _addNewFilteredCases() {
+          if (self.dataset) {
+            this._updateFilteredCasesCollectionID()
+            self.filteredCases?.push(new FilteredCases({
+              source: self.dataset,
+              filter: self.filterCase,
+              collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
+              onSetCaseValues: this.handleSetCaseValues
+            }))
+            self.setPointsNeedUpdating(true)
+          }
+        },
+        setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
+          self.actionHandlerDisposer?.()
+          self.actionHandlerDisposer = undefined
+          self.dataset = dataset
+          self.metadata = metadata
+          self.filteredCases = []
+          if (dataset) {
+            self.actionHandlerDisposer = onAnyAction(self.dataset, this.handleAction)
+            self.filteredCases[0] = new FilteredCases({
+              source: self.dataset as IDataSet,
+              filter: self.filterCase,
+              collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
+              onSetCaseValues: this.handleSetCaseValues
+            })
+            // make sure there are enough filteredCases to hold all the y attributes
+            while (self.filteredCases.length < self._yAttributeDescriptions.length) {
+              this._addNewFilteredCases()
+            }
+            // A y2 attribute is optional, so only add a new filteredCases if there is one.
+            if (self.hasY2Attribute) {
+              this._addNewFilteredCases()
+            }
+          }
+          self.invalidateQuantileScale()
+        },
+        setPrimaryRole(role: GraphAttrRole) {
+          if (role === 'x' || role === 'y') {
+            self.primaryRole = role
+          }
+        },
+        clearAttributes() {
+          self._attributeDescriptions.clear()
+          self._yAttributeDescriptions.clear()
+        },
+        setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+          // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
+          // move whatever attribute is assigned to the given role to that axis.
+          if (['x', 'y'].includes(role)) {
+            const otherRole = role === 'x' ? 'y' : 'x',
+              otherDesc = self.attributeDescriptionForRole(otherRole)
+            if (otherDesc?.attributeID === desc?.attributeID) {
+              const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
+              self._setAttributeDescription(otherRole, currentDesc)
+            }
+          }
+          if (role === 'y') {
+            self._yAttributeDescriptions.clear()
+            if (desc && desc.attributeID !== '') {
+              self._yAttributeDescriptions.push(desc)
+            }
+          } else if (role === 'rightNumeric') {
+            this.setY2Attribute(desc)
+          } else {
+            self._setAttributeDescription(role, desc)
+          }
+          this._updateFilteredCasesCollectionID()
+          if (role === 'legend') {
+            self.invalidateQuantileScale()
+          }
+        },
+        addYAttribute(desc: IAttributeDescriptionSnapshot) {
+          self._yAttributeDescriptions.push(desc)
+          this._addNewFilteredCases()
+        },
+        setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
+          const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
+            isEmpty = !desc?.attributeID
+          self._setAttributeDescription('rightNumeric', desc)
+          if (isNewAttribute) {
+            this._addNewFilteredCases()
+          } else if (isEmpty) {
+            self.filteredCases?.pop() // remove the last one because it is the array
+            self.setPointsNeedUpdating(true)
+          } else {
+            const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
+            existingFilteredCases?.invalidateCases()
+          }
+        },
+        removeYAttributeWithID(id: string) {
+          const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
+          if (index >= 0) {
+            self._yAttributeDescriptions.splice(index, 1)
+            self.filteredCases?.splice(index, 1)
+            this._updateFilteredCasesCollectionID()
+            self.setPointsNeedUpdating(true)
+          }
+        },
+        setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
+          if (role === 'y') {
+            self._yAttributeDescriptions[plotNumber]?.setType(type)
+          } else {
+            self._attributeDescriptions.get(role)?.setType(type)
+          }
+          this._invalidateCases()
+        },
+        onAction(handler: (actionCall: ISerializedActionCall) => void) {
+          const id = uniqueId()
+          self.handlers.set(id, handler)
+          return () => {
+            self.handlers.delete(id)
+          }
         }
-      },
+      }
+    }
+  })
+  .actions(self => ({
+    /**
+     * This is called when the user swaps categories in the legend, but not when the user swaps categories
+     * by dragging categories on an axis.
+     * @param role
+     */
+    storeAllCurrentColorsForAttrRole(role: GraphAttrRole) {
+      const categorySet = self.categorySetForAttrRole(role)
+      if (categorySet) {
+        categorySet.storeAllCurrentColors()
+      }
+    },
     swapCategoriesForAttrRole(role: GraphAttrRole, catIndex1: number, catIndex2: number) {
       const categoryArray = self.categoryArrayForAttrRole(role),
         numCategories = categoryArray.length,
@@ -538,164 +732,7 @@ export const DataConfigurationModel = types
         categorySet.move(cat1, beforeCat)
       }
     },
-    handleAction(actionCall: ISerializedActionCall) {
-      // forward all actions from dataset except "setCaseValues" which requires intervention
-      if (actionCall.name === "setCaseValues") return
-      self.handlers.forEach(handler => handler(actionCall))
-    },
-    handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
-      if (!isSetCaseValuesAction(actionCall)) return
-      let [affectedCases, affectedAttrIDs] = actionCall.args
-      // this is called by the FilteredCases object with additional information about
-      // whether the value changes result in adding/removing any cases from the filtered set
-      // a single call to setCaseValues can result in up to three calls to the handlers
-      if (cases.added.length) {
-        const newCases = self.dataset?.getCases(cases.added)
-        self.handlers.forEach(handler => handler({name: "addCases", args: [newCases]}))
-      }
-      if (cases.removed.length) {
-        self.handlers.forEach(handler => handler({name: "removeCases", args: [cases.removed]}))
-      }
-      if (cases.changed.length) {
-        const idSet = new Set(cases.changed)
-        const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
-        self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
-      }
-      // Changes to case values require that existing cached categorySets be wiped.
-      // But if we know the ids of the attributes involved, we can determine whether
-      // an attribute that has a cache is involved
-      if (!affectedAttrIDs && affectedCases.length === 1) {
-        affectedAttrIDs = Object.keys(affectedCases[0])
-      }
-      if (affectedAttrIDs) {
-        for (const [key, desc] of Object.entries(self.attributeDescriptions)) {
-          if (affectedAttrIDs.includes(desc.attributeID)) {
-            if (key === "legend") {
-              self.invalidateQuantileScale()
-            }
-          }
-        }
-      } else {
-        self.invalidateQuantileScale()
-      }
-    }
   }))
-  .actions(self => ({
-    _addNewFilteredCases() {
-      self.dataset && self.filteredCases
-        ?.push(new FilteredCases({
-          casesArrayNumber: self.filteredCases.length,
-          source: self.dataset, filter: self.filterCase,
-          onSetCaseValues: self.handleSetCaseValues
-        }))
-      self.setPointsNeedUpdating(true)
-    },
-    setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
-      self.actionHandlerDisposer?.()
-      self.actionHandlerDisposer = undefined
-      self.dataset = dataset
-      self.metadata = metadata
-      self.filteredCases = []
-      if (dataset) {
-        self.actionHandlerDisposer = onAnyAction(dataset, self.handleAction)
-        self.filteredCases[0] = new FilteredCases({
-          source: dataset, filter: self.filterCase,
-          onSetCaseValues: self.handleSetCaseValues
-        })
-        // make sure there are enough filteredCases to hold all the y attributes
-        while (self.filteredCases.length < self._yAttributeDescriptions.length) {
-          this._addNewFilteredCases()
-        }
-        // A y2 attribute is optional, so only add a new filteredCases if there is one.
-        if (self.hasY2Attribute) {
-          this._addNewFilteredCases()
-        }
-      }
-      self.invalidateQuantileScale()
-    },
-    setPrimaryRole(role: GraphAttrRole) {
-      if (role === 'x' || role === 'y') {
-        self.primaryRole = role
-      }
-    },
-    clearAttributes() {
-      self._attributeDescriptions.clear()
-      self._yAttributeDescriptions.clear()
-    },
-    setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
-
-      // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
-      // move whatever attribute is assigned to the given role to that axis.
-      if (['x', 'y'].includes(role)) {
-        const otherRole = role === 'x' ? 'y' : 'x',
-          otherDesc = self.attributeDescriptionForRole(otherRole)
-        if (otherDesc?.attributeID === desc?.attributeID) {
-          const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
-          self._setAttributeDescription(otherRole, currentDesc)
-        }
-      }
-      if (role === 'y') {
-        self._yAttributeDescriptions.clear()
-        if (desc && desc.attributeID !== '') {
-          self._yAttributeDescriptions.push(desc)
-        }
-      } else if (role === 'rightNumeric') {
-        this.setY2Attribute(desc)
-      } else {
-        self._setAttributeDescription(role, desc)
-      }
-      self.filteredCases?.forEach((aFilteredCases) => {
-        aFilteredCases.invalidateCases()
-      })
-      if (role === 'legend') {
-        self.invalidateQuantileScale()
-      }
-    },
-    addYAttribute(desc: IAttributeDescriptionSnapshot) {
-      self._yAttributeDescriptions.push(desc)
-      this._addNewFilteredCases()
-    },
-    setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
-      const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
-        isEmpty = !desc?.attributeID
-      self._setAttributeDescription('rightNumeric', desc)
-      if (isNewAttribute) {
-        this._addNewFilteredCases()
-      } else if (isEmpty) {
-        self.filteredCases?.pop() // remove the last one because it is the array
-        self.setPointsNeedUpdating(true)
-      } else {
-        const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
-        existingFilteredCases?.invalidateCases()
-      }
-    },
-    removeYAttributeWithID(id: string) {
-      const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
-      if (index >= 0) {
-        self._yAttributeDescriptions.splice(index, 1)
-        self.filteredCases?.splice(index, 1)
-        self.setPointsNeedUpdating(true)
-      }
-    },
-    setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
-      if (role === 'y') {
-        self._yAttributeDescriptions[plotNumber]?.setType(type)
-      } else {
-        self._attributeDescriptions.get(role)?.setType(type)
-      }
-      self.filteredCases?.forEach((aFilteredCases) => {
-        aFilteredCases.invalidateCases()
-      })
-    },
-    onAction(handler: (actionCall: ISerializedActionCall) => void) {
-      const id = uniqueId()
-      self.handlers.set(id, handler)
-      return () => {
-        self.handlers.delete(id)
-      }
-    }
-  }))
-
 /*
 export interface SetAttributeTypeAction extends ISerializedActionCall {
   name: "setAttributeType"

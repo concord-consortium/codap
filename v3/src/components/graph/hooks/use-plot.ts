@@ -150,10 +150,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataset, callRefreshPointPositions, refreshPointSelection])
 
-  // respond to added or removed cases and change in attribute type
-  useEffect(function handleAddRemoveCases() {
+  // respond to added or removed cases or change in attribute type or change in collection groups
+  useEffect(function handleDataConfigurationActions() {
     const disposer = dataConfiguration?.onAction(action => {
-      if (['addCases', 'removeCases', 'setAttributeType'].includes(action.name)) {
+      if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),

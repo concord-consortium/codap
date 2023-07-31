@@ -108,24 +108,24 @@ export const CaseDots = function CaseDots(props: {
   }, [dataset, dataConfiguration, graphModel, layout, dotsRef, enableAnimation])
 
   useEffect(function initDistribution() {
-    const {cases} = dataset || {}
-    const uniform = randomUniform()
+    const uniform = randomUniform(),
+      cases = dataConfiguration?.caseDataArray
 
-    const initCases = (_cases?: typeof cases | ICase[]) => {
-      _cases?.forEach(({__id__}) => {
-        randomPointsRef.current[__id__] = {x: uniform(), y: uniform()}
+    const initCases = (_cases?: CaseData[] | undefined) => {
+      randomPointsRef.current = {}
+      _cases?.forEach(({caseID}) => {
+        randomPointsRef.current[caseID] = {x: uniform(), y: uniform()}
       })
     }
 
     initCases(cases)
-    const disposer = dataset && onAnyAction(dataset, action => {
-      if (isAddCasesAction(action)) {
-        initCases(action.args[0])
+    const disposer = dataConfiguration?.onAction(action => {
+      if (['addCases', 'removeCases'].includes(action.name)) {
+        initCases(dataConfiguration?.caseDataArray)
       }
-    })
-
+    }) || (() => true)
     return () => disposer?.()
-  }, [dataset])
+  }, [dataConfiguration, dataset])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
 
