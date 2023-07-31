@@ -1,4 +1,6 @@
-import React, {useRef} from "react"
+import {autorun} from "mobx"
+import React, {useEffect, useRef} from "react"
+import {select} from "d3"
 import {Active} from "@dnd-kit/core"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"
@@ -37,7 +39,7 @@ export const Legend = function Legend({
     hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => {
-    const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
+    const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
     if (isDropAllowed) {
       return isDropAllowed('legend', dataSet, droppedAttrId)
     } else {
@@ -46,17 +48,34 @@ export const Legend = function Legend({
   }
 
   useDropHandler(droppableId, active => {
-    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(active) || {}
+    const {dataSet, attributeId: dragAttributeID} = getDragAttributeInfo(active) || {}
     dataSet && dragAttributeID && isDropAllowed('legend', dataSet, dragAttributeID) &&
-     onDropAttribute('legend', dataSet, dragAttributeID)
+    onDropAttribute('legend', dataSet, dragAttributeID)
   })
 
   const legendBounds = layout.computedBounds.legend,
     transform = `translate(${legendBounds.left}, ${legendBounds.top})`
 
+  /**
+   * Because the interior of the graph (the plot) can be transparent, we have to put a background behind
+   * axes and legends.
+   */
+  useEffect(function installBackground() {
+    return autorun(() => {
+      if (legendRef) {
+        select(legendRef.current)
+          .selectAll<SVGRectElement, number>('.legend-background')
+          .attr('transform', `translate(0, ${legendBounds.top})`)
+          .attr('width', layout.graphWidth)
+          .attr('height', legendBounds.height)
+      }
+    })
+  }, [layout.graphWidth, legendBounds, legendRef, transform])
+
   return legendAttrID ? (
     <>
       <svg ref={legendRef} className='legend-component'>
+        <rect className='legend-background'/>
         <AttributeLabel
           place={'legend'}
           onChangeAttribute={onDropAttribute}
