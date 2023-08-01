@@ -1,6 +1,7 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
+import {ICase} from "../../../models/data/data-set-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {getCategorySet, ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
@@ -386,9 +387,22 @@ export const DataConfigurationModel = types
       selectCasesForLegendValue(aValue: string, extend = false) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
-          selection = legendID && self.caseDataArray.filter((aCaseData: CaseData) => {
+          collectionGroup = dataset?.getCollectionForAttribute(legendID || '')
+          let selection: string[] = []
+        if (collectionGroup) {
+          const parentCases = dataset?.getCasesForCollection(collectionGroup.id)
+          parentCases?.forEach((aCase: ICase) => {
+            if (dataset?.getValue(aCase.__id__, legendID || '') === aValue) {
+              selection?.push(aCase.__id__)
+            }
+          })
+        }
+        else {
+          selection = legendID ? self.caseDataArray.filter((aCaseData: CaseData) => {
             return dataset?.getValue(aCaseData.caseID, legendID) === aValue
           }).map((aCaseData: CaseData) => aCaseData.caseID)
+            : []
+        }
         if (selection) {
           if (extend) dataset?.selectCases(selection)
           else dataset?.setSelectedCases(selection)
