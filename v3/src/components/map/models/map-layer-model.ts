@@ -4,10 +4,9 @@
 import {DataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 
 export const MapLayerModel = DataDisplayLayerModel
-  .named('MapLayerModel').props({
+  .named('MapLayerModel')
+  .props({
   })
-  .actions(self => ({
-  }))
   .views(self => ({
   }))
   .actions(self => ({

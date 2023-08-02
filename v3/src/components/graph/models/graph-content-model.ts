@@ -1,6 +1,6 @@
 /**
  * A GraphContentModel is the top level model for the Graph component.
- * Its array of DataDisplayLayerModels has just one element, a GraphContentModel.
+ * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {reaction} from "mobx"
 import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
@@ -13,20 +13,32 @@ import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
   from "../../../models/shared/shared-data-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
-// todo: Deal with the cycle
-// eslint-disable-next-line import/no-cycle
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {AxisPlace} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
 import {hoverRadiusFactor, pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend}
   from "../../data-display/data-display-types"
 import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
-import {AdornmentModelUnion} from "../adornments/adornment-types";
-import {BackgroundLockInfo, GraphPointLayerModel, GraphProperties, IGraphPointLayerModel}
-  from "./graph-point-layer-model"
+import {AdornmentModelUnion} from "../adornments/adornment-types"
+import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
-import {createContext, useContext} from "react"
+
+export interface GraphProperties {
+  axes: Record<string, IAxisModelUnion>
+  plotType: PlotType
+}
+
+export type BackgroundLockInfo = {
+  locked: true,
+  xAxisLowerBound: number,
+  xAxisUpperBound: number,
+  yAxisLowerBound: number,
+  yAxisUpperBound: number
+}
+
+export const NumberToggleModel = types
+  .model('NumberToggleModel', {})
 
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
@@ -147,7 +159,7 @@ export const GraphContentModel = DataDisplayContentModel
         self.dataConfiguration.setDataset(undefined, undefined)
       }
     },
-    updateAdornments(resetPoints=false) {
+    updateAdornments(resetPoints = false) {
       const options = self.getUpdateCategoriesOptions(resetPoints)
       self.adornments.forEach(adornment => adornment.updateCategories(options))
     },
@@ -268,7 +280,3 @@ export function isGraphVisualPropsAction(action: ISerializedActionCall): action 
   return ['setPointColor', 'setPointStrokeColor', 'setPointStrokeSameAsFill', 'setPlotBackgroundColor',
     'setPointSizeMultiplier', 'setIsTransparent'].includes(action.name)
 }
-
-export const GraphContentModelContext = createContext<IGraphContentModel>({} as IGraphContentModel)
-
-export const useGraphContentModelContext = () => useContext(GraphContentModelContext)

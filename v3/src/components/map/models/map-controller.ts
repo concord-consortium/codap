@@ -39,7 +39,7 @@ export class MapController {
   }
 
   callMatchCirclesToData() {
-    console.log('callMatchCirclesToData NYI')
+    console.warn('callMatchCirclesToData NYI')
 /*
     const {mapContentModel, dotsRef, enableAnimation, instanceId} = this
     if (mapContentModel && dotsRef?.current) {
@@ -54,7 +54,7 @@ export class MapController {
   }
 
   initializeMap() {
-    console.log('initializeMap NYI')
+    console.warn('initializeMap NYI')
 /*
     const {mapContentModel, dotsRef, layout} = this,
       dataConfig = mapContentModel?.config

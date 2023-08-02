@@ -41,7 +41,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     }),
     isVisible: true
   })
-  .views(() => ({
+  .views(self => ({
     instanceKey(xCats: string[] | number[], yCats: string[] | number[], index: number) {
       if (xCats.length > 0 && yCats.length > 0) {
         return `{x: ${xCats[index % xCats.length]}, y: ${yCats[Math.floor(index / xCats.length)]}}`

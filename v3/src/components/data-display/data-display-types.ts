@@ -19,7 +19,7 @@ export interface Rect {
 export interface rTreeRect { x: number, y: number, w: number, h: number }
 
 export interface counterProps {
-  counter:number,
+  counter: number,
   setCounter: React.Dispatch<React.SetStateAction<number>>
 }
 
@@ -32,4 +32,3 @@ export const
   hoverRadiusFactor = 1.5,
   kGraphFont = '12px sans-serif',
   kChoroplethHeight = 16
-

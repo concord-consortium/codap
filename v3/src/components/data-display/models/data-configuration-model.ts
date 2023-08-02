@@ -2,6 +2,7 @@ import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
+import {ICase} from "../../../models/data/data-set-types"
 import {getCategorySet, ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -575,7 +576,7 @@ export const DataConfigurationModel = types
       self.metadata = metadata
       self.filteredCases = []
       if (dataset) {
-        self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
+        self.actionHandlerDisposer = onAnyAction(dataset, self.handleAction)
         self.filteredCases[0] = new FilteredCases({
           source: dataset, filter: self.filterCase,
           onSetCaseValues: self.handleSetCaseValues

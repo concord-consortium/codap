@@ -3,12 +3,12 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { kGraphAdornmentsClass } from "../graphing-types"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import {useGraphContentModelContext} from "../models/graph-content-model"
 import { Adornment } from "./adornment"
 import { getAdornmentContentInfo } from "./adornment-content-info"
 import { IAdornmentModel } from "./adornment-models"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 
 import "./adornments.scss"
 

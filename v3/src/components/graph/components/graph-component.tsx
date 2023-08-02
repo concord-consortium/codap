@@ -5,12 +5,13 @@ import {useResizeDetector} from "react-resize-detector"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
+import {GraphContentModelContext} from '../hooks/use-graph-content-model-context'
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
-import {GraphContentModelContext, isGraphContentModel} from "../models/graph-content-model"
+import {isGraphContentModel} from "../models/graph-content-model"
 import {GraphLayoutContext} from "../models/graph-layout"
 import {Graph} from "./graph"
 import {DotsElt} from '../../data-display/d3-types'

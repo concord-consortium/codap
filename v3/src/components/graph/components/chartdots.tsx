@@ -5,7 +5,7 @@ import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useGraphContentModelContext} from "../models/graph-content-model"
+import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 

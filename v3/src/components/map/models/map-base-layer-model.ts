@@ -1,13 +1,15 @@
 /**
  * MapBaseLayerModel keeps track of the state of the map points layer.
  */
+import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {MapLayerModel} from "./map-layer-model"
-import {Instance, SnapshotIn} from "mobx-state-tree"
+
+export const kMapBaseLayerType = "mapBaseLayer"
 
 export const MapBaseLayerModel = MapLayerModel.named('MapBaseLayerModel')
-  .props({type: "mapBaseLayer"})
-  .actions(self => ({
-  }))
+  .props({
+    type: types.optional(types.literal(kMapBaseLayerType), kMapBaseLayerType)
+  })
   .views(self => ({
   }))
   .actions(self => ({

@@ -6,6 +6,7 @@ import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent} from "../../v2/coda
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {axisPlaceToAttrRole, GraphAttrRole, PlotType, PrimaryAttrRole} from "./graphing-types"
 import {IGraphContentModelSnapshot} from "./models/graph-content-model"
+import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
@@ -114,17 +115,18 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   }
   const plotType = plotChoices[axes.bottom?.type ?? "empty"][axes.left?.type ?? "empty"]
 
-  // todo: Figure out how to get import of data configuration model to work since in V3
-  // the base for GraphPointLayerModel is DataDisplayModel which has an array of DataConfigurationModels
   const content: IGraphContentModelSnapshot = {
     type: kGraphTileType,
     axes,
-    plotType/*,
-    config: {
-      primaryRole,
-      _attributeDescriptions,
-      _yAttributeDescriptions
-    }*/
+    plotType,
+    layers: [{
+      type: kGraphPointLayerType,
+      dataConfiguration: {
+        primaryRole,
+        _attributeDescriptions,
+        _yAttributeDescriptions
+      }
+    }]
   }
   const graphTile = TileModel.create({id: typedId(kGraphIdPrefix), title, content})
   insertTile(graphTile)

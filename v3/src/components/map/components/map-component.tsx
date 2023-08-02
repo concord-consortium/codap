@@ -7,9 +7,10 @@ import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {DotsElt} from "../../data-display/d3-types"
 import {CodapMap} from "./codap-map"
-import {isMapContentModel, MapContentModelContext} from "../models/map-content-model"
+import {isMapContentModel} from "../models/map-content-model"
 import {MapController} from "../models/map-controller"
 import {MapLayoutContext} from "../models/map-layout"
+import {MapContentModelContext} from "../hooks/use-map-content-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
 import {useMapController} from "../hooks/use-map-controller"
 

@@ -1,6 +1,6 @@
 import {types} from "mobx-state-tree"
-import {GraphPointLayerModel, IGraphPointLayerModel} from "../../graph/models/graph-point-layer-model"
-import {IGraphContentModelSnapshot} from "../../graph/models/graph-content-model"
+import {GraphPointLayerModel, IGraphPointLayerModel, IGraphPointLayerModelSnapshot}
+  from "../../graph/models/graph-point-layer-model"
 import {IMapPointLayerModel, IMapPointLayerModelSnapshot, MapPointLayerModel}
   from "../../map/models/map-point-layer-model"
 import {MapLayerModel} from "../../map/models/map-layer-model"
@@ -8,7 +8,7 @@ import {IMapBaseLayerModel, IMapBaseLayerModelSnapshot, MapBaseLayerModel} from 
 import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, MapPolygonLayerModel}
   from "../../map/models/map-polygon-layer-model"
 
-const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: any) => {
+const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: IDataDisplayLayerSnapshotUnion) => {
   switch (displayLayerModelSnap.type) {
     case "graphPointLayer": return GraphPointLayerModel
     case "mapBaseLayer": return MapBaseLayerModel
@@ -20,7 +20,7 @@ const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: any) => {
 
 export const DataDisplayLayerModelUnion = types.union({ dispatcher: dataDisplayLayerTypeDispatcher },
   GraphPointLayerModel, MapBaseLayerModel, MapPolygonLayerModel, MapPointLayerModel)
-export type IDataDisplayLayerModelUnion = 
+export type IDataDisplayLayerModelUnion =
   IGraphPointLayerModel | IMapBaseLayerModel | IMapPolygonLayerModel | IMapPointLayerModel
-export type IDataDisplayLayerSnapshotUnion =
-  IGraphContentModelSnapshot | IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot
+export type IDataDisplayLayerSnapshotUnion = IGraphPointLayerModelSnapshot |
+  IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot

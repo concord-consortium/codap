@@ -13,7 +13,7 @@ interface IProps {
 }
 
 export function useMapModel(props: IProps) {
-  const {mapContentModel, enableAnimation, dotsRef, instanceId} = props,
+  const // {mapContentModel, enableAnimation, dotsRef, instanceId} = props,
     // dataConfig = mapContentModel.config,
     dataset = useDataSetContext(),
     leafletMap = useMap()

@@ -27,47 +27,47 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
     yAttrIDs = graphModel.dataConfiguration.yAttributeIDs
 
   useEffect(() => {
-      const roleAttrIDPairs: RoleAttrIDPair[] = graphModel.dataConfiguration.uniqueTipAttributes ?? []
+    const roleAttrIDPairs: RoleAttrIDPair[] = graphModel.dataConfiguration.uniqueTipAttributes ?? []
 
-      function okToTransition(target: any) {
-        return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
-          !target.property('isDragging')
+    function okToTransition(target: any) {
+      return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
+        !target.property('isDragging')
+    }
+
+    function showDataTip(event: MouseEvent) {
+      const target = select(event.target as SVGSVGElement)
+      if (okToTransition(target)) {
+        target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
+        const caseID = (target.datum() as CaseData).caseID,
+          plotNum = (target.datum() as CaseData).plotNum, // Only can be non-zero for scatter plots
+          attrIDsToUse = roleAttrIDPairs.filter((aPair) => {
+            return plotNum > 0 || aPair.role !== 'rightNumeric'
+          }).map((aPair) => {
+            return plotNum === 0
+              ? aPair.attributeID
+              : aPair.role === 'y' ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID
+          })
+        const tipText = getPointTipText(caseID, attrIDsToUse, dataset)
+        tipText !== '' && dataTip.show(tipText, event.target)
       }
+    }
 
-      function showDataTip(event: MouseEvent) {
-        const target = select(event.target as SVGSVGElement)
-        if (okToTransition(target)) {
-          target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
-          const caseID = (target.datum() as CaseData).caseID,
-            plotNum = (target.datum() as CaseData).plotNum, // Only can be non-zero for scatter plots
-            attrIDsToUse = roleAttrIDPairs.filter((aPair) => {
-              return plotNum > 0 || aPair.role !== 'rightNumeric'
-            }).map((aPair) => {
-              return plotNum === 0
-                ? aPair.attributeID
-                : aPair.role === 'y' ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID
-            })
-          const tipText = getPointTipText(caseID, attrIDsToUse, dataset)
-          tipText !== '' && dataTip.show(tipText, event.target)
-        }
+    function hideDataTip(event: MouseEvent) {
+      const target = select(event.target as SVGSVGElement)
+      dataTip.hide()
+      if (okToTransition(target)) {
+        const caseID = (select(event.target as SVGSVGElement).datum() as CaseData).caseID,
+          isSelected = dataset?.isCaseSelected(caseID)
+        select(event.target as SVGSVGElement)
+          .transition().duration(transitionDuration)
+          .attr('r', isSelected ? selectedPointRadius : pointRadius)
       }
+    }
 
-      function hideDataTip(event: MouseEvent) {
-        const target = select(event.target as SVGSVGElement)
-        dataTip.hide()
-        if (okToTransition(target)) {
-          const caseID = (select(event.target as SVGSVGElement).datum() as CaseData).caseID,
-            isSelected = dataset?.isCaseSelected(caseID)
-          select(event.target as SVGSVGElement)
-            .transition().duration(transitionDuration)
-            .attr('r', isSelected ? selectedPointRadius : pointRadius)
-        }
-      }
-
-      dotsRef.current && select(dotsRef.current)
-        .on('mouseover', showDataTip)
-        .on('mouseout', hideDataTip)
-        .call(dataTip)
+    dotsRef.current && select(dotsRef.current)
+      .on('mouseover', showDataTip)
+      .on('mouseout', hideDataTip)
+      .call(dataTip)
     }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
       graphModel.dataConfiguration.uniqueTipAttributes])
 }

@@ -1,10 +1,10 @@
 import {useCallback, useEffect} from "react"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {useGraphContentModelContext} from "../models/graph-content-model"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { IMovableLineModel } from "../adornments/movable-line/movable-line-model"
 import { IMovableValueModel } from "../adornments/movable-value/movable-value-model"
+import { useGraphContentModelContext } from "./use-graph-content-model-context"
 
 interface IProps {
   movableLineModel: IMovableLineModel

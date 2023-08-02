@@ -1,5 +1,4 @@
-import {Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
-import {createContext, useContext} from "react"
+import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
@@ -14,10 +13,10 @@ export const MapContentModel = DataDisplayContentModel
 
     // center and zoom are kept in sync with Leaflet's map state
     center: types.optional(types.array(types.number), [0, 0]),
-    zoom: types.optional(types.number, 0),
+    zoom: 0,
 
     // This is the name of the layer used as an argument to L.esri.basemapLayer
-    baseMapLayerName: types.optional(types.string, ''),
+    baseMapLayerName: "",
 
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
@@ -82,20 +81,6 @@ export interface IMapModelContentSnapshot extends SnapshotIn<typeof MapContentMo
 export function createMapContentModel(snap?: IMapModelContentSnapshot) {
   return MapContentModel.create()
 }
-
-export interface SetMapVisualPropsAction extends ISerializedActionCall {
-  name: "setMapVisualProps"
-  args: [string | number | boolean]
-}
-
-export function isMapVisualPropsAction(action: ISerializedActionCall): action is SetMapVisualPropsAction {
-  return ['setPointColor', 'setPointStrokeColor', 'setPointStrokeSameAsFill', 'setPlotBackgroundColor',
-    'setPointSizeMultiplier', 'setIsTransparent'].includes(action.name)
-}
-
-export const MapContentModelContext = createContext<IMapContentModel>({} as IMapContentModel)
-
-export const useMapContentModelContext = () => useContext(MapContentModelContext)
 
 export function isMapContentModel(model?: ITileContentModel): model is IMapContentModel {
   return model?.type === kMapTileType

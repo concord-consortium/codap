@@ -1,8 +1,8 @@
-import { getType } from "mobx-state-tree"
+// import { getType } from "mobx-state-tree"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import {isGraphContentModel} from "./models/graph-content-model"
-import { CategoricalAxisModel, EmptyAxisModel, NumericAxisModel } from "../axis/models/axis-model"
+// import { CategoricalAxisModel, EmptyAxisModel, NumericAxisModel } from "../axis/models/axis-model"
 import { v2GraphImporter } from "./v2-graph-importer"
 import "./graph-registration"
 
@@ -36,7 +36,7 @@ describe("V2GraphImporter", () => {
   })
 
   it("imports empty graphs", () => {
-    const tile = v2GraphImporter({
+    /* const tile = */ v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "Empty"),
       v2Document,
       insertTile: mockInsertTile
