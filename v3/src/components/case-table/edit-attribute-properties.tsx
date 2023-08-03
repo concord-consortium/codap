@@ -13,8 +13,7 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IProps,
-    ref: any) => {
+export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IProps) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromName(columnName)
   const attrId = data?.attrIDFromName(columnName)
@@ -30,7 +29,6 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IPro
   }, [columnName])
 
   const editProperties = () => {
-    onClose()
     if (attribute && attrId) {
       data?.setAttributeName(attrId, () => uniqueName(attributeName,
         (aName: string) => (aName === columnName) || !data.attributes.find(attr => aName === attr.name)
@@ -41,6 +39,7 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IPro
       attribute.setPrecision(precision && isFinite(+precision) ? +precision : undefined)
       attribute.setEditable(editable === "true")
     }
+    closeModal()
   }
 
   const closeModal = () => {
@@ -62,13 +61,13 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IPro
   return (
     <CodapModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={closeModal}
       modalWidth={"350px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title">{t("DG.TableController.attributeEditor.title")}</div>
-        <ModalCloseButton onClick={onClose} data-testid="modal-close-button"/>
+        <ModalCloseButton onClick={closeModal} data-testid="modal-close-button"/>
       </ModalHeader>
       <ModalBody>
       <FormControl display="flex" flexDirection="column">
