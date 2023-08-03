@@ -43,6 +43,12 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     onOpen()
     onModalOpen(true)
   }
+
+  const handleEditAttributePropsClose = () => {
+    onClose()
+    onModalOpen(false)
+  }
+
   const handleMenuKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
   }
@@ -84,8 +90,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
           {t("DG.TableController.headerMenuItems.deleteAttribute")}
         </MenuItem>
       </MenuList>
-      <EditAttributePropertiesModal columnName={column.name as string} isOpen={isOpen} onClose={onClose}
-        onModalOpen={onModalOpen} />
+      <EditAttributePropertiesModal columnName={column.name as string} isOpen={isOpen}
+        onClose={handleEditAttributePropsClose} />
     </>
   )
   })

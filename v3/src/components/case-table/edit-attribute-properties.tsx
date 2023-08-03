@@ -11,10 +11,9 @@ interface IProps {
   columnName: string
   isOpen: boolean
   onClose: () => void
-  onModalOpen: (open: boolean) => void
 }
 
-export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onModalOpen}: IProps,
+export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IProps,
     ref: any) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromName(columnName)
@@ -32,7 +31,6 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
 
   const editProperties = () => {
     onClose()
-    onModalOpen(false)
     if (attribute && attrId) {
       data?.setAttributeName(attrId, () => uniqueName(attributeName,
         (aName: string) => (aName === columnName) || !data.attributes.find(attr => aName === attr.name)
@@ -44,9 +42,9 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose, onMod
       attribute.setEditable(editable === "true")
     }
   }
+
   const closeModal = () => {
     onClose()
-    onModalOpen(false)
     setAttributeName(attribute?.name || "")
     setDescription(attribute?.description || "")
     setAttrType(attribute?.userType ? attribute?.userType : "none")
