@@ -1,11 +1,11 @@
 import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
   Radio, RadioGroup, Select, Textarea, Tooltip } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
-import { AttributeType, attributeTypes } from "../../models/data/attribute"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { uniqueName } from "../../utilities/js-utils"
-import { CodapModal } from "../codap-modal"
-import t from "../../utilities/translation/translate"
+import { AttributeType, attributeTypes } from "../../../models/data/attribute"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { uniqueName } from "../../../utilities/js-utils"
+import { CodapModal } from "../../codap-modal"
+import t from "../../../utilities/translation/translate"
 
 interface IProps {
   columnName: string
@@ -13,7 +13,7 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IProps) => {
+export const EditAttributePropertiesModal: React.FC<IProps> = ({columnName, isOpen, onClose}) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromName(columnName)
   const attrId = data?.attrIDFromName(columnName)

@@ -706,8 +706,9 @@
     "DG.AttributeFormat.DatePrecisionShort.millisecond": "M/D/YY HH:mm:ss.SSS",
 
     // DG.AttributeFormulaView
-    "DG.AttrFormView.attrNamePrompt": "Attribute Name:",
-    "DG.AttrFormView.formulaPrompt": "Formula:",
+    "DG.AttrFormView.title": "Edit Formula",
+    "DG.AttrFormView.attrNamePrompt": "name",
+    "DG.AttrFormView.formulaPrompt": "formula",
     "DG.AttrFormView.operandMenuTitle": "--- Insert Value ---",
     "DG.AttrFormView.functionMenuTitle": "--- Insert Function ---",
     "DG.AttrFormView.applyBtnTitle": "Apply",
