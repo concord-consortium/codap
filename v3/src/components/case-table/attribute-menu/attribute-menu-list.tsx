@@ -41,8 +41,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   }
 
   const handleDeleteAttribute = () => {
-    const attrId = data?.attrIDFromName(columnName)
-    attrId && data?.removeAttribute(attrId)
+    data?.removeAttribute(column.key)
   }
 
   const handleEditAttributePropsOpen = () => {
