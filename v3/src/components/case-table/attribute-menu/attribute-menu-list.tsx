@@ -19,6 +19,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   const toast = useToast()
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
+  // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const {
     isOpen: isEditAttributePropsOpen, onOpen: onEditAttributePropsOpen, onClose: onEditAttributePropsClose
   } = useDisclosure()
