@@ -37,8 +37,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     })
   }
   const handleHideAttribute = () => {
-    const attrId = data?.attrIDFromName(columnName)
-    attrId && caseMetadata?.setIsHidden(attrId, true)
+   caseMetadata?.setIsHidden(column.key, true)
   }
 
   const handleDeleteAttribute = () => {
