@@ -1,15 +1,14 @@
 import React, { forwardRef } from "react"
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
-import { CalculatedColumn } from "react-data-grid"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { TRow } from "../case-table-types"
+import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import t from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {
-  column: CalculatedColumn<TRow, unknown>
+  column: TCalculatedColumn
   onRenameAttribute: () => void
   onModalOpen: (open: boolean) => void
 }
@@ -20,12 +19,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
-  const {
-    isOpen: isEditAttributePropsOpen, onOpen: onEditAttributePropsOpen, onClose: onEditAttributePropsClose
-  } = useDisclosure()
-  const {
-    isOpen: isEditFormulaOpen, onOpen: onEditFormulaOpen, onClose: onEditFormulaClose
-  } = useDisclosure()
+  const attributePropsModal = useDisclosure()
+  const formulaModal = useDisclosure()
   const columnName = column.name as string
 
   const handleMenuItemClick = (menuItem: string) => {
@@ -46,22 +41,22 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   }
 
   const handleEditAttributePropsOpen = () => {
-    onEditAttributePropsOpen()
+    attributePropsModal.onOpen()
     onModalOpen(true)
   }
 
   const handleEditAttributePropsClose = () => {
-    onEditAttributePropsClose()
+    attributePropsModal.onClose()
     onModalOpen(false)
   }
 
   const handleEditFormulaOpen = () => {
-    onEditFormulaOpen()
+    formulaModal.onOpen()
     onModalOpen(true)
   }
 
   const handleEditFormulaClose = () => {
-    onEditFormulaClose()
+    formulaModal.onClose()
     onModalOpen(false)
   }
 
@@ -106,9 +101,9 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
           {t("DG.TableController.headerMenuItems.deleteAttribute")}
         </MenuItem>
       </MenuList>
-      <EditAttributePropertiesModal columnName={columnName} isOpen={isEditAttributePropsOpen}
+      <EditAttributePropertiesModal columnName={columnName} isOpen={attributePropsModal.isOpen}
         onClose={handleEditAttributePropsClose} />
-      <EditFormulaModal columnName={columnName} isOpen={isEditFormulaOpen} onClose={handleEditFormulaClose} />
+      <EditFormulaModal columnName={columnName} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
     </>
   )
 })

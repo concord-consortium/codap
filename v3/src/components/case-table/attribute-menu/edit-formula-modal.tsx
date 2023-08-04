@@ -12,7 +12,7 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditFormulaModal: React.FC<IProps> = ({ columnName, isOpen, onClose }) => {
+export const EditFormulaModal = ({ columnName, isOpen, onClose }: IProps) => {
   const [formula, setFormula] = useState("")
 
   const applyFormula = () => {
@@ -42,7 +42,7 @@ export const EditFormulaModal: React.FC<IProps> = ({ columnName, isOpen, onClose
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
-        <div className="codap-header-title">{t("DG.AttrFormView.title")}</div>
+        <div className="codap-header-title" />
         <ModalCloseButton onClick={onClose} data-testid="modal-close-button" />
       </ModalHeader>
       <ModalBody>

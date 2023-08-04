@@ -13,7 +13,7 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal: React.FC<IProps> = ({columnName, isOpen, onClose}) => {
+export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IProps) => {
   const data = useDataSetContext()
   const attribute = data?.attrFromName(columnName)
   const attrId = data?.attrIDFromName(columnName)
