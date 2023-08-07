@@ -2,15 +2,15 @@ import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {reaction} from "mobx"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
-import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../../../graph/hooks/use-data-configuration-context"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import {kChoroplethHeight} from "../../../data-display/data-display-types"
-import {useGraphLayoutContext} from "../../models/graph-layout"
+import {kChoroplethHeight} from "../../data-display-types"
+import {useGraphLayoutContext} from "../../../graph/models/graph-layout"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
 
-import graphVars from "../graph.scss"
+import graphVars from "../../../graph/components/graph.scss"
 
 
 interface INumericLegendProps {

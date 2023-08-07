@@ -12,6 +12,7 @@ import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles} from "../data-display-types"
+import {GraphPlace} from "../../axis-graph-shared"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -362,6 +363,14 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
+      // GraphDataConfigurationModel overrides this. Here we only have to worry about the 'legend' role.
+      placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
+        if (idToDrop) {
+          const desc = self.attributeDescriptionForRole('legend')
+          return !desc || desc.attributeID !== idToDrop
+        }
+        return false
+      },
       getLegendColorForCase(id: string): string {
         const legendID = self.attributeID('legend'),
           legendType = self.attributeType('legend'),

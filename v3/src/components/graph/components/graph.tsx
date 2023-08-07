@@ -27,7 +27,7 @@ import {isSetAttributeIDAction} from "../models/graph-content-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
-import {Legend} from "./legend/legend"
+import {Legend} from "../../data-display/components/legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
@@ -199,8 +199,9 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           />
 
           <Legend
+            dataConfiguration={graphModel.dataConfiguration}
             legendAttrID={graphModel.getAttributeID('legend')}
-            graphElt={graphRef.current}
+            divElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
             onRemoveAttribute={handleRemoveAttribute}
             onTreatAttributeAs={handleTreatAttrAs}

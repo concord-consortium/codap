@@ -6,10 +6,12 @@ import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {kMapModelName, kMapTileType} from "../map-defs"
-import {datasetHasLatLongData, latLongAttributesFromDataSet} from "../utilities/map-utils"
+import {datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
+import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 
 export interface MapProperties {
 }
@@ -35,6 +37,16 @@ export const MapContentModel = DataDisplayContentModel
     hasBeenInitialized: false
   }))
   .actions(self => ({
+    // Each layer can have one legend attribute. The layer that can handle the given legend attribute must already
+    // be present in the layers array
+    setLegendAttributeID(datasetID:string, attributeID: string) {
+      const foundLayer = self.layers.find(layer => layer.data?.id === datasetID)
+      if (foundLayer) {
+        foundLayer.dataConfiguration.setAttribute('legend', {attributeID})
+      }
+    }
+  }))
+  .actions(self => ({
     syncCenterAndZoom() {
       const center = self.leafletMap.getCenter()
       self.center.replace({lat: center.lat, lng: center.lng})
@@ -48,6 +60,11 @@ export const MapContentModel = DataDisplayContentModel
       dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
       dataConfiguration.setAttribute('lat', {attributeID: latId})
       dataConfiguration.setAttribute('long', {attributeID: longId})
+    },
+    addPolygonLayer(dataSet: IDataSet) {
+      const newPolygonLayer = MapPolygonLayerModel.create()
+      self.layers.push(newPolygonLayer) // We have to do this first so safe references will work
+      newPolygonLayer.setDataset(dataSet)
     },
     afterAttachToDocument() {
       // Monitor our parents and update our shared model when we have a document parent
@@ -80,6 +97,15 @@ export const MapContentModel = DataDisplayContentModel
                 // Add a new layer for this dataset
                 this.addPointLayer(sharedDataSet.dataSet)
               }
+            } else if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
+              const layer = layersToCheck.find(aLayer => aLayer.data === sharedDataSet.dataSet)
+              if (isMapPolygonLayerModel(layer)) {
+                layer.setDataset(sharedDataSet.dataSet)
+                layersToCheck.splice(layersToCheck.indexOf(layer), 1)
+              } else {
+                // Add a new layer for this dataset
+                this.addPolygonLayer(sharedDataSet.dataSet)
+              }
             }
           })
           // Remove any remaining layers in layersToCheck since they are no longer in any shared dataset
@@ -106,6 +132,18 @@ export const MapContentModel = DataDisplayContentModel
     },
     incrementDisplayChangeCount() {
       self.displayChangeCount++
+    }
+  }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
+  .views(self => ({
+    // Return true if there is already a layer for the given dataset and attributeID is not already in use
+    canAcceptAttributeIDDrop(dataset:IDataSet | undefined, attributeID: string | undefined) {
+      if (dataset && attributeID) {
+        const foundLayer = self.layers.find(layer => layer.data === dataset)
+        return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID
+      }
+      return false
     }
   }))
 

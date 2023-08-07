@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import React, {useCallback, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
-import {handleClickOnDot, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -47,7 +47,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         setDragID(() => tItsID)
         currPos.current = primaryIsBottom ? event.clientX : event.clientY
 
-        handleClickOnDot(event, tItsID, dataset)
+        handleClickOnCase(event, tItsID, dataset)
         // Record the current values, so we can change them during the drag and restore them when done
         const {selection} = dataConfiguration || {},
           primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? ''
