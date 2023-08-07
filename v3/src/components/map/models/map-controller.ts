@@ -1,7 +1,9 @@
 import React from "react"
-import {IDotsRef} from "../../data-display/data-display-types"
+import {DotsElt} from "../../data-display/d3-types"
+import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {IMapContentModel} from "./map-content-model"
 import {MapLayout} from "./map-layout"
+import {IMapPointLayerModel} from "./map-point-layer-model"
 
 interface IMapControllerConstructorProps {
   layout: MapLayout
@@ -10,13 +12,13 @@ interface IMapControllerConstructorProps {
 }
 
 interface IMapControllerProps {
-  mapContentModel: IMapContentModel
-  dotsRef: IDotsRef
+  mapModel: IMapContentModel
+  dotsElement: DotsElt
 }
 
 export class MapController {
-  mapContentModel?: IMapContentModel
-  dotsRef?: IDotsRef
+  mapModel?: IMapContentModel
+  dotsElement?: DotsElt
   layout: MapLayout
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
@@ -28,40 +30,30 @@ export class MapController {
   }
 
   setProperties(props: IMapControllerProps) {
-    this.mapContentModel = props.mapContentModel
-    this.dotsRef = props.dotsRef
-/*
-    if (this.mapContentModel.config.dataset !== this.mapContentModel.data) {
-      this.mapContentModel.config.setDataset(this.mapContentModel.data, this.mapContentModel.metadata)
-    }
-*/
+    this.mapModel = props.mapModel
+    this.dotsElement = props.dotsElement
     this.initializeMap()
   }
 
-  callMatchCirclesToData() {
-    console.warn('callMatchCirclesToData NYI')
-/*
-    const {mapContentModel, dotsRef, enableAnimation, instanceId} = this
-    if (mapContentModel && dotsRef?.current) {
-      const { config: dataConfiguration, pointColor, pointStrokeColor } = mapContentModel,
-        pointRadius = mapContentModel.getPointRadius()
-      matchCirclesToData({
-        dataConfiguration, dotsElement: dotsRef.current,
-        pointRadius, enableAnimation, instanceId, pointColor, pointStrokeColor
-      })
-    }
-*/
-  }
-
   initializeMap() {
-    console.warn('initializeMap NYI')
-/*
-    const {mapContentModel, dotsRef, layout} = this,
-      dataConfig = mapContentModel?.config
-    if (dataConfig && layout && dotsRef?.current) {
-      this.callMatchCirclesToData()
+    const {mapModel, dotsElement} = this,
+      layerModels = (mapModel?.layers || [])
+    if (!dotsElement) {
+      return
     }
-*/
+    layerModels.forEach(aLayerModel => {
+      const pointLayerModel = aLayerModel as IMapPointLayerModel,
+        pointDescription = pointLayerModel.pointDescription
+      matchCirclesToData({
+        dataConfiguration: aLayerModel.dataConfiguration,
+        dotsElement,
+        pointRadius: pointLayerModel.getPointRadius(),
+        enableAnimation: this.enableAnimation,
+        instanceId: this.instanceId,
+        pointColor: pointDescription?.pointColor,
+        pointStrokeColor: pointDescription?.pointStrokeColor
+      })
+    })
   }
 
 }

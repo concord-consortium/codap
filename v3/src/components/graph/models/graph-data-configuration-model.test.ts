@@ -1,13 +1,13 @@
 import { reaction } from "mobx"
 import {Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
-import { DataConfigurationModel } from "./data-configuration-model"
 import {SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
+import {GraphDataConfigurationModel} from "./graph-data-configuration-model"
 
 const TreeModel = types.model("Tree", {
   data: DataSet,
   metadata: SharedCaseMetadata,
-  config: DataConfigurationModel
+  config: GraphDataConfigurationModel
 })
 
 let tree: Instance<typeof TreeModel>

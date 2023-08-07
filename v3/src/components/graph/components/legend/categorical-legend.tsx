@@ -3,13 +3,13 @@ import {reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 import {getStringBounds} from "../../../axis/axis-utils"
-import {kGraphFont, transitionDuration} from "../../../data-display/data-display-types"
+import {kDataDisplayFont, transitionDuration} from "../../../data-display/data-display-types"
 import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'
@@ -71,7 +71,7 @@ const coordinatesToCatIndex = (lod: LayoutData, numCategories: number, localPoin
 export const CategoricalLegend = observer(function CategoricalLegend(
   {transform}: ICategoricalLegendProps) {
   const transformRef = useRef(transform),
-    dataConfiguration = useDataConfigurationContext(),
+    dataConfiguration = useGraphDataConfigurationContext(),
     dataset = dataConfiguration?.dataset,
     layout = useGraphLayoutContext(),
     categoriesRef = useRef<string[] | undefined>(),
@@ -101,7 +101,7 @@ export const CategoricalLegend = observer(function CategoricalLegend(
       lod.fullWidth = layout.getAxisLength('bottom')
       lod.maxWidth = 0
       categoriesRef.current?.forEach(cat => {
-        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kGraphFont))
+        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
       })
       lod.maxWidth += keySize + padding
       lod.numColumns = Math.floor(lod.fullWidth / lod.maxWidth)

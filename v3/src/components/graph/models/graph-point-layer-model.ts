@@ -5,17 +5,17 @@
  */
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {DataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
+import {GraphDataConfigurationModel} from "./graph-data-configuration-model"
 
 export const kGraphPointLayerType = "graphPointLayer"
 
 export const GraphPointLayerModel = DataDisplayLayerModel
   .named("GraphPointLayerModel")
   .props({
-    type: types.optional(types.literal(kGraphPointLayerType), kGraphPointLayerType)
+    type: types.optional(types.literal(kGraphPointLayerType), kGraphPointLayerType),
+    dataConfiguration: types.optional(GraphDataConfigurationModel, () => GraphDataConfigurationModel.create({})),
   })
 
-export interface IGraphPointLayerModel extends Instance<typeof GraphPointLayerModel> {
-}
+export interface IGraphPointLayerModel extends Instance<typeof GraphPointLayerModel> {}
 
-export interface IGraphPointLayerModelSnapshot extends SnapshotIn<typeof GraphPointLayerModel> {
-}
+export interface IGraphPointLayerModelSnapshot extends SnapshotIn<typeof GraphPointLayerModel> {}

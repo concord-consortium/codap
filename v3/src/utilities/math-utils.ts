@@ -23,7 +23,7 @@ export function neededSignificantDigits(num1: number, num2: number) {
 }
 
 /**
- * Given an array of numbers, return a new array of signficiant digits needed for each number in the array to
+ * Given an array of numbers, return a new array of significant digits needed for each number in the array to
  * distinguish it from the numbers on either side of it. For the first and last numbers, the number of significant
  * digits needed only need consider the second and second to last numbers, respectively. Use
  * `neededSignificantDigits` to determine the number of significant digits needed for each pair of numbers.
@@ -54,19 +54,19 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
       done = false
     while (!done) {
       f = format(`.${significantDigits}r`)
-      const n1Afterformatting = Number(f(n1))
+      const n1AfterFormatting = Number(f(n1))
       switch (operator) {
         case '<':
-          done = n1Afterformatting < n2
+          done = n1AfterFormatting < n2
           break
         case ">":
-          done = n1Afterformatting > n2
+          done = n1AfterFormatting > n2
           break
         case "<=":
-          done = n1Afterformatting <= n2
+          done = n1AfterFormatting <= n2
           break
         case ">=":
-          done = n1Afterformatting >= n2
+          done = n1AfterFormatting >= n2
       }
       if (!done) {
         significantDigits++
@@ -95,4 +95,8 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
         index === lastQuantileIndex ? '>=' : '>') : 0
     return Math.max(leftDigits, rightDigits)
   })
+}
+
+export function isFiniteNonEmpty(val:any) {
+  return typeof val === 'number' && isFinite(val)
 }

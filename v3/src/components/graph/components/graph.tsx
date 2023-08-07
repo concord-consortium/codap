@@ -3,23 +3,24 @@ import {isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {IDotsRef} from "../../data-display/data-display-types"
+import {startAnimation} from "../../data-display/data-display-utils"
+import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
+import {GraphAxis} from "./graph-axis"
+import {attrRoleToGraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
-import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
-import {GraphAxis} from "./graph-axis"
-import {attrRoleToGraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {GraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import {setNiceDomain, startAnimation} from "../utilities/graph-utils"
+import {setNiceDomain} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {isSetAttributeIDAction} from "../models/graph-content-model"
@@ -164,7 +165,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   if (!isAlive(graphModel)) return null
 
   return (
-    <DataConfigurationContext.Provider value={graphModel.dataConfiguration}>
+    <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
@@ -198,6 +199,6 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         {renderDroppableAddAttributes()}
         <Adornments />
       </div>
-    </DataConfigurationContext.Provider>
+    </GraphDataConfigurationContext.Provider>
   )
 })

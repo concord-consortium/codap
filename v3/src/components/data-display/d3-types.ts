@@ -15,9 +15,9 @@ export type DotsElt = SVGSVGElement | null
 export type DotSelection = Selection<SVGCircleElement, CaseData, SVGSVGElement, unknown>
 
 // selects all `circle` elements
-export function selectCircles(svg: DotsElt): DotSelection | null {
+export function selectCircles(svg: DotsElt, id:string): DotSelection | null {
   return svg
-          ? select(svg).selectAll("circle")
+          ? select(svg).selectAll(`circle.${id}`)
           : null
 }
 

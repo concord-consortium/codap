@@ -1,11 +1,12 @@
 import {Instance, types} from "mobx-state-tree"
 import {DataDisplayLayerModel, IDataDisplayLayerModel, kUnknownLayerModelType} from "./data-display-layer-model"
-import {GraphPointLayerModel, IGraphPointLayerModel, IGraphPointLayerModelSnapshot}
+import {GraphPointLayerModel, IGraphPointLayerModel, IGraphPointLayerModelSnapshot, kGraphPointLayerType}
   from "../../graph/models/graph-point-layer-model"
-import {IMapPointLayerModel, IMapPointLayerModelSnapshot, MapPointLayerModel}
+import {IMapPointLayerModel, IMapPointLayerModelSnapshot, kMapPointLayerType, MapPointLayerModel}
   from "../../map/models/map-point-layer-model"
-import {IMapBaseLayerModel, IMapBaseLayerModelSnapshot, MapBaseLayerModel} from "../../map/models/map-base-layer-model"
-import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, MapPolygonLayerModel}
+import {IMapBaseLayerModel, IMapBaseLayerModelSnapshot, kMapBaseLayerType, MapBaseLayerModel}
+  from "../../map/models/map-base-layer-model"
+import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, kMapPolygonLayerType, MapPolygonLayerModel}
   from "../../map/models/map-polygon-layer-model"
 
 export const UnknownDataDisplayLayerModel = DataDisplayLayerModel
@@ -23,10 +24,10 @@ export function isUnknownDataDisplayLayerModel(
 
 const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: IDataDisplayLayerSnapshotUnion) => {
   switch (displayLayerModelSnap.type) {
-    case "graphPointLayer": return GraphPointLayerModel
-    case "mapBaseLayer": return MapBaseLayerModel
-    case "mapPointLayer": return MapPointLayerModel
-    case "mapPolygonLayer": return MapPolygonLayerModel
+    case kGraphPointLayerType: return GraphPointLayerModel
+    case kMapBaseLayerType: return MapBaseLayerModel
+    case kMapPointLayerType: return MapPointLayerModel
+    case kMapPolygonLayerType: return MapPolygonLayerModel
     default: return UnknownDataDisplayLayerModel
   }
 }

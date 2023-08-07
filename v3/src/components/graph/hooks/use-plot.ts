@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
+import {useCurrent} from "../../../hooks/use-current"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {IDotsRef} from "../../data-display/data-display-types"
-import {useGraphContentModelContext} from "./use-graph-content-model-context"
+import {matchCirclesToData, startAnimation} from "../../data-display/data-display-utils"
 import {GraphAttrRoles} from "../graphing-types"
+import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
-import {useCurrent} from "../../../hooks/use-current"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
@@ -172,8 +172,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
-          pointColor: graphModel.pointColor,
-          pointStrokeColor: graphModel.pointStrokeColor,
+          pointColor: graphModel.pointDescription.pointColor,
+          pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
           dotsElement: dotsRef.current,
           enableAnimation, instanceId
         })

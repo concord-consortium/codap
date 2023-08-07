@@ -4,21 +4,21 @@ import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
+import {handleClickOnDot, startAnimation} from "../../data-display/data-display-utils"
+import {getScreenCoord, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
-import {getScreenCoord, handleClickOnDot, setPointCoordinates, setPointSelection, startAnimation}
-  from "../utilities/graph-utils"
 
 export const ScatterDots = function ScatterDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
-    dataConfiguration = useDataConfigurationContext(),
+    dataConfiguration = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
@@ -140,12 +140,12 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = graphModel
+    const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
         dotsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
         selectedPointRadius: selectedPointRadiusRef.current,
-        pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointColorAtIndex
+        pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
   }, [dataConfiguration, dotsRef, graphModel])
 
@@ -173,7 +173,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     }
 
     const yAttrIDs = dataConfiguration?.yAttributeIDs || [],
-      {pointColor, pointStrokeColor} = graphModel,
+      {pointColor, pointStrokeColor} = graphModel.pointDescription,
       hasY2Attribute = dataConfiguration?.hasY2Attribute,
       v2Scale = layout.getAxisScale("rightNumeric") as ScaleNumericBaseType,
       numExtraPrimaryBands = dataConfiguration?.numRepetitionsForPlace('bottom') ?? 1,
@@ -185,7 +185,8 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       dataset, dotsRef, pointRadius: pointRadiusRef.current,
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
-      getPointColorAtIndex: graphModel.pointColorAtIndex, enableAnimation, pointColor, pointStrokeColor
+      getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
+      enableAnimation, pointColor, pointStrokeColor
     })
   }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID,
     enableAnimation, graphModel, yScaleRef])

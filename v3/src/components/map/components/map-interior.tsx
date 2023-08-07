@@ -1,30 +1,44 @@
 import {observer} from "mobx-react-lite"
-import React, {useRef} from "react"
-import {IDotsRef} from "../../data-display/data-display-types"
+import React from "react"
 import {MapController} from "../models/map-controller"
-import {useMapContentModelContext} from "../hooks/use-map-content-model-context"
+import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useMapModel} from "../hooks/use-map-model"
+import {kMapPointLayerType} from "../models/map-point-layer-model"
+import {MapPointLayer} from "./map-point-layer"
 
 import "./map.scss"
 
 interface IProps {
   mapController: MapController
-  dotsRef: IDotsRef
+  dotsElement: SVGSVGElement | null
 }
 
-export const MapInterior = observer(function MapInterior({mapController, dotsRef}: IProps) {
-  const mapContentModel = useMapContentModelContext(),
+export const MapInterior = observer(function MapInterior({mapController, dotsElement}: IProps) {
+  const mapModel = useMapModelContext(),
     {enableAnimation} = mapController,
-    instanceId = useInstanceIdContext(),
-    svgRef = useRef<SVGSVGElement>(null)
+    instanceId = useInstanceIdContext()
 
-  // useDataTips({dotsRef, dataset, mapContentModel, enableAnimation})
+  // useDataTips({dotsRef, dataset, mapModel, enableAnimation})
 
-  useMapModel({dotsRef, mapContentModel, enableAnimation, instanceId})
+  useMapModel({dotsElement, mapModel, enableAnimation, instanceId})
+
+  const renderMapLayerComponents = () => {
+    return mapModel?.layers.map((layerModel, index) => {
+      if (layerModel.type === kMapPointLayerType) {
+        return <MapPointLayer
+          key ={`${kMapPointLayerType}-${index}`}
+          mapLayerModel={layerModel}
+          dotsElement={dotsElement}
+          enableAnimation={enableAnimation}
+        />
+      }
+    })
+  }
 
   return (
-      <svg className='map-svg' ref={svgRef}>
-      </svg>
+      <div className='map-svg'>
+          {renderMapLayerComponents()}
+      </div>
   )
 })

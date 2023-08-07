@@ -5,7 +5,7 @@ import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -29,7 +29,7 @@ interface IAttributeLabelProps {
 export const AttributeLabel = observer(
   function AttributeLabel({place, onTreatAttributeAs, onRemoveAttribute, onChangeAttribute}: IAttributeLabelProps) {
     const graphModel = useGraphContentModelContext(),
-      dataConfiguration = useDataConfigurationContext(),
+      dataConfiguration = useGraphDataConfigurationContext(),
       layout = useGraphLayoutContext(),
       {isTileSelected} = useTileModelContext(),
       dataset = dataConfiguration?.dataset,

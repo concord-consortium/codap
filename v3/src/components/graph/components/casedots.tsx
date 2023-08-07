@@ -2,12 +2,13 @@ import {randomUniform, select} from "d3"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {IDotsRef} from "../../data-display/data-display-types"
+import {handleClickOnDot} from "../../data-display/data-display-utils"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
+import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 
 export const CaseDots = function CaseDots(props: {
   dotsRef: IDotsRef
@@ -19,7 +20,7 @@ export const CaseDots = function CaseDots(props: {
     } = props,
     graphModel = useGraphContentModelContext(),
     dataset = useDataSetContext(),
-    dataConfiguration = useDataConfigurationContext(),
+    dataConfiguration = useGraphDataConfigurationContext(),
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
@@ -73,7 +74,7 @@ export const CaseDots = function CaseDots(props: {
   useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = graphModel,
+    const {pointColor, pointStrokeColor} = graphModel.pointDescription,
       selectedPointRadius = graphModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
@@ -86,7 +87,7 @@ export const CaseDots = function CaseDots(props: {
     const
       pointRadius = graphModel.getPointRadius(),
       selectedPointRadius = graphModel.getPointRadius('select'),
-      {pointColor, pointStrokeColor} = graphModel,
+      {pointColor, pointStrokeColor} = graphModel.pointDescription,
       xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
       yLength = layout.getAxisMultiScale('left')?.length ?? 0,
       getScreenX = (anID: string) => {

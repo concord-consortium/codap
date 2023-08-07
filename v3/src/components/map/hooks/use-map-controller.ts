@@ -1,16 +1,16 @@
 import {useEffect} from "react"
-import {IDotsRef} from "../../data-display/data-display-types"
+import {DotsElt} from "../../data-display/d3-types"
 import {MapController} from "../models/map-controller"
 import {IMapContentModel} from "../models/map-content-model"
 
 export interface IUseMapControllerProps {
   mapController: MapController,
-  mapContentModel?: IMapContentModel,
-  dotsRef: IDotsRef
+  mapModel?: IMapContentModel,
+  dotsElement: DotsElt
 }
 
-export const useMapController = ({mapController, mapContentModel, dotsRef}: IUseMapControllerProps) => {
+export const useMapController = ({mapController, mapModel, dotsElement}: IUseMapControllerProps) => {
   useEffect(() => {
-    mapContentModel && mapController.setProperties({mapContentModel, dotsRef})
-  }, [mapController, mapContentModel, dotsRef])
+    mapModel && mapController.setProperties({mapModel, dotsElement})
+  }, [mapController, mapModel, dotsElement])
 }

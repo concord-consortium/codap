@@ -5,12 +5,11 @@ import {IDotsRef} from "../data-display/data-display-types"
 
 export const PrimaryAttrRoles = ['x', 'y'] as const
 export type PrimaryAttrRole = typeof PrimaryAttrRoles[number]
-export const TipAttrRoles =
+export const GraphTipAttrRoles =
   [...PrimaryAttrRoles, 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'caption'] as const
 export const GraphAttrRoles = [
-  ...TipAttrRoles, 'polygon', 'yPlus'] as const
+  ...GraphTipAttrRoles, 'yPlus'] as const
 export type GraphAttrRole = typeof GraphAttrRoles[number]
-export type IsGraphDropAllowed = (place: GraphPlace, attrId?: string) => boolean
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",

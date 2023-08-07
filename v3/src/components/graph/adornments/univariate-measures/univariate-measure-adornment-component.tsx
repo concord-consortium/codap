@@ -8,7 +8,7 @@ import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
-import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { valueLabelString } from "../../utilities/graph-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -54,7 +54,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
     const {cellKey={}, containerId, model, plotWidth, xAxis, yAxis} = props
     const layout = useAxisLayoutContext()
     const graphModel = useGraphContentModelContext()
-    const dataConfig = useDataConfigurationContext()
+    const dataConfig = useGraphDataConfigurationContext()
     const adornmentsStore = graphModel.adornmentsStore
     const measureSlug = model.type.toLowerCase().replace(/ /g, "-")
     const showLabel = adornmentsStore?.showMeasureLabels

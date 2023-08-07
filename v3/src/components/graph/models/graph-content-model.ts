@@ -13,14 +13,14 @@ import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
   from "../../../models/shared/shared-data-utils"
+import {computePointRadius} from "../../data-display/data-display-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
+import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {AxisPlace} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {hoverRadiusFactor, pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend}
-  from "../../data-display/data-display-types"
 import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
-import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
+import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
 import { AdornmentsStore } from "../adornments/adornments-store"
@@ -54,10 +54,9 @@ export const GraphContentModel = DataDisplayContentModel
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
-    pointSizeMultiplier: 1,
     isTransparent: false,
     plotBackgroundImageID: "",
-    // todo: how to use this type?
+    // Plots can have a background whose properties are described by this property.
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
@@ -77,7 +76,7 @@ export const GraphContentModel = DataDisplayContentModel
       return self.layers[0] as IGraphPointLayerModel
     },
     get dataConfiguration() {
-      return this.graphPointLayerModel.dataConfiguration
+      return this.graphPointLayerModel.dataConfiguration as IGraphDataConfigurationModel
     },
     get dataset() {
       return getTileDataSet(self)
@@ -139,7 +138,7 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     afterCreate() {
-      self.layers.push(GraphPointLayerModel.create({type: "graphPointLayer"}))
+      self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
     },
     setDataSetListener() {
       const actionsAffectingCategories = [
@@ -214,22 +213,8 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
-      let r = pointRadiusMax
-      const numPoints = self.dataConfiguration.caseDataArray.length
-      // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
-      for (let i = pointRadiusLogBase; i <= numPoints; i = i * pointRadiusLogBase) {
-        --r
-        if (r <= pointRadiusMin) break
-      }
-      const result = r * self.pointSizeMultiplier
-      switch (use) {
-        case "normal":
-          return result
-        case "hover-drag":
-          return result * hoverRadiusFactor
-        case "select":
-          return result + pointRadiusSelectionAddend
-      }
+      return computePointRadius(self.dataConfiguration.caseDataArray.length,
+        self.pointDescription.pointSizeMultiplier, use)
     },
   }))
   .actions(self => ({
@@ -267,9 +252,6 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setIsTransparent(transparent: boolean) {
       self.isTransparent = transparent
-    },
-    setPointSizeMultiplier(multiplier: number) {
-      self.pointSizeMultiplier = multiplier
     },
     setShowParentToggles(show: boolean) {
       self.showParentToggles = show

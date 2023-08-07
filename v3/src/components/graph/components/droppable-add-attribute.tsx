@@ -6,7 +6,7 @@ import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop
 import {DropHint} from "./drop-hint"
 import {graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {IDataSet} from "../../../models/data/data-set"
 
@@ -18,7 +18,7 @@ interface IAddAttributeProps {
 
 export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   const graphID = useInstanceIdContext(),
-    dataConfiguration = useDataConfigurationContext(),
+    dataConfiguration = useGraphDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop,
     droppableId = `${graphID}-add-attribute-${place}-drop`,
     role = graphPlaceToAttrRole[place],
