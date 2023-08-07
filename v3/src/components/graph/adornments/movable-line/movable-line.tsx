@@ -13,26 +13,25 @@ import { IMovableLineModel } from "./movable-line-model"
 
 import "./movable-line.scss"
 
-function equationContainer(model: IMovableLineModel, lineKey: string, containerId: string) {
-  const classFromKey = model.classNameFromKey(lineKey),
-    equationContainerClass = `movable-line-equation-container${lineKey && lineKey !== '' ? `-${classFromKey}` : ''}`,
+function equationContainer(model: IMovableLineModel, subPlotKey: Record<string, string>, containerId: string) {
+  const classFromKey = model.classNameFromKey(subPlotKey),
+    equationContainerClass = `movable-line-equation-container-${classFromKey}`,
     equationContainerSelector = `#${containerId} .${equationContainerClass}`
     return { equationContainerClass, equationContainerSelector }
 }
 
 interface IProps {
   containerId: string
-  instanceKey?: string
   model: IMovableLineModel
   plotHeight: number
-  plotIndex: number
   plotWidth: number
+  subPlotKey: Record<string, string>
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
 }
 
 export const MovableLine = observer(function MovableLine(props: IProps) {
-  const {containerId, instanceKey='', model, plotHeight, plotWidth, xAxis, yAxis} = props,
+  const {containerId, model, plotHeight, plotWidth, subPlotKey={}, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     instanceId = useInstanceIdContext(),
@@ -44,7 +43,9 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
     yScaleCopy = yScale.copy(),
     kTolerance = 4, // pixels to snap to horizontal or vertical
     kHandleSize = 12,
-    {equationContainerClass, equationContainerSelector} = equationContainer(model, instanceKey, containerId),
+    instanceKey = model.instanceKey(subPlotKey),
+    classFromKey = model.classNameFromKey(subPlotKey),
+    {equationContainerClass, equationContainerSelector} = equationContainer(model, subPlotKey, containerId),
     lineRef = useRef() as React.RefObject<SVGSVGElement>,
     [lineObject, setLineObject] = useState<{ [index: string]: any }>({
       line: null, lower: null, middle: null, upper: null, equation: null
@@ -152,9 +153,9 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
         refreshEquation()
       })
       return () => disposer()
-    }, [instanceId, pointsOnAxes, instanceKey, lineObject, plotHeight, plotWidth,
-        xScale, yScale, model, model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName,
-        ySubAxesCount, yAxis, xRange, yRange, equationContainerSelector]
+    }, [instanceId, pointsOnAxes, lineObject, plotHeight, plotWidth, xScale, yScale, model, model.lines,
+        xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount, yAxis, xRange, yRange,
+        equationContainerSelector, subPlotKey, instanceKey]
   )
 
   const
@@ -261,7 +262,7 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
         equation.style('left', `${left}px`)
           .style('top', `${top}px`)
       }
-    }, [equationContainerSelector, model.lines, instanceKey, plotWidth, plotHeight])
+    }, [equationContainerSelector, instanceKey, model.lines, plotWidth, plotHeight])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -289,8 +290,8 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
 
     // Set up the line and its cover segments and handles
     newLineObject.line = selection.append('line')
-      .attr('class', 'movable-line')
-      .attr('data-testid', `movable-line`)
+      .attr('class', 'movable-line movable-line-${classFromSubPlotKey}')
+      .attr('data-testid', `movable-line${classFromKey ? `-${classFromKey}` : ""}`)
     newLineObject.lower = selection.append('line')
       .attr('class', 'movable-line-cover movable-line-lower-cover')
     newLineObject.middle = selection.append('line')
@@ -308,14 +309,14 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
     // Define the selector that corresponds with this specific movable line's adornment container
     const equationDiv = select(`#${containerId}`).append('div')
       .attr('class', `movable-line-equation-container ${equationContainerClass}`)
-      .attr('data-testid', `movable-line-equation-container-${model.classNameFromKey(instanceKey)}`)
+      .attr('data-testid', `${equationContainerClass}`)
       .style('width', `${plotWidth}px`)
       .style('height', `${plotHeight}px`)
   
     const equationP = equationDiv
       .append('p')
       .attr('class', 'movable-line-equation')
-      .attr('data-testid', `movable-line-equation-${model.classNameFromKey(instanceKey)}`)
+      .attr('data-testid', `movable-line-equation-${model.classNameFromKey(subPlotKey)}`)
       .on('mouseover', () => { newLineObject.line.style('stroke-width', 2) })
       .on('mouseout', () => { newLineObject.line.style('stroke-width', 1) })
 
@@ -342,7 +343,7 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
 
   return (
     <svg
-      className={`line-${model.classNameFromKey(instanceKey)}`}
+      className={`line-${model.classNameFromKey(subPlotKey)}`}
       style={{height: `${plotHeight}px`, width: `${plotWidth}px`}}
       x={0}
       y={0}

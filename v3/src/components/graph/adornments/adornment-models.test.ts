@@ -40,18 +40,35 @@ describe("AdornmentModel", () => {
     adornment.setVisibility(false)
     expect(adornment.isVisible).toBe(false)
   })
+  it("will create a sub plot key from given values", () => {
+    const options = {
+      xAttrId: "abc123",
+      xCats: ["pizza", "pasta", "salad"],
+      yAttrId: "def456",
+      yCats: ["red", "green", "blue"],
+      topAttrId: "ghi789",
+      topCats: ["small", "medium", "large"],
+      rightAttrId: "jkl012",
+      rightCats: ["new", "used"]
+    }
+    const adornment = AdornmentModel.create({type: "Movable Line"})
+    const subPlotKey = adornment.setSubPlotKey(options, 0)
+    expect(subPlotKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
+  })
   it("will create an instance key value from given category values", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
-    const index = 0
-    expect(adornment.instanceKey([], [], index)).toEqual("")
-    expect(adornment.instanceKey(xCategories, yCategories, index)).toEqual("{x: pizza, y: red}")
+    const subPlotKey = {abc123: xCategories[0], def456: yCategories[0]}
+    expect(adornment.instanceKey({})).toEqual("{}")
+    expect(adornment.instanceKey(subPlotKey)).toEqual("{\"abc123\":\"pizza\",\"def456\":\"red\"}")
   })
-  it("will create a class name from a given instance key", () => {
+  it("will create a class name from a given subplot key", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
-    const key = "{x: pizza, y: red}"
-    expect(adornment.classNameFromKey(key)).toEqual("x-pizza-y-red")
+    const xCategories = ["pizza", "pasta", "salad"]
+    const yCategories = ["red", "green", "blue"]
+    const subPlotKey = {abc123: xCategories[0], def456: yCategories[0]}
+    expect(adornment.classNameFromKey(subPlotKey)).toEqual("abc123-pizza-def456-red")
   })
 })
 

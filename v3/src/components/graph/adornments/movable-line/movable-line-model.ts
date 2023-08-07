@@ -51,12 +51,13 @@ export const MovableLineModel = AdornmentModel
 }))
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
-    const { xAxis, yAxis, xCategories, yCategories, resetPoints } = options
-    const columnCount = xCategories?.length || 1
-    const rowCount = yCategories?.length || 1
+    const { xAxis, yAxis, topCats, rightCats, resetPoints } = options
+    const columnCount = topCats?.length || 1
+    const rowCount = rightCats?.length || 1
     const totalCount = rowCount * columnCount
     for (let i = 0; i < totalCount; ++i) {
-      const instanceKey = self.instanceKey(xCategories, yCategories, i)
+      const subPlotKey = self.setSubPlotKey(options, i)
+      const instanceKey = self.instanceKey(subPlotKey)
       if (!self.lines.get(instanceKey) || resetPoints) {
         self.setInitialLine(xAxis, yAxis, instanceKey)
       }

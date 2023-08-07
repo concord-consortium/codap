@@ -11,20 +11,22 @@ import { transitionDuration } from "../graphing-types"
 import "./adornment.scss"
 
 interface IProps {
-  adornment: IAdornmentModel,
-  index: number,
-  xCategories: string[] | number[],
-  yCategories: string[] | number[]
+  adornment: IAdornmentModel
+  subPlotKey: Record<string, string>
+  topCats: string[] | number[]
+  rightCats: string[] | number[]
 }
 
-export const Adornment = observer(function Adornment({ adornment, index, xCategories, yCategories}: IProps) {
+export const Adornment = observer(function Adornment(
+  {adornment, subPlotKey, topCats, rightCats}: IProps
+) {
   const graphModel = useGraphModelContext(),
     layout = useGraphLayoutContext(),
-    subPlotWidth = xCategories.length > 0
-                     ? layout.plotWidth / xCategories.length
+    subPlotWidth = topCats.length > 0
+                     ? layout.plotWidth / topCats.length
                      : layout.plotWidth,
-    subPlotHeight = yCategories.length > 0
-                      ? layout.plotHeight / yCategories.length
+    subPlotHeight = rightCats.length > 0
+                      ? layout.plotHeight / rightCats.length
                       : layout.plotHeight,
     isFadeInComplete = useRef(false),
     isFadeOutComplete = useRef(false)
@@ -34,14 +36,11 @@ export const Adornment = observer(function Adornment({ adornment, index, xCatego
     isFadeOutComplete.current = !adornment.isVisible
   }, [adornment.isVisible])
 
-  // The instanceKey is used by the adornment model to uniquely identify an instance of the adornment in its
-  // map of instances. If there is only one instance of the adornment, the instanceKey is an empty string.
-  const instanceKey = adornment.instanceKey(xCategories, yCategories, index) ?? ''
-  const classFromKey = adornment.classNameFromKey(instanceKey)
+  const classFromSubPlotKey = adornment.classNameFromKey(subPlotKey)
   // The adornmentKey is a unique value used for React's key prop and for the adornment wrapper's HTML ID.
-  // We can't use the instanceKey because that value may be duplicated if there are multiple types of
+  // We can't use the subPlotKey because that value may be duplicated if there are multiple types of
   // adornments active on the graph.
-  const adornmentKey = `${adornment.id}${instanceKey ? `-${classFromKey}` : ''}`
+  const adornmentKey = `${adornment.id}${classFromSubPlotKey ? `-${classFromSubPlotKey}` : ''}`
   const componentInfo = getAdornmentComponentInfo(adornment.type)
   if (!componentInfo) return null
   const { Component } = componentInfo
@@ -49,6 +48,7 @@ export const Adornment = observer(function Adornment({ adornment, index, xCatego
   const adornmentWrapperClass = clsx(
     'adornment-wrapper',
     `${adornmentKey}-wrapper`,
+    `${classFromSubPlotKey}`,
     {
       'fadeIn': adornment.isVisible && !isFadeInComplete.current,
       'fadeOut': !adornment.isVisible && !isFadeOutComplete.current,
@@ -66,11 +66,10 @@ export const Adornment = observer(function Adornment({ adornment, index, xCatego
       <Component
         containerId={adornmentKey}
         key={adornmentKey}
-        instanceKey={instanceKey}
         model={adornment}
         plotHeight={subPlotHeight}
-        plotIndex={index}
         plotWidth={subPlotWidth}
+        subPlotKey={subPlotKey}
         xAxis={graphModel.getAxis('bottom') as INumericAxisModel}
         yAxis={graphModel.getAxis('left') as INumericAxisModel}
       />

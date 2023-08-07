@@ -115,11 +115,31 @@ export const GraphModel = TileContentModel
   }))
   .views(self => ({
     getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
+      const xAttrId = self.getAttributeID("x"),
+        xAttrType = self.config.attributeType("x"),
+        xCats = xAttrType === "categorical"
+          ? self.config.categoryArrayForAttrRole("x", [])
+          : [""],
+        yAttrId = self.getAttributeID("y"),
+        yAttrType = self.config.attributeType("y"),
+        yCats = yAttrType === "categorical"
+          ? self.config.categoryArrayForAttrRole("y", [])
+          : [""],
+        topAttrId = self.getAttributeID("topSplit"),
+        topCats = self.config.categoryArrayForAttrRole("topSplit", []) ?? [""],
+        rightAttrId = self.getAttributeID("rightSplit"),
+        rightCats = self.config.categoryArrayForAttrRole("rightSplit", []) ?? [""]
       return {
         xAxis: self.getAxis("bottom"),
+        xAttrId,
+        xCats,
         yAxis: self.getAxis("left"),
-        xCategories: self.config.categoryArrayForAttrRole("topSplit", []) ?? [],
-        yCategories: self.config.categoryArrayForAttrRole("rightSplit", []) ?? [],
+        yAttrId,
+        yCats,
+        topAttrId,
+        topCats,
+        rightAttrId,
+        rightCats,
         resetPoints
       }
     }
