@@ -16,7 +16,7 @@ registerTileContentInfo({
 })
 
 registerTileComponentInfo({
-  type: "Map",
+  type: kMapTileType,
   TitleBar: MapComponentTitleBar,
   Component: MapComponent,
   tileEltClass: kMapTileClass,

@@ -28,7 +28,7 @@ const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: IDataDisplayLayer
     case "mapBaseLayer": return MapBaseLayerModel
     case "mapPointLayer": return MapPointLayerModel
     case "mapPolygonLayer": return MapPolygonLayerModel
-    default: return MapLayerModel
+    default: return UnknownDataDisplayLayerModel
   }
 }
 
