@@ -3,17 +3,17 @@ import {reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {useGraphLayoutContext} from "../../models/graph-layout"
+import {useGraphDataConfigurationContext} from "../../../graph/hooks/use-data-configuration-context"
+import {useGraphLayoutContext} from "../../../graph/models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 import {getStringBounds} from "../../../axis/axis-utils"
-import {kDataDisplayFont, transitionDuration} from "../../../data-display/data-display-types"
+import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'
-import graphVars from "../graph.scss"
+import graphVars from "../../../graph/components/graph.scss"
 
 interface ICategoricalLegendProps {
   transform: string,

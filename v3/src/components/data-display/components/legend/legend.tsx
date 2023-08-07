@@ -2,9 +2,8 @@ import {autorun} from "mobx"
 import React, {useEffect, useRef} from "react"
 import {select} from "d3"
 import {Active} from "@dnd-kit/core"
-import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {useGraphLayoutContext} from "../../models/graph-layout"
-import {AttributeLabel} from "../attribute-label"
+import {useGraphLayoutContext} from "../../../graph/models/graph-layout"
+import {AttributeLabel} from "../../../graph/components/attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
 import {DroppableSvg} from "../droppable-svg"
@@ -13,23 +12,24 @@ import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-d
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
 import {IDataSet} from "../../../../models/data/data-set"
-import {GraphAttrRole} from "../../../data-display/data-display-types"
+import {GraphAttrRole} from "../../data-display-types"
 import {GraphPlace} from "../../../axis-graph-shared"
+import {IDataConfigurationModel} from "../../models/data-configuration-model"
 
 interface ILegendProps {
+  dataConfiguration: IDataConfigurationModel
   legendAttrID: string
-  graphElt: HTMLDivElement | null
+  divElt: HTMLDivElement | null
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
-export const Legend = function Legend({
-                                        legendAttrID, graphElt,
+export const Legend = function Legend({ dataConfiguration,
+                                        legendAttrID, divElt,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
-  const dataConfiguration = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
+  const isDropAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop ?? (() => true),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendRef = useRef() as React.RefObject<SVGSVGElement>,
@@ -89,7 +89,7 @@ export const Legend = function Legend({
       </svg>
       <DroppableSvg
         className="droppable-legend"
-        portal={graphElt}
+        portal={divElt}
         target={legendRef.current}
         dropId={droppableId}
         onIsActive={handleIsActive}

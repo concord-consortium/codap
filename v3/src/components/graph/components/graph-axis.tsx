@@ -30,7 +30,7 @@ interface IProps {
 export const GraphAxis = observer(function GraphAxis(
   {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
+    isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true),
     graphModel = useGraphContentModelContext(),
     axisModel = graphModel.getAxis?.(place),
     instanceId = useInstanceIdContext(),

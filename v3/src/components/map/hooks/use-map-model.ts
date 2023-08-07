@@ -62,7 +62,9 @@ export function useMapModel(props: IProps) {
         )
       }
     } else {
-      fitMapBoundsToData(mapModel.layers, leafletMap)
+      setTimeout(() => {
+        fitMapBoundsToData(mapModel.layers, leafletMap)
+      }, 100)
     }
     mapModel.setHasBeenInitialized()
   }, [leafletMap, mapModel, mapModel.layers])

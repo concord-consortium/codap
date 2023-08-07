@@ -84,7 +84,7 @@ export const useDropHintString = ({role} : IUseDropHintStringProps) => {
     { active } = useDndContext(),
     { attributeId: dragAttrId = "", dataSet } = getDragAttributeInfo(active) || {},
     place = attrRoleToGraphPlace[role] as GraphPlace,
-    dropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop(place, dataSet, dragAttrId)
+    dropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop(place, dataSet, dragAttrId)
 
   if (dataSet && active?.data.current && dropAllowed) {
     const dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId)?.name : undefined,
