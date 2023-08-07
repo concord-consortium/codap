@@ -73,8 +73,8 @@ export const AdornmentModel = types.model("AdornmentModel", {
       const subPlotKey: Record<string, string> = {}
       if (topAttrId) subPlotKey[topAttrId] = topCats?.[index % topCats.length]
       if (rightAttrId) subPlotKey[rightAttrId] = rightCats?.[Math.floor(index / topCats.length)]
-      if (yAttrId && subPlotKey[yAttrId] !== "") subPlotKey[yAttrId] = yCats?.[index % yCats.length]
-      if (xAttrId && subPlotKey[xAttrId] !== "") subPlotKey[xAttrId] = xCats?.[index % xCats.length]
+      if (yAttrId && yCats[0]) subPlotKey[yAttrId] = yCats?.[index % yCats.length]
+      if (xAttrId && xCats[0]) subPlotKey[xAttrId] = xCats?.[index % xCats.length]
       return subPlotKey
     }
   }))

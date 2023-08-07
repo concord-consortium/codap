@@ -31,10 +31,12 @@ export const Adornments = observer(function Adornments() {
   // single case to have two different values for the same attribute.
   const updateSubPlotKey = (subPlotKey: Record<string, string>, attrId: string, cat: string) => {
     const newSubPlotKey = { ...subPlotKey }
-    const propertyAlreadyPresent = Object.keys(newSubPlotKey).includes(attrId)
-    newSubPlotKey[attrId] = propertyAlreadyPresent && newSubPlotKey[attrId] !== cat
-      ? "__IMPOSSIBLE__"
-      : cat
+    if (cat) {
+      const propertyAlreadyPresent = Object.keys(newSubPlotKey).includes(attrId)
+      newSubPlotKey[attrId] = propertyAlreadyPresent && newSubPlotKey[attrId] !== cat
+        ? "__IMPOSSIBLE__"
+        : cat
+    }
     return newSubPlotKey
   }
 

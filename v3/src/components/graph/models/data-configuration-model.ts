@@ -149,7 +149,7 @@ export const DataConfigurationModel = types
       const numOfKeys = Object.keys(subPlotKey).length
       let matchedValCount = 0
       Object.keys(subPlotKey).forEach(key => {
-        if (subPlotKey[key] === "" || subPlotKey[key] === caseData[key]) matchedValCount++
+        if (subPlotKey[key] === caseData[key]) matchedValCount++
       })
       return matchedValCount === numOfKeys
     }
