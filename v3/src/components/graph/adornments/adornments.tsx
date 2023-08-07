@@ -27,7 +27,8 @@ export const Adornments = observer(function Adornments() {
   // current subplot. It's used to uniquely identify the current subplot. Since it's possible to
   // have the same attribute on two axes or splits, we need to make sure the subPlotKey is unique.
   // So if an attribute is on more than one axis or split, we set the value of that attribute's ID
-  // to "__IMPOSSIBLE__" instead of overwriting the key's value.
+  // to "__IMPOSSIBLE__" instead of overwriting the key's value because it's impossible for a
+  // single case to have two different values for the same attribute.
   const updateSubPlotKey = (subPlotKey: Record<string, string>, attrId: string, cat: string) => {
     const newSubPlotKey = { ...subPlotKey }
     const propertyAlreadyPresent = Object.keys(newSubPlotKey).includes(attrId)
@@ -40,17 +41,17 @@ export const Adornments = observer(function Adornments() {
   const xAttrId = dataConfig?.attributeID("x"),
     xAttrType = dataConfig?.attributeType("x"),
     xCatSet = layout.getAxisMultiScale('bottom').categorySet,
-    xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [''],
+    xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""],
     yAttrId = dataConfig?.attributeID("y"),
     yAttrType = dataConfig?.attributeType("y"),
-    yCatSet = layout.getAxisMultiScale('left').categorySet,
-    yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [''],
-    topSplitAttrId = dataConfig?.attributeID("topSplit"),
-    topSplitCatSet = layout.getAxisMultiScale('top').categorySet,
-    topSplitCats = topSplitCatSet ? Array.from(topSplitCatSet.values) : [''],
-    rightSplitAttrId = dataConfig?.attributeID("rightSplit"),
-    rightSplitCatSet = layout.getAxisMultiScale('rightCat').categorySet,
-    rightSplitCats = rightSplitCatSet ? Array.from(rightSplitCatSet.values) : ['']
+    yCatSet = layout.getAxisMultiScale("left").categorySet,
+    yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""],
+    topAttrId = dataConfig?.attributeID("topSplit"),
+    topCatSet = layout.getAxisMultiScale("top").categorySet,
+    topCats = topCatSet ? Array.from(topCatSet.values) : [""],
+    rightAttrId = dataConfig?.attributeID("rightSplit"),
+    rightCatSet = layout.getAxisMultiScale("rightCat").categorySet,
+    rightCats = rightCatSet ? Array.from(rightCatSet.values) : [""]
 
   // When a graph contains multiple sub-plots, each adornment needs to be rendered once per sub-plot.
   // For placing the adornments, we build a CSS grid where each cell corresponds to a subplot of the
@@ -81,13 +82,13 @@ export const Adornments = observer(function Adornments() {
       for (let yIndex = 0; yIndex < yCats.length; yIndex++) {
         for (let xIndex = 0; xIndex < xCats.length; xIndex++) {
           let subPlotKey: Record<string, string> = {}
-          if (topSplitAttrId) {
-            subPlotKey = updateSubPlotKey(subPlotKey, topSplitAttrId, topSplitCats[topIndex])
+          if (topAttrId) {
+            subPlotKey = updateSubPlotKey(subPlotKey, topAttrId, topCats[topIndex])
           }
-          if (rightSplitAttrId) {
+          if (rightAttrId) {
             // invert the rightIndex to match how the graph's y axis is oriented
             const rightIndexInverted = leftRepetitions - rightIndex - 1
-            subPlotKey = updateSubPlotKey(subPlotKey, rightSplitAttrId, rightSplitCats[rightIndexInverted])
+            subPlotKey = updateSubPlotKey(subPlotKey, rightAttrId, rightCats[rightIndexInverted])
           }
           if (yAttrId) {
             // invert the yIndex to match how the graph's y axis is oriented
@@ -110,11 +111,11 @@ export const Adornments = observer(function Adornments() {
                   if (!adornmentContentInfo.plots.includes(graphModel.plotType)) return
 
                   return <Adornment
-                          key={`graph-adornment-${adornment.id}-${topIndex}`}
+                          key={`graph-adornment-${adornment.id}-${yIndex}-${xIndex}-${rightIndex}-${topIndex}`}
                           adornment={adornment}
                           subPlotKey={subPlotKey}
-                          topSplitCats={topSplitCats}
-                          rightSplitCats={rightSplitCats}
+                          topCats={topCats}
+                          rightCats={rightCats}
                         />
                 })
               }

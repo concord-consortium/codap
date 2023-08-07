@@ -119,16 +119,16 @@ export const GraphModel = TileContentModel
         xAttrType = self.config.attributeType("x"),
         xCats = xAttrType === "categorical"
           ? self.config.categoryArrayForAttrRole("x", [])
-          : [''],
+          : [""],
         yAttrId = self.getAttributeID("y"),
         yAttrType = self.config.attributeType("y"),
         yCats = yAttrType === "categorical"
           ? self.config.categoryArrayForAttrRole("y", [])
-          : [''],
-        topSplitAttrId = self.getAttributeID("topSplit"),
-        topSplitCats = self.config.categoryArrayForAttrRole("topSplit", []) ?? [''],
-        rightSplitAttrId = self.getAttributeID("rightSplit"),
-        rightSplitCats = self.config.categoryArrayForAttrRole("rightSplit", []) ?? ['']
+          : [""],
+        topAttrId = self.getAttributeID("topSplit"),
+        topCats = self.config.categoryArrayForAttrRole("topSplit", []) ?? [""],
+        rightAttrId = self.getAttributeID("rightSplit"),
+        rightCats = self.config.categoryArrayForAttrRole("rightSplit", []) ?? [""]
       return {
         xAxis: self.getAxis("bottom"),
         xAttrId,
@@ -136,10 +136,10 @@ export const GraphModel = TileContentModel
         yAxis: self.getAxis("left"),
         yAttrId,
         yCats,
-        topSplitAttrId,
-        topSplitCats,
-        rightSplitAttrId,
-        rightSplitCats,
+        topAttrId,
+        topCats,
+        rightAttrId,
+        rightCats,
         resetPoints
       }
     }

@@ -46,10 +46,10 @@ describe("AdornmentModel", () => {
       xCats: ["pizza", "pasta", "salad"],
       yAttrId: "def456",
       yCats: ["red", "green", "blue"],
-      topSplitAttrId: "ghi789",
-      topSplitCats: ["small", "medium", "large"],
-      rightSplitAttrId: "jkl012",
-      rightSplitCats: ["new", "used"]
+      topAttrId: "ghi789",
+      topCats: ["small", "medium", "large"],
+      rightAttrId: "jkl012",
+      rightCats: ["new", "used"]
     }
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const subPlotKey = adornment.setSubPlotKey(options, 0)
@@ -60,7 +60,7 @@ describe("AdornmentModel", () => {
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const subPlotKey = {abc123: xCategories[0], def456: yCategories[0]}
-    expect(adornment.instanceKey({})).toEqual("")
+    expect(adornment.instanceKey({})).toEqual("{}")
     expect(adornment.instanceKey(subPlotKey)).toEqual("{\"abc123\":\"pizza\",\"def456\":\"red\"}")
   })
   it("will create a class name from a given subplot key", () => {
@@ -68,7 +68,7 @@ describe("AdornmentModel", () => {
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
     const subPlotKey = {abc123: xCategories[0], def456: yCategories[0]}
-    expect(adornment.classNameFromKey(subPlotKey)).toEqual("abc123-pizza-def456-red-")
+    expect(adornment.classNameFromKey(subPlotKey)).toEqual("abc123-pizza-def456-red")
   })
 })
 

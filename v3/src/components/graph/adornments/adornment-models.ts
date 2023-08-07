@@ -34,10 +34,10 @@ export interface IUpdateCategoriesOptions {
   yAxis?: IAxisModel
   yAttrId: string
   yCats: string[]
-  topSplitCats: string[]
-  topSplitAttrId: string
-  rightSplitCats: string[]
-  rightSplitAttrId: string
+  topCats: string[]
+  topAttrId: string
+  rightCats: string[]
+  rightAttrId: string
   resetPoints?: boolean
 }
 
@@ -50,13 +50,13 @@ export const AdornmentModel = types.model("AdornmentModel", {
   })
   .views(self => ({
     instanceKey(subPlotKey: Record<string, string>) {
-      const key = Object.keys(subPlotKey).length > 0 ? JSON.stringify(subPlotKey) : ""
-      return key
+      return JSON.stringify(subPlotKey)
     },
     classNameFromKey(subPlotKey: Record<string, string>) {
-      let className = ''
+      let className = ""
       Object.entries(subPlotKey).forEach(([key, value]) => {
-        className += `${key}-${value}-`
+        const valueNoSpaces = value.replace(/\s+/g, "-")
+        className += `${className ? "-" : ""}${key}-${valueNoSpaces}`
       })
       return className
     }
@@ -69,12 +69,12 @@ export const AdornmentModel = types.model("AdornmentModel", {
       // derived models should override to update their models when categories change
     },
     setSubPlotKey(options: IUpdateCategoriesOptions, index: number) {
-      const { xAttrId, xCats, yAttrId, yCats, topSplitAttrId, topSplitCats, rightSplitAttrId, rightSplitCats } = options
+      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
       const subPlotKey: Record<string, string> = {}
-      if (topSplitAttrId) subPlotKey[topSplitAttrId] = topSplitCats?.[index % topSplitCats.length]
-      if (rightSplitAttrId) subPlotKey[rightSplitAttrId] = rightSplitCats?.[Math.floor(index / topSplitCats.length)]
-      if (yAttrId) subPlotKey[yAttrId] = yCats?.[index % yCats.length]
-      if (xAttrId) subPlotKey[xAttrId] = xCats?.[index % xCats.length]
+      if (topAttrId) subPlotKey[topAttrId] = topCats?.[index % topCats.length]
+      if (rightAttrId) subPlotKey[rightAttrId] = rightCats?.[Math.floor(index / topCats.length)]
+      if (yAttrId && subPlotKey[yAttrId] !== "") subPlotKey[yAttrId] = yCats?.[index % yCats.length]
+      if (xAttrId && subPlotKey[xAttrId] !== "") subPlotKey[xAttrId] = xCats?.[index % xCats.length]
       return subPlotKey
     }
   }))

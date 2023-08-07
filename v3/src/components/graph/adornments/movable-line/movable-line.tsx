@@ -44,6 +44,7 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
     kTolerance = 4, // pixels to snap to horizontal or vertical
     kHandleSize = 12,
     instanceKey = model.instanceKey(subPlotKey),
+    classFromKey = model.classNameFromKey(subPlotKey),
     {equationContainerClass, equationContainerSelector} = equationContainer(model, subPlotKey, containerId),
     lineRef = useRef() as React.RefObject<SVGSVGElement>,
     [lineObject, setLineObject] = useState<{ [index: string]: any }>({
@@ -289,8 +290,8 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
 
     // Set up the line and its cover segments and handles
     newLineObject.line = selection.append('line')
-      .attr('class', 'movable-line')
-      .attr('data-testid', `movable-line`)
+      .attr('class', 'movable-line movable-line-${classFromSubPlotKey}')
+      .attr('data-testid', `movable-line${classFromKey ? `-${classFromKey}` : ""}`)
     newLineObject.lower = selection.append('line')
       .attr('class', 'movable-line-cover movable-line-lower-cover')
     newLineObject.middle = selection.append('line')

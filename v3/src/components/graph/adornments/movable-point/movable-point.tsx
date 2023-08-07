@@ -142,7 +142,7 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
                   .attr('stroke', '#a9a9a9')
                   .attr('stroke-width', 2),
         point: selection.append('circle')
-                  .attr('data-testid', `movable-point`)
+                  .attr('data-testid', `movable-point${classFromKey ? `-${classFromKey}` : ""}`)
                   .attr('cx', xScale(x) / xSubAxesCount)
                   .attr('cy', yScale(y) / ySubAxesCount)
                   .attr('r', 8)
@@ -164,7 +164,7 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       y={0}
     >
       <g>
-        <g className={`movable-point movable-point-${instanceKey}`} ref={pointRef} />
+        <g className={`movable-point movable-point-${classFromKey}`} ref={pointRef} />
       </g>
     </svg>
   )

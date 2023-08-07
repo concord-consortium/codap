@@ -11,22 +11,22 @@ import { transitionDuration } from "../graphing-types"
 import "./adornment.scss"
 
 interface IProps {
-  adornment: IAdornmentModel,
-  subPlotKey: Record<string, string>,
-  topSplitCats: string[] | number[],
-  rightSplitCats: string[] | number[]
+  adornment: IAdornmentModel
+  subPlotKey: Record<string, string>
+  topCats: string[] | number[]
+  rightCats: string[] | number[]
 }
 
 export const Adornment = observer(function Adornment(
-  {adornment, subPlotKey, topSplitCats, rightSplitCats}: IProps
+  {adornment, subPlotKey, topCats, rightCats}: IProps
 ) {
   const graphModel = useGraphModelContext(),
     layout = useGraphLayoutContext(),
-    subPlotWidth = topSplitCats.length > 0
-                     ? layout.plotWidth / topSplitCats.length
+    subPlotWidth = topCats.length > 0
+                     ? layout.plotWidth / topCats.length
                      : layout.plotWidth,
-    subPlotHeight = rightSplitCats.length > 0
-                      ? layout.plotHeight / rightSplitCats.length
+    subPlotHeight = rightCats.length > 0
+                      ? layout.plotHeight / rightCats.length
                       : layout.plotHeight,
     isFadeInComplete = useRef(false),
     isFadeOutComplete = useRef(false)

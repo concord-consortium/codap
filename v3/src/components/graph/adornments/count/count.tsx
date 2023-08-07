@@ -13,9 +13,10 @@ interface IProps {
 export const Count = observer(function Count({model, subPlotKey}: IProps) {
   const dataConfig = useDataConfigurationContext()
   const casesInPlot = dataConfig?.subPlotCases(subPlotKey)?.length ?? 0
+  const classFromKey = model.classNameFromKey(subPlotKey)
 
   return (
-    <div className="graph-count" data-testid="graph-count">
+    <div className="graph-count" data-testid={`graph-count${classFromKey ? `-${classFromKey}` : ""}`}>
       {casesInPlot}
     </div>
   )
