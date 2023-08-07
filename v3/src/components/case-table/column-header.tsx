@@ -6,7 +6,7 @@ import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-d
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { kDefaultAttributeName } from "../../models/data/attribute"
 import { uniqueName } from "../../utilities/js-utils"
-import { AttributeMenuList } from "./attribute-menu"
+import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTablePortal } from "./case-table-portal"
 import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
