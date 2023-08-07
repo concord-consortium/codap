@@ -13,6 +13,15 @@
   }
 }
 
+.sub-options {
+  margin-left: 20px;
+
+  label {
+    display: flex;
+    padding: 1px 0;
+  }
+}
+
 .color-picker-thumb {
   width: 50px !important;
   height: 32px !important;
