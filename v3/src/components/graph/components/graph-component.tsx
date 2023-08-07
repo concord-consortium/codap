@@ -19,11 +19,11 @@ import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
-  const graphContentModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
-  const { data } = useDataSet(graphContentModel?.dataset)
-  const layout = useInitGraphLayout(graphContentModel)
+  const { data } = useDataSet(graphModel?.dataset)
+  const layout = useInitGraphLayout(graphModel)
   // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
@@ -34,7 +34,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
     [layout, instanceId]
   )
 
-  useGraphController({graphController, graphContentModel, dotsRef})
+  useGraphController({graphController, graphModel, dotsRef})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height)
@@ -55,14 +55,14 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const overlayDragId = active && `${active.id}`.startsWith(instanceId)
     ? `${active.id}` : undefined
 
-  if (!graphContentModel) return null
+  if (!graphModel) return null
 
   return (
     <DataSetContext.Provider value={data}>
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <AxisLayoutContext.Provider value={layout}>
-            <GraphContentModelContext.Provider value={graphContentModel}>
+            <GraphContentModelContext.Provider value={graphModel}>
               <Graph graphController={graphController}
                       graphRef={graphRef}
                       dotsRef={dotsRef}

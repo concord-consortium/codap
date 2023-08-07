@@ -5,12 +5,12 @@ import {IGraphContentModel} from "../models/graph-content-model"
 
 export interface IUseGraphControllerProps {
   graphController: GraphController,
-  graphContentModel?: IGraphContentModel,
+  graphModel?: IGraphContentModel,
   dotsRef: IDotsRef
 }
 
-export const useGraphController = ({graphController, graphContentModel, dotsRef}: IUseGraphControllerProps) => {
+export const useGraphController = ({graphController, graphModel, dotsRef}: IUseGraphControllerProps) => {
   useEffect(() => {
-    graphContentModel && graphController.setProperties({graphContentModel, dotsRef})
-  }, [graphController, graphContentModel, dotsRef])
+    graphModel && graphController.setProperties({graphModel, dotsRef})
+  }, [graphController, graphModel, dotsRef])
 }

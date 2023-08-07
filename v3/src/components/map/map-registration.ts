@@ -16,7 +16,7 @@ registerTileContentInfo({
 })
 
 registerTileComponentInfo({
-  type: "CodapMap",
+  type: "Map",
   TitleBar: MapComponentTitleBar,
   Component: MapComponent,
   tileEltClass: kMapTileClass,

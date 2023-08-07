@@ -65,7 +65,7 @@ $corner-drag-size: calc($border-drag-width * 2);
     right: 0;
     height: 22px;
     width: 22px;
-    z-index: 1100;  // so it's on top of leaflet in a map component
+    //z-index: 1100;  // so it's on top of leaflet in a map component
     cursor: se-resize;
   }
 

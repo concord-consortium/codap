@@ -1,4 +1,4 @@
-import {types} from "mobx-state-tree"
+import {Instance, types} from "mobx-state-tree"
 import {DataConfigurationModel} from "./data-configuration-model"
 import { typedId } from "../../../utilities/js-utils"
 
@@ -19,3 +19,5 @@ export const DataDisplayLayerModel = types.model("DataDisplayLayerModel", {
   }))
   .actions(self => ({
   }))
+
+export interface IDataDisplayLayerModel extends Instance<typeof DataDisplayLayerModel> {}
