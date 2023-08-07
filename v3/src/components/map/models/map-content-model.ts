@@ -1,7 +1,15 @@
-import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import {reaction} from "mobx"
+import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
+import {ISharedModel} from "../../../models/shared/shared-model"
+import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
+import {IDataSet} from "../../../models/data/data-set"
+import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
+import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {kMapModelName, kMapTileType} from "../map-defs"
+import {datasetHasPointData} from "../utilities/map-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
+import {MapPointLayerModel} from "./map-point-layer-model"
 
 export interface MapProperties {
 }
@@ -24,59 +32,63 @@ export const MapContentModel = DataDisplayContentModel
     // There is one MapLayerModel for each layer in the map
     // mapLayerModels: types.array(types.late(() => MapLayerModel)),
   })
-  .volatile(() => ({
-    // This is the Leaflet map object
-    map: undefined as any,
-  }))
+  .volatile(() => ({}))
   .actions(self => ({
-    // We're overriding our base model implementation because we suspect that the map
-    // will be a special case that needs to be handled differently
-/*
+    addPointLayer(dataSet: IDataSet) {
+      const newPointLayer = MapPointLayerModel.create()
+      newPointLayer.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+    },
     afterAttachToDocument() {
       // Monitor our parents and update our shared model when we have a document parent
       addDisposer(self, reaction(() => {
-          const sharedModelManager = self.tileEnv?.sharedModelManager
-
-          const sharedDataSets: ISharedDataSet[] = sharedModelManager?.isReady
-            ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
-            : []
-
-          const tileSharedModels = sharedModelManager?.isReady
-            ? sharedModelManager?.getTileSharedModels(self)
-            : undefined
-
-          return {sharedModelManager, sharedDataSets, tileSharedModels}
+          const sharedModelManager = self.tileEnv?.sharedModelManager,
+            sharedDataSets: ISharedDataSet[] = sharedModelManager?.isReady
+              ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
+              : []
+          return {sharedModelManager, sharedDataSets}
         },
         // reaction/effect
-        ({sharedModelManager, sharedDataSets, tileSharedModels}) => {
+        ({sharedModelManager, sharedDataSets}) => {
           if (!sharedModelManager?.isReady) {
             // We aren't added to a document yet, so we can't do anything yet
             return
           }
+          const layersToCheck = self.layers.splice(0)
+          sharedDataSets.forEach(sharedDataSet => {
+            if (datasetHasPointData(sharedDataSet.dataSet)) {
+              const layer = layersToCheck.find(aLayer => aLayer.data === sharedDataSet.dataSet)
+              if (layer) {
+                layersToCheck.splice(layersToCheck.indexOf(layer), 1)
+              } else {
+                // Add a new layer for this dataset
+                this.addPointLayer(sharedDataSet.dataSet)
+              }
+            }
+          })
 
-          const tileDataSet = getTileDataSet(self)
-          if (self.data || self.metadata) {
-            self.config.setDataset(self.data, self.metadata)
-          }
-          // auto-link to DataSet if it contains lat/long and/or polygons
-          else if (!tileDataSet && sharedDataSets.length === 1) {
-            linkTileToDataSet(self, sharedDataSets[0].dataSet)
-          }
+          // Remove any layers that are no longer in the shared model
+          layersToCheck.forEach(layer => {
+            self.layers.splice(self.layers.indexOf(layer), 1)
+          })
         },
         {name: "sharedModelSetup", fireImmediately: true}))
     },
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
-      if (type === "link") {
-        self.dataConfiguration.setDataset(self.data, self.metadata)
-      } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
-        self.dataConfiguration.setDataset(undefined, undefined)
-      }
+      /*
+            if (type === "link") {
+              self.dataConfiguration.setDataset(self.data, self.metadata)
+            } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
+              self.dataConfiguration.setDataset(undefined, undefined)
+            }
+      */
     },
-*/
   }))
 
-export interface IMapContentModel extends Instance<typeof MapContentModel> {}
-export interface IMapModelContentSnapshot extends SnapshotIn<typeof MapContentModel> {}
+export interface IMapContentModel extends Instance<typeof MapContentModel> {
+}
+
+export interface IMapModelContentSnapshot extends SnapshotIn<typeof MapContentModel> {
+}
 
 export function createMapContentModel(snap?: IMapModelContentSnapshot) {
   return MapContentModel.create()

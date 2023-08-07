@@ -7,20 +7,34 @@ import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "m
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
-import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
-  from "../../../models/shared/shared-data-set"
+import {
+  ISharedDataSet,
+  isSharedDataSet,
+  kSharedDataSetType,
+  SharedDataSet
+} from "../../../models/shared/shared-data-set"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
-import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
-  from "../../../models/shared/shared-data-utils"
+import {
+  getDataSetFromId,
+  getSharedCaseMetadataFromDataset,
+  getTileCaseMetadata,
+  getTileDataSet,
+  linkTileToDataSet
+} from "../../../models/shared/shared-data-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {AxisPlace} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {hoverRadiusFactor, pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend}
-  from "../../data-display/data-display-types"
+import {
+  hoverRadiusFactor,
+  pointRadiusLogBase,
+  pointRadiusMax,
+  pointRadiusMin,
+  pointRadiusSelectionAddend
+} from "../../data-display/data-display-types"
 import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
 import {AdornmentModelUnion} from "../adornments/adornment-types"
-import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
+import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
 
@@ -104,7 +118,7 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     afterCreate() {
-      self.layers.push(GraphPointLayerModel.create({type: "graphPointLayer"}))
+      self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
     },
     setDataSetListener() {
       const actionsAffectingCategories = [

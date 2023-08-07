@@ -1,8 +1,20 @@
-import {IMapContentModel} from "../models/map-content-model"
-// import {IDataSet} from "../../../models/data/data-set"
-// import {getSharedDataSets} from "../../../models/shared/shared-data-utils"
+import {IDataSet} from "../../../models/data/data-set"
+import {kLatNames, kLongNames} from "../map-types"
 
 
-export const syncMapModelWithDatasets = (mapModel: IMapContentModel) => {
-  // const datasets = getSharedDataSets()
+export const datasetHasPointData = (dataset: IDataSet) => {
+  const attrNames = dataset.attributes.map(attr => attr.name)
+  let hasLatAttribute = false,
+    hasLngAttribute = false
+  while (attrNames.length > 0 && (!hasLatAttribute || !hasLngAttribute)) {
+    const attrName = attrNames.pop()
+    if (attrName) {
+      if (kLatNames.includes(attrName)) {
+        hasLatAttribute = true
+      } else if (kLongNames.includes(attrName)) {
+        hasLngAttribute = true
+      }
+    }
+  }
+  return hasLatAttribute && hasLngAttribute
 }
