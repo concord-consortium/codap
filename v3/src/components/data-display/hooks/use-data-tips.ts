@@ -4,7 +4,7 @@ import {tip as d3tip} from "d3-v6-tip"
 import {IDataSet} from "../../../models/data/data-set"
 import {IDotsRef, transitionDuration} from "../data-display-types"
 import {CaseData} from "../d3-types"
-import {getPointTipText} from "../data-display-utils"
+import {getCaseTipText} from "../data-display-utils"
 import {IGraphContentModel} from "../../graph/models/graph-content-model"
 import {RoleAttrIDPair} from "../models/data-configuration-model"
 import {urlParams} from "../../../utilities/url-params"
@@ -33,7 +33,6 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
       ? dataConfiguration.yAttributeIDs : undefined
 
   useEffect(() => {
-    const roleAttrIDPairs: RoleAttrIDPair[] = displayModel.dataConfiguration.uniqueTipAttributes ?? []
 
     function okToTransition(target: any) {
       return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
@@ -41,7 +40,8 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
     }
 
     function showDataTip(event: MouseEvent) {
-      const target = select(event.target as SVGSVGElement)
+      const roleAttrIDPairs: RoleAttrIDPair[] = displayModel.dataConfiguration.uniqueTipAttributes ?? [],
+        target = select(event.target as SVGSVGElement)
       if (okToTransition(target)) {
         target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
         const caseID = (target.datum() as CaseData).caseID,
@@ -53,7 +53,7 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
               ? aPair.attributeID
               : aPair.role === 'y' ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID
           })
-        const tipText = getPointTipText(caseID, attrIDsToUse, dataset)
+        const tipText = getCaseTipText(caseID, attrIDsToUse, dataset)
         tipText !== '' && dataTip.show(tipText, event.target)
       }
     }

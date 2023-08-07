@@ -3,7 +3,7 @@ import {DotsElt} from "../../data-display/d3-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {IMapContentModel} from "./map-content-model"
 import {MapLayout} from "./map-layout"
-import {IMapPointLayerModel} from "./map-point-layer-model"
+import {isMapPointLayerModel} from "./map-point-layer-model"
 
 interface IMapControllerConstructorProps {
   layout: MapLayout
@@ -42,17 +42,18 @@ export class MapController {
       return
     }
     layerModels.forEach(aLayerModel => {
-      const pointLayerModel = aLayerModel as IMapPointLayerModel,
-        pointDescription = pointLayerModel.pointDescription
-      matchCirclesToData({
-        dataConfiguration: aLayerModel.dataConfiguration,
-        dotsElement,
-        pointRadius: pointLayerModel.getPointRadius(),
-        enableAnimation: this.enableAnimation,
-        instanceId: this.instanceId,
-        pointColor: pointDescription?.pointColor,
-        pointStrokeColor: pointDescription?.pointStrokeColor
-      })
+      if (isMapPointLayerModel(aLayerModel)) {
+        const pointDescription = aLayerModel.pointDescription
+        matchCirclesToData({
+          dataConfiguration: aLayerModel.dataConfiguration,
+          dotsElement,
+          pointRadius: aLayerModel.getPointRadius(),
+          enableAnimation: this.enableAnimation,
+          instanceId: this.instanceId,
+          pointColor: pointDescription?.pointColor,
+          pointStrokeColor: pointDescription?.pointStrokeColor
+        })
+      }
     })
   }
 

@@ -1,4 +1,5 @@
 import {reaction} from "mobx"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import React, {useCallback, useEffect, useRef} from "react"
 import {useMap} from "react-leaflet"
@@ -95,7 +96,7 @@ export const MapPointLayer = function MapPointLayer(props: {
 
   }, [dotsElement, dataset, enableAnimation, dataConfiguration, pointDescription, leafletMap])
 
-  // Actions in the dataset can trigger need point updates
+  // Actions in the dataset can trigger need for point updates
   useEffect(function setupResponsesToDatasetActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
@@ -125,13 +126,24 @@ export const MapPointLayer = function MapPointLayer(props: {
 
   // respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
   useEffect(function setupReactionToDisplayChangeCount() {
-    const { displayChangeCount } = mapModel
+    // const { displayChangeCount } = mapModel
     const disposer = reaction(
-      () => displayChangeCount,
+      () => mapModel.displayChangeCount,
       () => refreshPointPositions(false)
     )
     return () => disposer()
   }, [layout, mapModel, refreshPointPositions])
+
+  // respond to attribute assignment changes
+  useEffect(function setupResponseToLegendAttributeChange() {
+    const disposer = mstReaction(
+      () => dataConfiguration?.attributeID('legend'),
+      () => {
+        refreshPointPositions(false)
+      }, { name: "setupResponseToLegendAttributeChange" }, dataConfiguration
+    )
+    return () => disposer()
+  }, [refreshPointPositions, dataConfiguration])
 
   return (
     <></>

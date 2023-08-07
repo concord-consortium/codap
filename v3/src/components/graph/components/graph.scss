@@ -94,6 +94,7 @@ $graph-background-fill: #f9f9f9;
 }
 
 .graph-dot {
+  pointer-events: auto;
   fill: rgba(230, 128, 91);
   stroke: white;
   cursor: pointer;

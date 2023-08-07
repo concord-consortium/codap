@@ -11,7 +11,7 @@
   overflow: hidden;
   width: 100%;
   height: calc(100% - $title-bar-height);
-  z-index: 10;
+  z-index: 5;
 
   .leaflet-container {
     width: 100%;
@@ -25,7 +25,8 @@
 
 .map-dot-area {
   position: absolute;
-  z-index: 10;
+  pointer-events: none;
+  z-index: 11;
   top: 0;
   left: 0;
   width: 100%;
@@ -56,3 +57,43 @@
   border-radius: 4px;
 }
 
+.leaflet-popup-tip-container {
+  margin: 0 auto;
+  width: 0px;
+  height: 0px;
+  position: relative;
+  overflow: hidden;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #FBFBB0;
+  opacity: 0.7;
+  border-radius: 0px;
+}
+
+.leaflet-popup-content {
+  margin: 6px 9px;
+  line-height: 1;
+}
+.leaflet-popup-content p {
+  margin: 6px 0;
+}
+
+.leaflet-popup-tip {
+  background: transparent;
+}
+
+.leaflet-popup-tip {
+  width: 0;
+  height: 0;
+  padding: 0;
+}
+
+.leaflet-container ~ div {
+  z-index: 1100;
+}
+.dg .leaflet-container .leaflet-control-attribution {
+  margin: 10px;
+  opacity: .5;
+  width: 140px;
+}

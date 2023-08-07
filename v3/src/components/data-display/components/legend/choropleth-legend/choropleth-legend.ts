@@ -1,5 +1,5 @@
 import {axisBottom, scaleLinear, format, select, range, min, max, ScaleQuantile, NumberValue} from "d3"
-import {kChoroplethHeight} from "../../../../data-display/data-display-types"
+import {kChoroplethHeight} from "../../../data-display-types"
 import {neededSigDigitsArrayForQuantiles} from "../../../../../utilities/math-utils"
 
 export type ChoroplethLegendProps = {

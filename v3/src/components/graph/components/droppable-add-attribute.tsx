@@ -19,7 +19,7 @@ interface IAddAttributeProps {
 export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   const graphID = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop,
+    isDropAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop,
     droppableId = `${graphID}-add-attribute-${place}-drop`,
     role = graphPlaceToAttrRole[place],
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),

@@ -335,7 +335,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           primaryRole = self.primaryRole
         return primaryRole === role || !['left', 'bottom'].includes(place)
       },
-      graphPlaceCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
+      placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
         const role = graphPlaceToAttrRole[place],
           typeToDropIsNumeric = !!idToDrop && dataSet?.attrFromID(idToDrop)?.type === 'numeric',
           xIsNumeric = self.attributeType('x') === 'numeric',
