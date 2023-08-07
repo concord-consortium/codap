@@ -1,26 +1,28 @@
 import {observer} from "mobx-react-lite"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
+import {IDotsRef} from "../../data-display/data-display-types"
 import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
-import {attrRoleToGraphPlace, graphPlaceToAttrRole, IDotsRef, kGraphClass} from "../graphing-types"
+import {attrRoleToGraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
 import {ScatterDots} from "./scatterdots"
 import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
+import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
+import {isSetAttributeIDAction} from "../models/graph-content-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {isSetAttributeIDAction, useGraphModelContext} from "../models/graph-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
@@ -39,7 +41,7 @@ interface IProps {
 }
 
 export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
-  const graphModel = useGraphModelContext(),
+  const graphModel = useGraphContentModelContext(),
     {enableAnimation} = graphController,
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
@@ -65,7 +67,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
 
   const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
-    const computedPlace = place === 'plot' && graphModel.config.noAttributesAssigned ? 'bottom' : place
+    const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     graphModel.setAttributeID(attrRole, dataSet.id, attrId)
   }
@@ -75,10 +77,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
    * do we have to do anything special. Otherwise, we can just call handleChangeAttribute.
    */
   const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
-    if (place === 'left' && graphModel.config?.yAttributeDescriptions.length > 1) {
-      graphModel.config?.removeYAttributeWithID(idOfAttributeToRemove)
+    if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
+      graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
       const yAxisModel = graphModel.getAxis('left') as IAxisModel
-      setNiceDomain(graphModel.config.numericValuesForAttrRole('y'), yAxisModel)
+      setNiceDomain((graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []), yAxisModel)
     } else {
       dataset && handleChangeAttribute(place, dataset, '')
     }
@@ -98,7 +100,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
-    graphModel.config.setAttributeType(graphPlaceToAttrRole[place], treatAs)
+    graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
     dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
   }
 
@@ -157,7 +159,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
 
   return (
-    <DataConfigurationContext.Provider value={graphModel.config}>
+    <DataConfigurationContext.Provider value={graphModel.dataConfiguration}>
       <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background

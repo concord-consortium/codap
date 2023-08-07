@@ -5,23 +5,24 @@ import {useResizeDetector} from "react-resize-detector"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
+import {GraphContentModelContext} from '../hooks/use-graph-content-model-context'
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
+import {isGraphContentModel} from "../models/graph-content-model"
 import {GraphLayoutContext} from "../models/graph-layout"
-import {GraphModelContext, isGraphModel} from "../models/graph-model"
 import {Graph} from "./graph"
-import {DotsElt} from '../d3-types'
+import {DotsElt} from '../../data-display/d3-types'
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
-  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
-  const { data } = useDataSet(graphModel?.data)
+  const { data } = useDataSet(graphModel?.dataset)
   const layout = useInitGraphLayout(graphModel)
   // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
@@ -61,13 +62,13 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
       <InstanceIdContext.Provider value={instanceId}>
         <GraphLayoutContext.Provider value={layout}>
           <AxisLayoutContext.Provider value={layout}>
-            <GraphModelContext.Provider value={graphModel}>
+            <GraphContentModelContext.Provider value={graphModel}>
               <Graph graphController={graphController}
                       graphRef={graphRef}
                       dotsRef={dotsRef}
               />
               <AttributeDragOverlay activeDragId={overlayDragId} />
-            </GraphModelContext.Provider>
+            </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>
       </InstanceIdContext.Provider>

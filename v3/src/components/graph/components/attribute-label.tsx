@@ -5,12 +5,12 @@ import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import t from "../../../utilities/translation/translate"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
 import {graphPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
-import {useGraphModelContext} from "../models/graph-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
@@ -27,7 +27,7 @@ interface IAttributeLabelProps {
 
 export const AttributeLabel = observer(
   function AttributeLabel({place, onTreatAttributeAs, onRemoveAttribute, onChangeAttribute}: IAttributeLabelProps) {
-    const graphModel = useGraphModelContext(),
+    const graphModel = useGraphContentModelContext(),
       dataConfiguration = useDataConfigurationContext(),
       layout = useGraphLayoutContext(),
       {isTileSelected} = useTileModelContext(),

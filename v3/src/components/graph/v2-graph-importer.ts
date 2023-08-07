@@ -1,22 +1,23 @@
-import { AttributeType } from "../../models/data/attribute"
-import { IGraphModelSnapshot } from "./models/graph-model"
-import { TileModel } from "../../models/tiles/tile-model"
-import { typedId } from "../../utilities/js-utils"
-import { V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
-import { ICodapV2GraphStorage, IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
-import { kGraphIdPrefix, kGraphTileType } from "./graph-defs"
-import { axisPlaceToAttrRole, GraphAttrRole, PlotType, PrimaryAttrRole } from "./graphing-types"
-import { IAttributeDescriptionSnapshot } from "./models/data-configuration-model"
-import { AxisPlace } from "../axis/axis-types"
-import { IAxisModelSnapshotUnion } from "../axis/models/axis-model"
+import {AttributeType} from "../../models/data/attribute"
+import {TileModel} from "../../models/tiles/tile-model"
+import {typedId} from "../../utilities/js-utils"
+import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
+import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
+import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
+import {axisPlaceToAttrRole, GraphAttrRole, PlotType, PrimaryAttrRole} from "./graphing-types"
+import {IGraphContentModelSnapshot} from "./models/graph-content-model"
+import {kGraphPointLayerType} from "./models/graph-point-layer-model"
+import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configuration-model"
+import {AxisPlace} from "../axis/axis-types"
+import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 
-export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, insertTile }: V2TileImportArgs) {
+export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
   if (!isV2GraphComponent(v2Component)) return
 
-  const { title = "", _links_: links } = v2Component.componentStorage
+  const {title = "", _links_: links} = v2Component.componentStorage
   type TLinksKey = keyof typeof links
   const contextId = links.context.id
-  const { data, metadata } = v2Document.getDataAndMetadata(contextId)
+  const {data, metadata} = v2Document.getDataAndMetadata(contextId)
 
   const roleFromAttrKey: Record<string, GraphAttrRole> = {
     x: "x",
@@ -36,7 +37,7 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
   const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
   const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
 
-  // configure attributes
+    // configure attributes
   ;(Object.keys(links) as TLinksKey[]).forEach((aKey: TLinksKey) => {
     if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr', 'topAttr', 'rightAttr'].includes(aKey)) {
       const attrKey = aKey.match(/[a-z2]+/)?.[0]  // matches before the "Attr"
@@ -60,10 +61,9 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
             primaryRole = attrKey as PrimaryAttrRole
           }
           if (["y", "yPlus"].includes(v3AttrRole)) {
-            _yAttributeDescriptions.push({ attributeID: v3AttrId, type: v3Type })
-          }
-          else {
-            _attributeDescriptions[v3AttrRole] = { attributeID: v3AttrId, type: v3Type }
+            _yAttributeDescriptions.push({attributeID: v3AttrId, type: v3Type})
+          } else {
+            _attributeDescriptions[v3AttrRole] = {attributeID: v3AttrId, type: v3Type}
           }
         }
       })
@@ -78,10 +78,12 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
     top: "top",
     right: "rightCat"
   }
+
   function hasAttributeForV3Place(v3Place: AxisPlace) {
     const role = axisPlaceToAttrRole[v3Place]
     return v3Place === "left" ? !!_yAttributeDescriptions[0] : !!_attributeDescriptions[role]
   }
+
   ["x", "y", "y2", "top", "right"].forEach(v2Place => {
     const v3Place = v3PlaceFromV2Place[v2Place]
     const axisClass = v2Component.componentStorage[`${v2Place}AxisClass` as keyof ICodapV2GraphStorage]
@@ -90,17 +92,17 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
     if (v3Place && axisClass && hasAttributeForV3Place(v3Place)) {
       switch (axisClass) {
         case "DG.CellAxisModel":
-          axes[v3Place] = { place: v3Place, type: "categorical" }
+          axes[v3Place] = {place: v3Place, type: "categorical"}
           break
         case "DG.CellLinearAxisModel":
-          axes[v3Place] = { place: v3Place, type: "numeric", min: lowerBound, max: upperBound }
+          axes[v3Place] = {place: v3Place, type: "numeric", min: lowerBound, max: upperBound}
           break
       }
     }
   })
   // use empty axes for left/bottom if there are no other axes there
   ;(["bottom", "left"] as const).forEach(place => {
-    if (!axes[place]) axes[place] = { place, type: "empty" }
+    if (!axes[place]) axes[place] = {place, type: "empty"}
   })
 
   // configure plot
@@ -113,17 +115,20 @@ export function v2GraphImporter({ v2Component, v2Document, sharedModelManager, i
   }
   const plotType = plotChoices[axes.bottom?.type ?? "empty"][axes.left?.type ?? "empty"]
 
-  const content: IGraphModelSnapshot = {
+  const content: IGraphContentModelSnapshot = {
     type: kGraphTileType,
     axes,
     plotType,
-    config: {
-      primaryRole,
-      _attributeDescriptions,
-      _yAttributeDescriptions
-    }
+    layers: [{
+      type: kGraphPointLayerType,
+      dataConfiguration: {
+        primaryRole,
+        _attributeDescriptions,
+        _yAttributeDescriptions
+      }
+    }]
   }
-  const graphTile = TileModel.create({ id: typedId(kGraphIdPrefix), title, content })
+  const graphTile = TileModel.create({id: typedId(kGraphIdPrefix), title, content})
   insertTile(graphTile)
 
   // link shared model

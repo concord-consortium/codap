@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {autorun, reaction} from "mobx"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {IDotsRef, GraphAttrRoles} from "../graphing-types"
+import {IDotsRef} from "../../data-display/data-display-types"
+import {useGraphContentModelContext} from "./use-graph-content-model-context"
+import {GraphAttrRoles} from "../graphing-types"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {useGraphModelContext} from "../models/graph-model"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useCurrent} from "../../../hooks/use-current"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
@@ -41,10 +42,10 @@ export interface IPlotResponderProps {
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
   const {enableAnimation, refreshPointPositions, refreshPointSelection, dotsRef} = props,
-    graphModel = useGraphModelContext(),
+    graphModel = useGraphContentModelContext(),
     layout = useGraphLayoutContext(),
-    dataConfiguration = graphModel.config,
-    dataset = dataConfiguration.dataset,
+    dataConfiguration = graphModel.dataConfiguration,
+    dataset = dataConfiguration?.dataset,
     xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
     yNumeric = graphModel.getAxis('left') as INumericAxisModel,
     v2Numeric = graphModel.getAxis('rightNumeric') as INumericAxisModel,
@@ -172,7 +173,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     return autorun(
       () => {
-        !graphModel.config?.pointsNeedUpdating && callRefreshPointPositions(false)
+        !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions(false)
       })
   }, [graphModel, callRefreshPointPositions])
 

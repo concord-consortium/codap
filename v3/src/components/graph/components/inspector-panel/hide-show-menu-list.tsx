@@ -2,8 +2,8 @@ import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../../hooks/use-data-set-context"
 import { ITileModel } from "../../../../models/tiles/tile-model"
+import {isGraphContentModel} from "../../models/graph-content-model"
 import t from "../../../../utilities/translation/translate"
-import { isGraphModel } from "../../models/graph-model"
 
 interface IProps {
   tile?: ITileModel
@@ -12,7 +12,7 @@ interface IProps {
 export const HideShowMenuList = ({tile}: IProps) => {
   const data = useDataSetContext()
   const toast = useToast()
-  const graphModel = isGraphModel(tile?.content) ? tile?.content : undefined
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const handleMenuItemClick = (menuItem: string) => {
     toast({
       title: 'Menu item clicked',

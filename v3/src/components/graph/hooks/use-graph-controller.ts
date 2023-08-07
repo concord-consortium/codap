@@ -1,11 +1,11 @@
 import {useEffect} from "react"
-import {IDotsRef} from "../graphing-types"
+import {IDotsRef} from "../../data-display/data-display-types"
 import {GraphController} from "../models/graph-controller"
-import {IGraphModel} from "../models/graph-model"
+import {IGraphContentModel} from "../models/graph-content-model"
 
 export interface IUseGraphControllerProps {
   graphController: GraphController,
-  graphModel?: IGraphModel,
+  graphModel?: IGraphContentModel,
   dotsRef: IDotsRef
 }
 

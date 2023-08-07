@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { IAdornmentModel } from "./adornment-models"
+import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { useGraphModelContext } from "../models/graph-model"
 import { INumericAxisModel } from "../../axis/models/axis-model"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
-import { transitionDuration } from "../graphing-types"
+import {transitionDuration} from "../../data-display/data-display-types"
 
 import "./adornment.scss"
 
@@ -20,7 +20,7 @@ interface IProps {
 export const Adornment = observer(function Adornment(
   {adornment, subPlotKey, topCats, rightCats}: IProps
 ) {
-  const graphModel = useGraphModelContext(),
+  const graphModel = useGraphContentModelContext(),
     layout = useGraphLayoutContext(),
     subPlotWidth = topCats.length > 0
                      ? layout.plotWidth / topCats.length

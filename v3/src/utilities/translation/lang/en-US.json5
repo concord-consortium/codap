@@ -814,7 +814,7 @@
     "DG.PlottedCountPercent.withoutSelection": "%@ (%@%)", // "<nn> (<pp>%)"
     "DG.PlottedCountPercent.withSelection": "%@ of %@ (%@%) selected", // ""<nn> of <count> (<pp>%) selected"
 
-    // DG.GraphModel
+    // DG.DataDisplayMenu
     "DG.DataDisplayMenu.attribute_x": "X: %@", // %@ = attribute name
     "DG.DataDisplayMenu.attribute_y": "Y: %@", // %@ = attribute name
     "DG.DataDisplayMenu.attribute_y2": "Y: %@", // %@ = attribute name

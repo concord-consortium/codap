@@ -3,7 +3,6 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { kGraphAdornmentsClass } from "../graphing-types"
 import { useGraphLayoutContext } from "../models/graph-layout"
-import { useGraphModelContext } from "../models/graph-model"
 import { Adornment } from "./adornment"
 import { getAdornmentContentInfo } from "./adornment-content-info"
 import { IAdornmentModel } from "./adornment-models"
@@ -14,7 +13,7 @@ import { useDataConfigurationContext } from "../hooks/use-data-configuration-con
 import "./adornments.scss"
 
 export const Adornments = observer(function Adornments() {
-  const graphModel = useGraphModelContext(),
+  const graphModel = useGraphContentModelContext(),
     dataConfig = useDataConfigurationContext(),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),

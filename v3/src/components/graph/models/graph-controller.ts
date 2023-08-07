@@ -1,12 +1,13 @@
 import React from "react"
-import {IGraphModel} from "./graph-model"
-import {GraphLayout} from "./graph-layout"
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
+import {IDotsRef} from "../../data-display/data-display-types"
+import {IGraphContentModel} from "./graph-content-model"
+import {GraphLayout} from "./graph-layout"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {axisPlaceToAttrRole, graphPlaceToAttrRole, IDotsRef, PlotType} from "../graphing-types"
+import {axisPlaceToAttrRole, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 
@@ -24,12 +25,12 @@ interface IGraphControllerConstructorProps {
 }
 
 interface IGraphControllerProps {
-  graphModel: IGraphModel
+  graphModel: IGraphContentModel
   dotsRef: IDotsRef
 }
 
 export class GraphController {
-  graphModel?: IGraphModel
+  graphModel?: IGraphContentModel
   dotsRef?: IDotsRef
   layout: GraphLayout
   enableAnimation: React.MutableRefObject<boolean>
@@ -44,8 +45,9 @@ export class GraphController {
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
     this.dotsRef = props.dotsRef
-    if (this.graphModel.config.dataset !== this.graphModel.data) {
-      this.graphModel.config.setDataset(this.graphModel.data, this.graphModel.metadata)
+    if (this.graphModel.dataConfiguration.dataset !== this.graphModel.dataset) {
+      this.graphModel.dataConfiguration.setDataset(
+        this.graphModel.dataset, this.graphModel.metadata)
     }
     this.initializeGraph()
   }
@@ -53,9 +55,9 @@ export class GraphController {
   callMatchCirclesToData() {
     const {graphModel, dotsRef, enableAnimation, instanceId} = this
     if (graphModel && dotsRef?.current) {
-      const { config: dataConfiguration, pointColor, pointStrokeColor } = graphModel,
+      const { dataConfiguration, pointColor, pointStrokeColor } = graphModel,
         pointRadius = graphModel.getPointRadius()
-      matchCirclesToData({
+      dataConfiguration && matchCirclesToData({
         dataConfiguration, dotsElement: dotsRef.current,
         pointRadius, enableAnimation, instanceId, pointColor, pointStrokeColor
       })
@@ -64,7 +66,7 @@ export class GraphController {
 
   initializeGraph() {
     const {graphModel, dotsRef, layout} = this,
-      dataConfig = graphModel?.config
+      dataConfig = graphModel?.dataConfiguration
     if (dataConfig && layout && dotsRef?.current) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
         const axisModel = graphModel.getAxis(axisPlace),
@@ -90,7 +92,7 @@ export class GraphController {
   handleAttributeAssignment(graphPlace: GraphPlace, dataSetID: string, attrID: string) {
     const {graphModel, layout} = this,
       dataset = getDataSetFromId(graphModel, dataSetID),
-      dataConfig = graphModel?.config
+      dataConfig = graphModel?.dataConfiguration
     if (!(graphModel && layout && dataset && dataConfig)) {
       return
     }
