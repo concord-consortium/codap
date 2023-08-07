@@ -1,6 +1,9 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
+import {onAnyAction} from "../../../utilities/mst-utils"
+import {mstAutorun} from "../../../utilities/mst-autorun"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import {useCurrent} from "../../../hooks/use-current"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {IDotsRef} from "../../data-display/data-display-types"
@@ -10,9 +13,6 @@ import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {mstAutorun} from "../../../utilities/mst-autorun"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import {onAnyAction} from "../../../utilities/mst-utils"
 
 interface IDragHandlers {
   start: (event: MouseEvent) => void
