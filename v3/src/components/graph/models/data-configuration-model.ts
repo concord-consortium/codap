@@ -172,7 +172,7 @@ export const DataConfigurationModel = types
       return allGraphCaseIds
     },
     subPlotCases(subPlotKey: Record<string, string>) {
-      const casesInPlot = [] as any[]
+      const casesInPlot = [] as ICase[]
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
