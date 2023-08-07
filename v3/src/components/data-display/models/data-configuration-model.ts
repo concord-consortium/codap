@@ -117,8 +117,8 @@ export const DataConfigurationModel = types
             .map(
               aRole => this.attributeID(aRole as GraphAttrRole)
             )
-            .filter(id => !!id),
-          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs as string[], self.dataset)
+            .filter(id => !!id) as string[],
+          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
           const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
             childmostCollectionAttributes = childmostCollection?.attributes
@@ -461,7 +461,7 @@ export const DataConfigurationModel = types
           thresholds = self.legendQuantileScale.quantiles(),
           min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
           max = quantile === thresholds.length ? Infinity : thresholds[quantile]
-        return legendID && legendID !== ''
+        return legendID
           ? self.caseDataArray.filter((aCaseData: CaseData) => {
             const value = dataset?.getNumeric(aCaseData.caseID, legendID)
             return value !== undefined && value >= min && value < max
@@ -528,183 +528,180 @@ export const DataConfigurationModel = types
         }
       }
     }))
-  .extend(self => {
-
-    return {
-      actions: {
-        handleAction(actionCall: ISerializedActionCall) {
-          // forward all actions from dataset except "setCaseValues" which requires intervention
-          if (actionCall.name === "setCaseValues") return
-          if (actionCall.name === "invalidateCollectionGroups") {
-            this._updateFilteredCasesCollectionID()
-            this._invalidateCases()
-          }
-          self.handlers.forEach(handler => handler(actionCall))
-        },
-        handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
-          if (!isSetCaseValuesAction(actionCall)) return
-          let [affectedCases, affectedAttrIDs] = actionCall.args
-          // this is called by the FilteredCases object with additional information about
-          // whether the value changes result in adding/removing any cases from the filtered set
-          // a single call to setCaseValues can result in up to three calls to the handlers
-          if (cases.added.length) {
-            const newCases = self.dataset?.getCases(cases.added)
-            self.handlers.forEach(handler => handler({name: "addCases", args: [newCases]}))
-          }
-          if (cases.removed.length) {
-            self.handlers.forEach(handler => handler({name: "removeCases", args: [cases.removed]}))
-          }
-          if (cases.changed.length) {
-            const idSet = new Set(cases.changed)
-            const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
-            self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
-          }
-          // Changes to case values require that existing cached categorySets be wiped.
-          // But if we know the ids of the attributes involved, we can determine whether
-          // an attribute that has a cache is involved
-          if (!affectedAttrIDs && affectedCases.length === 1) {
-            affectedAttrIDs = Object.keys(affectedCases[0])
-          }
-          if (affectedAttrIDs) {
-            for (const [key, desc] of Object.entries(self.attributeDescriptions)) {
-              if (affectedAttrIDs.includes(desc.attributeID)) {
-                if (key === "legend") {
-                  self.invalidateQuantileScale()
-                }
-              }
+  .actions(self => ({
+    handleAction(actionCall: ISerializedActionCall) {
+      // forward all actions from dataset except "setCaseValues" which requires intervention
+      if (actionCall.name === "setCaseValues") return
+      if (actionCall.name === "invalidateCollectionGroups") {
+        this._updateFilteredCasesCollectionID()
+        this._invalidateCases()
+      }
+      self.handlers.forEach(handler => handler(actionCall))
+    },
+    handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
+      if (!isSetCaseValuesAction(actionCall)) return
+      let [affectedCases, affectedAttrIDs] = actionCall.args
+      // this is called by the FilteredCases object with additional information about
+      // whether the value changes result in adding/removing any cases from the filtered set
+      // a single call to setCaseValues can result in up to three calls to the handlers
+      if (cases.added.length) {
+        const newCases = self.dataset?.getCases(cases.added)
+        self.handlers.forEach(handler => handler({name: "addCases", args: [newCases]}))
+      }
+      if (cases.removed.length) {
+        self.handlers.forEach(handler => handler({name: "removeCases", args: [cases.removed]}))
+      }
+      if (cases.changed.length) {
+        const idSet = new Set(cases.changed)
+        const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
+        self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
+      }
+      // Changes to case values require that existing cached categorySets be wiped.
+      // But if we know the ids of the attributes involved, we can determine whether
+      // an attribute that has a cache is involved
+      if (!affectedAttrIDs && affectedCases.length === 1) {
+        affectedAttrIDs = Object.keys(affectedCases[0])
+      }
+      if (affectedAttrIDs) {
+        for (const [key, desc] of Object.entries(self.attributeDescriptions)) {
+          if (affectedAttrIDs.includes(desc.attributeID)) {
+            if (key === "legend") {
+              self.invalidateQuantileScale()
             }
-          } else {
-            self.invalidateQuantileScale()
-          }
-        },
-        _updateFilteredCasesCollectionID() {
-          const childmostCollectionID = idOfChildmostCollectionForAttributes(self.attributes, self.dataset)
-          self.filteredCases?.forEach((aFilteredCases) => {
-            aFilteredCases.setCollectionID(childmostCollectionID)
-          })
-        },
-        _invalidateCases() {
-          self.filteredCases?.forEach((aFilteredCases) => {
-            aFilteredCases.invalidateCases()
-          })
-        },
-        _addNewFilteredCases() {
-          if (self.dataset) {
-            this._updateFilteredCasesCollectionID()
-            self.filteredCases?.push(new FilteredCases({
-              source: self.dataset,
-              filter: self.filterCase,
-              collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
-              onSetCaseValues: this.handleSetCaseValues
-            }))
-            self.setPointsNeedUpdating(true)
-          }
-        },
-        setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
-          self.actionHandlerDisposer?.()
-          self.actionHandlerDisposer = undefined
-          self.dataset = dataset
-          self.metadata = metadata
-          self.filteredCases = []
-          if (dataset) {
-            self.actionHandlerDisposer = onAnyAction(self.dataset, this.handleAction)
-            self.filteredCases[0] = new FilteredCases({
-              source: self.dataset as IDataSet,
-              filter: self.filterCase,
-              collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
-              onSetCaseValues: this.handleSetCaseValues
-            })
-            // make sure there are enough filteredCases to hold all the y attributes
-            while (self.filteredCases.length < self._yAttributeDescriptions.length) {
-              this._addNewFilteredCases()
-            }
-            // A y2 attribute is optional, so only add a new filteredCases if there is one.
-            if (self.hasY2Attribute) {
-              this._addNewFilteredCases()
-            }
-          }
-          self.invalidateQuantileScale()
-        },
-        setPrimaryRole(role: GraphAttrRole) {
-          if (role === 'x' || role === 'y') {
-            self.primaryRole = role
-          }
-        },
-        clearAttributes() {
-          self._attributeDescriptions.clear()
-          self._yAttributeDescriptions.clear()
-        },
-        setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
-          // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
-          // move whatever attribute is assigned to the given role to that axis.
-          if (['x', 'y'].includes(role)) {
-            const otherRole = role === 'x' ? 'y' : 'x',
-              otherDesc = self.attributeDescriptionForRole(otherRole)
-            if (otherDesc?.attributeID === desc?.attributeID) {
-              const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
-              self._setAttributeDescription(otherRole, currentDesc)
-            }
-          }
-          if (role === 'y') {
-            self._yAttributeDescriptions.clear()
-            if (desc && desc.attributeID !== '') {
-              self._yAttributeDescriptions.push(desc)
-            }
-          } else if (role === 'rightNumeric') {
-            this.setY2Attribute(desc)
-          } else {
-            self._setAttributeDescription(role, desc)
-          }
-          this._updateFilteredCasesCollectionID()
-          if (role === 'legend') {
-            self.invalidateQuantileScale()
-          }
-        },
-        addYAttribute(desc: IAttributeDescriptionSnapshot) {
-          self._yAttributeDescriptions.push(desc)
-          this._addNewFilteredCases()
-        },
-        setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
-          const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
-            isEmpty = !desc?.attributeID
-          self._setAttributeDescription('rightNumeric', desc)
-          if (isNewAttribute) {
-            this._addNewFilteredCases()
-          } else if (isEmpty) {
-            self.filteredCases?.pop() // remove the last one because it is the array
-            self.setPointsNeedUpdating(true)
-          } else {
-            const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
-            existingFilteredCases?.invalidateCases()
-          }
-        },
-        removeYAttributeWithID(id: string) {
-          const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
-          if (index >= 0) {
-            self._yAttributeDescriptions.splice(index, 1)
-            self.filteredCases?.splice(index, 1)
-            this._updateFilteredCasesCollectionID()
-            self.setPointsNeedUpdating(true)
-          }
-        },
-        setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
-          if (role === 'y') {
-            self._yAttributeDescriptions[plotNumber]?.setType(type)
-          } else {
-            self._attributeDescriptions.get(role)?.setType(type)
-          }
-          this._invalidateCases()
-        },
-        onAction(handler: (actionCall: ISerializedActionCall) => void) {
-          const id = uniqueId()
-          self.handlers.set(id, handler)
-          return () => {
-            self.handlers.delete(id)
           }
         }
+      } else {
+        self.invalidateQuantileScale()
+      }
+    },
+    _updateFilteredCasesCollectionID() {
+      const childmostCollectionID = idOfChildmostCollectionForAttributes(self.attributes, self.dataset)
+      self.filteredCases?.forEach((aFilteredCases) => {
+        aFilteredCases.setCollectionID(childmostCollectionID)
+      })
+    },
+    _invalidateCases() {
+      self.filteredCases?.forEach((aFilteredCases) => {
+        aFilteredCases.invalidateCases()
+      })
+    },
+    _addNewFilteredCases() {
+      if (self.dataset) {
+        this._updateFilteredCasesCollectionID()
+        self.filteredCases?.push(new FilteredCases({
+          source: self.dataset,
+          filter: self.filterCase,
+          collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
+          onSetCaseValues: this.handleSetCaseValues
+        }))
+        self.setPointsNeedUpdating(true)
       }
     }
-  })
+  }))
+  .actions(self => ({
+    setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
+      self.actionHandlerDisposer?.()
+      self.actionHandlerDisposer = undefined
+      self.dataset = dataset
+      self.metadata = metadata
+      self.filteredCases = []
+      if (dataset) {
+        self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
+        self.filteredCases[0] = new FilteredCases({
+          source: dataset,
+          filter: self.filterCase,
+          collectionID: idOfChildmostCollectionForAttributes(self.attributes, dataset),
+          onSetCaseValues: self.handleSetCaseValues
+        })
+        // make sure there are enough filteredCases to hold all the y attributes
+        while (self.filteredCases.length < self._yAttributeDescriptions.length) {
+          self._addNewFilteredCases()
+        }
+        // A y2 attribute is optional, so only add a new filteredCases if there is one.
+        if (self.hasY2Attribute) {
+          self._addNewFilteredCases()
+        }
+      }
+      self.invalidateQuantileScale()
+    },
+    setPrimaryRole(role: GraphAttrRole) {
+      if (role === 'x' || role === 'y') {
+        self.primaryRole = role
+      }
+    },
+    clearAttributes() {
+      self._attributeDescriptions.clear()
+      self._yAttributeDescriptions.clear()
+    },
+    setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+      // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
+      // move whatever attribute is assigned to the given role to that axis.
+      if (['x', 'y'].includes(role)) {
+        const otherRole = role === 'x' ? 'y' : 'x',
+          otherDesc = self.attributeDescriptionForRole(otherRole)
+        if (otherDesc?.attributeID === desc?.attributeID) {
+          const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
+          self._setAttributeDescription(otherRole, currentDesc)
+        }
+      }
+      if (role === 'y') {
+        self._yAttributeDescriptions.clear()
+        if (desc && desc.attributeID !== '') {
+          self._yAttributeDescriptions.push(desc)
+        }
+      } else if (role === 'rightNumeric') {
+        this.setY2Attribute(desc)
+      } else {
+        self._setAttributeDescription(role, desc)
+      }
+      self._updateFilteredCasesCollectionID()
+      if (role === 'legend') {
+        self.invalidateQuantileScale()
+      }
+    },
+    addYAttribute(desc: IAttributeDescriptionSnapshot) {
+      self._yAttributeDescriptions.push(desc)
+      self._addNewFilteredCases()
+    },
+    setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
+      const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
+        isEmpty = !desc?.attributeID
+      self._setAttributeDescription('rightNumeric', desc)
+      if (isNewAttribute) {
+        self._addNewFilteredCases()
+      } else if (isEmpty) {
+        self.filteredCases?.pop() // remove the last one because it is the array
+        self.setPointsNeedUpdating(true)
+      } else {
+        const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
+        existingFilteredCases?.invalidateCases()
+      }
+    },
+    removeYAttributeWithID(id: string) {
+      const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
+      if (index >= 0) {
+        self._yAttributeDescriptions.splice(index, 1)
+        self.filteredCases?.splice(index, 1)
+        self._updateFilteredCasesCollectionID()
+        self.setPointsNeedUpdating(true)
+      }
+    },
+    setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
+      if (role === 'y') {
+        self._yAttributeDescriptions[plotNumber]?.setType(type)
+      } else {
+        self._attributeDescriptions.get(role)?.setType(type)
+      }
+      self._invalidateCases()
+    },
+    onAction(handler: (actionCall: ISerializedActionCall) => void) {
+      const id = uniqueId()
+      self.handlers.set(id, handler)
+      return () => {
+        self.handlers.delete(id)
+      }
+    }
+  }))
   .actions(self => ({
     /**
      * This is called when the user swaps categories in the legend, but not when the user swaps categories

@@ -29,11 +29,10 @@ export function collectionCaseIndexFromId(caseId: string, data?: IDataSet, colle
  */
 export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: IDataSet) {
   if (!data) return undefined
-  const collections = data.collections,
-    existAttributesNotPartOfCollection = attrIDs.some(id =>
-      !collections.some(collection => collection.getAttribute(id) != null))
-  if (existAttributesNotPartOfCollection) return undefined
-  const mentionedCollections = collections.filter(
-    collection => attrIDs.some(id => collection.getAttribute(id) != null))
-  return mentionedCollections.length > 0 ? mentionedCollections.pop()?.id : undefined
+  if (data.ungroupedAttributes.some(attr => attrIDs.includes(attr.id))) return undefined
+  const collections = data.collections
+  for (let i = collections.length - 1; i >= 0; --i) {
+    const collection = collections[i]
+    if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
+  }
 }

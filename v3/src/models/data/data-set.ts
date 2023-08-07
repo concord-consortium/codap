@@ -857,6 +857,7 @@ export const DataSet = types.model("DataSet", {
             setCaseValues(caseValues)
           })
         }
+        // only changes to parent collection attributes invalidate grouping
         ungroupedCases.length > 0 && self.invalidateCollectionGroups()
       },
 
