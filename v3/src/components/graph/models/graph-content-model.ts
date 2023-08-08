@@ -93,25 +93,25 @@ export const GraphContentModel = DataDisplayContentModel
       return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
     },
     getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
-      const xAttrId = self.getAttributeID("x"),
-        xAttrType = self.config.attributeType("x"),
+      const xAttrId = this.getAttributeID("x"),
+        xAttrType = self.dataConfiguration.attributeType("x"),
         xCats = xAttrType === "categorical"
-          ? self.config.categoryArrayForAttrRole("x", [])
+          ? self.dataConfiguration.categoryArrayForAttrRole("x", [])
           : [""],
-        yAttrId = self.getAttributeID("y"),
-        yAttrType = self.config.attributeType("y"),
+        yAttrId = this.getAttributeID("y"),
+        yAttrType = self.dataConfiguration.attributeType("y"),
         yCats = yAttrType === "categorical"
-          ? self.config.categoryArrayForAttrRole("y", [])
+          ? self.dataConfiguration.categoryArrayForAttrRole("y", [])
           : [""],
-        topAttrId = self.getAttributeID("topSplit"),
-        topCats = self.config.categoryArrayForAttrRole("topSplit", []) ?? [""],
-        rightAttrId = self.getAttributeID("rightSplit"),
-        rightCats = self.config.categoryArrayForAttrRole("rightSplit", []) ?? [""]
+        topAttrId = this.getAttributeID("topSplit"),
+        topCats = self.dataConfiguration.categoryArrayForAttrRole("topSplit", []) ?? [""],
+        rightAttrId = this.getAttributeID("rightSplit"),
+        rightCats = self.dataConfiguration.categoryArrayForAttrRole("rightSplit", []) ?? [""]
       return {
-        xAxis: self.getAxis("bottom"),
+        xAxis: this.getAxis("bottom"),
         xAttrId,
         xCats,
-        yAxis: self.getAxis("left"),
+        yAxis: this.getAxis("left"),
         yAttrId,
         yCats,
         topAttrId,

@@ -4,7 +4,6 @@ import {GraphPointLayerModel, IGraphPointLayerModel, IGraphPointLayerModelSnapsh
   from "../../graph/models/graph-point-layer-model"
 import {IMapPointLayerModel, IMapPointLayerModelSnapshot, MapPointLayerModel}
   from "../../map/models/map-point-layer-model"
-import {MapLayerModel} from "../../map/models/map-layer-model"
 import {IMapBaseLayerModel, IMapBaseLayerModelSnapshot, MapBaseLayerModel} from "../../map/models/map-base-layer-model"
 import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, MapPolygonLayerModel}
   from "../../map/models/map-polygon-layer-model"
