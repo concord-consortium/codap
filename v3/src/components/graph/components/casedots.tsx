@@ -2,15 +2,12 @@ import {randomUniform, select} from "d3"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {IDotsRef} from "../../data-display/data-display-types"
-import {ICase} from "../../../models/data/data-set-types"
-import {isAddCasesAction} from "../../../models/data/data-set-actions"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
-import {onAnyAction} from "../../../utilities/mst-utils"
 
 export const CaseDots = function CaseDots(props: {
   dotsRef: IDotsRef

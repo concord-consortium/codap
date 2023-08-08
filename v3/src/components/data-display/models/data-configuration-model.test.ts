@@ -262,7 +262,7 @@ describe("DataConfigurationModel", () => {
   })
 
   it("returns an array of cases in a plot", () => {
-    const config = DataConfigurationModel.create()
+    const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     expect(config.subPlotCases({})).toEqual([
       {"__id__": "c1", "nId": "n1", "xId": 1, "yId": 1},

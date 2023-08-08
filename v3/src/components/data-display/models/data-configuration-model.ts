@@ -3,7 +3,6 @@ import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "m
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
-import {IDataSet} from "../../../models/data/data-set"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
 import {getCategorySet, ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
