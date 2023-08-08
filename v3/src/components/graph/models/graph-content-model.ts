@@ -89,29 +89,31 @@ export const GraphContentModel = DataDisplayContentModel
     getAttributeID(place: GraphAttrRole) {
       return self.dataConfiguration.attributeID(place) ?? ''
     },
+  }))
+  .views(self => ({
     axisShouldShowGridLines(place: AxisPlace) {
       return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
     },
     getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
-      const xAttrId = this.getAttributeID("x"),
+      const xAttrId = self.getAttributeID("x"),
         xAttrType = self.dataConfiguration.attributeType("x"),
         xCats = xAttrType === "categorical"
           ? self.dataConfiguration.categoryArrayForAttrRole("x", [])
           : [""],
-        yAttrId = this.getAttributeID("y"),
+        yAttrId = self.getAttributeID("y"),
         yAttrType = self.dataConfiguration.attributeType("y"),
         yCats = yAttrType === "categorical"
           ? self.dataConfiguration.categoryArrayForAttrRole("y", [])
           : [""],
-        topAttrId = this.getAttributeID("topSplit"),
+        topAttrId = self.getAttributeID("topSplit"),
         topCats = self.dataConfiguration.categoryArrayForAttrRole("topSplit", []) ?? [""],
-        rightAttrId = this.getAttributeID("rightSplit"),
+        rightAttrId = self.getAttributeID("rightSplit"),
         rightCats = self.dataConfiguration.categoryArrayForAttrRole("rightSplit", []) ?? [""]
       return {
-        xAxis: this.getAxis("bottom"),
+        xAxis: self.getAxis("bottom"),
         xAttrId,
         xCats,
-        yAxis: this.getAxis("left"),
+        yAxis: self.getAxis("left"),
         yAttrId,
         yCats,
         topAttrId,
