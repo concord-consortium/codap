@@ -99,6 +99,7 @@ export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumeri
     }
   }, [layout])
 
-  return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)}></svg>
+  return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)} data-testid='legend-categories'>
+         </svg>
 })
 NumericLegend.displayName = "NumericLegend"

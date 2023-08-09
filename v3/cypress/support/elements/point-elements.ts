@@ -51,7 +51,7 @@ export const PointElements = {
     this.getPointStroke(index).should("contain", "rgb(255, 0, 0)")
   },
   verifyHighlightedPoint(tooltip) {
-    this.getGraphTile().find(".graph-dot-area .graph-dot.graph-dot-highlighted").click()
+    this.getGraphTile().find("[data-testid=graph-dot].graph-dot-highlighted").click()
     cy.get("[data-testid=graph-point-data-tip]").should("have.text", tooltip)
   },
   verifyGraphPointDataToolTip(tooltip) {

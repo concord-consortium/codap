@@ -83,6 +83,7 @@ export const AttributeLabel = observer(
             update
               .attr("transform", labelTransform + tRotation)
               .attr('class', className)
+              .attr('data-testid', className)
               .style('visibility', hideClickHereCue ? 'hidden' : 'visible')
               .attr('x', tX)
               .attr('y', tY)
@@ -133,7 +134,7 @@ export const AttributeLabel = observer(
               enter.append('text')
                 .attr('class', className)
                 .attr('text-anchor', anchor)
-                .attr('data-testid', `attribute-label-${place}`)
+                .attr('data-testid', className)
           )
         refreshAxisTitle()
       }

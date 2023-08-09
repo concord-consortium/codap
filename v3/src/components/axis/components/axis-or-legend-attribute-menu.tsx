@@ -53,14 +53,16 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
   useOutsidePointerDown({ref: menuRef, handler: () => onCloseRef.current?.()})
 
   return (
-    <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef}>
+    <div className={`axis-legend-attribute-menu ${place}`} 
+    data-testid={`axis-legend-attribute-menu-${place}`} ref={menuRef}>
       <Menu boundary="scrollParent">
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
             <div className="codap-graph-attribute-label" ref={setDragNodeRef}
-                style={overlayStyle} {...attributes} {...listeners}>
-              <MenuButton style={buttonStyle}>{attribute?.name}</MenuButton>
+                style={overlayStyle} {...attributes} {...listeners}
+                data-testid={`codap-graph-attribute-label-${place}`}>
+              <MenuButton style={buttonStyle} data-testid="axis-legend-attribute-button">{attribute?.name}</MenuButton>
               <MenuList>
                 { data?.attributes?.map((attr) => {
                   return (
