@@ -112,7 +112,7 @@ export const DataConfigurationModel = types
       const defaultCaptionAttributeID = () => {
         // We find the childmost collection and return the first attribute in that collection. If there is no
         // childmost collection, we return the first attribute in the dataset.
-        const attrIDs = ['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit']
+        const attrIDs = ['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend']
             .map(
               aRole => this.attributeID(aRole as GraphAttrRole)
             )

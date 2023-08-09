@@ -109,9 +109,11 @@ export const CaseDots = function CaseDots(props: {
       cases = dataConfiguration?.caseDataArray
 
     const initCases = (_cases?: CaseData[] | undefined) => {
-      randomPointsRef.current = {}
+      const points = randomPointsRef.current
       _cases?.forEach(({caseID}) => {
-        randomPointsRef.current[caseID] = {x: uniform(), y: uniform()}
+        if (!points[caseID]) {
+          points[caseID] = {x: uniform(), y: uniform()}
+        }
       })
     }
 
