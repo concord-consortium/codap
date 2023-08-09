@@ -15,6 +15,7 @@ export type OnSetCaseValuesFn = (actionCall: ISerializedActionCall, cases: IFilt
 
 interface IProps {
   source: IDataSet
+  collectionID?: string
   // Non-zero when there are more than one y-attribute
   casesArrayNumber?: number
   filter?: FilterFn
@@ -23,6 +24,7 @@ interface IProps {
 
 export class FilteredCases {
   private source: IDataSet
+  private collectionID: string | undefined
   private casesArrayNumber: number
   @observable private filter?: FilterFn
   private onSetCaseValues?: OnSetCaseValuesFn
@@ -30,8 +32,9 @@ export class FilteredCases {
   private prevCaseIdSet = new Set<string>()
   private onActionDisposers: Array<() => void>
 
-  constructor({ source, casesArrayNumber = 0, filter, onSetCaseValues }: IProps) {
+  constructor({ source, collectionID, casesArrayNumber = 0, filter, onSetCaseValues }: IProps) {
     this.source = source
+    this.collectionID = collectionID
     this.casesArrayNumber = casesArrayNumber
     this.filter = filter
     this.onSetCaseValues = onSetCaseValues
@@ -56,7 +59,8 @@ export class FilteredCases {
     // cases when cases are inserted, but that would be more code to write/maintain and running
     // the filter function over an array of cases should be quick so rather than succumb to the
     // temptation of premature optimization, let's wait to see whether it becomes a bottleneck.
-    return this.source.cases
+    const rawCases = this.collectionID ? this.source.getCasesForCollection(this.collectionID) : this.source.cases
+    return rawCases
             .map(aCase => aCase.__id__)
             .filter(id => !this.filter || this.filter(this.source, id, this.casesArrayNumber))
   }
@@ -73,6 +77,13 @@ export class FilteredCases {
   @action
   setCaseFilter(caseFilter?: (data: IDataSet, caseId: string) => boolean) {
     this.filter = caseFilter
+  }
+
+  @action
+  setCollectionID(collectionID?: string) {
+    if (this.collectionID === collectionID) return
+    this.collectionID = collectionID
+    this.invalidateCases()
   }
 
   @action

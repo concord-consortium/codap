@@ -89,11 +89,11 @@ export const GraphContentModel = DataDisplayContentModel
     getAttributeID(place: GraphAttrRole) {
       return self.dataConfiguration.attributeID(place) ?? ''
     },
-  }))
-  .views(self => ({
     axisShouldShowGridLines(place: AxisPlace) {
       return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
-    },
+    }
+  }))
+  .views(self => ({
     getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
       const xAttrId = self.getAttributeID("x"),
         xAttrType = self.dataConfiguration.attributeType("x"),
