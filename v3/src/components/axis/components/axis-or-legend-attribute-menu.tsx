@@ -53,8 +53,7 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
   useOutsidePointerDown({ref: menuRef, handler: () => onCloseRef.current?.()})
 
   return (
-    <div className={`axis-legend-attribute-menu ${place}`} 
-    data-testid={`axis-legend-attribute-menu-${place}`} ref={menuRef}>
+    <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef}>
       <Menu boundary="scrollParent">
         {({ onClose }) => {
           onCloseRef.current = onClose

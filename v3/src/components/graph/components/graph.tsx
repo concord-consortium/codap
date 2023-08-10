@@ -160,7 +160,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
 
   return (
     <DataConfigurationContext.Provider value={graphModel.dataConfiguration}>
-      <div className={kGraphClass} ref={graphRef} data-testid="graph-plot">
+      <div className={kGraphClass} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
             marqueeState={marqueeState}
