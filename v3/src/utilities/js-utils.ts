@@ -1,6 +1,9 @@
-import { nanoid } from "nanoid"
+import { customAlphabet } from "nanoid"
 import { monotonicFactory } from "ulid"
 const ulid = monotonicFactory()
+// Use custom alphabet to avoid ambiguous characters, especially during mathematical formula evaluations.
+// By default, nanoid uses "-" sign, which is used in formulas for subtraction.
+const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz", 21)
 
 /*
  * castArrayCopy()
