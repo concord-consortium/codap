@@ -68,7 +68,7 @@ export const ComponentElements = {
     return this.getComponentTile(component, index).find("[data-testid=editable-component-title]")
   },
   changeComponentTitle(component, title, index = 0) {
-    this.getComponentTitle(component, index).click().find("input").type(`${title}{enter}`)
+    this.getComponentTitle(component, index).click().find("[data-testid=title-text-input]").type(`${title}{enter}`)
   },
   getInspectorPanel() {
     return cy.get("[data-testid=inspector-panel]")

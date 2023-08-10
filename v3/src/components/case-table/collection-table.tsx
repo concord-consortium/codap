@@ -82,7 +82,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <CollectionTitle />
-        <DataGrid ref={gridRef} className="rdg-light"
+        <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid"
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           onCellClick={handleCellClick} onRowsChange={handleRowsChange} onScroll={handleGridScroll}/>

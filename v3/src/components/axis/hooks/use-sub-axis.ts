@@ -300,13 +300,17 @@ export const useSubAxis = ({
       categoriesSelectionRef.current.each(function () {
         const catGroup = select(this)
         // ticks
-        catGroup.append('line').attr('class', 'tick')
+        catGroup.append('line')
+          .attr('class', 'tick')
+          .attr('data-testid', 'tick')
         // divider between groups
         catGroup.append('line')
           .attr('class', 'divider')
+          .attr('data-testid', 'divider')
         // labels
         catGroup.append('text')
           .attr('class', 'category-label')
+          .attr('data-testid', 'category-label')
           .attr('x', 0)
           .attr('y', 0)
       })

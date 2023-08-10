@@ -5,13 +5,13 @@ export const TableTileElements = {
     return c.getComponentTile("table", index)
   },
   getCaseTableGrid() {
-    return cy.get("[data-testid=case-table] [role=grid]")
+    return cy.get("[data-testid=collection-table-grid]")
   },
   getNumOfAttributes() {
-    return cy.get("[data-testid=case-table] [role=grid]").invoke("attr", "aria-colcount")
+    return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-colcount")
   },
   getNumOfCases() {
-    return cy.get("[data-testid=case-table] [role=grid]").invoke("attr", "aria-rowcount")
+    return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-rowcount")
   },
   getCollectionTitle() {
     return this.getTableTile().find("[data-testid=editable-component-title]")
@@ -20,14 +20,14 @@ export const TableTileElements = {
     return cy.get("[data-testid=case-table] [role=columnheader]")
   },
   getColumnHeader(index) {
-    return cy.get(".codap-column-header-content").eq(index)
+    return cy.get("[data-testid=codap-column-header-content]").eq(index)
   },
   // doesn't work in more recent chakra versions
   // getColumnHeaderTooltip() {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
   openIndexMenuForRow(rowNum) {
-    cy.get(`[data-testid=case-table] [role=grid] [role=row][aria-rowindex="${rowNum}"]
+    cy.get(`[data-testid=collection-table-grid] [role=row][aria-rowindex="${rowNum}"]
             [data-testid=codap-index-content-button]`).click("top")
   },
   getIndexMenu() {

@@ -74,7 +74,7 @@ export const Legend = function Legend({
 
   return legendAttrID ? (
     <>
-      <svg ref={legendRef} className='legend-component'>
+      <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
         <rect className='legend-background'/>
         <AttributeLabel
           place={'legend'}

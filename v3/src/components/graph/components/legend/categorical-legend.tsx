@@ -324,7 +324,7 @@ export const CategoricalLegend = observer(function CategoricalLegend(
   transformRef.current = transform
 
   return (
-    <svg className='legend-categories' ref={keysElt}></svg>
+    <svg className='legend-categories' ref={keysElt} data-testid='legend-categories'></svg>
   )
 })
 CategoricalLegend.displayName = "CategoricalLegend"
