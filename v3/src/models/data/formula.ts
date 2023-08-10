@@ -1,33 +1,34 @@
-import { types } from "mobx-state-tree"
-import { canonicalizeExpression, prettifyExpression } from "./expression-utils"
+import { Instance, types } from "mobx-state-tree"
+import { typedId } from "../../utilities/js-utils"
+import { getFormulaManager } from "./formula-manager"
+import { canonicalizeExpression } from "./formula-utils"
 
 export const Formula = types.model("Formula", {
-  display: types.maybe(types.string),
-  canonical: types.maybe(types.string)
+  id: types.optional(types.identifier, () => typedId("FORMULA")),
+  canonical: ""
 })
-.actions(self => ({
-  setDisplay(display?: string) {
-    self.display = display
+.views(self => ({
+  get valid() {
+    return !!self.canonical && self.canonical.length > 0
   },
-  setCanonical(canonical?: string) {
+  get formulaManager() {
+    // TODO: this is a current, draft version of the approach to get the formula manager
+    return getFormulaManager()
+    // Probably we should use code similar to the following:
+    // const sharedModelManager = getSharedModelManager(self)
+    // const sharedModels = sharedModelManager?.getSharedModelsByType(kFormulaManagerType)
+    // return sharedModels?.[0] as IFormulaManager | undefined
+  }
+}))
+.actions(self => ({
+  setDisplayFormula(displayFormula: string) {
+    const formulaManager = self.formulaManager
+    const displayNameMap = formulaManager?.getDisplayNameMapForFormula(self.id)
+    this.setCanonical(canonicalizeExpression(displayFormula, displayNameMap))
+  },
+  setCanonical(canonical: string) {
     self.canonical = canonical
-  },
-  canonicalize(xName: string) {
-    self.canonical = self.display != null
-                      ? canonicalizeExpression(self.display, xName)
-                      : undefined
-  },
-  updateDisplay(xName: string) {
-    self.display = prettifyExpression(self.canonical, xName)
   }
 }))
-.actions(self => ({
-  synchronize(xName: string) {
-    if (self.display && !self.canonical) {
-      self.canonicalize(xName)
-    }
-    else if (!self.display && self.canonical) {
-      self.updateDisplay(xName)
-    }
-  }
-}))
+
+export interface IFormula extends Instance<typeof Formula> {}

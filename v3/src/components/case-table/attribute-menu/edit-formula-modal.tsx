@@ -5,6 +5,7 @@ import {
 import React, { useState } from "react"
 import { CodapModal } from "../../codap-modal"
 import t from "../../../utilities/translation/translate"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
 
 interface IProps {
   columnName: string
@@ -13,9 +14,12 @@ interface IProps {
 }
 
 export const EditFormulaModal = ({ columnName, isOpen, onClose }: IProps) => {
+  const dataSet = useDataSetContext()
+  const attribute = dataSet?.attrFromName(columnName)
   const [formula, setFormula] = useState("")
 
   const applyFormula = () => {
+    attribute?.setDisplayFormula(formula)
     closeModal()
   }
 

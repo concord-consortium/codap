@@ -3,6 +3,8 @@ import { ISharedCaseMetadata, SharedCaseMetadata } from "../shared/shared-case-m
 import { ISharedDataSet, SharedDataSet } from "../shared/shared-data-set"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { IDataSet } from "./data-set"
+import { initializeFormulaManager } from "./formula-manager"
+import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-value-manager"
 import "../shared/shared-data-set-registration"
 import "../shared/shared-case-metadata-registration"
 
@@ -65,6 +67,10 @@ export class DataBroker {
   setSharedModelManager(manager: ISharedModelManager) {
     this.clear()
     this.sharedModelManager = manager
+
+    // TODO: move this initialization code to a better place.
+    const globalValueManager = manager.getSharedModelsByType(kGlobalValueManagerType)[0] as IGlobalValueManager
+    initializeFormulaManager(this.dataSets, globalValueManager)
   }
 
   @action
