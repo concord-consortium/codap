@@ -1,16 +1,17 @@
 import { makeObservable, observable, reaction } from "mobx"
-import { IFormula } from "./formula"
-import { IDataSet } from "./data-set"
-import { getFormulaMathjsContext } from "./formula-mathjs-context"
-import { compile, e } from "mathjs"
-import { ICase } from "./data-set-types"
+import { getFormulaMathjsScope } from "./formula-mathjs-scope"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
 import { getFormulaDependencies } from "./formula-utils"
-import { IGlobalValueManager } from "../global/global-value-manager"
 import {
-  DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency
+  DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
+  ILookupDependency
 } from "./formula-types"
+import { math } from "./formula-mathjs"
+import type { IGlobalValueManager } from "../global/global-value-manager"
+import type { IFormula } from "./formula"
+import type { IDataSet } from "./data-set"
+import type { ICase } from "./data-set-types"
+import type { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
 
 type IFormulaMetadata = {
   formula: IFormula
@@ -73,8 +74,8 @@ export class FormulaManager {
     }
     console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
 
-    const compiledFormula = compile(formula.canonical)
-    const formulaScope = getFormulaMathjsContext(dataSet, this.globalValueManager)
+    const compiledFormula = math.compile(formula.canonical)
+    const formulaScope = getFormulaMathjsScope(dataSet, this.dataSets, this.globalValueManager)
 
     const casesToUpdate = casesToRecalculate.map((c) => {
       formulaScope.setCaseId(c.__id__)
@@ -151,12 +152,14 @@ export class FormulaManager {
     const formulaDependencies = getFormulaDependencies(formula.canonical)
     const disposeLocalAttributeObserver = this.observeLocalAttributes(formula.id, formulaDependencies)
     const disposeGlobalValueObservers = this.observeGlobalValues(formula.id, formulaDependencies)
+    const disposeLookupObservers = this.observeLookupAttributes(formula.id, formulaDependencies)
 
     this.formulaMetadata.set(formula.id, {
       ...formulaMetadata,
       dispose: () => {
         disposeLocalAttributeObserver()
         disposeGlobalValueObservers.forEach(disposeGlobalValObserver => disposeGlobalValObserver())
+        disposeLookupObservers.forEach(disposeLookupObserver => disposeLookupObserver())
       },
     })
 
@@ -165,16 +168,38 @@ export class FormulaManager {
   }
 
   getDisplayNameMapForFormula(formulaId: string) {
-    const { dataSet } = this.getFormulaContext(formulaId)
+    const { dataSet: localDataSet } = this.getFormulaContext(formulaId)
 
-    const displayNameMap: DisplayNameMap = {}
+    const displayNameMap: DisplayNameMap = {
+      localNames: {},
+      dataSet: {}
+    }
 
-    dataSet.attributes.forEach(attr => {
-      displayNameMap[attr.name] = `${LOCAL_ATTR}${attr.id}`
-    })
+    const mapAttributeNames = (dataSet: IDataSet, prefix: string) => {
+      const result: Record<string, string> = {}
+      dataSet.attributes.forEach(attr => {
+        result[attr.name] = `${prefix}${attr.id}`
+      })
+      return result
+    }
+
+    displayNameMap.localNames = {
+      ...mapAttributeNames(localDataSet, LOCAL_ATTR)
+    }
 
     this.globalValueManager.globals.forEach(global => {
-      displayNameMap[global.name] = `${GLOBAL_VALUE}${global.id}`
+      displayNameMap.localNames[global.name] = `${GLOBAL_VALUE}${global.id}`
+    })
+
+    this.dataSets.forEach(dataSet => {
+      if (dataSet.name) {
+        displayNameMap.dataSet[dataSet.name] = {
+          id: dataSet.id,
+          // No prefix is necessary for external attributes. They always need to be resolved manually by custom
+          // mathjs functions (like "lookupByIndex").
+          attribute: mapAttributeNames(dataSet, "")
+        }
+      }
     })
 
     return displayNameMap
@@ -253,6 +278,33 @@ export class FormulaManager {
     )
 
     return disposeGlobalValueObservers
+  }
+
+  observeLookupAttributes(formulaId: string, formulaDependencies: IFormulaDependency[]) {
+    const lookupDependencies: ILookupDependency[] =
+      formulaDependencies.filter(d => d.type === "lookupByIndex") as ILookupDependency[]
+
+    const disposeLookupObservers = lookupDependencies.map(dependency => {
+      const externalDataSet = this.dataSets.get(dependency.dataSetId)
+      if (!externalDataSet) {
+        throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
+      }
+
+      const getValue = () => externalDataSet.getValueAtIndex(dependency.index, dependency.attrId)
+      let cachedValue = getValue()
+
+      return onAnyAction(externalDataSet, () => {
+        // Theoretically we could handle separately various kinds of actions, like "setCaseValues" or "addCases",
+        // "removeCases", etc., but it's just easier to compare the current lookup value with the cached one.
+        const currentValue = getValue()
+        if (currentValue !== cachedValue) {
+          this.recalculateFormula(formulaId)
+          cachedValue = currentValue
+        }
+      })
+    })
+
+    return disposeLookupObservers
   }
 
   // Simple DFS algorithm to detect dependency cycles.

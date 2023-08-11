@@ -2,7 +2,13 @@ export const GLOBAL_VALUE = "GLOBAL_VALUE_"
 export const LOCAL_ATTR = "LOCAL_ATTR_"
 export const AGGREGATE_SYMBOL_SUFFIX = "_ALL"
 
-export type DisplayNameMap = Record<string, string>
+export type DisplayNameMap = {
+  localNames: Record<string, string>
+  dataSet: Record<string, {
+    id: string
+    attribute: Record<string, string>
+  }>
+}
 
 export interface ILocalAttributeDependency {
   type: "localAttribute"
@@ -15,4 +21,11 @@ export interface IGlobalValueDependency {
   globalId: string
 }
 
-export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency
+export interface ILookupDependency {
+  type: "lookupByIndex"
+  dataSetId: string
+  attrId: string
+  index: number
+}
+
+export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency

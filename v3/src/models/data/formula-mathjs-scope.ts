@@ -1,24 +1,33 @@
 import { IGlobalValueManager } from "../global/global-value-manager"
-import { IDataSet } from "./data-set"
 import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-types"
+import type { IDataSet } from "./data-set"
+
+export interface IFormulaMathjsScope {
+  caseId: string
+  setCaseId(caseId: string): void
+  dataSets: Map<string, IDataSet>
+}
 
 // Note that Mathjs accetps two kinds of scope: an object or Map-like object. We use the former approach, as it should
 // be more efficient. Each property is defined once during scope construction so the access should be fast. If we had to
 // use Map#get property, this method would need to parse provided property name. It might not be too bad, but if it
 // happened repeatedly for multiple thousands of cases, it could add up to the formula evaluation time.
-export const getFormulaMathjsContext = (dataSet: IDataSet, globalValueManager: IGlobalValueManager) => {
-  const scope = {
+export const getFormulaMathjsScope = (
+  localDataSet: IDataSet, dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager
+) => {
+  const scope: IFormulaMathjsScope = {
     caseId: "",
     setCaseId(caseId: string) {
       this.caseId = caseId
-    }
+    },
+    dataSets
   }
 
   // Provide local dataset attribute symbols.
-  dataSet.attributes.forEach(attr => {
+  localDataSet.attributes.forEach(attr => {
     Object.defineProperty(scope, `${LOCAL_ATTR}${attr.id}`, {
       get() {
-        return dataSet.getValue(scope.caseId, attr.id)
+        return localDataSet.getValue(scope.caseId, attr.id)
       }
     })
 

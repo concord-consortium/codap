@@ -1,7 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
-import { getFormulaManager } from "./formula-manager"
 import { canonicalizeExpression } from "./formula-utils"
+import { getFormulaManager } from "./formula-manager"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORMULA")),
