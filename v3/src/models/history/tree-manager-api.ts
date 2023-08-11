@@ -1,9 +1,10 @@
 import { TreePatchRecordSnapshot } from "./history"
+import { ICustomPatch } from "./tree-types"
 import { IUndoManager } from "./undo-store"
 
 export interface TreeManagerAPI {
     /**
-     * Propagate shared model state to other trees. 
+     * Propagate shared model state to other trees.
      *
      * The shared model is identified by an id inside of the snapshot. The
      * sourceTreeId indicates which tree is sending this update. The new shared
@@ -24,7 +25,7 @@ export interface TreeManagerAPI {
      * applying it means the tree of the shared model has sent its changes to
      * all of the trees that are using it. So when the shared model tree gets
      * the applyPatchesFromManager call it then calls this updateSharedModel and
-     * waits for it to resolve before resolving its own promise. 
+     * waits for it to resolve before resolving its own promise.
      *
      * The returned promise will also be used when a user event is sent, we need
      * to make sure the manager has received this update message before the
@@ -36,9 +37,9 @@ export interface TreeManagerAPI {
      * That blocking could be the responsibility of the manager after this call
      * is done.
      */
-    updateSharedModel: (historyEntryId: string, exchangeId: string, 
+    updateSharedModel: (historyEntryId: string, exchangeId: string,
         sourceTreeId: string, snapshot: any) => Promise<void>;
-    
+
     /**
      * Trees should call this to start a new history entry. These history
      * entries are used for 2 things:
@@ -63,7 +64,7 @@ export interface TreeManagerAPI {
      * trees might respond to a sharedModel update with further changes to other
      * sharedModels this might trigger another change back in the original tree.
      * In order to differentiate between the initiating call and the second call
-     * the exchangeId parameter is used. 
+     * the exchangeId parameter is used.
      *
      * One reason why we don't just use addTreePatchRecord to start the history
      * entry is because some actions don't have any patches in their own tree
@@ -71,7 +72,7 @@ export interface TreeManagerAPI {
      * want to record the initiating tree action so there is more info for the
      * researcher.
      *
-     * @param historyEntryId should be a unique id created by the tree. 
+     * @param historyEntryId should be a unique id created by the tree.
      *
      * @param exchangeId should be another unique id created by the tree. The
      * manager uses this to differentiate between multiple flows of messages
@@ -80,15 +81,18 @@ export interface TreeManagerAPI {
      *
      * @param treeId id of the tree that is adding this history entry.
      *
+     * @param modelName name of the model that caused this history entry to be
+     * added.
+     *
      * @param actionName name of the action that caused this history entry to be
      * added.
      *
      * @param undoable true if this action should be saved to the undo stack.
      * Changes that result from `applyPatchesFromManager` should not be undo-able.
-     */    
-    addHistoryEntry: (historyEntryId: string, exchangeId: string, treeId: string, 
-        actionName: string, undoable: boolean) => Promise<void>;
-    
+     */
+    addHistoryEntry: (historyEntryId: string, exchangeId: string, treeId: string,
+        modelName: string, actionName: string, undoable: boolean, customPatches?: ICustomPatch[]) => Promise<void>;
+
     /**
      * Trees should call this to record the actual patches of a history event.
      * They should always call this even if there are no patches. This message
@@ -105,7 +109,7 @@ export interface TreeManagerAPI {
      * @param exchangeId the exchangeId that started this flow of events. If
      * this tree initiated this history entry with `addHistoryEntry`, this id
      * should be the exchangeId sent in that call.  If the patches being sent were
-     * triggered by the manager this id should be the `exchangeId` that was 
+     * triggered by the manager this id should be the `exchangeId` that was
      * passed in with the message from the manager. TODO: list the tree
      * methods the manager can call that might result in changes.
      *
@@ -119,9 +123,9 @@ export interface TreeManagerAPI {
      * used by the manager to know when the history entry is complete. If there
      * are any open exchanges, then the history entry is still recording.
      * `addHistoryEntry` automatically starts an exchange, so it isn't necessary
-     * to call `startExchange` before `addHistoryEntry`.  
+     * to call `startExchange` before `addHistoryEntry`.
      * When the manager calls the tree with `applyPatchesFromManager`, the
-     * manager starts an exchange. 
+     * manager starts an exchange.
      *
      * startExchange should be called when the tree wants to start some async
      * code outside of one of these existing exchanges. It should call
@@ -137,7 +141,7 @@ export interface TreeManagerAPI {
      *
      * @param historyEntryId the history entry id that this exchange is being
      * added to. This could be the one that was created with addHistoryEntry or
-     * it could be one that was initialized by the manager. 
+     * it could be one that was initialized by the manager.
      *
      * @param exchangeId a unique id created by the tree to identify this
      * exchange. This same exchangeId needs to be passed to addTreePatchRecord

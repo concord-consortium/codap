@@ -43,64 +43,62 @@ export function addDefaultComponents() {
   const kFullHeight = 300
   const kGap = 10
 
-  setTimeout(() => {
-    const sharedData = manager?.findFirstSharedModelByType<typeof SharedDataSet>(SharedDataSet)
-    const caseMetadata = manager?.findFirstSharedModelByType<typeof SharedCaseMetadata>(SharedCaseMetadata)
-    if (isTableOnly) {
-      const tableTile = createDefaultTileOfType(kCaseTableTileType)
-      if (!tableTile) return
-      const tableOptions: ILayoutOptions = isMosaicTileRow(row)
-              ? undefined
-              : { x: 2, y: 2, width: 800, height: 500 }
-      content.insertTileInRow(tableTile, row, tableOptions)
-      sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
-      caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
+  const sharedData = manager?.findFirstSharedModelByType<typeof SharedDataSet>(SharedDataSet)
+  const caseMetadata = manager?.findFirstSharedModelByType<typeof SharedCaseMetadata>(SharedCaseMetadata)
+  if (isTableOnly) {
+    const tableTile = createDefaultTileOfType(kCaseTableTileType)
+    if (!tableTile) return
+    const tableOptions: ILayoutOptions = isMosaicTileRow(row)
+            ? undefined
+            : { x: 2, y: 2, width: 800, height: 500 }
+    content.insertTileInRow(tableTile, row, tableOptions)
+    sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
+    caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
+  }
+  else {
+    const summaryTile = createDefaultTileOfType(kDataSummaryTileType)
+    if (!summaryTile) return
+    const summaryOptions: ILayoutOptions = isMosaicTileRow(row)
+            ? undefined
+            : { x: 2, y: 2, width: kFullWidth, height: kFullHeight }
+    content.insertTileInRow(summaryTile, row, summaryOptions)
+    sharedData && manager?.addTileSharedModel(summaryTile.content, sharedData)
+    caseMetadata && manager?.addTileSharedModel(summaryTile.content, caseMetadata)
+
+    const tableTile = createDefaultTileOfType(kCaseTableTileType)
+    if (!tableTile) return
+    const tableOptions: ILayoutOptions = isMosaicTileRow(row)
+            ? { splitTileId: summaryTile.id, direction: "column" }
+            : { x: 2, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
+    content.insertTileInRow(tableTile, row, tableOptions)
+    sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
+    caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
+
+    const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
+    if (!calculatorTile) return
+    if (calculatorTile) {
+      const calcOptions = isMosaicTileRow(row)
+              ? { splitTileId: summaryTile.id, direction: "row" }
+              : { x: kFullWidth + kGap, y: 2 }
+      content.insertTileInRow(calculatorTile, row, calcOptions)
     }
-    else {
-      const summaryTile = createDefaultTileOfType(kDataSummaryTileType)
-      if (!summaryTile) return
-      const summaryOptions: ILayoutOptions = isMosaicTileRow(row)
-              ? undefined
-              : { x: 2, y: 2, width: kFullWidth, height: kFullHeight }
-      content.insertTileInRow(summaryTile, row, summaryOptions)
-      sharedData && manager?.addTileSharedModel(summaryTile.content, sharedData)
-      caseMetadata && manager?.addTileSharedModel(summaryTile.content, caseMetadata)
 
-      const tableTile = createDefaultTileOfType(kCaseTableTileType)
-      if (!tableTile) return
-      const tableOptions: ILayoutOptions = isMosaicTileRow(row)
-              ? { splitTileId: summaryTile.id, direction: "column" }
-              : { x: 2, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
-      content.insertTileInRow(tableTile, row, tableOptions)
-      sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
-      caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
-
-      const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
-      if (!calculatorTile) return
-      if (calculatorTile) {
-        const calcOptions = isMosaicTileRow(row)
-                ? { splitTileId: summaryTile.id, direction: "row" }
-                : { x: kFullWidth + kGap, y: 2 }
-        content.insertTileInRow(calculatorTile, row, calcOptions)
-      }
-
-      const sliderTile = createDefaultTileOfType(kSliderTileType)
-      if (sliderTile) {
-        const sliderOptions = isMosaicTileRow(row)
-                ? { splitTileId: calculatorTile.id, direction: "row" }
-                : { x: kFullWidth + kWidth25 + kGap, y: 2, width: kWidth75 }
-        content.insertTileInRow(sliderTile, row, sliderOptions)
-      }
-
-      const graphTile = createDefaultTileOfType(kGraphTileType)
-      if (graphTile) {
-        const graphOptions = isMosaicTileRow(row)
-                ? { splitTileId: tableTile.id, direction: "row" }
-                : { x: kFullWidth + kGap, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
-        content.insertTileInRow(graphTile, row, graphOptions)
-        sharedData && manager?.addTileSharedModel(graphTile.content, sharedData)
-        caseMetadata && manager?.addTileSharedModel(graphTile.content, caseMetadata)
-      }
+    const sliderTile = createDefaultTileOfType(kSliderTileType)
+    if (sliderTile) {
+      const sliderOptions = isMosaicTileRow(row)
+              ? { splitTileId: calculatorTile.id, direction: "row" }
+              : { x: kFullWidth + kWidth25 + kGap, y: 2, width: kWidth75 }
+      content.insertTileInRow(sliderTile, row, sliderOptions)
     }
-  })
+
+    const graphTile = createDefaultTileOfType(kGraphTileType)
+    if (graphTile) {
+      const graphOptions = isMosaicTileRow(row)
+              ? { splitTileId: tableTile.id, direction: "row" }
+              : { x: kFullWidth + kGap, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
+      content.insertTileInRow(graphTile, row, graphOptions)
+      sharedData && manager?.addTileSharedModel(graphTile.content, sharedData)
+      caseMetadata && manager?.addTileSharedModel(graphTile.content, caseMetadata)
+    }
+  }
 }

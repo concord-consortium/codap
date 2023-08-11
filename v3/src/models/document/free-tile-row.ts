@@ -1,5 +1,7 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
+import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
+import { withoutUndo } from "../history/without-undo"
 
 /*
   Represents the layout of a set of tiles/components with arbitrary rectangular bounds that can
@@ -9,6 +11,11 @@ import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
   could support multi-page/tabbed documents where each page/tab would have its own layout. In the
   v2/v3 time frame, however, a CODAP document is represented by a single such "row".
  */
+
+registerUndoRedoStrings({
+  "FreeTileLayout.setPosition": ["DG.Undo.componentMove", "DG.Redo.componentMove"],
+  "FreeTileLayout.setSize": ["DG.Undo.componentResize", "DG.Redo.componentResize"]
+})
 
 export const FreeTileLayout = types.model("FreeTileLayout", {
   // not types.identifier because it's not unique within the document tree
@@ -105,6 +112,7 @@ export const FreeTileRow = TileRowModel
       self.tiles.delete(tileId)
     },
     moveTileToTop(tileId: string) {
+      withoutUndo()
       const index = self.order.findIndex(id => id === tileId)
       if ((index >= 0) && (index < self.order.length - 1)) {
         self.order.splice(index, 1)

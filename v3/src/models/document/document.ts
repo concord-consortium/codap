@@ -61,6 +61,18 @@ export const DocumentModel = Tree.named("Document")
       // Destroying it will probably also free up memory
       addDisposer(self, () => destroy(manager))
     },
+    undoLastAction() {
+      const undoManager = self.treeManagerAPI?.undoManager
+      if (undoManager?.canUndo) {
+        undoManager.undo()
+      }
+    },
+    redoLastAction() {
+      const undoManager = self.treeManagerAPI?.undoManager
+      if (undoManager?.canRedo) {
+        undoManager.redo()
+      }
+    },
 
     setCreatedAt(createdAt: number) {
       self.createdAt = createdAt

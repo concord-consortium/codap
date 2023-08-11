@@ -1,5 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
 import React, { useCallback, useState } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
@@ -14,7 +15,7 @@ interface IProps {
   onCloseTile: (tileId: string) => void;
 }
 
-export function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
+export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width?: number, height?: number, transition: string}>()
   const [resizingTileId, setResizingTileId] = useState("")
@@ -136,4 +137,4 @@ export function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
       }
     </div>
   )
-}
+})

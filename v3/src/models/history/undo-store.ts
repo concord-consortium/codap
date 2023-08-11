@@ -1,15 +1,20 @@
-import { types, Instance, flow, getParent } from "mobx-state-tree"
+import { types, Instance, flow, getParent, IAnyStateTreeNode } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { HistoryEntry, HistoryOperation } from "./history"
 // eslint-disable-next-line import/no-cycle
 import { TreeManager } from "./tree-manager"
+import { applyCustomRedo, applyCustomUndo, hasCustomUndoRedo } from "./custom-undo-redo-registry"
+import { getRedoStringKey, getUndoStringKey } from "./undo-redo-string-registry"
 import { DEBUG_UNDO } from "../../lib/debug"
+import { withoutUndo } from "./without-undo"
 
 export interface IUndoManager {
   undoLevels : number;
   redoLevels : number;
   canUndo : boolean;
   canRedo : boolean;
+  undoStringKey: string;
+  redoStringKey: string;
   undo() : void;
   redo() : void;
 }
@@ -32,6 +37,20 @@ export const UndoStore = types
   get canRedo() {
     return this.redoLevels > 0
   },
+  get undoStringKey() {
+    const undoEntry = this.undoLevels > 0
+                        ? self.history[self.undoIdx - 1]
+                        : undefined
+    const stringsKey = undoEntry?.undoStringsKey ?? ""
+    return getUndoStringKey(stringsKey, undoEntry)
+  },
+  get redoStringKey() {
+    const redoEntry = this.redoLevels > 0
+                        ? self.history[self.undoIdx]
+                        : undefined
+    const stringsKey = redoEntry?.undoStringsKey ?? ""
+    return getRedoStringKey(stringsKey, redoEntry)
+  },
   findHistoryEntry(historyEntryId: string) {
     return self.history.find(entry => entry.id === historyEntryId)
   }
@@ -53,7 +72,7 @@ export const UndoStore = types
     // TODO: we are using a fake tree id of "manager" here. This is currently
     // working, but we probably want to review this approach.
     const historyEntry =
-        manager.createHistoryEntry(historyEntryId, exchangeId, opType, "manager", false)
+        manager.createHistoryEntry(historyEntryId, exchangeId, "manager", opType, "manager", false)
 
     // Collect the trees that we are going to work with
     const treeIds = treePatchRecords.map(treePatchRecord => treePatchRecord.tree)
@@ -158,12 +177,28 @@ export const UndoStore = types
       }
 
       const entryToUndo = self.history[self.undoIdx -1]
-      // TODO: If there is an applyPatchesToTrees currently running we
-      // should wait for it.
-      //
-      // TODO: we aren't actually calling this as an action and we
-      // aren't waiting for it to finish before returning
-      applyPatchesToTrees(entryToUndo, HistoryOperation.Undo)
+
+      if (entryToUndo.customPatches?.length) {
+        const manager: Instance<typeof TreeManager> = getParent(self)
+        const document = manager.mainDocument as IAnyStateTreeNode | undefined
+        const patchCount = entryToUndo.customPatches.length
+        for (let patchIdx = patchCount - 1; patchIdx >= 0; --patchIdx) {
+          const patch = entryToUndo.customPatches[patchIdx]
+          if (hasCustomUndoRedo(patch)) {
+            withoutUndo()
+            applyCustomUndo(document, patch, entryToUndo)
+          }
+        }
+      }
+      // don't apply standard patches if custom patches were specified
+      else {
+        // TODO: If there is an applyPatchesToTrees currently running we
+        // should wait for it.
+        //
+        // TODO: we aren't actually calling this as an action and we
+        // aren't waiting for it to finish before returning
+        applyPatchesToTrees(entryToUndo, HistoryOperation.Undo)
+      }
 
       self.undoIdx--
     },
@@ -173,13 +208,29 @@ export const UndoStore = types
       }
 
       const entryToRedo = self.history[self.undoIdx]
-      // TODO: If there is an applyPatchesToTrees currently running we
-      // should wait for it.
-      //
-      // TODO: we aren't actually calling this as an action and we
-      // aren't waiting for it to finish before returning
-      //
-      applyPatchesToTrees(entryToRedo, HistoryOperation.Redo)
+
+      if (entryToRedo.customPatches?.length) {
+        const manager: Instance<typeof TreeManager> = getParent(self)
+        const document = manager.mainDocument as IAnyStateTreeNode | undefined
+        const patchCount = entryToRedo.customPatches.length
+        for (let patchIdx = patchCount - 1; patchIdx >= 0; --patchIdx) {
+          const patch = entryToRedo.customPatches[patchIdx]
+          if (hasCustomUndoRedo(patch)) {
+            withoutUndo()
+            applyCustomRedo(document, patch, entryToRedo)
+          }
+        }
+      }
+      // don't apply standard patches if custom patches were specified
+      else {
+        // TODO: If there is an applyPatchesToTrees currently running we
+        // should wait for it.
+        //
+        // TODO: we aren't actually calling this as an action and we
+        // aren't waiting for it to finish before returning
+        //
+        applyPatchesToTrees(entryToRedo, HistoryOperation.Redo)
+      }
 
       self.undoIdx++
     },

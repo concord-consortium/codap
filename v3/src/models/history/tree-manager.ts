@@ -1,6 +1,7 @@
 import { types, Instance, flow, IJsonPatch, detach, destroy } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { TreeAPI } from "./tree-api"
+import { ICustomPatch } from "./tree-types"
 // eslint-disable-next-line import/no-cycle
 import { IUndoManager, UndoStore } from "./undo-store"
 import { TreePatchRecord, HistoryEntry, TreePatchRecordSnapshot, HistoryOperation } from "./history"
@@ -135,7 +136,7 @@ export const TreeManager = types
       // state. For example if a button was clicked even if it didn't change the
       // state we might want to show that somehow. There are lots of entries
       // that are empty though, so they are removed for the time being.
-      if (entry.records.length === 0) {
+      if (!entry.records.length && !entry.customPatches?.length) {
         destroy(entry)
         return
       }
@@ -217,16 +218,18 @@ export const TreeManager = types
     }
   },
 
-  createHistoryEntry(historyEntryId: string, exchangeId: string, name: string,
-    treeId: string, undoable: boolean) {
+  createHistoryEntry(historyEntryId: string, exchangeId: string, modelName: string, actionName: string,
+    treeId: string, undoable: boolean, customPatches?: ICustomPatch[]) {
     if (self.findHistoryEntry(historyEntryId) || self.findActiveHistoryEntry(historyEntryId)) {
       throw new Error(`The entry already exists ${ json({historyEntryId})}`)
     }
     const entry = HistoryEntry.create({
       id: historyEntryId,
-      action: name,
+      model: modelName,
+      action: actionName,
       tree: treeId,
-      undoable
+      undoable: undoable || !!customPatches?.length,
+      customPatches
     })
     self.activeHistoryEntries.push(entry)
 
@@ -273,9 +276,9 @@ export const TreeManager = types
     return Promise.all(applyPromises).then()
   },
 
-  addHistoryEntry(historyEntryId: string, exchangeId: string, treeId: string, actionName: string,
-    undoable: boolean) {
-    self.createHistoryEntry(historyEntryId, exchangeId, actionName, treeId, undoable)
+  addHistoryEntry(historyEntryId: string, exchangeId: string, treeId: string,
+    modelName: string, actionName: string, undoable: boolean, customPatches?: ICustomPatch[]) {
+    self.createHistoryEntry(historyEntryId, exchangeId, modelName, actionName, treeId, undoable, customPatches)
     return Promise.resolve()
   },
 

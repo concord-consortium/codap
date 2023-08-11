@@ -1,5 +1,10 @@
-import { getPath, IActionContext, IPatchRecorder } from "mobx-state-tree"
+import { getPath, getType, IActionContext, IPatchRecorder } from "mobx-state-tree"
 import { IActionTrackingMiddleware3Call } from "./create-action-tracking-middleware-3"
+
+export interface ICustomPatch {
+  type: string
+  data: any
+}
 
 export interface CallEnv {
   recorder: IPatchRecorder
@@ -7,11 +12,21 @@ export interface CallEnv {
   historyEntryId: string
   exchangeId: string
   undoable: boolean
+  customPatches?: ICustomPatch[]
+}
+
+export function isValidCallEnv(env?: CallEnv): env is CallEnv {
+  return !!env && !!env.recorder && !!env.sharedModelModifications &&
+          !!env.historyEntryId && !!env.exchangeId && env.undoable != null
 }
 
 export type SharedModelModifications = Record<string, number>
 
 export const runningCalls = new WeakMap<IActionContext, IActionTrackingMiddleware3Call<CallEnv>>()
+
+export function getActionModelName(call: IActionTrackingMiddleware3Call<CallEnv>) {
+  return getType(call.actionCall.context).name
+}
 
 export function getActionPath(call: IActionTrackingMiddleware3Call<CallEnv>) {
   return `${getPath(call.actionCall.context)}/${call.actionCall.name}`

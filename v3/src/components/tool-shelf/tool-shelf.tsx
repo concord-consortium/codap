@@ -1,8 +1,9 @@
 import {Flex, Spacer, useToast} from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-buttons"
-import { IDocumentContentModel } from "../../models/document/document-content"
+import { IDocumentModel } from "../../models/document/document"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
 } from "../../models/tiles/tile-component-info"
@@ -12,6 +13,7 @@ import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import OptionsIcon from "../../assets/icons/icon-options.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
+import { DEBUG_UNDO } from "../../lib/debug"
 import t from "../../utilities/translation/translate"
 
 import "./tool-shelf.scss"
@@ -24,12 +26,13 @@ interface IRightButtonEntry {
   icon: React.ReactElement
   label: string
   hint: string
+  isDisabled?: () => boolean
   onClick?: () => void
 }
 interface IProps {
-  content?: IDocumentContentModel
+  document?: IDocumentModel
 }
-export const ToolShelf = ({ content }: IProps) => {
+export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toast = useToast()
   const labelToast = (entry: IRightButtonEntry) => toast({
     title: `"${entry.label}" button clicked`,
@@ -38,19 +41,31 @@ export const ToolShelf = ({ content }: IProps) => {
     isClosable: true
   })
 
-
+  const undoManager = document?.treeManagerAPI?.undoManager
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",
       icon: <UndoIcon className="icon-undo"/>,
       label: t("DG.mainPage.mainPane.undoButton.title"),
-      hint: t("DG.mainPage.mainPane.undoButton.toolTip")
+      hint: t(undoManager?.undoStringKey ?? "DG.mainPage.mainPane.undoButton.toolTip"),
+      isDisabled: () => !undoManager?.canUndo,
+      onClick: () => {
+        if (undoManager?.canUndo) {
+          undoManager.undo()
+        }
+      }
     },
     {
       className: "redo-button",
       icon: <RedoIcon className="icon-redo"/>,
       label: t("DG.mainPage.mainPane.redoButton.title"),
-      hint: t("DG.mainPage.mainPane.redoButton.toolTip")
+      hint: t(undoManager?.redoStringKey ?? "DG.mainPage.mainPane.redoButton.toolTip"),
+      isDisabled: () => !undoManager?.canRedo,
+      onClick: () => {
+        if (undoManager?.canRedo) {
+          undoManager.redo()
+        }
+      }
     },
     {
       icon: <TileListIcon className="icon-tile-list"/>,
@@ -68,11 +83,20 @@ export const ToolShelf = ({ content }: IProps) => {
       hint: t("DG.ToolButtonData.help.toolTip")
     },
     {
-      icon: <GuideIcon className="icon-guid"/>,
+      icon: <GuideIcon className="icon-guide"/>,
       label: t("DG.ToolButtonData.guideMenu.title"),
       hint: t("DG.ToolButtonData.guideMenu.toolTip")
     }
   ]
+
+  if (DEBUG_UNDO) {
+    rightButtons.forEach(b => {
+      if (b.className) {
+        // eslint-disable-next-line no-console
+        console.log(`ToolShelf Button "${b.className}": enabled: ${!b.isDisabled?.()} hint: ${b.hint}`)
+      }
+    })
+  }
 
   const keys = getTileComponentKeys()
   const entries = keys.map(key => getTileComponentInfo(key))
@@ -80,7 +104,7 @@ export const ToolShelf = ({ content }: IProps) => {
   entries.sort((a, b) => a.shelf.position - b.shelf.position)
 
   function handleTileButtonClick(tileType: string) {
-    content?.createOrShowTile?.(tileType)
+    document?.content?.createOrShowTile?.(tileType)
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {
@@ -118,4 +142,4 @@ export const ToolShelf = ({ content }: IProps) => {
       </Flex>
     </Flex>
   )
-}
+})

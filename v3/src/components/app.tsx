@@ -75,6 +75,7 @@ export const App = observer(function App() {
           addDefaultComponents()
         }
       }
+      appState.enableUndoRedoMonitoring()
     }
 
     initialize()
@@ -83,10 +84,10 @@ export const App = observer(function App() {
   const documentContent = appState.document.content
   return (
     <CodapDndContext>
-      <DocumentContext.Provider value={appState.document.content}>
+      <DocumentContext.Provider value={documentContent}>
         <div className="app" data-testid="app">
           <MenuBar/>
-          <ToolShelf content={documentContent}/>
+          <ToolShelf document={appState.document}/>
           <Container content={documentContent}/>
         </div>
       </DocumentContext.Provider>

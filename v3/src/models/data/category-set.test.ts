@@ -1,7 +1,9 @@
-import { types } from "mobx-state-tree"
+import { applySnapshot, getEnv, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { Attribute, IAttribute } from "./attribute"
-import { CategorySet } from "./category-set"
+import { CategorySet, ICategorySet, createProvisionalCategorySet, getProvisionalDataSet } from "./category-set"
+import { DataSet } from "./data-set"
+import { onAnyAction } from "../../utilities/mst-utils"
 
 describe("CategorySet", () => {
   const Tree = types.model("Tree", {
@@ -11,8 +13,44 @@ describe("CategorySet", () => {
   .actions(self => ({
     setAttribute(attr: IAttribute) {
       self.attribute = attr
+    },
+    setCategorySet(categorySet: ICategorySet) {
+      applySnapshot(self.categories, getSnapshot(categorySet))
+    },
+    setCategorySetAttribute(attribute: IAttribute) {
+      self.categories.attribute = attribute
     }
   }))
+
+  it("constructs provisional CategorySets", () => {
+    const data = DataSet.create()
+    data.addAttribute({ id: "aId", name: "aFree" })
+    // create a provisional CategorySet
+    const categories = createProvisionalCategorySet(data, "aId")
+    expect(getProvisionalDataSet(categories)).toBe(data)
+    // attribute reference resolves to the free attribute
+    expect(categories.attribute.name).toBe("aFree")
+
+    const tree = Tree.create({
+      attribute: Attribute.create({ id: "aId", name: "aTree" }),
+      categories: { attribute: "aId" }
+    })
+    // assign the free CategorySet to the tree
+    tree.setCategorySet(categories)
+    // attribute reference resolves to attribute in tree
+    expect(tree.categories.attribute.name).toBe("aTree")
+
+    // assigning a new attribute sets the attribute id
+    tree.setAttribute(Attribute.create({ id: "bId", name: "bTree" }))
+    tree.setCategorySetAttribute(tree.attribute)
+    expect(tree.categories.attribute.id).toBe("bId")
+
+    // getProvisionalDataSet returns undefined for simple attributes and null
+    const c = Attribute.create({ id: "cId", name: "c" }, undefined)
+    expect(getEnv(c)).toEqual({})
+    expect(getProvisionalDataSet(c)).toBeUndefined()
+    expect(getProvisionalDataSet(null)).toBeUndefined()
+  })
 
   it("constructs categories, allows them to be moved, and responds to changes", () => {
     const a = Attribute.create({ name: "a", values: ["a", "b", "c", "a", "b", "c"] })
@@ -101,6 +139,20 @@ describe("CategorySet", () => {
     expect(categories.lastMove?.fromIndex).toBe(originalFromIndex)
   })
 
+  it("tracks user color assignments", () => {
+    const a = Attribute.create({ name: "a", values: ["a", "b", "c"] })
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    const categories = tree.categories
+    expect(categories.values).toEqual(["a", "b", "c"])
+    expect(categories.colors.size).toBe(0)
+    categories.setColorForCategory("a", "red")
+    expect(categories.colors.size).toBe(1)
+    expect(categories.colorForCategory("a")).toBe("red")
+  })
+
   it("supports callback on invalidation of attribute", () => {
     const handleAttributeInvalidated = jest.fn()
 
@@ -118,5 +170,27 @@ describe("CategorySet", () => {
     cTree.setAttribute(Attribute.create({ name: "d" }))
     expect(handleAttributeInvalidated).toHaveBeenCalledTimes(1)
     expect(handleAttributeInvalidated).toHaveBeenCalledWith(cId)
+  })
+
+  it("identifies actions that indicate user modification of category sets", () => {
+    const a = Attribute.create({ name: "a", values: ["a", "b", "c"] })
+    const tree = Tree.create({ attribute: a, categories: { attribute: a.id } })
+
+    const fn = jest.fn()
+    const disposer = onAnyAction(tree.categories, action => {
+      if (tree.categories.userActionNames.includes(action.name)) {
+        fn()
+      }
+    })
+    tree.categories.move("c", "a")
+    expect(fn).toHaveBeenCalledTimes(1)
+    tree.categories.setColorForCategory("a", "red")
+    expect(fn).toHaveBeenCalledTimes(2)
+    expect(tree.categories.colorForCategory("a")).toBe("red")
+    expect(fn).toHaveBeenCalledTimes(2)
+    tree.categories.storeAllCurrentColors()
+    expect(fn).toHaveBeenCalledTimes(4)
+
+    disposer()
   })
 })

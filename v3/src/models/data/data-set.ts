@@ -43,7 +43,7 @@
  */
 
 import { observable } from "mobx"
-import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
+import { addMiddleware, getEnv, IAnyStateTreeNode, Instance, resolveIdentifier, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
@@ -53,6 +53,11 @@ import {
   IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions,
   symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
+import { HistoryEntryType } from "../history/history"
+import { ICustomPatch } from "../history/tree-types"
+import { registerCustomUndoRedo } from "../history/custom-undo-redo-registry"
+import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
+import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
 
@@ -117,6 +122,67 @@ export function toCanonical(ds: IDataSet, cases: CaseOrArray): CaseOrArray {
           ? cases.map(aCase => toCanonicalCase(ds, aCase))
           : toCanonicalCase(ds, cases)
 }
+
+registerUndoRedoStrings({
+  "DataSet.moveAttribute": ["DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute"],
+  "DataSet.setCaseValues": ["DG.Undo.caseTable.editCellValue", "DG.Redo.caseTable.editCellValue"]
+})
+
+interface IMoveAttributeCustomPatch extends ICustomPatch {
+  type: "DataSet.moveAttribute",
+  data: {
+    dataId: string
+    attrId: string
+    before?: IMoveAttributeOptions
+    after?: IMoveAttributeOptions
+  }
+}
+function isMoveAttributeCustomPatch(patch: ICustomPatch): patch is IMoveAttributeCustomPatch {
+  return patch.type === "DataSet.moveAttribute"
+}
+
+interface ISetCaseValuesCustomPatch extends ICustomPatch {
+  type: "DataSet.setCaseValues"
+  data: {
+    dataId: string  // DataSet id
+    before: ICase[]
+    after: ICase[]
+  }
+}
+function isSetCaseValuesCustomPatch(patch: ICustomPatch): patch is ISetCaseValuesCustomPatch {
+  return patch.type === "DataSet.setCaseValues"
+}
+
+registerCustomUndoRedo({
+  "DataSet.moveAttribute": {
+    undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+      if (isMoveAttributeCustomPatch(patch)) {
+        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
+        data?.moveAttribute(patch.data.attrId, patch.data.before)
+      }
+    },
+    redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+      if (isMoveAttributeCustomPatch(patch)) {
+        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
+        data?.moveAttribute(patch.data.attrId, patch.data.after)
+      }
+    }
+  },
+  "DataSet.setCaseValues": {
+    undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+      if (isSetCaseValuesCustomPatch(patch)) {
+        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
+        data?.setCaseValues(patch.data.before)
+      }
+    },
+    redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+      if (isSetCaseValuesCustomPatch(patch)) {
+        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
+        data?.setCaseValues(patch.data.after)
+      }
+    }
+  }
+})
 
 // represents the set of grouped cases at a particular level of the hierarchy
 export interface CollectionGroup {
@@ -186,6 +252,10 @@ export const DataSet = types.model("DataSet", {
     const afterAttrIndex = options?.after ? self.attrIndexFromID(options.after) : undefined
     const found = self.attributes.find(attr => attr.id === attributeID)
     if (found) {
+      const srcAttrIndex = self.attrIndexFromID(attributeID)
+      const nextAttrId = srcAttrIndex != null && srcAttrIndex < self.attributes.length - 1
+                          ? self.attributes[srcAttrIndex + 1].id
+                          : undefined
       // removing an MST model from an MST array calls destroy() on it, so the only way
       // to change the order without destroying any of the elements is to sort the array
       const dstOrder: Record<string, number> = {}
@@ -199,6 +269,11 @@ export const DataSet = types.model("DataSet", {
                                     : self.attributes.length
       // sort the attributes by the adjusted "indices"
       self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
+
+      withCustomUndoRedo<IMoveAttributeCustomPatch>({
+        type: "DataSet.moveAttribute",
+        data: { dataId: self.id, attrId: attributeID, before: { before: nextAttrId }, after: options }
+      })
     }
   }
 }))
@@ -523,6 +598,17 @@ export const DataSet = types.model("DataSet", {
     return aCase
   }
 
+  function getCases(caseIDs: string[], options?: IGetCaseOptions): ICase[] {
+    const cases: ICase[] = []
+    caseIDs.forEach((caseID) => {
+      const aCase = getCase(caseID, options)
+      if (aCase) {
+        cases.push(aCase)
+      }
+    })
+    return cases
+  }
+
   function getCaseAtIndex(index: number, options?: IGetCaseOptions) {
     const aCase = self.cases[index],
           id = aCase?.__id__
@@ -659,22 +745,9 @@ export const DataSet = types.model("DataSet", {
                 ? Number(cachedCase[attributeID])
                 : attr && (index != null) ? attr.numeric(index) : undefined
       },
-      getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
-        return getCase(caseID, options)
-      },
-      getCases(caseIDs: string[], options?: IGetCaseOptions): ICase[] {
-        const cases: ICase[] = []
-        caseIDs.forEach((caseID) => {
-          const aCase = getCase(caseID, options)
-          if (aCase) {
-            cases.push(aCase)
-          }
-        })
-        return cases
-      },
-      getCaseAtIndex(index: number, options?: IGetCaseOptions) {
-        return getCaseAtIndex(index, options)
-      },
+      getCase,
+      getCases,
+      getCaseAtIndex,
       getCasesAtIndex(start = 0, options?: IGetCasesOptions) {
         const { count = self.cases.length } = options || {}
         const endIndex = Math.min(start + count, self.cases.length),
@@ -859,6 +932,7 @@ export const DataSet = types.model("DataSet", {
         const _cases = ungroupedCases.length > 0
                         ? ungroupedCases
                         : cases
+        const before = getCases(_cases.map(({ __id__ }) => __id__))
         if (self.isCaching) {
           // update the cases in the cache
           _cases.forEach(aCase => {
@@ -876,6 +950,12 @@ export const DataSet = types.model("DataSet", {
             setCaseValues(caseValues)
           })
         }
+        // custom undo/redo since values aren't observed all the way down
+        const after = getCases(_cases.map(({ __id__ }) => __id__))
+        withCustomUndoRedo<ISetCaseValuesCustomPatch>({
+          type: "DataSet.setCaseValues",
+          data: { dataId: self.id, before, after }
+        })
         // only changes to parent collection attributes invalidate grouping
         ungroupedCases.length > 0 && self.invalidateCollectionGroups()
       },

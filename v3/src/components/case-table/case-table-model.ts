@@ -12,8 +12,7 @@ export const CaseTableModel = TileContentModel
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
-    scrollLeft: 0,
-    collectionTableModels: new Map<string, CollectionTableModel>()
+    scrollLeft: 0
   }))
   .views(self => ({
     get data() {
@@ -23,21 +22,28 @@ export const CaseTableModel = TileContentModel
       return getTileCaseMetadata(self)
     }
   }))
+  .extend(self => {
+    const collectionTableModels = new Map<string, CollectionTableModel>()
+
+    return {
+      views: {
+        getCollectionTableModel(collectionId: string) {
+          let collectionTableModel = collectionTableModels.get(collectionId)
+          if (!collectionTableModel) {
+            collectionTableModel = new CollectionTableModel(collectionId)
+            collectionTableModels.set(collectionId, collectionTableModel)
+          }
+          return collectionTableModel
+        }
+      }
+    }
+  })
   .actions(self => ({
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
     setScrollLeft(scrollLeft: number) {
       self.scrollLeft = scrollLeft
-    },
-    // will create a new model if necessary
-    getCollectionTableModel(collectionId: string) {
-      let collectionTableModel = self.collectionTableModels.get(collectionId)
-      if (!collectionTableModel) {
-        collectionTableModel = new CollectionTableModel(collectionId)
-        self.collectionTableModels.set(collectionId, collectionTableModel)
-      }
-      return collectionTableModel
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}

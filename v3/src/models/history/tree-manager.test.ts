@@ -118,7 +118,7 @@ function setupDocument(initialContent? : IDocumentContentSnapshotIn) {
     content: docContent as any
   })
 
-  docModel.treeMonitor!.enabled = true
+  docModel.treeMonitor!.enableMonitoring()
 
   const sharedModel = docContent.sharedModelMap.get("sm1")?.sharedModel as TestSharedModelType
   const tileContent = docContent.tileMap.get("t1")?.content as TestTileType
@@ -129,6 +129,7 @@ function setupDocument(initialContent? : IDocumentContentSnapshotIn) {
 }
 
 const updateFlag = {
+  model: "TestTile",
   action: "/content/tileMap/t1/content/setFlag",
   created: expect.any(Number),
   id: expect.any(String),
@@ -149,6 +150,7 @@ const updateFlag = {
 }
 
 const action1 =   {
+  model: "TestTile",
   action: "/content/tileMap/t1/content/setActionText",
   created: expect.any(Number),
   id: expect.any(String),
@@ -169,6 +171,7 @@ const action1 =   {
 }
 
 const action2 =   {
+  model: "TestTile",
   action: "/content/tileMap/t1/content/setActionText",
   created: expect.any(Number),
   id: expect.any(String),
@@ -189,6 +192,7 @@ const action2 =   {
 }
 
 const action3 = {
+  model: "TestTile",
   action: "/content/tileMap/t1/content/setActionText",
   created: expect.any(Number),
   id: expect.any(String),
@@ -209,6 +213,7 @@ const action3 = {
 }
 
 const action4 = {
+  model: "TestTile",
   action: "/content/tileMap/t1/content/setActionText",
   created: expect.any(Number),
   id: expect.any(String),

@@ -164,7 +164,7 @@ describe("SharedModelDocumentManager", () => {
     })
 
     // Enable the tree monitor so changes to the shared model trigger the update.
-    docModel.treeMonitor!.enabled = true
+    docModel.treeMonitor!.enableMonitoring()
 
     return {doc, docModel}
   }

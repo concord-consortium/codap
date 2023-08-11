@@ -3,6 +3,8 @@ import { BaseDocumentContentModel } from "./base-document-content"
 import { isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { HistoryEntryType } from "../history/history"
+import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
@@ -39,6 +41,39 @@ export interface IImportDataSetOptions {
   createDefaultTile?: boolean // default true
   defaultTileType?: string    // default kCaseTableTileType
 }
+
+// extract the tile type from a create tile history entry
+function getCreatedTileType(entry?: HistoryEntryType) {
+  const patchRecords = entry?.records
+  if (!patchRecords) return undefined
+  for (let recIdx = 0; recIdx < patchRecords.length; ++recIdx) {
+    const record = patchRecords[recIdx]
+    if (record.action.endsWith("createOrShowTile")) {
+      const patches = record.patches
+      for (let patchIdx = 0; patchIdx < patches.length; ++patchIdx) {
+        const patch = patches[patchIdx]
+        if (patch.op === "add" && patch.path.includes("tileMap")) {
+          return patch.value?.content.type as string | undefined
+        }
+      }
+    }
+  }
+}
+
+registerUndoRedoStrings({
+  "DocumentContent.createOrShowTile": (entry?: HistoryEntryType) => {
+    // undo/redo strings depend on the type of tile created
+    const tileType = getCreatedTileType(entry)
+    switch (tileType) {
+      case "Calculator":
+        return ["DG.Undo.toggleComponent.add.calcView", "DG.Redo.toggleComponent.add.calcView"]
+      case "CodapSlider":
+        return ["DG.Undo.sliderComponent.create", "DG.Redo.sliderComponent.create"]
+      case "Graph":
+        return ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"]
+    }
+  }
+})
 
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")

@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash"
-import { flow, getSnapshot, getType, Instance, types } from "mobx-state-tree"
+import { flow, getSnapshot, getType, IAnyStateTreeNode, Instance, resolveIdentifier, types } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { SharedModel, ISharedModel } from "../shared/shared-model"
 import { registerSharedModelInfo } from "../shared/shared-model-registry"
@@ -10,8 +10,12 @@ import { DocumentContentModel, IDocumentContentSnapshotIn } from "../document/do
 import { createDocumentModel } from "../document/create-document-model"
 import { when } from "mobx"
 import { CDocument, TreeManager } from "./tree-manager"
-import { HistoryEntrySnapshot } from "./history"
+import { HistoryEntrySnapshot, HistoryEntryType } from "./history"
+import { withCustomUndoRedo } from "./with-custom-undo-redo"
 import { withoutUndo } from "./without-undo"
+import { ICustomPatch } from "./tree-types"
+import { registerCustomUndoRedo } from "./custom-undo-redo-registry"
+import { registerUndoRedoStrings } from "./undo-redo-string-registry"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -52,6 +56,7 @@ const TestTileChild = types.model("TestTileChild", {
 const TestTile = TileContentModel
   .named("TestTile")
   .props({
+    id: types.optional(types.identifier, () => nanoid()),
     type: "TestTile",
     text: types.maybe(types.string),
     flag: types.maybe(types.boolean),
@@ -59,7 +64,8 @@ const TestTile = TileContentModel
     child: types.maybe(TestTileChild)
   })
   .volatile(self => ({
-    updateCount: 0
+    updateCount: 0,
+    volatileValue: 0
   }))
   .views(self => ({
     get sharedModel() {
@@ -76,6 +82,18 @@ const TestTile = TileContentModel
       self.updateCount++
       const sharedModelValue = self.sharedModel?.value
       self.text = sharedModelValue ? `${sharedModelValue}-tile` : undefined
+    },
+    setVolatileValue(value: number) {
+      self.volatileValue = value
+    },
+    setVolatileValueWithCustomPatch(value: number) {
+      const before = self.volatileValue
+      self.volatileValue = value
+      const after = value
+      withCustomUndoRedo({
+        type: "TestTile.setVolatileValueWithCustomPatch",
+        data: { id: self.id, before, after }
+      })
     },
     setFlag(_flag: boolean) {
       self.flag = _flag
@@ -102,6 +120,23 @@ const TestTile = TileContentModel
     }
   }))
 interface TestTileType extends Instance<typeof TestTile> {}
+
+registerUndoRedoStrings({
+  "TestTile.setVolatileValueWithCustomPatch": ["Undo setVolatileValue", "Redo setVolatileValue"]
+})
+
+registerCustomUndoRedo({
+  "TestTile.setVolatileValueWithCustomPatch": {
+    undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+      const testTile = resolveIdentifier(TestTile, node, patch.data.id)
+      testTile!.setVolatileValue(patch.data.before)
+    },
+    redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+      const testTile = resolveIdentifier(TestTile, node, patch.data.id)
+      testTile!.setVolatileValue(patch.data.after)
+    }
+  }
+})
 
 const TestTileComponent: React.FC<any> = () => {
   throw new Error("Component not implemented.")
@@ -157,7 +192,7 @@ function setupDocument(initialContent? : IDocumentContentSnapshotIn) {
   })
 
   // Enable the tree monitor so the events will be recorded
-  docModel.treeMonitor!.enabled = true
+  docModel.treeMonitor!.enableMonitoring()
 
   const sharedModel = docContent.sharedModelMap.get("sm1")?.sharedModel as TestSharedModelType
   const tileContent = docContent.tileMap.get("t1")?.content as TestTileType
@@ -167,7 +202,15 @@ function setupDocument(initialContent? : IDocumentContentSnapshotIn) {
   return {docModel, docContent, sharedModel, tileContent, manager, undoStore}
 }
 
+it("throws exceptions when attempting to undo/redo when not appropriate", () => {
+  const { undoStore } = setupDocument()
+
+  expect(() => undoStore.undo()).toThrow()
+  expect(() => undoStore.redo()).toThrow()
+})
+
 const setFlagTrueEntry = {
+  model: "TestTile",
   action: "/content/tileMap/t1/content/setFlag",
   created: expect.any(Number),
   id: expect.any(String),
@@ -201,7 +244,21 @@ it("records a tile change as one history event with one TreeRecordEntry", async 
   ])
 })
 
+it("logs addition of undoable actions when DEBUG_UNDO is set", async () => {
+  const {tileContent, manager} = setupDocument()
+
+  jestSpyConsole("log", async spy => {
+    libDebug.DEBUG_UNDO = true
+    tileContent.setFlag(true)
+    await expectEntryToBeComplete(manager, 1)
+    expect(spy).toHaveBeenCalled()
+    libDebug.DEBUG_UNDO = false
+  })
+
+})
+
 const undoEntry = {
+  model: "manager",
   action: "undo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -243,6 +300,7 @@ it("can undo a tile change", async () => {
 })
 
 const redoEntry = {
+  model: "manager",
   action: "redo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -301,6 +359,7 @@ it("records a async tile change as one history event with one TreeRecordEntry", 
 
   expect(getSnapshot(changeDocument.history)).toEqual([
     {
+      model: "TestTile",
       action: "/content/tileMap/t1/content/updateCounterAsync",
       created: expect.any(Number),
       id: expect.any(String),
@@ -340,6 +399,7 @@ it("records an async tile change and an interleaved history event with 2 entries
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry,
     {
+      model: "TestTile",
       action: "/content/tileMap/t1/content/updateCounterAsync",
       created: expect.any(Number),
       id: expect.any(String),
@@ -395,7 +455,7 @@ it("can handle withoutUndo even when tree isn't monitored", async () => {
   const {tileContent, manager, undoStore, docModel} = setupDocument()
 
   // disable the monitor
-  docModel.treeMonitor!.enabled = false
+  docModel.treeMonitor!.disableMonitoring()
 
   // Because the monitor is disabled this won't record an entry,
   // and the withoutUndo should basically be ignored
@@ -417,7 +477,7 @@ it("does not warn about withoutUndo when tree isn't monitored and DEBUG_UNDO is 
   const {tileContent, docModel} = setupDocument()
 
   // disable the monitor
-  docModel.treeMonitor!.enabled = false
+  docModel.treeMonitor!.disableMonitoring()
 
   libDebug.DEBUG_UNDO = true
 
@@ -483,6 +543,7 @@ it("will print a warning and still add the action to the undo list if any child 
 
   expect(getSnapshot(changeDocument.history)).toEqual([
     {
+      model: "TestTile",
       action: "/content/tileMap/t1/content/setChildValue",
       created: expect.any(Number),
       id: expect.any(String),
@@ -506,7 +567,63 @@ it("will print a warning and still add the action to the undo list if any child 
   ])
 })
 
+it("changes to volatile properties are not undoable", async () => {
+  const {tileContent, manager, undoStore} = setupDocument()
+  // This should record a history entry with this change and any changes to tiles
+  // triggered by this change
+  tileContent.setVolatileValue(1)
 
+  let timedOut = false
+  try {
+    await when(
+      () => manager.activeHistoryEntries.length === 0,
+      {timeout: 100})
+  } catch (e) {
+    timedOut = true
+  }
+  expect(timedOut).toBe(false)
+  expect(manager.document.history.length).toBe(0)
+
+  // Make sure this entry is recorded before undoing it
+  // await expectEntryToBeComplete(manager, 1)
+
+  expect(undoStore.canUndo).toBe(false)
+
+  expect(tileContent.volatileValue).toBe(1)
+})
+
+it("changes to volatile properties can be made undoable with custom patches", async () => {
+  const {tileContent, manager, undoStore} = setupDocument()
+  // This should record a history entry with this change and any changes to tiles
+  // triggered by this change
+  tileContent.setVolatileValueWithCustomPatch(1)
+
+  let timedOut = false
+  try {
+    await when(
+      () => manager.activeHistoryEntries.length === 0,
+      {timeout: 100})
+  } catch (e) {
+    timedOut = true
+  }
+  expect(timedOut).toBe(false)
+  expect(manager.document.history.length).toBe(1)
+  expect(tileContent.volatileValue).toBe(1)
+
+  expect(undoStore.canUndo).toBe(true)
+  expect(undoStore.canRedo).toBe(false)
+  expect(undoStore.undoStringKey).toBe("Undo setVolatileValue")
+  expect(undoStore.redoStringKey).toBe("DG.mainPage.mainPane.redoButton.toolTip")
+  undoStore.undo()
+  expect(tileContent.volatileValue).toBe(0)
+
+  expect(undoStore.canUndo).toBe(false)
+  expect(undoStore.canRedo).toBe(true)
+  expect(undoStore.undoStringKey).toBe("DG.mainPage.mainPane.undoButton.toolTip")
+  expect(undoStore.redoStringKey).toBe("Redo setVolatileValue")
+  undoStore.redo()
+  expect(tileContent.volatileValue).toBe(1)
+})
 
 it("records undoable actions that happen in the middle async actions which are not undoable", async () => {
   const {tileContent, manager, undoStore} = setupDocument()
@@ -531,6 +648,7 @@ it("records undoable actions that happen in the middle async actions which are n
   expect(getSnapshot(changeDocument.history)).toEqual([
     setFlagTrueEntry,
     {
+      model: "TestTile",
       action: "/content/tileMap/t1/content/updateCounterWithoutUndoAsync",
       created: expect.any(Number),
       id: expect.any(String),
@@ -593,6 +711,7 @@ it("can replay the history entries", async () => {
 })
 
 const initialSharedModelUpdateEntry = {
+  model: "TestSharedModel",
   action: "/content/sharedModelMap/sm1/sharedModel/setValue",
   created: expect.any(Number),
   id: expect.any(String),
@@ -636,6 +755,7 @@ it("records a shared model change as one history event with two TreeRecordEntrie
 })
 
 const undoSharedModelEntry = {
+  model: "manager",
   action: "undo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -691,6 +811,7 @@ it("can undo a shared model change", async () => {
 })
 
 const redoSharedModelEntry = {
+  model: "manager",
   action: "redo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -804,6 +925,7 @@ it("can track the addition of a new shared model", async () => {
   const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
     {
+      model: "DocumentContent",
       action: "/content/addSharedModel",
       created: expect.any(Number),
       id: expect.any(String),
@@ -834,6 +956,7 @@ it("can track the addition of a new shared model", async () => {
       undoable: true
     },
     {
+      model: "SharedModelEntry",
       action: `/content/sharedModelMap/${sharedModelId}/addTile`,
       created: expect.any(Number),
       id: expect.any(String),
@@ -857,6 +980,7 @@ it("can track the addition of a new shared model", async () => {
       undoable: true
     },
     {
+      model: "TestTile",
       action: "/content/tileMap/t1/content/updateAfterSharedModelChanges",
       created: expect.any(Number),
       id: expect.any(String),
