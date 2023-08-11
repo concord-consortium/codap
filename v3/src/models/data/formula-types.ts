@@ -21,11 +21,25 @@ export interface IGlobalValueDependency {
   globalId: string
 }
 
-export interface ILookupDependency {
+export interface ILookupByIndexDependency {
   type: "lookupByIndex"
   dataSetId: string
   attrId: string
   index: number
 }
 
-export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
+export interface ILookupByKeyDependency {
+  type: "lookupByKey"
+  dataSetId: string
+  attrId: string
+  keyAttrId: string
+}
+
+export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupByIndexDependency |
+  ILookupByKeyDependency
+
+
+export enum CODAPMathjsFunctions {
+  lookupByIndex = "lookupByIndex",
+  lookupByKey = "lookupByKey"
+}

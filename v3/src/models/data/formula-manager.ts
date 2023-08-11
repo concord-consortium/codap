@@ -4,7 +4,7 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { getFormulaDependencies } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
-  ILookupDependency
+  ILookupByIndexDependency, ILookupByKeyDependency
 } from "./formula-types"
 import { math } from "./formula-mathjs"
 import type { IGlobalValueManager } from "../global/global-value-manager"
@@ -152,14 +152,16 @@ export class FormulaManager {
     const formulaDependencies = getFormulaDependencies(formula.canonical)
     const disposeLocalAttributeObserver = this.observeLocalAttributes(formula.id, formulaDependencies)
     const disposeGlobalValueObservers = this.observeGlobalValues(formula.id, formulaDependencies)
-    const disposeLookupObservers = this.observeLookupAttributes(formula.id, formulaDependencies)
+    const disposeLookupByIndexObservers = this.observeLookupByIndex(formula.id, formulaDependencies)
+    const disposeLookupByKeyObservers = this.observeLookupByKey(formula.id, formulaDependencies)
 
     this.formulaMetadata.set(formula.id, {
       ...formulaMetadata,
       dispose: () => {
         disposeLocalAttributeObserver()
         disposeGlobalValueObservers.forEach(disposeGlobalValObserver => disposeGlobalValObserver())
-        disposeLookupObservers.forEach(disposeLookupObserver => disposeLookupObserver())
+        disposeLookupByIndexObservers.forEach(disposeLookupObserver => disposeLookupObserver())
+        disposeLookupByKeyObservers.forEach(disposeLookupObserver => disposeLookupObserver())
       },
     })
 
@@ -280,9 +282,36 @@ export class FormulaManager {
     return disposeGlobalValueObservers
   }
 
-  observeLookupAttributes(formulaId: string, formulaDependencies: IFormulaDependency[]) {
-    const lookupDependencies: ILookupDependency[] =
-      formulaDependencies.filter(d => d.type === "lookupByIndex") as ILookupDependency[]
+  observeLookupByIndex(formulaId: string, formulaDependencies: IFormulaDependency[]) {
+    const lookupDependencies: ILookupByIndexDependency[] =
+      formulaDependencies.filter(d => d.type === "lookupByIndex") as ILookupByIndexDependency[]
+
+    const disposeLookupObservers = lookupDependencies.map(dependency => {
+      const externalDataSet = this.dataSets.get(dependency.dataSetId)
+      if (!externalDataSet) {
+        throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
+      }
+      // Theoretically we could handle separately various kinds of actions, like "setCaseValues" or "addCases",
+      // "removeCases", etc., but it's just easier to compare the current lookup value with the cached one.
+      // Note that getValue() cost is close to zero, as it's a single value retrieval.
+      const getValue = () => externalDataSet.getValueAtIndex(dependency.index, dependency.attrId)
+      let cachedValue = getValue()
+
+      return onAnyAction(externalDataSet, () => {
+        const currentValue = getValue()
+        if (currentValue !== cachedValue) {
+          cachedValue = currentValue
+          this.recalculateFormula(formulaId)
+        }
+      })
+    })
+
+    return disposeLookupObservers
+  }
+
+  observeLookupByKey(formulaId: string, formulaDependencies: IFormulaDependency[]) {
+    const lookupDependencies: ILookupByKeyDependency[] =
+      formulaDependencies.filter(d => d.type === "lookupByKey") as ILookupByKeyDependency[]
 
     const disposeLookupObservers = lookupDependencies.map(dependency => {
       const externalDataSet = this.dataSets.get(dependency.dataSetId)
@@ -290,17 +319,35 @@ export class FormulaManager {
         throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
       }
 
-      const getValue = () => externalDataSet.getValueAtIndex(dependency.index, dependency.attrId)
-      let cachedValue = getValue()
+      const getCasesToRecalculate = (cases: ICase[]) => {
+        return cases.find(c =>
+          c[dependency.attrId] !== undefined || c[dependency.keyAttrId] !== undefined
+        ) ? "ALL_CASES" : []
+      }
 
-      return onAnyAction(externalDataSet, () => {
-        // Theoretically we could handle separately various kinds of actions, like "setCaseValues" or "addCases",
-        // "removeCases", etc., but it's just easier to compare the current lookup value with the cached one.
-        const currentValue = getValue()
-        if (currentValue !== cachedValue) {
-          this.recalculateFormula(formulaId)
-          cachedValue = currentValue
+      return onAnyAction(externalDataSet, mstAction => {
+        let casesToRecalculate: ICase[] | "ALL_CASES" = []
+        switch (mstAction.name) {
+          // TODO: these rules are very broad, think if there are some ways to optimize and narrow them down.
+          case "addCases": {
+            casesToRecalculate = "ALL_CASES"
+            break
+          }
+          case "removeCases": {
+            casesToRecalculate = "ALL_CASES"
+            break
+          }
+          case "setCaseValues": {
+            // recalculate cases with dependency attribute updated
+            const cases = (mstAction as SetCaseValuesAction).args[0] || []
+            casesToRecalculate = getCasesToRecalculate(cases)
+            break
+          }
+          default:
+            break
         }
+
+        this.recalculateFormula(formulaId, casesToRecalculate)
       })
     })
 
@@ -322,13 +369,44 @@ export class FormulaManager {
 
       const { dataSet } = this.getFormulaContext(currentFormula)
       const formulaDependencies = getFormulaDependencies(currentFormula)
+
       const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
         formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
-
       for (const dependency of localDatasetAttributeDependencies) {
         const dependencyAttribute = dataSet.attrFromID(dependency.attrId)
         if (dependencyAttribute?.formula.valid) {
           stack.push(dependencyAttribute.formula.id)
+        }
+      }
+
+      const lookupByIndexDependencies: ILookupByIndexDependency[] =
+        formulaDependencies.filter(d => d.type === "lookupByIndex") as ILookupByIndexDependency[]
+      for (const dependency of lookupByIndexDependencies) {
+        const externalDataSet = this.dataSets.get(dependency.dataSetId)
+        if (!externalDataSet) {
+          throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
+        }
+        const dependencyAttribute = externalDataSet.attrFromID(dependency.attrId)
+        if (dependencyAttribute?.formula.valid) {
+          stack.push(dependencyAttribute.formula.id)
+        }
+      }
+
+      // TODO: merge two lookup dependencies into one loop
+      const lookupByKeyDependencies: ILookupByKeyDependency[] =
+        formulaDependencies.filter(d => d.type === "lookupByKey") as ILookupByKeyDependency[]
+      for (const dependency of lookupByKeyDependencies) {
+        const externalDataSet = this.dataSets.get(dependency.dataSetId)
+        if (!externalDataSet) {
+          throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
+        }
+        const dependencyAttribute = externalDataSet.attrFromID(dependency.attrId)
+        if (dependencyAttribute?.formula.valid) {
+          stack.push(dependencyAttribute.formula.id)
+        }
+        const dependencyKeyAttribute = externalDataSet.attrFromID(dependency.keyAttrId)
+        if (dependencyKeyAttribute?.formula.valid) {
+          stack.push(dependencyKeyAttribute.formula.id)
         }
       }
     }

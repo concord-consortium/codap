@@ -5,6 +5,8 @@ import type { IDataSet } from "./data-set"
 export interface IFormulaMathjsScope {
   caseId: string
   setCaseId(caseId: string): void
+  localDataSet: IDataSet
+  globalValueManager: IGlobalValueManager
   dataSets: Map<string, IDataSet>
 }
 
@@ -20,6 +22,8 @@ export const getFormulaMathjsScope = (
     setCaseId(caseId: string) {
       this.caseId = caseId
     },
+    localDataSet,
+    globalValueManager,
     dataSets
   }
 
