@@ -22,7 +22,7 @@ type IFormulaMetadata = {
 
 // TODO: global module-level instance of formula manager is a temporary solution.
 // We need to find another wa to give access to formula manager
-let gGlobalFormulaMangerInstance: FormulaManager
+let gGlobalFormulaManagerInstance: FormulaManager
 export const initializeFormulaManager = (dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager) => {
   gGlobalFormulaMangerInstance = new FormulaManager(dataSets, globalValueManager)
   gGlobalFormulaMangerInstance.registerAllFormulas()
