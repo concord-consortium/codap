@@ -1,4 +1,4 @@
-import { parse, MathNode, SymbolNode, FunctionNode } from "mathjs"
+import { parse, MathNode, isFunctionNode, isSymbolNode } from "mathjs"
 import {
   AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency
 } from "./formula-types"
@@ -23,15 +23,12 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
   }
 
   const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
-    if (node.type === "FunctionNode" && isAggregateFunction((node as FunctionNode).fn.name) ||
-      parent?.isDescendantOfAggregateFunc) {
+    if (isFunctionNode(node) && isAggregateFunction(node.fn.name) || parent?.isDescendantOfAggregateFunc) {
       node.isDescendantOfAggregateFunc = true
-    }
-    if (node.type === "SymbolNode") {
-      const symbolNode = node as SymbolNode
-      if (symbolNode.name in displayNameMap) {
-        const newNode = symbolNode.clone()
-        newNode.name = displayNameMap[symbolNode.name]
+    } else if (isSymbolNode(node)) {
+      if (node.name in displayNameMap) {
+        const newNode = node.clone()
+        newNode.name = displayNameMap[node.name]
         // Consider following formula example:
         // "mean(Speed) + Speed"
         // `Speed` is one that should be resolved to two very different values depending on the context:
@@ -72,9 +69,8 @@ export const getFormulaDependencies = (formulaCanonical: string) => {
   const result: IFormulaDependency[] = []
 
   const visitNode = (node: MathNode) => {
-    if (node.type === "SymbolNode") {
-      const symbolNode = node as SymbolNode
-      const parsedName = parseCanonicalSymbolName(symbolNode.name)
+    if (isSymbolNode(node)) {
+      const parsedName = parseCanonicalSymbolName(node.name)
       if (parsedName) {
         result.push(parsedName)
       }
