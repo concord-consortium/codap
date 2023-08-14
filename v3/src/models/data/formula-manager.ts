@@ -255,7 +255,7 @@ export class FormulaManager {
     return disposeGlobalValueObservers
   }
 
-  // Simple DFS algorithm to detect dependency cycles.
+  // Simple DFS (depth first search) algorithm to detect dependency cycles.
   isDependencyCyclePresent(formulaId: string) {
     const visitedFormulas: Record<string, boolean> = {}
     const stack: string[] = [formulaId]
