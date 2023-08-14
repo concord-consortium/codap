@@ -1,16 +1,16 @@
 import { makeObservable, observable, reaction } from "mobx"
-import { IFormula } from "./formula"
-import { IDataSet } from "./data-set"
 import { getFormulaMathjsContext } from "./formula-mathjs-context"
-import { compile, e } from "mathjs"
+import { compile } from "mathjs"
 import { ICase } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
 import { getFormulaDependencies } from "./formula-utils"
-import { IGlobalValueManager } from "../global/global-value-manager"
+import type { IGlobalValueManager } from "../global/global-value-manager"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency
 } from "./formula-types"
+import type { IFormula } from "./formula"
+import type { IDataSet } from "./data-set"
 
 type IFormulaMetadata = {
   formula: IFormula
@@ -20,25 +20,26 @@ type IFormulaMetadata = {
   dispose?: () => void
 }
 
-// TODO: global module-level instance of formula manager is a temporary solution.
-// We need to find another wa to give access to formula manager
-let gGlobalFormulaManagerInstance: FormulaManager
-export const initializeFormulaManager = (dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager) => {
-  gGlobalFormulaManagerInstance = new FormulaManager(dataSets, globalValueManager)
-  gGlobalFormulaManagerInstance.registerAllFormulas()
-}
-
-export const getFormulaManager = () => gGlobalFormulaManagerInstance
-
 export class FormulaManager {
   @observable dataSets = new Map<string, IDataSet>()
   formulaMetadata = new Map<string, IFormulaMetadata>()
-  globalValueManager: IGlobalValueManager
+  globalValueManager?: IGlobalValueManager
 
-  constructor(dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager) {
-    this.dataSets = dataSets
-    this.globalValueManager = globalValueManager
+  constructor() {
     makeObservable(this)
+    this.registerAllFormulas()
+  }
+
+  addDataSet(dataSet: IDataSet) {
+    this.dataSets.set(dataSet.id, dataSet)
+  }
+
+  removeDataSet(dataSetId: string) {
+    this.dataSets.delete(dataSetId)
+  }
+
+  addGlobalValueManager(globalValueManager: IGlobalValueManager) {
+    this.globalValueManager = globalValueManager
   }
 
   // Retrieves formula context like its attribute, dataset, etc. It also validates correctness of the formula
@@ -173,7 +174,7 @@ export class FormulaManager {
       displayNameMap[attr.name] = `${LOCAL_ATTR}${attr.id}`
     })
 
-    this.globalValueManager.globals.forEach(global => {
+    this.globalValueManager?.globals.forEach(global => {
       displayNameMap[global.name] = `${GLOBAL_VALUE}${global.id}`
     })
 
@@ -245,7 +246,7 @@ export class FormulaManager {
       formulaDependencies.filter(d => d.type === "globalValue") as IGlobalValueDependency[]
 
     const disposeGlobalValueObservers = globalValueDependencies.map(dependency =>
-      onAnyAction(this.globalValueManager.getValueById(dependency.globalId), mstAction => {
+      onAnyAction(this.globalValueManager?.getValueById(dependency.globalId), mstAction => {
         if (mstAction.name === "setValue") {
           this.recalculateFormula(formulaId)
         }

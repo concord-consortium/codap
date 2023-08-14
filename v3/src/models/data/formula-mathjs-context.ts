@@ -6,7 +6,7 @@ import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-typ
 // be more efficient. Each property is defined once during scope construction so the access should be fast. If we had to
 // use Map#get property, this method would need to parse provided property name. It might not be too bad, but if it
 // happened repeatedly for multiple thousands of cases, it could add up to the formula evaluation time.
-export const getFormulaMathjsContext = (dataSet: IDataSet, globalValueManager: IGlobalValueManager) => {
+export const getFormulaMathjsContext = (dataSet: IDataSet, globalValueManager?: IGlobalValueManager) => {
   const scope = {
     caseId: "",
     setCaseId(caseId: string) {
@@ -35,7 +35,7 @@ export const getFormulaMathjsContext = (dataSet: IDataSet, globalValueManager: I
   })
 
   // Provide global value symbols.
-  globalValueManager.globals.forEach(global => {
+  globalValueManager?.globals.forEach(global => {
     Object.defineProperty(scope, `${GLOBAL_VALUE}${global.id}`, {
       get() {
         return global.value
