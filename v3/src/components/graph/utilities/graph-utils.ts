@@ -156,6 +156,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
       (enter) =>
         enter.append('circle')
           .attr('class', 'graph-dot')
+          .attr('data-testid', 'graph-dot')
           .property('id', (d: CaseData) => `${instanceId}_${d.caseID}`),
       (update) =>
         update.attr('r', pointRadius)

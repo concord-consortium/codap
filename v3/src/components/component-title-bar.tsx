@@ -39,7 +39,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
           onChange={onHandleTitleChange || handleChangeTitle} onCancel={() => setIsEditing(false)}
           data-testid="editable-component-title">
         <EditablePreview className="title-text"/>
-        <EditableInput className="title-text-input"/>
+        <EditableInput className="title-text-input" data-testid="title-text-input"/>
       </Editable>
       <Flex className="header-right">
         <Button className="component-minimize-button" title={t("DG.Component.minimizeComponent.toolTip")}

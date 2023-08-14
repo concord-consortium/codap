@@ -1,8 +1,8 @@
 import { create, all, SymbolNode, ConstantNode } from 'mathjs'
-import { getFormulaMathjsScope, type IFormulaMathjsScope } from './formula-mathjs-scope'
+import { getFormulaMathjsScope, IFormulaMathjsScope } from './formula-mathjs-scope'
 import { getValueOrName } from './formula-utils'
 import { CODAPMathjsFunctions } from './formula-types'
-import type { IDataSet } from './data-set'
+import { IDataSet } from './data-set'
 
 export const math = create(all)
 

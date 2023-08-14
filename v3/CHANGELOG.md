@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 3.0.0-pre.1295 - August 10, 2023
+
+### Features/Improvements
+- Clicking on legend category key should, if appropriate, select case(s) at the level of the legend attribute. [#185325793](https://www.pivotaltracker.com/story/show/185325793)
+- A dot chart can show counts [#181914454](https://www.pivotaltracker.com/story/show/181914454)
+- Simple attribute formula editor dialog [#185745389](https://www.pivotaltracker.com/story/show/185745389)
+- The user can create a map component using the Map icon in the tool shelf. [#185505604](https://www.pivotaltracker.com/story/show/185505604)
+- Number of points in graph is at most the number of cases in the child-most collection for the given attributes [#185447912](https://www.pivotaltracker.com/story/show/185447912)
+
+### Bug Fixes
+- Closing Edit Attribute modal using "X" button doesn't restore the previously disabled attribute tooltip [#185757174](https://www.pivotaltracker.com/story/show/185757174)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   65059 bytes |                           33.11% |
+|  index.js | 3278569 bytes |                            5.45% |
+
 ## Version 3.0.0-pre.1286 - July 31, 2023
 
 ### Features/Improvements

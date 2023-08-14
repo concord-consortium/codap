@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-pre.1286",
+  "version": "3.0.0-pre.1295",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
@@ -177,7 +177,6 @@
     "mathjs": "^11.8.2",
     "mobx": "^6.9.0",
     "mobx-react-lite": "^3.4.3",
-    "mobx-utils": "^6.0.8",
     "nanoid": "^4.0.2",
     "papaparse": "^5.4.1",
     "pluralize": "^8.0.0",

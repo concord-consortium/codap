@@ -3,10 +3,10 @@ export const LegendElements = {
     return cy.get(".codap-graph")
   },
   getLegend() {
-    return this.getGraphTile().find(".graph-plot .legend-component")
+    return this.getGraphTile().find("[data-testid=graph] [data-testid=legend-component]")
   },
   getLegendName() {
-    return this.getLegend().find(".attribute-label")
+    return this.getLegend().find("[data-testid=attribute-label]")
   },
   getCategoricalLegendCategories() {
     return this.getLegend().find("[data-testid=legend-key]")
@@ -15,10 +15,10 @@ export const LegendElements = {
     return this.getCategoricalLegendCategories().contains(name)
   },
   getNumericalLegendCategories() {
-    return this.getLegend().find(".legend-categories>svg rect")
+    return this.getLegend().find("[data-testid=legend-categories]>svg rect")
   },
   getLegendAttributeMenu() {
-    return this.getGraphTile().find(".axis-legend-attribute-menu.legend .codap-graph-attribute-label")
+    return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-legend]")
   },
   getAttributeFromLegendMenu() {
     return this.getLegendAttributeMenu().parent()

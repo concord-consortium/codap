@@ -1,5 +1,6 @@
 import { makeObservable, observable, reaction } from "mobx"
 import { getFormulaMathjsScope } from "./formula-mathjs-scope"
+import { ICase } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { getFormulaDependencies } from "./formula-utils"
 import {
@@ -7,11 +8,10 @@ import {
   ILookupByIndexDependency, ILookupByKeyDependency
 } from "./formula-types"
 import { math } from "./formula-mathjs"
-import type { IGlobalValueManager } from "../global/global-value-manager"
-import type { IFormula } from "./formula"
-import type { IDataSet } from "./data-set"
-import type { ICase } from "./data-set-types"
-import type { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
+import { IDataSet } from "./data-set"
+import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
+import { IGlobalValueManager } from "../global/global-value-manager"
+import { IFormula } from "./formula"
 
 type IFormulaMetadata = {
   formula: IFormula
@@ -21,25 +21,26 @@ type IFormulaMetadata = {
   dispose?: () => void
 }
 
-// TODO: global module-level instance of formula manager is a temporary solution.
-// We need to find another wa to give access to formula manager
-let gGlobalFormulaMangerInstance: FormulaManager
-export const initializeFormulaManager = (dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager) => {
-  gGlobalFormulaMangerInstance = new FormulaManager(dataSets, globalValueManager)
-  gGlobalFormulaMangerInstance.registerAllFormulas()
-}
-
-export const getFormulaManager = () => gGlobalFormulaMangerInstance
-
 export class FormulaManager {
   @observable dataSets = new Map<string, IDataSet>()
   formulaMetadata = new Map<string, IFormulaMetadata>()
-  globalValueManager: IGlobalValueManager
+  globalValueManager?: IGlobalValueManager
 
-  constructor(dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager) {
-    this.dataSets = dataSets
-    this.globalValueManager = globalValueManager
+  constructor() {
     makeObservable(this)
+    this.registerAllFormulas()
+  }
+
+  addDataSet(dataSet: IDataSet) {
+    this.dataSets.set(dataSet.id, dataSet)
+  }
+
+  removeDataSet(dataSetId: string) {
+    this.dataSets.delete(dataSetId)
+  }
+
+  addGlobalValueManager(globalValueManager: IGlobalValueManager) {
+    this.globalValueManager = globalValueManager
   }
 
   // Retrieves formula context like its attribute, dataset, etc. It also validates correctness of the formula
@@ -189,7 +190,7 @@ export class FormulaManager {
       ...mapAttributeNames(localDataSet, LOCAL_ATTR)
     }
 
-    this.globalValueManager.globals.forEach(global => {
+    this.globalValueManager?.globals.forEach(global => {
       displayNameMap.localNames[global.name] = `${GLOBAL_VALUE}${global.id}`
     })
 
@@ -265,14 +266,14 @@ export class FormulaManager {
     return disposeDatasetObserver
   }
 
-  // Observe global value changes. In theory, we could use MST reaction to watch global value, but most likely it would
-  // be triggered async. onAnyAction is synchronous, so this might work better with undo-redo logic.
+  // Observe global value changes. In theory, we could use MobX reaction to watch global value (after checking if it's
+  // synchronous or async). onAnyAction is guaranteed to be synchronous, so this might work better with undo-redo logic.
   observeGlobalValues(formulaId: string, formulaDependencies: IFormulaDependency[]) {
     const globalValueDependencies =
       formulaDependencies.filter(d => d.type === "globalValue") as IGlobalValueDependency[]
 
     const disposeGlobalValueObservers = globalValueDependencies.map(dependency =>
-      onAnyAction(this.globalValueManager.getValueById(dependency.globalId), mstAction => {
+      onAnyAction(this.globalValueManager?.getValueById(dependency.globalId), mstAction => {
         if (mstAction.name === "setValue") {
           this.recalculateFormula(formulaId)
         }
@@ -354,7 +355,7 @@ export class FormulaManager {
     return disposeLookupObservers
   }
 
-  // Simple DFS algorithm to detect dependency cycles.
+  // Simple DFS (depth first search) algorithm to detect dependency cycles.
   isDependencyCyclePresent(formulaId: string) {
     const visitedFormulas: Record<string, boolean> = {}
     const stack: string[] = [formulaId]

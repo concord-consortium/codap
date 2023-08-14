@@ -8,16 +8,16 @@ import { CodapModal } from "../../codap-modal"
 import t from "../../../utilities/translation/translate"
 
 interface IProps {
-  columnName: string
+  attributeId: string
   isOpen: boolean
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IProps) => {
+export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: IProps) => {
   const data = useDataSetContext()
-  const attribute = data?.attrFromName(columnName)
-  const attrId = data?.attrIDFromName(columnName)
-  const [attributeName, setAttributeName] = useState(columnName || "attribute")
+  const attribute = data?.attrFromID(attributeId)
+  const columnName = attribute?.name || "attribute"
+  const [attributeName, setAttributeName] = useState(columnName)
   const [description, setDescription] = useState("")
   const [unit, setUnit] = useState("")
   const [precision, setPrecision] = useState("")
@@ -29,8 +29,8 @@ export const EditAttributePropertiesModal = ({columnName, isOpen, onClose}: IPro
   }, [columnName])
 
   const editProperties = () => {
-    if (attribute && attrId) {
-      data?.setAttributeName(attrId, () => uniqueName(attributeName,
+    if (attribute && attributeId) {
+      data?.setAttributeName(attributeId, () => uniqueName(attributeName,
         (aName: string) => (aName === columnName) || !data.attributes.find(attr => aName === attr.name)
        ))
       attribute.setDescription(description)

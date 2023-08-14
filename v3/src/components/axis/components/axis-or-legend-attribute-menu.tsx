@@ -59,8 +59,9 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
           onCloseRef.current = onClose
           return (
             <div className="codap-graph-attribute-label" ref={setDragNodeRef}
-                style={overlayStyle} {...attributes} {...listeners}>
-              <MenuButton style={buttonStyle}>{attribute?.name}</MenuButton>
+                style={overlayStyle} {...attributes} {...listeners}
+                data-testid={`codap-graph-attribute-label-${place}`}>
+              <MenuButton style={buttonStyle} data-testid="axis-legend-attribute-button">{attribute?.name}</MenuButton>
               <MenuList>
                 { data?.attributes?.map((attr) => {
                   return (

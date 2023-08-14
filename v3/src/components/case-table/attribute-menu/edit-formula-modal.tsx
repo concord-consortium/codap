@@ -8,14 +8,14 @@ import t from "../../../utilities/translation/translate"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 
 interface IProps {
-  columnName: string
+  attributeId: string
   isOpen: boolean
   onClose: () => void
 }
 
-export const EditFormulaModal = ({ columnName, isOpen, onClose }: IProps) => {
+export const EditFormulaModal = ({ attributeId, isOpen, onClose }: IProps) => {
   const dataSet = useDataSetContext()
-  const attribute = dataSet?.attrFromName(columnName)
+  const attribute = dataSet?.attrFromID(attributeId)
   const [formula, setFormula] = useState("")
 
   const applyFormula = () => {
@@ -52,7 +52,9 @@ export const EditFormulaModal = ({ columnName, isOpen, onClose }: IProps) => {
       <ModalBody>
         <FormControl display="flex" flexDirection="column">
           <FormLabel display="flex" flexDirection="row">{t("DG.AttrFormView.attrNamePrompt")}
-            <Input size="xs" ml={5} placeholder="attribute" value={columnName} data-testid="attr-name-input" disabled />
+            <Input
+              size="xs" ml={5} placeholder="attribute" value={attribute?.name} data-testid="attr-name-input" disabled
+            />
           </FormLabel>
           <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
             <Textarea size="xs" value={formula} onChange={handleFormulaChange}

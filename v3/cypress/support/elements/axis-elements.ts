@@ -12,19 +12,19 @@ export const AxisElements = {
       case "y":
         return this.getGraphTile().find("[data-testid=axis-left]").parent()
       case "legend":
-        return this.getGraphTile().find(".axis-legend-attribute-menu.legend>button")
+        return this.getGraphTile().find("[data-testid=axis-legend-attribute-button]")
     }
   },
   getAxisLabel(axis) {
-    return this.getAxisElement(axis).find(".attribute-label")
+    return this.getAxisElement(axis).find("[data-testid=attribute-label]")
   },
   getDefaultAxisLabel(axis) {
-    return this.getAxisElement(axis).find(".empty-label")
+    return this.getAxisElement(axis).find("[data-testid=empty-label]")
   },
   getTickMarks(axis, categorical = false) {
     switch (categorical) {
       case true:
-        return this.getAxisElement(axis).find("line.tick")
+        return this.getAxisElement(axis).find("[data-testid=tick]")
       case false:
         return this.getAxisElement(axis).find(".tick line")
     }
@@ -45,7 +45,7 @@ export const AxisElements = {
   getGridLines(axis, categorical = false) {
     switch (categorical) {
       case true:
-        return this.getAxisElement(axis).find("[data-testid=category-on-axis] line.divider")
+        return this.getAxisElement(axis).find("[data-testid=category-on-axis] [data-testid=divider]")
       case false:
         return this.getAxisElement(axis).find(".tick line")
     }
@@ -56,7 +56,7 @@ export const AxisElements = {
   getAxisTickLabels(axis, categorical = false) {
     switch (categorical) {
       case true:
-        return this.getAxisElement(axis).find("[data-testid=category-on-axis] text.category-label")
+        return this.getAxisElement(axis).find("[data-testid=category-on-axis] [data-testid=category-label]")
       case false:
         return this.getAxisElement(axis).find(".tick text")
     }
@@ -75,12 +75,12 @@ export const AxisElements = {
       case "X":
       case "x":
       default:
-        return this.getGraphTile().find(".axis-legend-attribute-menu.bottom .codap-graph-attribute-label")
+        return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-bottom]")
       case "Y":
       case "y":
-        return this.getGraphTile().find(".axis-legend-attribute-menu.left .codap-graph-attribute-label")
+        return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-left]")
       case "legend":
-        return this.getGraphTile().find(".axis-legend-attribute-menu.legend .codap-graph-attribute-label")
+        return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-legend]")
     }
   },
   getAttributeFromAttributeMenu(axis) {

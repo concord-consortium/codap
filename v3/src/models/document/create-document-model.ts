@@ -3,6 +3,7 @@ import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
+import { FormulaManager } from "../data/formula-manager"
 
 /**
  * Create a DocumentModel and add a new sharedModelManager into its environment
@@ -12,8 +13,10 @@ import { SharedModelDocumentManager } from "./shared-model-document-manager"
  */
 export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   const sharedModelManager = new SharedModelDocumentManager()
+  const formulaManager = new FormulaManager()
   const fullEnvironment: ITileEnvironment & {documentEnv: IDocumentEnvironment} = {
     sharedModelManager,
+    formulaManager,
     documentEnv: {}
   }
   try {

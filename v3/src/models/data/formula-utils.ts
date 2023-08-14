@@ -1,4 +1,4 @@
-import { parse, MathNode, SymbolNode, FunctionNode, ConstantNode } from "mathjs"
+import { parse, MathNode, SymbolNode, FunctionNode, ConstantNode, isFunctionNode, isSymbolNode } from "mathjs"
 import {
   AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency,
   CODAPMathjsFunctions
@@ -42,22 +42,21 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
   }
 
   const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
-    if (node.type === "FunctionNode" && isAggregateFunction((node as FunctionNode).fn.name) ||
-      parent?.isDescendantOfAggregateFunc) {
+    if (isFunctionNode(node) && isAggregateFunction(node.fn.name) || parent?.isDescendantOfAggregateFunc) {
       node.isDescendantOfAggregateFunc = true
     }
-    if (node.type === "SymbolNode") {
-      const symbolNode = node as SymbolNode
-      if (symbolNode.name in displayNameMap.localNames) {
-        symbolNode.name = displayNameMap.localNames[symbolNode.name]
+    else if (isSymbolNode(node)) {
+      if (node.name in displayNameMap.localNames) {
+        node.name = displayNameMap.localNames[node.name]
+
         // Consider following formula example:
         // "mean(Speed) + Speed"
-        // `Speed` is one one that should be resolved to two very different values depending on the context:
+        // `Speed` is one that should be resolved to two very different values depending on the context:
         // - if Speed is not an argument of aggregate function, it should be resolved to the current case value
         // - if Speed is an argument of aggregate function, it should be resolved to an array containing all the values
         // This differentiation can be done using the suffixes added to the symbol name.
         if (parent.isDescendantOfAggregateFunc) {
-          symbolNode.name += AGGREGATE_SYMBOL_SUFFIX
+          node.name += AGGREGATE_SYMBOL_SUFFIX
         }
       }
     }
@@ -108,9 +107,8 @@ export const getFormulaDependencies = (formulaCanonical: string) => {
   const result: IFormulaDependency[] = []
 
   const visitNode = (node: MathNode) => {
-    if (node.type === "SymbolNode") {
-      const symbolNode = node as SymbolNode
-      const parsedName = parseCanonicalSymbolName(symbolNode.name)
+    if (isSymbolNode(node)) {
+      const parsedName = parseCanonicalSymbolName(node.name)
       if (parsedName) {
         result.push(parsedName)
       }

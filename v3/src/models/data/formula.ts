@@ -1,7 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 import { canonicalizeExpression } from "./formula-utils"
-import { getFormulaManager } from "./formula-manager"
+import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORMULA")),
@@ -12,18 +12,15 @@ export const Formula = types.model("Formula", {
     return !!self.canonical && self.canonical.length > 0
   },
   get formulaManager() {
-    // TODO: this is a current, draft version of the approach to get the formula manager
-    return getFormulaManager()
-    // Probably we should use code similar to the following:
-    // const sharedModelManager = getSharedModelManager(self)
-    // const sharedModels = sharedModelManager?.getSharedModelsByType(kFormulaManagerType)
-    // return sharedModels?.[0] as IFormulaManager | undefined
+    return getFormulaManager(self)
   }
 }))
 .actions(self => ({
   setDisplayFormula(displayFormula: string) {
-    const formulaManager = self.formulaManager
-    const displayNameMap = formulaManager?.getDisplayNameMapForFormula(self.id)
+    if (!self.formulaManager) {
+      return
+    }
+    const displayNameMap = self.formulaManager.getDisplayNameMapForFormula(self.id)
     this.setCanonical(canonicalizeExpression(displayFormula, displayNameMap))
   },
   setCanonical(canonical: string) {
