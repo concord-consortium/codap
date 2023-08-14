@@ -18,13 +18,13 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/plots/univariate_plot_view');
+sc_require('components/graph/plots/univariate_adornment-base_view');
 
 /** @class  DG.HistogramView, a plot of dots each placed according to numeric value bins
 
- @extends DG.UnivariatePlotView
+ @extends DG.UnivariateAdornmentBaseView
  */
-DG.HistogramView = DG.UnivariatePlotView.extend(
+DG.HistogramView = DG.UnivariateAdornmentBaseView.extend(
     /** @scope DG.HistogramView.prototype */
     {
       kLineSlideHCur: DG.Browser.customCursorStr(static_url('cursors/LineSlideH.cur'), 8, 8),

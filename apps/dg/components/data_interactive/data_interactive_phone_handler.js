@@ -122,6 +122,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           document: this.handleDocument,
           global: this.handleGlobal,
           globalList: this.handleGlobalList,
+          configuration: this.handleConfiguration,
+          configurationList: this.handleConfigurationList,
           item: this.handleItems,
           itemByID: this.handleItemByID,
           itemByCaseID: this.handleItemByCaseID,
@@ -250,6 +252,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'document',
               'global',
               'globalList',
+              'configuration',
+              'configurationList',
               'formulaEngine'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
@@ -272,6 +276,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
               (!isNaN(resourceSelector.component) &&
                   DG.currDocumentController().getComponentByID(resourceSelector.component));
+        }
+
+        if (resourceSelector.configuration) {
+          result.configuration = {name: resourceSelector.configuration};
         }
 
         if (resourceSelector.global) {
@@ -2389,6 +2397,45 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
             return null;
           }).filter(function(el) { return el; });
+          return {success: true, values: result};
+        }
+      },
+      handleConfiguration: {
+        get: function (iResources) {
+          var configuration = iResources.configuration;
+          if (DG.get('publicConfigurationProperties').includes(configuration.name)) {
+            return {
+              success: true,
+              values: {
+                name: configuration.name,
+                value: DG.get(configuration.name)
+              }
+            };
+          } else {
+            return {success: false, values: {error: 'Not found'}};
+          }
+        },
+        update: function (iResources, iValues) {
+          var configuration = iResources.configuration;
+          var newValue = iValues.value;
+
+          if (DG.get('publicConfigurationProperties').includes(configuration.name) && !SC.none(newValue)) {
+            DG.set(configuration.name, newValue);
+            return {success: true};
+          } else {
+            return {success: false, values: {error: 'not found or missing value'}};
+          }
+        }
+      },
+      handleConfigurationList: {
+        get: function (iResources) {
+          var properties = DG.get('publicConfigurationProperties');
+          var result = properties.map(function (name) {
+            var configParameterValue = DG[name]();
+            return {
+              name: name, value: configParameterValue
+            };
+          });
           return {success: true, values: result};
         }
       },

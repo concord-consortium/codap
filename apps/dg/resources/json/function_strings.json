@@ -1224,6 +1224,32 @@
     ]
   },
 
+  "linRegrSESlope": {
+    "displayName": "linRegrSESlope",
+    "description": "Computes the standard error of the slope of the least squares regression line (lsrl) for two attributes.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "The predictor value. An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "The response value. An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A boolean expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "linRegrSESlope(fathers_height, sons_height) computes the standard error of the slope of the lsrl for the two attributes.",
+      "linRegrSESlope(age, height, age<18) computes the standard error of the slope of the lsrl for age and height for those cases that have age less than 18."
+    ]
+  },
+
   "linRegrIntercept": {
     "displayName": "linRegrIntercept",
     "description": "Computes the y-intercept of the least squares regression line (lsrl) for two attributes.",

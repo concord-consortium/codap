@@ -43,6 +43,9 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
       */
      isInterceptLocked: false,
 
+     /** @property { Boolean } */
+     showConfidenceBands: false,
+
      numLegendCells: function () {
        var tLegendDesc = this.getPath('plotModel.dataConfiguration.legendAttributeDescription'),
           tNumCells = (SC.none(tLegendDesc) || tLegendDesc.get('isNumeric')) ? 1 :
@@ -92,6 +95,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
        var tIsLocked = this.get('isInterceptLocked');
        this.get('lsrls').forEach(function (iLSRLModel) {
          iLSRLModel.set('isInterceptLocked', tIsLocked);
+         iLSRLModel.setComputingNeeded();
        });
      }.observes('isInterceptLocked'),
 
@@ -104,6 +108,16 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
          iLSRLModel.set('showSumSquares', tShowing);
        });
      }.observes('showSumSquares'),
+
+     /**
+      * Keep my list of LSRLModels in synch
+      */
+     showConfidenceBandsChanged: function () {
+       var tShowing = this.get('showConfidenceBands');
+       this.get('lsrls').forEach(function (iLSRLModel) {
+         iLSRLModel.set('showConfidenceBands', tShowing);
+       });
+     }.observes('showConfidenceBands'),
 
      /**
       *  We do not set that our values need computing because these are only re-evaluated when
@@ -187,6 +201,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
          plotModel: this.get('plotModel'),
          categoryName: iCategoryName,
          showSumSquares: this.get('showSumSquares'),
+         showConfidenceBands: this.get('showConfidenceBands'),
          enableMeasuresForSelection: this.get('enableMeasuresForSelection'),
          isInterceptLocked: this.get('isInterceptLocked'),
          isVisible: this.get('isVisible')
@@ -208,6 +223,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
        var storage = sc_super();
        storage.showSumSquares = this.showSumSquares;
        storage.isInterceptLocked = this.isInterceptLocked;
+       storage.showConfidenceBands = this.showConfidenceBands;
        storage.lsrls = [];
        this.get('lsrls').forEach(function (iLSRL) {
          storage.lsrls.push(iLSRL.createStorage());
@@ -219,6 +235,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
        sc_super();
        this.showSumSquares = iStorage.showSumSquares;
        this.isInterceptLocked = iStorage.isInterceptLocked;
+       this.showConfidenceBands = iStorage.showConfidenceBands;
        this.get('lsrls').forEach(function (iLSRL) {
          iLSRL.set('showSumSquares', this.showSumSquares);
          iLSRL.set('isInterceptLocked', this.isInterceptLocked);

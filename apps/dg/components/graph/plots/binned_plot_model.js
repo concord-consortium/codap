@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/plots/univariate_plot_model');
+sc_require('components/graph/plots/univariate_adornment_base_model');
 
 /**
  * @class  DG.BinnedPlotModel The model for a dot plot in which the dots are binned.
@@ -29,9 +29,9 @@ sc_require('components/graph/plots/univariate_plot_model');
  *  - The default number of bins applies across all the cells rather than separately for each cell. Thus, to
  *    determine the alignment and width we have to find the min and max of all the values, regardless of cell.
  *
- * @extends SC.UnivariatePlotModel
+ * @extends DG.UnivariateAdornmentBaseModel
  */
-DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
+DG.BinnedPlotModel = DG.UnivariateAdornmentBaseModel.extend((function () {
 
   var kDefaultNumberOfBins = 4;
 
@@ -521,6 +521,16 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
         },
 
         checkboxDescriptions: function () {
+          if( !this.get('dotsAreFused')) {
+            return this.get('checkboxDescriptionsForPlotModel');  // Jump to base class
+          }
+          return sc_super();
+        }.property(),
+
+        lastValueControls: function () {
+          if( !this.get('dotsAreFused')) {
+            return [];  // We don't have any
+          }
           return sc_super();
         }.property(),
 

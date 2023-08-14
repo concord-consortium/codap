@@ -30,7 +30,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
 /** @scope DG.TwoDLineAdornment.prototype */
     (function() {
       var kSumSquares = '<p style = "color:%@;">%@ = %@</p>', // sumOfResidualsSquared
-          kSlopeIntercept = '<p style="color:%@;"><i>%@</i> = %@ <i>%@</i> %@ %@</p>', // color,y,slope,x,signInt,Int
+          kSlopeInterceptXSingle = '<p style="color:%@;"><i>%@</i> = %@ <i>%@</i> %@ %@</p>', // color,y,slope,x,signInt,Int
+          kSlopeInterceptXMultiple = '<p style="color:%@;"><i>%@</i> = %@ (<i>%@</i>) %@ %@</p>', // color,y,slope,x,signInt,Int
           kInfiniteSlope = '<p style = "color:%@;"><i>%@</i> = %@ %@</p>', // x,constant,unit
           kSlopeOnly = '<p style = "color:%@;">%@ = %@ %@</p>', // color, left side, numeric slope, slope unit
           kUnitsWrapper = '<span style = "color:gray;">%@</span>'; // units
@@ -80,7 +81,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       ['isInterceptLocked', 'updateToModel'],
       ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel'],
       ['sumSquaresResiduals', 'updateToModel'],
-      ['equationCoords', 'updateToModel']],
+      ['equationCoords', 'updateToModel'],
+      ['showConfidenceBands', 'updateToModel']],
 
     /**
      The returned string should have a reasonable number of significant digits for the
@@ -143,7 +145,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
               return (tYUnit === '') ? '' : ' ' + kUnitsWrapper.loc(tYUnit);
             };
 
-        var kSlopeInterceptForm = kSlopeIntercept,// y,slope,x,signInt,Int
+        var kSlopeInterceptForm = kSlopeInterceptXSingle,// y,slope,x,signInt,Int
             tIntercept = this_.getPath('model.intercept'),
             tSlope = this_.getPath('model.slope'),
             tDigits = DG.PlotUtilities.findNeededFractionDigits(
@@ -175,6 +177,9 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tSlopeString = '';
           tXVar = '';
           tSign = '';
+        }
+        if(tXVar.length > 1) {
+          kSlopeInterceptForm = kSlopeInterceptXMultiple;
         }
         return kSlopeInterceptForm.loc(tEquationColor, tYVar, tSlopeString, tXVar, tSign, tInterceptString);
       }

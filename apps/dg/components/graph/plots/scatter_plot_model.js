@@ -639,6 +639,62 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       checkboxDescriptions: function () {
+
+        function isLSRLVisible() {
+          return this_.get('isLSRLVisible');
+        }
+
+        function showConfidenceBandsCheckboxShouldBeEnabled() {
+          return isLSRLVisible() && !this_.getPath('multipleLSRLs.isInterceptLocked');
+        }
+
+        function createLsrlToggle() {
+          var kMargin = 20,
+             kLeading = 5,
+             kRowHeight = 20,
+             tShowSECheckbox = SC.CheckboxView.create( {
+               layout: { height: kRowHeight },
+               localize: true,
+               flowSpacing: { left: kMargin },
+               title: 'DG.Inspector.graphLSRLSlopeCI',
+               value: this_.getPath('multipleLSRLs.showConfidenceBands') && !this_.getPath('multipleLSRLs.isInterceptLocked'),
+               classNames: 'dg-graph-LSRLSlopeCI-check'.w(),
+               valueDidChange: function () {
+                 this_.get('multipleLSRLs').toggleProperty('showConfidenceBands');
+                 this_.get('multipleLSRLs').setComputingNeeded();
+               }.observes('value')
+             }),
+             tLSRLCheckbox = SC.CheckboxView.create( {
+               layout: { height: kRowHeight },
+               localize: true,
+               title: 'DG.Inspector.graphLSRL',
+               value: isLSRLVisible(),
+               classNames: 'dg-graph-lsrl-check'.w(),
+               valueDidChange: function () {
+                 this_.toggleLSRLLine();
+                 tShowSECheckbox.set('isEnabled', showConfidenceBandsCheckboxShouldBeEnabled());
+               }.observes('value')
+             });
+
+          var tComposite =  SC.View.create( SC.FlowedLayout,
+             {
+               layoutDirection: SC.LAYOUT_VERTICAL,
+               isResizable: false,
+               isClosable: false,
+               layout: {height: 2 * (kRowHeight + kLeading)},
+               defaultFlowSpacing: {bottom: kLeading},
+               canWrap: false,
+               align: SC.ALIGN_TOP,
+               init: function() {
+                 sc_super();
+                 tShowSECheckbox.set('isEnabled', showConfidenceBandsCheckboxShouldBeEnabled());
+                 this.appendChild( tLSRLCheckbox);
+                 this.appendChild(tShowSECheckbox);
+               }
+             });
+          return tComposite;
+        }
+
         var this_ = this;
         return sc_super().concat([
           {
@@ -665,14 +721,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
               this_.toggleMovableLine();
             }.observes('value')
           },
-          {
-            title: 'DG.Inspector.graphLSRL',
-            value: this_.get('isLSRLVisible'),
-            classNames: 'dg-graph-lsrl-check'.w(),
-            valueDidChange: function () {
-              this_.toggleLSRLLine();
-            }.observes('value')
-          },
+          { control: createLsrlToggle()},
           {
             title: 'DG.Inspector.graphInterceptLocked',
             classNames: 'dg-graph-interceptLocked-check'.w(),

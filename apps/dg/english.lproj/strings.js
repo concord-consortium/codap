@@ -303,6 +303,12 @@ SC.stringsFor("en", {
     "DG.Redo.graph.showPlottedStDev": "Redo showing standard deviation",
     "DG.Undo.graph.hidePlottedStDev": "Undo hiding standard deviation",
     "DG.Redo.graph.hidePlottedStDev": "Redo hiding standard deviation",
+    "DG.Undo.graph.showPlottedStErr": "Undo showing standard error",
+    "DG.Redo.graph.showPlottedStErr": "Redo showing standard error",
+    "DG.Undo.graph.hidePlottedStErr": "Undo hiding standard error",
+    "DG.Redo.graph.hidePlottedStErr": "Redo hiding standard error",
+    "DG.Undo.graph.setNumStErrs": "Undo setting the number of standard errors",
+    "DG.Redo.graph.setNumStErrs": "Redo setting the number of standard errors",
     "DG.Undo.graph.showPlottedIQR": "Undo showing inter-quartile range",
     "DG.Redo.graph.hidePlottedIQR": "Redo hiding inter-quartile range",
     "DG.Undo.graph.hidePlottedIQR": "Undo hiding inter-quartile range",
@@ -315,6 +321,10 @@ SC.stringsFor("en", {
     "DG.Redo.graph.hideOutliers": "Redo hiding outliers",
     "DG.Undo.graph.hideOutliers": "Undo hiding outliers",
     "DG.Redo.graph.showOutliers": "Redo showing outliers",
+    "DG.Undo.graph.showPlottedNormal": "Undo showing normal curve",
+    "DG.Redo.graph.hidePlottedNormal": "Redo hiding normal curve",
+    "DG.Undo.graph.hidePlottedNormal": "Undo hiding normal curve",
+    "DG.Redo.graph.showPlottedNormal": "Redo showing normal curve",
     "DG.Undo.graph.showICI": "Undo showing informal confidence interval",
     "DG.Redo.graph.hideICI": "Redo hiding informal confidence interval",
     "DG.Undo.graph.hideICI": "Undo hiding informal confidence interval",
@@ -760,6 +770,7 @@ SC.stringsFor("en", {
     "DG.ScatterPlotModel.hoursLabel": "per hour", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.minutesLabel": "per minute", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.secondsLabel": "per seconds", // used in equation for line when x is a datetime axis
+    "DG.ScatterPlotModel.LSRLCIBandInfo": "Shaded regions shows the range\n in which the true regression line\n lies at 95% confidence level.",
 
     // DG.BarChartModel
     "DG.BarChartModel.cellTipPlural": "%@ of %@ %@ (%@%) are %@",  // "<n> of <m> <X>s (<p>%) are <Y>"
@@ -800,6 +811,7 @@ SC.stringsFor("en", {
     "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@", // "mean=123.456"
     "DG.PlottedAverageAdornment.medianValueTitle": "median=%@", // "median=123.456"
     "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "±1 SD, 123.456"
+    "DG.PlottedAverageAdornment.stErrValueTitle": "±%@ SE, %@", // "±1 SE, 123.456"
     "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@", // "±1 MAD, 123.456"
     "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
     "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
@@ -963,13 +975,18 @@ SC.stringsFor("en", {
     "DG.Inspector.graphPlottedFunction": "Plotted Function",
     "DG.Inspector.graphSquares": "Squares of Residuals",
     "DG.Inspector.graphLSRL": "Least Squares Line",
+    "DG.Inspector.graphLSRLSlopeCI": "Show Confidence Bands",
     "DG.Inspector.graphMovableValue": "Movable Value",
     "DG.Inspector.graphAdd": "Add",
     "DG.Inspector.graphRemove": "Remove",
     "DG.Inspector.showLabels": "Show Measure Labels",
     "DG.Inspector.graphPlottedMean": "Mean",
     "DG.Inspector.graphPlottedMedian": "Median",
+    "DG.Inspector.graphSpreadOptions": "Measures of Spread",
     "DG.Inspector.graphPlottedStDev": "Standard Deviation",
+    "DG.Inspector.graphPlottedStErr": "Standard Error",
+    "DG.Inspector.graphPlottedNormal": "Normal Curve",
+    "DG.Inspector.graphPlottedGaussianFit": "Gaussian Fit",
     "DG.Inspector.graphPlottedMeanAbsDev": "Mean Absolute Deviation",
     "DG.Inspector.graphPlottedIQR": "Interquartile Range",
     "DG.Inspector.graphPlottedBoxPlot": "Box Plot",

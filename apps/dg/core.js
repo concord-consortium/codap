@@ -432,6 +432,29 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     /**
+     * publicConfigurationProperties is a list of properties that can be set by a plugin using the configuration API.
+     *
+     * For V3 we can have a single public configuration object whose keys are the names of the properties and values
+     * are the default values.
+     */
+    publicConfigurationProperties: ['gaussianFitEnabled'],
+
+    _gaussianFitEnabled: undefined,
+    /**
+     * gaussianFitEnabled, when present indicates that a "Gaussian Fit" option should be included in the
+     * ruler menu for histograms. This option is for use by the PhET Simulations and Noise project. It can
+     * be set either through a url parameter or by a plugin using the configuration API.
+     * value {string}
+     * @property {string | undefined}
+     */
+    gaussianFitEnabled: function (key, value) {
+      if (value !== undefined) {
+        this._gaussianFitEnabled = value;
+      }
+      return this._gaussianFitEnabled || getUrlParameter('gaussian', undefined);
+    }.property(),
+
+    /**
      * Returns the index of a guide page, if set as a query parameter. This is
      * taken to designate the guid page that should be present when CODAP opens
      * the document. This value should override whichever guide page is current

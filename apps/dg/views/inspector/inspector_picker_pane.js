@@ -54,6 +54,15 @@ DG.InspectorPickerPane = SC.PickerPane.extend(
         this.adjust('height', tHeight);
         sc_super();
       },
+      click: function (evt) {
+        var tSubPane = this.get('subPane');
+        if( this.get('subPane')) {
+          tSubPane.remove();
+          tSubPane.destroy();
+          this.set('subPane', null);
+        }
+        return false;
+      },
       transitionIn: SC.View.SCALE_IN,
       removeAction: function () {
         console.log('removeAction');
@@ -70,9 +79,14 @@ DG.InspectorPickerPane.close = function (iClass) {
       hasClass = tInspectorPicker && (tInspectorPicker.get('buttonIconClass') === iClass);
   if (tInspectorPicker) {
     SC.run(function () {
+      var tSubPane = tInspectorPicker.get('subPane');
       tInspectorPicker.remove();
       tInspectorPicker.destroy();
       DG.set('inspectorPicker', null);
+      if( tSubPane) {
+        tSubPane.remove();
+        tSubPane.destroy();
+      }
     });
   }
   return (tInspectorPicker != null) && (!iClass || hasClass);

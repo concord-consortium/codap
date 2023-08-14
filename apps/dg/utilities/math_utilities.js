@@ -206,7 +206,7 @@ DG.MathUtilities = {
 
   /**
    * Get the quantile
-   * @param iArray Sorted array of finite numeric values (no non-numeric or missing values allowed)
+   * @param iSortedArray
    * @param iQuantile {Number} quantile [0.0-1.0] to calculate, e.g. first quartile = 0.25
    * @return {Number} median value or undefined if ioArray.length===0
    */
@@ -234,9 +234,9 @@ DG.MathUtilities = {
    *  [ minValue, 1/iNumQuantiles quantile, ..., maxValue]
    *  Note that the given array is modified; i.e. sorted.
    *  The returned array has iNumQuantiles + 1 members.
-   * @param ioValues {Array of Number}
-   * @param iNumQuantiles {Integer}
-   * @returns {Array of Number}
+   * @param ioValues {number[]}
+   * @param iNumQuantiles {number}
+   * @returns {number[]}
    */
   nQuantileValues: function (ioValues, iNumQuantiles) {
 
@@ -253,20 +253,27 @@ DG.MathUtilities = {
     return tQValues;
   },
 
+  tAt0975ForDf: function( iDf) {
+    var foundIndex = DG.stat_constants.t_quantile_at_0975_for_df.findIndex( function( iPair) {
+      return iPair[0] > iDf;
+    });
+    return foundIndex <= 0 ? 1.96 : DG.stat_constants.t_quantile_at_0975_for_df[ foundIndex - 1][1];
+  },
+
   /**
    * Returns an object that has the slope and intercept
-   * @param iCoordPairs [{x: {Number}, y: {Number}}]
-   * @returns {{count: {Number}, xSum: {Number}, xSumOfSquares: {Number}, xSumSquaredDeviations: { Number},
-   *          ySum: {Number}, ySumOfSquares: {Number}, ySumSquaredDeviations: {Number}, sumOfProductDiffs: {Number} }
+   * @param iCoordPairs {[{x: {Number}, y: {Number}}]}
+   * @returns {{count: {Number}, xSum: {Number}, xSumSquaredDeviations: { Number},
+   *          ySum: {Number}, ySumSquaredDeviations: {Number}, sumOfProductDiffs: {Number} }}
    */
   computeBivariateStats: function (iCoordPairs) {
     var tResult = {
           count: 0,
           xSum: 0,
-          xSumOfSquares: 0,
+          xMean: 0,
           xSumSquaredDeviations: 0,
           ySum: 0,
-          ySumOfSquares: 0,
+          yMean: 0,
           ySumSquaredDeviations: 0,
           sumOfProductDiffs: 0
         },
@@ -280,9 +287,7 @@ DG.MathUtilities = {
       if (isFinite(iPair.x) && isFinite(iPair.y)) {
         tResult.count += 1;
         tResult.xSum += iPair.x;
-        tResult.xSumOfSquares += (iPair.x * iPair.x );
         tResult.ySum += iPair.y;
-        tResult.ySumOfSquares += (iPair.y * iPair.y );
       }
     });
     if (tResult.count > 0) {
@@ -310,7 +315,7 @@ DG.MathUtilities = {
 
   /**
    * Returns the correlation coefficient for the coordinates in the array
-   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @param iCoords {[{x: {Number}, y: {Number}}]}
    * @returns {Number}
    */
   correlation: function (iCoords) {
@@ -327,7 +332,7 @@ DG.MathUtilities = {
 
   /**
    * Returns the square of the correlation coefficient for the coordinates in the array
-   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @param iCoords {[{x: {Number}, y: {Number}}]}
    * @returns {Number}
    */
   rSquared: function (iCoords) {
@@ -342,7 +347,7 @@ DG.MathUtilities = {
 
   /**
    * Returns the slope of the lsrl fitting the coordinates
-   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @param iCoords {[{x: {Number}, y: {Number}}]}
    * @param iInterceptLocked {Boolean}
    * @returns {Number}
    */
@@ -363,7 +368,7 @@ DG.MathUtilities = {
 
   /**
    * Returns the intercept of the lsrl fitting the coordinates
-   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @param iCoords {[{x: {Number}, y: {Number}}]}
    * @param iInterceptLocked {Boolean}
    * @returns {Number}
    */
@@ -384,12 +389,22 @@ DG.MathUtilities = {
 
   /**
    * Returns an object that has the slope and intercept
-   * @param iValues [{x: {Number}, y: {Number}}]
+   * @param iValues {[{x: {Number}, y: {Number}}]}
    * @param iInterceptLocked {Boolean}
-   * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sumSquaresResiduals: { Number}}
+   * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sse: { Number}}}
    */
   leastSquaresLinearRegression: function (iValues, iInterceptLocked) {
-    var tSlopeIntercept = {slope: null, intercept: null, rSquared: null, sumSquaresResiduals: null},
+    var tSlopeIntercept = {
+         count: null,
+         xMean: null,
+         xSumSquaredDeviations: null,
+         slope: null,
+         intercept: null,
+         sse: 0,  // sum of squared errors
+         mse: null, // mean squared error
+         rSquared: null,
+         sdResiduals: null
+       },
         tBiStats = DG.MathUtilities.computeBivariateStats(iValues);
     if (tBiStats.count > 1) {
       if (iInterceptLocked) {
@@ -398,17 +413,134 @@ DG.MathUtilities = {
         tSlopeIntercept.intercept = 0;
       }
       else {
+        tSlopeIntercept.count = tBiStats.count;
+        tSlopeIntercept.xMean = tBiStats.xMean;
+        tSlopeIntercept.yMean = tBiStats.yMean;
+        tSlopeIntercept.xSumSquaredDeviations = tBiStats.xSumSquaredDeviations;
         tSlopeIntercept.slope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations;
         tSlopeIntercept.intercept = tBiStats.yMean - tSlopeIntercept.slope * tBiStats.xMean;
         tSlopeIntercept.rSquared = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
             (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations);
-        tSlopeIntercept.sumSquaresResiduals = tBiStats.ySumSquaredDeviations +
-            (tBiStats.ySum / tBiStats.count) * (tBiStats.ySum - tSlopeIntercept.slope * tBiStats.xSum) -
-            tSlopeIntercept.intercept * tBiStats.ySum -
-            tSlopeIntercept.slope * tBiStats.sumOfProductDiffs;
+        // Now that we have the slope and intercept, we can compute the sum of squared errors
+        iValues.forEach(function (iPair) {
+          if (isFinite(iPair.x) && isFinite(iPair.y)) {
+            var tResidual = iPair.y - (tSlopeIntercept.intercept + tSlopeIntercept.slope * iPair.x);
+            tSlopeIntercept.sse += tResidual * tResidual;
+          }
+        });
+        tSlopeIntercept.sdResiduals = Math.sqrt(tSlopeIntercept.sse / (tBiStats.count - 2));
+        tSlopeIntercept.mse = tSlopeIntercept.sse / (tSlopeIntercept.count - 2);
       }
     }
     return tSlopeIntercept;
+  },
+
+  /**
+   * Returns the standard error of the slope of the lsrl fitting the coordinates
+   * Note that we do not compute standard error for the situation in which the intercept is locked.
+   * @param iCoords {[{x: {Number}, y: {Number}}]}
+   * @returns {Number}
+   */
+  linRegrSESlope: function (iCoords) {
+    var tResult = NaN,
+       tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression(iCoords, false);
+    if (tSlopeIntercept.count > 1) {
+      tResult = Math.sqrt((tSlopeIntercept.sse / (tSlopeIntercept.count - 2)) /
+                          tSlopeIntercept.xSumSquaredDeviations);
+    }
+    return tResult;
+  },
+
+  normal: function(x, amp, mu, sigma) {
+    var exponent = -(Math.pow(x - mu, 2) / (2 * Math.pow(sigma, 2)));
+    return amp * Math.exp(exponent);
+  },
+
+  /**
+   * Gradient descent algorithm that fits a gaussian to points that are typically the top-middles of
+   * a histogram by least squares optimizing mu and sigma. The amplitude is assumed to be fixed.
+   * @param points {{x: number, y: number}[]}
+   * @param amp {number}  // a fixed value for the amplitude
+   * @param mu0 {number}  // initial guess for mu
+   * @param sigma0 {number}  // initial guess for sigma
+   * @returns {{mu: number, sigma: number}}
+   */
+  fitGaussianGradientDescent: function(points, amp, mu0, sigma0) {
+
+    function sumOfSquares(points1, amp1, mu1, sigma1) {
+      return points1.reduce(function(sum, p) {
+        return sum + Math.pow(p.y - DG.MathUtilities.normal(p.x, amp1, mu1, sigma1), 2);
+      }, 0);
+    }
+
+    // Function to compute the gradient of f at (x, y)
+    function gradient(f, x, y, h) {
+      h = h || 1e-3;
+      var fxPlus = f(x + h, y),
+        fxMinus = f(x - h, y),
+        dfdx = (fxPlus - fxMinus) / (2 * h),
+        fyPlus = f(x, y + h),
+        fyMinus = f(x, y - h),
+        dfdy = (fyPlus - fyMinus) / (2 * h);
+      return [dfdx, dfdy];
+    }
+
+    // Gradient Descent function to find local minimum of f(x, y)
+    function gradientDescent(f, x0, y0, numericRange) {
+
+/*
+      function logIt() {
+        var log = '%@: x = %@, y = %@, dfdx = %@, dfdy = %@, prevValue = %@, newValue = %@'
+           .loc(i, x.toFixed(6), y.toFixed(6),
+              dfdx.toFixed(6), dfdy.toFixed(6), prevValue.toFixed(6), newValue.toFixed(6));
+        console.log(log);
+      }
+*/
+
+      var learningRate = 0.001,
+         iterations = 1000,
+         tolerance = 1e-5,
+         x = x0, y = y0, prevValue = f(x, y)/*,
+         logInterval = iterations / 10*/;
+
+      for (var i = 0; i < iterations; i++) {
+        var gradient_ = gradient(f, x, y, numericRange / 100),
+            dfdx = gradient_[0],
+            dfdy = gradient_[1];
+
+        // Update x and y
+        x -= learningRate * dfdx;
+        y -= learningRate * dfdy;
+
+        var newValue = f(x, y);
+/*
+        if (i % logInterval <= 1) {
+          logIt();
+        }
+*/
+        if (Math.abs(newValue - prevValue) < tolerance) {
+          // logIt();
+          break;
+        }
+        prevValue = newValue;
+      }
+
+      return [x, y];
+    }
+
+    /**
+     * We define this function to pass to gradientDescent, which expects a function of two variables.
+     * @param mu
+     * @param sigma
+     * @returns {*}
+     */
+    function fToMinimize(mu, sigma) {
+      return sumOfSquares(points, amp, mu, sigma);
+    }
+
+    var muSigma = gradientDescent(fToMinimize, mu0, sigma0, sigma0);
+
+    return { mu: muSigma[0], sigma: muSigma[1] };
   },
 
   /**

@@ -284,6 +284,10 @@ html, body {
     background-color: rgba(231, 231, 231, 0.70);
 }
 
+.dg-inspector-back{
+    font-size: x-large;
+}
+
 .dg-inspector-map-color-controls {
     left: 20px !important;
 }

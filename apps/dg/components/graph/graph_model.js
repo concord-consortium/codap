@@ -1878,6 +1878,10 @@ DG.GraphModel = DG.DataLayerModel.extend(
       return this.getPath('plot.checkboxDescriptions');
     }.property('plot'),
 
+    spreadCheckboxDescriptions: function() {
+      return this.getPath('plot.spreadCheckboxDescriptions');
+    }.property('plot'),
+
     configurationDescriptions: function() {
       return this.getPath('plot.configurationDescriptions');
     }.property('plot'),

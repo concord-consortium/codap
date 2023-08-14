@@ -771,7 +771,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         this.caseValueAnimator.animate();
       },
 
-      checkboxDescriptions: function () {
+      /**
+       * We add this "extra" accessor for checkbox descriptions so that the BinnedPlotModel can get to it without
+       * encountering the UnivariateAdornmentBaseModel's accessor for checkboxDescriptions.
+       */
+      checkboxDescriptionsForPlotModel: function () {
         var this_ = this,
             tXHasCells = this.get('xAxis').numberOfCells() > 1,
             tYHasCells = this.get('yAxis').numberOfCells() > 1,
@@ -815,7 +819,15 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         return tDescriptions;
       }.property(),
 
+      checkboxDescriptions: function () {
+        return this.checkboxDescriptionsForPlotModel();
+      }.property(),
+
       configurationDescriptions: function () {
+        return [];
+      }.property(),
+
+      spreadCheckboxDescriptions: function () {
         return [];
       }.property(),
 

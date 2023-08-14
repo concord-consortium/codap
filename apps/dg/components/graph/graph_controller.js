@@ -269,6 +269,12 @@ DG.GraphController = DG.DataDisplayController.extend(
                         this_.getPath('dataDisplayModel.checkboxDescriptions').forEach(function (iDesc) {
                           if( iDesc.control) {
                             this.appendChild( iDesc.control);
+                            if( iDesc.control.instanceOf(SC.ButtonView) && iDesc.action) {
+                              iDesc.control.set('action', function() {
+                                this_.get(iDesc.action)(this_.get('dataDisplayModel'),
+                                   this_.get('inspectorButtons')[2]);
+                              });
+                            }
                           }
                           else {
                             iDesc.layout = {height: kRowHeight};
@@ -284,6 +290,59 @@ DG.GraphController = DG.DataDisplayController.extend(
               });
           this.valuesPane.popup(this.get('inspectorButtons')[2], SC.PICKER_POINTER);
         },
+
+        /**
+         * This pane is displayed for the univariate plot ruler menu when the user clicks "Measures of Spread"
+         */
+        showHideSpreadsSubPane: function (iDataDisplayModel, iAnchorView) {
+          var kMargin = 20,
+              kLeading = 5,
+              kRowHeight = 20,
+              tSavedInspectorPicker = DG.get('inspectorPicker');  // We have to restore this as the global
+          var tValuesPane = DG.InspectorPickerPane.create(
+              {
+                classNames: 'dg-inspector-picker '.w(),
+                layout: {width: 200, height: 260},
+                contentView: SC.View.extend(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_VERTICAL,
+                      isResizable: false,
+                      isClosable: false,
+                      defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP,
+                      layout: {right: 22},
+                      childViews: 'close'.w(),
+                      close: SC.ButtonView.extend({
+                        classNames: 'dg-inspector-back'.w(),
+                        layout: {top: 3, height: kRowHeight + 3, width: 50},
+                        flowSpacing: {top: 3, left: kMargin / 2, bottom: kLeading},
+                        title: '←',
+                        action: function() {
+                          tValuesPane.remove();
+                          tValuesPane.destroy();
+                        }
+                      }),
+                      init: function () {
+                        sc_super();
+                        iDataDisplayModel.get('spreadCheckboxDescriptions').forEach(function (iDesc) {
+                          if( iDesc.control) {
+                            this.appendChild(iDesc.control);
+                          }
+                          else {
+                            iDesc.layout = { height: kRowHeight }
+                            iDesc.localize = true
+                            this.appendChild(SC.CheckboxView.create(iDesc))
+                          }
+                        }.bind(this));
+                      }
+                    })
+              });
+          DG.set('inspectorPicker', tSavedInspectorPicker); // Restore the global because it got clobbered
+          // Store a pointer to this pane, so we can close it when the main picker pane is closed
+          DG.setPath('inspectorPicker.subPane', tValuesPane);
+          tValuesPane.popup(iAnchorView, SC.PICKER_POINTER);
+        }.bind(this),
 
         addBackgroundImage: function () {
 

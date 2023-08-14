@@ -74,9 +74,9 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   isInterceptLocked: function( iKey, iLocked) {
     if( iLocked !== undefined) {
       this._interceptLocked = iLocked;
+      this.setComputingNeeded();
       if( iLocked)
         this.set('intercept', 0);
-      this.setComputingNeeded();
     }
     return this._interceptLocked;
   }.property(),

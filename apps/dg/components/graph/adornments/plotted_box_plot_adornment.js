@@ -197,6 +197,9 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
          * @param iAnimate {Boolean} [optional] if true then animate showing/hiding of box plot.
          */
         updateSymbols: function (iAnimate) {
+          // We can get here indirectly in which case iAnimate is an object we should ignore
+          if (iAnimate && iAnimate !== true)
+            iAnimate = false;
           var this_ = this,
               kAnimationTime = DG.PlotUtilities.kDefaultAnimationTime,
               tLayer = this.get('layer'),
@@ -205,7 +208,9 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
               tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal),
               tValuesArray = this.getPath('model.values'),
               tNumValues = tValuesArray && tValuesArray.length,
-              tPaper = this.get('paper');
+              tPaper = this.get('paper'),
+              tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
+              tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group('');
           if (!tSecondaryAxisView || !tNumValues || !tPaper)
             return; // Happens during transition after secondary attribute removed but before new axis created
           var formatValue = function( iValue) {

@@ -63,6 +63,17 @@ DG.functionRegistry.registerAggregates((function () {
       }
     }),
 
+    linRegrSESlope: DG.BivariateStatsFn.create({
+
+      computeResults: function (iContext, iEvalContext, iInstance) {
+        DG.ObjectMap.forEach(iInstance.caches,
+            function (iKey, iCache) {
+              iInstance.results[iKey] = DG.MathUtilities.linRegrSESlope(iCache);
+            });
+        return this.queryCache(iContext, iEvalContext, iInstance);
+      }
+    }),
+
     linRegrIntercept: DG.BivariateStatsFn.create({
 
       computeResults: function (iContext, iEvalContext, iInstance) {

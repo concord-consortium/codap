@@ -165,7 +165,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
         var tCellHeight = tAdornment.getPath('parentView.secondaryAxisView.fullCellWidth'),
             p = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap},
             tOffScreen = -3 * this.symSize; // negative view coordinate to move off screen to hide
-        var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat;
+        var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat, tAmplitude
         var tSymbol, tCover, tBackground, kElemsPerCell = 3; // rafael elements
 
         function overScope() {
@@ -194,10 +194,14 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
           tSpreadStart = tValuesArray[i][this.spreadStartKey]; // world coord of lower end of spread
           tLowerWhisker = tValuesArray[i][this.lowerKey]; // end of lower whisker to plot: number or undefined;
           tUpperWhisker = tValuesArray[i][this.upperKey]; // end of upper whisker to plot: number or undefined;
+          tAmplitude = tValuesArray[i][this.amplitudeKey]; // amplitude of gaussian fit curve for histogram
           tViewCoord = (isFinite(tWorldCoord) ? tPrimaryAxisView.dataToCoordinate(tWorldCoord) : tOffScreen);
           p.width = (isFinite(tSpread) ? Math.abs(tPrimaryAxisView.dataToCoordinate(tWorldCoord + tSpread) - tViewCoord) : 0);
           p.x = (tIsHorizontal ? tViewCoord : i * tCellHeight);
           p.y = (tIsHorizontal ? (tNumValues - i) * tCellHeight : tViewCoord);
+          p.count = tValuesArray[i].count;
+          p.center = tWorldCoord;
+          p.spread = tSpread;
           p.spreadStart = (isFinite(tSpreadStart) ?
               tPrimaryAxisView.dataToCoordinate(tSpreadStart) : tOffScreen);
           p.lowerWhisker = (isFinite(tLowerWhisker) ?
@@ -205,6 +209,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
           p.upperWhisker = (isFinite(tUpperWhisker) ?
               (tIsHorizontal ? tPrimaryAxisView.dataToCoordinate(tUpperWhisker) - (p.spreadStart + p.width) :
                   -(p.spreadStart - p.width - tPrimaryAxisView.dataToCoordinate(tUpperWhisker))) : 0);
+          p.amplitude = (isFinite(tAmplitude) ? tAmplitude : null);
 
           // create symbol and invisible cover line elements as needed (set constant attributes here)
           if (i * kElemsPerCell >= tNumElements) {
@@ -334,23 +339,39 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
         return 'M0,0'; // default is to return an empty path
       },
 
+      getValueString: function (axisValue, titleResource) {
+        var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
+           tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group('');
+        return titleResource.loc(tNumFormat(axisValue));
+      },
+
+      /**
+       * Return a string to be displayed to user to show numeric value with rounding and units
+       * @param axisValue
+       * @returns {{valueString:string, unitsString:string}}
+       */
+      valueAndUnitsStrings: function (axisValue, titleResource) {
+        // convert resource to string with rounding, and insert axis value number
+        if(!isFinite(axisValue))
+          return {};
+        var tUnits = this.getPath('parentView.primaryAxisView.model.firstAttributeUnit'),
+           tValueString = this.getValueString(axisValue, titleResource);
+        return {valueString: tValueString, unitsString: tUnits};
+      },
+
       /**
        * @return {String} title string to show when hovering over average symbol/line
        */
       titleString: function (axisValue) {
-        // convert resource to string with rounding, and insert axis value number
-        if (!isFinite(axisValue))
+        var tValueAndUnits = this.valueAndUnitsStrings(axisValue, this.titleResource);
+        if (!tValueAndUnits.valueString)
           return '';
-        var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
-            tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group(''),
-            tUnits = this.getPath('parentView.primaryAxisView.model.firstAttributeUnit'),
-            tValueString = this.titleResource.loc(tNumFormat(axisValue));
         if (this.get('showMeasuresLabel')) {
           var tHTML = '<p style = "color:%@;">%@ %@</p>',
-              tUnitsSpan = '<span style = "color:gray;">%@</span>'.loc(tUnits);
-          return tHTML.loc(this.symStroke, tValueString, tUnitsSpan);
+              tUnitsSpan = '<span style = "color:grey;">%@</span>'.loc(tValueAndUnits.unitsString);
+          return tHTML.loc(this.symStroke, tValueAndUnits.valueString, tUnitsSpan);
         } else {
-          return tValueString + ' ' + tUnits;
+          return tValueAndUnits.valueString + ' ' + tValueAndUnits.unitsString;
         }
       }
 
@@ -531,7 +552,7 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend(DG.LineLabe
                 tNumValues = tValuesArray && tValuesArray.length,
                 tCenterWorld = tValuesArray[iIndex][this.centerKey],
                 tStat = tValuesArray[iIndex][this.statisticKey],
-                tTitleString = this.titleString(tStat),
+                tTitleString = this.titleString(tStat, tValuesArray[iIndex][this.spreadKey]),
                 tCellWidth = this.getPath('parentView.secondaryAxisView.fullCellWidth'),
                 tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
                 tEquationView = this.get('equationViews')[iIndex],
@@ -797,6 +818,75 @@ DG.PlottedStDevAdornment = DG.PlottedDevAdornment.extend(
     });
 
 /**
+ * @class  Plots a computed Inter-Quartile Range (IQR), between the first and third quartiles (Q1 and Q3).
+ * @extends DG.PlottedSimpleAverageAdornment
+ */
+DG.PlottedStErrAdornment = DG.PlottedSimpleAverageAdornment.extend(
+   /** @scope DG.PlottedStErrAdornment.prototype */
+   {
+     statisticKey: 'sterr', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
+     centerKey: 'mean', /** {String} key to relevant center point in this.model.values[i][centerKey] */
+     spreadKey: 'sterr', /** {String} key to relevant spread value in this.model.values[i][width] */
+     titleResource: 'DG.PlottedAverageAdornment.stErrValueTitle', /** {String} resource string for this.titleString() */
+     hoverColor: "rgba(255, 48, 0, 0.3)", /** color of line when mouse over cover line */
+     bgStroke: '#FFb280',
+     bgStrokeWidth: 0.5,
+     bgFill: '#FFb280',
+     symStroke: '#F30',
+     offsetFromEdge: 10,
+     tickLength: 6,
+     modelPropertiesToObserve: [ ['numberOfStdErrs', 'updateToModel'] ],
+
+     getValueString: function (stdErr, titleResource) {
+       var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
+          tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group(''),
+          tNumStdErrs = this.getPath('model.numberOfStdErrs');
+       return titleResource.loc(tNumStdErrs, tNumFormat(tNumStdErrs * stdErr));
+     },
+
+     /**
+      * Create the path string for the line going from mean - stErr to mean + stErr with 5 pixel end bars.
+      * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
+      * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+      */
+     symbolPath: function (p, iIsHorizontal) {
+       var tHorizontalY = p.y - p.cellHeight + this.offsetFromEdge,
+           tVerticalX = p.x + p.cellHeight - this.offsetFromEdge,
+           tWidth = this.getPath('model.numberOfStdErrs') * p.width;
+       if (iIsHorizontal) {
+         return 'M%@,%@ h%@ M%@,%@ v%@ M%@,%@ v%@'.fmt(
+            p.x - tWidth, tHorizontalY, 2 * tWidth,  // horizontal line segment
+            p.x - tWidth, tHorizontalY - this.tickLength / 2, this.tickLength, // left tick
+            p.x + tWidth, tHorizontalY - this.tickLength / 2, this.tickLength // right tick
+         ); // vertical line up on mean + stErr
+       } else {
+         return 'M%@,%@ v%@ M%@,%@ h%@ M%@,%@ h%@'.fmt(
+            tVerticalX, p.y + tWidth, - 2 * tWidth,  // vertical line segment
+            tVerticalX - this.tickLength / 2, p.y + tWidth, this.tickLength, // upper tick
+            tVerticalX - this.tickLength / 2, p.y - tWidth, this.tickLength); // lower tick
+       }
+     },
+
+     /**
+      * Create the path string for the invisible popup cover region.
+      * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
+      * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+      */
+     coverPath: function (p, iIsHorizontal) {
+       return this.symbolPath(p, iIsHorizontal);
+     },
+
+     /**
+      * Get the desired axis position of the pop-up text, in the attribute's coordinates.
+      * @param iCenterValue
+      * @param iSpreadValue
+      */
+     getTextPositionOnAxis: function (iCenterValue, iSpreadValue) {
+       return iCenterValue + iSpreadValue; // text going to the right of the bar
+     }
+   });
+
+/**
  * @class  Plots a computed deviation.
  * @extends DG.PlottedDevAdornment
  */
@@ -819,80 +909,119 @@ DG.PlottedMeanAbsDevAdornment = DG.PlottedDevAdornment.extend(
     });
 
 /**
- * @class  Plots a computed Inter-Quartile Range (IQR), between the first and third quartiles (Q1 and Q3).
+ * @class  Plots a normal curve over the distribution.
+ * For a dot plot view, the curve is based solely on the mean and standard deviation.
+ * But for a histogram, the curve is a gaussian fit to the histogram.
  * @extends DG.PlottedSimpleAverageAdornment
  */
-DG.PlottedIQRAdornment = DG.PlottedSimpleAverageAdornment.extend(
-    /** @scope DG.PlottedIQRAdornment.prototype */
-    {
-      statisticKey: 'IQR', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
-      centerKey: 'Q1', /** {String} key to relevant center point in this.model.values[i][centerKey] */
-      spreadKey: 'IQR', /** {String} key to relevant spread value in this.model.values[i][width] */
-      titleResource: 'DG.PlottedAverageAdornment.iqrValueTitle', /** {String} resource string for this.titleString() */
-      //titleFraction: 0.2,   /** {Number} fraction-from-top for placement of average=123 text */
-      hoverColor: "rgba(255, 48, 0, 0.3)", /** color of line when mouse over cover line */
-      bgStroke: '#FFb280',
-      bgStrokeWidth: 0.5,
-      bgFill: '#FFb280',
-      symStroke: '#F30',
-      symStrokeWidth: 1,
+DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
+   /** @scope DG.PlottedNormalAdornment.prototype */
+   {
+     statisticKey: 'mean', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
+     titleResource: 'DG.PlottedAverageAdornment.meanValueTitle', /** {String} resource string for this.titleString() */
+     centerKey: 'mean', /** {String} key to relevant center point in this.model.values[i][centerKey] */
+     spreadKey: 'stdev', /** {String} key to relevant spread value in this.model.values[i][width] */
+     amplitudeKey: 'amplitude', /** {String} key to relevant amplitude value in this.model.values[i][amplitude] */
+     hoverColor: "rgba(51,0,255,0.3)", /** color of line when mouse over cover line */
+     bgStroke: '#FFb280',
+     bgStrokeWidth: 0.5,
+     // bgFill: '#FFb280',
+     symStroke: '#3300FF',
+     symStrokeWidth: 1,
+     offsetFromEdge: 10,
 
-      /**
-       * Create the path string for the background, gray reference lines going from Q1 to Q3
-       * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
-       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
-       */
-      symbolPath: function (p, iIsHorizontal) {
-        if (iIsHorizontal) {
-          return 'M%@,%@ v%@ M%@,%@ v%@'.fmt(
-              p.x, p.y, -p.cellHeight,  // vertical line up on Q1
-              p.x + p.width, p.y, -p.cellHeight); // vertical line up on Q3
-        } else {
-          return 'M%@,%@ h%@ M%@,%@ h%@'.fmt(
-              p.x, p.y, p.cellHeight,  // upper horizontal line on Q1
-              p.x, p.y - p.width, p.cellHeight); // lower horizontal line on Q3
-        }
-      },
+     /**
+      * Create the path string for the line going from mean - stErr to mean + stErr with 5 pixel end bars.
+      * @param p {x,y,width,cellHeight} of reference point, (.x,.y)
+      * @param iIsHorizontal {Boolean} true for horizontal orientation, false for vertical
+      * @return {String} The path for the normal curve
+      */
+     symbolPath: function (p, iIsHorizontal) {
 
-      /**
-       * Create the path string for the invisible popup cover region.
-       * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
-       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
-       */
-      coverPath: function (p, iIsHorizontal) {
-        if (iIsHorizontal) {
-          return 'M%@,%@ v%@ M%@,%@ v%@'.fmt(
-              p.x, p.y, -p.cellHeight,  // vertical line up on Q1
-              p.x + p.width, p.y, -p.cellHeight); // vertical line up on Q3
-        } else {
-          return 'M%@,%@ h%@ M%@,%@ h%@'.fmt(
-              p.x, p.y, p.cellHeight,  // upper horizontal line on Q1
-              p.x, p.y - p.width, p.cellHeight); // lower horizontal line on Q3
-        }
-      },
+       function normal(x) {
+         return DG.MathUtilities.normal(x, tAmplitude, tMu, tSigma);
+       }
 
-      /**
-       * Create the path string for the background, gray reference lines going from Q1 to Q3
-       * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
-       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
-       */
-      backgroundPath: function (p, iIsHorizontal) {
-        if (iIsHorizontal) {
-          return 'M%@,%@ v%@ h%@ v%@ z'.fmt(
-              p.x, p.y, -p.cellHeight, p.width, p.cellHeight); // box on Q1-Q3 lines in cell
-        } else {
-          return 'M%@,%@ h%@ v%@ h%@ z'.fmt(
-              p.x, p.y, p.cellHeight, -p.width, -p.cellHeight); // box on Q1-Q3 lines in cell
-        }
-      },
+       function countToScreenCoordFromDotPlot (iCount) {
+         var tStackCoord = (2 * tRadius - tOverlap) * iCount + 1;
+         return iIsHorizontal ? p.y - tStackCoord : p.x + tStackCoord;
+       }
 
-      /**
-       * Get the desired axis position of the pop-up text, in the attribute's coordinates.
-       * @param iCenterValue
-       * @param iSpreadValue
-       */
-      getTextPositionOnAxis: function (iCenterValue, iSpreadValue) {
-        return iCenterValue + iSpreadValue; // text going to the right of the shading
-      }
-    });
+         var sqrtTwoPi = Math.sqrt(2 * Math.PI),
+          tParentPlotView = this.get('parentView'),
+          tIsHistogram = tParentPlotView.getPath('model.dotsAreFused'),
+          tNumericAxisView = tParentPlotView.get('primaryAxisView'),
+          tCountAxisView = tParentPlotView.get('secondaryAxisView'),
+          tRadius = tParentPlotView.calcPointRadius(),
+          tOverlap = tParentPlotView.get('overlap'),
+          tBinWidth = tIsHistogram ? tParentPlotView.getPath('model.width')
+                      : tParentPlotView.get('binWidthInWorldCoordinates'),
+          tPixelMin = tNumericAxisView.get(iIsHorizontal ? 'pixelMin' : 'pixelMax'),
+          tPixelMax = tNumericAxisView.get(iIsHorizontal ? 'pixelMax' : 'pixelMin'),
+          tPath = '',
+          tCount = p.count,
+          tMu = p.center,
+          tSigma = p.spread,
+          tAmplitude = p.amplitude || (1 / (tSigma * sqrtTwoPi) * tCount * tBinWidth),
+          tNumeric, tCountValue, tPixelCount,
+          tPoints = [],
+          kPixelGap = 1,
+          tPixelNumeric, tPoint;
+       for( tPixelNumeric = tPixelMin; tPixelNumeric <= tPixelMax; tPixelNumeric += kPixelGap) {
+         tNumeric = tNumericAxisView.coordinateToData( tPixelNumeric);
+         tCountValue = normal( tNumeric);
+         if( DG.isFinite( tCountValue)) {
+           tPixelCount = tIsHistogram ? tCountAxisView.dataToCoordinate( tCountValue)
+                                      : countToScreenCoordFromDotPlot( tCountValue);
+           tPoint = iIsHorizontal ? {left: tPixelNumeric, top: tPixelCount} : {left: tPixelCount, top: tPixelNumeric};
+           tPoints.push( tPoint);
+         }
+       }
+       if( tPoints.length > 0) {
+         // Accomplish spline interpolation
+         tPath = 'M' + tPoints[0].left + ',' + tPoints[0].top + DG.SvgScene.curveBasis( tPoints);
+       }
+       return tPath;
+     },
+
+     /**
+      * Create the path string for the invisible popup cover region.
+      * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
+      * @param iIsHorizontal {Boolean} true for horizontal orientation, false for vertical
+      * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+      */
+     coverPath: function (p, iIsHorizontal) {
+       return this.symbolPath(p, iIsHorizontal);
+     },
+
+     /**
+      * @return {String} title string to show when hovering over curve
+      */
+     titleString: function (mean, valueObject) {
+       var tStdev = typeof valueObject === 'object' ? valueObject.stdev : valueObject,
+          tMeanValueAndUnits = this.valueAndUnitsStrings(mean, this.titleResource),
+           tStdevValueAndUnits = this.valueAndUnitsStrings(tStdev,
+              'DG.PlottedAverageAdornment.stDevValueTitle');
+       if (!tMeanValueAndUnits.valueString)
+         return '';
+       if (this.get('showMeasuresLabel')) {
+         var tHTML = '<p style = "color:%@;">%@ %@</p>',
+            tUnitsSpan = '<span style = "color:grey;">%@</span>'.loc(tMeanValueAndUnits.unitsString);
+         return tHTML.loc(this.symStroke, tMeanValueAndUnits.valueString, tUnitsSpan);
+       } else {
+         return tMeanValueAndUnits.valueString + ' ' + tMeanValueAndUnits.unitsString + ', ' +
+            tStdevValueAndUnits.valueString + ' ' + tStdevValueAndUnits.unitsString;
+       }
+     },
+
+     /**
+      * Get the desired axis position of the pop-up text, in the attribute's coordinates.
+      * @param iCenterValue
+      * @param iSpreadValue
+      */
+     getTextPositionOnAxis: function (iCenterValue, iSpreadValue) {
+       return iCenterValue + iSpreadValue; // text going to the right of the bar
+     }
+   });
+
 

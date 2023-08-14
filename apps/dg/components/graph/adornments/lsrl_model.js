@@ -28,6 +28,10 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
     /** @scope DG.TwoDLineModel.prototype */
     {
       /**
+       * @property { Boolean }
+       */
+      showConfidenceBands: false,
+      /**
        * @property {string}
        */
       categoryName: null,
@@ -38,33 +42,66 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
       rSquared: null,
 
       /**
-       We compute the slope and intercept of the lsrl for the displayed points
+       * @property {Number}
        */
-      recomputeSlopeAndIntercept: function () {
+      sdResiduals: null,
 
-        var tInterceptIsLocked = this.get('isInterceptLocked'),
-            tCoordinates = this.getCoordinates(),
-            tCategoryName = this.get('categoryName'),
-            tSlopeIntercept;
-        tCoordinates = tCoordinates.filter( function( iCoords) {
+      /**
+       * @property {Number}
+       */
+      seSlope: null,
+
+      getCoordinates: function() {
+        var tCoordinates = sc_super(),
+           tCategoryName = this.get('categoryName');
+        return tCoordinates.filter( function( iCoords) {
           // '==' will provide equality when one is string and other is number
           // eslint-disable-next-line eqeqeq
           return SC.none( iCoords.legend) || tCategoryName == iCoords.legend ||  // jshint ignore:line
                  tCategoryName === '_main_';
         });
+      },
+
+      /**
+       We compute the slope and intercept of the lsrl for the displayed points
+       */
+      recomputeSlopeAndIntercept: function () {
+        var tInterceptIsLocked = this.get('isInterceptLocked'),
+            tCoordinates = this.getCoordinates(),
+            tSlopeIntercept, tSeSlope;
         tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);
+        tSeSlope = this.get('showConfidenceBands') ? DG.MathUtilities.linRegrSESlope( tCoordinates) : null;
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||
             isNaN(tSlopeIntercept.intercept) && isNaN( this.get('intercept'))) {
           return; // not covered by setIfChanged
         }
         this.beginPropertyChanges();
+          this.setIfChanged('count', tSlopeIntercept.count);
           this.setIfChanged('slope', tSlopeIntercept.slope);
           this.setIfChanged('intercept', tSlopeIntercept.intercept);
+          this.setIfChanged('mse', tSlopeIntercept.mse);
+          this.setIfChanged('xMean', tSlopeIntercept.xMean);
+          this.setIfChanged('yMean', tSlopeIntercept.yMean);
+          this.setIfChanged('xSumSquaredDeviations', tSlopeIntercept.xSumSquaredDeviations);
           this.setIfChanged('rSquared', tSlopeIntercept.rSquared);
-          this.setIfChanged('sumSquaresResiduals', tSlopeIntercept.sumSquaresResiduals);
+          this.setIfChanged('seSlope', tSeSlope);
           this.setIfChanged('isVertical', !isFinite(tSlopeIntercept.slope));
           this.setIfChanged('xIntercept', null);
         this.endPropertyChanges();
+      },
+
+      createStorage: function() {
+        var tStorage = sc_super();
+        tStorage.showConfidenceBands = this.showConfidenceBands;
+        return tStorage;
+      },
+
+      /**
+       * @param iStorage
+       */
+      restoreStorage: function( iStorage) {
+        sc_super();
+        this.showConfidenceBands = iStorage.showConfidenceBands;
       }
 
     });

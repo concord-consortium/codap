@@ -53,7 +53,8 @@ DG.MultipleLSRLsAdornment = DG.PlotAdornment.extend(
        @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
        */
       modelPropertiesToObserve: [['lsrls', 'updateToModel'],
-        ['isInterceptLocked', 'updateToModel'], ['showSumSquares', 'updateToModel']],
+        ['isInterceptLocked', 'updateToModel'], ['showSumSquares', 'updateToModel'],
+        ['showConfidenceBands', 'updateToModel']],
 
       /**
        Pass this down to my lsrlAdornments.

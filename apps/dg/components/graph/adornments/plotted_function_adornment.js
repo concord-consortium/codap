@@ -95,7 +95,7 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
         // Extract error information to provide feedback to user.
       }
       if( tPoints.length > 0) {
-        // Here we are using a bit of protovis wizardry in order to accomplish spline interpolation
+        // Accomplish spline interpolation
         tPath = 'M' + tPoints[0].left + ',' + tPoints[0].top + DG.SvgScene.curveBasis( tPoints);
       }
     }

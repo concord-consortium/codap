@@ -96,7 +96,7 @@ DG.RaphaelLayer = SC.Object.extend(
         this._paper.bottom = iElement;
       if( !this._map[iElement.id]) {  // If it's not already present in the layer
         this._map[iElement.id] = true;
-        if (!this._lastElement) {
+        if (!(this._lastElement && this._lastElement.node)) {
           // We have no elements, so this becomes our first. We need to insert after previous layer's last Element.
           // But if there is no previous layer with a last element, then the given element moves to the paper's back.
           var tLayer;

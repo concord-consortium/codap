@@ -97,7 +97,7 @@ DG.PlottedSimpleAverageModel = DG.PlottedAverageModel.extend(
    * Compute or re-compute the sums, counts, and means of each cell.
    * returns null or an array of values, one for each cell
    */
-  computeSumCountMean: function( includeMAD) {
+  computeSumCountMeanStdDev: function(includeMAD) {
 
     var tCases = this.get('cases'),
         tNumericVarID = this.getPath( 'plotModel.primaryVarID'),
@@ -114,7 +114,7 @@ DG.PlottedSimpleAverageModel = DG.PlottedAverageModel.extend(
 
     // initialize the values
     for( i=0, j=tNumCells; i<j; ++i ) {
-      tValues.push({ sum:0, sumOfSquares:0, count:0, mean:undefined, stdev:undefined, numericValues: [] });
+      tValues.push({ sum:0, sumOfSquares:0, count:0, mean:undefined, stdev:undefined, sterr:undefined, numericValues: [] });
     }
 
     // compute count and sum of cases in each cell, excluding missing values
@@ -141,6 +141,9 @@ DG.PlottedSimpleAverageModel = DG.PlottedAverageModel.extend(
     tValues.forEach( function( iValue ) { // TO-DO remove this.
       if( iValue.count > 0 ) {
         iValue.mean = iValue.sum / iValue.count;
+        iValue.stdev = Math.sqrt(( iValue.sumOfSquares -
+                                   ( iValue.mean * iValue.mean ) * iValue.count) /
+                                 (iValue.count - 1));
         if( includeMAD) {
           iValue.mad = iValue.numericValues.reduce( function( iMad, iNumValue) {
             return iMad + Math.abs( iValue.mean - iNumValue);
@@ -161,7 +164,7 @@ DG.PlottedMeanModel = DG.PlottedMeanStDevModel.extend(
    * Compute or re-compute the mean(s).
    */
   recomputeValue: function() {
-    var tValues = this.computeSumCountMean();
+    var tValues = this.computeSumCountMeanStdDev();
 
     if( tValues ) {
       var tNumericAxisModel = this.getPath('plotModel.primaryAxisModel');
@@ -180,16 +183,13 @@ DG.PlottedStDevModel = DG.PlottedMeanStDevModel.extend(
    * Compute or re-compute the standard deviation(s).
    */
   recomputeValue: function() {
-    var tValues = this.computeSumCountMean();
+    var tValues = this.computeSumCountMeanStdDev();
     if( !tValues)
       return;
 
     // compute st.dev. of cases in each cell
     tValues.forEach( function( iValue ) {
       if( iValue.count > 1 ) {
-        iValue.stdev = Math.sqrt(( iValue.sumOfSquares -
-                                  ( iValue.mean * iValue.mean ) * iValue.count) /
-                                    (iValue.count - 1));
         iValue.centerMinus1Dev = iValue.mean - iValue.stdev;
       }
     });
@@ -201,6 +201,99 @@ DG.PlottedStDevModel = DG.PlottedMeanStDevModel.extend(
 });
 DG.PlotAdornmentModel.registry.plottedStDev = DG.PlottedStDevModel;
 
+DG.PlottedStErrModel = DG.PlottedMeanStDevModel.extend(
+/** @scope DG.PlottedStErrModel.prototype */
+{
+  numberOfStdErrs: 1,
+
+  /**
+   * Compute or re-compute the standard deviation(s).
+   */
+  recomputeValue: function() {
+    var tValues = this.computeSumCountMeanStdDev();
+    if( !tValues)
+      return;
+
+    // compute st.dev. of cases in each cell
+    tValues.forEach( function( iValue ) {
+      if( iValue.count > 1 ) {
+        iValue.sterr = iValue.stdev / Math.sqrt( iValue.count );
+        iValue.centerMinus1Dev = iValue.mean - iValue.sterr;
+      }
+    });
+    var tNumericAxisModel = this.getPath('plotModel.primaryAxisModel');
+    this.set( 'precision', tNumericAxisModel.getPath('attributeDescription.attribute.precision'));
+    this.set( 'values', tValues ); // we expect view to observe this change
+    this._needsComputing = false;
+  },
+
+  /**
+   * @return { Object }
+   */
+  createStorage: function () {
+    var storage = sc_super();
+
+    storage.numberOfStdErrs = this.get('numberOfStdErrs');
+
+    return storage;
+  },
+
+  /**
+   * @param { Object }
+   */
+  restoreStorage: function (iStorage) {
+    sc_super();
+    this.set('numberOfStdErrs', iStorage.numberOfStdErrs || 1);
+  }
+
+});
+DG.PlotAdornmentModel.registry.plottedStErr = DG.PlottedStErrModel;
+
+DG.PlottedNormalModel = DG.PlottedMeanStDevModel.extend(
+   /** @scope DG.PlottedNormalModel.prototype */
+   {
+     addGaussianFitToValues: function(iValue) {
+       var sqrtTwoPi = Math.sqrt(2 * Math.PI),
+         tPlotModel = this.get('plotModel'),
+         tBarWidth = tPlotModel.get('width'),
+         tBars = tPlotModel.get('bars'),
+         tPointsToFit = tBars.map( function( iBar) {
+            return { x: iBar.lowerEdgeWorld + tBarWidth/2, y: iBar.count };
+          }),
+          tMean = iValue.mean,
+          tSigma = iValue.stdev,
+          tCount = iValue.count,
+          tAmp = (1 / (tSigma * sqrtTwoPi)) * tCount * tBarWidth,
+          tFittedParameters = DG.MathUtilities.fitGaussianGradientDescent( tPointsToFit, tAmp, tMean, tSigma);
+       iValue.mean = tFittedParameters.mu;
+       iValue.stdev = tFittedParameters.sigma;
+       iValue.amplitude = tAmp;
+     },
+
+     /**
+      * Compute or re-compute the mean(s) and stdDev(s).
+      * When we are plotting on a dot plot, we compute mean and stdDev from the data in each cell.
+      * But when we are plotting on a histogram, we first find the counts for each bin and then do a
+      * least squares fit to the normal distribution to find the mean and stdDev to use for drawing
+      * the normal curve. (Note that this "gaussian fit" produces a different mean and stdDev than
+      * the mean and stdDev of the data.)
+      */
+     recomputeValue: function() {
+       var kGaussianFitEnabled = DG.get('gaussianFitEnabled')==='yes',
+          tPlotModel = this.get('plotModel'),
+          tValues = this.computeSumCountMeanStdDev();
+          if(tValues && tPlotModel.get('dotsAreFused') && kGaussianFitEnabled) {
+            this.addGaussianFitToValues(tValues[0]);
+          }
+
+       if( tValues ) {
+         this.set( 'values', tValues ); // we expect view to observe this change
+         this._needsComputing = false;
+       }
+     }
+   });
+DG.PlotAdornmentModel.registry.plottedNormal = DG.PlottedNormalModel;
+
 DG.PlottedMadModel = DG.PlottedMeanStDevModel.extend(
     /** @scope DG.PlottedMadModel.prototype */
     {
@@ -208,7 +301,7 @@ DG.PlottedMadModel = DG.PlottedMeanStDevModel.extend(
        * Compute or re-compute the mean(s).
        */
       recomputeValue: function() {
-        var tValues = this.computeSumCountMean( true /* include MAD */);
+        var tValues = this.computeSumCountMeanStdDev( true /* include MAD */);
         if( !tValues)
           return;
 
