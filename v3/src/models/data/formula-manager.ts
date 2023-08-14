@@ -238,8 +238,8 @@ export class FormulaManager {
     return disposeDatasetObserver
   }
 
-  // Observe global value changes. In theory, we could use MST reaction to watch global value, but most likely it would
-  // be triggered async. onAnyAction is synchronous, so this might work better with undo-redo logic.
+  // Observe global value changes. In theory, we could use MobX reaction to watch global value (after checking if it's
+  // synchronous or async). onAnyAction is guaranteed to be synchronous, so this might work better with undo-redo logic.
   observeGlobalValues(formulaId: string, formulaDependencies: IFormulaDependency[]) {
     const globalValueDependencies =
       formulaDependencies.filter(d => d.type === "globalValue") as IGlobalValueDependency[]
