@@ -1,33 +1,31 @@
-import { types } from "mobx-state-tree"
-import { canonicalizeExpression, prettifyExpression } from "./expression-utils"
+import { Instance, types } from "mobx-state-tree"
+import { typedId } from "../../utilities/js-utils"
+import { canonicalizeExpression } from "./formula-utils"
+import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
-  display: types.maybe(types.string),
-  canonical: types.maybe(types.string)
+  id: types.optional(types.identifier, () => typedId("FORMULA")),
+  canonical: ""
 })
-.actions(self => ({
-  setDisplay(display?: string) {
-    self.display = display
+.views(self => ({
+  get valid() {
+    return !!self.canonical && self.canonical.length > 0
   },
-  setCanonical(canonical?: string) {
+  get formulaManager() {
+    return getFormulaManager(self)
+  }
+}))
+.actions(self => ({
+  setDisplayFormula(displayFormula: string) {
+    if (!self.formulaManager) {
+      return
+    }
+    const displayNameMap = self.formulaManager.getDisplayNameMapForFormula(self.id)
+    this.setCanonical(canonicalizeExpression(displayFormula, displayNameMap))
+  },
+  setCanonical(canonical: string) {
     self.canonical = canonical
-  },
-  canonicalize(xName: string) {
-    self.canonical = self.display != null
-                      ? canonicalizeExpression(self.display, xName)
-                      : undefined
-  },
-  updateDisplay(xName: string) {
-    self.display = prettifyExpression(self.canonical, xName)
   }
 }))
-.actions(self => ({
-  synchronize(xName: string) {
-    if (self.display && !self.canonical) {
-      self.canonicalize(xName)
-    }
-    else if (!self.display && self.canonical) {
-      self.updateDisplay(xName)
-    }
-  }
-}))
+
+export interface IFormula extends Instance<typeof Formula> {}

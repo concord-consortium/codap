@@ -22,6 +22,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   const attributePropsModal = useDisclosure()
   const formulaModal = useDisclosure()
   const columnName = column.name as string
+  const columnId = column.key
 
   const handleMenuItemClick = (menuItem: string) => {
     toast({
@@ -101,9 +102,9 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
           {t("DG.TableController.headerMenuItems.deleteAttribute")}
         </MenuItem>
       </MenuList>
-      <EditAttributePropertiesModal columnName={columnName} isOpen={attributePropsModal.isOpen}
+      <EditAttributePropertiesModal attributeId={columnId} isOpen={attributePropsModal.isOpen}
         onClose={handleEditAttributePropsClose} />
-      <EditFormulaModal columnName={columnName} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      <EditFormulaModal attributeId={columnId} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
     </>
   )
 })

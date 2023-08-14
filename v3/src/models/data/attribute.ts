@@ -25,17 +25,12 @@
   representations and converted numeric values are cached at runtime so that those conversions
   can be minimized. In addition to simplifying the code this should have performance benefits as
   JavaScript engines can optimize operations on homogeneous arrays more than heterogeneous ones.
-
-  Attributes support formulas, the current implementation of which is currently taken from CLUE
-  and uses the `expr-eval` npm package for parsing/evaluation. CODAP 3 will likely need something
-  more like `math.js` but that decision can be left for another day.
  */
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
 import { typedId } from "../../utilities/js-utils"
 import t from "../../utilities/translation/translate"
-
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -185,12 +180,10 @@ export const Attribute = types.model("Attribute", {
     self.editable = editable
   },
   clearFormula() {
-    self.formula.setDisplay()
-    self.formula.setCanonical()
+    self.formula.setCanonical("")
   },
-  setDisplayFormula(display: string, xName: string) {
-    self.formula.setDisplay(display)
-    self.formula.canonicalize(xName)
+  setDisplayFormula(displayFormula: string) {
+    self.formula.setDisplayFormula(displayFormula)
   },
   addValue(value: IValueType = "", beforeIndex?: number) {
     const strValue = self.importValue(value)

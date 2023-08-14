@@ -9,6 +9,7 @@ import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import { GlobalValueManager } from "../global/global-value-manager"
 import "../global/global-value-manager-registration"
+import { getFormulaManager } from "../tiles/tile-environment"
 const { version } = pkg
 const { buildNumber } = build
 
@@ -25,7 +26,10 @@ export function createCodapDocument(snapshot?: IDocumentModelSnapshot, options?:
   }
   // add the global value manager if there isn't one
   if (document.content && !noGlobals && !document.content.getFirstSharedModelByType(GlobalValueManager)) {
-    document.content.addSharedModel(GlobalValueManager.create())
+    const globalValueManager = GlobalValueManager.create()
+    document.content.addSharedModel(globalValueManager)
+    // Add the global value manager to the formula manager
+    getFormulaManager(document)?.addGlobalValueManager(globalValueManager)
   }
   // create the default tile container ("row")
   if (document.content?.rowCount === 0) {

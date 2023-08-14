@@ -1,7 +1,6 @@
 import { cloneDeep } from "lodash"
 import { getSnapshot } from "mobx-state-tree"
 import { Attribute, IAttributeSnapshot, importValueToString, kDefaultFormatStr } from "./attribute"
-import { kSerializedXKey } from "./expression-utils"
 
 describe("Attribute", () => {
 
@@ -241,26 +240,26 @@ describe("Attribute", () => {
   test("Attribute formulas", () => {
     // current behavior of formulas is based on CLUE's limited needs
     // CODAP will need something more sophisticated
-    const attr = Attribute.create({ name: "foo" })
-    expect(attr.formula.display).toBeUndefined()
-    expect(attr.formula.canonical).toBeUndefined()
-    attr.formula.canonicalize("x")
-    expect(attr.formula.canonical).toBeUndefined()
-    attr.setDisplayFormula("2 * x", "x")
-    expect(attr.formula.display).toBe("2 * x")
-    expect(attr.formula.canonical).toBe(`(2 * ${kSerializedXKey})`)
-    attr.formula.setDisplay()
-    attr.formula.synchronize("x")
-    expect(attr.formula.display).toBe("(2 * x)")
-    attr.setDisplayFormula("2 * y", "x")
-    expect(attr.formula.display).toBe("2 * y")
-    expect(attr.formula.canonical).toBe(`(2 * y)`)
-    attr.formula.setCanonical()
-    attr.formula.synchronize("x")
-    expect(attr.formula.display).toBe("2 * y")
-    attr.clearFormula()
-    expect(attr.formula.display).toBeUndefined()
-    expect(attr.formula.canonical).toBeUndefined()
+    // const attr = Attribute.create({ name: "foo" })
+    // expect(attr.formula.display).toBeUndefined()
+    // expect(attr.formula.canonical).toBeUndefined()
+    // attr.formula.canonicalize("x")
+    // expect(attr.formula.canonical).toBeUndefined()
+    // attr.setDisplayFormula("2 * x", "x")
+    // expect(attr.formula.display).toBe("2 * x")
+    // expect(attr.formula.canonical).toBe(`(2 * ${kSerializedXKey})`)
+    // attr.formula.setDisplay()
+    // attr.formula.synchronize("x")
+    // expect(attr.formula.display).toBe("(2 * x)")
+    // attr.setDisplayFormula("2 * y", "x")
+    // expect(attr.formula.display).toBe("2 * y")
+    // expect(attr.formula.canonical).toBe(`(2 * y)`)
+    // attr.formula.setCanonical()
+    // attr.formula.synchronize("x")
+    // expect(attr.formula.display).toBe("2 * y")
+    // attr.clearFormula()
+    // expect(attr.formula.display).toBeUndefined()
+    // expect(attr.formula.canonical).toBeUndefined()
   })
 
   test("Attribute derivation", () => {

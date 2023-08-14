@@ -3,7 +3,7 @@ import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tag, Tooltip, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import t from "../../utilities/translation/translate"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { appState } from "../../models/app-state"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata }
@@ -57,6 +57,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     const tile = createDefaultTileOfType(kCaseTableTileType)
     if (!tile) return
     const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
+    // Add dataset to the formula manager
+    getFormulaManager(document)?.addDataSet(ds)
     openTableForDataset(sharedData, caseMetadata)
   }
 
@@ -149,6 +151,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
     if (dataSetId) {
       manager?.removeSharedModel(dataSetId)
       gDataBroker.removeDataSet(dataSetId)
+      getFormulaManager(document)?.removeDataSet(dataSetId)
     }
   }
 

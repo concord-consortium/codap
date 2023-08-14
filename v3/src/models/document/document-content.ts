@@ -4,7 +4,7 @@ import { isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
-import { getTileEnvironment } from "../tiles/tile-environment"
+import { getFormulaManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, TileModel } from "../tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
@@ -108,6 +108,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       ds.addAttribute({ name: attributeName })
       ds.addCases(toCanonical(ds, newData))
       gDataBroker.addDataSet(ds)
+      // Add dataset to the formula manager
+      getFormulaManager(self)?.addDataSet(ds)
     },
     importDataSet(data: IDataSet, options?: IImportDataSetOptions) {
       const { createDefaultTile = true, defaultTileType = kCaseTableTileType } = options || {}
@@ -121,6 +123,8 @@ export const DocumentContentModel = BaseDocumentContentModel
           linkTileToDataSet(newTile.content, sharedData.dataSet)
         }
       }
+      // Add dataset to the formula manager
+      getFormulaManager(self)?.addDataSet(data)
     }
   }))
 
