@@ -1,4 +1,4 @@
-import { parse, MathNode, SymbolNode, FunctionNode, ConstantNode, isFunctionNode, isSymbolNode } from "mathjs"
+import { parse, MathNode, ConstantNode, isFunctionNode, isSymbolNode, isConstantNode } from "mathjs"
 import {
   AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency,
   CODAPMathjsFunctions
@@ -23,14 +23,17 @@ const LOOKUP_FUNCTION: Record<string, boolean> = {
 export const isLookupFunction = (name: string) => LOOKUP_FUNCTION[name] === true
 
 export const getValueOrName = (node: MathNode) => {
-  if (node.type === "SymbolNode") {
-    return (node as SymbolNode).name
+  if (isSymbolNode(node)) {
+    return node.name
   }
-  if (node.type === "ConstantNode") {
-    return (node as ConstantNode).value
+  if (isConstantNode(node)) {
+    return node.value
   }
   return ""
 }
+
+export const isConstantStringNode = (node: MathNode): node is ConstantNode<string> =>
+  isConstantNode(node) && typeof node.value === "string"
 
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
@@ -60,22 +63,19 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
         }
       }
     }
-    if (node.type === "FunctionNode" && isLookupFunction((node as FunctionNode).fn.name)) {
-      const functionNode = node as FunctionNode
-      if (functionNode.args[0].type === "ConstantNode") {
-        const dataSetName = getValueOrName(functionNode.args[0])?.toString() || ""
-        ;(functionNode.args[0] as ConstantNode<string>).value = displayNameMap.dataSet[dataSetName]?.id
+    if (isFunctionNode(node) && isLookupFunction(node.fn.name)) {
+      if (isConstantStringNode(node.args[0])) {
+        const dataSetName = node.args[0].value
+        node.args[0].value = displayNameMap.dataSet[node.args[0].value]?.id
 
-        if (functionNode.args[1].type === "ConstantNode") {
-          const attrName = getValueOrName(functionNode.args[1])?.toString() || ""
-          ;(functionNode.args[1] as ConstantNode<string>).value =
-            displayNameMap.dataSet[dataSetName]?.attribute[attrName]
+        if (isConstantStringNode(node.args[1])) {
+          const attrName = node.args[1].value
+          node.args[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
         }
 
-        if (functionNode.fn.name === CODAPMathjsFunctions.lookupByKey) {
-          const keyAttrName = getValueOrName(functionNode.args[2])?.toString() || ""
-          ;(functionNode.args[2] as ConstantNode<string>).value =
-            displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
+        if (node.fn.name === CODAPMathjsFunctions.lookupByKey && isConstantStringNode(node.args[2])) {
+          const keyAttrName = node.args[2].value
+          node.args[2].value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
         }
       }
     }
@@ -113,16 +113,15 @@ export const getFormulaDependencies = (formulaCanonical: string) => {
         result.push(parsedName)
       }
     }
-    if (node.type === "FunctionNode" && isLookupFunction((node as FunctionNode).fn.name)) {
-      const functionNode = node as FunctionNode
-      const dataSetId = getValueOrName(functionNode.args[0])?.toString() || ""
-      const attrId = getValueOrName(functionNode.args[1])?.toString() || ""
-      if (functionNode.fn.name === CODAPMathjsFunctions.lookupByIndex) {
-        const zeroBasedIndex = Number(getValueOrName(functionNode.args[2])) - 1 ?? undefined
+    if (isFunctionNode(node) && isLookupFunction(node.fn.name)) {
+      const dataSetId = getValueOrName(node.args[0]).toString() || ""
+      const attrId = getValueOrName(node.args[1]).toString() || ""
+      if (node.fn.name === CODAPMathjsFunctions.lookupByIndex) {
+        const zeroBasedIndex = Number(getValueOrName(node.args[2])) - 1 ?? undefined
         result.push({ type: "lookupByIndex", dataSetId, attrId, index: zeroBasedIndex })
       }
-      if (functionNode.fn.name === CODAPMathjsFunctions.lookupByKey) {
-        const keyAttrId = getValueOrName(functionNode.args[2])?.toString() || ""
+      if (node.fn.name === CODAPMathjsFunctions.lookupByKey) {
+        const keyAttrId = getValueOrName(node.args[2]).toString() || ""
         result.push({ type: "lookupByKey", dataSetId, attrId, keyAttrId })
       }
     }
