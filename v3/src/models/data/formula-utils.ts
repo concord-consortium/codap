@@ -34,7 +34,7 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
         newNode.name = displayNameMap[symbolNode.name]
         // Consider following formula example:
         // "mean(Speed) + Speed"
-        // `Speed` is one one that should be resolved to two very different values depending on the context:
+        // `Speed` is one that should be resolved to two very different values depending on the context:
         // - if Speed is not an argument of aggregate function, it should be resolved to the current case value
         // - if Speed is an argument of aggregate function, it should be resolved to an array containing all the values
         // This differentiation can be done using the suffixes added to the symbol name.
