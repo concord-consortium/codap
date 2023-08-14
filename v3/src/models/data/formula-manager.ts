@@ -24,11 +24,11 @@ type IFormulaMetadata = {
 // We need to find another wa to give access to formula manager
 let gGlobalFormulaManagerInstance: FormulaManager
 export const initializeFormulaManager = (dataSets: Map<string, IDataSet>, globalValueManager: IGlobalValueManager) => {
-  gGlobalFormulaMangerInstance = new FormulaManager(dataSets, globalValueManager)
-  gGlobalFormulaMangerInstance.registerAllFormulas()
+  gGlobalFormulaManagerInstance = new FormulaManager(dataSets, globalValueManager)
+  gGlobalFormulaManagerInstance.registerAllFormulas()
 }
 
-export const getFormulaManager = () => gGlobalFormulaMangerInstance
+export const getFormulaManager = () => gGlobalFormulaManagerInstance
 
 export class FormulaManager {
   @observable dataSets = new Map<string, IDataSet>()
