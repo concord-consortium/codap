@@ -177,7 +177,6 @@
     "mathjs": "^11.8.2",
     "mobx": "^6.9.0",
     "mobx-react-lite": "^3.4.3",
-    "mobx-utils": "^6.0.8",
     "nanoid": "^4.0.2",
     "papaparse": "^5.4.1",
     "pluralize": "^8.0.0",
