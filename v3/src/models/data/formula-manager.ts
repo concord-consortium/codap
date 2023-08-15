@@ -7,7 +7,7 @@ import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
   ILookupByIndexDependency, ILookupByKeyDependency
 } from "./formula-types"
-import { math } from "./formula-mathjs"
+import { math } from "./formula-fn-registry"
 import { IDataSet } from "./data-set"
 import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
 import { IGlobalValueManager } from "../global/global-value-manager"

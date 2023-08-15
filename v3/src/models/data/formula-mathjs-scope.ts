@@ -1,14 +1,6 @@
-import { IGlobalValueManager } from "../global/global-value-manager"
-import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-types"
-import { IDataSet } from "./data-set"
-
-export interface IFormulaMathjsScope {
-  caseId: string
-  setCaseId(caseId: string): void
-  localDataSet: IDataSet
-  dataSets: Map<string, IDataSet>
-  globalValueManager?: IGlobalValueManager
-}
+import { IFormulaMathjsScope, AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-types"
+import type { IGlobalValueManager } from "../global/global-value-manager"
+import type { IDataSet } from "./data-set"
 
 // Note that Mathjs accepts two kinds of scope: an object or Map-like object. We use the former approach, as it should
 // be more efficient. Each property is defined once during scope construction so the access should be fast. If we had to

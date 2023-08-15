@@ -1,8 +1,8 @@
-import { parse, MathNode, ConstantNode, isFunctionNode, isSymbolNode, isConstantNode } from "mathjs"
+import { parse, MathNode, isFunctionNode, isSymbolNode } from "mathjs"
 import {
   AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency,
-  CODAPMathjsFunctions
 } from "./formula-types"
+import { fnRegistry } from "./formula-fn-registry"
 
 // Set of formula helpers that can be used outside FormulaManager context. It should make them easier to test.
 
@@ -14,26 +14,39 @@ const AGGREGATE_FUNCTION: Record<string, boolean> = {
 
 export const isAggregateFunction = (name: string) => AGGREGATE_FUNCTION[name] === true
 
-const LOOKUP_FUNCTION: Record<string, boolean> = {
-  lookupByIndex: true,
-  lookupByKey: true,
-  // TODO: add more functions while working on the lookup functions support
+export const generateCanonicalSymbolName = (name: string, aggregate: boolean, displayNameMap: DisplayNameMap) => {
+  let canonicalName = null
+  if (name in displayNameMap.localNames) {
+    canonicalName = displayNameMap.localNames[name]
+    // Consider following formula example:
+    // "mean(Speed) + Speed"
+    // `Speed` is one that should be resolved to two very different values depending on the context:
+    // - if Speed is not an argument of aggregate function, it should be resolved to the current case value
+    // - if Speed is an argument of aggregate function, it should be resolved to an array containing all the values
+    // This differentiation can be done using the suffixes added to the symbol name.
+    if (aggregate) {
+      canonicalName += AGGREGATE_SYMBOL_SUFFIX
+    }
+  }
+  return canonicalName
 }
 
-export const isLookupFunction = (name: string) => LOOKUP_FUNCTION[name] === true
-
-export const getValueOrName = (node: MathNode) => {
-  if (isSymbolNode(node)) {
-    return node.name
+export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDependency | null => {
+  if (canonicalName.startsWith(LOCAL_ATTR)) {
+    const attrId = canonicalName.substring(LOCAL_ATTR.length)
+    const result: ILocalAttributeDependency = { type: "localAttribute", attrId }
+    if (attrId.endsWith(AGGREGATE_SYMBOL_SUFFIX)) {
+      result.attrId = attrId.substring(0, attrId.length - AGGREGATE_SYMBOL_SUFFIX.length)
+      result.aggregate = true
+    }
+    return result
   }
-  if (isConstantNode(node)) {
-    return node.value
+  if (canonicalName.startsWith(GLOBAL_VALUE)) {
+    const globalId = canonicalName.substring(GLOBAL_VALUE.length)
+    return { type: "globalValue", globalId }
   }
-  return ""
+  return null
 }
-
-export const isConstantStringNode = (node: MathNode): node is ConstantNode<string> =>
-  isConstantNode(node) && typeof node.value === "string"
 
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
@@ -43,69 +56,29 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
   interface IExtendedMathNode extends MathNode {
     isDescendantOfAggregateFunc?: boolean
   }
-
   const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
     if (isFunctionNode(node) && isAggregateFunction(node.fn.name) || parent?.isDescendantOfAggregateFunc) {
       node.isDescendantOfAggregateFunc = true
     }
-    else if (isSymbolNode(node)) {
-      if (node.name in displayNameMap.localNames) {
-        node.name = displayNameMap.localNames[node.name]
-
-        // Consider following formula example:
-        // "mean(Speed) + Speed"
-        // `Speed` is one that should be resolved to two very different values depending on the context:
-        // - if Speed is not an argument of aggregate function, it should be resolved to the current case value
-        // - if Speed is an argument of aggregate function, it should be resolved to an array containing all the values
-        // This differentiation can be done using the suffixes added to the symbol name.
-        if (parent.isDescendantOfAggregateFunc) {
-          node.name += AGGREGATE_SYMBOL_SUFFIX
-        }
+    const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
+    if (isSymbolNode(node)) {
+      const canonicalName = generateCanonicalSymbolName(node.name, isDescendantOfAggregateFunc, displayNameMap)
+      if (canonicalName) {
+        node.name = canonicalName
       }
     }
-    if (isFunctionNode(node) && isLookupFunction(node.fn.name)) {
-      if (isConstantStringNode(node.args[0])) {
-        const dataSetName = node.args[0].value
-        node.args[0].value = displayNameMap.dataSet[node.args[0].value]?.id
-
-        if (isConstantStringNode(node.args[1])) {
-          const attrName = node.args[1].value
-          node.args[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
-        }
-
-        if (node.fn.name === CODAPMathjsFunctions.lookupByKey && isConstantStringNode(node.args[2])) {
-          const keyAttrName = node.args[2].value
-          node.args[2].value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
-        }
-      }
+    if (isFunctionNode(node) && fnRegistry[node.fn.name]) {
+      // Note that parseArguments will modify args array in place, because we're passing canonicalizeWith option.
+      fnRegistry[node.fn.name].parseArguments(node.args, { canonicalizeWith: displayNameMap })
     }
   }
-
   formulaTree.traverse(visitNode)
   return formulaTree.toString()
-}
-
-export const parseCanonicalSymbolName = (symbolName: string): IFormulaDependency | null => {
-  if (symbolName.startsWith(LOCAL_ATTR)) {
-    const attrId = symbolName.substring(LOCAL_ATTR.length)
-    const result: ILocalAttributeDependency = { type: "localAttribute", attrId }
-    if (attrId.endsWith(AGGREGATE_SYMBOL_SUFFIX)) {
-      result.attrId = attrId.substring(0, attrId.length - AGGREGATE_SYMBOL_SUFFIX.length)
-      result.aggregate = true
-    }
-    return result
-  }
-  if (symbolName.startsWith(GLOBAL_VALUE)) {
-    const globalId = symbolName.substring(GLOBAL_VALUE.length)
-    return { type: "globalValue", globalId }
-  }
-  return null
 }
 
 export const getFormulaDependencies = (formulaCanonical: string) => {
   const formulaTree = parse(formulaCanonical)
   const result: IFormulaDependency[] = []
-
   const visitNode = (node: MathNode) => {
     if (isSymbolNode(node)) {
       const parsedName = parseCanonicalSymbolName(node.name)
@@ -113,17 +86,8 @@ export const getFormulaDependencies = (formulaCanonical: string) => {
         result.push(parsedName)
       }
     }
-    if (isFunctionNode(node) && isLookupFunction(node.fn.name)) {
-      const dataSetId = getValueOrName(node.args[0]).toString() || ""
-      const attrId = getValueOrName(node.args[1]).toString() || ""
-      if (node.fn.name === CODAPMathjsFunctions.lookupByIndex) {
-        const zeroBasedIndex = Number(getValueOrName(node.args[2])) - 1 ?? undefined
-        result.push({ type: "lookupByIndex", dataSetId, attrId, index: zeroBasedIndex })
-      }
-      if (node.fn.name === CODAPMathjsFunctions.lookupByKey) {
-        const keyAttrId = getValueOrName(node.args[2]).toString() || ""
-        result.push({ type: "lookupByKey", dataSetId, attrId, keyAttrId })
-      }
+    if (isFunctionNode(node) && fnRegistry[node.fn.name]) {
+      result.push(fnRegistry[node.fn.name].parseArguments(node.args))
     }
   }
   formulaTree.traverse(visitNode)
