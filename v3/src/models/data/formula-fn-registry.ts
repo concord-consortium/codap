@@ -135,6 +135,22 @@ export const fnRegistry = {
       return ""
     },
   },
+
+  // mean(expression, filterExpression)
+  mean: {
+    rawArgs: true,
+    isAggregate: true,
+    evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => {
+      const expression = args[0]
+      const filter = args[1]
+      let expressionValues = evaluateNode(expression, scope)
+      if (filter) {
+        const filterValues = evaluateNode(filter, scope)
+        expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
+      }
+      return mean(expressionValues)
+    }
+  },
 }
 
 export const typedFnRegistry: ICODAPMathjsFunctionRegistry & typeof fnRegistry = fnRegistry
