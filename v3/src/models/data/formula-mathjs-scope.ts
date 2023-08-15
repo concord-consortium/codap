@@ -27,14 +27,9 @@ export const getFormulaMathjsScope = (
       }
     })
 
-    // Moving lookup and mapping outside getters should speed up execution, as mapping is done only once.
-    // We can do it, as aggregate values do not depend on caseId.
-    const safeNumValues = attr.numValues.map(v => v === undefined || isNaN(v) ? 0 : v)
     Object.defineProperty(scope, `${LOCAL_ATTR}${attr.id}${AGGREGATE_SYMBOL_SUFFIX}`, {
       get() {
-        // Is there any case where aggregate function call would make sense with string values?
-        // It doesn't seem so, so numeric values are returned.
-        return safeNumValues
+        return attr.strValues
       }
     })
   })

@@ -32,6 +32,7 @@ export interface ILookupByIndexDependency {
   type: "lookupByIndex"
   dataSetId: string
   attrId: string
+  // TODO: remove index from dependency! It's not necessarily a constant, it might be dynamically calculated.
   index: number
 }
 
@@ -40,7 +41,6 @@ export interface ILookupByKeyDependency {
   dataSetId: string
   attrId: string
   keyAttrId: string
-  keyAttrValue?: string | number
 }
 
 export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupByIndexDependency |
@@ -57,12 +57,14 @@ export interface IFormulaMathjsScope {
 // For some reason, Mathjs transforms our scope into a Map, so we need to use this type sometimes
 export type MathJSShallowCopyOfScope = Map<keyof IFormulaMathjsScope, any>
 
-export interface ICODAPMathjsFunctionRegistry {
-  [key: string]: {
-    rawArgs: boolean
-    evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => string | number | boolean
-    // Note that when canonicalizeWith option is provided, the arguments will be changed in place.
-    // It might be a bit surprising, but this lets us save lots of repetitive code.
-    parseArguments: (args: MathNode[], options?: { canonicalizeWith?: DisplayNameMap }) => IFormulaDependency
-  }
+export type EvalValue = string | number | boolean
+
+export interface IFormulaMathjsFunction {
+  rawArgs: boolean
+  isAggregate: boolean
+  evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => EvalValue | EvalValue[]
+  canonicalize?: (args: MathNode[], displayNameMap: DisplayNameMap) => void
+  getDependency?: (args: MathNode[]) => IFormulaDependency
 }
+
+export type ICODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>
