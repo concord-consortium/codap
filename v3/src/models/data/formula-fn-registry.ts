@@ -1,23 +1,14 @@
-import { create, all, isConstantNode, MathNode, mean, ConstantNode } from 'mathjs'
-import { getFormulaMathjsScope } from './formula-mathjs-scope'
+import { create, all, MathNode, mean, ConstantNode } from 'mathjs'
+import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
-  DisplayNameMap, ICODAPMathjsFunctionRegistry, ILookupDependency, MathJSShallowCopyOfScope, isConstantStringNode
+  DisplayNameMap, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
 } from './formula-types'
 import type { IDataSet } from './data-set'
 
 export const math = create(all)
 
-const evaluateNode = (node: MathNode, scope?: MathJSShallowCopyOfScope) => {
-  // TODO: Mathjs recreates our scope as a Map, but at the same time it looses most of the functionality...
-  // Recreate the custom scope here as a workaround. Check if there's no bug in mathjs, as our original scope
-  // wasn't a Map, so I guess it should be still provided as an object (or its copy).
-  const realScope = !scope ? undefined : getFormulaMathjsScope(
-    scope.get("localDataSet"), scope.get("dataSets"), scope.get("globalValueManager")
-  )
-  if (scope && realScope) {
-    realScope.setCaseId(scope.get("caseId"))
-  }
-  return node.compile().evaluate(realScope)
+const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
+  return node.compile().evaluate(scope)
 }
 
 export const fnRegistry = {
@@ -70,11 +61,11 @@ export const fnRegistry = {
       validArgs[0].value = displayNameMap.dataSet[dataSetName]?.id
       validArgs[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
     },
-    evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => {
+    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const dataSetId = evaluateNode(args[0], scope)
       const attrId = evaluateNode(args[1], scope)
       const zeroBasedIndex = evaluateNode(args[2], scope) - 1
-      return scope.get("dataSets")?.get(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || ""
+      return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || ""
     }
   },
 
@@ -110,13 +101,13 @@ export const fnRegistry = {
       validArgs[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
       validArgs[2].value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
     },
-    evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => {
+    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const dataSetId = evaluateNode(args[0], scope)
       const attrId = evaluateNode(args[1], scope)
       const keyAttrId = evaluateNode(args[2], scope)
       const keyAttrValue = evaluateNode(args[3], scope)
 
-      const dataSet: IDataSet = scope.get("dataSets")?.get(dataSetId)
+      const dataSet: IDataSet | undefined = scope.getDataSet(dataSetId)
       if (!dataSet) {
         return ""
       }
@@ -136,7 +127,7 @@ export const fnRegistry = {
   mean: {
     rawArgs: true,
     isAggregate: true,
-    evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => {
+    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const expression = args[0]
       const filter = args[1]
       let expressionValues = evaluateNode(expression, scope)

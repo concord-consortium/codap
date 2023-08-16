@@ -1,6 +1,5 @@
 import { ConstantNode, MathNode, isConstantNode } from "mathjs"
-import type { IGlobalValueManager } from "../global/global-value-manager"
-import type { IDataSet } from "./data-set"
+import type { FormulaMathJsScope } from "./formula-mathjs-scope"
 
 export const GLOBAL_VALUE = "GLOBAL_VALUE_"
 export const LOCAL_ATTR = "LOCAL_ATTR_"
@@ -37,23 +36,12 @@ export interface ILookupDependency {
 
 export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
 
-export interface IFormulaMathjsScope {
-  caseId: string
-  setCaseId(caseId: string): void
-  localDataSet: IDataSet
-  dataSets: Map<string, IDataSet>
-  globalValueManager?: IGlobalValueManager
-}
-
-// For some reason, Mathjs transforms our scope into a Map, so we need to use this type sometimes
-export type MathJSShallowCopyOfScope = Map<keyof IFormulaMathjsScope, any>
-
 export type EvalValue = string | number | boolean
 
 export interface IFormulaMathjsFunction {
   rawArgs: boolean
   isAggregate: boolean
-  evaluate: (args: MathNode[], mathjs: any, scope: MathJSShallowCopyOfScope) => EvalValue | EvalValue[]
+  evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => EvalValue | EvalValue[]
   canonicalize?: (args: MathNode[], displayNameMap: DisplayNameMap) => void
   getDependency?: (args: MathNode[]) => IFormulaDependency
 }

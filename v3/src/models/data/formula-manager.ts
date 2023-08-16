@@ -1,5 +1,5 @@
 import { makeObservable, observable, reaction } from "mobx"
-import { getFormulaMathjsScope } from "./formula-mathjs-scope"
+import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { ICase } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { getFormulaDependencies } from "./formula-utils"
@@ -76,7 +76,9 @@ export class FormulaManager {
     console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
 
     const compiledFormula = math.compile(formula.canonical)
-    const formulaScope = getFormulaMathjsScope(dataSet, this.dataSets, this.globalValueManager)
+    const formulaScope = new FormulaMathJsScope({
+      localDataSet: dataSet, dataSets: this.dataSets, globalValueManager: this.globalValueManager
+    })
 
     const casesToUpdate = casesToRecalculate.map((c) => {
       formulaScope.setCaseId(c.__id__)
