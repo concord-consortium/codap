@@ -28,23 +28,14 @@ export interface IGlobalValueDependency {
   globalId: string
 }
 
-export interface ILookupByIndexDependency {
-  type: "lookupByIndex"
+export interface ILookupDependency {
+  type: "lookup"
   dataSetId: string
   attrId: string
-  // TODO: remove index from dependency! It's not necessarily a constant, it might be dynamically calculated.
-  index: number
+  keyAttrId?: string
 }
 
-export interface ILookupByKeyDependency {
-  type: "lookupByKey"
-  dataSetId: string
-  attrId: string
-  keyAttrId: string
-}
-
-export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupByIndexDependency |
-  ILookupByKeyDependency
+export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
 
 export interface IFormulaMathjsScope {
   caseId: string

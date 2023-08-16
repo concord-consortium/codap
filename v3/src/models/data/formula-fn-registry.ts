@@ -1,8 +1,7 @@
 import { create, all, isConstantNode, MathNode, mean, ConstantNode } from 'mathjs'
 import { getFormulaMathjsScope } from './formula-mathjs-scope'
 import {
-  DisplayNameMap, ICODAPMathjsFunctionRegistry, ILookupByIndexDependency, ILookupByKeyDependency,
-  MathJSShallowCopyOfScope, isConstantStringNode
+  DisplayNameMap, ICODAPMathjsFunctionRegistry, ILookupDependency, MathJSShallowCopyOfScope, isConstantStringNode
 } from './formula-types'
 import type { IDataSet } from './data-set'
 
@@ -46,25 +45,22 @@ export const fnRegistry = {
   lookupByIndex: {
     rawArgs: true,
     isAggregate: false,
-    validateArguments: (args: MathNode[]): [ConstantNode<string>, ConstantNode<string>, ConstantNode<number>] => {
+    validateArguments: (args: MathNode[]): [ConstantNode<string>, ConstantNode<string>, MathNode] => {
       if (args.length !== 3) {
         throw new Error(`lookupByIndex function expects exactly 3 arguments, but it received ${args.length}`)
       }
-      // TODO: remove index from dependency! It's not necessarily a constant, it might be dynamically calculated.
-      if (!isConstantStringNode(args[0]) || !isConstantStringNode(args[1]) || !isConstantNode(args[2])) {
+      if (!isConstantStringNode(args[0]) || !isConstantStringNode(args[1])) {
         throw new Error("lookupByIndex function expects first two arguments to be strings " +
           "and the third one to be a number")
       }
       return [args[0], args[1], args[2]]
     },
-    getDependency: (args: MathNode[]): ILookupByIndexDependency => {
+    getDependency: (args: MathNode[]): ILookupDependency => {
       const validArgs = fnRegistry.lookupByIndex.validateArguments(args)
       return {
-        type: "lookupByIndex",
+        type: "lookup",
         dataSetId: validArgs[0].value,
         attrId: validArgs[1].value,
-        // TODO: remove index from dependency! It's not necessarily a constant, it might be dynamically calculated.
-        index: validArgs[2].value - 1 // zero based index
       }
     },
     canonicalize: (args: MathNode[], displayNameMap: DisplayNameMap) => {
@@ -96,10 +92,10 @@ export const fnRegistry = {
       }
       return [args[0], args[1], args[2], args[3]]
     },
-    getDependency: (args: MathNode[]): ILookupByKeyDependency => {
+    getDependency: (args: MathNode[]): ILookupDependency => {
       const validArgs = fnRegistry.lookupByKey.validateArguments(args)
       return {
-        type: "lookupByKey",
+        type: "lookup",
         dataSetId: validArgs[0].value,
         attrId: validArgs[1].value,
         keyAttrId: validArgs[2].value,
