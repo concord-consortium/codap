@@ -138,6 +138,60 @@ export const fnRegistry = {
       return mean(expressionValues)
     }
   },
+
+  // next(attributeName, defaultValue, filter)
+  next: {
+    rawArgs: true,
+    isAggregate: true,
+    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+      const expression = args[0]
+      const defaultValue = args[1]
+      const filter = args[2]
+      const expressionValues = evaluateNode(expression, scope)
+      const dataSet: IDataSet = scope.getLocalDataSet()
+      const currentIndex = dataSet.caseIDMap[scope.getCaseId()]
+      let resultIndex = -1
+      if (!filter) {
+        resultIndex = currentIndex + 1
+      } else {
+        const filterValues = evaluateNode(filter, scope)
+        for (let i = currentIndex + 1; i < filterValues.length; i++) {
+          if (!!filterValues[i] === true) {
+            resultIndex = i
+            break
+          }
+        }
+      }
+      return expressionValues[resultIndex] ?? (defaultValue ? evaluateNode(defaultValue, scope) : "")
+    }
+  },
+
+  // prev(expression, defaultValue, filter)
+  prev: {
+    rawArgs: true,
+    isAggregate: true,
+    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+      const expression = args[0]
+      const defaultValue = args[1]
+      const filter = args[2]
+      const expressionValues = evaluateNode(expression, scope)
+      const dataSet: IDataSet = scope.getLocalDataSet()
+      const currentIndex = dataSet.caseIDMap[scope.getCaseId()]
+      let resultIndex = -1
+      if (!filter) {
+        resultIndex = currentIndex - 1
+      } else {
+        const filterValues = evaluateNode(filter, scope)
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          if (!!filterValues[i] === true) {
+            resultIndex = i
+            break
+          }
+        }
+      }
+      return expressionValues[resultIndex] ?? (defaultValue ? evaluateNode(defaultValue, scope) : "")
+    }
+  }
 }
 
 export const typedFnRegistry: ICODAPMathjsFunctionRegistry & typeof fnRegistry = fnRegistry

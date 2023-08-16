@@ -84,6 +84,14 @@ export class FormulaMathJsScope {
     this.caseId = caseId
   }
 
+  getCaseId() {
+    return this.caseId
+  }
+
+  getLocalDataSet() {
+    return this.context.localDataSet
+  }
+
   getDataSet(dataSetId: string) {
     return this.context.dataSets.get(dataSetId)
   }
