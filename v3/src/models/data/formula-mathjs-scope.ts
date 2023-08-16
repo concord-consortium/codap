@@ -2,6 +2,8 @@ import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-typ
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "./data-set"
 
+const CACHE_ENABLED = true
+
 export interface IFormulaMathjsScopeContext {
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
@@ -14,6 +16,7 @@ export class FormulaMathJsScope {
   context: IFormulaMathjsScopeContext
   caseId = ""
   dataStorage: Record<string, any> = {}
+  cache = new Map<string, any>()
 
   constructor (context: IFormulaMathjsScopeContext) {
     this.context = context
@@ -88,11 +91,28 @@ export class FormulaMathJsScope {
     return this.caseId
   }
 
+  getCaseIndex() {
+    return this.context.localDataSet.caseIDMap[this.caseId]
+  }
+
   getLocalDataSet() {
     return this.context.localDataSet
   }
 
   getDataSet(dataSetId: string) {
     return this.context.dataSets.get(dataSetId)
+  }
+
+  setCached(key: string, value: any) {
+    if (CACHE_ENABLED) {
+      this.cache.set(key, value)
+    }
+  }
+
+  getCached(key: string) {
+    if (CACHE_ENABLED) {
+      return this.cache.get(key)
+    }
+    return undefined
   }
 }

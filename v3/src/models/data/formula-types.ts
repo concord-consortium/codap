@@ -36,14 +36,17 @@ export interface ILookupDependency {
 
 export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
 
-export type EvalValue = string | number | boolean
+export type FValue = string | number | boolean
+
+export type EvaluateFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]
 
 export interface IFormulaMathjsFunction {
   rawArgs: boolean
   isAggregate: boolean
-  evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => EvalValue | EvalValue[]
+  evaluate: EvaluateFunc
   canonicalize?: (args: MathNode[], displayNameMap: DisplayNameMap) => void
   getDependency?: (args: MathNode[]) => IFormulaDependency
+  cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateFunc) => EvaluateFunc
 }
 
 export type ICODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>

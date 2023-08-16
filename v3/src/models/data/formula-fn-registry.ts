@@ -1,7 +1,7 @@
 import { create, all, MathNode, mean, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
-  DisplayNameMap, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
+  DisplayNameMap, FValue, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
 } from './formula-types'
 import type { IDataSet } from './data-set'
 
@@ -10,6 +10,23 @@ export const math = create(all)
 const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
   return node.compile().evaluate(scope)
 }
+
+// Every aggregate function can be cached in the same way.
+const cachedAggregateFnFactory =
+(fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]) => {
+  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    const cacheKey = `${fnName}(${args.toString()})`
+    const cachedValue = scope.getCached(cacheKey)
+    if (cachedValue !== undefined) {
+      return cachedValue
+    }
+    const result = fn(args, mathjs, scope)
+    scope.setCached(cacheKey, result)
+    return result
+  }
+}
+
+const UNDEF_RES = ""
 
 export const fnRegistry = {
   // equal(a, b) or a == b
@@ -65,7 +82,7 @@ export const fnRegistry = {
       const dataSetId = evaluateNode(args[0], scope)
       const attrId = evaluateNode(args[1], scope)
       const zeroBasedIndex = evaluateNode(args[2], scope) - 1
-      return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || ""
+      return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RES
     }
   },
 
@@ -109,17 +126,15 @@ export const fnRegistry = {
 
       const dataSet: IDataSet | undefined = scope.getDataSet(dataSetId)
       if (!dataSet) {
-        return ""
+        return UNDEF_RES
       }
-      // TODO: is that the right way to access all the dataset cases?
-      // TODO: Optimize? Sort and use binary search?
       for (const c of dataSet.cases) {
         const val = dataSet.getValue(c.__id__, keyAttrId)
         if (val === keyAttrValue) {
-          return dataSet.getValue(c.__id__, attrId) || ""
+          return dataSet.getValue(c.__id__, attrId) || UNDEF_RES
         }
       }
-      return ""
+      return UNDEF_RES
     },
   },
 
@@ -127,6 +142,7 @@ export const fnRegistry = {
   mean: {
     rawArgs: true,
     isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const expression = args[0]
       const filter = args[1]
@@ -144,25 +160,64 @@ export const fnRegistry = {
     rawArgs: true,
     isAggregate: true,
     evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+      interface ICachedData {
+        resultIndex: number
+        expressionValues: FValue[]
+        filterValues: FValue[]
+      }
+
+      const calculateResultIndex = (_currentIndex: number, _filterValues: FValue[]) => {
+        let _resultIndex = -1
+        if (!filter) {
+          _resultIndex = _currentIndex + 1
+        } else {
+          for (let i = _currentIndex + 1; i < _filterValues.length; i++) {
+            if (!!_filterValues[i] === true) {
+              _resultIndex = i
+              break
+            }
+          }
+        }
+        return _resultIndex
+      }
+
+      const cacheKey = `next(${args.toString()})`
+      const currentIndex = scope.getCaseIndex()
       const expression = args[0]
       const defaultValue = args[1]
       const filter = args[2]
-      const expressionValues = evaluateNode(expression, scope)
-      const dataSet: IDataSet = scope.getLocalDataSet()
-      const currentIndex = dataSet.caseIDMap[scope.getCaseId()]
-      let resultIndex = -1
-      if (!filter) {
-        resultIndex = currentIndex + 1
+
+      const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
+
+      let result
+      if (cachedData !== undefined) {
+        const { resultIndex, expressionValues, filterValues } = cachedData
+        if (currentIndex < resultIndex) {
+          // Current index is still smaller than previously cached result index. We can reuse it.
+          result = expressionValues[resultIndex]
+        } else {
+          // Current index is equal or bigger than previously cached result index. We need to recalculate it.
+          const newResultIndex = calculateResultIndex(currentIndex, filterValues)
+          result = expressionValues[newResultIndex]
+          // Time to update cache too.
+          scope.setCached(cacheKey, {
+            resultIndex: newResultIndex,
+            expressionValues,
+            filterValues
+          })
+        }
       } else {
         const filterValues = evaluateNode(filter, scope)
-        for (let i = currentIndex + 1; i < filterValues.length; i++) {
-          if (!!filterValues[i] === true) {
-            resultIndex = i
-            break
-          }
-        }
+        const expressionValues = evaluateNode(expression, scope)
+        const resultIndex = calculateResultIndex(currentIndex, filterValues)
+        result = expressionValues[resultIndex]
+        scope.setCached(cacheKey, {
+          resultIndex,
+          expressionValues,
+          filterValues
+        })
       }
-      return expressionValues[resultIndex] ?? (defaultValue ? evaluateNode(defaultValue, scope) : "")
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RES)
     }
   },
 
@@ -171,25 +226,52 @@ export const fnRegistry = {
     rawArgs: true,
     isAggregate: true,
     evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+      interface ICachedData {
+        resultIndex: number
+        expressionValues: FValue[]
+        filterValues: FValue[]
+      }
+
+      const cacheKey = `prev(${args.toString()})`
+      const currentIndex = scope.getCaseIndex()
       const expression = args[0]
       const defaultValue = args[1]
       const filter = args[2]
-      const expressionValues = evaluateNode(expression, scope)
-      const dataSet: IDataSet = scope.getLocalDataSet()
-      const currentIndex = dataSet.caseIDMap[scope.getCaseId()]
-      let resultIndex = -1
-      if (!filter) {
-        resultIndex = currentIndex - 1
-      } else {
-        const filterValues = evaluateNode(filter, scope)
-        for (let i = currentIndex - 1; i >= 0; i--) {
-          if (!!filterValues[i] === true) {
-            resultIndex = i
-            break
-          }
+
+      const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
+
+      let result
+      if (cachedData !== undefined) {
+        const { resultIndex, expressionValues, filterValues } = cachedData
+
+        if (!!filterValues[currentIndex - 1] === true) {
+          // We just found a new result index.
+          const newResultIndex = currentIndex - 1
+          result = expressionValues[newResultIndex]
+          // Time to update cache too.
+          scope.setCached(cacheKey, {
+            resultIndex: newResultIndex,
+            expressionValues,
+            filterValues
+          })
+        } else {
+          // We didn't find a new result index. We can only reuse the old one.
+          result = expressionValues[resultIndex]
         }
+      } else {
+        // This block of code will be executed only once, for the very first case.
+        // The very fist case can't return anything from prev() function.
+        const filterValues = evaluateNode(filter, scope)
+        const expressionValues = evaluateNode(expression, scope)
+        const resultIndex = -1
+        result = undefined
+        scope.setCached(cacheKey, {
+          resultIndex,
+          expressionValues,
+          filterValues
+        })
       }
-      return expressionValues[resultIndex] ?? (defaultValue ? evaluateNode(defaultValue, scope) : "")
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RES)
     }
   }
 }
@@ -197,14 +279,19 @@ export const fnRegistry = {
 export const typedFnRegistry: ICODAPMathjsFunctionRegistry & typeof fnRegistry = fnRegistry
 
 // import the new function in the Mathjs namespace
-Object.keys(fnRegistry).forEach((key) => {
-  const fn = (fnRegistry as any)[key]
+Object.keys(typedFnRegistry).forEach((key) => {
+  const fn = typedFnRegistry[key]
+  let evaluate = fn.evaluate
+  // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
+  if (fn.cachedEvaluateFactory) {
+    evaluate = fn.cachedEvaluateFactory(key, fn.evaluate)
+  }
   if (fn.rawArgs) {
     // MathJS expects rawArgs property to be set on the evaluate function
-    fn.evaluate.rawArgs = true
+    (evaluate as any).rawArgs = true
   }
   math.import({
-    [key]: fn.evaluate
+    [key]: evaluate
   }, {
     override: true // override functions already defined by mathjs
   })
