@@ -33,8 +33,6 @@ export const fnRegistry = {
   // Note that we need to overwrite default MathJs implementation so we can compare strings like "ABC" == "CDE".
   // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
   equal: {
-    rawArgs: false,
-    isAggregate: false,
     evaluate: (a: any, b: any) => {
       if (Array.isArray(a) && Array.isArray(b)) {
         return a.map((v, i) => v === b[i])
@@ -52,7 +50,6 @@ export const fnRegistry = {
   // lookupByIndex("dataSetName", "attributeName", index)
   lookupByIndex: {
     rawArgs: true,
-    isAggregate: false,
     validateArguments: (args: MathNode[]): [ConstantNode<string>, ConstantNode<string>, MathNode] => {
       if (args.length !== 3) {
         throw new Error(`lookupByIndex function expects exactly 3 arguments, but it received ${args.length}`)
@@ -89,7 +86,6 @@ export const fnRegistry = {
   // lookupByKey("dataSetName", "attributeName", "keyAttributeName", "keyAttributeValue" | localKeyAttribute)
   lookupByKey: {
     rawArgs: true,
-    isAggregate: false,
     validateArguments: (args: MathNode[]):
       [ConstantNode<string>, ConstantNode<string>, ConstantNode<string>, MathNode] => {
       if (args.length !== 4) {
@@ -155,10 +151,11 @@ export const fnRegistry = {
     }
   },
 
-  // next(attributeName, defaultValue, filter)
+  // next(expression, defaultValue, filter)
   next: {
     rawArgs: true,
-    isAggregate: true,
+    // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
+    isSemiAggregate: [true, false, true],
     evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       interface ICachedData {
         resultIndex: number
@@ -224,7 +221,8 @@ export const fnRegistry = {
   // prev(expression, defaultValue, filter)
   prev: {
     rawArgs: true,
-    isAggregate: true,
+    // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
+    isSemiAggregate: [true, false, true],
     evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       interface ICachedData {
         resultIndex: number
@@ -276,7 +274,7 @@ export const fnRegistry = {
   }
 }
 
-export const typedFnRegistry: ICODAPMathjsFunctionRegistry & typeof fnRegistry = fnRegistry
+export const typedFnRegistry: ICODAPMathjsFunctionRegistry = fnRegistry
 
 // import the new function in the Mathjs namespace
 Object.keys(typedFnRegistry).forEach((key) => {

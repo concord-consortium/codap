@@ -41,8 +41,12 @@ export type FValue = string | number | boolean
 export type EvaluateFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]
 
 export interface IFormulaMathjsFunction {
-  rawArgs: boolean
-  isAggregate: boolean
+  rawArgs?: boolean
+  isAggregate?: boolean
+  // Value of isSemiAggregate is an array of booleans, where each boolean corresponds to an argument of the function.
+  // When true, it means that the argument is a aggregate argument, otherwise it's not. Hence the whole function
+  // is semi-aggregate.
+  isSemiAggregate?: boolean[]
   evaluate: EvaluateFunc
   canonicalize?: (args: MathNode[], displayNameMap: DisplayNameMap) => void
   getDependency?: (args: MathNode[]) => IFormulaDependency
