@@ -1,116 +1,279 @@
-import React, {useCallback, useEffect, useRef, useState} from "react"
-import {drag, select} from "d3"
-import {autorun, reaction} from "mobx"
+import React, {useCallback, useEffect, useRef} from "react"
+import {drag, select, Selection} from "d3"
+import {autorun} from "mobx"
+import { observer } from "mobx-react-lite"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
-import {kGraphClassSelector} from "../../graphing-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
 import { IMovableValueModel } from "./movable-value-model"
+import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 
 import "./movable-value.scss"
 
+interface IValueObject {
+  cover?: Selection<SVGLineElement, unknown, null, undefined>
+  line?: Selection<SVGLineElement, unknown, null, undefined>
+  rect?: Selection<SVGRectElement, unknown, null, undefined>
+  valueLabel?: Selection<HTMLDivElement, unknown, HTMLElement, any>
+}
 interface IProps {
+  cellKey: Record<string, string>
+  containerId: string
   model: IMovableValueModel
-  axis: INumericAxisModel
+  plotHeight: number
+  plotWidth: number
   transform: string
+  xAxis: INumericAxisModel
+  yAxis: INumericAxisModel
 }
 
-export function MovableValue ({model, axis, transform}: IProps) {
+export const MovableValue = observer(function MovableValue (props: IProps) {
+  const {containerId, model, cellKey={}, transform, xAxis, yAxis} = props
   const layout = useAxisLayoutContext(),
+    dataConfig = useDataConfigurationContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
-    yScale = layout.getAxisScale("left"),
-    valueRef = useRef<SVGSVGElement>(null),
+    yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
+    instanceKey = model.instanceKey(cellKey),
+    classFromKey = model.classNameFromKey(cellKey),
+    [left, right] = xScale?.range() || [0, 1],
     [bottom, top] = yScale?.range() || [0, 1],
-    [valueObject, setValueObject] = useState<Record<string, any>>({
-      line: null, cover: null, valueLabel: null
+    xAttrType = dataConfig?.attributeType("x"),
+    yAttrType = dataConfig?.attributeType("y"),
+    xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1,
+    ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1,
+    xCatSet = layout.getAxisMultiScale("bottom")?.categorySet,
+    xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""],
+    yCatSet = layout.getAxisMultiScale("left")?.categorySet,
+    yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""],
+    xCellCount = xCats.length * xSubAxesCount,
+    yCellCount = yCats.length * ySubAxesCount,
+    values = model.values.get(instanceKey),
+    valueRef = useRef<SVGSVGElement>(null),
+    valueObjects = useRef<IValueObject[]>([]),
+    draggingIndex = useRef<number>(-1),
+    preDragValue = useRef<number | undefined>(undefined),
+    isVertical = useRef(!!(xAttrType && xAttrType === "numeric")),
+    dragValue = useRef<number | undefined>(undefined)
+
+  const determineLineCoords = useCallback((value: number) => {
+    const offsetRight = 50
+    const offsetTop = 20
+    const x1 = isVertical.current ? xScale(value) / xCellCount : right / xCellCount - offsetRight
+    const x2 = isVertical.current ? xScale(value) / xCellCount : left / xCellCount - offsetRight
+    const y1 = !isVertical.current ? yScale(value) / yCellCount : top / yCellCount + offsetTop
+    const y2 = !isVertical.current ? yScale(value) / yCellCount : bottom / yCellCount
+    return { x1, x2, y1, y2 }
+  }, [bottom, left, right, top, xCellCount, xScale, yCellCount, yScale])
+
+  const renderFills = useCallback(() => {
+    if (!values || values.length < 2) return
+    select(`#${containerId}`).selectAll(".movable-value-fill").remove()
+    const sortedValues = dragValue.current
+      ? model.sortedValuesWithDragValue(dragValue.current, draggingIndex.current, instanceKey)
+      : model.sortedValues(instanceKey)
+    const { x1, y1, y2 } = determineLineCoords(values[0])
+    const offsetTop = y1 + 3
+    const orientationClass: string = isVertical.current ? "vertical" : "horizontal"
+    const selection = select(valueRef.current)
+    const axisMax = isVertical.current ? xScale.domain()[1] : yScale.domain()[1]
+
+    for (let i = 0; i < sortedValues.length; i++) {
+      if (i % 2 === 0) {
+        const nextValue = sortedValues[i + 1] ?? axisMax
+        const fillStart = isVertical.current
+          ? xScale(sortedValues[i]) / xCellCount
+          : yScale(sortedValues[i]) / yCellCount
+        const fillEnd = isVertical.current ? xScale(nextValue) / xCellCount : yScale(nextValue) / yCellCount
+        const width = isVertical.current ? Math.abs(fillEnd - fillStart) : x1 + 3
+        const height = isVertical.current ? y2 - offsetTop : Math.abs(fillEnd - fillStart)
+        selection.append("rect")
+          .attr("class", `movable-value-fill ${orientationClass}`)
+          .attr("x", isVertical.current ? fillStart : 0)
+          .attr("y", isVertical.current ? offsetTop : fillEnd)
+          .attr("width", width)
+          .attr("height", height)
+      }
+    }
+  }, [values, containerId, model, instanceKey, determineLineCoords, xScale, yScale, xCellCount, yCellCount])
+
+  // Updates the coordinates of the line and its cover segments
+  const refreshValue = useCallback((value: number, valueObjIndex: number) => {
+    if (!value || !valueObjects.current[valueObjIndex]) return
+    const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
+    const displayValue = multiScale ? multiScale.formatValueForScale(value) : valueLabelString(value)
+    const { line, cover, rect, valueLabel } = valueObjects.current[valueObjIndex]
+    if (!line || !cover || !rect || !valueLabel) return
+
+    const { x1, x2, y1, y2 } = determineLineCoords(value)
+    const rectOffset = 3
+    line.attr("x1", x1)
+        .attr("y1", y1)
+        .attr("x2", x2)
+        .attr("y2", y2)
+        .classed("vertical", isVertical.current)
+        .classed("horizontal", !isVertical.current)
+    cover.attr("x1", isVertical.current ? x1 : x1 + 7)
+        .attr("y1", y1)
+        .attr("x2", x2)
+        .attr("y2", y2)
+        .classed("vertical", isVertical.current)
+        .classed("horizontal", !isVertical.current)
+    rect.attr("x", isVertical.current ? x1 - rectOffset : x1)
+        .attr("y", isVertical.current ? y1 : y1 - rectOffset)
+        .classed("vertical", isVertical.current)
+        .classed("horizontal", !isVertical.current)
+
+    valueLabel
+      .style("left", `${x1}px`)
+      .style("top", `${y1}px`)
+      .classed("vertical", isVertical.current)
+      .classed("horizontal", !isVertical.current)
+      .html(displayValue)
+  }, [determineLineCoords, layout])
+
+  const handleDrag = useCallback((event: MouseEvent, index: number) => {
+    return autorun(() => {
+      draggingIndex.current = index
+      const axisMin = isVertical.current ? xScale.domain()[0] : yScale.domain()[0]
+      const axisMax = isVertical.current ? xScale.domain()[1] : yScale.domain()[1]
+      const newValue = xAttrType === "numeric"
+        ? xScale.invert(event.x) * xCellCount
+        : yScale.invert(event.y) * yCellCount
+      if (!preDragValue.current) {
+        preDragValue.current = values?.[index]
+      }
+
+      // If the value is dragged outside plot area, reset it to its initial value
+      if ((preDragValue.current != null) && (newValue < axisMin || newValue > axisMax)) {
+        dragValue.current = preDragValue.current
+      } else {
+        dragValue.current = newValue
+      }
+      refreshValue(dragValue.current, draggingIndex.current)
+      renderFills()
     })
+  }, [xScale, yScale, xAttrType, xCellCount, yCellCount, refreshValue, renderFills, values])
 
-  const refreshValue = useCallback((value: number) => {
-    const { line, cover } = valueObject
-    if (!line) return
-
-    ;[line, cover].forEach(aLine => {
-      aLine
-        .attr('x1', xScale(value))
-        .attr('y1', top)
-        .attr('x2', xScale(value))
-        .attr('y2', bottom)
+  const handleDragEnd = useCallback(() => {
+    return autorun(() => {
+      if (!dragValue.current) return
+      const newValue = dragValue.current
+      model.replaceValue(newValue, instanceKey, draggingIndex.current)
+      dragValue.current = undefined
+      preDragValue.current = undefined
+      draggingIndex.current = -1
     })
-  }, [bottom, top, valueObject, xScale])
+  }, [instanceKey, model])
 
-  const refreshValueLabel = useCallback((value: number) => {
-    const leftEdge = 0,
-      screenX = xScale(value) + (leftEdge || 0),
-      string = valueLabelString(value)
-    select('div.movable-value-label')
-      .style('left', `${screenX}px`)
-      .style('top', 0)
-      .html(string)
-  }, [xScale])
+  // Add drag behaviors to the line cover
+  const addDragHandlers = useCallback(() => {
+    for (let i = 0; i < valueObjects.current.length; i++) {
+      valueObjects.current[i].cover?.call(
+        drag<SVGLineElement, unknown, null>()
+          .on("drag", (e) => handleDrag(e, i))
+          .on("end", () => handleDragEnd())
+      )
+    }
+  }, [handleDrag, handleDragEnd])
+
+  // Forces a refresh of the lines and their cover segments and drag handlers.
+  // This is called when a value change is not caused by dragging, e.g. when
+  // the value's associated attribute is moved from the bottom to the left axis.
+  const adjustAllValues = useCallback(() => {
+    if (!values || values.length === 0) return
+    for (let i = 0; i < valueObjects.current.length; i++) {
+      refreshValue(values[i], i)
+      const { cover } = valueObjects.current[i]
+      cover?.on(".drag", null)
+    }
+    addDragHandlers()
+  }, [addDragHandlers, values, refreshValue])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
-    const disposer = autorun(() => {
-      const { value } = model
-      refreshValue(value)
-      refreshValueLabel(value)
+    if (draggingIndex.current === -1) {
+      adjustAllValues()
+    }
+    autorun(() => {
+      const movableValueInstance = model.values.get(instanceKey)
+      movableValueInstance?.[draggingIndex.current] &&
+        refreshValue(movableValueInstance?.[draggingIndex.current], draggingIndex.current)
+      movableValueInstance?.[draggingIndex.current] && renderFills()
     })
-    return () => disposer()
-  }, [model, refreshValue, refreshValueLabel])
+  }, [adjustAllValues, instanceKey, model.values, refreshValue, renderFills])
 
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
-    const disposer = reaction(
-      () => {
-        const { domain } = axis
-        return domain
-      },
-      () => {
-        const { value } = model
-        refreshValue(value)
-        refreshValueLabel(value)
-      }
-    )
+    const disposer = autorun(() => {
+      isVertical.current = dataConfig?.attributeType("x") === "numeric"
+      adjustAllValues()
+      renderFills()
+    })
     return () => disposer()
-  }, [axis, model, refreshValue, refreshValueLabel])
+  }, [adjustAllValues, dataConfig, renderFills, xAxis.max, xAxis.min, yAxis.max, yAxis.min])
 
-  const
-    dragValue = useCallback((event: MouseEvent) => {
-      model.setValue(xScale.invert(event.x))
-    }, [model, xScale])
-
-  // Add the behavior to the line cover
-  useEffect(function addBehaviors() {
-    valueObject.cover?.call(drag().on('drag', dragValue))
-  }, [valueObject, dragValue])
-
-  // Make the line and its cover segments just once
+  // Make the movable values and their cover segments
   useEffect(function createElements() {
-    const selection = select(valueRef.current),
-      newValueObject: any = {}
-    newValueObject.line = selection.append('line')
-      .attr('class', 'movable-value')
-      .attr('transform', transform)
-    newValueObject.cover = selection.append('line')
-      .attr('class', 'movable-value-cover')
-      .attr('transform', transform)
-    newValueObject.valueLabel = select(kGraphClassSelector).append('div')
-      .attr('class', 'movable-value-label')
-    setValueObject(newValueObject)
+    return autorun(() => {
+      if (!values || valueObjects.current.length === values.length) return
 
-    return () => {
-      newValueObject.valueLabel
-        .transition()
-        .duration(1000)
-        .style('opacity', 0)
-        .end().then(() => {
-        newValueObject.valueLabel.remove()
-      })
-    }
-  }, [transform])
+      // Clear any previously added elements
+      valueObjects.current = []
+      const selection = select(valueRef.current)
+      selection.html(null)
+      select(`#${containerId}`).selectAll("div").remove()
+
+      for (let i = 0; i < values.length; i++) {
+        const newValueObject: IValueObject = {}
+        const { x1, x2, y1, y2 } = determineLineCoords(values[i])
+        const orientationClass = isVertical.current ? "vertical" : "horizontal"
+        const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
+        const displayValue = multiScale ? multiScale.formatValueForScale(values[i]) : valueLabelString(values[i])
+
+        newValueObject.rect = selection.append("rect")
+          .attr("class", `movable-value-rect ${orientationClass}`)
+          .attr("transform", transform)
+          .attr("x", isVertical.current ? x1 - 3 : x1)
+          .attr("y", isVertical.current ? y1 : y1 - 3)
+        newValueObject.line = selection.append("line")
+          .attr("class", `movable-value ${orientationClass}`)
+          .attr("transform", transform)
+          .attr("x1", x1)
+          .attr("y1", y1)
+          .attr("x2", x2)
+          .attr("y2", y2)
+        newValueObject.cover = selection.append("line")
+          .attr("class", `movable-value-cover ${orientationClass}`)
+          .attr("transform", transform)
+          .attr("x1", isVertical.current ? x1 : x1 + 7)
+          .attr("y1", y1)
+          .attr("x2", x2)
+          .attr("y2", y2)
+        newValueObject.valueLabel = select(`#${containerId}`).append("div")
+          .attr("class", `movable-value-label ${orientationClass}`)
+          .style("left", `${x1}px`)
+          .style("top", `${y1}px`)
+          .html(displayValue)
+
+        valueObjects.current = [...valueObjects.current, newValueObject]
+        addDragHandlers()
+        renderFills()
+      }
+    })
+  }, [addDragHandlers, renderFills, containerId, determineLineCoords, values, transform, instanceKey, layout])
 
   return (
-    <g ref={valueRef}/>
+    <svg
+      className={`movable-value-${classFromKey}`}
+      data-testid={`movable-value-${classFromKey}`}
+      style={{height: `100%`, width: `100%`}}
+      x={0}
+      y={0}
+    >
+      <g>
+        <g className="movable-value" ref={valueRef}/>
+      </g>
+    </svg>
   )
-}
+})

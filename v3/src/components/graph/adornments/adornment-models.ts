@@ -69,11 +69,25 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     setCellKey(options: IUpdateCategoriesOptions, index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
+      const topCatCount = topCats.length || 1
+      const rightCatCount = rightCats.length || 1
+      const xCatCount = xCats.length || 1
+      const yCatCount = yCats.length || 1
+      const columnCount = topCatCount * xCatCount
+      const rowCount = rightCatCount * yCatCount
       const cellKey: Record<string, string> = {}
-      if (topAttrId) cellKey[topAttrId] = topCats?.[index % topCats.length]
-      if (rightAttrId) cellKey[rightAttrId] = rightCats?.[Math.floor(index / topCats.length)]
-      if (yAttrId && yCats[0]) cellKey[yAttrId] = yCats?.[index % yCats.length]
-      if (xAttrId && xCats[0]) cellKey[xAttrId] = xCats?.[index % xCats.length]
+      const topCat = topCats[index % topCats.length]
+      const rightCat = rightCats[index % rightCats.length]
+      const yCat = topCats.length > 0
+        ? yCats[Math.floor(index / columnCount) % yCatCount]
+        : yCats[index % yCats.length]
+      const xCat = rightCats.length > 0
+        ? xCats[Math.floor(index / rowCount) % xCatCount]
+        : xCats[index % xCats.length]
+      if (topAttrId) cellKey[topAttrId] = topCat
+      if (rightAttrId) cellKey[rightAttrId] = rightCat
+      if (yAttrId && yCats[0]) cellKey[yAttrId] = yCat
+      if (xAttrId && xCats[0]) cellKey[xAttrId] = xCat
       return cellKey
     }
   }))

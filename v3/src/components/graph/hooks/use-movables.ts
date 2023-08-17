@@ -23,7 +23,7 @@ export function useMovables(props: IProps) {
       yDomainDelta = yScale.domain()[1] - yScale.domain()[0]
     movableLineModel.setLine({intercept: yScale.domain()[0] + yDomainDelta / 3, slope: yDomainDelta / xDomainDelta,
       pivot1:undefined, pivot2:undefined})
-    movableValueModel.setValue(xScale.domain()[0] + xDomainDelta / 3)
+    movableValueModel.addValue(xScale.domain()[0] + xDomainDelta / 3)
   }, [xScale, yScale, movableLineModel, movableValueModel])
 
   useEffect(function initMovables() {

@@ -104,12 +104,13 @@ describe("Deserialization", () => {
     const testModel3 = M.create(snap2)
     expect(isMovablePoint(testModel3.adornment) && testModel3.adornment.points).toBeDefined()
 
-    const movableValue = MovableValueModel.create({ type: "Movable Value", value: 1 })
+    const movableValue = MovableValueModel.create()
+    movableValue.setInitialValue()
     testModel.setAdornment(movableValue)
     expect(isMovablePoint(testModel.adornment) && testModel.adornment.points).toBeDefined()
     const snap3 = getSnapshot(testModel)
     const testModel4 = M.create(snap3)
-    expect(isMovableValue(testModel4.adornment) && testModel4.adornment.value).toBeDefined()
+    expect(isMovableValue(testModel4.adornment) && testModel4.adornment.values).toBeDefined()
 
     const unknownAdornment = UnknownAdornmentModel.create()
     testModel.setAdornment(unknownAdornment)

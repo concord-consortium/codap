@@ -274,6 +274,14 @@ export const GraphContentModel = DataDisplayContentModel
       const result = actionFn()
       withUndoRedoStrings(undoStringKey, redoStringKey)
       return result
+    },
+    addAdornment(adornment: IAdornmentModel) {
+      self.hideAdornment(adornment.type)
+      adornment.updateCategories(self.getUpdateCategoriesOptions())
+      self.showAdornment(adornment, adornment.type)
+    },
+    updateAdornment(callback: () => void) {
+      callback()
     }
   }))
 

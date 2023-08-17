@@ -15,8 +15,8 @@ describe("equationString", () => {
 })
 
 describe("valueLabelString", () => {
-  it("should give correct html", () => {
-    expect(valueLabelString(1 / 3)).toBe('<div style="color:blue">0.3333</div>')
+  it("should give correct string", () => {
+    expect(valueLabelString(1 / 3)).toBe('0.3333')
   })
 })
 

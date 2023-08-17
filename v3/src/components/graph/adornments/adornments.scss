@@ -11,7 +11,7 @@
     grid-auto-flow: row;
     font-size: 12px;
     height: auto;
-    padding-right: 3px;
+    padding-right: 0;
     pointer-events: none;
     text-align: right;
     width: auto;
@@ -22,6 +22,7 @@
   }
 
   .graph-adornments-grid__cell {
+    overflow: hidden;
     position: relative;
   }
 }

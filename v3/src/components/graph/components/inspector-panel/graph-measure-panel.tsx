@@ -1,5 +1,5 @@
 import React from "react"
-import { Box, Button, Checkbox, Flex, FormControl, useToast} from "@chakra-ui/react"
+import { Box, Checkbox, Flex, FormControl, useToast} from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
@@ -36,7 +36,8 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
                   t("DG.Inspector.graphPlottedMeanAbsDev"),
                   t("DG.Inspector.graphPlottedBoxPlot"),
                   t("DG.Inspector.graphBoxPlotShowOutliers"),
-                  t("DG.Inspector.graphPlottedValue")
+                  t("DG.Inspector.graphPlottedValue"),
+                  t("DG.Inspector.graphMovableValue")
                 ],
     "scatterPlot": [ t("DG.Inspector.graphCount"),
                      t("DG.Inspector.graphConnectingLine"),
@@ -106,8 +107,6 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
             )
           }
         })}
-        {graphModel?.plotType === "dotPlot" &&
-          <Button size="xs" w="120px">Movable Value</Button>}
       </Flex>
     </InspectorPalette>
   )
