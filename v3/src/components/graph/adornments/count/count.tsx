@@ -7,14 +7,14 @@ import "./count.scss"
 
 interface IProps {
   model: ICountModel
-  subPlotKey: Record<string, string>
+  cellKey: Record<string, string>
 }
 
-export const Count = observer(function Count({model, subPlotKey}: IProps) {
-  const classFromKey = model.classNameFromKey(subPlotKey)
+export const Count = observer(function Count({model, cellKey}: IProps) {
+  const classFromKey = model.classNameFromKey(cellKey)
   const dataConfig = useDataConfigurationContext()
-  const casesInPlot = dataConfig?.subPlotCases(subPlotKey)?.length ?? 0
-  const percent = model.percentValue(dataConfig, casesInPlot, subPlotKey)
+  const casesInPlot = dataConfig?.subPlotCases(cellKey)?.length ?? 0
+  const percent = model.percentValue(dataConfig, casesInPlot, cellKey)
   const displayPercent = model.showCount ? ` (${percent}%)` : `${percent}%`
   const shouldShowPercentOption = dataConfig?.categoricalAttrCount ? dataConfig?.categoricalAttrCount() > 0 : false
   const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs()

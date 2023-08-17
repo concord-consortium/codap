@@ -12,13 +12,13 @@ import "./adornment.scss"
 
 interface IProps {
   adornment: IAdornmentModel
-  subPlotKey: Record<string, string>
+  cellKey: Record<string, string>
   topCats: string[] | number[]
   rightCats: string[] | number[]
 }
 
 export const Adornment = observer(function Adornment(
-  {adornment, subPlotKey, topCats, rightCats}: IProps
+  {adornment, cellKey, topCats, rightCats}: IProps
 ) {
   const graphModel = useGraphContentModelContext(),
     layout = useGraphLayoutContext(),
@@ -36,11 +36,11 @@ export const Adornment = observer(function Adornment(
     isFadeOutComplete.current = !adornment.isVisible
   }, [adornment.isVisible])
 
-  const classFromSubPlotKey = adornment.classNameFromKey(subPlotKey)
+  const classFromCellKey = adornment.classNameFromKey(cellKey)
   // The adornmentKey is a unique value used for React's key prop and for the adornment wrapper's HTML ID.
-  // We can't use the subPlotKey because that value may be duplicated if there are multiple types of
+  // We can't use the cellKey because that value may be duplicated if there are multiple types of
   // adornments active on the graph.
-  const adornmentKey = `${adornment.id}${classFromSubPlotKey ? `-${classFromSubPlotKey}` : ''}`
+  const adornmentKey = `${adornment.id}${classFromCellKey ? `-${classFromCellKey}` : ''}`
   const componentInfo = getAdornmentComponentInfo(adornment.type)
   if (!componentInfo) return null
   const { Component } = componentInfo
@@ -48,7 +48,7 @@ export const Adornment = observer(function Adornment(
   const adornmentWrapperClass = clsx(
     'adornment-wrapper',
     `${adornmentKey}-wrapper`,
-    `${classFromSubPlotKey}`,
+    `${classFromCellKey}`,
     {
       'fadeIn': adornment.isVisible && !isFadeInComplete.current,
       'fadeOut': !adornment.isVisible && !isFadeOutComplete.current,
@@ -69,7 +69,7 @@ export const Adornment = observer(function Adornment(
         model={adornment}
         plotHeight={subPlotHeight}
         plotWidth={subPlotWidth}
-        subPlotKey={subPlotKey}
+        cellKey={cellKey}
         xAxis={graphModel.getAxis('bottom') as INumericAxisModel}
         yAxis={graphModel.getAxis('left') as INumericAxisModel}
       />

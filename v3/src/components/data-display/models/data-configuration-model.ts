@@ -96,7 +96,6 @@ export const DataConfigurationModel = types
       if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
       }
-      console.log('attributeDescriptions', descriptions)
       return descriptions
     },
     /**
@@ -371,48 +370,48 @@ export const DataConfigurationModel = types
       }
   }))
   .views(self => ({
-    isCaseInSubplot(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
+    isCaseInSubplot(cellKey: Record<string, string>, caseData: Record<string, any>) {
       // Subplots are determined by categorical attributes on the top or right. When there is more than one subplot,
       // a case is included if its value(s) for those attribute(s) match the keys for the subplot being considered.
       if (self.hasSingleSubplot()) return true
 
       const topAttrID = self.attributeID("topSplit")
       const rightAttrID = self.attributeID("rightSplit")
-      const isSplitMatch = (!topAttrID || (topAttrID && subPlotKey[topAttrID] === caseData[topAttrID])) &&
-        (!rightAttrID || (rightAttrID && subPlotKey[rightAttrID] === caseData[rightAttrID]))
+      const isSplitMatch = (!topAttrID || (topAttrID && cellKey[topAttrID] === caseData[topAttrID])) &&
+        (!rightAttrID || (rightAttrID && cellKey[rightAttrID] === caseData[rightAttrID]))
       
       return isSplitMatch
     },
-    isCaseInCell(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
-      const numOfKeys = Object.keys(subPlotKey).length
+    isCaseInCell(cellKey: Record<string, string>, caseData: Record<string, any>) {
+      const numOfKeys = Object.keys(cellKey).length
       let matchedValCount = 0
-      Object.keys(subPlotKey).forEach(key => {
-        if (subPlotKey[key] === caseData[key]) matchedValCount++
+      Object.keys(cellKey).forEach(key => {
+        if (cellKey[key] === caseData[key]) matchedValCount++
       })
       return matchedValCount === numOfKeys
     }
   }))
   .views(self => ({
-    subPlotCases(subPlotKey: Record<string, string>) {
+    subPlotCases(cellKey: Record<string, string>) {
       const casesInPlot = [] as ICase[]
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
           const caseAlreadyMatched = casesInPlot.find(aCase => aCase.__id__ === id)
           if (caseData && !caseAlreadyMatched) {
-            self.isCaseInCell(subPlotKey, caseData) && casesInPlot.push(caseData)
+            self.isCaseInCell(cellKey, caseData) && casesInPlot.push(caseData)
           }
         })
       })
       return casesInPlot
     },
-    rowCases(subPlotKey: Record<string, string>) {
+    rowCases(cellKey: Record<string, string>) {
       const casesInRow = [] as ICase[]
       const leftAttrID = self.attributeID("y")
       const leftAttrType = self.attributeType("y")
-      const leftValue = leftAttrID ? subPlotKey[leftAttrID] : ""
+      const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
       const rightAttrID = self.attributeID("rightSplit")
-      const rightValue = rightAttrID ? subPlotKey[rightAttrID] : ""
+      const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach(id => {
@@ -430,13 +429,13 @@ export const DataConfigurationModel = types
       })
       return casesInRow
     },
-    columnCases(subPlotKey: Record<string, string>) {
+    columnCases(cellKey: Record<string, string>) {
       const casesInCol = [] as ICase[]
       const bottomAttrID = self.attributeID("x")
       const bottomAttrType = self.attributeType("x")
-      const bottomValue = bottomAttrID ? subPlotKey[bottomAttrID] : ""
+      const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
       const topAttrID = self.attributeID("topSplit")
-      const topValue = topAttrID ? subPlotKey[topAttrID] : ""
+      const topValue = topAttrID ? cellKey[topAttrID] : ""
 
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach(id => {
@@ -454,7 +453,7 @@ export const DataConfigurationModel = types
       })
       return casesInCol
     },
-    cellCases(subPlotKey: Record<string, string>) {
+    cellCases(cellKey: Record<string, string>) {
       const casesInCell = [] as ICase[]
 
       self.filteredCases?.forEach(aFilteredCases => {
@@ -462,7 +461,7 @@ export const DataConfigurationModel = types
           const caseData = self.dataset?.getCase(id)
           if (!caseData) return
 
-          if (self.isCaseInSubplot(subPlotKey, caseData)) {
+          if (self.isCaseInSubplot(cellKey, caseData)) {
             casesInCell.push(caseData)
           }
         })

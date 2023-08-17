@@ -11,10 +11,10 @@ export const CountModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "row"),
   })
   .views(self => ({
-    percentValue(dataConfig: any, casesInPlot: number, subPlotKey: Record<string, string>) {
-      const casesInRow = dataConfig?.rowCases(subPlotKey)?.length ?? 0
-      const casesInColumn = dataConfig?.columnCases(subPlotKey)?.length ?? 0
-      const casesInCell = dataConfig?.cellCases(subPlotKey)?.length ?? 0
+    percentValue(dataConfig: any, casesInPlot: number, cellKey: Record<string, string>) {
+      const casesInRow = dataConfig?.rowCases(cellKey)?.length ?? 0
+      const casesInColumn = dataConfig?.columnCases(cellKey)?.length ?? 0
+      const casesInCell = dataConfig?.cellCases(cellKey)?.length ?? 0
       const divisor = self.percentType === "row"
         ? casesInRow
         : self.percentType === "column"

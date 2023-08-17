@@ -35,8 +35,8 @@ export const MovablePointModel = AdornmentModel
       const rowCount = rightCats?.length || 1
       const totalCount = rowCount * columnCount
       for (let i = 0; i < totalCount; ++i) {
-        const subPlotKey = self.setSubPlotKey(options, i)
-        const instanceKey = self.instanceKey(subPlotKey)
+        const cellKey = self.setCellKey(options, i)
+        const instanceKey = self.instanceKey(cellKey)
         if (!self.points.get(instanceKey) || resetPoints) {
           self.setInitialPoint(xAxis, yAxis, instanceKey)
         }

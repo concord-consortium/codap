@@ -87,3 +87,18 @@ export function uniqueName(base: string, isValid: (name: string) => boolean) {
   }
   return name
 }
+
+/*
+ * generateValidId()
+ *
+ * returns a value that can safely be used for an HTML ID or class name from a given value
+ */
+export function safeDomIdentifier(value: string) {
+  // Replace spaces and non-alphanumeric characters with dashes
+  const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, "-")
+
+  // Ensure value doesn't start with a number
+  const validId = sanitizedValue.replace(/^([0-9])/, "_$1")
+  
+  return validId
+}
