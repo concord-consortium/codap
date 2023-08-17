@@ -87,6 +87,18 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
   return formulaTree.toString()
 }
 
+export const isRandomFunctionPresent = (formulaCanonical: string) => {
+  const formulaTree = parse(formulaCanonical)
+  let result = false
+  const visitNode = (node: MathNode) => {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name].isRandomFunction) {
+      result = true
+    }
+  }
+  formulaTree.traverse(visitNode)
+  return result
+}
+
 export const getFormulaDependencies = (formulaCanonical: string) => {
   const formulaTree = parse(formulaCanonical)
   const result: IFormulaDependency[] = []

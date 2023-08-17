@@ -1,6 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
-import { canonicalizeExpression } from "./formula-utils"
+import { canonicalizeExpression, isRandomFunctionPresent } from "./formula-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
@@ -13,7 +13,10 @@ export const Formula = types.model("Formula", {
   },
   get formulaManager() {
     return getFormulaManager(self)
-  }
+  },
+  get isRandomFunctionPresent() {
+    return isRandomFunctionPresent(self.canonical)
+  },
 }))
 .actions(self => ({
   setDisplayFormula(displayFormula: string) {
@@ -25,6 +28,12 @@ export const Formula = types.model("Formula", {
   },
   setCanonical(canonical: string) {
     self.canonical = canonical
+  },
+  rerandomize() {
+    if (!self.formulaManager) {
+      return
+    }
+    self.formulaManager.recalculateFormula(self.id)
   }
 }))
 

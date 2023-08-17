@@ -1,4 +1,4 @@
-import { create, all, mean, MathNode, ConstantNode } from 'mathjs'
+import { create, all, mean, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
   DisplayNameMap, FValue, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
@@ -267,6 +267,21 @@ export const fnRegistry = {
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RES)
     }
   },
+
+  // randomPick(...args)
+  randomPick: {
+    isRandomFunction: true,
+    // Nothing to do here, mathjs.pickRandom() has exactly the same signature as CODAP V2 randomPick() function,
+    // just the name is different.
+    evaluate: (...args: FValue[]) => pickRandom(args)
+  },
+
+  // random(min, max)
+  random: {
+    isRandomFunction: true,
+    // Nothing to do here, mathjs.random() has exactly the same signature as CODAP V2 random() function.
+    evaluate: (...args: FValue[]) => random(...args as number[])
+  }
 }
 
 export const typedFnRegistry: ICODAPMathjsFunctionRegistry = fnRegistry
