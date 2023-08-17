@@ -38,7 +38,9 @@ export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDepende
 
 export type FValue = string | number | boolean
 
-export type EvaluateFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]
+export type EvaluateFunc = (...args: FValue[]) => FValue | FValue[]
+
+export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]
 
 export interface IFormulaMathjsFunction {
   rawArgs?: boolean
@@ -47,10 +49,14 @@ export interface IFormulaMathjsFunction {
   // When true, it means that the argument is a aggregate argument, otherwise it's not. Hence the whole function
   // is semi-aggregate.
   isSemiAggregate?: boolean[]
-  evaluate: EvaluateFunc
+  // `evaluate` function accepts arguments already processed and evaluated by mathjs.
+  evaluate?: EvaluateFunc
+  // `evaluateRaw` function accepts raw arguments following convention defined by mathjs.
+  // This lets us enable custom processing of arguments, caching, etc.
+  evaluateRaw?: EvaluateRawFunc
   canonicalize?: (args: MathNode[], displayNameMap: DisplayNameMap) => void
   getDependency?: (args: MathNode[]) => IFormulaDependency
-  cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateFunc) => EvaluateFunc
+  cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateRawFunc) => EvaluateRawFunc
 }
 
 export type ICODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>

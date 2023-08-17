@@ -1,4 +1,4 @@
-import { create, all, MathNode, mean, ConstantNode } from 'mathjs'
+import { create, all, mean, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
   DisplayNameMap, FValue, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
@@ -33,7 +33,7 @@ export const fnRegistry = {
   // Note that we need to overwrite default MathJs implementation so we can compare strings like "ABC" == "CDE".
   // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
   equal: {
-    evaluate: (a: any, b: any) => {
+    evaluateRaw: (a: any, b: any) => {
       if (Array.isArray(a) && Array.isArray(b)) {
         return a.map((v, i) => v === b[i])
       }
@@ -49,7 +49,6 @@ export const fnRegistry = {
 
   // lookupByIndex("dataSetName", "attributeName", index)
   lookupByIndex: {
-    rawArgs: true,
     validateArguments: (args: MathNode[]): [ConstantNode<string>, ConstantNode<string>, MathNode] => {
       if (args.length !== 3) {
         throw new Error(`lookupByIndex function expects exactly 3 arguments, but it received ${args.length}`)
@@ -75,7 +74,7 @@ export const fnRegistry = {
       validArgs[0].value = displayNameMap.dataSet[dataSetName]?.id
       validArgs[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
     },
-    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const dataSetId = evaluateNode(args[0], scope)
       const attrId = evaluateNode(args[1], scope)
       const zeroBasedIndex = evaluateNode(args[2], scope) - 1
@@ -85,7 +84,6 @@ export const fnRegistry = {
 
   // lookupByKey("dataSetName", "attributeName", "keyAttributeName", "keyAttributeValue" | localKeyAttribute)
   lookupByKey: {
-    rawArgs: true,
     validateArguments: (args: MathNode[]):
       [ConstantNode<string>, ConstantNode<string>, ConstantNode<string>, MathNode] => {
       if (args.length !== 4) {
@@ -114,7 +112,7 @@ export const fnRegistry = {
       validArgs[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
       validArgs[2].value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
     },
-    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const dataSetId = evaluateNode(args[0], scope)
       const attrId = evaluateNode(args[1], scope)
       const keyAttrId = evaluateNode(args[2], scope)
@@ -136,10 +134,9 @@ export const fnRegistry = {
 
   // mean(expression, filterExpression)
   mean: {
-    rawArgs: true,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const expression = args[0]
       const filter = args[1]
       let expressionValues = evaluateNode(expression, scope)
@@ -153,10 +150,9 @@ export const fnRegistry = {
 
   // next(expression, defaultValue, filter)
   next: {
-    rawArgs: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       interface ICachedData {
         resultIndex: number
         expressionValues: FValue[]
@@ -220,10 +216,9 @@ export const fnRegistry = {
 
   // prev(expression, defaultValue, filter)
   prev: {
-    rawArgs: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluate: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       interface ICachedData {
         resultIndex: number
         expressionValues: FValue[]
@@ -271,7 +266,7 @@ export const fnRegistry = {
       }
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RES)
     }
-  }
+  },
 }
 
 export const typedFnRegistry: ICODAPMathjsFunctionRegistry = fnRegistry
@@ -279,17 +274,17 @@ export const typedFnRegistry: ICODAPMathjsFunctionRegistry = fnRegistry
 // import the new function in the Mathjs namespace
 Object.keys(typedFnRegistry).forEach((key) => {
   const fn = typedFnRegistry[key]
-  let evaluate = fn.evaluate
-  // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
-  if (fn.cachedEvaluateFactory) {
-    evaluate = fn.cachedEvaluateFactory(key, fn.evaluate)
-  }
-  if (fn.rawArgs) {
+  let evaluateRaw = fn.evaluateRaw
+  if (evaluateRaw) {
+    if (fn.cachedEvaluateFactory) {
+      // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
+      evaluateRaw = fn.cachedEvaluateFactory(key, evaluateRaw)
+    }
     // MathJS expects rawArgs property to be set on the evaluate function
-    (evaluate as any).rawArgs = true
+    (evaluateRaw as any).rawArgs = true
   }
   math.import({
-    [key]: evaluate
+    [key]: evaluateRaw || fn.evaluate
   }, {
     override: true // override functions already defined by mathjs
   })
