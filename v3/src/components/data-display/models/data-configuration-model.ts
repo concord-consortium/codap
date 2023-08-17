@@ -96,6 +96,7 @@ export const DataConfigurationModel = types
       if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
       }
+      console.log('attributeDescriptions', descriptions)
       return descriptions
     },
     /**
@@ -335,31 +336,52 @@ export const DataConfigurationModel = types
         }
         return numRepetitions
       },
-      hasSingleSubplot() {
-        // A graph has a single subplot if it has one or fewer categorical attributes, or if it has exactly two
-        // categorical attributes on axes that are perpendicular to each other.
-        const attrTypes = {
+      attrTypes() {
+        return {
           bottom: self.attributeType("x"),
           left: self.attributeType("y"),
           top: self.attributeType("topSplit"),
           right: self.attributeType("rightSplit")
         }
+      }
+    }))
+    .views(self => ({
+      /**
+       * For the purpose of computing percentages, we need to know the total number of cases we're counting. 
+       * A "subplot" contains the cases being considered. Subplots are always defined by topSplit and/or rightSplit
+       * categorical attributes rather than any categorical attributes on the left or bottom.
+       * A "cell" is defined by zero or more categorical attributes within a subplot.
+       * A percentage is the percentage of cases within a subplot that are within a given cell.
+       */
+      categoricalAttrCount() {
+        const attrTypes = self.attrTypes()
+        return Object.values(attrTypes).filter(a => a === "categorical").length
+      },
+      hasExactlyTwoPerpendicularCategoricalAttrs() {
+        const attrTypes = self.attrTypes()
         const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
         const yHasCategorical = attrTypes.left === "categorical" || attrTypes.right === "categorical"
-        const categoricalAttrCount = Object.values(attrTypes).filter(a => a === "categorical").length
-        const hasOnlyTwoCategorical = categoricalAttrCount === 2
-
-        return categoricalAttrCount <= 1 || (hasOnlyTwoCategorical && xHasCategorical && yHasCategorical)
+        const hasOnlyTwoCategorical = this.categoricalAttrCount() === 2
+        return hasOnlyTwoCategorical && xHasCategorical && yHasCategorical
+      },
+      hasSingleSubplot() {
+        // A graph has a single subplot if it has one or fewer categorical attributes, or if it has exactly two
+        // categorical attributes on axes that are perpendicular to each other.
+        return this.categoricalAttrCount() <= 1 || this.hasExactlyTwoPerpendicularCategoricalAttrs()
       }
   }))
   .views(self => ({
     isCaseInSubplot(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
+      // Subplots are determined by categorical attributes on the top or right. When there is more than one subplot,
+      // a case is included if its value(s) for those attribute(s) match the keys for the subplot being considered.
+      if (self.hasSingleSubplot()) return true
+
       const topAttrID = self.attributeID("topSplit")
       const rightAttrID = self.attributeID("rightSplit")
       const isSplitMatch = (!topAttrID || (topAttrID && subPlotKey[topAttrID] === caseData[topAttrID])) &&
         (!rightAttrID || (rightAttrID && subPlotKey[rightAttrID] === caseData[rightAttrID]))
       
-      return self.hasSingleSubplot() || isSplitMatch
+      return isSplitMatch
     },
     isCaseInCell(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
       const numOfKeys = Object.keys(subPlotKey).length

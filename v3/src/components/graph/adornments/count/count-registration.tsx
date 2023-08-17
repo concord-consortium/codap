@@ -8,18 +8,13 @@ import { Count } from "./count"
 import t from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
-import { shouldShowPercentOption, shouldShowPercentTypeOptions } from "../../utilities/adornment-utils"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
   const dataConfig = useDataConfigurationContext()
   const existingAdornment = graphModel.adornments.find(a => a.type === kCountType) as ICountModel
-  const attrTypes = {
-    bottom: dataConfig?.attributeType("x"),
-    left: dataConfig?.attributeType("y"),
-    top: dataConfig?.attributeType("topSplit"),
-    right: dataConfig?.attributeType("rightSplit")
-  }
+  const shouldShowPercentOption = dataConfig?.categoricalAttrCount ? dataConfig?.categoricalAttrCount() > 0 : false
+  const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs()
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)
   const [percentTypeValue, setPercentTypeValue] = useState(
     existingAdornment && isCount(existingAdornment) ? existingAdornment.percentType : "row"
@@ -64,7 +59,7 @@ const Controls = () => {
           {t(kCountLabelKey)}
         </Checkbox>
       </FormControl>
-      {shouldShowPercentOption(attrTypes) &&
+      {shouldShowPercentOption &&
         <FormControl>
           <Checkbox
             data-testid={`adornment-checkbox-${kCountClass}-percent`}
@@ -73,7 +68,7 @@ const Controls = () => {
           >
             {t(kPercentLabelKey)}
           </Checkbox>
-          {shouldShowPercentTypeOptions(attrTypes) &&
+          {shouldShowPercentTypeOptions &&
             <div
               className="sub-options percent-type"
               data-testid="adornment-percent-type-options"

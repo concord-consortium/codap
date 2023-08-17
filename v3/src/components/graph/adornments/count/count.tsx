@@ -2,7 +2,6 @@ import React, { useEffect } from "react"
 import { observer } from "mobx-react-lite"
 import { ICountModel } from "./count-model"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
-import { shouldShowPercentOption, shouldShowPercentTypeOptions } from "../../utilities/adornment-utils"
 
 import "./count.scss"
 
@@ -17,25 +16,20 @@ export const Count = observer(function Count({model, subPlotKey}: IProps) {
   const casesInPlot = dataConfig?.subPlotCases(subPlotKey)?.length ?? 0
   const percent = model.percentValue(dataConfig, casesInPlot, subPlotKey)
   const displayPercent = model.showCount ? ` (${percent}%)` : `${percent}%`
+  const shouldShowPercentOption = dataConfig?.categoricalAttrCount ? dataConfig?.categoricalAttrCount() > 0 : false
+  const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs()
 
   useEffect(() => {
-    const attrTypes = {
-      bottom: dataConfig?.attributeType("x"),
-      left: dataConfig?.attributeType("y"),
-      top: dataConfig?.attributeType("topSplit"),
-      right: dataConfig?.attributeType("rightSplit")
-    }
-
     // set percentType to 'cell' if attributes change to a configuration that doesn't support 'row' or 'column'
-    if (!shouldShowPercentTypeOptions(attrTypes)) {
+    if (!shouldShowPercentTypeOptions) {
       model.setPercentType("cell")
     }
 
     // set showPercent to false if attributes change to a configuration that doesn't support percent
-    if (!shouldShowPercentOption(attrTypes)) {
+    if (!shouldShowPercentOption) {
       model.setShowPercent(false)
     }
-  }, [dataConfig, model])
+  }, [dataConfig, model, shouldShowPercentOption, shouldShowPercentTypeOptions])
 
   return (
     <div className="graph-count" data-testid={`graph-count${classFromKey ? `-${classFromKey}` : ""}`}>
