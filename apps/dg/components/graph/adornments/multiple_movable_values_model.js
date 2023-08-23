@@ -132,7 +132,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
 
             tCases.forEach(function (iCase) {
               var tNumericValue = iCase.getForcedNumericValue(tNumericVarID),
-                  tCategoricalValue = tSplitVarID && iCase.getValue(tSplitVarID);
+                  tCategoricalValue = tSplitVarID && iCase.getStrValue(tSplitVarID);
               if(SC.none(tCategoricalValue))
                 tCategoricalValue = DG.MovableValueModel.kSingleCellName;
               if (isFinite(tNumericValue) && tCategoricalValue === iName) {
