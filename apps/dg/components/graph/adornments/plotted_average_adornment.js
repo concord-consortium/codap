@@ -88,6 +88,9 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
        * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
        */
       updateToModel: function (iAnimate) {
+        // We can get here indirectly in which case iAnimate is an object we should ignore
+        if (iAnimate !== true)
+          iAnimate = false;
         var tAverageModel = this.get('model');
         if (tAverageModel.get('isVisible')) {
           this.createEquationViews(); // No-op if they are already created

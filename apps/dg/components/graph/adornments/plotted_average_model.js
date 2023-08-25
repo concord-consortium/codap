@@ -324,6 +324,7 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
 /** @scope DG.PlottedBoxPlotModel.prototype */
 {
   showOutliers: false,  // If true, then we draw a "modified" boxplot
+  showICI: false,  // If true, then we draw an informal confidence interval
 
   /**
    * Compute or re-compute the Median, Q1, Q3, lowerWhisker, upperWhisker for each cell.
@@ -337,7 +338,8 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
     sc_super();
 
     var tValues = this.get('values'),
-        tShowOutliers = this.get('showOutliers');
+        tShowOutliers = this.get('showOutliers'),
+        tShowICI = this.get('showICI');
     if( tValues) {
 
       tValues.forEach(function (iValue) {
@@ -367,6 +369,7 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
             iValue.lowerWhisker = iValue.vals[0];
             iValue.upperWhisker = iValue.vals[iValue.vals.length - 1];
           }
+          iValue.ICI = tShowICI ? iValue.IQR / Math.sqrt(iValue.vals.length) : undefined;
         }
       });
     }
@@ -380,6 +383,7 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
   createStorage: function() {
     var tStorage = sc_super();
     tStorage.showOutliers = this.get('showOutliers') || false;
+    tStorage.showICI = this.get('showICI') || false;
     return tStorage;
   },
 
@@ -388,8 +392,10 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
    */
   restoreStorage: function( iStorage) {
     sc_super();
-    if( iStorage)
+    if( iStorage) {
       this.set('showOutliers', iStorage.showOutliers || false);
+      this.set('showICI', iStorage.showICI || false);
+    }
   }
 
 });

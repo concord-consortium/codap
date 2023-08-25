@@ -43,6 +43,8 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         upperWhiskerCover: null,
         outliers: null,
         outlierCovers: null,
+        ici: null,
+        iciCover: null,
 
         init: function () {
           sc_super();
@@ -65,27 +67,34 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           this.outlierCovers.forEach(function (iElement) {
             iDest.push(iElement);
           });
+          this.ici && iDest.push(this.ici);
+          this.iciCover && iDest.push(this.iciCover);
         },
 
         removeFromArrayAndLayer: function (iArray, iLayer) {
+
+          function removeElement( iElement) {
+            if( iElement) {
+              iLayer.prepareToMoveOrRemove(iElement);
+              iElement.remove();
+              iArray.splice(iArray.indexOf(iElement), 1);
+            }
+          }
+
           DG.ObjectMap.forEach(this, function (iKey, iValue) {
             if (iValue.paper) // Test for it being a Raphael Element
             {
-              iLayer.prepareToMoveOrRemove(iValue);
-              iValue.remove();
-              iArray.splice(iArray.indexOf(iValue), 1);
+              removeElement(iValue);
             }
           });
           this.outliers.forEach(function (iElement) {
-            iLayer.prepareToMoveOrRemove(iElement);
-            iElement.remove();
-            iArray.splice(iArray.indexOf(iElement), 1);
+            removeElement(iElement);
           });
           this.outlierCovers.forEach(function (iElement) {
-            iLayer.prepareToMoveOrRemove(iElement);
-            iElement.remove();
-            iArray.splice(iArray.indexOf(iElement), 1);
+            removeElement(iElement);
           });
+          removeElement( this.ici);
+          removeElement( this.iciCover);
         }
       });
 
@@ -96,6 +105,8 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         bgFill: '#FFb280',
         symStroke: '#F30',
         symStrokeWidth: 1,
+        iciStroke: '#30F',
+        iciStrokeWidth: 2,
 
         modelPropertiesToObserve: [ ['showOutliers', 'updateVisibility'] ],
 
@@ -127,6 +138,9 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
          * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
          */
         updateToModel: function( iAnimate ) {
+          // We can get here indirectly in which case iAnimate is an object we should ignore
+          if (iAnimate !== true)
+            iAnimate = false;
           var tModel = this.get('model');
 
           if( tModel && tModel.get('isVisible')) {
@@ -184,6 +198,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
          */
         updateSymbols: function (iAnimate) {
           var this_ = this,
+              kAnimationTime = DG.PlotUtilities.kDefaultAnimationTime,
               tLayer = this.get('layer'),
               tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
               tSecondaryAxisView = this.getPath('parentView.secondaryAxisView'),
@@ -193,10 +208,17 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
               tPaper = this.get('paper');
           if (!tSecondaryAxisView || !tNumValues || !tPaper)
             return; // Happens during transition after secondary attribute removed but before new axis created
+          var formatValue = function( iValue) {
+            var tDigits = DG.PlotUtilities.findFractionDigitsForAxis(tPrimaryAxisView),
+               tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
+               tNumFormat.group(''); // Don't separate with commas
+               return tNumFormat(iValue);
+             };
+
           var tCellHeight = (tNumValues ?
                   (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin')) / tNumValues) : 0),
               tSpec = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap},
-              tOffScreen = -3 * this.symSize, // negative view coordinate to move off screen to hide
+              tOffScreen = -3 * this.symSize, // negative view coordinate to move off-screen to hide
               tBoxWidth = Math.min(tCellHeight / 3, DG.PlotUtilities.kBoxplotMaxWidth);
 
           function overScope() {
@@ -206,7 +228,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
             var tBBox = this.getBBox();
             this_.get('infoTip').show({
               x: tBBox.x, y: tBBox.y - 2,
-              tipString: this.info.tipString, tipValue: this.info.tipValue
+              tipString: this.info.tipString, tipValue: formatValue(this.info.tipValue)
             });
           }
 
@@ -309,6 +331,12 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                     'M%@,%@ v%@'.fmt( tXCenter, tSpec.Q3, tSpec.upperWhisker);
                 },
 
+                getIci = function () {
+                 return tIsHorizontal ?
+                        'M%@,%@ h%@'.fmt( tSpec.iciLower, tYCenter, tSpec.iciUpper - tSpec.iciLower) :
+                        'M%@,%@ v%@'.fmt( tXCenter, tSpec.iciLower, tSpec.iciUpper - tSpec.iciLower);
+               },
+
                 getCrossCover = function (iHKey, iVKey) {
                   return tIsHorizontal ?
                     // Move to the position for horizontal drawing and then make a line across the boxplot width
@@ -357,18 +385,26 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                       .hover(overScope, outScope);
                   tSymbol.Q3Cover = tSymbol.lowerWhiskerCover.clone()
                       .hover(overScope, outScope);
+                  tSymbol.ici = tPaper.path(getIci())
+                     .attr({stroke: this.iciStroke, 'stroke-width': this.iciStrokeWidth, 'stroke-opacity': 0});
+                  tSymbol.iciCover = tPaper.path(getIci())
+                     .attr({'stroke-width': this.hoverWidth, stroke: DG.RenderingUtilities.kTransparent,})
+                     .hover(overScope, outScope);
 
                   tSymbol.lowerRect.animatable =
                       tSymbol.upperRect.animatable =
-                          tSymbol.boxSymbol.animatable = true;
-                  tSymbol.lowerRect.animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-                  tSymbol.upperRect.animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-                  tSymbol.boxSymbol.animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+                          tSymbol.boxSymbol.animatable =
+                             tSymbol.ici.animatable = true;
+                  tSymbol.lowerRect.animate({'stroke-opacity': 1}, kAnimationTime, '<>');
+                  tSymbol.upperRect.animate({'stroke-opacity': 1}, kAnimationTime, '<>');
+                  tSymbol.boxSymbol.animate({'stroke-opacity': 1}, kAnimationTime, '<>');
+                  tSymbol.ici.animate({'stroke-opacity': 1}, kAnimationTime, '<>');
                   tSymbol.pushElements(this.myElements);
                   tSymbol.pushElements(tLayer);
                 }.bind( this),
 
                 configureBoxPlotSymbol = function ( iSymbol) {
+                  var iciStrokeOpacity = this.getPath('model.showICI') ? 1 : 0;
                   iSymbol.lowerRect.info = {range: {lower: tQ1, upper: tMedian, cases: tCases}};
                   iSymbol.upperRect.info = {range: {lower: tMedian, upper: tQ3, cases: tCases}};
                   iSymbol.lowerWhiskerCover.info = {
@@ -383,21 +419,28 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   iSymbol.Q1Cover.info = {tipString: 'Q1 = %@', tipValue: tQ1};
                   iSymbol.Q3Cover.info = {tipString: 'Q3 = %@', tipValue: tQ3};
                   if (iAnimate) {
-                    iSymbol.boxSymbol.animate({path: getSymbolPath()}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-                    iSymbol.lowerRect.animate(getLowerRect(),
-                        DG.PlotUtilities.kDefaultAnimationTime, '<>');
-                    iSymbol.upperRect.animate(getUpperRect(),
-                        DG.PlotUtilities.kDefaultAnimationTime, '<>');
+                    iSymbol.boxSymbol.animate({path: getSymbolPath()}, kAnimationTime, '<>');
+                    iSymbol.lowerRect.animate(getLowerRect(), kAnimationTime, '<>');
+                    iSymbol.upperRect.animate(getUpperRect(), kAnimationTime, '<>');
+                    iSymbol.ici.animate({ 'stroke-opacity': iciStrokeOpacity }, kAnimationTime, '<>');
                   } else {
                     iSymbol.boxSymbol.attr({path: getSymbolPath()});
                     iSymbol.lowerRect.attr(getLowerRect());
                     iSymbol.upperRect.attr(getUpperRect());
+                    iSymbol.ici.attr({ 'stroke-opacity': iciStrokeOpacity });
                   }
                   iSymbol.lowerWhiskerCover.attr('path', getLowerWhisker());
                   iSymbol.upperWhiskerCover.attr('path', getUpperWhisker());
                   iSymbol.medianCover.attr('path', getCrossCover('x', 'y'));
                   iSymbol.Q1Cover.attr('path', getCrossCover('Q1', 'Q1'));
                   iSymbol.Q3Cover.attr('path', getCrossCover('Q3', 'Q3'));
+                  iSymbol.ici.attr('path', getIci());
+                  iSymbol.iciCover.attr('path', getIci());
+
+                  iSymbol.iciCover.info = {
+                    tipString: 'ICI: [%@, %@]'.fmt(formatValue(tMedian - tIci),
+                       formatValue(tMedian + tIci))
+                  };
 
                   // Since the number of outliers is variable, we have get the right number
                   var tSym, tSymCover;
@@ -446,11 +489,13 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   });
 
                   iSymbol.boxSymbol.toFront();
+                  iSymbol.ici.toFront();
                   iSymbol.lowerWhiskerCover.toFront();
                   iSymbol.upperWhiskerCover.toFront();
                   iSymbol.medianCover.toFront();
                   iSymbol.Q1Cover.toFront();
                   iSymbol.Q3Cover.toFront();
+                  iSymbol.iciCover.toFront();
                 }.bind( this);
 
             // Begin updateOneBoxPlot
@@ -460,6 +505,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                 tQ3 = tValuesArray[iIndex].Q3,
                 tLowerWhisker = tValuesArray[iIndex].lowerWhisker,
                 tUpperWhisker = tValuesArray[iIndex].upperWhisker,
+                tIci = tValuesArray[iIndex].ICI,
                 tMedianCoord = ( isFinite(tMedian) ? tPrimaryAxisView.dataToCoordinate(tMedian) : tOffScreen ),
                 tQ1Coord = ( isFinite(tQ1) ? tPrimaryAxisView.dataToCoordinate(tQ1) : tOffScreen ),
                 tQ3Coord = ( isFinite(tQ3) ? tPrimaryAxisView.dataToCoordinate(tQ3) : tOffScreen );
@@ -473,6 +519,8 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
             tSpec.upperWhisker = ( isFinite(tUpperWhisker) ?
                 (tIsHorizontal ? tPrimaryAxisView.dataToCoordinate(tUpperWhisker) - (tSpec.Q1 + tSpec.width) :
                     -(tSpec.Q1 - tSpec.width - tPrimaryAxisView.dataToCoordinate(tUpperWhisker))) : 0);
+            tSpec.iciLower = ( isFinite(tIci) ? tPrimaryAxisView.dataToCoordinate(tMedian - tIci) : tOffScreen );
+            tSpec.iciUpper = ( isFinite(tIci) ? tPrimaryAxisView.dataToCoordinate(tMedian + tIci) : tOffScreen );
             tSpec.outliers = [];
             tValuesArray[iIndex].lowerOutliers.forEach(function (iOutlier) {
               tSpec.outliers.push(tPrimaryAxisView.dataToCoordinate(iOutlier));

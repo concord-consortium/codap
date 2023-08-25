@@ -447,6 +447,55 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
         }));
       },
 
+      /**
+       Toggle whether boxplot informal confidence interval is showing.
+       */
+      toggleShowICI: function () {
+        var this_ = this;
+
+        function toggle() {
+
+          function doToggle(iPlot) {
+            var tBoxPlotModel = iPlot.getAdornmentModel('plottedBoxPlot');
+            if (tBoxPlotModel) {
+              tBoxPlotModel.toggleProperty('showICI');
+              tBoxPlotModel.setComputingNeeded();
+            }
+          }
+
+          doToggle(this_);
+          this_.get('siblingPlots').forEach(doToggle);
+          return this_.getAdornmentModel('plottedBoxPlot').get('showICI');
+        }
+
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "graph.boxPlot.showICI",
+          undoString: null,
+          log: "graph.boxPlot.showICI",
+          executeNotification: {
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'toggle show outliers',
+              type: 'DG.GraphView'
+            }
+          },
+          execute: function () {
+            var wasShown = toggle(),
+
+                verb = wasShown ? "show" : "hide",
+                action = "toggleICI".replace("toggle", verb);
+
+            this.set('undoString', 'DG.Undo.graph.' + action); // e.g. DG.Undo.graph.showPlottedMean
+            this.set('redoString', 'DG.Redo.graph.' + action);
+          },
+          undo: function () {
+            toggle();
+          }
+        }));
+      },
+
       updateAdornmentsModels: function() {
         sc_super();
         ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
@@ -545,6 +594,9 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
           var kMargin = 20,
               kLeading = 5,
               kRowHeight = 20,
+              tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot'),
+              kIciEnabled = DG.get('informalConfidenceIntervalEnabled')==='yes' ||
+                            (tBoxPlotModel && this_.getAdornmentModel('plottedBoxPlot').get('showICI')),
               tShowOutliersCheckbox = SC.CheckboxView.create( {
                 layout: { height: kRowHeight },
                 localize: true,
@@ -557,6 +609,17 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                   this_.toggleShowOutliers();
                 }.observes('value')
               }),
+              tShowIciCheckbox = SC.CheckboxView.create( {
+                layout: { height: kRowHeight },
+                localize: true,
+                flowSpacing: { left: kMargin },
+                title: 'DG.Inspector.graphBoxPlotShowICI',
+                value: tBoxPlotModel ? tBoxPlotModel.get('showICI') : false,
+                classNames: 'dg-graph-boxPlotShowICI-check'.w(),
+                valueDidChange: function () {
+                  this_.toggleShowICI();
+                }.observes('value')
+              }),
               tBoxPlotCheckbox = SC.CheckboxView.create( {
                 layout: { height: kRowHeight },
                 localize: true,
@@ -566,6 +629,7 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                 valueDidChange: function () {
                   this_.togglePlottedBoxPlot();
                   tShowOutliersCheckbox.set('isEnabled', isBoxPlotVisible());
+                  tShowIciCheckbox.set('isEnabled', isBoxPlotVisible());
                 }.observes('value')
               });
 
@@ -590,6 +654,10 @@ DG.DotPlotModel = DG.UnivariatePlotModel.extend(
                   tShowOutliersCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
                   this.appendChild( tBoxPlotCheckbox);
                   this.appendChild(tShowOutliersCheckbox);
+                  if( kIciEnabled) {
+                    tShowIciCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
+                    this.appendChild(tShowIciCheckbox);
+                  }
                 }
               });
           return tComposite;

@@ -423,6 +423,15 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     /**
+     * informalConfidenceIntervalEnabled, when present indicates that the boxplot portion of the ruler menu
+     * should include a checkbox for enabling/disabling the display of the informal confidence interval.
+     * This is used by users in New Zealand in particular to support their stats curriculum.
+     */
+    informalConfidenceIntervalEnabled: function () {
+      return getUrlParameter('ICI', undefined);
+    }.property(),
+
+    /**
      * Returns the index of a guide page, if set as a query parameter. This is
      * taken to designate the guid page that should be present when CODAP opens
      * the document. This value should override whichever guide page is current
