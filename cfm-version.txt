@@ -1,2 +1,2 @@
-version: 1.7.0
-commit: ee4885d9ba8efef375f16bf5ac2ab2a104c3be30
+version: 1.8.0
+commit: e18d65869d597ff5b6fe79c4907ab68d7e18b526
