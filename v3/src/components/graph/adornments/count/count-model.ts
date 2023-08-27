@@ -1,6 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kCountType } from "./count-types"
+import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 
 export const CountModel = AdornmentModel
   .named('CountModel')
@@ -11,17 +12,14 @@ export const CountModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "row"),
   })
   .views(self => ({
-    percentValue(dataConfig: any, casesInPlot: number, cellKey: Record<string, string>) {
-      const casesInRow = dataConfig?.rowCases(cellKey)?.length ?? 0
-      const casesInColumn = dataConfig?.columnCases(cellKey)?.length ?? 0
-      const casesInCell = dataConfig?.cellCases(cellKey)?.length ?? 0
+    percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IDataConfigurationModel) {
       const divisor = self.percentType === "row"
-        ? casesInRow
+        ? dataConfig?.rowCases(cellKey)?.length ?? 0
         : self.percentType === "column"
-          ? casesInColumn
-          : casesInCell
-      const percentValue = ((casesInPlot / divisor) * 100).toFixed(2)
-      return isFinite(Number(percentValue)) ? Math.round(Number(percentValue) * 100)/100 : 0
+          ? dataConfig?.columnCases(cellKey)?.length ?? 0
+          : dataConfig?.cellCases(cellKey)?.length ?? 0
+      const percentValue = casesInPlot / divisor
+      return isFinite(percentValue) ? percentValue : 0
     }
   }))
   .actions(self => ({

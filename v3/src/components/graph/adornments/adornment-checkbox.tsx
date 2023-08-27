@@ -16,7 +16,7 @@ export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
 
   const handleSetting = (checked: boolean) => {
     const componentContentInfo = getAdornmentContentInfo(type)
-    const adornment = existingAdornment ? existingAdornment : componentContentInfo.modelClass.create()
+    const adornment = existingAdornment ?? componentContentInfo.modelClass.create()
     adornment.updateCategories(graphModel.getUpdateCategoriesOptions())
     adornment.setVisibility(checked)
     if (checked) {

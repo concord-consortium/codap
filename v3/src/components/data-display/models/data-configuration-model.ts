@@ -335,7 +335,7 @@ export const DataConfigurationModel = types
         }
         return numRepetitions
       },
-      attrTypes() {
+      get attrTypes() {
         return {
           bottom: self.attributeType("x"),
           left: self.attributeType("y"),
@@ -352,35 +352,35 @@ export const DataConfigurationModel = types
        * A "cell" is defined by zero or more categorical attributes within a subplot.
        * A percentage is the percentage of cases within a subplot that are within a given cell.
        */
-      categoricalAttrCount() {
-        const attrTypes = self.attrTypes()
+      get categoricalAttrCount() {
+        const attrTypes = self.attrTypes
         return Object.values(attrTypes).filter(a => a === "categorical").length
       },
-      hasExactlyTwoPerpendicularCategoricalAttrs() {
-        const attrTypes = self.attrTypes()
+      get hasExactlyTwoPerpendicularCategoricalAttrs() {
+        const attrTypes = self.attrTypes
         const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
         const yHasCategorical = attrTypes.left === "categorical" || attrTypes.right === "categorical"
-        const hasOnlyTwoCategorical = this.categoricalAttrCount() === 2
+        const hasOnlyTwoCategorical = this.categoricalAttrCount === 2
         return hasOnlyTwoCategorical && xHasCategorical && yHasCategorical
       },
-      hasSingleSubplot() {
+      get hasSingleSubplot() {
         // A graph has a single subplot if it has one or fewer categorical attributes, or if it has exactly two
         // categorical attributes on axes that are perpendicular to each other.
-        return this.categoricalAttrCount() <= 1 || this.hasExactlyTwoPerpendicularCategoricalAttrs()
+        return this.categoricalAttrCount <= 1 || this.hasExactlyTwoPerpendicularCategoricalAttrs
       }
   }))
   .views(self => ({
     isCaseInSubplot(cellKey: Record<string, string>, caseData: Record<string, any>) {
       // Subplots are determined by categorical attributes on the top or right. When there is more than one subplot,
       // a case is included if its value(s) for those attribute(s) match the keys for the subplot being considered.
-      if (self.hasSingleSubplot()) return true
+      if (self.hasSingleSubplot) return true
 
       const topAttrID = self.attributeID("topSplit")
       const rightAttrID = self.attributeID("rightSplit")
-      const isSplitMatch = (!topAttrID || (topAttrID && cellKey[topAttrID] === caseData[topAttrID])) &&
+      const isSubplotMatch = (!topAttrID || (topAttrID && cellKey[topAttrID] === caseData[topAttrID])) &&
         (!rightAttrID || (rightAttrID && cellKey[rightAttrID] === caseData[rightAttrID]))
       
-      return isSplitMatch
+      return isSubplotMatch
     },
     isCaseInCell(cellKey: Record<string, string>, caseData: Record<string, any>) {
       const numOfKeys = Object.keys(cellKey).length
@@ -393,7 +393,7 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     subPlotCases(cellKey: Record<string, string>) {
-      const casesInPlot = [] as ICase[]
+      const casesInPlot: ICase[] = []
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
@@ -406,7 +406,7 @@ export const DataConfigurationModel = types
       return casesInPlot
     },
     rowCases(cellKey: Record<string, string>) {
-      const casesInRow = [] as ICase[]
+      const casesInRow: ICase[] = []
       const leftAttrID = self.attributeID("y")
       const leftAttrType = self.attributeType("y")
       const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
@@ -430,7 +430,7 @@ export const DataConfigurationModel = types
       return casesInRow
     },
     columnCases(cellKey: Record<string, string>) {
-      const casesInCol = [] as ICase[]
+      const casesInCol: ICase[] = []
       const bottomAttrID = self.attributeID("x")
       const bottomAttrType = self.attributeType("x")
       const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
@@ -454,7 +454,7 @@ export const DataConfigurationModel = types
       return casesInCol
     },
     cellCases(cellKey: Record<string, string>) {
-      const casesInCell = [] as ICase[]
+      const casesInCell: ICase[] = []
 
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach(id => {
