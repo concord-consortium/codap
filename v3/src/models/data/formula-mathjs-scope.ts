@@ -43,7 +43,7 @@ export class FormulaMathJsScope {
           // - the table is flat and aggregate function is referencing another attribute
           // - the table is hierarchical and aggregate function is referencing an attribute from the same collection
           // In both cases it's enough to compare collection ids. When the table is flat, they might be equal to
-          // undefined but equality check it's gonna work anyway.
+          // undefined but equality check works anyway.
           const attrCollectionId = context.localDataSet.getCollectionForAttribute(attr.id)?.id
           const useSameLevelCases = context.formulaAttributeCollectionId === attrCollectionId
           // Note that mapping childCaseIds might look like potential performance issue / O(n^2), but it's not.
