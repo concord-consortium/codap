@@ -73,7 +73,7 @@ export class FormulaMathJsScope {
 
   // In regular MathJS use case, a subscope is used to create a new scope for a function call. It needs to ensure
   // that variables from subscope cannot overwrite variables from the parent scope. However, since we don't allow
-  // any variables to be set in the formula scope, we can just return the same scope for simplicyt and
+  // any variables to be set in the formula scope, we can just return the same scope for simplicity and
   // performance reasons.
   createSubScope () {
     return this
