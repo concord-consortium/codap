@@ -1,7 +1,7 @@
 import { create, all, mean, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
-  DisplayNameMap, FValue, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
+  DisplayNameMap, FValue, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
 } from './formula-types'
 import type { IDataSet } from './data-set'
 
@@ -30,7 +30,7 @@ const UNDEF_RES = ""
 
 export const fnRegistry = {
   // equal(a, b) or a == b
-  // Note that we need to overwrite default MathJs implementation so we can compare strings like "ABC" == "CDE".
+  // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
   // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
   equal: {
     evaluateRaw: (a: any, b: any) => {
@@ -55,7 +55,7 @@ export const fnRegistry = {
       }
       if (!isConstantStringNode(args[0]) || !isConstantStringNode(args[1])) {
         throw new Error("lookupByIndex function expects first two arguments to be strings " +
-          "and the third one to be a number")
+          "and the third one to be numeric")
       }
       return [args[0], args[1], args[2]]
     },
@@ -269,7 +269,7 @@ export const fnRegistry = {
   },
 }
 
-export const typedFnRegistry: ICODAPMathjsFunctionRegistry = fnRegistry
+export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
 
 // import the new function in the Mathjs namespace
 Object.keys(typedFnRegistry).forEach((key) => {

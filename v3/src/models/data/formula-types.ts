@@ -59,4 +59,4 @@ export interface IFormulaMathjsFunction {
   cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateRawFunc) => EvaluateRawFunc
 }
 
-export type ICODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>
+export type CODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>
