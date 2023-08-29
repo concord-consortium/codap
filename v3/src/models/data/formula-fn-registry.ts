@@ -183,7 +183,7 @@ export const fnRegistry = {
       const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
 
       let result
-      if (cachedData !== undefined) {
+      if (cachedData) {
         const { resultIndex, expressionValues, filterValues } = cachedData
         if (currentIndex < resultIndex) {
           // Current index is still smaller than previously cached result index. We can reuse it.
