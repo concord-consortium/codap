@@ -42,7 +42,7 @@ export const fnRegistry = {
       }
       if (!isConstantStringNode(args[0]) || !isConstantStringNode(args[1])) {
         throw new Error("lookupByIndex function expects first two arguments to be strings " +
-          "and the third one to be a number")
+          "and the third one to be numeric")
       }
       return [args[0], args[1], args[2]]
     },
