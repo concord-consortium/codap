@@ -253,7 +253,7 @@ export const fnRegistry = {
         }
       } else {
         // This block of code will be executed only once, for the very first case.
-        // The very fist case can't return anything from prev() function.
+        // The very first case can't return anything from prev() function.
         const filterValues = evaluateNode(filter, scope)
         const expressionValues = evaluateNode(expression, scope)
         const resultIndex = -1
