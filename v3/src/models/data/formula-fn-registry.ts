@@ -26,7 +26,7 @@ const cachedAggregateFnFactory =
   }
 }
 
-const UNDEF_RES = ""
+const UNDEF_RESULT = ""
 
 export const fnRegistry = {
   // equal(a, b) or a == b
@@ -78,7 +78,7 @@ export const fnRegistry = {
       const dataSetId = evaluateNode(args[0], scope)
       const attrId = evaluateNode(args[1], scope)
       const zeroBasedIndex = evaluateNode(args[2], scope) - 1
-      return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RES
+      return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
     }
   },
 
@@ -120,15 +120,15 @@ export const fnRegistry = {
 
       const dataSet: IDataSet | undefined = scope.getDataSet(dataSetId)
       if (!dataSet) {
-        return UNDEF_RES
+        return UNDEF_RESULT
       }
       for (const c of dataSet.cases) {
         const val = dataSet.getValue(c.__id__, keyAttrId)
         if (val === keyAttrValue) {
-          return dataSet.getValue(c.__id__, attrId) || UNDEF_RES
+          return dataSet.getValue(c.__id__, attrId) || UNDEF_RESULT
         }
       }
-      return UNDEF_RES
+      return UNDEF_RESULT
     },
   },
 
@@ -210,7 +210,7 @@ export const fnRegistry = {
           filterValues
         })
       }
-      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RES)
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
     }
   },
 
@@ -264,7 +264,7 @@ export const fnRegistry = {
           filterValues
         })
       }
-      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RES)
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
     }
   },
 }
