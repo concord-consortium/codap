@@ -1,4 +1,5 @@
 import React, { useEffect } from "react"
+import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { ICountModel } from "./count-model"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
@@ -17,20 +18,23 @@ export const Count = observer(function Count({model, cellKey}: IProps) {
   const casesInPlot = dataConfig?.subPlotCases(cellKey)?.length ?? 0
   const percent = model.percentValue(casesInPlot, cellKey, dataConfig)
   const displayPercent = model.showCount ? ` (${percentString(percent)})` : percentString(percent)
-  const shouldShowPercentOption = dataConfig ? dataConfig.categoricalAttrCount > 0 : false
-  const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
 
   useEffect(() => {
-    // set percentType to 'cell' if attributes change to a configuration that doesn't support 'row' or 'column'
-    if (!shouldShowPercentTypeOptions) {
-      model.setPercentType("cell")
-    }
+    return autorun(() => {
+      const shouldShowPercentOption = dataConfig ? dataConfig.categoricalAttrCount > 0 : false
+      const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
 
-    // set showPercent to false if attributes change to a configuration that doesn't support percent
-    if (!shouldShowPercentOption) {
-      model.setShowPercent(false)
-    }
-  }, [dataConfig, model, shouldShowPercentOption, shouldShowPercentTypeOptions])
+      // set percentType to 'cell' if attributes change to a configuration that doesn't support 'row' or 'column'
+      if (!shouldShowPercentTypeOptions) {
+        model.setPercentType("cell")
+      }
+
+      // set showPercent to false if attributes change to a configuration that doesn't support percent
+      if (!shouldShowPercentOption) {
+        model.setShowPercent(false)
+      }
+    })
+  }, [dataConfig, model])
 
   return (
     <div className="graph-count" data-testid={`graph-count${classFromKey ? `-${classFromKey}` : ""}`}>
