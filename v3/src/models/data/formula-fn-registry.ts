@@ -13,7 +13,7 @@ const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
 
 export const fnRegistry = {
   // equal(a, b) or a == b
-  // Note that we need to overwrite default MathJs implementation so we can compare strings like "ABC" == "CDE".
+  // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
   // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
   equal: {
     rawArgs: false,
