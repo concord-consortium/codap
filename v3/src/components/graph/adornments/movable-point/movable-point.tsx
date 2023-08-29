@@ -27,13 +27,13 @@ interface IProps {
   model: IMovablePointModel
   plotHeight: number
   plotWidth: number
-  subPlotKey: Record<string, string>
+  cellKey: Record<string, string>
   xAxis?: INumericAxisModel
   yAxis?: INumericAxisModel
 }
 
 export const MovablePoint = observer(function MovablePoint(props: IProps) {
-  const {model, plotHeight, plotWidth, subPlotKey = {}, xAxis, yAxis} = props,
+  const {model, plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props,
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
@@ -42,8 +42,8 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     graphWidth = layout.getAxisLength('bottom'),
     xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
     ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1,
-    classFromKey = model.classNameFromKey(subPlotKey),
-    instanceKey = model.instanceKey(subPlotKey),
+    classFromKey = model.classNameFromKey(cellKey),
+    instanceKey = model.instanceKey(cellKey),
     pointRef = useRef<SVGGElement | null>(null),
     [pointObject, setPointObject] = useState<IPointObject>({})
 

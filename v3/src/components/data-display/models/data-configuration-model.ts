@@ -161,14 +161,6 @@ export const DataConfigurationModel = types
     placeShouldShowClickHereCue(place: GraphPlace, tileHasFocus: boolean) {
       return this.placeAlwaysShowsClickHereCue(place) ||
         (this.placeCanShowClickHereCue(place) && tileHasFocus)
-    },
-    isCaseInSubPlot(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
-      const numOfKeys = Object.keys(subPlotKey).length
-      let matchedValCount = 0
-      Object.keys(subPlotKey).forEach(key => {
-        if (subPlotKey[key] === caseData[key]) matchedValCount++
-      })
-      return matchedValCount === numOfKeys
     }
   }))
   .views(self => ({
@@ -187,18 +179,6 @@ export const DataConfigurationModel = types
         }
       })
       return allGraphCaseIds
-    },
-    subPlotCases(subPlotKey: Record<string, string>) {
-      const casesInPlot = [] as ICase[]
-      self.filteredCases?.forEach(aFilteredCases => {
-        aFilteredCases.caseIds.forEach((id) => {
-          const caseData = self.dataset?.getCase(id)
-          if (caseData) {
-            self.isCaseInSubPlot(subPlotKey, caseData) && casesInPlot.push(caseData)
-          }
-        })
-      })
-      return casesInPlot
     }
   }))
   .actions(self => ({
@@ -354,8 +334,141 @@ export const DataConfigurationModel = types
             numRepetitions = Math.max(this.categoryArrayForAttrRole('topSplit').length, 1)
         }
         return numRepetitions
+      },
+      get attrTypes() {
+        return {
+          bottom: self.attributeType("x"),
+          left: self.attributeType("y"),
+          top: self.attributeType("topSplit"),
+          right: self.attributeType("rightSplit")
+        }
       }
     }))
+    .views(self => ({
+      /**
+       * For the purpose of computing percentages, we need to know the total number of cases we're counting. 
+       * A "subplot" contains the cases being considered. Subplots are always defined by topSplit and/or rightSplit
+       * categorical attributes rather than any categorical attributes on the left or bottom.
+       * A "cell" is defined by zero or more categorical attributes within a subplot.
+       * A percentage is the percentage of cases within a subplot that are within a given cell.
+       */
+      get categoricalAttrCount() {
+        const attrTypes = self.attrTypes
+        return Object.values(attrTypes).filter(a => a === "categorical").length
+      },
+      get hasExactlyTwoPerpendicularCategoricalAttrs() {
+        const attrTypes = self.attrTypes
+        const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
+        const yHasCategorical = attrTypes.left === "categorical" || attrTypes.right === "categorical"
+        const hasOnlyTwoCategorical = this.categoricalAttrCount === 2
+        return hasOnlyTwoCategorical && xHasCategorical && yHasCategorical
+      },
+      get hasSingleSubplot() {
+        // A graph has a single subplot if it has one or fewer categorical attributes, or if it has exactly two
+        // categorical attributes on axes that are perpendicular to each other.
+        return this.categoricalAttrCount <= 1 || this.hasExactlyTwoPerpendicularCategoricalAttrs
+      }
+  }))
+  .views(self => ({
+    isCaseInSubplot(cellKey: Record<string, string>, caseData: Record<string, any>) {
+      // Subplots are determined by categorical attributes on the top or right. When there is more than one subplot,
+      // a case is included if its value(s) for those attribute(s) match the keys for the subplot being considered.
+      if (self.hasSingleSubplot) return true
+
+      const topAttrID = self.attributeID("topSplit")
+      const rightAttrID = self.attributeID("rightSplit")
+      const isSubplotMatch = (!topAttrID || (topAttrID && cellKey[topAttrID] === caseData[topAttrID])) &&
+        (!rightAttrID || (rightAttrID && cellKey[rightAttrID] === caseData[rightAttrID]))
+      
+      return isSubplotMatch
+    },
+    isCaseInCell(cellKey: Record<string, string>, caseData: Record<string, any>) {
+      const numOfKeys = Object.keys(cellKey).length
+      let matchedValCount = 0
+      Object.keys(cellKey).forEach(key => {
+        if (cellKey[key] === caseData[key]) matchedValCount++
+      })
+      return matchedValCount === numOfKeys
+    }
+  }))
+  .views(self => ({
+    subPlotCases(cellKey: Record<string, string>) {
+      const casesInPlot: ICase[] = []
+      self.filteredCases?.forEach(aFilteredCases => {
+        aFilteredCases.caseIds.forEach((id) => {
+          const caseData = self.dataset?.getCase(id)
+          const caseAlreadyMatched = casesInPlot.find(aCase => aCase.__id__ === id)
+          if (caseData && !caseAlreadyMatched) {
+            self.isCaseInCell(cellKey, caseData) && casesInPlot.push(caseData)
+          }
+        })
+      })
+      return casesInPlot
+    },
+    rowCases(cellKey: Record<string, string>) {
+      const casesInRow: ICase[] = []
+      const leftAttrID = self.attributeID("y")
+      const leftAttrType = self.attributeType("y")
+      const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
+      const rightAttrID = self.attributeID("rightSplit")
+      const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
+
+      self.filteredCases?.forEach(aFilteredCases => {
+        aFilteredCases.caseIds.forEach(id => {
+          const caseData = self.dataset?.getCase(id)
+          if (!caseData) return
+
+          const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
+            (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
+          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
+
+          if (isLeftMatch && isRightMatch) {
+            casesInRow.push(caseData)
+          }
+        })
+      })
+      return casesInRow
+    },
+    columnCases(cellKey: Record<string, string>) {
+      const casesInCol: ICase[] = []
+      const bottomAttrID = self.attributeID("x")
+      const bottomAttrType = self.attributeType("x")
+      const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
+      const topAttrID = self.attributeID("topSplit")
+      const topValue = topAttrID ? cellKey[topAttrID] : ""
+
+      self.filteredCases?.forEach(aFilteredCases => {
+        aFilteredCases.caseIds.forEach(id => {
+          const caseData = self.dataset?.getCase(id)
+          if (!caseData) return
+
+          const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
+            (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
+          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
+      
+          if (isBottomMatch && isTopMatch) {
+            casesInCol.push(caseData)
+          }
+        })
+      })
+      return casesInCol
+    },
+    cellCases(cellKey: Record<string, string>) {
+      const casesInCell: ICase[] = []
+
+      self.filteredCases?.forEach(aFilteredCases => {
+        aFilteredCases.caseIds.forEach(id => {
+          const caseData = self.dataset?.getCase(id)
+          if (!caseData) return
+
+          if (self.isCaseInSubplot(cellKey, caseData)) {
+            casesInCell.push(caseData)
+          }
+        })
+      })
+      return casesInCell
+    }
+  }))
   .views(self => ({
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
       return self.filteredCases

@@ -1,8 +1,8 @@
 import React from "react"
-
 export interface IAdornmentComponentInfo {
   adornmentEltClass: string
-  Component: React.ComponentType<any>
+  Component: React.ComponentType<any> // TODO: Create and use IAdornmentComponentProps instead of any?
+  Controls: React.ComponentType<any> // TODO: Create and use IAdornmentControlsProps instead of any?
   labelKey: string
   order: number
   type: string

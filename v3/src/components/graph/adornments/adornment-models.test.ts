@@ -40,7 +40,7 @@ describe("AdornmentModel", () => {
     adornment.setVisibility(false)
     expect(adornment.isVisible).toBe(false)
   })
-  it("will create a sub plot key from given values", () => {
+  it("will create a cell key from given values", () => {
     const options = {
       xAttrId: "abc123",
       xCats: ["pizza", "pasta", "salad"],
@@ -52,23 +52,23 @@ describe("AdornmentModel", () => {
       rightCats: ["new", "used"]
     }
     const adornment = AdornmentModel.create({type: "Movable Line"})
-    const subPlotKey = adornment.setSubPlotKey(options, 0)
-    expect(subPlotKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
+    const cellKey = adornment.setCellKey(options, 0)
+    expect(cellKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
   })
   it("will create an instance key value from given category values", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
-    const subPlotKey = {abc123: xCategories[0], def456: yCategories[0]}
+    const cellKey = {abc123: xCategories[0], def456: yCategories[0]}
     expect(adornment.instanceKey({})).toEqual("{}")
-    expect(adornment.instanceKey(subPlotKey)).toEqual("{\"abc123\":\"pizza\",\"def456\":\"red\"}")
+    expect(adornment.instanceKey(cellKey)).toEqual("{\"abc123\":\"pizza\",\"def456\":\"red\"}")
   })
-  it("will create a class name from a given subplot key", () => {
+  it("will create a class name from a given cell key", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const xCategories = ["pizza", "pasta", "salad"]
     const yCategories = ["red", "green", "blue"]
-    const subPlotKey = {abc123: xCategories[0], def456: yCategories[0]}
-    expect(adornment.classNameFromKey(subPlotKey)).toEqual("abc123-pizza-def456-red")
+    const cellKey = {abc123: xCategories[0], def456: yCategories[0]}
+    expect(adornment.classNameFromKey(cellKey)).toEqual("abc123-pizza-def456-red")
   })
 })
 

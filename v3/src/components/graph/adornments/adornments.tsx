@@ -23,21 +23,21 @@ export const Adornments = observer(function Adornments() {
 
   if (!adornments?.length) return null
 
-  // The subPlotKey is an object that contains the attribute IDs and categorical values for the
-  // current subplot. It's used to uniquely identify the current subplot. Since it's possible to
-  // have the same attribute on two axes or splits, we need to make sure the subPlotKey is unique.
-  // So if an attribute is on more than one axis or split, we set the value of that attribute's ID
-  // to "__IMPOSSIBLE__" instead of overwriting the key's value because it's impossible for a
-  // single case to have two different values for the same attribute.
-  const updateSubPlotKey = (subPlotKey: Record<string, string>, attrId: string, cat: string) => {
-    const newSubPlotKey = { ...subPlotKey }
+  // The cellKey is an object that contains the attribute IDs and categorical values for the
+  // current graph cell. It's used to uniquely identify that cell. Since it's possible to have the
+  // same attribute on two axes or splits, we need to make sure the cellKey is unique. So if an
+  // attribute is on more than one axis or split, we set the value of that attribute's ID to 
+  // "__IMPOSSIBLE__" instead of overwriting the key's value because it's impossible for a single
+  // case to have two different values for the same attribute.
+  const updateCellKey = (cellKey: Record<string, string>, attrId: string, cat: string) => {
+    const newCellKey = { ...cellKey }
     if (cat) {
-      const propertyAlreadyPresent = Object.keys(newSubPlotKey).includes(attrId)
-      newSubPlotKey[attrId] = propertyAlreadyPresent && newSubPlotKey[attrId] !== cat
+      const propertyAlreadyPresent = Object.keys(newCellKey).includes(attrId)
+      newCellKey[attrId] = propertyAlreadyPresent && newCellKey[attrId] !== cat
         ? "__IMPOSSIBLE__"
         : cat
     }
-    return newSubPlotKey
+    return newCellKey
   }
 
   const xAttrId = dataConfig?.attributeID("x"),
@@ -83,22 +83,22 @@ export const Adornments = observer(function Adornments() {
       const adornmentNodes = []
       for (let yIndex = 0; yIndex < yCats.length; yIndex++) {
         for (let xIndex = 0; xIndex < xCats.length; xIndex++) {
-          let subPlotKey: Record<string, string> = {}
+          let cellKey: Record<string, string> = {}
           if (topAttrId) {
-            subPlotKey = updateSubPlotKey(subPlotKey, topAttrId, topCats[topIndex])
+            cellKey = updateCellKey(cellKey, topAttrId, topCats[topIndex])
           }
           if (rightAttrId) {
             // invert the rightIndex to match how the graph's y axis is oriented
             const rightIndexInverted = leftRepetitions - rightIndex - 1
-            subPlotKey = updateSubPlotKey(subPlotKey, rightAttrId, rightCats[rightIndexInverted])
+            cellKey = updateCellKey(cellKey, rightAttrId, rightCats[rightIndexInverted])
           }
           if (yAttrId) {
             // invert the yIndex to match how the graph's y axis is oriented
             const yIndexInverted = yCats.length - yIndex - 1
-            subPlotKey = updateSubPlotKey(subPlotKey, yAttrId, yCats[yIndexInverted])
+            cellKey = updateCellKey(cellKey, yAttrId, yCats[yIndexInverted])
           }
           if (xAttrId) {
-            subPlotKey = updateSubPlotKey(subPlotKey, xAttrId, xCats[xIndex])
+            cellKey = updateCellKey(cellKey, xAttrId, xCats[xIndex])
           }
           adornmentNodes.push(
             <div
@@ -115,7 +115,7 @@ export const Adornments = observer(function Adornments() {
                   return <Adornment
                           key={`graph-adornment-${adornment.id}-${yIndex}-${xIndex}-${rightIndex}-${topIndex}`}
                           adornment={adornment}
-                          subPlotKey={subPlotKey}
+                          cellKey={cellKey}
                           topCats={topCats}
                           rightCats={rightCats}
                         />

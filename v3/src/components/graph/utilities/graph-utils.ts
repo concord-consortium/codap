@@ -270,6 +270,14 @@ export function valueLabelString(value: number) {
   return `<div style="color:blue">${float(value)}</div>`
 }
 
+export function percentString(value: number) {
+  return new Intl.NumberFormat("default", {
+    style: "percent",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
 export function rectNormalize(iRect: rTreeRect) {
   return {
     x: iRect.x + (iRect.w < 0 ? iRect.w : 0),

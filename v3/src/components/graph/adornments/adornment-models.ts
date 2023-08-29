@@ -4,7 +4,7 @@
 
 import {Instance, types} from "mobx-state-tree"
 import { IAxisModel } from "../../axis/models/axis-model"
-import {typedId} from "../../../utilities/js-utils"
+import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
 import {Point} from "../../data-display/data-display-types"
 
 export const PointModel = types.model("Point", {
@@ -48,13 +48,13 @@ export const AdornmentModel = types.model("AdornmentModel", {
     isVisible: true
   })
   .views(self => ({
-    instanceKey(subPlotKey: Record<string, string>) {
-      return JSON.stringify(subPlotKey)
+    instanceKey(cellKey: Record<string, string>) {
+      return JSON.stringify(cellKey)
     },
-    classNameFromKey(subPlotKey: Record<string, string>) {
+    classNameFromKey(cellKey: Record<string, string>) {
       let className = ""
-      Object.entries(subPlotKey).forEach(([key, value]) => {
-        const valueNoSpaces = value.replace(/\s+/g, "-")
+      Object.entries(cellKey).forEach(([key, value]) => {
+        const valueNoSpaces = safeDomIdentifier(value)
         className += `${className ? "-" : ""}${key}-${valueNoSpaces}`
       })
       return className
@@ -67,14 +67,14 @@ export const AdornmentModel = types.model("AdornmentModel", {
     updateCategories(options: IUpdateCategoriesOptions) {
       // derived models should override to update their models when categories change
     },
-    setSubPlotKey(options: IUpdateCategoriesOptions, index: number) {
+    setCellKey(options: IUpdateCategoriesOptions, index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
-      const subPlotKey: Record<string, string> = {}
-      if (topAttrId) subPlotKey[topAttrId] = topCats?.[index % topCats.length]
-      if (rightAttrId) subPlotKey[rightAttrId] = rightCats?.[Math.floor(index / topCats.length)]
-      if (yAttrId && yCats[0]) subPlotKey[yAttrId] = yCats?.[index % yCats.length]
-      if (xAttrId && xCats[0]) subPlotKey[xAttrId] = xCats?.[index % xCats.length]
-      return subPlotKey
+      const cellKey: Record<string, string> = {}
+      if (topAttrId) cellKey[topAttrId] = topCats?.[index % topCats.length]
+      if (rightAttrId) cellKey[rightAttrId] = rightCats?.[Math.floor(index / topCats.length)]
+      if (yAttrId && yCats[0]) cellKey[yAttrId] = yCats?.[index % yCats.length]
+      if (xAttrId && xCats[0]) cellKey[xAttrId] = xCats?.[index % xCats.length]
+      return cellKey
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
