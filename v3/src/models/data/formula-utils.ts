@@ -58,6 +58,17 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
     if (isFunctionNode(node) && typedFnRegistry[node.fn.name].isAggregate || parent?.isDescendantOfAggregateFunc) {
       node.isDescendantOfAggregateFunc = true
     }
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name].isSemiAggregate) {
+      // Current semi-aggregate functions usually have the following signature:
+      // fn(expression, defaultValue, filter)
+      // Symbols used in `expression` and `filter` arguments should be treated as aggregate symbols.
+      // In this case, `isSemiAggregate` would be equal to [true, false, true].
+      typedFnRegistry[node.fn.name].isSemiAggregate?.forEach((isAggregateArgument, index) => {
+        if (isAggregateArgument) {
+          (node.args[index] as IExtendedMathNode).isDescendantOfAggregateFunc = true
+        }
+      })
+    }
     const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
     if (isSymbolNode(node)) {
       const canonicalName = generateCanonicalSymbolName(node.name, isDescendantOfAggregateFunc, displayNameMap)
