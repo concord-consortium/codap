@@ -44,11 +44,16 @@ export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMath
 
 export interface IFormulaMathjsFunction {
   rawArgs?: boolean
+  // Value of isAggregate is a boolean. When true, it means that all the arguments of the function should be resolved
+  // to all cases of the attribute, not just the current case.
   isAggregate?: boolean
   // Value of isSemiAggregate is an array of booleans, where each boolean corresponds to an argument of the function.
   // When true, it means that the argument is an aggregate argument, otherwise it's not. Hence the whole function
   // is semi-aggregate.
   isSemiAggregate?: boolean[]
+  // Value of isRandomFunction is a boolean. When true, it means that the function is a random function.
+  // Formula needs to know whether it includes random functions, so we can enable rerandomize feature.
+  isRandomFunction?: boolean
   // `evaluate` function accepts arguments already processed and evaluated by mathjs.
   evaluate?: EvaluateFunc
   // `evaluateRaw` function accepts raw arguments following convention defined by mathjs.

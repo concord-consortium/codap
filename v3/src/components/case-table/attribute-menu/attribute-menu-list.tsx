@@ -23,6 +23,8 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   const formulaModal = useDisclosure()
   const columnName = column.name as string
   const columnId = column.key
+  const attribute = data?.attrFromID(columnId)
+  const rerandomizeDisabled = !attribute?.formula.isRandomFunctionPresent
 
   const handleMenuItemClick = (menuItem: string) => {
     toast({
@@ -61,6 +63,10 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
     onModalOpen(false)
   }
 
+  const handleRerandomize = () => {
+    attribute?.formula.rerandomize()
+  }
+
   const handleMenuKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
   }
@@ -86,7 +92,7 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={() => handleMenuItemClick("Recover Formula")}>
           {t("DG.TableController.headerMenuItems.recoverFormula")}
         </MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick("Rerandomize")}>
+        <MenuItem onClick={handleRerandomize} isDisabled={rerandomizeDisabled}>
           {t("DG.TableController.headerMenuItems.randomizeAttribute")}
         </MenuItem>
         <MenuItem onClick={() => handleMenuItemClick("Sort Ascending")}>
