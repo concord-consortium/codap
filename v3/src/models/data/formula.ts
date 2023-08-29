@@ -30,10 +30,7 @@ export const Formula = types.model("Formula", {
     self.canonical = canonical
   },
   rerandomize() {
-    if (!self.formulaManager) {
-      return
-    }
-    self.formulaManager.recalculateFormula(self.id)
+    self.formulaManager?.recalculateFormula(self.id)
   }
 }))
 
