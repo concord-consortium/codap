@@ -46,4 +46,4 @@ export interface IFormulaMathjsFunction {
   getDependency?: (args: MathNode[]) => IFormulaDependency
 }
 
-export type ICODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>
+export type CODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>

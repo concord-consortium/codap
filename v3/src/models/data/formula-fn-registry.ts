@@ -1,7 +1,7 @@
 import { create, all, MathNode, mean, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
-  DisplayNameMap, ICODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
+  DisplayNameMap, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
 } from './formula-types'
 import type { IDataSet } from './data-set'
 
@@ -140,7 +140,7 @@ export const fnRegistry = {
   },
 }
 
-export const typedFnRegistry: ICODAPMathjsFunctionRegistry & typeof fnRegistry = fnRegistry
+export const typedFnRegistry: CODAPMathjsFunctionRegistry & typeof fnRegistry = fnRegistry
 
 // import the new function in the Mathjs namespace
 Object.keys(fnRegistry).forEach((key) => {
