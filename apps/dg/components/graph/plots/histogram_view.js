@@ -429,13 +429,16 @@ DG.HistogramView = DG.UnivariatePlotView.extend(
           x: tCoordX, y: tCoordY, r: 0.1, width: tWidth, height: tHeight,
           fill: iRC.calcCaseColorString(iCase),
           'fill-opacity': iRC.transparency,
-          'stroke-opacity': 0
+          'stroke-opacity': 0,
+          opacity: 1
         };
         if (iAnimate) {
+          tRect.show();
           tRect.animate(tNewAttrs, DG.PlotUtilities.kDefaultAnimationTime, '<>', iCallback);
         }
         else {
           tRect.attr(tNewAttrs);
+          tRect.show();
         }
         return tRect;
       },
