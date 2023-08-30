@@ -8,7 +8,6 @@ export interface IFormulaMathjsScopeContext {
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
   globalValueManager?: IGlobalValueManager
-  sameLevelCaseIds: string[]
   formulaAttributeCollectionId?: string
 }
 
@@ -17,7 +16,10 @@ export interface IFormulaMathjsScopeContext {
 export class FormulaMathJsScope {
   context: IFormulaMathjsScopeContext
   caseId = ""
+  // child cases in hierarchical tables, or empty array in flat tables
   childCaseIds: string[] = []
+  // all cases in flat tables, or group based on the closes parent in hierarchical tables
+  sameLevelGroupIds: string[] = []
   dataStorage: Record<string, any> = {}
   cache = new Map<string, any>()
 
@@ -34,9 +36,7 @@ export class FormulaMathJsScope {
         }
       })
 
-      const cachedSameLevelCases = context.sameLevelCaseIds.map(caseId =>
-        context.localDataSet.getValue(caseId, attr.id)
-      )
+      const cachedSameLevelCases: Record<string, any> = {}
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}${AGGREGATE_SYMBOL_SUFFIX}`, {
         get: () => {
           // Note that we have to return all the same level cases in two cases:
@@ -52,9 +52,14 @@ export class FormulaMathJsScope {
           // sum to the total number of cases in the dataset.
           // However, when dealing with flat tables and returning all the cases over and over, we could easily
           // reach O(n^2) complexity just in the cases retrieval. That's why they need to be cached.
-          return useSameLevelCases
-            ? cachedSameLevelCases
-            : this.childCaseIds.map(caseId => context.localDataSet.getValue(caseId, attr.id))
+          if (useSameLevelCases) {
+            if (!cachedSameLevelCases[this.caseId]) {
+              cachedSameLevelCases[this.caseId] =
+                this.sameLevelGroupIds.map(caseId => context.localDataSet.getValue(caseId, attr.id))
+            }
+            return cachedSameLevelCases[this.caseId]
+          }
+          return this.childCaseIds.map(caseId => context.localDataSet.getValue(caseId, attr.id))
         }
       })
     })
@@ -110,6 +115,10 @@ export class FormulaMathJsScope {
 
   setChildCaseIds(childCaseIds: string[]) {
     this.childCaseIds = childCaseIds
+  }
+
+  setSameLevelGroupIds(sameLevelGroupIds: string[]) {
+    this.sameLevelGroupIds = sameLevelGroupIds
   }
 
   getCaseId() {

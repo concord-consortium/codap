@@ -1,6 +1,6 @@
 import { makeObservable, observable, reaction } from "mobx"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { CaseGroup, ICase } from "./data-set-types"
+import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { getFormulaDependencies } from "./formula-utils"
 import {
@@ -65,15 +65,33 @@ export class FormulaManager {
 
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
     const collectionGroup = dataSet.getCollectionGroupForAttributes([attributeId])
-    let sameLevelCaseIds: string[] = []
+
     const caseIdToCaseGroup: Record<string, CaseGroup> = {}
+    const caseIdToSameLevelGroupIds: Record<string, string[]> = {}
+    const parentIdToGroupIds: Record<string, string[]> = {}
+    const sameLevelCaseIds: string[] = []
+
+    const processCase = (c: IGroupedCase) => {
+      const parent = c[symParent]
+      if (parent) {
+        if (!parentIdToGroupIds[parent]) {
+          parentIdToGroupIds[parent] = []
+        }
+        parentIdToGroupIds[parent].push(c.__id__)
+        caseIdToSameLevelGroupIds[c.__id__] = parentIdToGroupIds[parent]
+      } else {
+        sameLevelCaseIds.push(c.__id__)
+        caseIdToSameLevelGroupIds[c.__id__] = sameLevelCaseIds
+      }
+    }
+
     if (collectionGroup) {
       collectionGroup.groups.forEach((group: CaseGroup) => {
-        sameLevelCaseIds.push(group.pseudoCase.__id__)
         caseIdToCaseGroup[group.pseudoCase.__id__] = group
+        processCase(group.pseudoCase)
       })
     } else {
-      sameLevelCaseIds = dataSet.childCases().map(c => c.__id__)
+      dataSet.childCases().forEach(childCase => processCase(childCase))
     }
 
     let casesToRecalculate: ICase[] = []
@@ -93,17 +111,18 @@ export class FormulaManager {
       localDataSet: dataSet,
       dataSets: this.dataSets,
       globalValueManager: this.globalValueManager,
-      sameLevelCaseIds,
       formulaAttributeCollectionId: collectionId
     })
 
     const casesToUpdate = casesToRecalculate.map((c) => {
       formulaScope.setCaseId(c.__id__)
+      formulaScope.setSameLevelGroupIds(caseIdToSameLevelGroupIds[c.__id__])
       if (collectionGroup) {
         // We're dealing with hierarchical data, so we need to provide child case ids to the formula scope for each
         // case.
         formulaScope.setChildCaseIds(caseIdToCaseGroup[c.__id__].childCaseIds)
       }
+
       const formulaValue = compiledFormula.evaluate(formulaScope)
       return {
         __id__: c.__id__,
