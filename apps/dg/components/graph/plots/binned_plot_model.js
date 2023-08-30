@@ -280,14 +280,16 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
               tMin = Number.MAX_VALUE,
               tMax = -Number.MAX_VALUE,
               tBinCounts = [],
-              tWidth = this.get('width'),
-              tAlignment = this.get('alignment'),
-              tLeastBinEdge = this.get('leastBinEdge'),
-              tMaxBinCount = this.get('maxBinCount'),
-              tTotalNumberOfBins = this.get('totalNumberOfBins');
+              tWidth = this._width,
+              tAlignment = this._alignment,
+              tLeastBinEdge = this._leastBinEdge,
+              tMaxBinCount = this._maxBinCount,
+              tTotalNumberOfBins = this._totalNumberOfBins;
 
-          if (!(tCategoricalAxisModel && tNumericAxisModel))
+          if (!(tCategoricalAxisModel && tNumericAxisModel)) {
+            this.recomputing = false;
             return; // too early to recompute, caller must try again later.
+          }
 
           var tNumCells = tCategoricalAxisModel.get('numberOfCells');
           this._casesMap = [];
