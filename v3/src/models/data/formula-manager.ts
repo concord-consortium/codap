@@ -66,8 +66,8 @@ export class FormulaManager {
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
     const collectionGroup = dataSet.getCollectionGroupForAttributes([attributeId])
 
-    const caseIdToCaseGroup: Record<string, CaseGroup> = {}
-    const caseIdToSameLevelGroupIds: Record<string, string[]> = {}
+    const caseIdToChildCaseIds: Record<string, string[]> = {}
+    const caseIdToParentId: Record<string, string> = {}
     const parentIdToGroupIds: Record<string, string[]> = {}
     const sameLevelCaseIds: string[] = []
 
@@ -78,16 +78,14 @@ export class FormulaManager {
           parentIdToGroupIds[parent] = []
         }
         parentIdToGroupIds[parent].push(c.__id__)
-        caseIdToSameLevelGroupIds[c.__id__] = parentIdToGroupIds[parent]
-      } else {
-        sameLevelCaseIds.push(c.__id__)
-        caseIdToSameLevelGroupIds[c.__id__] = sameLevelCaseIds
+        caseIdToParentId[c.__id__] = parent
       }
+      sameLevelCaseIds.push(c.__id__)
     }
 
     if (collectionGroup) {
       collectionGroup.groups.forEach((group: CaseGroup) => {
-        caseIdToCaseGroup[group.pseudoCase.__id__] = group
+        caseIdToChildCaseIds[group.pseudoCase.__id__] = group.childCaseIds
         processCase(group.pseudoCase)
       })
     } else {
@@ -116,11 +114,12 @@ export class FormulaManager {
 
     const casesToUpdate = casesToRecalculate.map((c) => {
       formulaScope.setCaseId(c.__id__)
-      formulaScope.setSameLevelGroupIds(caseIdToSameLevelGroupIds[c.__id__])
+      const parentId = caseIdToParentId[c.__id__]
+      formulaScope.setSameLevelGroupIds(parentIdToGroupIds[parentId] || sameLevelCaseIds)
       if (collectionGroup) {
         // We're dealing with hierarchical data, so we need to provide child case ids to the formula scope for each
         // case.
-        formulaScope.setChildCaseIds(caseIdToCaseGroup[c.__id__].childCaseIds)
+        formulaScope.setChildCaseIds(caseIdToChildCaseIds[c.__id__])
       }
 
       const formulaValue = compiledFormula.evaluate(formulaScope)
