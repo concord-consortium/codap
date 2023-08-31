@@ -1,6 +1,7 @@
-import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-types"
+import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY } from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "./data-set"
+import type { IValueType } from "./attribute"
 
 const CACHE_ENABLED = false
 
@@ -9,6 +10,7 @@ export interface IFormulaMathjsScopeContext {
   dataSets: Map<string, IDataSet>
   globalValueManager?: IGlobalValueManager
   formulaAttributeCollectionId?: string
+  caseGroupId: Record<string, string>
 }
 
 // Official MathJS docs don't describe custom scopes in great detail, but there's a good example in their repo:
@@ -16,10 +18,6 @@ export interface IFormulaMathjsScopeContext {
 export class FormulaMathJsScope {
   context: IFormulaMathjsScopeContext
   caseId = ""
-  // child cases in hierarchical tables, or empty array in flat tables
-  childCaseIds: string[] = []
-  // all cases in flat tables, or group based on the closes parent in hierarchical tables
-  sameLevelGroupIds: string[] = []
   dataStorage: Record<string, any> = {}
   cache = new Map<string, any>()
 
@@ -36,30 +34,38 @@ export class FormulaMathJsScope {
         }
       })
 
-      const cachedSameLevelCases: Record<string, any> = {}
+      const allCasesForAttr = context.localDataSet.getCasesForAttributes([attr.id])
+      const cachedGroup: Record<string, IValueType[]> = {}
+      let cacheInitialized = false
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}${AGGREGATE_SYMBOL_SUFFIX}`, {
         get: () => {
-          // Note that we have to return all the same level cases in two cases:
-          // - the table is flat and aggregate function is referencing another attribute
-          // - the table is hierarchical and aggregate function is referencing an attribute from the same collection
-          // In both cases it's enough to compare collection ids. When the table is flat, they might be equal to
-          // undefined but equality check works anyway.
+          // There are two separate kinds of aggregate cases grouping:
+          // - Same-level grouping, which is used when the table is flat or when the aggregate function is referencing
+          //   another attribute from the same collection. In this case the group ID is the currently processed case
+          //   parent ID.
+          // - Parent-child grouping, which is used when the table is hierarchical and the aggregate function is
+          //   referencing an attribute from a different collection. In this case the group ID is the currently
+          //   processed case ID.
           const attrCollectionId = context.localDataSet.getCollectionForAttribute(attr.id)?.id
-          const useSameLevelCases = context.formulaAttributeCollectionId === attrCollectionId
-          // Note that mapping childCaseIds might look like potential performance issue / O(n^2), but it's not.
-          // When we're dealing with hierarchical data, each parent has distinct set of child cases, so we're not
-          // processing any child case more than once. In other words, child cases sets never overlap and they always
-          // sum to the total number of cases in the dataset.
-          // However, when dealing with flat tables and returning all the cases over and over, we could easily
-          // reach O(n^2) complexity just in the cases retrieval. That's why they need to be cached.
-          if (useSameLevelCases) {
-            if (!cachedSameLevelCases[this.caseId]) {
-              cachedSameLevelCases[this.caseId] =
-                this.sameLevelGroupIds.map(caseId => context.localDataSet.getValue(caseId, attr.id))
-            }
-            return cachedSameLevelCases[this.caseId]
+          //  When the table is flat, collection IDs might be equal to undefined but equality check works anyway.
+          const useSameLevelGrouping = context.formulaAttributeCollectionId === attrCollectionId
+
+          if (!cacheInitialized) {
+            // Cache is calculated lazily to avoid calculating it for all the attributes that are not referenced by
+            // the formula. Note that each case is processed only once, so this mapping is only O(n) complexity.
+            allCasesForAttr.forEach(c => {
+              const groupId = context.caseGroupId[c.__id__]
+              if (!cachedGroup[groupId]) {
+                cachedGroup[groupId] = []
+              }
+              cachedGroup[groupId].push(context.localDataSet.getValue(c.__id__, attr.id))
+            })
+            cacheInitialized = true
           }
-          return this.childCaseIds.map(caseId => context.localDataSet.getValue(caseId, attr.id))
+
+          // Same-level grouping uses parent ID as a group ID, parent-child grouping uses case ID as a group ID.
+          const groupParentId = useSameLevelGrouping ? context.caseGroupId[this.caseId] : this.caseId
+          return cachedGroup[groupParentId] || cachedGroup[NO_PARENT_KEY]
         }
       })
     })
@@ -111,14 +117,6 @@ export class FormulaMathJsScope {
   // --- Custom functions used by our formulas or formula manager --
   setCaseId(caseId: string) {
     this.caseId = caseId
-  }
-
-  setChildCaseIds(childCaseIds: string[]) {
-    this.childCaseIds = childCaseIds
-  }
-
-  setSameLevelGroupIds(sameLevelGroupIds: string[]) {
-    this.sameLevelGroupIds = sameLevelGroupIds
   }
 
   getCaseId() {

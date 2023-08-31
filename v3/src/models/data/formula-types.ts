@@ -5,6 +5,8 @@ export const GLOBAL_VALUE = "GLOBAL_VALUE_"
 export const LOCAL_ATTR = "LOCAL_ATTR_"
 export const AGGREGATE_SYMBOL_SUFFIX = "_ALL"
 
+export const NO_PARENT_KEY = "__NO_PARENT__"
+
 export const isConstantStringNode = (node: MathNode): node is ConstantNode<string> =>
   isConstantNode(node) && typeof node.value === "string"
 
