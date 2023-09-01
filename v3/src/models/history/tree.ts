@@ -4,6 +4,7 @@ import { IDocumentContentModel } from "../document/document-content"
 import { ISharedModel } from "../shared/shared-model"
 import { ITileModel } from "../tiles/tile-model"
 import { TreeManagerAPI } from "./tree-manager-api"
+import { withoutUndo } from "./without-undo"
 
 export const Tree = types.model("Tree", {
 })
@@ -161,6 +162,11 @@ export const Tree = types.model("Tree", {
       // so it isn't necessary to use a flow
       return Promise.resolve()
     },
+
+    applyCustomUndoRedo(customUndoRedo: () => void) {
+      withoutUndo()
+      customUndoRedo()
+    }
   }
 
 })

@@ -24,6 +24,16 @@ export type SharedModelModifications = Record<string, number>
 
 export const runningCalls = new WeakMap<IActionContext, IActionTrackingMiddleware3Call<CallEnv>>()
 
+// returns true if the specified action is a child of an "undo" or "redo" action
+export function isChildOfUndoRedo(actionCall?: IActionContext) {
+  let parentEvent = actionCall?.parentActionEvent
+  while (parentEvent) {
+    if (["undo", "redo"].includes(parentEvent.name)) return true
+    parentEvent = parentEvent.parentActionEvent
+  }
+  return false
+}
+
 export function getActionModelName(call: IActionTrackingMiddleware3Call<CallEnv>) {
   return getType(call.actionCall.context).name
 }

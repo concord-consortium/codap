@@ -6,7 +6,6 @@ import { TreeManager } from "./tree-manager"
 import { applyCustomRedo, applyCustomUndo, hasCustomUndoRedo } from "./custom-undo-redo-registry"
 import { getRedoStringKey, getUndoStringKey } from "./undo-redo-string-registry"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { withoutUndo } from "./without-undo"
 
 export interface IUndoManager {
   undoLevels : number;
@@ -185,8 +184,7 @@ export const UndoStore = types
         for (let patchIdx = patchCount - 1; patchIdx >= 0; --patchIdx) {
           const patch = entryToUndo.customPatches[patchIdx]
           if (hasCustomUndoRedo(patch)) {
-            withoutUndo()
-            applyCustomUndo(document, patch, entryToUndo)
+            document?.applyCustomUndoRedo(() => applyCustomUndo(document, patch, entryToUndo))
           }
         }
       }
@@ -216,8 +214,7 @@ export const UndoStore = types
         for (let patchIdx = patchCount - 1; patchIdx >= 0; --patchIdx) {
           const patch = entryToRedo.customPatches[patchIdx]
           if (hasCustomUndoRedo(patch)) {
-            withoutUndo()
-            applyCustomRedo(document, patch, entryToRedo)
+            document?.applyCustomUndoRedo(() => applyCustomRedo(document, patch, entryToRedo))
           }
         }
       }

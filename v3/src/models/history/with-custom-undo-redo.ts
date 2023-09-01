@@ -1,6 +1,6 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { ICustomPatch, runningCalls } from "./tree-types"
+import { ICustomPatch, isChildOfUndoRedo, runningCalls } from "./tree-types"
 
 /*
  * withCustomUndoRedo
@@ -16,7 +16,7 @@ export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(custom
   }
 
   if (actionCall.parentActionEvent) {
-    if (!["undo", "redo"].includes(actionCall.parentActionEvent.name)) {
+    if (!isChildOfUndoRedo(actionCall)) {
       // It is a little weird to print all this, but it seems like a good way to leave
       // this part unimplemented. Note that this comment was copied from withoutUndo()
       // and it may not apply identically in this context.
