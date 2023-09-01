@@ -38,14 +38,14 @@ export const UndoStore = types
     return this.redoLevels > 0
   },
   get undoStringKey() {
-    const undoEntry = this.undoLevels > 0
+    const undoEntry = this.canUndo
                         ? self.history[self.undoIdx - 1]
                         : undefined
     const stringsKey = undoEntry?.undoStringsKey ?? ""
     return getUndoStringKey(stringsKey, undoEntry)
   },
   get redoStringKey() {
-    const redoEntry = this.redoLevels > 0
+    const redoEntry = this.canRedo
                         ? self.history[self.undoIdx]
                         : undefined
     const stringsKey = redoEntry?.undoStringsKey ?? ""
