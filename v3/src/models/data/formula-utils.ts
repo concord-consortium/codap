@@ -3,6 +3,7 @@ import {
   AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency,
 } from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
+import type { IDataSet } from "./data-set"
 
 // Set of formula helpers that can be used outside FormulaManager context. It should make them easier to test.
 
@@ -120,4 +121,32 @@ export const getFormulaDependencies = (formulaCanonical: string) => {
   }
   formulaTree.traverse(visitNode)
   return result
+}
+
+// This function returns the index of the child collection that contains the cases required for evaluating the given
+// formula. If the formula should only be evaluated against cases from its own collection, it returns `null`.
+// `-1` means that the formula should be evaluated against the child-most collection (aka ungrouped collection).
+// In practice, the formula needs to be evaluated against cases from child collections only in scenarios where it
+// contains aggregate functions. In such cases, the formula needs to be evaluated for cases in the child-most collection
+// that contains one of the arguments used in the aggregate functions.
+export const getFormulaChildMostCollectionIndex = (formulaCanonical: string, dataSet: IDataSet) => {
+  const dependencies = getFormulaDependencies(formulaCanonical)
+  let maxCollectionIndex = -Infinity
+  for (const dep of dependencies) {
+    if (dep.type === "localAttribute" && dep.aggregate) {
+      const depCollectionId = dataSet.getCollectionForAttribute(dep.attrId)?.id
+      const depCollectionIndex = dataSet.getCollectionIndex(depCollectionId || "")
+      // Child cases collection (aka ungrouped collection) has no collectionGroup and no index. So, getCollectionIndex()
+      // returns -1. But in fact this is the child-most collection, so we can treat it as the last collection and
+      // return the result immediately.
+      if (depCollectionIndex === -1) {
+        return -1
+      }
+      if (depCollectionIndex > maxCollectionIndex) {
+        maxCollectionIndex = depCollectionIndex
+      }
+    }
+  }
+  // null means that the client needs to use the collection where the formula is located.
+  return maxCollectionIndex === -Infinity ? null : maxCollectionIndex
 }

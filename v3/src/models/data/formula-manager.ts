@@ -2,7 +2,7 @@ import { makeObservable, observable, reaction } from "mobx"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { getFormulaDependencies } from "./formula-utils"
+import { getFormulaChildMostCollectionIndex, getFormulaDependencies } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
   ILookupDependency, NO_PARENT_KEY
@@ -111,12 +111,23 @@ export class FormulaManager {
     }
     console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
 
+    const childMostCollectionIndex = getFormulaChildMostCollectionIndex(formula.canonical, dataSet) ?? collectionIndex
+    const childMostCollectionCases = childMostCollectionIndex !== -1
+      ? dataSet.collectionGroups[childMostCollectionIndex].groups.map((group: CaseGroup) => group.pseudoCase) || []
+      : dataSet.childCases()
+
     const compiledFormula = math.compile(formula.canonical)
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,
       dataSets: this.dataSets,
       globalValueManager: this.globalValueManager,
-      formulaAttributeCollectionId: collectionId,
+      // There are two separate kinds of aggregate cases grouping:
+      // - Same-level grouping, which is used when the table is flat or when the aggregate function is referencing
+      //   attributes only from the same collection.
+      // - Parent-child grouping, which is used when the table is hierarchical and the aggregate function is
+      //   referencing attributes from child collections.
+      useSameLevelGrouping: collectionIndex === childMostCollectionIndex,
+      childMostCollectionCases,
       caseGroupId
     })
 
