@@ -41,7 +41,7 @@ export class FormulaMathJsScope {
     // any of its children is not cacheable (see setNotCacheable() method).
     this.cacheable = true
     // Note that dataStorage cannot be reused, as it relies on closures and binding to correct `this` instance.
-    // It needs to be recreated, but it is not be a costly operation. Make sure that all the caching and
+    // It needs to be recreated, but it is not a costly operation. Make sure that all the caching and
     // case processing is done lazily, only for attributes that are actually referenced by the formula.
     this.initDataStorage(context)
   }
