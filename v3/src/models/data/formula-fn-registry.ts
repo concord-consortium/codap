@@ -15,13 +15,20 @@ const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
 const cachedAggregateFnFactory =
 (fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-    const cacheKey = `${fnName}(${args.toString()})`
+    const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseGroupId()}`
     const cachedValue = scope.getCached(cacheKey)
     if (cachedValue !== undefined) {
       return cachedValue
     }
     const result = fn(args, mathjs, scope)
-    scope.setCached(cacheKey, result)
+    // In practice, the cacheability is defined by whether or not the function accesses attributes from the same
+    // collection only. It can be checked while the expression is calculated for the first time. `scope` object
+    // keeps track of that. Each scope is cacheable by default, but once it accesses an attribute from a different
+    // collection, it becomes not cacheable (and propagates this update to the parent scopes). Note that a new scope
+    // is created for each function call (and each instance keeps reference to its parent).
+    if (scope.isCacheable()) {
+      scope.setCached(cacheKey, result)
+    }
     return result
   }
 }

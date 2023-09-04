@@ -3,7 +3,7 @@ import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "./data-set"
 import type { IValueType } from "./attribute"
 
-const CACHE_ENABLED = false
+const CACHE_ENABLED = true
 
 export interface IFormulaMathjsScopeContext {
   localDataSet: IDataSet
@@ -16,20 +16,45 @@ export interface IFormulaMathjsScopeContext {
 // Official MathJS docs don't describe custom scopes in great detail, but there's a good example in their repo:
 // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js
 export class FormulaMathJsScope {
+  parent?: FormulaMathJsScope
   context: IFormulaMathjsScopeContext
   caseId = ""
   dataStorage: Record<string, any> = {}
   cache = new Map<string, any>()
+  // Expression is meant to be cacheable by default. Once it references a value that makes it not cacheable, this
+  // state property will be updated (e.g. when it references a case-dependent attribute).
+  cacheable = true
 
-  constructor (context: IFormulaMathjsScopeContext) {
+  constructor (context: IFormulaMathjsScopeContext, parent?: FormulaMathJsScope) {
     this.context = context
 
+    // In regular MathJS use case, a subscope is used to create a new scope for a function call. It needs to ensure
+    // that variables from subscope cannot overwrite variables from the parent scope. However, since we don't allow
+    // any variables to be set in the formula scope, we can reuse multiple data structures for simplicity and
+    // performance reasons.
+    if (parent) {
+      this.parent = parent
+      this.caseId = parent.caseId
+      this.cache = parent.cache
+    }
+    // Cacheability does not depend on the parent. It's actually defined the other way - parent is not cacheable if
+    // any of its children is not cacheable (see setNotCacheable() method).
+    this.cacheable = true
+    // Note that dataStorage cannot be reused, as it relies on closures and binding to correct `this` instance.
+    // It needs to be recreated, but it is not a costly operation. Make sure that all the caching and
+    // case processing is done lazily, only for attributes that are actually referenced by the formula.
+    this.initDataStorage(context)
+  }
+
+  initDataStorage(context: IFormulaMathjsScopeContext) {
     // We could parse symbol name in get() function, but this should theoretically be faster, as it's done only once,
     // and no parsing is needed when the symbol is accessed for each dataset case.
     // First, provide local dataset attribute symbols.
     context.localDataSet.attributes.forEach(attr => {
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}`, {
         get: () => {
+          // Any expression that depends on case-dependent attribute is not cacheable.
+          this.setNotCacheable()
           return context.localDataSet.getValue(this.caseId, attr.id)
         }
       })
@@ -62,9 +87,12 @@ export class FormulaMathJsScope {
             })
             cacheInitialized = true
           }
-
           // Same-level grouping uses parent ID as a group ID, parent-child grouping uses case ID as a group ID.
           const groupParentId = useSameLevelGrouping ? context.caseGroupId[this.caseId] : this.caseId
+          if (!useSameLevelGrouping) {
+            // Any expression that depends on parent-child grouping is not cacheable.
+            this.setNotCacheable()
+          }
           return cachedGroup[groupParentId] || cachedGroup[NO_PARENT_KEY]
         }
       })
@@ -106,15 +134,23 @@ export class FormulaMathJsScope {
     throw new Error("It's not allowed to clear values in the formula scope.")
   }
 
-  // In regular MathJS use case, a subscope is used to create a new scope for a function call. It needs to ensure
-  // that variables from subscope cannot overwrite variables from the parent scope. However, since we don't allow
-  // any variables to be set in the formula scope, we can just return the same scope for simplicity and
-  // performance reasons.
+  // MathJS creates a separate subscope for every parsed and evaluated function call.
   createSubScope () {
-    return this
+    return new FormulaMathJsScope(this.context, this)
   }
 
   // --- Custom functions used by our formulas or formula manager --
+  setNotCacheable() {
+    if (this.cacheable) {
+      this.parent?.setNotCacheable()
+      this.cacheable = false
+    }
+  }
+
+  isCacheable() {
+    return this.cacheable
+  }
+
   setCaseId(caseId: string) {
     this.caseId = caseId
   }
@@ -133,6 +169,10 @@ export class FormulaMathJsScope {
 
   getDataSet(dataSetId: string) {
     return this.context.dataSets.get(dataSetId)
+  }
+
+  getCaseGroupId() {
+    return this.context.caseGroupId[this.caseId]
   }
 
   setCached(key: string, value: any) {
