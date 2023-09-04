@@ -1,11 +1,11 @@
 import { makeObservable, observable, reaction } from "mobx"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { CaseGroup, ICase } from "./data-set-types"
+import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { getFormulaDependencies } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
-  ILookupDependency
+  ILookupDependency, NO_PARENT_KEY
 } from "./formula-types"
 import { math } from "./formula-fn-registry"
 import { IDataSet } from "./data-set"
@@ -64,17 +64,40 @@ export class FormulaManager {
     const { formula, attributeId, dataSet } = this.getFormulaContext(formulaId)
 
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
-    const collectionGroup = dataSet.getCollectionGroupForAttributes([attributeId])
-    let sameLevelCaseIds: string[] = []
-    const caseIdToCaseGroup: Record<string, CaseGroup> = {}
-    if (collectionGroup) {
-      collectionGroup.groups.forEach((group: CaseGroup) => {
-        sameLevelCaseIds.push(group.pseudoCase.__id__)
-        caseIdToCaseGroup[group.pseudoCase.__id__] = group
-      })
-    } else {
-      sameLevelCaseIds = dataSet.childCases().map(c => c.__id__)
+    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+    const caseGroupId: Record<string, string> = {}
+
+    const processCase = (c: IGroupedCase) => {
+      const parentId = c[symParent] || NO_PARENT_KEY
+      caseGroupId[c.__id__] = caseGroupId[parentId] || parentId
     }
+
+    const calculateChildCollectionGroups = () => {
+      if (collectionIndex !== -1) {
+        for (let i = collectionIndex + 1; i < dataSet.collections.length; i++) {
+          const collectionGroup = dataSet.collectionGroups[i]
+          collectionGroup.groups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
+        }
+      }
+      // Note that the child cases are never in any collection and they require separate processing.
+      dataSet.childCases().forEach(childCase => processCase(childCase))
+    }
+
+    const calculateSameLevelGroups = () => {
+      if (collectionIndex !== -1) {
+        dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
+          processCase(group.pseudoCase)
+        )
+      }
+    }
+
+    // Note that order of execution of these functions is critical. First, we need to calculate child collection groups,
+    // as child collection cases are grouped using the pseudo cases from the collection where the formula attribute is.
+    // Next, we can calculate grouping for the formula attribute collection (same-level grouping). These will be parents
+    // of the formula attribute collection cases. If we reversed the order, the child collection cases would be
+    // grouped incorrectly (using a collection too high in the collections hierarchy).
+    calculateChildCollectionGroups()
+    calculateSameLevelGroups()
 
     let casesToRecalculate: ICase[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
@@ -93,17 +116,12 @@ export class FormulaManager {
       localDataSet: dataSet,
       dataSets: this.dataSets,
       globalValueManager: this.globalValueManager,
-      sameLevelCaseIds,
-      formulaAttributeCollectionId: collectionId
+      formulaAttributeCollectionId: collectionId,
+      caseGroupId
     })
 
     const casesToUpdate = casesToRecalculate.map((c) => {
       formulaScope.setCaseId(c.__id__)
-      if (collectionGroup) {
-        // We're dealing with hierarchical data, so we need to provide child case ids to the formula scope for each
-        // case.
-        formulaScope.setChildCaseIds(caseIdToCaseGroup[c.__id__].childCaseIds)
-      }
       const formulaValue = compiledFormula.evaluate(formulaScope)
       return {
         __id__: c.__id__,
