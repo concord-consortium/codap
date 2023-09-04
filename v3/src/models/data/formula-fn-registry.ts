@@ -21,8 +21,8 @@ const cachedAggregateFnFactory =
       return cachedValue
     }
     const result = fn(args, mathjs, scope)
-    // In practice, the cacheability is defined by the fact whether the function accesses attributes from the same
-    // collection only or not. It can be checked while the expression is calculated for the first time. `scope` object
+    // In practice, the cacheability is defined by whether or not the function accesses attributes from the same
+    // collection only. It can be checked while the expression is calculated for the first time. `scope` object
     // keeps track of that. Each scope is cacheable by default, but once it accesses an attribute from a different
     // collection, it becomes not cacheable (and propagates this update to the parent scopes). Note that a new scope
     // is created for each function call (and each instance keeps reference to its parent).
