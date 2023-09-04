@@ -23,28 +23,9 @@ export class FormulaMathJsScope {
   caseId = ""
   dataStorage: Record<string, any> = {}
   cache = new Map<string, any>()
-  // Expression is meant to be cacheable by default. Once it references a value that makes it not cacheable, this
-  // state property will be updated (e.g. when it references a case-dependent attribute).
-  cacheable = true
 
-  constructor (context: IFormulaMathjsScopeContext, parent?: FormulaMathJsScope) {
+  constructor (context: IFormulaMathjsScopeContext) {
     this.context = context
-
-    // In regular MathJS use case, a subscope is used to create a new scope for a function call. It needs to ensure
-    // that variables from subscope cannot overwrite variables from the parent scope. However, since we don't allow
-    // any variables to be set in the formula scope, we can reuse multiple data structures for simplicity and
-    // performance reasons.
-    if (parent) {
-      this.parent = parent
-      this.caseId = parent.caseId
-      this.cache = parent.cache
-    }
-    // Cacheability does not depend on the parent. It's actually defined the other way - parent is not cacheable if
-    // any of its children is not cacheable (see setNotCacheable() method).
-    this.cacheable = true
-    // Note that dataStorage cannot be reused, as it relies on closures and binding to correct `this` instance.
-    // It needs to be recreated, but it is not a costly operation. Make sure that all the caching and
-    // case processing is done lazily, only for attributes that are actually referenced by the formula.
     this.initDataStorage(context)
   }
 
@@ -55,12 +36,12 @@ export class FormulaMathJsScope {
     context.localDataSet.attributes.forEach(attr => {
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}`, {
         get: () => {
-          // Any expression that depends on case-dependent attribute is not cacheable.
-          this.setNotCacheable()
           return context.localDataSet.getValue(this.caseId, attr.id)
         }
       })
 
+      // Make sure that all the caching and  case processing is done lazily, only for attributes that are actually
+      // referenced by the formula.
       const cachedGroup: Record<string, IValueType[]> = {}
       let cacheInitialized = false
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}${AGGREGATE_SYMBOL_SUFFIX}`, {
@@ -77,13 +58,7 @@ export class FormulaMathJsScope {
             })
             cacheInitialized = true
           }
-          // Same-level grouping uses parent ID as a group ID, parent-child grouping uses case ID as a group ID.
-          const groupParentId = context.useSameLevelGrouping ? context.caseGroupId[this.caseId] : this.caseId
-          if (!context.useSameLevelGrouping) {
-            // Any expression that depends on parent-child grouping is not cacheable.
-            this.setNotCacheable()
-          }
-          return cachedGroup[groupParentId] || cachedGroup[NO_PARENT_KEY]
+          return cachedGroup[this.getCaseGroupId()] || cachedGroup[NO_PARENT_KEY]
         }
       })
     })
@@ -124,23 +99,15 @@ export class FormulaMathJsScope {
     throw new Error("It's not allowed to clear values in the formula scope.")
   }
 
-  // MathJS creates a separate subscope for every parsed and evaluated function call.
+  // MathJS requests a separate subscope for every parsed and evaluated function call.
   createSubScope () {
-    return new FormulaMathJsScope(this.context, this)
+    // In regular MathJS use case, a subscope is used to create a new scope for a function call. It needs to ensure
+    // that variables from subscope cannot overwrite variables from the parent scope. However, since we don't allow
+    // any variables to be set in the formula scope, we can reuse the same scope instance.
+    return this
   }
 
   // --- Custom functions used by our formulas or formula manager --
-  setNotCacheable() {
-    if (this.cacheable) {
-      this.parent?.setNotCacheable()
-      this.cacheable = false
-    }
-  }
-
-  isCacheable() {
-    return this.cacheable
-  }
-
   setCaseId(caseId: string) {
     this.caseId = caseId
   }
@@ -162,7 +129,8 @@ export class FormulaMathJsScope {
   }
 
   getCaseGroupId() {
-    return this.context.caseGroupId[this.caseId]
+    // Same-level grouping uses parent ID as a group ID, parent-child grouping uses case ID as a group ID.
+    return this.context.useSameLevelGrouping ? this.context.caseGroupId[this.caseId] : this.caseId
   }
 
   setCached(key: string, value: any) {
