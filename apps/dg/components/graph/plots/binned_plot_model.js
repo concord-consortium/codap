@@ -71,6 +71,17 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
           else return sc_super();
         },
 
+        propagateToSiblings: function(iKey, iValue) {
+          var tRootPlot = this.getRootPlot && this.getRootPlot(),
+             tAllPlots = tRootPlot && tRootPlot.get('siblingPlots');
+          if( tAllPlots) {
+            tRootPlot.set(iKey, iValue);
+            tAllPlots.forEach(function(iPlot) {
+              iPlot.set(iKey, iValue);
+            });
+          }
+        },
+
         /**
          * The left edge of the zeroth bin has this value
          * @property {Number}
@@ -96,8 +107,9 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          */
         _alignment: null,
         alignment: function( iKey, iValue) {
-          if( iValue !== undefined) {
+          if( iValue !== undefined && iValue !== this._alignment) {
             this._alignment = iValue;
+            this.propagateToSiblings( iKey, iValue);
           }
           else if(!this._casesMap) {
             this.updateCasesMap();
@@ -111,8 +123,9 @@ DG.BinnedPlotModel = DG.UnivariatePlotModel.extend((function () {
          */
         _width: null,
         width: function( iKey, iValue) {
-          if( iValue !== undefined) {
+          if( iValue !== undefined && iValue !== this._width) {
             this._width = iValue;
+            this.propagateToSiblings( iKey, iValue);
           }
           else if(!this._casesMap) {
             this.updateCasesMap();

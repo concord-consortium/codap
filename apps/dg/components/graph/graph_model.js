@@ -106,6 +106,14 @@ DG.GraphModel = DG.DataLayerModel.extend(
     rightAxis: null,
 
     /**
+     * This function will be passed to sibling plots so they can propagate changes to their siblings.
+     * @returns {*}
+     */
+    getRootPlot: function() {
+      return this.get('plot');
+    },
+
+    /**
      * Returns the first plot in _plots, if any. When used to set,
      * wipes out the current array and replaces it with a new array
      * containing just iValue
@@ -1124,6 +1132,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       this.set('aboutToChangeConfiguration', true); // signal to prepare
       iNewPlotClass.configureRoles(tConfig);
       var tPlotProps = this.getModelPointStyleAccessors();
+      tPlotProps.getRootPlot = this.getRootPlot.bind(this);
       if (tOldPlot.kindOf(DG.BarChartBaseModel))
         tPlotProps.breakdownType = tOldPlot.get('breakdownType');
       tNewPlot = iNewPlotClass.create(tPlotProps);
@@ -1429,6 +1438,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
       tNewPlotClass.configureRoles( tConfig );
       if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {
         tNewPlot = tOperativePlot = tNewPlotClass.create( this.getModelPointStyleAccessors());
+        tNewPlot.set('getRootPlot', this.getRootPlot.bind(this));
         this.addPlotObserver( tNewPlot);
       }
       else
@@ -1639,7 +1649,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
                   xAxis: tXAxis,
                   yAxis: tYAxis,
                   y2Axis: this_.get('y2AxisArray')[0],
-                  yAttributeIndex: tRootPlot.get('verticalAxisIsY2') ? 0 : tAttrIndex++
+                  yAttributeIndex: tRootPlot.get('verticalAxisIsY2') ? 0 : tAttrIndex++,
+                  getRootPlot: this_.getRootPlot.bind(this_)
                 });
             tNewPlot = tPlotClass.create(tProperties);
             tXAxis.setLinkToPlotIfDesired( tNewPlot);
@@ -1786,6 +1797,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
           var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create( this.getModelPointStyleAccessors()),
           tActualYAttrIndex = iModelDesc.plotModelStorage.verticalAxisIsY2 ? tY2AttrIndex++ : tYAttrIndex++;
           tPlot.beginPropertyChanges();
+          tPlot.set('getRootPlot', this.getRootPlot.bind(this_));
           tPlot.set('enableMeasuresForSelection', this.get('enableMeasuresForSelection'));
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
           ['xAxis', 'yAxis', 'y2Axis'].forEach( function( iAxisKey) {
@@ -1795,6 +1807,7 @@ DG.GraphModel = DG.DataLayerModel.extend(
           }.bind( this));
           tPlot.setIfChanged( 'yAttributeIndex', tActualYAttrIndex);
           tPlot.restoreStorage(iModelDesc.plotModelStorage);
+          tPlot.set('getRootPlot', this.getRootPlot.bind(this_));
           tPlot.endPropertyChanges();
           this.addPlotObserver( tPlot);
           if( iIndex === 0)

@@ -53,6 +53,11 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       siblingPlots: null,
 
       /**
+       * Function set by graph model that owns me to allow me to propagate changes to my siblings.
+       */
+      getRootPlot: null,
+
+      /**
        @property { DG.DataContext }  The data context
        */
       dataContext: function () {
