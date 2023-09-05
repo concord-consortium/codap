@@ -8,6 +8,9 @@
     "V3.summary.startProfiling": "Start Profiling",
     "V3.summary.stopProfiling": "Stop Profiling",
 
+    // V3 formula strings that are not present in V2 and will eventually require translation.
+    "V3.formula.error.invalidParentAttrRef": "invalid reference to parent attribute '%@' within aggregate function",
+
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
