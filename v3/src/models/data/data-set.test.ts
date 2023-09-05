@@ -599,3 +599,28 @@ test("DataSet client synchronization", (done) => {
   src.addCases(toCanonical(src, [{ str: "b", num: 2 }, { str: "c", num: 3 }]))
   // src.removeAttribute(src.attributes[0].id)
 })
+
+test("DataSet collection helpers", () => {
+  const ds = DataSet.create({ name: "data" })
+  ds.addAttribute({ name: "attr1" })
+  ds.addAttribute({ name: "attr2" })
+  expect(ds.ungrouped).toBeDefined()
+  expect(ds.collections.length).toBe(0)
+  ds.moveAttributeToNewCollection(ds.attributes[0].id)
+  expect(ds.collections.length).toBe(1)
+
+  // Test collection helpers using the "real" collection (instance of CollectionModel).
+  expect(ds.getRealCollection(ds.collections[0].id)).toBeDefined()
+  expect(ds.getCollection(ds.collections[0].id)).toBeDefined()
+  expect(ds.getCollectionIndex(ds.collections[0].id)).toEqual(0)
+  expect(ds.getCollectionForAttribute(ds.attributes[0].id)).toBe(ds.collections[0])
+
+  // Test collection helpers using the the ungrouped collection stand-in. It's not considered a "real" collection,
+  // but other collection-related helpers handle it as expected.
+  expect(ds.getRealCollection(ds.ungrouped.id)).not.toBeDefined()
+  expect(ds.getCollection(ds.ungrouped.id)).toBeDefined()
+  expect(ds.getCollectionIndex(ds.ungrouped.id)).toEqual(1)
+  expect(ds.getCollectionForAttribute(ds.attributes[1].id)).toBe(ds.ungrouped)
+
+  expect(ds.getCollectionForAttribute("non-existent-attr-ID")).toBeUndefined()
+})

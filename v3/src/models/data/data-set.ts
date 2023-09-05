@@ -209,12 +209,19 @@ export const DataSet = types.model("DataSet", {
   let _childCases: IGroupedCase[] = []
   let isValidCollectionGroups = false
 
-  function getCollection(collectionId: string): ICollectionModel | undefined {
+  function getRealCollection(collectionId: string): ICollectionModel | undefined {
     return self.collections.find(coll => coll.id === collectionId)
   }
 
+  function getCollection(collectionId: string): ICollectionPropsModel | undefined {
+    return collectionId === self.ungrouped.id ? self.ungrouped : getRealCollection(collectionId)
+  }
+
   function getCollectionIndex(collectionId: string) {
-    return self.collections.findIndex(coll => coll.id === collectionId)
+    // For consistency, treat ungrouped as the last / child-most collection
+    return collectionId === self.ungrouped.id
+      ? self.collections.length
+      : self.collections.findIndex(coll => coll.id === collectionId)
   }
 
   function getCollectionForAttribute(attributeId: string): ICollectionPropsModel | undefined {
@@ -232,11 +239,14 @@ export const DataSet = types.model("DataSet", {
 
   return {
     views: {
-      // get collection from id
+      // get real collection from id (ungrouped collection is not considered to be a real collection)
+      getRealCollection,
+      // get collection from id (including ungrouped collection)
       getCollection,
-      // get index from collection
+      // get index from collection (including ungrouped collection)
       getCollectionIndex,
-      // get collection from attribute, if any; undefined => not in a collection
+      // get collection from attribute. Ungrouped collection is returned for ungrouped attributes.
+      // undefined => attribute not present in dataset
       getCollectionForAttribute,
       // leaf-most child cases (i.e. those not grouped in a collection)
       childCases() {
@@ -399,7 +409,7 @@ export const DataSet = types.model("DataSet", {
       },
       setCollectionForAttribute(attributeId: string, options?: IMoveAttributeCollectionOptions) {
         const attribute = self.attributes.find(attr => attr.id === attributeId)
-        const newCollection = options?.collection ? getCollection(options.collection) : undefined
+        const newCollection = options?.collection ? getRealCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
           if (isCollectionModel(oldCollection)) {
@@ -775,7 +785,7 @@ export const DataSet = types.model("DataSet", {
           attribute.addValue()
         }
         if (collectionId) {
-          const collection = self.getCollection(collectionId)
+          const collection = self.getRealCollection(collectionId)
           collection?.addAttribute(attribute)
         }
         return attribute

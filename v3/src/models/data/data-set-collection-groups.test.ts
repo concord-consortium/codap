@@ -64,7 +64,7 @@ describe("CollectionGroups", () => {
     expect(collection.id).toBe("test-6")
     expect(data.collectionGroups.length).toBe(1)
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
-    expect(data.getCollection(collection.id)).toBe(collection)
+    expect(data.getRealCollection(collection.id)).toBe(collection)
     const aCases = data.getCasesForAttributes(["aId"])
     expect(data.getCasesForCollection(collection.id)).toEqual(aCases)
     expect(aCases.length).toBe(3)
