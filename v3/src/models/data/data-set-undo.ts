@@ -4,6 +4,7 @@ import { ICustomPatch } from "../history/tree-types"
 import { registerCustomUndoRedo } from "../history/custom-undo-redo-registry"
 import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
 import { ICase, IMoveAttributeOptions } from "./data-set-types"
+// eslint-disable-next-line import/no-cycle
 import { DataSet } from "./data-set"
 
 registerUndoRedoStrings({
