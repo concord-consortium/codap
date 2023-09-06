@@ -119,7 +119,7 @@ export const DataConfigurationModel = types
             .filter(id => !!id) as string[],
           childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
-          const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
+          const childmostCollection = self.dataset?.getGroupedCollection(childmostCollectionID),
             childmostCollectionAttributes = childmostCollection?.attributes
           if (childmostCollectionAttributes?.length) {
             const firstAttribute = childmostCollectionAttributes[0]
@@ -346,7 +346,7 @@ export const DataConfigurationModel = types
     }))
     .views(self => ({
       /**
-       * For the purpose of computing percentages, we need to know the total number of cases we're counting. 
+       * For the purpose of computing percentages, we need to know the total number of cases we're counting.
        * A "subplot" contains the cases being considered. Subplots are always defined by topSplit and/or rightSplit
        * categorical attributes rather than any categorical attributes on the left or bottom.
        * A "cell" is defined by zero or more categorical attributes within a subplot.
@@ -379,7 +379,7 @@ export const DataConfigurationModel = types
       const rightAttrID = self.attributeID("rightSplit")
       const isSubplotMatch = (!topAttrID || (topAttrID && cellKey[topAttrID] === caseData[topAttrID])) &&
         (!rightAttrID || (rightAttrID && cellKey[rightAttrID] === caseData[rightAttrID]))
-      
+
       return isSubplotMatch
     },
     isCaseInCell(cellKey: Record<string, string>, caseData: Record<string, any>) {
@@ -445,7 +445,7 @@ export const DataConfigurationModel = types
           const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
             (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
           const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
-      
+
           if (isBottomMatch && isTopMatch) {
             casesInCol.push(caseData)
           }
