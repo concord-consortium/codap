@@ -209,12 +209,12 @@ export const DataSet = types.model("DataSet", {
   let _childCases: IGroupedCase[] = []
   let isValidCollectionGroups = false
 
-  function getRealCollection(collectionId: string): ICollectionModel | undefined {
+  function getGroupedCollection(collectionId: string): ICollectionModel | undefined {
     return self.collections.find(coll => coll.id === collectionId)
   }
 
   function getCollection(collectionId: string): ICollectionPropsModel | undefined {
-    return collectionId === self.ungrouped.id ? self.ungrouped : getRealCollection(collectionId)
+    return collectionId === self.ungrouped.id ? self.ungrouped : getGroupedCollection(collectionId)
   }
 
   function getCollectionIndex(collectionId: string) {
@@ -240,7 +240,7 @@ export const DataSet = types.model("DataSet", {
   return {
     views: {
       // get real collection from id (ungrouped collection is not considered to be a real collection)
-      getRealCollection,
+      getGroupedCollection,
       // get collection from id (including ungrouped collection)
       getCollection,
       // get index from collection (including ungrouped collection)
@@ -409,7 +409,7 @@ export const DataSet = types.model("DataSet", {
       },
       setCollectionForAttribute(attributeId: string, options?: IMoveAttributeCollectionOptions) {
         const attribute = self.attributes.find(attr => attr.id === attributeId)
-        const newCollection = options?.collection ? getRealCollection(options.collection) : undefined
+        const newCollection = options?.collection ? getGroupedCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
           if (isCollectionModel(oldCollection)) {
@@ -785,7 +785,7 @@ export const DataSet = types.model("DataSet", {
           attribute.addValue()
         }
         if (collectionId) {
-          const collection = self.getRealCollection(collectionId)
+          const collection = self.getGroupedCollection(collectionId)
           collection?.addAttribute(attribute)
         }
         return attribute

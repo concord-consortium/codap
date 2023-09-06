@@ -119,7 +119,7 @@ export const DataConfigurationModel = types
             .filter(id => !!id) as string[],
           childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
-          const childmostCollection = self.dataset?.getRealCollection(childmostCollectionID),
+          const childmostCollection = self.dataset?.getGroupedCollection(childmostCollectionID),
             childmostCollectionAttributes = childmostCollection?.attributes
           if (childmostCollectionAttributes?.length) {
             const firstAttribute = childmostCollectionAttributes[0]

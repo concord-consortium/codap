@@ -609,15 +609,15 @@ test("DataSet collection helpers", () => {
   ds.moveAttributeToNewCollection(ds.attributes[0].id)
   expect(ds.collections.length).toBe(1)
 
-  // Test collection helpers using the "real" collection (instance of CollectionModel).
-  expect(ds.getRealCollection(ds.collections[0].id)).toBeDefined()
+  // Test collection helpers using the actual, grouped collection (instance of CollectionModel).
+  expect(ds.getGroupedCollection(ds.collections[0].id)).toBeDefined()
   expect(ds.getCollection(ds.collections[0].id)).toBeDefined()
   expect(ds.getCollectionIndex(ds.collections[0].id)).toEqual(0)
   expect(ds.getCollectionForAttribute(ds.attributes[0].id)).toBe(ds.collections[0])
 
-  // Test collection helpers using the the ungrouped collection stand-in. It's not considered a "real" collection,
+  // Test collection helpers using the the ungrouped collection stand-in. It's not considered be a grouped collection,
   // but other collection-related helpers handle it as expected.
-  expect(ds.getRealCollection(ds.ungrouped.id)).not.toBeDefined()
+  expect(ds.getGroupedCollection(ds.ungrouped.id)).not.toBeDefined()
   expect(ds.getCollection(ds.ungrouped.id)).toBeDefined()
   expect(ds.getCollectionIndex(ds.ungrouped.id)).toEqual(1)
   expect(ds.getCollectionForAttribute(ds.attributes[1].id)).toBe(ds.ungrouped)
