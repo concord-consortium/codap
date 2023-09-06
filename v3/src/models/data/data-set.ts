@@ -43,7 +43,7 @@
  */
 
 import { observable } from "mobx"
-import { addMiddleware, getEnv, IAnyStateTreeNode, Instance, resolveIdentifier, types } from "mobx-state-tree"
+import { addMiddleware, getEnv, Instance, types } from "mobx-state-tree"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
@@ -53,10 +53,8 @@ import {
   IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions,
   symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
-import { HistoryEntryType } from "../history/history"
-import { ICustomPatch } from "../history/tree-types"
-import { registerCustomUndoRedo } from "../history/custom-undo-redo-registry"
-import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
+// eslint-disable-next-line import/no-cycle
+import { IMoveAttributeCustomPatch, ISetCaseValuesCustomPatch } from "./data-set-undo"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
@@ -122,67 +120,6 @@ export function toCanonical(ds: IDataSet, cases: CaseOrArray): CaseOrArray {
           ? cases.map(aCase => toCanonicalCase(ds, aCase))
           : toCanonicalCase(ds, cases)
 }
-
-registerUndoRedoStrings({
-  "DataSet.moveAttribute": ["DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute"],
-  "DataSet.setCaseValues": ["DG.Undo.caseTable.editCellValue", "DG.Redo.caseTable.editCellValue"]
-})
-
-interface IMoveAttributeCustomPatch extends ICustomPatch {
-  type: "DataSet.moveAttribute",
-  data: {
-    dataId: string
-    attrId: string
-    before?: IMoveAttributeOptions
-    after?: IMoveAttributeOptions
-  }
-}
-function isMoveAttributeCustomPatch(patch: ICustomPatch): patch is IMoveAttributeCustomPatch {
-  return patch.type === "DataSet.moveAttribute"
-}
-
-interface ISetCaseValuesCustomPatch extends ICustomPatch {
-  type: "DataSet.setCaseValues"
-  data: {
-    dataId: string  // DataSet id
-    before: ICase[]
-    after: ICase[]
-  }
-}
-function isSetCaseValuesCustomPatch(patch: ICustomPatch): patch is ISetCaseValuesCustomPatch {
-  return patch.type === "DataSet.setCaseValues"
-}
-
-registerCustomUndoRedo({
-  "DataSet.moveAttribute": {
-    undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
-      if (isMoveAttributeCustomPatch(patch)) {
-        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
-        data?.moveAttribute(patch.data.attrId, patch.data.before)
-      }
-    },
-    redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
-      if (isMoveAttributeCustomPatch(patch)) {
-        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
-        data?.moveAttribute(patch.data.attrId, patch.data.after)
-      }
-    }
-  },
-  "DataSet.setCaseValues": {
-    undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
-      if (isSetCaseValuesCustomPatch(patch)) {
-        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
-        data?.setCaseValues(patch.data.before)
-      }
-    },
-    redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
-      if (isSetCaseValuesCustomPatch(patch)) {
-        const data = resolveIdentifier(DataSet, node, patch.data.dataId)
-        data?.setCaseValues(patch.data.after)
-      }
-    }
-  }
-})
 
 // represents the set of grouped cases at a particular level of the hierarchy
 export interface CollectionGroup {

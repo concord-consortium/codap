@@ -65,6 +65,7 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
       }
     }
 
+    // support disabling data tips via url parameter for jest tests
     if (urlParams.noDataTips === undefined) {
       dotsRef.current && select(dotsRef.current)
         .on('mouseover', showDataTip)
