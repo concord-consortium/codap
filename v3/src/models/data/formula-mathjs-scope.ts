@@ -40,7 +40,7 @@ export class FormulaMathJsScope {
         }
       })
 
-      // Make sure that all the caching and  case processing is done lazily, only for attributes that are actually
+      // Make sure that all the caching and case processing is done lazily, only for attributes that are actually
       // referenced by the formula.
       const cachedGroup: Record<string, IValueType[]> = {}
       let cacheInitialized = false
