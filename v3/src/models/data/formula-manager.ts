@@ -1,11 +1,15 @@
 import { makeObservable, observable, reaction } from "mobx"
+import { EvalFunction } from "mathjs"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { getFormulaChildMostCollectionIndex, getFormulaDependencies } from "./formula-utils"
+import {
+  getFormulaDependencies, formulaError, getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference,
+  getIncorrectParentAttrReference
+} from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
-  ILookupDependency, NO_PARENT_KEY
+  ILookupDependency, NO_PARENT_KEY, FValue
 } from "./formula-types"
 import { math } from "./formula-fn-registry"
 import { IDataSet } from "./data-set"
@@ -60,8 +64,8 @@ export class FormulaManager {
     return { dataSet, ...formulaMetadata }
   }
 
-  recalculateFormula(formulaId: string, casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
-    const { formula, attributeId, dataSet } = this.getFormulaContext(formulaId)
+  getCaseGroupMap(formulaId: string) {
+    const { attributeId, dataSet } = this.getFormulaContext(formulaId)
 
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
     const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
@@ -73,18 +77,17 @@ export class FormulaManager {
     }
 
     const calculateChildCollectionGroups = () => {
-      if (collectionIndex !== -1) {
-        for (let i = collectionIndex + 1; i < dataSet.collections.length; i++) {
-          const collectionGroup = dataSet.collectionGroups[i]
-          collectionGroup.groups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
-        }
+      for (let i = collectionIndex + 1; i < dataSet.collections.length; i++) {
+        const collectionGroup = dataSet.collectionGroups[i]
+        collectionGroup.groups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
       }
       // Note that the child cases are never in any collection and they require separate processing.
       dataSet.childCases().forEach(childCase => processCase(childCase))
     }
 
     const calculateSameLevelGroups = () => {
-      if (collectionIndex !== -1) {
+      const formulaCollection = dataSet.collectionGroups[collectionIndex]
+      if (formulaCollection) {
         dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
           processCase(group.pseudoCase)
         )
@@ -99,6 +102,12 @@ export class FormulaManager {
     calculateChildCollectionGroups()
     calculateSameLevelGroups()
 
+    return caseGroupId
+  }
+
+  recalculateFormula(formulaId: string, casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+    const { formula, attributeId, dataSet } = this.getFormulaContext(formulaId)
+
     let casesToRecalculate: ICase[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
       // When casesToRecalculate is not provided, recalculate all cases.
@@ -111,12 +120,29 @@ export class FormulaManager {
     }
     console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
 
-    const childMostCollectionIndex = getFormulaChildMostCollectionIndex(formula.canonical, dataSet) ?? collectionIndex
-    const childMostCollectionCases = childMostCollectionIndex !== -1
-      ? dataSet.collectionGroups[childMostCollectionIndex].groups.map((group: CaseGroup) => group.pseudoCase) || []
+    let errorMsg = ""
+    const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
+    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+
+    const incorrectParentAttrId = getIncorrectParentAttrReference(formula.canonical, collectionIndex, dataSet)
+    if (incorrectParentAttrId) {
+      const attrName = dataSet.attrFromID(incorrectParentAttrId).name
+      errorMsg = formulaError("V3.formula.error.invalidParentAttrRef", [ attrName ])
+    }
+
+    const incorrectChildAttrId = getIncorrectChildAttrReference(formula.canonical, collectionIndex, dataSet)
+    if (incorrectChildAttrId) {
+      const attrName = dataSet.attrFromID(incorrectChildAttrId).name
+      errorMsg = formulaError("DG.Formula.HierReferenceError.message", [ attrName ])
+    }
+
+    const childMostAggregateCollectionIndex =
+      getFormulaChildMostAggregateCollectionIndex(formula.canonical, dataSet) ?? collectionIndex
+    const childMostCollectionGroup = dataSet.collectionGroups[childMostAggregateCollectionIndex]
+    const childMostCollectionCases = childMostCollectionGroup
+      ? childMostCollectionGroup.groups.map((group: CaseGroup) => group.pseudoCase) || []
       : dataSet.childCases()
 
-    const compiledFormula = math.compile(formula.canonical)
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,
       dataSets: this.dataSets,
@@ -126,20 +152,40 @@ export class FormulaManager {
       //   attributes only from the same collection.
       // - Parent-child grouping, which is used when the table is hierarchical and the aggregate function is
       //   referencing attributes from child collections.
-      useSameLevelGrouping: collectionIndex === childMostCollectionIndex,
+      useSameLevelGrouping: collectionIndex === childMostAggregateCollectionIndex,
       childMostCollectionCases,
-      caseGroupId
+      caseGroupId: this.getCaseGroupMap(formulaId)
     })
 
-    const casesToUpdate = casesToRecalculate.map((c) => {
+    let compiledFormula: EvalFunction
+    try {
+      compiledFormula = math.compile(formula.canonical)
+    } catch (e: any) {
+      errorMsg = formulaError(e.message)
+    }
+
+    // Error message is set as formula output, similarly as in CODAP V2.
+    if (errorMsg) {
+      dataSet.setCaseValues(casesToRecalculate.map(c => ({
+        __id__: c.__id__,
+        [attributeId]: errorMsg
+      })))
+      return
+    }
+
+    dataSet.setCaseValues(casesToRecalculate.map((c) => {
       formulaScope.setCaseId(c.__id__)
-      const formulaValue = compiledFormula.evaluate(formulaScope)
+      let formulaValue: FValue
+      try {
+        formulaValue = compiledFormula.evaluate(formulaScope)
+      } catch (e: any) {
+        formulaValue = formulaError(e.message)
+      }
       return {
         __id__: c.__id__,
         [attributeId]: formulaValue
       }
-    })
-    dataSet.setCaseValues(casesToUpdate)
+    }))
   }
 
   registerAllFormulas() {
