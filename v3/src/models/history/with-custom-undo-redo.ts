@@ -1,6 +1,7 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { ICustomPatch, isChildOfUndoRedo, runningCalls } from "./tree-types"
+import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "./custom-undo-redo-registry"
 
 /*
  * withCustomUndoRedo
@@ -8,8 +9,10 @@ import { ICustomPatch, isChildOfUndoRedo, runningCalls } from "./tree-types"
  * Adds a customPatch to the current action's history entry. This can be used to provide undo/redo
  * for actions that don't generate standard JSON patches (e.g. they only modify volatile properties)
  * or for actions that require specialized handling instead of the standard JSON patches.
+ * Clients can register the custom undo/redo code separately by calling registerCustomUndoRedo directly,
+ * or the undo/redo code can be passed as part of this call which will handle the registration.
  */
-export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(customPatch: T) {
+export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(patch: T, undoRedo?: ICustomUndoRedoPatcher) {
   const actionCall = getRunningActionContext()
   if (!actionCall) {
     throw new Error("withCustomUndoRedo called outside of an MST action")
@@ -64,8 +67,13 @@ export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(custom
   if (!call.env) {
     throw new Error("environment is not setup on action tracking middleware call")
   }
+  // register the custom undo/redo code
+  if (undoRedo) {
+    registerCustomUndoRedo({ [patch.type]: undoRedo })
+  }
+  // add the new patch
   if (!call.env.customPatches) {
     call.env.customPatches = []
   }
-  call.env.customPatches.push(customPatch)
+  call.env.customPatches.push(patch)
 }

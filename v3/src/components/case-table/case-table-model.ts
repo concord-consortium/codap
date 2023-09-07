@@ -22,19 +22,17 @@ export const CaseTableModel = TileContentModel
       return getTileCaseMetadata(self)
     }
   }))
-  .extend(self => {
+  .views(self => {
     const collectionTableModels = new Map<string, CollectionTableModel>()
 
     return {
-      views: {
-        getCollectionTableModel(collectionId: string) {
-          let collectionTableModel = collectionTableModels.get(collectionId)
-          if (!collectionTableModel) {
-            collectionTableModel = new CollectionTableModel(collectionId)
-            collectionTableModels.set(collectionId, collectionTableModel)
-          }
-          return collectionTableModel
+      getCollectionTableModel(collectionId: string) {
+        let collectionTableModel = collectionTableModels.get(collectionId)
+        if (!collectionTableModel) {
+          collectionTableModel = new CollectionTableModel(collectionId)
+          collectionTableModels.set(collectionId, collectionTableModel)
         }
+        return collectionTableModel
       }
     }
   })

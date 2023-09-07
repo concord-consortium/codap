@@ -2,7 +2,7 @@ import { IAnyStateTreeNode } from "mobx-state-tree"
 import { HistoryEntryType } from "./history"
 import { ICustomPatch } from "./tree-types"
 
-interface ICustomUndoRedoPatcher {
+export interface ICustomUndoRedoPatcher {
   undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => void
   redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => void
 }

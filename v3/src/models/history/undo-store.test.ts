@@ -282,6 +282,7 @@ it("can undo a tile change", async () => {
   // Make sure this entry is recorded before undoing it
   await expectEntryToBeComplete(manager, 1)
 
+  expect(undoStore.undoEntry?.modelActionKey).toBe("TestTile.setFlag")
   expect(getSnapshot(undoStore.undoEntry!)).toEqual(setFlagTrueEntry)
   expect(undoStore.redoEntry).toBeUndefined()
 

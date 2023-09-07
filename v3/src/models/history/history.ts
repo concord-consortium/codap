@@ -54,7 +54,7 @@ export const HistoryEntry = types.model("HistoryEntry", {
   activeExchanges: observable.map<string, string>({}, {name: "activeExchanges"})
 }))
 .views(self => ({
-  get undoStringsKey() {
+  get modelActionKey() {
     const modelName = self.model ?? "UnknownModel"
     const pathParts = self.action?.split("/") ?? []
     const actionName = pathParts.length ? pathParts[pathParts.length - 1] : "unknownAction"

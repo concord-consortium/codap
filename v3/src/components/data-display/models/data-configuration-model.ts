@@ -58,23 +58,9 @@ export const DataConfigurationModel = types
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: undefined as FilteredCases[] | undefined,
-    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>()
+    handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
+    pointsNeedUpdating: false
   }))
-  .extend(self => {
-    let pointsNeedUpdating = false
-
-    return {
-      views: {
-        get pointsNeedUpdating() {
-          return pointsNeedUpdating
-        },
-        // not an action so it doesn't trigger action-tracking middleware
-        setPointsNeedUpdating(needUpdating: boolean) {
-          pointsNeedUpdating = needUpdating
-        }
-      }
-    }
-  })
   .views(self => ({
     get isEmpty() {
       return self._attributeDescriptions.size + self._yAttributeDescriptions.length === 0
@@ -207,6 +193,11 @@ export const DataConfigurationModel = types
       } else {
         self._attributeDescriptions.delete(iRole)
       }
+    }
+  }))
+  .actions(self => ({
+    setPointsNeedUpdating(needUpdating: boolean) {
+      self.pointsNeedUpdating = needUpdating
     }
   }))
   .views(self => ({
