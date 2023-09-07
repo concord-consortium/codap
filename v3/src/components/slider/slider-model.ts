@@ -3,7 +3,7 @@ import { addDisposer, Instance, types} from "mobx-state-tree"
 import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { IGlobalValueManager, kGlobalValueManagerType } from "../../models/global/global-value-manager"
-import { registerUndoRedoStrings } from "../../models/history/undo-redo-string-registry"
+import { withUndoRedoStrings } from "../../models/history/codap-undo-types"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -12,10 +12,6 @@ import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
   FixValueFn, kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate
 } from "./slider-types"
-
-registerUndoRedoStrings({
-  "SliderModel.setValue": ["DG.Undo.slider.change", "DG.Redo.slider.change"]
-})
 
 export const SliderModel = TileContentModel
   .named("SliderModel")
@@ -68,6 +64,8 @@ export const SliderModel = TileContentModel
         n = keepValueInBounds(n)
       }
       self.globalValue.setValue(n)
+
+      withUndoRedoStrings("DG.Undo.slider.change", "DG.Redo.slider.change")
     },
   }))
   .actions(self => ({

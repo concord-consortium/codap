@@ -55,6 +55,7 @@ import {
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { IMoveAttributeCustomPatch, ISetCaseValuesCustomPatch } from "./data-set-undo"
+import { withUndoRedoStrings } from "../history/codap-undo-types"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
@@ -211,6 +212,7 @@ export const DataSet = types.model("DataSet", {
         type: "DataSet.moveAttribute",
         data: { dataId: self.id, attrId: attributeID, before: { before: nextAttrId }, after: options }
       })
+      withUndoRedoStrings("DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
     }
   }
 }))
@@ -904,6 +906,8 @@ export const DataSet = types.model("DataSet", {
           type: "DataSet.setCaseValues",
           data: { dataId: self.id, before, after }
         })
+        withUndoRedoStrings("DG.Undo.caseTable.editCellValue", "DG.Redo.caseTable.editCellValue")
+
         // only changes to parent collection attributes invalidate grouping
         ungroupedCases.length > 0 && self.invalidateCollectionGroups()
       },

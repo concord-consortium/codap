@@ -1,10 +1,9 @@
-import { types, Instance, flow, getParent, IAnyStateTreeNode } from "mobx-state-tree"
+import { types, Instance, flow, getParent, IAnyStateTreeNode, getType } from "mobx-state-tree"
 import { nanoid } from "nanoid"
-import { HistoryEntry, HistoryOperation } from "./history"
+import { HistoryEntry, HistoryEntryType, HistoryOperation } from "./history"
 // eslint-disable-next-line import/no-cycle
 import { TreeManager } from "./tree-manager"
 import { applyCustomRedo, applyCustomUndo, hasCustomUndoRedo } from "./custom-undo-redo-registry"
-import { getRedoStringKey, getUndoStringKey } from "./undo-redo-string-registry"
 import { DEBUG_UNDO } from "../../lib/debug"
 
 export interface IUndoManager {
@@ -12,8 +11,8 @@ export interface IUndoManager {
   redoLevels : number;
   canUndo : boolean;
   canRedo : boolean;
-  undoStringKey: string;
-  redoStringKey: string;
+  undoEntry : HistoryEntryType | undefined;
+  redoEntry : HistoryEntryType | undefined;
   undo() : void;
   redo() : void;
 }
@@ -36,19 +35,11 @@ export const UndoStore = types
   get canRedo() {
     return this.redoLevels > 0
   },
-  get undoStringKey() {
-    const undoEntry = this.canUndo
-                        ? self.history[self.undoIdx - 1]
-                        : undefined
-    const stringsKey = undoEntry?.undoStringsKey ?? ""
-    return getUndoStringKey(stringsKey, undoEntry)
+  get undoEntry() {
+    return this.canUndo ? self.history[self.undoIdx - 1] : undefined
   },
-  get redoStringKey() {
-    const redoEntry = this.canRedo
-                        ? self.history[self.undoIdx]
-                        : undefined
-    const stringsKey = redoEntry?.undoStringsKey ?? ""
-    return getRedoStringKey(stringsKey, redoEntry)
+  get redoEntry() {
+    return this.canRedo ? self.history[self.undoIdx] : undefined
   },
   findHistoryEntry(historyEntryId: string) {
     return self.history.find(entry => entry.id === historyEntryId)
@@ -70,8 +61,14 @@ export const UndoStore = types
     // Start a non-undoable action with this id
     // TODO: we are using a fake tree id of "manager" here. This is currently
     // working, but we probably want to review this approach.
-    const historyEntry =
-        manager.createHistoryEntry(historyEntryId, exchangeId, "manager", opType, "manager", false)
+    const historyEntry = manager.createHistoryEntry({
+      id: historyEntryId,
+      exchangeId,
+      tree: "manager",
+      model: getType(self).name,
+      action: opType,
+      undoable: false
+    })
 
     // Collect the trees that we are going to work with
     const treeIds = treePatchRecords.map(treePatchRecord => treePatchRecord.tree)

@@ -1,6 +1,6 @@
 import { types, IJsonPatch, SnapshotIn, Instance } from "mobx-state-tree"
 import { observable } from "mobx"
-import { ICustomPatch } from "./tree-types"
+import { IClientUndoData, ICustomPatch } from "./tree-types"
 
 export const TreePatchRecord = types.model("TreePatchRecord", {
   tree: types.string,
@@ -20,6 +20,16 @@ export const TreePatchRecord = types.model("TreePatchRecord", {
 }))
 export interface TreePatchRecordSnapshot extends SnapshotIn<typeof TreePatchRecord> {}
 
+export interface ICreateHistoryEntry {
+  id: string
+  exchangeId: string
+  tree: string
+  model: string
+  action: string
+  undoable: boolean
+  customPatches?: ICustomPatch[]
+  clientData?: IClientUndoData
+}
 
 export const HistoryEntry = types.model("HistoryEntry", {
   id: types.identifier,
@@ -32,6 +42,7 @@ export const HistoryEntry = types.model("HistoryEntry", {
   created: types.optional(types.Date, () => new Date()),
   records: types.array(TreePatchRecord),
   customPatches: types.maybe(types.frozen<ReadonlyArray<ICustomPatch>>()),
+  clientData:types.maybe(types.frozen<IClientUndoData>()),
   // History entries are marked as recording, until all records have been added
   state: types.optional(types.enumeration("HistoryEntryState", ["recording", "complete"]), "recording")
 })

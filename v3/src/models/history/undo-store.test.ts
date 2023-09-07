@@ -15,7 +15,6 @@ import { withCustomUndoRedo } from "./with-custom-undo-redo"
 import { withoutUndo } from "./without-undo"
 import { ICustomPatch } from "./tree-types"
 import { registerCustomUndoRedo } from "./custom-undo-redo-registry"
-import { registerUndoRedoStrings } from "./undo-redo-string-registry"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -120,10 +119,6 @@ const TestTile = TileContentModel
     }
   }))
 interface TestTileType extends Instance<typeof TestTile> {}
-
-registerUndoRedoStrings({
-  "TestTile.setVolatileValueWithCustomPatch": ["Undo setVolatileValue", "Redo setVolatileValue"]
-})
 
 registerCustomUndoRedo({
   "TestTile.setVolatileValueWithCustomPatch": {
@@ -258,7 +253,7 @@ it("logs addition of undoable actions when DEBUG_UNDO is set", async () => {
 })
 
 const undoEntry = {
-  model: "manager",
+  model: "UndoStore",
   action: "undo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -287,10 +282,15 @@ it("can undo a tile change", async () => {
   // Make sure this entry is recorded before undoing it
   await expectEntryToBeComplete(manager, 1)
 
+  expect(getSnapshot(undoStore.undoEntry!)).toEqual(setFlagTrueEntry)
+  expect(undoStore.redoEntry).toBeUndefined()
+
   undoStore.undo()
   await expectEntryToBeComplete(manager, 2)
 
   expect(tileContent.flag).toBeUndefined()
+  expect(undoStore.undoEntry).toBeUndefined()
+  expect(getSnapshot(undoStore.redoEntry!)).toEqual(setFlagTrueEntry)
 
   const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
@@ -300,7 +300,7 @@ it("can undo a tile change", async () => {
 })
 
 const redoEntry = {
-  model: "manager",
+  model: "UndoStore",
   action: "redo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -612,20 +612,16 @@ it("changes to volatile properties can be made undoable with custom patches", as
 
   expect(undoStore.canUndo).toBe(true)
   expect(undoStore.canRedo).toBe(false)
-  expect(undoStore.undoStringKey).toBe("Undo setVolatileValue")
-  expect(undoStore.redoStringKey).toBe("DG.mainPage.mainPane.redoButton.toolTip")
   undoStore.undo()
   expect(tileContent.volatileValue).toBe(0)
 
   expect(undoStore.canUndo).toBe(false)
   expect(undoStore.canRedo).toBe(true)
-  expect(undoStore.undoStringKey).toBe("DG.mainPage.mainPane.undoButton.toolTip")
-  expect(undoStore.redoStringKey).toBe("Redo setVolatileValue")
   undoStore.redo()
   expect(tileContent.volatileValue).toBe(1)
 })
 
-it("records undoable actions that happen in the middle async actions which are not undoable", async () => {
+it("records undoable actions that happen in the middle of async actions which are not undoable", async () => {
   const {tileContent, manager, undoStore} = setupDocument()
 
   const updateCounterPromise = tileContent.updateCounterWithoutUndoAsync()
@@ -755,7 +751,7 @@ it("records a shared model change as one history event with two TreeRecordEntrie
 })
 
 const undoSharedModelEntry = {
-  model: "manager",
+  model: "UndoStore",
   action: "undo",
   created: expect.any(Number),
   id: expect.any(String),
@@ -811,7 +807,7 @@ it("can undo a shared model change", async () => {
 })
 
 const redoSharedModelEntry = {
-  model: "manager",
+  model: "UndoStore",
   action: "redo",
   created: expect.any(Number),
   id: expect.any(String),

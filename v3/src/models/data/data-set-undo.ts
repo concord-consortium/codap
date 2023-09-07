@@ -2,15 +2,9 @@ import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
 import { HistoryEntryType } from "../history/history"
 import { ICustomPatch } from "../history/tree-types"
 import { registerCustomUndoRedo } from "../history/custom-undo-redo-registry"
-import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
 import { ICase, IMoveAttributeOptions } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { DataSet } from "./data-set"
-
-registerUndoRedoStrings({
-  "DataSet.moveAttribute": ["DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute"],
-  "DataSet.setCaseValues": ["DG.Undo.caseTable.editCellValue", "DG.Redo.caseTable.editCellValue"]
-})
 
 export interface IMoveAttributeCustomPatch extends ICustomPatch {
   type: "DataSet.moveAttribute",

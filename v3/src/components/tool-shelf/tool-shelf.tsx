@@ -4,6 +4,7 @@ import React from "react"
 import { SetRequired } from "type-fest"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-buttons"
 import { IDocumentModel } from "../../models/document/document"
+import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
 } from "../../models/tiles/tile-component-info"
@@ -47,7 +48,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       className: "undo-button",
       icon: <UndoIcon className="icon-undo"/>,
       label: t("DG.mainPage.mainPane.undoButton.title"),
-      hint: t(undoManager?.undoStringKey ?? "DG.mainPage.mainPane.undoButton.toolTip"),
+      hint: t(getUndoStringKey(undoManager)),
       isDisabled: () => !undoManager?.canUndo,
       onClick: () => {
         if (undoManager?.canUndo) {
@@ -59,7 +60,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       className: "redo-button",
       icon: <RedoIcon className="icon-redo"/>,
       label: t("DG.mainPage.mainPane.redoButton.title"),
-      hint: t(undoManager?.redoStringKey ?? "DG.mainPage.mainPane.redoButton.toolTip"),
+      hint: t(getRedoStringKey(undoManager)),
       isDisabled: () => !undoManager?.canRedo,
       onClick: () => {
         if (undoManager?.canRedo) {

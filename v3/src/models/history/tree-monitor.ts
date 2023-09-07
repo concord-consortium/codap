@@ -204,7 +204,7 @@ export class TreeMonitor {
   // shared model in other trees. The actual changes to the shared model are
   // stored in the recorder.
   async recordAction(call: IActionTrackingMiddleware3Call<CallEnv>, env: CallEnv) {
-    const { recorder, sharedModelModifications, historyEntryId, exchangeId, undoable, customPatches } = env
+    const { recorder, sharedModelModifications, historyEntryId, exchangeId, undoable, customPatches, clientData } = env
     if (!isActionFromManager(call)) {
       // We record the start of the action even if it doesn't have any
       // patches. This is useful when an action only modifies the shared
@@ -213,8 +213,16 @@ export class TreeMonitor {
       // If the manager triggered the action then the manager already
       // added the history entry.
       //
-      await this.manager.addHistoryEntry(historyEntryId, exchangeId, this.tree.treeId,
-          getActionModelName(call), getActionPath(call), undoable, customPatches)
+      await this.manager.addHistoryEntry({
+        id: historyEntryId,
+        exchangeId,
+        tree: this.tree.treeId,
+        model: getActionModelName(call),
+        action: getActionPath(call),
+        undoable,
+        customPatches,
+        clientData
+      })
     }
 
     // Call the shared model notification function if there are changes.

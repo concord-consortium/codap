@@ -6,6 +6,8 @@ export interface ICustomPatch {
   data: any
 }
 
+export type IClientUndoData = Record<string, string | number | boolean>
+
 export interface CallEnv {
   recorder: IPatchRecorder
   sharedModelModifications: SharedModelModifications
@@ -13,6 +15,7 @@ export interface CallEnv {
   exchangeId: string
   undoable: boolean
   customPatches?: ICustomPatch[]
+  clientData?: IClientUndoData
 }
 
 export function isValidCallEnv(env?: CallEnv): env is CallEnv {

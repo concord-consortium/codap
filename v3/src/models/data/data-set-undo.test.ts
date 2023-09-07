@@ -1,5 +1,4 @@
 import { Instance } from "mobx-state-tree"
-import { getRedoStringKey, getUndoStringKey } from "../history/undo-redo-string-registry"
 import { createCodapDocument } from "../codap/create-codap-document"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { SharedDataSet } from "../shared/shared-data-set"
@@ -24,14 +23,6 @@ describe("DataSet undo/redo", () => {
 
     return { document, treeManager, sharedModelManager, undoManager, sharedDataSet, data }
   }
-
-  it("registers undo strings", () => {
-    expect(getUndoStringKey("foo")).toBe("DG.mainPage.mainPane.undoButton.toolTip")
-    expect(getRedoStringKey("foo")).toBe("DG.mainPage.mainPane.redoButton.toolTip")
-
-    expect(getUndoStringKey("DataSet.moveAttribute")).toBe("DG.Undo.dataContext.moveAttribute")
-    expect(getRedoStringKey("DataSet.moveAttribute")).toBe("DG.Redo.dataContext.moveAttribute")
-  })
 
   it("can undo/redo moving an attribute", async () => {
     const { data, treeManager, undoManager } = setupDocument()
@@ -72,10 +63,17 @@ describe("DataSet undo/redo", () => {
     }
     expect(timedOut).toBe(false)
 
+    expect(undoManager?.undoEntry?.clientData).toBeDefined()
+    expect(undoManager?.redoEntry?.clientData).toBeUndefined()
+
     undoManager?.undo()
     expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 1, "bId": 2 })
+    expect(undoManager?.undoEntry?.clientData).toBeUndefined()
+    expect(undoManager?.redoEntry?.clientData).toBeDefined()
 
     undoManager?.redo()
     expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })
+    expect(undoManager?.undoEntry?.clientData).toBeDefined()
+    expect(undoManager?.redoEntry?.clientData).toBeUndefined()
   })
 })

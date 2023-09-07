@@ -1,5 +1,4 @@
-import { TreePatchRecordSnapshot } from "./history"
-import { ICustomPatch } from "./tree-types"
+import { ICreateHistoryEntry, TreePatchRecordSnapshot } from "./history"
 import { IUndoManager } from "./undo-store"
 
 export interface TreeManagerAPI {
@@ -72,26 +71,29 @@ export interface TreeManagerAPI {
      * want to record the initiating tree action so there is more info for the
      * researcher.
      *
-     * @param historyEntryId should be a unique id created by the tree.
+     * @param entryInfo.id should be a unique id created by the tree.
      *
-     * @param exchangeId should be another unique id created by the tree. The
+     * @param entryInfo.exchangeId should be another unique id created by the tree. The
      * manager uses this to differentiate between multiple flows of messages
      * being sent to the manager. For every addHistoryEntry message there
      * should be a addTreePatchRecord message with the same exchangeId.
      *
-     * @param treeId id of the tree that is adding this history entry.
+     * @param entryInfo.treeId id of the tree that is adding this history entry.
      *
-     * @param modelName name of the model that caused this history entry to be
+     * @param entryInfo.modelName name of the model that caused this history entry to be
      * added.
      *
-     * @param actionName name of the action that caused this history entry to be
+     * @param entryInfo.actionName name of the action that caused this history entry to be
      * added.
      *
-     * @param undoable true if this action should be saved to the undo stack.
+     * @param entryInfo.undoable true if this action should be saved to the undo stack.
      * Changes that result from `applyPatchesFromManager` should not be undo-able.
+     *
+     * @param entryInfo.customPatches array of client-provided patches for custom undo/redo.
+     *
+     * @param entryInfo.clientData client-provided metadata for undo/redo.
      */
-    addHistoryEntry: (historyEntryId: string, exchangeId: string, treeId: string,
-        modelName: string, actionName: string, undoable: boolean, customPatches?: ICustomPatch[]) => Promise<void>;
+    addHistoryEntry: (entryInfo: ICreateHistoryEntry) => Promise<void>;
 
     /**
      * Trees should call this to record the actual patches of a history event.

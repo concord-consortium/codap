@@ -1,7 +1,7 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
-import { registerUndoRedoStrings } from "../history/undo-redo-string-registry"
 import { withoutUndo } from "../history/without-undo"
+import { withUndoRedoStrings } from "../history/codap-undo-types"
 
 /*
   Represents the layout of a set of tiles/components with arbitrary rectangular bounds that can
@@ -12,10 +12,6 @@ import { withoutUndo } from "../history/without-undo"
   v2/v3 time frame, however, a CODAP document is represented by a single such "row".
  */
 
-registerUndoRedoStrings({
-  "FreeTileLayout.setPosition": ["DG.Undo.componentMove", "DG.Redo.componentMove"],
-  "FreeTileLayout.setSize": ["DG.Undo.componentResize", "DG.Redo.componentResize"]
-})
 
 export const FreeTileLayout = types.model("FreeTileLayout", {
   // not types.identifier because it's not unique within the document tree
@@ -38,10 +34,12 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   setPosition(x: number, y: number) {
     self.x = x
     self.y = y
+    withUndoRedoStrings("DG.Undo.componentMove", "DG.Redo.componentMove")
   },
   setSize(width?: number, height?: number) {
     self.width = width
     self.height = height
+    withUndoRedoStrings("DG.Undo.componentResize", "DG.Redo.componentResize")
   },
   setMinimized(isMinimized: boolean) {
     // only store it if it's true
