@@ -1,0 +1,28 @@
+.plotted-value-control {
+  background: transparent;
+  border: none;
+  color: #000;
+  display: flex;
+  font: 12px "MuseoSans-500", sans-serif;
+  left: 0;
+  padding: 0;
+  pointer-events: all;
+  position: absolute;
+  text-align: left;
+  top: 0;
+  width: 100%;
+
+  .plotted-value-control-label {
+    background: gray;
+    cursor: pointer;
+    padding: 1px 3px 3px;
+    width: 54px;
+  }
+  .plotted-value-control-value {
+    background: #fff;
+    cursor: text;
+    flex: 1;
+    height: 100%;
+    padding: 1px 3px 3px;
+  }
+}

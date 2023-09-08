@@ -10,6 +10,7 @@ import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { useDataConfigurationContext } from "../hooks/use-data-configuration-context"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
+import { getAdornmentComponentInfo } from "./adornment-component-info"
 
 import "./adornments.scss"
 
@@ -22,6 +23,15 @@ export const Adornments = observer(function Adornments() {
     adornments = graphModel.adornments
 
   if (!adornments?.length) return null
+
+  const adornmentHelpers = adornments.map((adornment: IAdornmentModel) => {
+    const componentInfo = getAdornmentComponentInfo(adornment.type)
+    const HelperComponent = componentInfo?.HelperComponent
+    return (
+      HelperComponent && adornment.isVisible &&
+        <HelperComponent key={"PlottedValue"} model={adornment} />
+    )
+  })
 
   // The cellKey is an object that contains the attribute IDs and categorical values for the
   // current graph cell. It's used to uniquely identify that cell. Since it's possible to have the
@@ -139,8 +149,15 @@ export const Adornments = observer(function Adornments() {
     { 'tile-selected': isTileSelected() }
   )
   return (
+    <>
+    {adornmentHelpers &&
+      <div className="graph-adornments-helpers" data-testid="graph-adornments-helpers">
+        {adornmentHelpers}
+      </div>
+    }
     <div className={containerClass} data-testid={kGraphAdornmentsClass} style={outerGridStyle}>
       {outerGridCells}
     </div>
+    </>
   )
 })
