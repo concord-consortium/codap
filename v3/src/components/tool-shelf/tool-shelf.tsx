@@ -49,10 +49,10 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       icon: <UndoIcon className="icon-undo"/>,
       label: t("DG.mainPage.mainPane.undoButton.title"),
       hint: t(getUndoStringKey(undoManager)),
-      isDisabled: () => !undoManager?.canUndo,
+      isDisabled: () => !document?.canUndo,
       onClick: () => {
-        if (undoManager?.canUndo) {
-          undoManager.undo()
+        if (document?.canUndo) {
+          document?.undoLastAction()
         }
       }
     },
@@ -61,10 +61,10 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       icon: <RedoIcon className="icon-redo"/>,
       label: t("DG.mainPage.mainPane.redoButton.title"),
       hint: t(getRedoStringKey(undoManager)),
-      isDisabled: () => !undoManager?.canRedo,
+      isDisabled: () => !document?.canRedo,
       onClick: () => {
-        if (undoManager?.canRedo) {
-          undoManager.redo()
+        if (document?.canRedo) {
+          document.redoLastAction()
         }
       }
     },

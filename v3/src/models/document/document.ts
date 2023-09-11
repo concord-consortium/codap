@@ -47,6 +47,12 @@ export const DocumentModel = Tree.named("Document")
     copyProperties(): IDocumentProperties {
       return self.properties.toJSON()
     },
+    get canUndo() {
+      return !!self.treeManagerAPI?.undoManager.canUndo
+    },
+    get canRedo() {
+      return !!self.treeManagerAPI?.undoManager.canRedo
+    }
   }))
   .actions((self) => ({
     afterCreate() {
@@ -62,15 +68,13 @@ export const DocumentModel = Tree.named("Document")
       addDisposer(self, () => destroy(manager))
     },
     undoLastAction() {
-      const undoManager = self.treeManagerAPI?.undoManager
-      if (undoManager?.canUndo) {
-        undoManager.undo()
+      if (self.canUndo) {
+        self.treeManagerAPI?.undoManager.undo()
       }
     },
     redoLastAction() {
-      const undoManager = self.treeManagerAPI?.undoManager
-      if (undoManager?.canRedo) {
-        undoManager.redo()
+      if (self.canRedo) {
+        self.treeManagerAPI?.undoManager.redo()
       }
     },
 
