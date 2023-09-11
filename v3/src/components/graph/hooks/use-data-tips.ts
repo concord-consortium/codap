@@ -7,6 +7,7 @@ import {IDotsRef, transitionDuration} from "../../data-display/data-display-type
 import {IGraphContentModel} from "../models/graph-content-model"
 import {getPointTipText} from "../utilities/graph-utils"
 import {RoleAttrIDPair} from "../../data-display/models/data-configuration-model"
+import { urlParams } from "../../../utilities/url-params"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -64,10 +65,13 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
       }
     }
 
-    dotsRef.current && select(dotsRef.current)
-      .on('mouseover', showDataTip)
-      .on('mouseout', hideDataTip)
-      .call(dataTip)
-    }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
+    // support disabling data tips via url parameter for jest tests
+    if (urlParams.noDataTips === undefined) {
+      dotsRef.current && select(dotsRef.current)
+        .on('mouseover', showDataTip)
+        .on('mouseout', hideDataTip)
+        .call(dataTip)
+    }
+  }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
       graphModel.dataConfiguration.uniqueTipAttributes])
 }

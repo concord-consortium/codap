@@ -28,16 +28,18 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     setAttributeName(columnName)
   }, [columnName])
 
-  const editProperties = () => {
+  const updateProperties = () => {
     if (attribute && attributeId) {
-      data?.setAttributeName(attributeId, () => uniqueName(attributeName,
-        (aName: string) => (aName === columnName) || !data.attributes.find(attr => aName === attr.name)
-       ))
-      attribute.setDescription(description)
-      attribute.setUserType(attrType === "none" ? undefined : attrType)
-      attribute.setUnits(unit)
-      attribute.setPrecision(precision && isFinite(+precision) ? +precision : undefined)
-      attribute.setEditable(editable === "true")
+      data?.applyAttributeProperties(attributeId, {
+        name: uniqueName(attributeName,
+          (aName: string) => (aName === columnName) || !data?.attributes.find(attr => aName === attr.name)
+        ),
+        description: description || undefined,
+        userType: attrType && attrType !== "none" ? attrType : undefined,
+        units: unit || undefined,
+        precision: precision && isFinite(+precision) ? +precision : undefined,
+        editable: editable === "true"
+      })
     }
     closeModal()
   }
@@ -56,7 +58,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
                     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
                     onClick: closeModal },
                  {  label: t("DG.AttrFormView.applyBtnTitle"),
-                    onClick: editProperties
+                    onClick: updateProperties
                  }]
   return (
     <CodapModal

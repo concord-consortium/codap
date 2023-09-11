@@ -240,11 +240,11 @@ describe("Attribute", () => {
   test("Attribute formulas", () => {
     // current behavior of formulas is based on CLUE's limited needs
     // CODAP will need something more sophisticated
-    // const attr = Attribute.create({ name: "foo" })
+    const attr = Attribute.create({ name: "foo" })
     // expect(attr.formula.display).toBeUndefined()
-    // expect(attr.formula.canonical).toBeUndefined()
+    expect(attr.formula.canonical).toBe("")
     // attr.formula.canonicalize("x")
-    // expect(attr.formula.canonical).toBeUndefined()
+    expect(attr.formula.canonical).toBe("")
     // attr.setDisplayFormula("2 * x", "x")
     // expect(attr.formula.display).toBe("2 * x")
     // expect(attr.formula.canonical).toBe(`(2 * ${kSerializedXKey})`)
@@ -257,9 +257,9 @@ describe("Attribute", () => {
     // attr.formula.setCanonical()
     // attr.formula.synchronize("x")
     // expect(attr.formula.display).toBe("2 * y")
-    // attr.clearFormula()
+    attr.clearFormula()
     // expect(attr.formula.display).toBeUndefined()
-    // expect(attr.formula.canonical).toBeUndefined()
+    expect(attr.formula.canonical).toBe("")
   })
 
   test("Attribute derivation", () => {

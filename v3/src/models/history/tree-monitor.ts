@@ -1,18 +1,20 @@
 import {
-  addDisposer, addMiddleware, IJsonPatch, Instance, IPatchRecorder,
-  isActionContextThisOrChildOf, isAlive, recordPatches
+  addDisposer, addMiddleware, IJsonPatch, Instance, isActionContextThisOrChildOf, isAlive, recordPatches
 } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { TreeManagerAPI } from "./tree-manager-api"
 import { TreePatchRecordSnapshot } from "./history"
 import { Tree } from "./tree"
-import { CallEnv, getActionPath, isActionFromManager, runningCalls, SharedModelModifications } from "./tree-types"
+import {
+  CallEnv, getActionModelName, getActionPath, isActionFromManager, isValidCallEnv, runningCalls,
+  SharedModelModifications
+} from "./tree-types"
 import { createActionTrackingMiddleware3, IActionTrackingMiddleware3Call } from "./create-action-tracking-middleware-3"
 
 export class TreeMonitor {
-  tree: Instance<typeof Tree>
-  manager: TreeManagerAPI
-  enabled = false
+  private tree: Instance<typeof Tree>
+  private manager: TreeManagerAPI
+  private enabled = false
 
   constructor(tree: Instance<typeof Tree>,  manager: TreeManagerAPI, includeHooks: boolean) {
     // We don't care how `this` is handled by createActionTrackingMiddleware
@@ -142,16 +144,18 @@ export class TreeMonitor {
         }
       },
       onFinish(call, error) {
-        const { recorder, sharedModelModifications, historyEntryId, exchangeId, undoable } = call.env || {}
-        if (!recorder || !sharedModelModifications || !historyEntryId || !exchangeId || undoable === undefined) {
-          throw new Error(`The call.env is corrupted: ${ JSON.stringify(call.env)}`)
+        const env = call.env
+        if (!isValidCallEnv(env)) {
+          throw new Error(`The call.env is corrupted: ${JSON.stringify(env)}`)
         }
         call.env = undefined
+
+        const { recorder } = env
         recorder.stop()
 
         if (error === undefined) {
           // recordAction is async
-          self.recordAction(call, historyEntryId, exchangeId, recorder, sharedModelModifications, undoable)
+          self.recordAction(call, env)
         } else {
           // TODO: This is a new feature that is being added to the tree:
           // any errors that happen during an action will cause the tree to revert back to
@@ -178,6 +182,14 @@ export class TreeMonitor {
     addDisposer(tree, middlewareDisposer)
   }
 
+  enableMonitoring() {
+    this.enabled = true
+  }
+
+  disableMonitoring() {
+    this.enabled = false
+  }
+
   // recordAction is async because it needs to wait for the manager to
   // respond, to the addHistoryEntry, startExchange, and
   // handleSharedModelChanges calls before it can call addTreePatchRecord. The
@@ -191,10 +203,8 @@ export class TreeMonitor {
   // shared model state sending is just to synchronize other views of the
   // shared model in other trees. The actual changes to the shared model are
   // stored in the recorder.
-  async recordAction(call: IActionTrackingMiddleware3Call<CallEnv>,
-    historyEntryId: string, exchangeId: string,
-    recorder: IPatchRecorder, sharedModelModifications: SharedModelModifications,
-    undoable: boolean) {
+  async recordAction(call: IActionTrackingMiddleware3Call<CallEnv>, env: CallEnv) {
+    const { recorder, sharedModelModifications, historyEntryId, exchangeId, undoable, customPatches, clientData } = env
     if (!isActionFromManager(call)) {
       // We record the start of the action even if it doesn't have any
       // patches. This is useful when an action only modifies the shared
@@ -203,8 +213,16 @@ export class TreeMonitor {
       // If the manager triggered the action then the manager already
       // added the history entry.
       //
-      await this.manager.addHistoryEntry(historyEntryId, exchangeId, this.tree.treeId,
-          getActionPath(call), undoable)
+      await this.manager.addHistoryEntry({
+        id: historyEntryId,
+        exchangeId,
+        tree: this.tree.treeId,
+        model: getActionModelName(call),
+        action: getActionPath(call),
+        undoable,
+        customPatches,
+        clientData
+      })
     }
 
     // Call the shared model notification function if there are changes.

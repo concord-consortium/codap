@@ -1,24 +1,35 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { isChildOfUndoRedo, runningCalls } from "./tree-types"
+import { ICustomPatch, isChildOfUndoRedo, runningCalls } from "./tree-types"
+import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "./custom-undo-redo-registry"
 
-export function withoutUndo() {
+/*
+ * withCustomUndoRedo
+ *
+ * Adds a customPatch to the current action's history entry. This can be used to provide undo/redo
+ * for actions that don't generate standard JSON patches (e.g. they only modify volatile properties)
+ * or for actions that require specialized handling instead of the standard JSON patches.
+ * Clients can register the custom undo/redo code separately by calling registerCustomUndoRedo directly,
+ * or the undo/redo code can be passed as part of this call which will handle the registration.
+ */
+export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(patch: T, undoRedo?: ICustomUndoRedoPatcher) {
   const actionCall = getRunningActionContext()
   if (!actionCall) {
-    throw new Error("withoutUndo called outside of an MST action")
+    throw new Error("withCustomUndoRedo called outside of an MST action")
   }
 
   if (actionCall.parentActionEvent) {
     if (!isChildOfUndoRedo(actionCall)) {
       // It is a little weird to print all this, but it seems like a good way to leave
-      // this part unimplemented.
+      // this part unimplemented. Note that this comment was copied from withoutUndo()
+      // and it may not apply identically in this context.
       console.warn([
-        "withoutUndo() called by a child action. If calling a child action " +
-        "with withoutUndo is something you need to do, update this code to support it. " +
+        "withCustomUndoRedo() called by a child action. If calling a child action " +
+        "with withCustomUndoRedo is something you need to do, update this code to support it. " +
         "There are several options for supporting it:",
         "   1. Ignore the call",
-        "   2. Apply the withoutUndo to the parent action",
-        "   3. Apply the withoutUndo just to the child action",
+        "   2. Apply the withCustomUndoRedo to the parent action",
+        "   3. Apply the withCustomUndoRedo just to the child action",
         "Notes:",
         "   - option 1 will be hard to debug, so if you do this, you should add a debug " +
         "option to print out a message when it is ignored",
@@ -26,8 +37,8 @@ export function withoutUndo() {
         "entries from the history stack. It will also require changing the recordPatches " +
         "function to somehow track this child action information."
       ].join('\n'))
-      return
     }
+    return
   }
 
   const call = runningCalls.get(actionCall)
@@ -56,5 +67,13 @@ export function withoutUndo() {
   if (!call.env) {
     throw new Error("environment is not setup on action tracking middleware call")
   }
-  call.env.undoable = false
+  // register the custom undo/redo code
+  if (undoRedo) {
+    registerCustomUndoRedo({ [patch.type]: undoRedo })
+  }
+  // add the new patch
+  if (!call.env.customPatches) {
+    call.env.customPatches = []
+  }
+  call.env.customPatches.push(patch)
 }

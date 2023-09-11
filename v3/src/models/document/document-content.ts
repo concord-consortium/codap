@@ -11,6 +11,7 @@ import { typedId } from "../../utilities/js-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
+import { withUndoRedoStrings } from "../history/codap-undo-types"
 import { linkTileToDataSet } from "../shared/shared-data-utils"
 import t from "../../utilities/translation/translate"
 
@@ -96,6 +97,16 @@ export const DocumentContentModel = BaseDocumentContentModel
           self.toggleTileVisibility(tileType)
         } else {
           return self.createTile(tileType)
+        }
+
+        const undoRedoStringKeysMap: Record<string, [string, string]> = {
+          Calculator: ["DG.Undo.toggleComponent.add.calcView", "DG.Redo.toggleComponent.add.calcView"],
+          CodapSlider: ["DG.Undo.sliderComponent.create", "DG.Redo.sliderComponent.create"],
+          Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"]
+        }
+        const undoRedoStringKeys = undoRedoStringKeysMap[tileType]
+        if (undoRedoStringKeys) {
+          withUndoRedoStrings(...undoRedoStringKeys)
         }
       }
     }

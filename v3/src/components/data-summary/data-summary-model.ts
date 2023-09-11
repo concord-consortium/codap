@@ -19,6 +19,9 @@ export const DataSummaryModel = TileContentModel
     }
   }))
   .actions(self => ({
+    updateAfterSharedModelChanges() {
+      // nop
+    },
     inspect(dataSet: IDataSet, attrId: string) {
       linkTileToDataSet(self, dataSet)
       self.inspectedAttrId = attrId

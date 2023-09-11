@@ -4,7 +4,7 @@ import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
-import {getCategorySet, ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
+import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
@@ -300,7 +300,7 @@ export const DataConfigurationModel = types
       categorySetForAttrRole(role: GraphAttrRole) {
         if (self.metadata) {
           const attributeID = self.attributeID(role) || ''
-          return getCategorySet(self.metadata, attributeID)
+          return self.metadata.getCategorySet(attributeID)
         }
       },
       /**
@@ -313,7 +313,7 @@ export const DataConfigurationModel = types
         let categoryArray: string[] = []
         if (self.metadata) {
           const attributeID = self.attributeID(role) || '',
-            categorySet = getCategorySet(self.metadata, attributeID),
+            categorySet = self.metadata.getCategorySet(attributeID),
             validValues: Set<string> = new Set(this.valuesForAttrRole(role))
           categoryArray = (categorySet?.values || emptyCategoryArray)
             .filter((aValue: string) => validValues.has(aValue))
@@ -606,7 +606,7 @@ export const DataConfigurationModel = types
       categorySetForPlace(place: AxisPlace) {
         if (self.metadata) {
           const role = graphPlaceToAttrRole[place]
-          return getCategorySet(self.metadata, self.attributeID(role) ?? '')
+          return self.metadata.getCategorySet(self.attributeID(role) ?? '')
         }
       },
       /**
@@ -805,7 +805,9 @@ export const DataConfigurationModel = types
         self._attributeDescriptions.get(role)?.setType(type)
       }
       self._invalidateCases()
-    },
+    }
+  }))
+  .views(self => ({
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
       self.handlers.set(id, handler)

@@ -47,6 +47,12 @@ export const DocumentModel = Tree.named("Document")
     copyProperties(): IDocumentProperties {
       return self.properties.toJSON()
     },
+    get canUndo() {
+      return !!self.treeManagerAPI?.undoManager.canUndo
+    },
+    get canRedo() {
+      return !!self.treeManagerAPI?.undoManager.canRedo
+    }
   }))
   .actions((self) => ({
     afterCreate() {
@@ -60,6 +66,16 @@ export const DocumentModel = Tree.named("Document")
       // The manager needs to be destroyed so it can unsubscribe from firestore.
       // Destroying it will probably also free up memory
       addDisposer(self, () => destroy(manager))
+    },
+    undoLastAction() {
+      if (self.canUndo) {
+        self.treeManagerAPI?.undoManager.undo()
+      }
+    },
+    redoLastAction() {
+      if (self.canRedo) {
+        self.treeManagerAPI?.undoManager.redo()
+      }
     },
 
     setCreatedAt(createdAt: number) {

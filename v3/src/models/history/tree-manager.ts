@@ -3,7 +3,9 @@ import { nanoid } from "nanoid"
 import { TreeAPI } from "./tree-api"
 // eslint-disable-next-line import/no-cycle
 import { IUndoManager, UndoStore } from "./undo-store"
-import { TreePatchRecord, HistoryEntry, TreePatchRecordSnapshot, HistoryOperation } from "./history"
+import {
+  TreePatchRecord, HistoryEntry, TreePatchRecordSnapshot, HistoryOperation, ICreateHistoryEntry
+} from "./history"
 import { DEBUG_HISTORY } from "../../lib/debug"
 import { IDocumentMetadata } from "../document/document-metadata"
 
@@ -135,7 +137,7 @@ export const TreeManager = types
       // state. For example if a button was clicked even if it didn't change the
       // state we might want to show that somehow. There are lots of entries
       // that are empty though, so they are removed for the time being.
-      if (entry.records.length === 0) {
+      if (!entry.records.length && !entry.customPatches?.length) {
         destroy(entry)
         return
       }
@@ -217,20 +219,18 @@ export const TreeManager = types
     }
   },
 
-  createHistoryEntry(historyEntryId: string, exchangeId: string, name: string,
-    treeId: string, undoable: boolean) {
+  createHistoryEntry(entryInfo: ICreateHistoryEntry) {
+    const { id: historyEntryId, exchangeId, action, undoable, customPatches} = entryInfo
     if (self.findHistoryEntry(historyEntryId) || self.findActiveHistoryEntry(historyEntryId)) {
       throw new Error(`The entry already exists ${ json({historyEntryId})}`)
     }
     const entry = HistoryEntry.create({
-      id: historyEntryId,
-      action: name,
-      tree: treeId,
-      undoable
+      ...entryInfo,
+      undoable: undoable || !!customPatches?.length
     })
     self.activeHistoryEntries.push(entry)
 
-    entry.activeExchanges.set(exchangeId, `TreeManager.createHistoryEntry ${name}`)
+    entry.activeExchanges.set(exchangeId, `TreeManager.createHistoryEntry ${action}`)
 
     return entry
   },
@@ -273,9 +273,8 @@ export const TreeManager = types
     return Promise.all(applyPromises).then()
   },
 
-  addHistoryEntry(historyEntryId: string, exchangeId: string, treeId: string, actionName: string,
-    undoable: boolean) {
-    self.createHistoryEntry(historyEntryId, exchangeId, actionName, treeId, undoable)
+  addHistoryEntry(entryInfo: ICreateHistoryEntry) {
+    self.createHistoryEntry(entryInfo)
     return Promise.resolve()
   },
 

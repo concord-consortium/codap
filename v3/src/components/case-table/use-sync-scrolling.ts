@@ -34,7 +34,9 @@ export function useSyncScrolling() {
       const parentCollectionId = collectionIds[i]
       const parentTableModel = tableModel.getCollectionTableModel(parentCollectionId)
       const childTableModel = tableModel.getCollectionTableModel(collectionIds[i + 1])
-      parentTableModel.scrollToAlignWithChild(childTableModel)
+      if (parentTableModel && childTableModel) {
+        parentTableModel.scrollToAlignWithChild(childTableModel)
+      }
     }
 
     // synchronize child tables in succession
@@ -42,7 +44,9 @@ export function useSyncScrolling() {
       const childCollectionId = collectionIds[i]
       const childTableModel = tableModel.getCollectionTableModel(childCollectionId)
       const parentTableModel = tableModel.getCollectionTableModel(collectionIds[i - 1])
-      childTableModel.scrollToAlignWithParent(parentTableModel)
+      if (childTableModel && parentTableModel) {
+        childTableModel.scrollToAlignWithParent(parentTableModel)
+      }
     }
   }, [data, tableModel])
 

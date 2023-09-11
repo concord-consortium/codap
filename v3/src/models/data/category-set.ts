@@ -1,8 +1,11 @@
 import { observable, runInAction } from "mobx"
-import { addDisposer, Instance, isValidReference, types } from "mobx-state-tree"
+import {
+  addDisposer, getEnv, IAnyStateTreeNode, Instance, isValidReference, resolveIdentifier, types
+} from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { Attribute } from "./attribute"
+import { Attribute, IAttribute } from "./attribute"
+import { IDataSet } from "./data-set"
 
 interface ICategoryMove {
   value: string     // category value
@@ -13,8 +16,38 @@ interface ICategoryMove {
   before?: string   // the category before which the current category was placed
 }
 
+interface IProvisionalEnvironment {
+  provisionalDataSet?: IDataSet
+}
+
+export function getProvisionalDataSet(node: IAnyStateTreeNode | null) {
+  const env = node ? getEnv<IProvisionalEnvironment>(node) : {}
+  return env.provisionalDataSet
+}
+
+// Provisional CategorySets are created with an MST environment that contains their DataSet.
+// When a provisional CategorySet is promoted to a regular CategorySet and attached to the tree,
+// it takes on the environment of its document (since MST environments are associated with the root
+// of the tree). This allows references in CategorySets to be resolved directly via their DataSet
+// for provisional CategorySets but then to be resolved normally by MST once they're promoted and
+// added to the document.
+export function createProvisionalCategorySet(data: IDataSet | undefined, attrId: string) {
+  return CategorySet.create({ attribute: attrId }, { provisionalDataSet: data })
+}
+
 export const CategorySet = types.model("CategorySet", {
+  // Customize the reference lookup so that provisional category sets are looked up directly in the DataSet.
+  // Otherwise, references can only be resolved once the CategorySet has been added to the document, which
+  // triggers undoable actions, etc.
   attribute: types.reference(Attribute, {
+    get(identifier: string, parent: IAnyStateTreeNode | null): any {
+      const provisionalDataSet = getProvisionalDataSet(parent)
+      return provisionalDataSet?.attrFromID(identifier) ??
+              resolveIdentifier<typeof Attribute>(Attribute, parent, identifier)
+    },
+    set(attribute: IAttribute) {
+      return attribute.id
+    },
     onInvalidated: ({ parent: self, invalidId }) => {
       self.handleAttributeInvalidated?.(invalidId)
     }
@@ -132,6 +165,7 @@ export const CategorySet = types.model("CategorySet", {
         return observableValues
       },
       index(value: string) {
+        refresh()
         return _indexMap.get(value)
       }
     },
@@ -143,6 +177,11 @@ export const CategorySet = types.model("CategorySet", {
   }
 })
 .views(self => ({
+  get userActionNames() {
+    // list of actions that indicate deliberate action by the user
+    // used to determine when to move provisional category sets into the document
+    return ["move", "setColorForCategory", "storeCurrentColorForCategory"]
+  },
   get lastMove() {
     return self.moves.length > 0
             ? self.moves[self.moves.length - 1]
@@ -193,7 +232,7 @@ export const CategorySet = types.model("CategorySet", {
     self.invalidate()
   },
   setColorForCategory(value: string, color: string) {
-    if (self.index(value)) {
+    if (self.index(value) != null) {
       self.colors.set(value, color)
     }
   },

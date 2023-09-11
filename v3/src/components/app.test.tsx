@@ -12,25 +12,25 @@ describe("App component", () => {
   })
 
   it("should render the App component with no data and dashboard", () => {
-    setUrlParams("?dashboard")
+    setUrlParams("?dashboard&noDataTips")
     render(<App/>)
     expect(screen.getByTestId("app")).toBeInTheDocument()
   })
 
   it("should render the App component with mammals data", () => {
-    setUrlParams("?sample=mammals")
+    setUrlParams("?sample=mammals&noDataTips")
     render(<App/>)
     expect(screen.getByTestId("app")).toBeInTheDocument()
   })
 
   it("should render the App component with mammals data and dashboard", () => {
-    setUrlParams("?sample=mammals&dashboard")
+    setUrlParams("?sample=mammals&dashboard&noDataTips")
     render(<App/>)
     expect(screen.getByTestId("app")).toBeInTheDocument()
   })
 
   it("should render the App component with mammals data and profiling", () => {
-    setUrlParams("?sample=mammals")
+    setUrlParams("?sample=mammals&noDataTips")
     prf.beginProfiling()
     render(<App/>)
     prf.endProfiling()

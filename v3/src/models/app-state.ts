@@ -39,10 +39,15 @@ class AppState {
 
   @action
   setDocument(snap: IDocumentModelSnapshot) {
+    // stop monitoring changes for undo/redo on the existing document
+    this.disableUndoRedoMonitoring()
+
     try {
       const document = createCodapDocument(snap)
       if (document) {
         this.currentDocument = document
+        // monitor document changes for undo/redo
+        this.enableUndoRedoMonitoring()
 
         // update data broker with the new data sets
         const manager = getSharedModelManager(document)
@@ -55,6 +60,16 @@ class AppState {
     catch (e) {
       console.error("Error loading document!")
     }
+  }
+
+  @action
+  enableUndoRedoMonitoring() {
+    this.currentDocument?.treeMonitor?.enableMonitoring()
+  }
+
+  @action
+  disableUndoRedoMonitoring() {
+    this.currentDocument?.treeMonitor?.disableMonitoring()
   }
 
   @action
