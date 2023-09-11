@@ -122,6 +122,7 @@ DG.PlotAdornmentModel = SC.Object.extend(
   createStorage: function() {
     var tStorage = {};
     tStorage.isVisible = this.get('isVisible') || false;
+    tStorage.enableMeasuresForSelection = this.get('enableMeasuresForSelection') || false;
     return tStorage;
   },
 
@@ -131,6 +132,7 @@ DG.PlotAdornmentModel = SC.Object.extend(
   restoreStorage: function( iStorage) {
     if( iStorage)
       this.set('isVisible', iStorage.isVisible || false);
+      this.set('enableMeasuresForSelection', iStorage.enableMeasuresForSelection || false);
   }
 
 });
