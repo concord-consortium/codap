@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.1307 - September 11, 2023
+
+### Features/Improvements
+- Attribute formulas resolve attribute and global references in flat tables [#185745373](https://www.pivotaltracker.com/story/show/185745373)
+- Attribute formulas evaluated cross-context lookup functions (e.g. lookupValueByIndex()) [#185745574](https://www.pivotaltracker.com/story/show/185745574)
+- Attribute formulas evaluate aggregate functions (e.g. mean(), median()) [#185745450](https://www.pivotaltracker.com/story/show/185745450)
+- Attribute formulas evaluate semi-aggregate functions (e.g. prev(), next(), percentile(), etc.) [#185745491](https://www.pivotaltracker.com/story/show/185745491)
+- Attribute formulas evaluate random arithmetic functions (random(), randomInteger(), etc.) and re-randomization [#185745433](https://www.pivotaltracker.com/story/show/185745433)
+- Formula architecture [#185745365](https://www.pivotaltracker.com/story/show/185745365)
+- A dot chart can show percents, or both counts and percents [#185758373](https://www.pivotaltracker.com/story/show/185758373)
+- Attribute formulas evaluate correctly in hierarchical collections/tables [#185745420](https://www.pivotaltracker.com/story/show/185745420)
+- Support aggregate formulas caching when hierarchical tables are used [#185947550](https://www.pivotaltracker.com/story/show/185947550)
+- Evaluate aggregate function against the child-most collection in hierarchical tables (following V2 approach) [#185967142](https://www.pivotaltracker.com/story/show/185967142)
+- Detect formulas incorrectly referencing parent or child attributes in hierarchical tables [#185972525](https://www.pivotaltracker.com/story/show/185972525)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   65135 bytes |                            0.12% |
+|  index.js | 3299955 bytes |                            0.65% |
+
 ## Version 3.0.0-pre.1295 - August 10, 2023
 
 ### Features/Improvements
