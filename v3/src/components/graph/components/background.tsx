@@ -140,7 +140,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
         .style('fill-opacity', isTransparent ? 0 : 1)
         .call(dragBehavior)
-    })
+    }, { name: "Background.autorun" })
   }, [bgRef, dataset, dragBehavior, graphModel, layout])
 
   return (

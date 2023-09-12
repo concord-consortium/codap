@@ -38,7 +38,9 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
       }
       else {
         // move an ungrouped attribute within the DataSet
-        data.moveAttribute(dragAttrId, options)
+        data.applyUndoableAction(
+          () => data.moveAttribute(dragAttrId, options),
+          "DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
       }
     }
     else {

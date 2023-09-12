@@ -1,4 +1,4 @@
-import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import {Instance, SnapshotIn, isAlive, types} from "mobx-state-tree"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
 
 export const AxisModel = types.model("AxisModel", {
@@ -72,6 +72,10 @@ export const NumericAxisModel = AxisModel
   })
   .views(self => ({
     get domain() {
+      if (!isAlive(self)) {
+        console.warn("AxisModel.domain called for defunct axis model")
+        return [0, 1] as const
+      }
       return [self.min, self.max] as const
     }
   }))

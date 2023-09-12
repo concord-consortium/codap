@@ -1,41 +1,38 @@
-import React, {MutableRefObject, useState} from "react"
+import React, {MutableRefObject} from "react"
 import {range} from "d3"
+import {AxisPlace} from "../axis-types"
 import {useAxis} from "../hooks/use-axis"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {IAxisModel} from "../models/axis-model"
 import {SubAxis} from "./sub-axis"
 
 import "./axis.scss"
 
 interface IProps {
-  axisModel: IAxisModel
-  label?: string
+  axisPlace: AxisPlace
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
 }
 
 export const Axis = ({
-                       label, axisModel, showScatterPlotGridLines = false,
+                       axisPlace, showScatterPlotGridLines = false,
                        enableAnimation,
                        centerCategoryLabels = true,
                      }: IProps) => {
   const
-    layout = useAxisLayoutContext(),
-    place = axisModel?.place || 'bottom',
-    [axisElt, setAxisElt] = useState<SVGGElement | null>(null)
+    layout = useAxisLayoutContext()
 
   useAxis({
-    axisModel, axisElt, axisTitle: label, centerCategoryLabels
+    axisPlace, centerCategoryLabels
   })
 
-  const getSubAxes = () => {
-    const numRepetitions = layout.getAxisMultiScale(place)?.repetitions ?? 1
+  const renderSubAxes = () => {
+    const numRepetitions = layout.getAxisMultiScale(axisPlace)?.repetitions ?? 1
     return range(numRepetitions).map(i => {
       return <SubAxis key={i}
                       numSubAxes={numRepetitions}
                       subAxisIndex={i}
-                      axisModel={axisModel}
+                      axisPlace={axisPlace}
                       enableAnimation={enableAnimation}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       centerCategoryLabels={centerCategoryLabels}
@@ -45,8 +42,8 @@ export const Axis = ({
 
   return (
     <>
-      <g className='axis' ref={elt => setAxisElt(elt)} data-testid={`axis-${place}`}>
-        {getSubAxes()}
+      <g className='axis' data-testid={`axis-${axisPlace}`}>
+        {renderSubAxes()}
       </g>
     </>
   )

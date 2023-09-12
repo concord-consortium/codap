@@ -13,35 +13,19 @@ import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "./custom-undo-re
  * or the undo/redo code can be passed as part of this call which will handle the registration.
  */
 export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(patch: T, undoRedo?: ICustomUndoRedoPatcher) {
-  const actionCall = getRunningActionContext()
+  let actionCall = getRunningActionContext()
   if (!actionCall) {
     throw new Error("withCustomUndoRedo called outside of an MST action")
   }
 
-  if (actionCall.parentActionEvent) {
-    if (!isChildOfUndoRedo(actionCall)) {
-      // It is a little weird to print all this, but it seems like a good way to leave
-      // this part unimplemented. Note that this comment was copied from withoutUndo()
-      // and it may not apply identically in this context.
-      console.warn([
-        "withCustomUndoRedo() called by a child action. If calling a child action " +
-        "with withCustomUndoRedo is something you need to do, update this code to support it. " +
-        "There are several options for supporting it:",
-        "   1. Ignore the call",
-        "   2. Apply the withCustomUndoRedo to the parent action",
-        "   3. Apply the withCustomUndoRedo just to the child action",
-        "Notes:",
-        "   - option 1 will be hard to debug, so if you do this, you should add a debug " +
-        "option to print out a message when it is ignored",
-        "   - option 3 will require changing the undo stack so it can record different " +
-        "entries from the history stack. It will also require changing the recordPatches " +
-        "function to somehow track this child action information."
-      ].join('\n'))
-    }
-    return
-  }
+  if (isChildOfUndoRedo(actionCall)) return
 
-  const call = runningCalls.get(actionCall)
+  // find the currently extant running call
+  let call = runningCalls.get(actionCall)
+  while (!call && actionCall?.parentActionEvent) {
+    actionCall = actionCall?.parentActionEvent
+    call = runningCalls.get(actionCall)
+  }
   if (!call) {
     // It is normal for there to be no running calls. This can happen in two cases:
     //   - the document isn't being edited so the tree monitor is disabled

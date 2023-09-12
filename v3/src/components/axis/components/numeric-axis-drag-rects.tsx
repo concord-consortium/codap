@@ -178,7 +178,7 @@ export const NumericAxisDragRects = observer(
               )
             selectDragRects(rectRef.current)?.raise()
           }
-        }, {fireImmediately: true}
+        }, {name: "NumericAxisDragRects [axisBounds]", fireImmediately: true}
       )
       return () => disposer()
     }, [axisModel, layout, axisWrapperElt, place, numSubAxes, subAxisIndex])
