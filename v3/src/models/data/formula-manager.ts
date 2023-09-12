@@ -19,7 +19,7 @@ import { IFormula } from "./formula"
 
 type IFormulaMetadata = {
   formula: IFormula
-  registeredCanonical: string
+  registeredDisplay: string
   attributeId: string
   dataSetId: string
   dispose?: () => void
@@ -190,11 +190,11 @@ export class FormulaManager {
 
   registerAllFormulas() {
     reaction(() => {
-      // Observe all the formulas (their canonical form in fact)
+      // Observe all the formulas
       let result = ""
       this.dataSets.forEach(dataSet => {
         dataSet.attributes.forEach(attr => {
-          result += `${attr.formula.id}-${attr.formula.canonical}`
+          result += `${attr.formula.id}-${attr.formula.display}`
         })
       })
       return result
@@ -205,7 +205,7 @@ export class FormulaManager {
       this.dataSets.forEach(dataSet => {
         dataSet.attributes.forEach(attr => {
           if (this.formulaMetadata.has(attr.formula.id)) {
-            if (this.formulaMetadata.get(attr.formula.id)?.registeredCanonical !== attr.formula.canonical) {
+            if (this.formulaMetadata.get(attr.formula.id)?.registeredDisplay !== attr.formula.display) {
               this.unregisterFormula(attr.formula.id)
               this.registerFormula(attr.formula, attr.id, dataSet)
             }
@@ -228,7 +228,7 @@ export class FormulaManager {
   registerFormula(formula: IFormula, attributeId: string, dataSet: IDataSet) {
     const formulaMetadata: IFormulaMetadata = {
       formula,
-      registeredCanonical: formula.canonical,
+      registeredDisplay: formula.display,
       attributeId,
       dataSetId: dataSet.id
     }
