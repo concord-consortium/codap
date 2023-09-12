@@ -130,7 +130,7 @@ export class CodapV2Document {
       const { guid, name = "", title = "", type, formula: _formula } = attr
       const formula = _formula ? { display: _formula } : undefined
       this.guidMap[guid] = { type: type || "DG.Attribute", object: attr }
-      this.v3AttrMap[guid] = data.addAttribute({ name, ...formula, title })
+      this.v3AttrMap[guid] = data.addAttribute({ name, formula, title })
     })
   }
 
