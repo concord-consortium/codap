@@ -4,6 +4,7 @@ import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
 import { FormulaManager } from "../data/formula-manager"
+import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 
 /**
  * Create a DocumentModel and add a new sharedModelManager into its environment
@@ -34,6 +35,9 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     if (document.content) {
       sharedModelManager.setDocument(document.content)
     }
+    sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+      .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
+
     return document
   } catch (e) {
     // The only time we've seen this error so far is when MST fails to load the content
