@@ -19,19 +19,19 @@ describe("CellTextEditor", () => {
     jest.resetAllMocks()
   })
 
-  it("should render without dataset", () => {
+  it("should render without dataset", async () => {
     const user = userEvent.setup()
     render(<CellTextEditor row={row} column={column} onRowChange={onRowChange} onClose={onClose}/>)
     const editor = screen.getByTestId("cell-text-editor")
     expect(editor).toHaveClass("rdg-text-editor")
-    user.keyboard("1")
+    await user.keyboard("1")
     fireEvent.blur(editor)
     // fails for some reason even though the function is clearly called
     // expect(onRowChange).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
 
-  it("should render with dataset", () => {
+  it("should render with dataset", async () => {
     const user = userEvent.setup()
     const data = DataSet.create({ name: "data" })
     data.addAttribute({ id: "columnKey", name: "columnName" })
@@ -40,7 +40,7 @@ describe("CellTextEditor", () => {
     render(<CellTextEditor row={row} column={column} onRowChange={onRowChange} onClose={onClose}/>)
     const editor = screen.getByTestId("cell-text-editor")
     expect(editor).toHaveClass("rdg-text-editor")
-    user.keyboard("1")
+    await user.keyboard("1")
     fireEvent.blur(editor)
     // fails for some reason even though the function is clearly called
     // expect(onRowChange).toHaveBeenCalled()
