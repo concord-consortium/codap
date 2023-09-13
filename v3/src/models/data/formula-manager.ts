@@ -105,6 +105,24 @@ export class FormulaManager {
     return caseGroupId
   }
 
+  getCaseChildrenCountMap(formulaId: string) {
+    const { attributeId, dataSet } = this.getFormulaContext(formulaId)
+
+    const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
+    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+    const caseChildrenCount: Record<string, number> = {}
+
+    const formulaCollection = dataSet.collectionGroups[collectionIndex]
+    if (formulaCollection) {
+      dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
+        caseChildrenCount[group.pseudoCase.__id__] =
+          group.childPseudoCaseIds ? group.childPseudoCaseIds.length : group.childCaseIds.length
+      )
+    }
+
+    return caseChildrenCount
+  }
+
   recalculateFormula(formulaId: string, casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
     const { formula, attributeId, dataSet } = this.getFormulaContext(formulaId)
 
@@ -154,7 +172,8 @@ export class FormulaManager {
       //   referencing attributes from child collections.
       useSameLevelGrouping: collectionIndex === childMostAggregateCollectionIndex,
       childMostCollectionCases,
-      caseGroupId: this.getCaseGroupMap(formulaId)
+      caseGroupId: this.getCaseGroupMap(formulaId),
+      caseChildrenCount: this.getCaseChildrenCountMap(formulaId)
     })
 
     let compiledFormula: EvalFunction
