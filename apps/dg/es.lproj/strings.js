@@ -1067,5 +1067,10 @@ SC.stringsFor("es", {
     "DG.plugin.Transformers.title": "Transformadores",
     "DG.plugin.Transformers.description": "Transformar datasets con una colección de herramientas poderosas.",
     "DG.Locale.name.ko": "Coreano",
-    "DG.Locale.name.pl": "Polski"
+    "DG.Locale.name.pl": "Polski",
+    "DG.Undo.graph.showICI": "Undo showing informal confidence interval",
+    "DG.Redo.graph.hideICI": "Redo hiding informal confidence interval",
+    "DG.Undo.graph.hideICI": "Undo hiding informal confidence interval",
+    "DG.Redo.graph.showICI": "Redo showing informal confidence interval",
+    "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI"
 });

@@ -1067,5 +1067,10 @@ SC.stringsFor("ko", {
     "DG.plugin.Transformers.title": "변환도구",
     "DG.plugin.Transformers.description": "강력한 기능의 도구를 이용하여 데이터셋을 변환합니다.",
     "DG.Locale.name.ko": "한국어",
-    "DG.Locale.name.pl": "Polski"
+    "DG.Locale.name.pl": "Polski",
+    "DG.Undo.graph.showICI": "Undo showing informal confidence interval",
+    "DG.Redo.graph.hideICI": "Redo hiding informal confidence interval",
+    "DG.Undo.graph.hideICI": "Undo hiding informal confidence interval",
+    "DG.Redo.graph.showICI": "Redo showing informal confidence interval",
+    "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI"
 });
