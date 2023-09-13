@@ -101,9 +101,9 @@ export const MovableValueModel = AdornmentModel
       self.values.set(key, [])
       self.addValue(aValue)
     },
-    updateDrag(value: number, index: number, key: string) {
+    updateDrag(value: number, instanceKey: string, index: number) {
       self.dragIndex = index
-      self.dragKey = key
+      self.dragKey = instanceKey
       self.dragValue = value
     },
     endDrag(value: number, instanceKey: string, index: number) {

@@ -145,7 +145,7 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
     if ((preDragValue != null) && (newValue < axisMin || newValue > axisMax)) {
       newValue = preDragValue
     }
-    model.updateDrag(newValue, index, instanceKey)
+    model.updateDrag(newValue, instanceKey, index)
     refreshValue(newValue, index)
   }, [getValues, instanceKey, model, refreshValue, xAttrType, xCellCount, xScale, yCellCount, yScale])
 
