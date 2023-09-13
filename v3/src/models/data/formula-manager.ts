@@ -191,12 +191,10 @@ export class FormulaManager {
   registerAllFormulas() {
     reaction(() => {
       // Observe all the formulas (their canonical form in fact)
-      const result: string[] = []
+      let result = ""
       this.dataSets.forEach(dataSet => {
         dataSet.attributes.forEach(attr => {
-          if (attr.formula.valid && attr.formula.canonical) {
-            result.push(attr.formula.canonical)
-          }
+          result += `${attr.formula.id}-${attr.formula.canonical}`
         })
       })
       return result
@@ -216,7 +214,7 @@ export class FormulaManager {
           }
         })
       })
-    })
+    }, { fireImmediately: true })
   }
 
   unregisterFormula(formulaId: string) {
