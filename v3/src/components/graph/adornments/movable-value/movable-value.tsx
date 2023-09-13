@@ -50,10 +50,7 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
     yCellCount = yCats.length * ySubAxesCount,
     valueRef = useRef<SVGSVGElement>(null),
     valueObjects = useRef<IValueObject[]>([]),
-    draggingIndex = useRef<number>(-1),
-    preDragValue = useRef<number | undefined>(undefined),
-    isVertical = useRef(!!(xAttrType && xAttrType === "numeric")),
-    dragValue = useRef<number | undefined>(undefined)
+    isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
 
   const getValues = useCallback(() => {
     const { values } = model
@@ -74,9 +71,7 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
     const values = getValues()
     if (!values || values.length < 2) return
     select(`#${containerId}`).selectAll(".movable-value-fill").remove()
-    const sortedValues = dragValue.current
-      ? model.sortedValuesWithDragValue(dragValue.current, draggingIndex.current, instanceKey)
-      : model.sortedValues(instanceKey)
+    const sortedValues = model.sortedValues(instanceKey)
     const { x1, y1, y2 } = determineLineCoords(values[0])
     const offsetTop = y1 + 3
     const orientationClass: string = isVertical.current ? "vertical" : "horizontal"
@@ -139,33 +134,27 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
 
   const handleDrag = useCallback((event: MouseEvent, index: number) => {
     const values = getValues()
-    draggingIndex.current = index
+    const preDragValue = values?.[index]
     const axisMin = isVertical.current ? xScale.domain()[0] : yScale.domain()[0]
     const axisMax = isVertical.current ? xScale.domain()[1] : yScale.domain()[1]
-    const newValue = xAttrType === "numeric"
+    let newValue = xAttrType === "numeric"
       ? xScale.invert(event.x) * xCellCount
       : yScale.invert(event.y) * yCellCount
-    if (!preDragValue.current) {
-      preDragValue.current = values?.[index]
-    }
 
     // If the value is dragged outside plot area, reset it to its initial value
-    if ((preDragValue.current != null) && (newValue < axisMin || newValue > axisMax)) {
-      dragValue.current = preDragValue.current
-    } else {
-      dragValue.current = newValue
+    if ((preDragValue != null) && (newValue < axisMin || newValue > axisMax)) {
+      newValue = preDragValue
     }
-    refreshValue(dragValue.current, draggingIndex.current)
+    model.updateDrag(index, newValue)
+    refreshValue(newValue, index)
     renderFills()
-  }, [getValues, xScale, yScale, xAttrType, xCellCount, yCellCount, refreshValue, renderFills])
+  }, [getValues, model, refreshValue, renderFills, xAttrType, xCellCount, xScale, yCellCount, yScale])
 
   const handleDragEnd = useCallback(() => {
-    if (!dragValue.current) return
-    const newValue = dragValue.current
-    model.replaceValue(newValue, instanceKey, draggingIndex.current)
-    dragValue.current = undefined
-    preDragValue.current = undefined
-    draggingIndex.current = -1
+    const { isDragging, dragIndex, dragValue } = model
+    if (isDragging) {
+      model.endDrag(dragValue, instanceKey, dragIndex)
+    }
   }, [instanceKey, model])
 
   // Add drag behaviors to the line cover
@@ -195,16 +184,17 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
-    if (draggingIndex.current === -1) {
+    const { isDragging, dragIndex } = model
+    if (!isDragging) {
       adjustAllValues()
     }
     return autorun(function refreshValues() {
       const movableValueInstance = model.values.get(instanceKey)
-      movableValueInstance?.[draggingIndex.current] &&
-        refreshValue(movableValueInstance?.[draggingIndex.current], draggingIndex.current)
-      movableValueInstance?.[draggingIndex.current] && renderFills()
+      movableValueInstance?.[dragIndex] &&
+        refreshValue(movableValueInstance?.[dragIndex], dragIndex)
+      movableValueInstance?.[dragIndex] && renderFills()
     }, { name: "MovableValue.refreshValues" })
-  }, [adjustAllValues, instanceKey, model.values, refreshValue, renderFills])
+  }, [adjustAllValues, instanceKey, model, model.values, refreshValue, renderFills])
 
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {

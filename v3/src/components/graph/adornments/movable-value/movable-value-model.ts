@@ -12,6 +12,13 @@ export const MovableValueModel = AdornmentModel
   .volatile(() => ({
     axisMin: 0,
     axisMax: 0,
+    dragIndex: -1,
+    dragValue: 0
+  }))
+  .views(self => ({
+    get isDragging() {
+      return self.dragIndex >= 0
+    },
   }))
   .views(self => ({
     get hasValues() {
@@ -21,7 +28,11 @@ export const MovableValueModel = AdornmentModel
       return self.values.values().next().value
     },
     valuesForKey(key="{}") {
-      return self.values.get(key) || []
+      const values = self.values.get(key) || []
+      if (!self.isDragging) return values
+      const latestValues = [...values]
+      latestValues[self.dragIndex] = self.dragValue
+      return latestValues
     }
   }))
   .views(self => ({
@@ -31,15 +42,8 @@ export const MovableValueModel = AdornmentModel
     }
   }))
   .views(self => ({
-    valuesWithDragValue(dragValue: number, valueIndex: number, key="{}") {
-      // A movable value being dragged does not get updated in the model until the drag has ended.
-      // Anything that relies on the value being updated during a drag can use this view.
-      const latestValues = [...self.valuesForKey(key)]
-      latestValues[valueIndex] = dragValue
-      return [...latestValues]
-    },
     newValue(key="{}") {
-      // New movable values are always placed within the largest gap existing between the 
+      // New movable values are always placed within the largest gap existing between the
       // axis min, any existing movable values, and the axis max. The exact placement is
       // 1/3 of the way into the gap from the lower bound.
       const sortedValues = self.sortedValues(key)
@@ -51,12 +55,6 @@ export const MovableValueModel = AdornmentModel
       })
       const largestGap = gaps.reduce((prev, curr) => prev.size > curr.size ? prev : curr)
       return largestGap.start + largestGap.size / 3
-    }
-  }))
-  .views(self => ({
-    sortedValuesWithDragValue(dragValue: number, valueIndex: number, key="{}") {
-      const latestValues = self.valuesWithDragValue(dragValue, valueIndex, key)
-      return [...latestValues].sort((a, b) => a - b)
     }
   }))
   .actions(self => ({
@@ -101,6 +99,15 @@ export const MovableValueModel = AdornmentModel
       self.deleteAllValues()
       self.values.set(key, [])
       self.addValue(aValue)
+    },
+    updateDrag(value: number, index: number) {
+      self.dragIndex = index
+      self.dragValue = value
+    },
+    endDrag(value: number, instanceKey: string, index: number) {
+      self.replaceValue(value, instanceKey, index)
+      self.dragIndex = -1
+      self.dragValue = 0
     }
   }))
   .actions(self => ({
@@ -131,7 +138,7 @@ export const MovableValueModel = AdornmentModel
 
       // If this action was triggered by the attributes changing (i.e., resetPoints is true), do not add a new value.
       if (resetPoints) return
-      
+
       self.addValue()
     }
   }))
