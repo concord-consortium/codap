@@ -267,7 +267,7 @@ export const DataConfigurationModel = types
      * present in any of the case sets, not just the 0th one.
      */
     get selection() {
-      if (!self.dataset || !self.filteredCases || !self.filteredCases[0]) return []
+      if (!self.dataset || !self.filteredCases?.[0]) return []
       const selection = Array.from(self.dataset.selection),
         allGraphCaseIds = self.graphCaseIDs
       return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))

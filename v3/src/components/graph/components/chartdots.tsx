@@ -167,8 +167,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             extraHCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : '__main__',
             extraVCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : '__main__'
           if (hCat && vCat && extraHCat && extraVCat &&
-            catMap[hCat] && catMap[hCat][vCat] && catMap[hCat][vCat][extraHCat] &&
-            catMap[hCat][vCat][extraHCat][extraVCat]) {
+            catMap[hCat]?.[vCat]?.[extraHCat]?.[extraVCat]) {
             const mapEntry = catMap[hCat][vCat][extraHCat][extraVCat],
               numInCell = mapEntry.numSoFar++,
               row = Math.floor(numInCell / cellParams.numPointsInRow),
