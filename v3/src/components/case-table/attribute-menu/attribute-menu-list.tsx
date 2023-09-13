@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react"
-
+import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
@@ -7,7 +7,6 @@ import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import t from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
-import { observer } from "mobx-react-lite"
 
 interface IProps {
   column: TCalculatedColumn

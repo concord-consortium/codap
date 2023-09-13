@@ -4,7 +4,7 @@ import { canonicalizeExpression, isRandomFunctionPresent } from "./formula-utils
 import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
-  id: types.optional(types.identifier, () => typedId("FORMULA")),
+  id: types.optional(types.identifier, () => typedId("FORM")),
   display: ""
 })
 .views(self => ({
