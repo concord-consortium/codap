@@ -5,7 +5,7 @@ import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import {
   getFormulaDependencies, formulaError, getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference,
-  getIncorrectParentAttrReference
+  getIncorrectParentAttrReference, safeSymbolName
 } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
@@ -276,7 +276,7 @@ export class FormulaManager {
     const mapAttributeNames = (dataSet: IDataSet, prefix: string) => {
       const result: Record<string, string> = {}
       dataSet.attributes.forEach(attr => {
-        result[attr.name] = `${prefix}${attr.id}`
+        result[safeSymbolName(attr.name)] = `${prefix}${attr.id}`
       })
       return result
     }
@@ -286,7 +286,7 @@ export class FormulaManager {
     }
 
     this.globalValueManager?.globals.forEach(global => {
-      displayNameMap.localNames[global.name] = `${GLOBAL_VALUE}${global.id}`
+      displayNameMap.localNames[safeSymbolName(global.name)] = `${GLOBAL_VALUE}${global.id}`
     })
 
     this.dataSets.forEach(dataSet => {
