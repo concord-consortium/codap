@@ -13,6 +13,7 @@ export const MovableValueModel = AdornmentModel
     axisMin: 0,
     axisMax: 0,
     dragIndex: -1,
+    dragKey: "",
     dragValue: 0
   }))
   .views(self => ({
@@ -29,7 +30,7 @@ export const MovableValueModel = AdornmentModel
     },
     valuesForKey(key="{}") {
       const values = self.values.get(key) || []
-      if (!self.isDragging) return values
+      if (!self.isDragging || key !== self.dragKey) return values
       const latestValues = [...values]
       latestValues[self.dragIndex] = self.dragValue
       return latestValues
@@ -100,13 +101,15 @@ export const MovableValueModel = AdornmentModel
       self.values.set(key, [])
       self.addValue(aValue)
     },
-    updateDrag(value: number, index: number) {
+    updateDrag(value: number, index: number, key: string) {
       self.dragIndex = index
+      self.dragKey = key
       self.dragValue = value
     },
     endDrag(value: number, instanceKey: string, index: number) {
       self.replaceValue(value, instanceKey, index)
       self.dragIndex = -1
+      self.dragKey = ""
       self.dragValue = 0
     }
   }))

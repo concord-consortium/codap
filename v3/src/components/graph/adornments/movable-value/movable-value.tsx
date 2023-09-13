@@ -145,10 +145,9 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
     if ((preDragValue != null) && (newValue < axisMin || newValue > axisMax)) {
       newValue = preDragValue
     }
-    model.updateDrag(index, newValue)
+    model.updateDrag(newValue, index, instanceKey)
     refreshValue(newValue, index)
-    renderFills()
-  }, [getValues, model, refreshValue, renderFills, xAttrType, xCellCount, xScale, yCellCount, yScale])
+  }, [getValues, instanceKey, model, refreshValue, xAttrType, xCellCount, xScale, yCellCount, yScale])
 
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model
@@ -173,7 +172,7 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
   // the value's associated attribute is moved from the bottom to the left axis.
   const adjustAllValues = useCallback(() => {
     const values = getValues()
-    if (!values || values.length === 0) return
+    if (!values?.length) return
     for (let i = 0; i < valueObjects.current.length; i++) {
       refreshValue(values[i], i)
       const { cover } = valueObjects.current[i]
