@@ -14,7 +14,7 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditFormulaModal = observer(({ attributeId, isOpen, onClose }: IProps) => {
+export const EditFormulaModal = observer(function EditFormulaModal({ attributeId, isOpen, onClose }: IProps) {
   const dataSet = useDataSetContext()
   const attribute = dataSet?.attrFromID(attributeId)
   const [formula, setFormula] = useState(attribute?.formula.display || "")
