@@ -5,16 +5,13 @@
   top: 0;
   width: 100%;
 
-  &.fadeIn {
+  &.visible {
     animation-name: adornmentFadeIn;
     opacity: 1;
   }
-  &.fadeOut {
+  &.hidden {
     animation-name: adornmentFadeOut;
     opacity: 0;
-  }
-  &.hidden {
-    display: none;
   }
 }
 
