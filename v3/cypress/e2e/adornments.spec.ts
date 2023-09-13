@@ -137,6 +137,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-button-movable-value--remove]").click()
     cy.get(".movable-value-label").should("have.length", 1)
     cy.get(".movable-value-fill").should("have.length", 0)
+    cy.wait(250)
     movableValueButton.click()
     cy.get("[data-testid=adornment-button-movable-value--remove]").click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "fadeOut")
