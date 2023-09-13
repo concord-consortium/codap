@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react"
+import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
@@ -13,7 +14,7 @@ interface IProps {
   onModalOpen: (open: boolean) => void
 }
 
-export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
+const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     ({ column, onRenameAttribute, onModalOpen }, ref) => {
   const toast = useToast()
   const data = useDataSetContext()
@@ -115,4 +116,6 @@ export const AttributeMenuList = forwardRef<HTMLDivElement, IProps>(
   )
 })
 
-AttributeMenuList.displayName = "AttributeMenuList"
+AttributeMenuListComp.displayName = "AttributeMenuList"
+
+export const AttributeMenuList = observer(AttributeMenuListComp)

@@ -3,6 +3,7 @@ import {
   Textarea, Tooltip
 } from "@chakra-ui/react"
 import React, { useState } from "react"
+import { observer } from "mobx-react-lite"
 import { CodapModal } from "../../codap-modal"
 import t from "../../../utilities/translation/translate"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
@@ -13,10 +14,10 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditFormulaModal = ({ attributeId, isOpen, onClose }: IProps) => {
+export const EditFormulaModal = observer(function EditFormulaModal({ attributeId, isOpen, onClose }: IProps) {
   const dataSet = useDataSetContext()
   const attribute = dataSet?.attrFromID(attributeId)
-  const [formula, setFormula] = useState("")
+  const [formula, setFormula] = useState(attribute?.formula.display || "")
 
   const applyFormula = () => {
     attribute?.setDisplayFormula(formula)
@@ -77,4 +78,4 @@ export const EditFormulaModal = ({ attributeId, isOpen, onClose }: IProps) => {
       </ModalFooter>
     </CodapModal>
   )
-}
+})

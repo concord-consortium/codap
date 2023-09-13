@@ -180,7 +180,7 @@ export const Attribute = types.model("Attribute", {
     self.editable = editable
   },
   clearFormula() {
-    self.formula.setCanonical("")
+    self.formula.setDisplayFormula("")
   },
   setDisplayFormula(displayFormula: string) {
     self.formula.setDisplayFormula(displayFormula)
