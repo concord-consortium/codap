@@ -1,4 +1,4 @@
-import { create, all, mean, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
+import { create, all, mean, median, mad, max, min, sum, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
   DisplayNameMap, FValue, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
@@ -23,6 +23,21 @@ const cachedAggregateFnFactory =
     const result = fn(args, mathjs, scope)
     scope.setCached(cacheKey, result)
     return result
+  }
+}
+
+// Note that aggregate functions like mean, max, min, etc., all have exactly the same signature and implementation.
+// The only difference is the final math operation applies to the expression results.
+const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
+  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    const expression = args[0]
+      const filter = args[1]
+      let expressionValues = evaluateNode(expression, scope)
+      if (filter) {
+        const filterValues = evaluateNode(filter, scope)
+        expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
+      }
+      return fn(expressionValues)
   }
 }
 
@@ -136,16 +151,42 @@ export const fnRegistry = {
   mean: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const expression = args[0]
-      const filter = args[1]
-      let expressionValues = evaluateNode(expression, scope)
-      if (filter) {
-        const filterValues = evaluateNode(filter, scope)
-        expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
-      }
-      return mean(expressionValues)
-    }
+    evaluateRaw: aggregateFnWithFilterFactory(mean)
+  },
+
+  // median(expression, filterExpression)
+  median: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(median)
+  },
+
+  // mad(expression, filterExpression)
+  mad: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(mad)
+  },
+
+  // max(expression, filterExpression)
+  max: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(max)
+  },
+
+  // min(expression, filterExpression)
+  min: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(min)
+  },
+
+  // sum(expression, filterExpression)
+  sum: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(min)
   },
 
   // count(expression, filterExpression)
