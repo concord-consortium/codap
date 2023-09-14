@@ -58,6 +58,22 @@ export const fnRegistry = {
       if (!Array.isArray(a) && Array.isArray(b)) {
         return b.map((v) => v === a)
       }
+      // Checks below might seem redundant once the data set cases start using typed values, but they are not.
+      // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
+      // values when possible, so that the comparison can be performed without forcing users to think about types.
+      // Also, there's more ifs than needed, but it lets us avoid unnecessary casts.
+      if (typeof a === "number" && typeof b !== "number") {
+        return a === Number(b)
+      }
+      if (typeof a !== "number" && typeof b === "number") {
+        return Number(a) === b
+      }
+      if (typeof a === "boolean" && typeof b !== "boolean") {
+        return a === (b === "true")
+      }
+      if (typeof a !== "boolean" && typeof b === "boolean") {
+        return (a === "true") === b
+      }
       return a === b
     }
   },
