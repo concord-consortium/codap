@@ -12,7 +12,6 @@ import {IDataSet} from "../../../models/data/data-set"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisPlace} from "../../axis/axis-types"
 import {Axis} from "../../axis/components/axis"
-import {AxisProviderContext} from "../../axis/hooks/use-axis-provider-context"
 import {GraphPlace} from "../../axis-graph-shared"
 import {axisPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
@@ -91,31 +90,29 @@ export const GraphAxis = observer(function GraphAxis(
   }, [layout, place, graphModel])
 
   return (
-    <AxisProviderContext.Provider value={graphModel}>
-      <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
-        <rect className='axis-background'/>
-        {axisModel &&
-          <Axis axisPlace={place}
-                enableAnimation={enableAnimation}
-                showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
-                centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
-          />}
-        <AttributeLabel
-          place={place}
-          onChangeAttribute={onDropAttribute}
-          onRemoveAttribute={onRemoveAttribute}
-          onTreatAttributeAs={onTreatAttributeAs}
-        />
-        {onDropAttribute &&
-          <DroppableAxis
-              place={`${place}`}
-              dropId={droppableId}
-              hintString={hintString}
-              portal={parentEltRef.current}
-              target={wrapperElt}
-              onIsActive={handleIsActive}
-          />}
-      </g>
-    </AxisProviderContext.Provider>
+    <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
+      <rect className='axis-background'/>
+      {axisModel &&
+        <Axis axisPlace={place}
+              enableAnimation={enableAnimation}
+              showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
+              centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
+        />}
+      <AttributeLabel
+        place={place}
+        onChangeAttribute={onDropAttribute}
+        onRemoveAttribute={onRemoveAttribute}
+        onTreatAttributeAs={onTreatAttributeAs}
+      />
+      {onDropAttribute &&
+        <DroppableAxis
+            place={`${place}`}
+            dropId={droppableId}
+            hintString={hintString}
+            portal={parentEltRef.current}
+            target={wrapperElt}
+            onIsActive={handleIsActive}
+        />}
+    </g>
   )
 })

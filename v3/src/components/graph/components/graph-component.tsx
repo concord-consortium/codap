@@ -9,6 +9,7 @@ import {GraphContentModelContext} from '../hooks/use-graph-content-model-context
 import {useGraphController} from "../hooks/use-graph-controller"
 import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
+import {AxisProviderContext} from '../../axis/hooks/use-axis-provider-context'
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
@@ -63,10 +64,9 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
         <GraphLayoutContext.Provider value={layout}>
           <AxisLayoutContext.Provider value={layout}>
             <GraphContentModelContext.Provider value={graphModel}>
-              <Graph graphController={graphController}
-                      graphRef={graphRef}
-                      dotsRef={dotsRef}
-              />
+              <AxisProviderContext.Provider value={graphModel}>
+                <Graph graphController={graphController} graphRef={graphRef} dotsRef={dotsRef} />
+              </AxisProviderContext.Provider>
               <AttributeDragOverlay activeDragId={overlayDragId} />
             </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
