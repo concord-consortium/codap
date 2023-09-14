@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { IAdornmentModel } from "./adornment-models"
@@ -27,14 +27,7 @@ export const Adornment = observer(function Adornment(
                      : layout.plotWidth,
     subPlotHeight = rightCats.length > 0
                       ? layout.plotHeight / rightCats.length
-                      : layout.plotHeight,
-    isFadeInComplete = useRef(false),
-    isFadeOutComplete = useRef(false)
-
-  useEffect(function fadeInCleanup() {
-    isFadeInComplete.current = adornment.isVisible
-    isFadeOutComplete.current = !adornment.isVisible
-  }, [adornment.isVisible])
+                      : layout.plotHeight
 
   const classFromCellKey = adornment.classNameFromKey(cellKey)
   // The adornmentKey is a unique value used for React's key prop and for the adornment wrapper's HTML ID.
@@ -46,13 +39,12 @@ export const Adornment = observer(function Adornment(
   const { Component } = componentInfo
 
   const adornmentWrapperClass = clsx(
-    'adornment-wrapper',
+    "adornment-wrapper",
     `${adornmentKey}-wrapper`,
-    `${classFromCellKey}`,
+    classFromCellKey,
     {
-      'fadeIn': adornment.isVisible && !isFadeInComplete.current,
-      'fadeOut': !adornment.isVisible && !isFadeOutComplete.current,
-      'hidden': !adornment.isVisible && isFadeOutComplete.current
+      "visible": adornment.isVisible,
+      "hidden": !adornment.isVisible
     }
   )
 
@@ -61,7 +53,7 @@ export const Adornment = observer(function Adornment(
       id={adornmentKey}
       className={adornmentWrapperClass}
       style={{animationDuration: `${transitionDuration}ms`}}
-      data-testid={'adornment-wrapper'}
+      data-testid={"adornment-wrapper"}
     >
       <Component
         containerId={adornmentKey}

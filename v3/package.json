@@ -176,7 +176,7 @@
     "lodash": "^4.17.21",
     "mathjs": "^11.11.0",
     "mobx": "^6.10.2",
-    "mobx-react-lite": "^3.4.3",
+    "mobx-react-lite": "^4.0.4",
     "nanoid": "^4.0.2",
     "papaparse": "^5.4.1",
     "pluralize": "^8.0.0",

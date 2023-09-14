@@ -11,7 +11,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
     graphTile: ".graph-plot svg",
-    legend: ".graph-plot .droppable-legend",
+    legend: ".graph-plot .legend .chakra-menu__menu-button",
     x_axis: ".codap-graph .droppable-axis.droppable-svg.bottom",
     x_axis_label: ".codap-graph .axis-legend-attribute-menu.bottom .chakra-menu__menu-button",
     y_axis: ".codap-graph .droppable-axis.droppable-svg.left",
