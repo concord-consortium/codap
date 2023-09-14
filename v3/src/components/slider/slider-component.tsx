@@ -8,6 +8,7 @@ import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { kSliderClass } from "./slider-types"
 import { Axis } from "../axis/components/axis"
+import { AxisProviderContext } from "../axis/hooks/use-axis-provider-context"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
@@ -19,13 +20,18 @@ import './slider.scss'
 const kAxisMargin = 30
 
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
-  const sliderModel = tile?.content
+  const sliderModel = isSliderModel(tile?.content) ? tile?.content : undefined
   const instanceId = useNextInstanceId("slider")
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
   const animationRef = useRef(true)
   const multiScale = layout.getAxisMultiScale("bottom")
+
+  const axisProvider = useMemo(() => ({
+    getAxis: () => sliderModel?.axis,
+    getNumericAxis: () => sliderModel?.axis
+  }), [sliderModel?.axis])
 
   // width and positioning
   useEffect(() => {
@@ -55,40 +61,42 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
-      <AxisLayoutContext.Provider value={layout}>
-        <div className={kSliderClass} ref={sliderRef}>
-          <Flex className="slider-control">
-            <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning} 
-              data-testid="slider-play-pause">
-              { running ? <PauseIcon /> : <PlayIcon /> }
-            </Button>
-            <Flex className="slider-inputs">
-              <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
-                  onChange={handleSliderNameInput} data-testid="slider-variable-name">
-                <EditablePreview className="name-text" data-testid="slider-variable-name-text"/>
-                <EditableInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"/>
-              </Editable>
-              <span className="equals-sign">&nbsp;=&nbsp;</span>
-              <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale} />
+      <AxisProviderContext.Provider value={axisProvider}>
+        <AxisLayoutContext.Provider value={layout}>
+          <div className={kSliderClass} ref={sliderRef}>
+            <Flex className="slider-control">
+              <Button className={`play-pause ${ running ? "running" : "paused"}`} onClick={toggleRunning}
+                data-testid="slider-play-pause">
+                { running ? <PauseIcon /> : <PlayIcon /> }
+              </Button>
+              <Flex className="slider-inputs">
+                <Editable value={sliderModel.name} className="name-input" submitOnBlur={true}
+                    onChange={handleSliderNameInput} data-testid="slider-variable-name">
+                  <EditablePreview className="name-text" data-testid="slider-variable-name-text"/>
+                  <EditableInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"/>
+                </Editable>
+                <span className="equals-sign">&nbsp;=&nbsp;</span>
+                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale} />
+              </Flex>
             </Flex>
-          </Flex>
-          <div className="slider">
-            <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
-              running={running} setRunning={setRunning}
-            />
-            <div className="slider-axis-wrapper" style={axisStyle}>
-              <div className="axis-end min" />
-              <svg className="slider-axis" data-testid="slider-axis">
-                <Axis
-                  axisModel={sliderModel.axis}
-                  enableAnimation={animationRef}
-                />
-              </svg>
-              <div className="axis-end max" />
+            <div className="slider">
+              <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
+                running={running} setRunning={setRunning}
+              />
+              <div className="slider-axis-wrapper" style={axisStyle}>
+                <div className="axis-end min" />
+                <svg className="slider-axis" data-testid="slider-axis">
+                  <Axis
+                    axisPlace={"bottom"}
+                    enableAnimation={animationRef}
+                  />
+                </svg>
+                <div className="axis-end max" />
+              </div>
             </div>
           </div>
-        </div>
-      </AxisLayoutContext.Provider>
+        </AxisLayoutContext.Provider>
+      </AxisProviderContext.Provider>
     </InstanceIdContext.Provider>
   )
 })

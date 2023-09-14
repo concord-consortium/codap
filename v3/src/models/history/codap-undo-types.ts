@@ -17,7 +17,7 @@ export function getUndoStringKey(undoStore?: IUndoManager) {
 }
 
 export function getRedoStringKey(undoStore?: IUndoManager) {
-  const clientData = undoStore?.undoEntry?.clientData
+  const clientData = undoStore?.redoEntry?.clientData
   return isCodapUndoData(clientData) ? clientData.redoStringKey : "DG.mainPage.mainPane.redoButton.toolTip"
 }
 

@@ -22,7 +22,8 @@ import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
 import {AdornmentModelUnion} from "../adornments/adornment-types"
 import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
-import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion} from "../../axis/models/axis-model"
+import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
+import { withUndoRedoStrings } from "../../../models/history/codap-undo-types"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -85,6 +86,10 @@ export const GraphContentModel = DataDisplayContentModel
   .views(self => ({
     getAxis(place: AxisPlace) {
       return self.axes.get(place)
+    },
+    getNumericAxis(place: AxisPlace) {
+      const axis = self.axes.get(place)
+      return isNumericAxisModel(axis) ? axis : undefined
     },
     getAttributeID(place: GraphAttrRole) {
       return self.dataConfiguration.attributeID(place) ?? ''
@@ -261,6 +266,14 @@ export const GraphContentModel = DataDisplayContentModel
     hideAdornment(type: string) {
       const adornment = self.adornments.find(a => a.type === type)
       adornment?.setVisibility(false)
+    }
+  }))
+  .actions(self => ({
+    // performs the specified action so that response actions are included and undo/redo strings assigned
+    applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
+      const result = actionFn()
+      withUndoRedoStrings(undoStringKey, redoStringKey)
+      return result
     }
   }))
 

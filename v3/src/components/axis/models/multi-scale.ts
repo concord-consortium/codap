@@ -139,7 +139,7 @@ export class MultiScale {
     }, (categories) => {
       this.setCategoricalDomain(categories)
       this.incrementChangeCount()
-    })
+    }, { name: "MultiScale.reactToCategorySetChange"})
   }
 
   @action incrementChangeCount() {

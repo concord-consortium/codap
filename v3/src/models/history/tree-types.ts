@@ -41,6 +41,10 @@ export function getActionModelName(call: IActionTrackingMiddleware3Call<CallEnv>
   return getType(call.actionCall.context).name
 }
 
+export function getActionName(call: IActionTrackingMiddleware3Call<CallEnv>) {
+  return call.actionCall.name
+}
+
 export function getActionPath(call: IActionTrackingMiddleware3Call<CallEnv>) {
   return `${getPath(call.actionCall.context)}/${call.actionCall.name}`
 }

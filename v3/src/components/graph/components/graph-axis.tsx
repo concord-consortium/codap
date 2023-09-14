@@ -7,15 +7,15 @@ import {Active} from "@dnd-kit/core"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisPlace} from "../../axis/axis-types"
 import {Axis} from "../../axis/components/axis"
-import {axisPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
+import {axisPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
+import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {DroppableAxis} from "./droppable-axis"
 import {AttributeLabel} from "./attribute-label"
 
@@ -32,7 +32,7 @@ export const GraphAxis = observer(function GraphAxis(
   const dataConfig = useDataConfigurationContext(),
     isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     graphModel = useGraphContentModelContext(),
-    axisModel = graphModel?.getAxis(place),
+    axisModel = graphModel.getAxis?.(place),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
     droppableId = `${instanceId}-${place}-axis-drop`,
@@ -76,7 +76,7 @@ export const GraphAxis = observer(function GraphAxis(
           .attr('width', width)
           .attr('height', bounds.height)
       }
-    })
+    }, { name: "GraphAxis.installBackground" })
   }, [layout, place, wrapperElt])
 
   useEffect(function cleanup() {
@@ -93,8 +93,7 @@ export const GraphAxis = observer(function GraphAxis(
     <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
       <rect className='axis-background'/>
       {axisModel &&
-        <Axis axisModel={axisModel}
-              label={''}  // Remove
+        <Axis axisPlace={place}
               enableAnimation={enableAnimation}
               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
               centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
@@ -106,14 +105,14 @@ export const GraphAxis = observer(function GraphAxis(
         onTreatAttributeAs={onTreatAttributeAs}
       />
       {onDropAttribute &&
-         <DroppableAxis
+        <DroppableAxis
             place={`${place}`}
             dropId={droppableId}
             hintString={hintString}
             portal={parentEltRef.current}
             target={wrapperElt}
             onIsActive={handleIsActive}
-         />}
+        />}
     </g>
   )
 })

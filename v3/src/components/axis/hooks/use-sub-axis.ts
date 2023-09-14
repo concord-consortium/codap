@@ -1,19 +1,21 @@
 import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
 import {autorun, reaction} from "mobx"
+import {isAlive} from "mobx-state-tree"
 import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {transitionDuration} from "../../data-display/data-display-types"
-import {AxisBounds, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
+import {AxisBounds, AxisPlace, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {IAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
+import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
   getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
+import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
   subAxisIndex: number
-  axisModel: IAxisModel
+  axisPlace: AxisPlace
   subAxisElt: SVGGElement | null
   enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines: boolean
@@ -26,10 +28,12 @@ interface CatObject {
 }
 
 export const useSubAxis = ({
-                             subAxisIndex, axisModel, subAxisElt, showScatterPlotGridLines, centerCategoryLabels,
+                             subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels,
                              enableAnimation
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
+    axisProvider = useAxisProviderContext(),
+    axisModel = axisProvider.getAxis?.(axisPlace),
     isNumeric = isNumericAxisModel(axisModel),
     isCategorical = isCategoricalAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
@@ -50,22 +54,28 @@ export const useSubAxis = ({
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
 
     renderSubAxis = useCallback(() => {
+      const _axisModel = axisProvider.getAxis?.(axisPlace)
+      if (_axisModel && !isAlive(_axisModel)) {
+        console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model")
+        return
+      }
       const
-        place = axisModel.place,
-        multiScale = layout.getAxisMultiScale(place)
+        multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
       const subAxisLength = multiScale?.cellLength ?? 0,
         rangeMin = subAxisIndex * subAxisLength,
         rangeMax = rangeMin + subAxisLength,
-        axisIsVertical = isVertical(place),
-        axis = axisPlaceToAxisFn(place),
-        type = axisModel.type,
-        axisBounds = layout.getComputedBounds(place) as AxisBounds,
+        axisIsVertical = isVertical(axisPlace),
+        axis = axisPlaceToAxisFn(axisPlace),
+        type = _axisModel?.type,
+        axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
         d3Scale: AxisScaleType = multiScale.scale.copy()
           .range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax]) as AxisScaleType,
-        initialTransform = (place === 'left') ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
-          : (place === 'top') ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`
+        initialTransform = (axisPlace === 'left')
+          ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
+          : (axisPlace === 'top')
+            ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`
             : `translate(${axisBounds.left}, ${axisBounds.top})`
 
       const renderEmptyAxis = () => {
@@ -102,7 +112,7 @@ export const useSubAxis = ({
           if (axis) {
             const numericScale = d3Scale as unknown as ScaleLinear<number, number>
             select(subAxisElt).selectAll('.zero, .grid').remove()
-            const tickLength = layout.getAxisLength(otherPlace(place)) ?? 0
+            const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0
             select(subAxisElt).append('g')
               .attr('class', 'grid')
               .call(axis(numericScale).tickSizeInner(-tickLength))
@@ -120,14 +130,14 @@ export const useSubAxis = ({
           if (!(subAxisSelectionRef.current && categoriesSelectionRef.current)) return
 
           const categorySet = multiScale?.categorySet,
-            dividerLength = layout.getAxisLength(otherPlace(place)) ?? 0,
-            isRightCat = place === 'rightCat',
-            isTop = place === 'top',
+            dividerLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
+            isRightCat = axisPlace === 'rightCat',
+            isTop = axisPlace === 'top',
             categories = Array.from(categorySet?.values ?? []),
             numCategories = categories.length,
             bandWidth = subAxisLength / numCategories,
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
-            {rotation, textAnchor} = getCategoricalLabelPlacement(place, centerCategoryLabels,
+            {rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
               collision),
             duration = (enableAnimation.current && !swapInProgress.current &&
               dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
@@ -205,8 +215,8 @@ export const useSubAxis = ({
           renderCategoricalSubAxis()
           break
       }
-    }, [subAxisElt, layout, showScatterPlotGridLines, enableAnimation, centerCategoryLabels, axisModel,
-      subAxisIndex]),
+    }, [axisPlace, axisProvider, layout, subAxisIndex, subAxisElt,
+        enableAnimation, centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
@@ -271,12 +281,11 @@ export const useSubAxis = ({
     setupCategories = useCallback(() => {
       if (!subAxisElt) return
       const
-        place = axisModel.place,
-        multiScale = layout.getAxisMultiScale(place),
+        multiScale = layout.getAxisMultiScale(axisPlace),
         categorySet = multiScale?.categorySet,
         categories = Array.from(categorySet?.values ?? []),
         categoryData: CatObject[] = categories.map((cat, index) =>
-          ({cat, index: isVertical(place) ? categories.length - index - 1 : index}))
+          ({cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
 
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
@@ -315,45 +324,47 @@ export const useSubAxis = ({
           .attr('y', 0)
       })
 
-    }, [axisModel.place, dragBehavior, layout, subAxisElt])
+    }, [axisPlace, dragBehavior, layout, subAxisElt])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
     const disposer = reaction(
-      () => {
-        const {place: aPlace, scale: scaleType} = axisModel
-        return {place: aPlace, scaleType}
-      },
-      ({place: aPlace, scaleType}) => {
-        layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
+      () => axisModel?.scale,
+      (scaleType) => {
+        scaleType && layout.getAxisMultiScale(axisPlace)?.setScaleType(scaleType)
         renderSubAxis()
-      }
+      }, {name: "useSubAxis [scaleType]"}
     )
     return () => disposer()
-  }, [isNumeric, axisModel, layout, renderSubAxis])
+  }, [axisModel, axisPlace, isNumeric, layout, renderSubAxis])
 
   // Install reaction to bring about rerender when layout's computedBounds changes
   useEffect(() => {
     const disposer = reaction(
-      () => layout.getComputedBounds(axisModel.place),
-      () => renderSubAxis()
+      () => layout.getComputedBounds(axisPlace),
+      () => renderSubAxis(),
+      {name: "useSubAxis [layout.getComputedBounds()"}
     )
     return () => disposer()
-  }, [layout, renderSubAxis, axisModel.place])
+  }, [axisPlace, layout, renderSubAxis])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
-    if (isNumeric) {
-      const disposer = autorun(() => {
-        if (axisModel.domain) {
-          const {domain} = axisModel
-          layout.getAxisMultiScale(axisModel.place)?.setNumericDomain(domain)
+    const disposer = autorun(() => {
+      const _axisModel = axisProvider.getAxis?.(axisPlace)
+      if (_axisModel && isAlive(_axisModel)) {
+        if (isNumericAxisModel(_axisModel)) {
+          const {domain} = _axisModel || {}
+          layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
           renderSubAxis()
         }
-      })
-      return () => disposer()
-    }
-  }, [isNumeric, axisModel, renderSubAxis, layout])
+      }
+      else if (_axisModel) {
+        console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
+      }
+    }, { name: "useSubAxis.installDomainSync" })
+    return () => disposer()
+  }, [axisPlace, axisProvider, layout, renderSubAxis])
 
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {
@@ -372,7 +383,7 @@ export const useSubAxis = ({
           savedCategorySetValuesRef.current = values
           swapInProgress.current = false
         }
-      })
+      }, {name: "useSubAxis [categories]"})
       return () => disposer()
     }
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
@@ -381,14 +392,14 @@ export const useSubAxis = ({
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.getAxisLength(axisModel.place)
+        return layout.getAxisLength(axisPlace)
       },
       () => {
         renderSubAxis()
-      }
+      }, {name: "useSubAxis [axisLength]"}
     )
     return () => disposer()
-  }, [axisModel, layout, renderSubAxis])
+  }, [axisPlace, layout, renderSubAxis])
 
   // update on multiScaleChangeCount change
   useEffect(() => {

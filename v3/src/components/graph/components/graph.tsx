@@ -69,7 +69,9 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
-    graphModel.setAttributeID(attrRole, dataSet.id, attrId)
+    graphModel.applyUndoableAction(
+      () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
+      "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
   }
 
   /**

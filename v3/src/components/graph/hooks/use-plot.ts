@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {autorun, reaction} from "mobx"
+import {isAlive} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {IDotsRef} from "../../data-display/data-display-types"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {GraphAttrRoles} from "../graphing-types"
-import {INumericAxisModel} from "../../axis/models/axis-model"
+import {IAxisModel} from "../../axis/models/axis-model"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useCurrent} from "../../../hooks/use-current"
@@ -40,15 +41,16 @@ export interface IPlotResponderProps {
   enableAnimation: React.MutableRefObject<boolean>
 }
 
+function isDefunctAxisModel(axisModel?: IAxisModel) {
+  return axisModel && !isAlive(axisModel)
+}
+
 export const usePlotResponders = (props: IPlotResponderProps) => {
   const {enableAnimation, refreshPointPositions, refreshPointSelection, dotsRef} = props,
     graphModel = useGraphContentModelContext(),
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
     dataset = dataConfiguration?.dataset,
-    xNumeric = graphModel.getAxis('bottom') as INumericAxisModel,
-    yNumeric = graphModel.getAxis('left') as INumericAxisModel,
-    v2Numeric = graphModel.getAxis('rightNumeric') as INumericAxisModel,
     instanceId = useInstanceIdContext(),
     refreshPointPositionsRef = useCurrent(refreshPointPositions)
 
@@ -87,13 +89,25 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
     const disposer = reaction(
-      () => [xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain],
+      () => {
+        const xNumeric = graphModel.getNumericAxis('bottom')
+        const yNumeric = graphModel.getNumericAxis('left')
+        const v2Numeric = graphModel.getNumericAxis('rightNumeric')
+        if (isDefunctAxisModel(xNumeric) || isDefunctAxisModel(yNumeric) || isDefunctAxisModel(v2Numeric)) {
+          console.warn("usePlot numeric domains reaction skipped for defunct axis model(s)")
+          return
+        }
+        const { domain: xDomain } = xNumeric || {}
+        const { domain: yDomain } = yNumeric || {}
+        const { domain: v2Domain } = v2Numeric || {}
+        return [xDomain, yDomain, v2Domain]
+      },
       () => {
         callRefreshPointPositions(false)
-      }, {fireImmediately: true}
+      }, {name: "usePlot [numeric domains]", fireImmediately: true}
     )
     return () => disposer()
-  }, [callRefreshPointPositions, xNumeric?.domain, yNumeric?.domain, v2Numeric?.domain])
+  }, [callRefreshPointPositions, graphModel])
 
   useEffect(function respondToCategorySetChanges() {
     return reaction(() => {
@@ -103,7 +117,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         startAnimation(enableAnimation)
         callRefreshPointPositions(false)
       }
-    })
+    }, { name: "usePlot.respondToCategorySetChanges" })
   }, [callRefreshPointPositions, enableAnimation, layout.categorySetArrays])
 
   // respond to attribute assignment changes
@@ -113,7 +127,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => {
         startAnimation(enableAnimation)
         callRefreshPointPositions(false)
-      }
+      }, { name: "usePlot [attribute assignment]" }
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, enableAnimation])
@@ -124,7 +138,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => [layout.getAxisLength('left'), layout.getAxisLength('bottom')],
       () => {
         callRefreshPointPositions(false)
-      }
+      }, { name: "usePlot [axis range]" }
     )
     return () => disposer()
   }, [layout, callRefreshPointPositions])
@@ -174,7 +188,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return autorun(
       () => {
         !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions(false)
-      })
+      }, { name: "usePlot [callRefreshPointPositions]" })
   }, [graphModel, callRefreshPointPositions])
 
 }

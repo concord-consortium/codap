@@ -108,7 +108,8 @@ export const AttributeLabel = observer(
     useEffect(() => {
       const disposer = reaction(
         () => layout.getComputedBounds(place),
-        () => refreshAxisTitle()
+        () => refreshAxisTitle(),
+        { name: "AttributeLabel [layout.getComputedBounds]"}
       )
       return () => disposer()
     }, [place, layout, refreshAxisTitle])
@@ -153,7 +154,7 @@ export const AttributeLabel = observer(
           },
           () => {
             refreshAxisTitle()
-          }
+          }, { name: "AttributeLabel [attribute configuration]"}
         )
         return () => disposer()
     }, [place, dataConfiguration, refreshAxisTitle])

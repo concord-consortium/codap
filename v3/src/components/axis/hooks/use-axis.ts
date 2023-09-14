@@ -1,31 +1,29 @@
 import {ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal} from "d3"
 import {autorun, reaction} from "mobx"
-import {MutableRefObject, useCallback, useEffect, useRef} from "react"
-import {axisGap} from "../axis-types"
+import {isAlive} from "mobx-state-tree"
+import {useCallback, useEffect, useRef} from "react"
+import {AxisPlace, axisGap} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {graphPlaceToAttrRole} from "../../graph/graphing-types"
 import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
 import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 import {collisionExists, getStringBounds} from "../axis-utils"
+import { useAxisProviderContext } from "./use-axis-provider-context"
 import graphVars from "../../graph/components/graph.scss"
 
 export interface IUseAxis {
-  axisModel?: IAxisModel
-  axisElt: SVGGElement | null
-  titleRef?: MutableRefObject<SVGGElement | null>
+  axisPlace: AxisPlace
   axisTitle?: string
   centerCategoryLabels: boolean
 }
 
-export const useAxis = ({
-                          axisModel, axisTitle = "",
-                          centerCategoryLabels
-                        }: IUseAxis) => {
+export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
+    axisProvider = useAxisProviderContext(),
+    axisModel = axisProvider.getAxis?.(axisPlace),
     isNumeric = axisModel && isNumericAxisModel(axisModel),
-    place = axisModel?.place ?? 'bottom',
-    multiScale = layout.getAxisMultiScale(place),
+    multiScale = layout.getAxisMultiScale(axisPlace),
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>,
     // eslint-disable-next-line react-hooks/exhaustive-deps  --  see note below
     categories = ordinalScale?.domain() ?? []
@@ -36,7 +34,6 @@ export const useAxis = ({
     previousAxisModel = useRef<IAxisModel>(),
     axisModelChanged = previousAxisModel.current !== axisModel,
     dataConfiguration = useDataConfigurationContext(),
-    axisPlace = axisModel?.place ?? 'bottom',
     attrRole = graphPlaceToAttrRole[axisPlace],
     type = axisModel?.type ?? 'empty',
     attributeID = dataConfiguration?.attributeID(attrRole)
@@ -95,7 +92,7 @@ export const useAxis = ({
         },
         ({place: aPlace, scaleType}) => {
           layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
-        }
+        }, {name: "useAxis [scaleType]"}
       )
       return () => disposer()
     }
@@ -105,14 +102,18 @@ export const useAxis = ({
   useEffect(function installDomainSync() {
     if (isNumeric) {
       const disposer = autorun(() => {
-        multiScale?.setNumericDomain(axisModel.domain)
+        const _axisModel = axisProvider.getNumericAxis?.(axisPlace)
+        if (_axisModel && !isAlive(_axisModel)) {
+          console.warn("useAxis.installDomainSync skipping sync of defunct axis model")
+          return
+        }
+        _axisModel?.domain && multiScale?.setNumericDomain(_axisModel?.domain)
         layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      })
+      }, { name: "useAxis.installDomainSync" })
       return () => disposer()
     }
     // Note axisModelChanged as a dependent. Shouldn't be necessary.
-  }, [axisModelChanged, isNumeric, axisModel, multiScale,
-    axisPlace, layout, computeDesiredExtent])
+  }, [axisModelChanged, isNumeric, multiScale, axisPlace, layout, computeDesiredExtent, axisProvider])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {
@@ -122,7 +123,7 @@ export const useAxis = ({
       },
       () => {
         layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      }
+      }, {name: "useAxis [axisRange]"}
     )
     return () => disposer()
   }, [axisModel, layout, axisPlace, computeDesiredExtent])
@@ -140,7 +141,7 @@ export const useAxis = ({
       },
       () => {
         layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      }
+      }, {name: "useAxis [axis repetitions]"}
     )
     return () => disposer()
   }, [computeDesiredExtent, axisPlace, layout])

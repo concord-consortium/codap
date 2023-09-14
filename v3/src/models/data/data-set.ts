@@ -214,7 +214,6 @@ export const DataSet = types.model("DataSet", {
         type: "DataSet.moveAttribute",
         data: { dataId: self.id, attrId: attributeID, before: { before: nextAttrId }, after: options }
       }, moveAttributeCustomUndoRedo)
-      withUndoRedoStrings("DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
     }
   }
 }))
@@ -908,7 +907,6 @@ export const DataSet = types.model("DataSet", {
           type: "DataSet.setCaseValues",
           data: { dataId: self.id, before, after }
         }, setCaseValuesCustomUndoRedo)
-        withUndoRedoStrings("DG.Undo.caseTable.editCellValue", "DG.Redo.caseTable.editCellValue")
 
         // only changes to parent collection attributes invalidate grouping
         ungroupedCases.length > 0 && self.invalidateCollectionGroups()
@@ -978,6 +976,12 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .actions(self => ({
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
+    const result = actionFn()
+    withUndoRedoStrings(undoStringKey, redoStringKey)
+    return result
+  },
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
   },
