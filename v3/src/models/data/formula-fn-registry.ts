@@ -327,6 +327,11 @@ export const fnRegistry = {
     }
   },
 
+  // if(expression, value_if_true, value_if_false)
+  if: {
+    evaluate: (...args: FValue[]) => args[0] ? args[1] : (args[2] ?? "")
+  },
+
   // randomPick(...args)
   randomPick: {
     isRandomFunction: true,
