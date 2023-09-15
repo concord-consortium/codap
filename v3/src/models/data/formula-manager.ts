@@ -138,20 +138,19 @@ export class FormulaManager {
     }
     console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
 
-    let errorMsg = ""
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
     const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
 
     const incorrectParentAttrId = getIncorrectParentAttrReference(formula.canonical, collectionIndex, dataSet)
     if (incorrectParentAttrId) {
       const attrName = dataSet.attrFromID(incorrectParentAttrId).name
-      errorMsg = formulaError("V3.formula.error.invalidParentAttrRef", [ attrName ])
+      return this.setFormulaError(formulaId, formulaError("V3.formula.error.invalidParentAttrRef", [ attrName ]))
     }
 
     const incorrectChildAttrId = getIncorrectChildAttrReference(formula.canonical, collectionIndex, dataSet)
     if (incorrectChildAttrId) {
       const attrName = dataSet.attrFromID(incorrectChildAttrId).name
-      errorMsg = formulaError("DG.Formula.HierReferenceError.message", [ attrName ])
+      return this.setFormulaError(formulaId, formulaError("DG.Formula.HierReferenceError.message", [ attrName ]))
     }
 
     const childMostAggregateCollectionIndex =
@@ -180,16 +179,7 @@ export class FormulaManager {
     try {
       compiledFormula = math.compile(formula.canonical)
     } catch (e: any) {
-      errorMsg = formulaError(e.message)
-    }
-
-    // Error message is set as formula output, similarly as in CODAP V2.
-    if (errorMsg) {
-      dataSet.setCaseValues(casesToRecalculate.map(c => ({
-        __id__: c.__id__,
-        [attributeId]: errorMsg
-      })))
-      return
+      return this.setFormulaError(formulaId, formulaError(e.message))
     }
 
     dataSet.setCaseValues(casesToRecalculate.map((c) => {
@@ -205,6 +195,16 @@ export class FormulaManager {
         [attributeId]: formulaValue
       }
     }))
+  }
+
+  // Error message is set as formula output, similarly as in CODAP V2.
+  setFormulaError(formulaId: string, errorMsg: string) {
+    const { attributeId, dataSet } = this.getFormulaContext(formulaId)
+    const allCases = dataSet.getCasesForAttributes([attributeId])
+    dataSet.setCaseValues(allCases.map(c => ({
+      __id__: c.__id__,
+      [attributeId]: errorMsg
+    })))
   }
 
   registerAllFormulas() {
@@ -253,9 +253,13 @@ export class FormulaManager {
     }
     this.formulaMetadata.set(formula.id, formulaMetadata)
 
-    if (!formula.valid) {
+    if (formula.empty) {
       // Nothing else to do, formula is empty.
       return
+    }
+
+    if (formula.syntaxError) {
+      return this.setFormulaError(formula.id, formulaError("DG.Formula.SyntaxErrorMiddle", [ formula.syntaxError ]))
     }
 
     // Check if there is a dependency cycle. Note that it needs to happen after formula is registered, so that
@@ -455,8 +459,8 @@ export class FormulaManager {
       }
       visitedFormulas[currentFormula] = true
 
-      const { dataSet } = this.getFormulaContext(currentFormula)
-      const formulaDependencies = getFormulaDependencies(currentFormula)
+      const { formula, dataSet } = this.getFormulaContext(currentFormula)
+      const formulaDependencies = getFormulaDependencies(formula.canonical)
 
       const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
         formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
