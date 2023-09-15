@@ -202,7 +202,7 @@ export const fnRegistry = {
   sum: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(min)
+    evaluateRaw: aggregateFnWithFilterFactory(sum)
   },
 
   // count(expression, filterExpression)
@@ -217,7 +217,7 @@ export const fnRegistry = {
         return scope.getCaseChildrenCount()
       }
       let expressionValues = evaluateNode(expression, scope)
-      const filterValues = filter !== undefined ? evaluateNode(filter, scope) : undefined
+      const filterValues = filter && evaluateNode(filter, scope)
       expressionValues = expressionValues.filter((v: any, i: number) => v !== "" && (filter ? !!filterValues[i] : true))
       return expressionValues.length
     }
@@ -260,24 +260,30 @@ export const fnRegistry = {
       let result
       if (cachedData) {
         const { resultIndex, expressionValues, filterValues } = cachedData
-        if (currentIndex < resultIndex) {
-          // Current index is still smaller than previously cached result index. We can reuse it.
-          result = expressionValues[resultIndex]
+
+        if (!filterValues) {
+          // If there's no filter, next() returns the next case value and nothing else.
+          result = expressionValues[currentIndex + 1]
         } else {
-          // Current index is equal or bigger than previously cached result index. We need to recalculate it.
-          const newResultIndex = calculateResultIndex(currentIndex, filterValues)
-          result = expressionValues[newResultIndex]
-          // Time to update cache too.
-          scope.setCached(cacheKey, {
-            resultIndex: newResultIndex,
-            expressionValues,
-            filterValues
-          })
+          if (currentIndex < resultIndex) {
+            // Current index is still smaller than previously cached result index. We can reuse it.
+            result = expressionValues[resultIndex]
+          } else {
+            // Current index is equal or bigger than previously cached result index. We need to recalculate it.
+            const newResultIndex = calculateResultIndex(currentIndex, filterValues)
+            result = expressionValues[newResultIndex]
+            // Time to update cache too.
+            scope.setCached(cacheKey, {
+              resultIndex: newResultIndex,
+              expressionValues,
+              filterValues
+            })
+          }
         }
       } else {
-        const filterValues = evaluateNode(filter, scope)
+        const filterValues = filter && evaluateNode(filter, scope)
         const expressionValues = evaluateNode(expression, scope)
-        const resultIndex = calculateResultIndex(currentIndex, filterValues)
+        const resultIndex = filterValues ? calculateResultIndex(currentIndex, filterValues) : currentIndex + 1
         result = expressionValues[resultIndex]
         scope.setCached(cacheKey, {
           resultIndex,
@@ -297,7 +303,7 @@ export const fnRegistry = {
       interface ICachedData {
         resultIndex: number
         expressionValues: FValue[]
-        filterValues: FValue[]
+        filterValues?: FValue[]
       }
 
       const cacheKey = `prev(${args.toString()})`
@@ -312,24 +318,29 @@ export const fnRegistry = {
       if (cachedData !== undefined) {
         const { resultIndex, expressionValues, filterValues } = cachedData
 
-        if (!!filterValues[currentIndex - 1] === true) {
-          // We just found a new result index.
-          const newResultIndex = currentIndex - 1
-          result = expressionValues[newResultIndex]
-          // Time to update cache too.
-          scope.setCached(cacheKey, {
-            resultIndex: newResultIndex,
-            expressionValues,
-            filterValues
-          })
+        if (!filterValues) {
+          // If there's no filter, prev() returns the previous case value and nothing else.
+          result = expressionValues[currentIndex - 1]
         } else {
-          // We didn't find a new result index. We can only reuse the old one.
-          result = expressionValues[resultIndex]
+          if (filterValues[currentIndex - 1]) {
+            // We just found a new result index.
+            const newResultIndex = currentIndex - 1
+            result = expressionValues[newResultIndex]
+            // Time to update cache too.
+            scope.setCached(cacheKey, {
+              resultIndex: newResultIndex,
+              expressionValues,
+              filterValues
+            })
+          } else {
+            // We didn't find a new result index. We can only reuse the old one.
+            result = expressionValues[resultIndex]
+          }
         }
       } else {
         // This block of code will be executed only once, for the very first case.
         // The very first case can't return anything from prev() function.
-        const filterValues = evaluateNode(filter, scope)
+        const filterValues = filter && evaluateNode(filter, scope)
         const expressionValues = evaluateNode(expression, scope)
         const resultIndex = -1
         result = undefined
