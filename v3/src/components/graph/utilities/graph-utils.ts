@@ -267,7 +267,7 @@ export function equationString(slope: number, intercept: number, attrNames: {x: 
 
 export function valueLabelString(value: number) {
   const float = format('.4~r')
-  return `<div style="color:blue">${float(value)}</div>`
+  return float(value)
 }
 
 export function percentString(value: number) {

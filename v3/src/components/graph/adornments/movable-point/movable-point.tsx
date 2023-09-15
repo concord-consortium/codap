@@ -159,7 +159,7 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
   return (
     <svg
       className={`point-${classFromKey}`}
-      style={{height: `${plotHeight}px`, width: `${plotWidth}px`}}
+      style={{height: "100%", width: "100%"}}
       x={0}
       y={0}
     >

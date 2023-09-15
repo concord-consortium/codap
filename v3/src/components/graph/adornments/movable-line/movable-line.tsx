@@ -344,7 +344,7 @@ export const MovableLine = observer(function MovableLine(props: IProps) {
   return (
     <svg
       className={`line-${model.classNameFromKey(cellKey)}`}
-      style={{height: `${plotHeight}px`, width: `${plotWidth}px`}}
+      style={{height: "100%", width: "100%"}}
       x={0}
       y={0}
     >

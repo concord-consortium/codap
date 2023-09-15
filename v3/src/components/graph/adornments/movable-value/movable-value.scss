@@ -4,23 +4,48 @@
 }
 
 .movable-value-label {
-  text-align: center;
+  color: #4682b4;
+  height: 30px;
   position: absolute;
-  background-color: yellow;
+  text-align: center;
+  transform: translate(-50%, -55%);
+  width: 50px;
+
+  &.horizontal {
+    transform: translate(0, -30%);
+  }
 }
 
 .movable-value {
-  stroke: blue;
-  stroke-width: 2px;
+  pointer-events: all;
+  stroke: #4682b4;
+  stroke-width: 1px;
+}
+
+.movable-value-rect {
+  fill: #4682b4;
+  height: 6px;
+  stroke-width: 1px;
+  width: 6px;
 }
 
 .movable-value-cover {
-  stroke: rgba(210, 105, 30, 0.01);
-  stroke-width: 8px;
-  cursor: url("../assets/up-down-cursor.png") 8 8, grab;
+  stroke: rgba(70, 30, 180, 0);
+  stroke-width: 6px;
+  cursor: url("../assets/left-right-cursor.png") 8 8, grab;
+
+  &:hover {
+    stroke: rgba(70, 30, 180, 0.2);
+  }
+
+  &.horizontal {
+    cursor: url("../assets/up-down-cursor.png") 8 8, grab;
+  }
 }
 
-.movable-value-cover:hover {
-  stroke: rgba(210, 105, 30, 0.5);
+.movable-value-fill {
+  fill: steelblue;
+  opacity: .3;
+  pointer-events: none;
+  stroke-opacity: 0;
 }
-
