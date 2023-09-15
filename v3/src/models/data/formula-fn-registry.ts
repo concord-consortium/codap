@@ -202,7 +202,7 @@ export const fnRegistry = {
   sum: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(min)
+    evaluateRaw: aggregateFnWithFilterFactory(sum)
   },
 
   // count(expression, filterExpression)
