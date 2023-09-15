@@ -455,8 +455,8 @@ export class FormulaManager {
       }
       visitedFormulas[currentFormula] = true
 
-      const { dataSet } = this.getFormulaContext(currentFormula)
-      const formulaDependencies = getFormulaDependencies(currentFormula)
+      const { formula, dataSet } = this.getFormulaContext(currentFormula)
+      const formulaDependencies = getFormulaDependencies(formula.canonical)
 
       const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
         formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
