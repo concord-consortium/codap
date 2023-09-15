@@ -37,17 +37,29 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
   useEffect(() => {
     const containerX = sliderContainer?.getBoundingClientRect().x
 
-    const handlePointerMove = (e: PointerEvent) => {
+    function getSliderValueFromEvent(e: PointerEvent) {
       if ((containerX != null) && isDragging) {
         const pixelTarget = e.clientX + downOffset.current
-        const scaledValue = scale?.getDataCoordinate(pixelTarget - containerX).data ?? 0
-        sliderModel.setValue(scaledValue)
+        return scale?.getDataCoordinate(pixelTarget - containerX).data ?? 0
+      }
+    }
+
+    const handlePointerMove = (e: PointerEvent) => {
+      const sliderValue = getSliderValueFromEvent(e)
+      if (sliderValue != null) {
+        sliderModel.setDynamicValue(sliderValue)
       }
       e.preventDefault()
       e.stopImmediatePropagation()
     }
 
     const handlePointerUp = (e: PointerEvent) => {
+      const sliderValue = getSliderValueFromEvent(e)
+      if (sliderValue != null) {
+        sliderModel.applyUndoableAction(
+          () => sliderModel.setValue(sliderValue),
+          "DG.Undo.slider.change", "DG.Redo.slider.change")
+      }
       downOffset.current = 0
       setIsDragging(false)
       e.preventDefault()
