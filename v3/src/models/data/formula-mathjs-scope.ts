@@ -12,6 +12,7 @@ export interface IFormulaMathjsScopeContext {
   childMostCollectionCases: ICase[]
   useSameLevelGrouping: boolean
   caseGroupId: Record<string, string>
+  caseChildrenCount: Record<string, number>
   globalValueManager?: IGlobalValueManager
 }
 
@@ -118,6 +119,10 @@ export class FormulaMathJsScope {
 
   getCaseIndex() {
     return this.context.localDataSet.caseIDMap[this.caseId]
+  }
+
+  getCaseChildrenCount() {
+    return this.context.caseChildrenCount[this.caseId] ?? 0
   }
 
   getLocalDataSet() {

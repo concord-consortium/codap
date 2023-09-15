@@ -148,6 +148,24 @@ export const fnRegistry = {
     }
   },
 
+  // count(expression, filterExpression)
+  count: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+      const expression = args[0]
+      const filter = args[1]
+      if (!expression) {
+        // Special case - count() without arguments returns number of children cases.
+        return scope.getCaseChildrenCount()
+      }
+      let expressionValues = evaluateNode(expression, scope)
+      const filterValues = filter !== undefined ? evaluateNode(filter, scope) : undefined
+      expressionValues = expressionValues.filter((v: any, i: number) => v !== "" && (filter ? !!filterValues[i] : true))
+      return expressionValues.length
+    }
+  },
+
   // next(expression, defaultValue, filter)
   next: {
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
