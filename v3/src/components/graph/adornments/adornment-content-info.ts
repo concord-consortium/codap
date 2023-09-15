@@ -5,6 +5,7 @@ export interface IAdornmentContentInfo {
   modelClass: typeof AdornmentModel
   plots: PlotType[]
   prefix: string
+  subTypeOf?: string
   type: string
 }
 
@@ -23,5 +24,10 @@ export function getAdornmentContentModels() {
 }
 
 export function getAdornmentTypes() {
-  return Object.values(gAdornmentContentInfoMap).map(info => info.type)
+  return Object.values(gAdornmentContentInfoMap).map((info) => {
+    return {
+      type: info.type,
+      subTypeOf: info.subTypeOf
+    }
+  })
 }

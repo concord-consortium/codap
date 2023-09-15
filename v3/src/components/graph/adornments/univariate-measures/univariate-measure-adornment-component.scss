@@ -1,0 +1,73 @@
+.measure-container {
+  height: 100%;
+  width: 100%;
+
+  .measure-line {
+    fill: none;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 1px;
+
+    &.mean-line {
+      stroke: #00f;
+    }
+    &.median-line {
+      stroke: #f00;
+    }
+  }
+
+  .measure-tip {
+    display: none;
+    fill: #000;
+    font-size: 10px;
+    font-weight: normal;
+    pointer-events: all;
+    position: absolute;
+    stroke: transparent;
+  }
+
+  .measure-cover {
+    fill: none;
+    opacity: 0;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 5px;
+
+    &.mean-cover {
+      stroke: #00f;
+    }
+    &.median-cover {
+      stroke: #f00;
+    }
+
+    &:hover, &.highlighted {
+      opacity: .2;
+    }
+    &:hover + .measure-tip {
+      display: block;
+      &.always-hidden { display: none; }
+    }
+  }
+}
+
+.measure-labels {
+  position: absolute;
+  height: 100%;
+  top: 0;
+  width: 100%;
+
+  .measure-labels-tip {
+    background: #ff0;
+    cursor: move;
+    font-size: 10px;
+    font-weight: normal;
+    opacity: .6;
+    padding: 2px 4px;
+    pointer-events: all;
+    position: absolute;
+
+    &:hover, &.highlighted { opacity: 1; }
+  }
+}

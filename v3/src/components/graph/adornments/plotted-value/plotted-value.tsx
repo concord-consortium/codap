@@ -133,7 +133,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
         (previousAttrTypes?.xAttrType !== "numeric" || previousAttrTypes?.yAttrType !== "numeric")
       ) {
         model.setValue("")
-        graphModel.hideAdornment(kPlottedValueType)
+        graphModel.adornmentsStore.hideAdornment(kPlottedValueType)
       } else {
         isVertical.current = dataConfig?.attributeType("x") === "numeric"
       }

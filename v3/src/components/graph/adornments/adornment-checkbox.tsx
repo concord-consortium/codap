@@ -12,7 +12,8 @@ interface IProps {
 
 export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
   const graphModel = useGraphContentModelContext()
-  const existingAdornment = graphModel.adornments.find(a => a.type === type)
+  const adornmentsStore = graphModel?.adornmentsStore
+  const existingAdornment = adornmentsStore.adornments.find(a => a.type === type)
 
   const handleSetting = (checked: boolean) => {
     const componentContentInfo = getAdornmentContentInfo(type)
@@ -20,9 +21,9 @@ export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
     adornment.updateCategories(graphModel.getUpdateCategoriesOptions())
     adornment.setVisibility(checked)
     if (checked) {
-      graphModel.showAdornment(adornment, adornment.type)
+      adornmentsStore.showAdornment(adornment, adornment.type)
     } else {
-      graphModel.hideAdornment(adornment.type)
+      adornmentsStore.hideAdornment(adornment.type)
     }
   }
 

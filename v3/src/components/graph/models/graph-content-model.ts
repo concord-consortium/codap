@@ -20,10 +20,10 @@ import {kGraphTileType} from "../graph-defs"
 import {hoverRadiusFactor, pointRadiusLogBase, pointRadiusMax, pointRadiusMin, pointRadiusSelectionAddend}
   from "../../data-display/data-display-types"
 import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
-import {AdornmentModelUnion} from "../adornments/adornment-types"
 import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
-import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
+import {IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
+import { AdornmentsStore } from "../adornments/adornments-store"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -45,7 +45,7 @@ export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
-    adornments: types.array(AdornmentModelUnion),
+    adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
@@ -142,7 +142,8 @@ export const GraphContentModel = DataDisplayContentModel
         ? onAnyAction(self.dataset, action => {
           // TODO: check whether categories have actually changed before updating
           if (actionsAffectingCategories.includes(action.name)) {
-            this.updateAdornments()
+            const updateCategoriesOptions = self.getUpdateCategoriesOptions()
+            self.adornmentsStore.updateAdornments(updateCategoriesOptions)
           }
         })
         : undefined
@@ -185,11 +186,7 @@ export const GraphContentModel = DataDisplayContentModel
       } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
         self.dataConfiguration.setDataset(undefined, undefined)
       }
-    },
-    updateAdornments(resetPoints = false) {
-      const options = self.getUpdateCategoriesOptions(resetPoints)
-      self.adornments.forEach(adornment => adornment.updateCategories(options))
-    },
+    }
   }))
   .views(self => ({
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
@@ -229,7 +226,8 @@ export const GraphContentModel = DataDisplayContentModel
       } else {
         self.dataConfiguration.setAttribute(role, {attributeID: id})
       }
-      self.updateAdornments(true)
+      const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
+      self.adornmentsStore.updateAdornments(updateCategoriesOptions)
     },
     setPlotType(type: PlotType) {
       self.plotType = type
@@ -254,28 +252,6 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show
-    },
-    showAdornment(adornment: IAdornmentModel, type: string) {
-      const adornmentExists = self.adornments.find(a => a.type === type)
-      if (adornmentExists) {
-        adornmentExists.setVisibility(true)
-      } else {
-        self.adornments.push(adornment)
-      }
-    },
-    hideAdornment(type: string) {
-      const adornment = self.adornments.find(a => a.type === type)
-      adornment?.setVisibility(false)
-    }
-  }))
-  .actions(self => ({
-    addAdornment(adornment: IAdornmentModel) {
-      self.hideAdornment(adornment.type)
-      adornment.updateCategories(self.getUpdateCategoriesOptions())
-      self.showAdornment(adornment, adornment.type)
-    },
-    updateAdornment(callback: () => void) {
-      callback()
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

@@ -10,17 +10,20 @@ import { useGraphContentModelContext } from "../../hooks/use-graph-content-model
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
+  const adornmentsStore = graphModel.adornmentsStore
 
   const handleAddMovableValue = () => {
-    const existingAdornment = graphModel.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
+    const existingAdornment =
+      adornmentsStore.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueModel
-    graphModel.addAdornment(adornment)
+    adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
   }
 
   const handleRemoveMovableValue = () => {
-    const adornment = graphModel.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
-    graphModel.updateAdornment(() => {
+    const adornment =
+      adornmentsStore.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
+    adornmentsStore.updateAdornment(() => {
       adornment.deleteValue()
     })
     if (!adornment.hasValues) {
