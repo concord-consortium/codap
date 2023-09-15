@@ -1,4 +1,4 @@
-import { create, all, mean, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
+import { create, all, mean, median, mad, max, min, sum, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
   DisplayNameMap, FValue, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
@@ -26,6 +26,21 @@ const cachedAggregateFnFactory =
   }
 }
 
+// Note that aggregate functions like mean, max, min, etc., all have exactly the same signature and implementation.
+// The only difference is the final math operation applies to the expression results.
+const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
+  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    const expression = args[0]
+      const filter = args[1]
+      let expressionValues = evaluateNode(expression, scope)
+      if (filter) {
+        const filterValues = evaluateNode(filter, scope)
+        expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
+      }
+      return fn(expressionValues)
+  }
+}
+
 const UNDEF_RESULT = ""
 
 export const fnRegistry = {
@@ -42,6 +57,22 @@ export const fnRegistry = {
       }
       if (!Array.isArray(a) && Array.isArray(b)) {
         return b.map((v) => v === a)
+      }
+      // Checks below might seem redundant once the data set cases start using typed values, but they are not.
+      // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
+      // values when possible, so that the comparison can be performed without forcing users to think about types.
+      // Also, there's more ifs than needed, but it lets us avoid unnecessary casts.
+      if (typeof a === "number" && typeof b !== "number") {
+        return a === Number(b)
+      }
+      if (typeof a !== "number" && typeof b === "number") {
+        return Number(a) === b
+      }
+      if (typeof a === "boolean" && typeof b !== "boolean") {
+        return a === (b === "true")
+      }
+      if (typeof a !== "boolean" && typeof b === "boolean") {
+        return (a === "true") === b
       }
       return a === b
     }
@@ -136,16 +167,42 @@ export const fnRegistry = {
   mean: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const expression = args[0]
-      const filter = args[1]
-      let expressionValues = evaluateNode(expression, scope)
-      if (filter) {
-        const filterValues = evaluateNode(filter, scope)
-        expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
-      }
-      return mean(expressionValues)
-    }
+    evaluateRaw: aggregateFnWithFilterFactory(mean)
+  },
+
+  // median(expression, filterExpression)
+  median: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(median)
+  },
+
+  // mad(expression, filterExpression)
+  mad: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(mad)
+  },
+
+  // max(expression, filterExpression)
+  max: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(max)
+  },
+
+  // min(expression, filterExpression)
+  min: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(min)
+  },
+
+  // sum(expression, filterExpression)
+  sum: {
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(min)
   },
 
   // count(expression, filterExpression)
@@ -284,6 +341,11 @@ export const fnRegistry = {
       }
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
     }
+  },
+
+  // if(expression, value_if_true, value_if_false)
+  if: {
+    evaluate: (...args: FValue[]) => args[0] ? args[1] : (args[2] ?? "")
   },
 
   // randomPick(...args)
