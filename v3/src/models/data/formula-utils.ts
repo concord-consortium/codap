@@ -44,10 +44,22 @@ export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDepende
   return null
 }
 
+export const safeSymbolName = (name: string) => {
+  return name
+    // Math.js does not allow to use symbols that start with a number, so we need to add a prefix.
+    .replace(/^(\d+)/, '_$1')
+    // We also need to escape all the symbols that are not allowed in Math.js.
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+}
+
 export const customizeFormula = (formula: string) => {
-  // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
   // Over time, this function might grow significantly and require more advanced parsing of the formula.
-  return formula.replace(/=/g, "==")
+  return formula
+    // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
+    .replace(/=/g, "==")
+    // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
+    // eg. names with spaces or names that start with a number.
+    .replace(/`([^`]+)`/g, (_, match) => safeSymbolName(match))
 }
 
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
@@ -59,16 +71,16 @@ export const canonicalizeExpression = (displayExpression: string, displayNameMap
     isDescendantOfAggregateFunc?: boolean
   }
   const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name].isAggregate || parent?.isDescendantOfAggregateFunc) {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isAggregate || parent?.isDescendantOfAggregateFunc) {
       node.isDescendantOfAggregateFunc = true
     }
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name].isSemiAggregate) {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isSemiAggregate) {
       // Current semi-aggregate functions usually have the following signature:
       // fn(expression, defaultValue, filter)
       // Symbols used in `expression` and `filter` arguments should be treated as aggregate symbols.
       // In this case, `isSemiAggregate` would be equal to [true, false, true].
       typedFnRegistry[node.fn.name].isSemiAggregate?.forEach((isAggregateArgument, index) => {
-        if (isAggregateArgument) {
+        if (node.args[index] && isAggregateArgument) {
           (node.args[index] as IExtendedMathNode).isDescendantOfAggregateFunc = true
         }
       })
@@ -95,7 +107,7 @@ export const isRandomFunctionPresent = (formulaCanonical: string) => {
   const formulaTree = parse(formulaCanonical)
   let result = false
   const visitNode = (node: MathNode) => {
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name].isRandomFunction) {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isRandomFunction) {
       result = true
     }
   }
