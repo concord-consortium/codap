@@ -25,15 +25,22 @@ export const SliderModel = TileContentModel
     _animationRate: types.maybe(types.number),  // frames per second
     axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.5, max: 11.5 })
   })
+  .volatile(self => ({
+    // defined while dragging (or animating?), undefined otherwise
+    dynamicValue: undefined as number | undefined
+  }))
   .views(self => ({
     get name() {
       return self.globalValue.name
     },
     get value() {
-      return self.globalValue.value
+      return self.dynamicValue ?? self.globalValue.value
     },
     get domain() {
       return self.axis.domain
+    },
+    get isUpdatingDynamically() {
+      return self.dynamicValue != null
     },
     get increment() {
       // TODO: implement v2 algorithm which determines default increment from axis bounds
@@ -48,8 +55,8 @@ export const SliderModel = TileContentModel
       return sharedModels?.[0] as IGlobalValueManager | undefined
     }
   }))
-  .actions(self => ({
-    setValue(n: number) {
+  .views(self => ({
+    constrainValue(value: number) {
       // keep value in bounds of axis min and max when thumbnail is dragged
       const keepValueInBounds = (num: number) => {
         if (num < self.axis.min) return self.axis.min
@@ -58,14 +65,18 @@ export const SliderModel = TileContentModel
       }
 
       if (self.multipleOf) {
-        n = Math.round(n / self.multipleOf) * self.multipleOf
-        n = keepValueInBounds(n)
-      } else {
-        n = keepValueInBounds(n)
+        value = Math.round(value / self.multipleOf) * self.multipleOf
       }
-      self.globalValue.setValue(n)
-
-      withUndoRedoStrings("DG.Undo.slider.change", "DG.Redo.slider.change")
+      return keepValueInBounds(value)
+    }
+  }))
+  .actions(self => ({
+    setDynamicValue(value: number) {
+      self.dynamicValue = self.constrainValue(value)
+    },
+    setValue(value: number) {
+      self.globalValue.setValue(self.constrainValue(value))
+      self.dynamicValue = undefined
     },
   }))
   .actions(self => ({
@@ -76,7 +87,7 @@ export const SliderModel = TileContentModel
           // keep the thumbnail within axis bounds when axis bounds are changed
           if (self.value < self.axis.min) self.setValue(self.axis.min)
           if (self.value > self.axis.max) self.setValue(self.axis.max)
-        }
+        }, { name: "SliderModel [axis.domain]" }
       ))
     },
     afterAttachToDocument() {
@@ -93,7 +104,7 @@ export const SliderModel = TileContentModel
             // once we're added to the document, update the shared model reference
             globalValueManager && sharedModelManager.addTileSharedModel(self, globalValueManager)
           }
-        }, { fireImmediately: true }
+        }, { name: "SliderModel [sharedModelManager]", fireImmediately: true }
       ))
     },
     beforeDestroy() {
@@ -153,6 +164,14 @@ export const SliderModel = TileContentModel
       }
     },
   }))
+.actions(self => ({
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
+    const result = actionFn()
+    withUndoRedoStrings(undoStringKey, redoStringKey)
+    return result
+  }
+}))
 
 export interface ISliderModel extends Instance<typeof SliderModel> {}
 

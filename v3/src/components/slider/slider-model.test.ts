@@ -32,6 +32,7 @@ describe("SliderModel", () => {
       sliderModel: { globalValue: g1.id }
     }, { sharedModelManager: mockSharedModelManagerWithGlobalValueManager })
     const slider = tree.sliderModel
+    expect(slider.globalValueManager).toBeDefined()
 
     expect(isSliderModel()).toBe(false)
     expect(isSliderModel(slider)).toBe(true)
@@ -68,6 +69,7 @@ describe("SliderModel", () => {
       sliderModel: { globalValue: g1.id }
     }, { sharedModelManager: mockSharedModelManagerWithoutGlobalValueManager })
     const slider = tree.sliderModel
+    expect(slider.globalValueManager).toBeUndefined()
     expect(isSliderModel()).toBe(false)
     expect(isSliderModel(slider)).toBe(true)
     destroy(tree)
@@ -84,4 +86,50 @@ describe("SliderModel", () => {
     destroy(tree)
   })
 
+  it("can update value dynamically (without undo) and then with undo", () => {
+    const tree = Tree.create({
+      globalValue: g1,
+      sliderModel: { globalValue: g1.id }
+    })
+    const slider = tree.sliderModel
+    expect(slider.isUpdatingDynamically).toBe(false)
+    const initialValue = slider.value
+    const dynamicValue = initialValue + 1
+    const finalValue = dynamicValue + 1
+    slider.setDynamicValue(dynamicValue)
+    expect(slider.isUpdatingDynamically).toBe(true)
+    expect(slider.value).toBe(dynamicValue)
+    expect(slider.globalValue.value).toBe(initialValue)
+    slider.applyUndoableAction(() => slider.setValue(finalValue), "Undo slider change", "Redo slider change")
+    expect(slider.isUpdatingDynamically).toBe(false)
+    expect(slider.value).toBe(finalValue)
+    expect(slider.globalValue.value).toBe(finalValue)
+    expect(slider.dynamicValue).toBeUndefined()
+  })
+
+  it("responds to axis domain changes", () => {
+    const tree = Tree.create({
+      globalValue: g1,
+      sliderModel: { globalValue: g1.id }
+    })
+    const slider = tree.sliderModel
+    slider.setAxisMax(20)
+    slider.setAxisMin(10)
+    expect(slider.value).toBe(10)
+    slider.setAxisMin(0)
+    slider.setAxisMax(5)
+    expect(slider.value).toBe(5)
+
+    expect(slider.validateValue(-1, () => slider.axis.min, () => slider.axis.max)).toBe(0)
+    expect(slider.validateValue(3, () => slider.axis.min, () => slider.axis.max)).toBe(3)
+    expect(slider.validateValue(6, () => slider.axis.min, () => slider.axis.max)).toBe(5)
+
+    slider.setAxisMax(20)
+    slider.setAxisMin(10)
+    slider.encompassValue(0)
+    expect(slider.axis.min).toBe(-2)
+    slider.setAxisMin(10)
+    slider.encompassValue(30)
+    expect(slider.axis.max).toBe(32)
+  })
 })
