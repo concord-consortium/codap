@@ -86,6 +86,7 @@ export const SliderModel = TileContentModel
   }))
   .actions(self => ({
     setDynamicValueIfDynamic(value: number) {
+      // update dynamically if either the slider or the axis is updating dynamically
       if (self.isUpdatingDynamically || self.axis.isUpdatingDynamically) {
         self.setDynamicValue(value)
       }
