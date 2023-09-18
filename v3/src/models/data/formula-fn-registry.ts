@@ -30,14 +30,13 @@ const cachedAggregateFnFactory =
 // The only difference is the final math operation applies to the expression results.
 const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-    const expression = args[0]
-      const filter = args[1]
-      let expressionValues = evaluateNode(expression, scope)
-      if (filter) {
-        const filterValues = evaluateNode(filter, scope)
-        expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
-      }
-      return fn(expressionValues)
+    const [ expression, filter ] = args
+    let expressionValues = evaluateNode(expression, scope)
+    if (filter) {
+      const filterValues = evaluateNode(filter, scope)
+      expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
+    }
+    return fn(expressionValues)
   }
 }
 
@@ -213,8 +212,7 @@ export const fnRegistry = {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const expression = args[0]
-      const filter = args[1]
+      const [ expression, filter ] = args
       if (!expression) {
         // Special case - count() without arguments returns number of children cases.
         return scope.getCaseChildrenCount()
