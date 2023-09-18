@@ -71,7 +71,7 @@ export const GraphAxis = observer(function GraphAxis(
           width = ['bottom', 'top'].includes(place) ? graphWidth : bounds.width,
           transform = `translate(${left}, ${bounds.top})`
         select(wrapperElt)
-          .selectAll<SVGRectElement, number>('rect')
+          .selectAll<SVGRectElement, number>('rect.axis-background')
           .attr('transform', transform)
           .attr('width', width)
           .attr('height', bounds.height)

@@ -1,5 +1,6 @@
 import {Instance, SnapshotIn, isAlive, types} from "mobx-state-tree"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
+import {withUndoRedoStrings} from "../../../models/history/codap-undo-types"
 
 export const AxisModel = types.model("AxisModel", {
   type: types.optional(types.string, () => {
@@ -21,6 +22,9 @@ export const AxisModel = types.model("AxisModel", {
     },
     get isCategorical() {
       return self.type === "categorical"
+    },
+    get isUpdatingDynamically() {
+      return false
     }
   }))
   .actions(self => ({
@@ -29,6 +33,14 @@ export const AxisModel = types.model("AxisModel", {
     },
     setTransitionDuration(duration: number) {
       self.transitionDuration = duration
+    }
+  }))
+  .actions(self => ({
+    // performs the specified action so that response actions are included and undo/redo strings assigned
+    applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
+      const result = actionFn()
+      withUndoRedoStrings(undoStringKey, redoStringKey)
+      return result
     }
   }))
 
@@ -70,16 +82,28 @@ export const NumericAxisModel = AxisModel
     min: types.number,
     max: types.number
   })
+  .volatile(self => ({
+    dynamicMin: undefined as number | undefined,
+    dynamicMax: undefined as number | undefined
+  }))
   .views(self => ({
     get domain() {
       if (!isAlive(self)) {
         console.warn("AxisModel.domain called for defunct axis model")
         return [0, 1] as const
       }
-      return [self.min, self.max] as const
+      return [self.dynamicMin ?? self.min, self.dynamicMax ?? self.max] as const
+    },
+    get isUpdatingDynamically() {
+      return self.dynamicMin != null || self.dynamicMax != null
     }
   }))
   .actions(self => ({
+    setDynamicDomain(min: number, max: number) {
+      // note: we don't snap to 0 during the drag
+      self.dynamicMin = min
+      self.dynamicMax = max
+    },
     setDomain(min: number, max: number) {
       // If we're close enough to zero on either end, we snap to it
       const snapFactor = 100
@@ -90,6 +114,8 @@ export const NumericAxisModel = AxisModel
       }
       self.min = min
       self.max = max
+      self.dynamicMin = undefined
+      self.dynamicMax = undefined
     }
   }))
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
