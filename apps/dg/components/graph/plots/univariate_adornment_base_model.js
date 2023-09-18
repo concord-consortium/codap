@@ -607,6 +607,9 @@ DG.UnivariateAdornmentBaseModel = DG.UnivariatePlotModel.extend(
           var kMargin = 20,
               kLeading = 5,
               kRowHeight = 20,
+             tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot'),
+             kIciEnabled = DG.get('informalConfidenceIntervalEnabled')==='yes' ||
+                           (tBoxPlotModel && this_.getAdornmentModel('plottedBoxPlot').get('showICI')),
               tShowOutliersCheckbox = SC.CheckboxView.create( {
                 layout: { height: kRowHeight },
                 localize: true,
@@ -619,6 +622,17 @@ DG.UnivariateAdornmentBaseModel = DG.UnivariatePlotModel.extend(
                   this_.toggleShowOutliers();
                 }.observes('value')
               }),
+             tShowIciCheckbox = SC.CheckboxView.create( {
+               layout: { height: kRowHeight },
+               localize: true,
+               flowSpacing: { left: kMargin },
+               title: 'DG.Inspector.graphBoxPlotShowICI',
+               value: tBoxPlotModel ? tBoxPlotModel.get('showICI') : false,
+               classNames: 'dg-graph-boxPlotShowICI-check'.w(),
+               valueDidChange: function () {
+                 this_.toggleShowICI();
+               }.observes('value')
+             }),
               tBoxPlotCheckbox = SC.CheckboxView.create( {
                 layout: { height: kRowHeight },
                 localize: true,
@@ -628,6 +642,7 @@ DG.UnivariateAdornmentBaseModel = DG.UnivariatePlotModel.extend(
                 valueDidChange: function () {
                   this_.togglePlottedBoxPlot();
                   tShowOutliersCheckbox.set('isEnabled', isBoxPlotVisible());
+                  tShowIciCheckbox.set('isEnabled', isBoxPlotVisible());
                 }.observes('value')
               });
 
@@ -652,6 +667,10 @@ DG.UnivariateAdornmentBaseModel = DG.UnivariatePlotModel.extend(
                   tShowOutliersCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
                   this.appendChild( tBoxPlotCheckbox);
                   this.appendChild(tShowOutliersCheckbox);
+                  if( kIciEnabled) {
+                    tShowIciCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
+                    this.appendChild(tShowIciCheckbox);
+                  }
                 }
               });
           return tComposite;

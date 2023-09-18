@@ -494,14 +494,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           this.notifyPropertyChange('numberOfCells');
         }.observes('*model.numberOfCells'),
 
+        fullWidth: function () {
+          return Math.abs(this.get('pixelMax') - this.get('pixelMin'));
+        }.property('pixelMax', 'pixelMin'),
+
         /**
          The total distance in pixels between one cell and the next without any "slop" at the ends.
          @property {Number} in pixels
          */
         fullCellWidth: function () {
-          var tNumCells = this.get('numberOfCells');
-
-          return Math.abs(this.get('pixelMax') - this.get('pixelMin')) / tNumCells;
+          return this.get('fullWidth') / this.get('numberOfCells');
         }.property('numberOfCells', 'pixelMax', 'pixelMin'),
 
         /**

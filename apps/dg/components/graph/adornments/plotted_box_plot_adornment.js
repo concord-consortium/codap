@@ -45,6 +45,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         outlierCovers: null,
         ici: null,
         iciCover: null,
+        iciHoverElement: null,
 
         init: function () {
           sc_super();
@@ -69,6 +70,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           });
           this.ici && iDest.push(this.ici);
           this.iciCover && iDest.push(this.iciCover);
+          this.iciHoverElement && iDest.push(this.iciHoverElement);
         },
 
         removeFromArrayAndLayer: function (iArray, iLayer) {
@@ -95,6 +97,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           });
           removeElement( this.ici);
           removeElement( this.iciCover);
+          removeElement( this.iciHoverElement);
         }
       });
 
@@ -107,6 +110,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         symStrokeWidth: 1,
         iciStroke: '#30F',
         iciStrokeWidth: 2,
+        iciHoverElementStrokeWidth: 1,
 
         modelPropertiesToObserve: [ ['showOutliers', 'updateVisibility'] ],
 
@@ -208,9 +212,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
               tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === DG.GraphTypes.EOrientation.kHorizontal),
               tValuesArray = this.getPath('model.values'),
               tNumValues = tValuesArray && tValuesArray.length,
-              tPaper = this.get('paper'),
-              tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
-              tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group('');
+              tPaper = this.get('paper');
           if (!tSecondaryAxisView || !tNumValues || !tPaper)
             return; // Happens during transition after secondary attribute removed but before new axis created
           var formatValue = function( iValue) {
@@ -220,28 +222,39 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                return tNumFormat(iValue);
              };
 
-          var tCellHeight = (tNumValues ?
-                  (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin')) / tNumValues) : 0),
-              tSpec = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap},
+          var tFullHeight = tSecondaryAxisView.get('fullWidth'),
+              tCellHeight = (tNumValues ? tSecondaryAxisView.get('fullCellWidth') : 0),
+              tSpec = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap,
+                              fullHeight: tFullHeight},
               tOffScreen = -3 * this.symSize, // negative view coordinate to move off-screen to hide
               tBoxWidth = Math.min(tCellHeight / 3, DG.PlotUtilities.kBoxplotMaxWidth);
 
           function overScope() {
             var tAttributes = {stroke: this_.hoverColor};
             this.stop();
-            this.animate(tAttributes, this_.hoverDelay);
+            this.animate(tAttributes, this_.hoverDelay, '<>');
             var tBBox = this.getBBox();
             this_.get('infoTip').show({
               x: tBBox.x, y: tBBox.y - 2,
               tipString: this.info.tipString, tipValue: formatValue(this.info.tipValue)
             });
+            if( this.info.tipString.indexOf('ICI') >= 0) {  // ICI has a special hover element
+              var tICIHover = this_.boxPlotSymbols[this.index].iciHoverElement;
+              tICIHover.stop();
+              tICIHover.animate({ 'stroke-opacity': 1 }, this_.hoverDelay, '<>');
+            }
           }
 
           function outScope() {
             var tAttributes = {stroke: DG.RenderingUtilities.kTransparent};
             this.stop();
-            this.animate(tAttributes, DG.PlotUtilities.kHighlightHideTime);
+            this.animate(tAttributes, DG.PlotUtilities.kHighlightHideTime, '<>');
             this_.get('infoTip').hide();
+            if( this.info.tipString.indexOf('ICI') >= 0) {  // ICI has a special hover element
+              var tICIHover = this_.boxPlotSymbols[this.index].iciHoverElement;
+              tICIHover.stop();
+              tICIHover.animate({ 'stroke-opacity': 0 }, DG.PlotUtilities.kHighlightHideTime, '<>');
+            }
           }
 
           function select() {
@@ -342,6 +355,16 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                         'M%@,%@ v%@'.fmt( tXCenter, tSpec.iciLower, tSpec.iciUpper - tSpec.iciLower);
                },
 
+                getIciHoverPath = function () {
+                 return tIsHorizontal ?
+                        'M%@,%@ v%@ M%@,%@ v%@'
+                           .fmt( tSpec.iciLower, 0, tSpec.fullHeight,
+                              tSpec.iciUpper, 0, tSpec.fullHeight) :
+                        'M%@,%@ h%@ M%@,%@ h%@'
+                           .fmt( 0, tSpec.iciLower, tSpec.fullHeight,
+                              0, tSpec.iciUpper, tSpec.fullHeight);
+               },
+
                 getCrossCover = function (iHKey, iVKey) {
                   return tIsHorizontal ?
                     // Move to the position for horizontal drawing and then make a line across the boxplot width
@@ -395,6 +418,9 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   tSymbol.iciCover = tPaper.path(getIci())
                      .attr({'stroke-width': this.hoverWidth, stroke: DG.RenderingUtilities.kTransparent,})
                      .hover(overScope, outScope);
+                  tSymbol.iciCover.index = iIndex;
+                  tSymbol.iciHoverElement = tPaper.path(getIciHoverPath())
+                     .attr({'stroke-width': this.iciHoverElementStrokeWidth, stroke: this.iciStroke, 'stroke-opacity': 0});
 
                   tSymbol.lowerRect.animatable =
                       tSymbol.upperRect.animatable =
@@ -441,6 +467,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   iSymbol.Q3Cover.attr('path', getCrossCover('Q3', 'Q3'));
                   iSymbol.ici.attr('path', getIci());
                   iSymbol.iciCover.attr('path', getIci());
+                  iSymbol.iciHoverElement.attr('path', getIciHoverPath());
 
                   iSymbol.iciCover.info = {
                     tipString: 'ICI: [%@, %@]'.fmt(formatValue(tMedian - tIci),
@@ -501,6 +528,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   iSymbol.Q1Cover.toFront();
                   iSymbol.Q3Cover.toFront();
                   iSymbol.iciCover.toFront();
+                  iSymbol.iciHoverElement.toFront();
                 }.bind( this);
 
             // Begin updateOneBoxPlot

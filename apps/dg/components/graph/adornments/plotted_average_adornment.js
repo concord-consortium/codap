@@ -65,6 +65,12 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
       lineCovers: null,
 
       /**
+       * These display when user hovers over a symbol but are not part of the symbol
+       * @property {Element[]}
+       */
+      hoverElements: null,
+
+      /**
        Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
        which observers to add/remove from the model.
 
@@ -76,6 +82,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
       init: function () {
         sc_super();
         this.lineCovers = [];
+        this.hoverElements = [];
       },
 
       /** do we want the average to be visible and up to date? Yes if our model 'isVisible' */
@@ -163,10 +170,12 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
         if (!tSecondaryAxisView || !tNumValues)
           return; // Happens during transition after secondary attribute removed but before new axis created
         var tCellHeight = tAdornment.getPath('parentView.secondaryAxisView.fullCellWidth'),
-            p = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap},
+            tFullHeight = tAdornment.getPath('parentView.secondaryAxisView.fullWidth'),
+            p = {x: 0, y: 0, symSize: this.symSize, cellHeight: tCellHeight - this.cellGap,
+              fullHeight: tFullHeight},
             tOffScreen = -3 * this.symSize; // negative view coordinate to move off screen to hide
-        var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat, tAmplitude
-        var tSymbol, tCover, tBackground, kElemsPerCell = 3; // rafael elements
+        var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat, tAmplitude;
+        var tSymbol, tCover, tHoverElement, tBackground, kElemsPerCell = 4; // rafael elements
 
         function overScope() {
           tAdornment.highlightOne(this._valueIndex);
@@ -227,21 +236,28 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
                 .hover(overScope, outScope);
             tCover._valueIndex = i;
             this.lineCovers[i] = tCover;
+            tHoverElement = tPaper.path('M0,0')
+                .attr({stroke: this.symStroke, 'stroke-width': this.symStrokeWidth, 'stroke-opacity': 0});
+            tHoverElement._valueIndex = i;
+            this.hoverElements[i] = tHoverElement;
             tBackground.animatable = tSymbol.animatable = true;
             tBackground.animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
             tSymbol.animate({'stroke-opacity': 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
             this.myElements.push(tBackground);
             this.myElements.push(tSymbol);
             this.myElements.push(tCover);
+            this.myElements.push(tHoverElement);
             tShadingLayer.push(tBackground);
             tLayer.push(tSymbol);
             tLayer.push(tCover);
+            tLayer.push(tHoverElement);
           }
 
           // update elements (to current size/position)
           tBackground = this.myElements[i * kElemsPerCell];
           tSymbol = this.myElements[i * kElemsPerCell + 1];
           tCover = this.myElements[i * kElemsPerCell + 2];
+          tHoverElement = this.myElements[i * kElemsPerCell + 3];
           if (iAnimate) {
             tBackground.animate({path: this.backgroundPath(p, tIsHorizontal)}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
             tSymbol.animate({path: this.symbolPath(p, tIsHorizontal)}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
@@ -251,6 +267,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
             tSymbol.attr({path: this.symbolPath(p, tIsHorizontal)});
           }
           tCover.attr('path', this.coverPath(p, tIsHorizontal));
+          tHoverElement.attr('path', this.hoverElementPath(p, tIsHorizontal));
 
           // save the following values for updateTextElement() which is called during hover over the cover element
           tCover.textStatValue = tStat;
@@ -262,6 +279,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
 
           tSymbol.toFront(); // keep averages on top of cases
           tCover.toFront();  // keep cover on top of average symbol
+          tHoverElement.toFront();  // So we can see it
           if (!this.get('showMeasureLabels')) {
             if (this.textElement) {
               this.backgrndRect.toFront();
@@ -328,6 +346,15 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
         } else {
           return 'M%@,%@ h%@'.fmt(p.x, p.y, p.cellHeight);
         }
+      },
+
+      /**
+       * Create the path string for element that will display on hover but is not part of the symbol.
+       * @param p {x,y,cellHeight} of reference point
+       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+       */
+      hoverElementPath: function (p, iIsHorizontal) {
+        return '';
       },
 
       /**
@@ -597,20 +624,28 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend(DG.LineLabe
         }.observes('offset'),
 
         highlightOne: function (iIndex) {
-          var tAttributes = {stroke: this.hoverColor},
-              tCoverElement = this.lineCovers[iIndex];
+          var tCoverAttributes = {stroke: this.hoverColor},
+              tHoverAttributes = {'stroke-opacity': 1},
+              tCoverElement = this.lineCovers[iIndex],
+              tHoverElement = this.hoverElements[iIndex];
           tCoverElement.stop();
-          tCoverElement.animate(tAttributes, this.hoverDelay);
+          tCoverElement.animate(tCoverAttributes, this.hoverDelay);
+          tHoverElement.stop();
+          tHoverElement.animate(tHoverAttributes, this.hoverDelay);
           if (this.get('showMeasureLabels')) {
             this.get('equationViews')[iIndex].set('highlighted', true);
           }
         },
 
         unHighlightOne: function (iIndex) {
-          var tAttributes = {stroke: DG.RenderingUtilities.kTransparent},
-              tCoverElement = this.lineCovers[iIndex];
+          var tCoverAttributes = {stroke: DG.RenderingUtilities.kTransparent},
+              tHoverAttributes = {'stroke-opacity': 0},
+              tCoverElement = this.lineCovers[iIndex],
+              tHoverElement = this.hoverElements[iIndex];
           tCoverElement.stop();
-          tCoverElement.animate(tAttributes, DG.PlotUtilities.kHighlightHideTime);
+          tCoverElement.animate(tCoverAttributes, DG.PlotUtilities.kHighlightHideTime);
+          tHoverElement.stop();
+          tHoverElement.animate(tHoverAttributes, DG.PlotUtilities.kHighlightHideTime);
           if (this.get('showMeasureLabels')) {
             this.get('equationViews')[iIndex].set('highlighted', false);
           }
@@ -874,6 +909,26 @@ DG.PlottedStErrAdornment = DG.PlottedSimpleAverageAdornment.extend(
       */
      coverPath: function (p, iIsHorizontal) {
        return this.symbolPath(p, iIsHorizontal);
+     },
+
+     /**
+      * Create the path string for any element we want to show on hover but not to trigger a hover.
+      * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
+      * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+      */
+     hoverElementPath: function (p, iIsHorizontal) {
+       var tWidth = this.getPath('model.numberOfStdErrs') * p.width;
+       if (iIsHorizontal) {
+         return 'M%@,%@ v%@ M%@,%@ v%@'.fmt(
+            p.x - tWidth, 0, p.fullHeight,  // vertical line segment to axis
+            p.x + tWidth, 0, p.fullHeight // vertical line segment to axis
+         ); // vertical line up on mean + stErr
+       } else {
+         return 'M%@,%@ h%@ M%@,%@ h%@'.fmt(
+            0, p.y + tWidth, p.fullHeight,  // horizontal line segment to axis
+            0, p.y - tWidth, p.fullHeight // horizontal line segment to axis
+          );
+       }
      },
 
      /**
