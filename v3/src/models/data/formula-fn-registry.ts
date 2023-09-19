@@ -298,8 +298,7 @@ export const fnRegistry = {
         currentIndex: number
         resultIndex: number
         expressionValues: FValue[]
-        selfReferencePresent: boolean
-        filterValues?: FValue[]
+        filterValues: FValue[]
       }
 
       const cacheKey = `prev(${args.toString()})-${scope.getCaseGroupId()}`
@@ -308,12 +307,16 @@ export const fnRegistry = {
       let result
 
       if (cachedData !== undefined) {
-        const { currentIndex, resultIndex, expressionValues, filterValues, selfReferencePresent } = cachedData
-        if (selfReferencePresent) {
+        const { currentIndex, resultIndex, expressionValues, filterValues } = cachedData
+        // This block will resolve attribute names to previous case values.
+        scope.withPreviousCase(() => {
           const newExpressionValue = evaluateNode(expression, scope)
           expressionValues.push(newExpressionValue)
-        }
-
+          if (filterValues) {
+            const newFilterValue = evaluateNode(filter, scope)
+            filterValues.push(newFilterValue)
+          }
+        })
         // In case we don't find a new result index, we need to reuse the old one.
         let newResultIndex = resultIndex
         if (!filterValues || isValueTruthy(filterValues[currentIndex - 1])) {
@@ -324,34 +327,25 @@ export const fnRegistry = {
           newResultIndex = currentIndex - 1
         }
         result = expressionValues[newResultIndex]
-
         scope.setCached(cacheKey, {
-          ...cachedData,
-          expressionValues, // array is never recreated so it's theoretically not necessary, but just to be safe
           currentIndex: currentIndex + 1,
           resultIndex: newResultIndex,
+          expressionValues,
+          filterValues
         })
       } else {
         // This block of code will be executed only once for each group (if there's grouping), for the very first case.
         // The very first case can't return anything from prev() function.
         const currentIndex = 0
-        const filterValues = filter && evaluateNode(filter, scope)
-        const expressionValues = evaluateNode(expression, scope)
-        // This is taking advantage of the fact that expressionValues is an array for regular aggregate functions.
-        // However, if formula is referencing itself, the scope will return a single value - previous result.
-        // Another approach would be to parse expression string and look for self-reference.
-        const selfReferencePresent = !Array.isArray(expressionValues)
         result = undefined
         scope.setCached(cacheKey, {
           currentIndex: currentIndex + 1,
           resultIndex: currentIndex - 1,
-          expressionValues: selfReferencePresent ? [] : expressionValues,
-          selfReferencePresent,
-          filterValues
+          expressionValues: [],
+          filterValues: filter ? [] : undefined
         })
       }
-      const finalResult = result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
-      return finalResult
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
     }
   },
 
