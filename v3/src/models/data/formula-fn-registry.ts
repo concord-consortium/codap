@@ -40,7 +40,8 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
   }
 }
 
-// CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior.
+// CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior. So that, for instance,
+// count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
 export const isValueTruthy = (value: any) => value !== "" && value !== false && value !== null && value !== undefined
 
 const UNDEF_RESULT = ""
