@@ -288,6 +288,9 @@ export const fnRegistry = {
 
   // prev(expression, defaultValue, filter)
   prev: {
+    // Circular reference might be used to define a formula that calculates the cumulative value, e.g.:
+    // `CumulativeValue` attribute formula: `Value + prev(CumulativeValue, 0)`
+    selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
@@ -295,6 +298,7 @@ export const fnRegistry = {
         currentIndex: number
         resultIndex: number
         expressionValues: FValue[]
+        selfReferencePresent: boolean
         filterValues?: FValue[]
       }
 
@@ -304,7 +308,12 @@ export const fnRegistry = {
       let result
 
       if (cachedData !== undefined) {
-        const { currentIndex, resultIndex, expressionValues, filterValues } = cachedData
+        const { currentIndex, resultIndex, expressionValues, filterValues, selfReferencePresent } = cachedData
+        if (selfReferencePresent) {
+          const newExpressionValue = evaluateNode(expression, scope)
+          expressionValues.push(newExpressionValue)
+        }
+
         // In case we don't find a new result index, we need to reuse the old one.
         let newResultIndex = resultIndex
         if (!filterValues || isValueTruthy(filterValues[currentIndex - 1])) {
@@ -315,8 +324,10 @@ export const fnRegistry = {
           newResultIndex = currentIndex - 1
         }
         result = expressionValues[newResultIndex]
+
         scope.setCached(cacheKey, {
           ...cachedData,
+          expressionValues, // array is never recreated so it's theoretically not necessary, but just to be safe
           currentIndex: currentIndex + 1,
           resultIndex: newResultIndex,
         })
@@ -326,15 +337,21 @@ export const fnRegistry = {
         const currentIndex = 0
         const filterValues = filter && evaluateNode(filter, scope)
         const expressionValues = evaluateNode(expression, scope)
+        // This is taking advantage of the fact that expressionValues is an array for regular aggregate functions.
+        // However, if formula is referencing itself, the scope will return a single value - previous result.
+        // Another approach would be to parse expression string and look for self-reference.
+        const selfReferencePresent = !Array.isArray(expressionValues)
         result = undefined
         scope.setCached(cacheKey, {
           currentIndex: currentIndex + 1,
           resultIndex: currentIndex - 1,
-          expressionValues,
+          expressionValues: selfReferencePresent ? [] : expressionValues,
+          selfReferencePresent,
           filterValues
         })
       }
-      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
+      const finalResult = result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
+      return finalResult
     }
   },
 

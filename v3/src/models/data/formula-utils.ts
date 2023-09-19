@@ -115,13 +115,27 @@ export const isRandomFunctionPresent = (formulaCanonical: string) => {
   return result
 }
 
-export const getFormulaDependencies = (formulaCanonical: string) => {
+// When formulaAttributeId is provided, dependencies will not include self references for functions that allow that.
+// In practice, it's only prev() at the moment. Self-reference is sometimes used in V2 to calculate cumulative value.
+export const getFormulaDependencies = (formulaCanonical: string, formulaAttributeId?: string) => {
   const formulaTree = parse(formulaCanonical)
+
+  interface IExtendedMathNode extends MathNode {
+    isSelfReferenceAllowed?: boolean
+  }
   const result: IFormulaDependency[] = []
-  const visitNode = (node: MathNode) => {
+  const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.selfReferenceAllowed || parent?.isSelfReferenceAllowed) {
+      node.isSelfReferenceAllowed = true
+    }
+    const isSelfReferenceAllowed = !!node.isSelfReferenceAllowed
     if (isSymbolNode(node)) {
       const parsedName = parseCanonicalSymbolName(node.name)
-      if (parsedName) {
+      const isNodeReferencingItself = formulaAttributeId &&
+        parsedName?.type === "localAttribute" && parsedName.attrId === formulaAttributeId
+      // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
+      // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
+      if (parsedName && (!isNodeReferencingItself || !isSelfReferenceAllowed)) {
         result.push(parsedName)
       }
     }

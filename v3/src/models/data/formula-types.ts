@@ -56,6 +56,9 @@ export interface IFormulaMathjsFunction {
   // Value of isRandomFunction is a boolean. When true, it means that the function is a random function.
   // Formula needs to know whether it includes random functions, so we can enable rerandomize feature.
   isRandomFunction?: boolean
+  // Self reference might be used to define a formula that calculates the cumulative value, e.g.:
+  // `CumulativeValue` attribute formula: `Value + prev(CumulativeValue, 0)`
+  selfReferenceAllowed?: boolean
   // `evaluate` function accepts arguments already processed and evaluated by mathjs.
   evaluate?: EvaluateFunc
   // `evaluateRaw` function accepts raw arguments following convention defined by mathjs.
