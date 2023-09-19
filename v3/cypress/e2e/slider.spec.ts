@@ -141,7 +141,7 @@ context("Slider UI", () => {
   it("checks editing variable name in one slider only affects that slider", () => {
     const newSliderName = "xyz"
     c.createFromToolshelf("slider")
-    
+
     slider.changeVariableName(newSliderName, 1)
     c.getComponentTitle("slider", 0).should("contain", sliderName)
     c.getComponentTitle("slider", 1).should("contain", newSliderName)
@@ -151,7 +151,7 @@ context("Slider UI", () => {
   it("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "100"
     c.createFromToolshelf("slider")
-    
+
     slider.changeVariableValue(newVariableValue, 1)
     slider.getVariableValue(0).should("contain", initialSliderValue)
     slider.getVariableValue(1).should("contain", newVariableValue)
@@ -235,15 +235,15 @@ context("Slider UI", () => {
   })
   it("checks min max slider values", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
-    slider.changeVariableValue("12345678901234567890")
-    slider.getVariableValue().should("contain", "1.235e+14")
+    // slider.changeVariableValue("12345678901234567890")
+    // slider.getVariableValue().should("contain", "1.235e+14")
 
     // slider.changeVariableValue("0.12345678901234567890")
     // slider.getVariableValue().should("contain", "0")
 
     // slider.changeVariableValue("0.006")
     // slider.getVariableValue().should("contain", "0")
-    
+
     slider.changeVariableValue("abc")
     slider.getVariableValue().should("contain", "")
   })

@@ -68,6 +68,11 @@ export const SliderModel = TileContentModel
         value = Math.round(value / self.multipleOf) * self.multipleOf
       }
       return keepValueInBounds(value)
+    },
+    validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
+      if (value < self.axis.min) return belowMin(value)
+      if (value > self.axis.max) return aboveMax(value)
+      return value
     }
   }))
   .actions(self => ({
@@ -80,13 +85,24 @@ export const SliderModel = TileContentModel
     },
   }))
   .actions(self => ({
+    setDynamicValueIfDynamic(value: number) {
+      // update dynamically if either the slider or the axis is updating dynamically
+      if (self.isUpdatingDynamically || self.axis.isUpdatingDynamically) {
+        self.setDynamicValue(value)
+      }
+      else {
+        self.setValue(value)
+      }
+    },
+  }))
+  .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
         () => self.axis.domain,
-        () => {
+        ([axisMin, axisMax]) => {
           // keep the thumbnail within axis bounds when axis bounds are changed
-          if (self.value < self.axis.min) self.setValue(self.axis.min)
-          if (self.value > self.axis.max) self.setValue(self.axis.max)
+          if (self.value < axisMin) self.setDynamicValueIfDynamic(axisMin)
+          if (self.value > axisMax) self.setDynamicValueIfDynamic(axisMax)
         }, { name: "SliderModel [axis.domain]" }
       ))
     },
@@ -142,12 +158,7 @@ export const SliderModel = TileContentModel
     },
     setAxisMax(n: number) {
       self.axis.max = n
-    },
-    validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
-      if (value < self.axis.min) return belowMin(value)
-      if (value > self.axis.max) return aboveMax(value)
-      return value
-    },
+    }
   }))
   .actions(self => ({
     encompassValue(input: number) {

@@ -38,7 +38,8 @@ export const NumericAxisDragRects = observer(
         upper: number,
         minDelta: number,
         dilationAnchorCoord: number,
-        dragging = false
+        dragging = false,
+        dilating = false
 
       const onDragStart: D3Handler = function() {
           const subAxisLength = layout.getAxisLength(place) / numSubAxes,
@@ -68,6 +69,7 @@ export const NumericAxisDragRects = observer(
           dilationAnchorCoord = Number(place === 'bottom' ? d3Scale.invert(event.x)
             : d3Scale.invert(event.y))
           dragging = true
+          dilating = true
           axisModel.setTransitionDuration(0)
         },
 
@@ -80,7 +82,7 @@ export const NumericAxisDragRects = observer(
               ratio = (upper - x2) / (upper - dilationAnchorCoord),
               newRange = (upper - lower) / ratio,
               newLowerBound = upper - newRange
-            axisModel.setDomain(newLowerBound, upper)
+            axisModel.setDynamicDomain(newLowerBound, upper)
           }
         },
 
@@ -91,7 +93,7 @@ export const NumericAxisDragRects = observer(
               Number(d3Scale.invert(0))
             lower += worldDelta
             upper += worldDelta
-            axisModel.setDomain(lower, upper)
+            axisModel.setDynamicDomain(lower, upper)
           }
         },
 
@@ -104,14 +106,20 @@ export const NumericAxisDragRects = observer(
               ratio = (x2 - lower) / (dilationAnchorCoord - lower),
               newRange = (upper - lower) / ratio,
               newUpperBound = lower + newRange
-            axisModel.setDomain(lower, newUpperBound)
+            axisModel.setDynamicDomain(lower, newUpperBound)
           }
         },
 
         onDragEnd: D3Handler = function() {
           select(this)
             .classed('dragging', false)
+          // move "dynamic" values to model on drop
+          axisModel.applyUndoableAction(
+            () => axisModel.setDomain(...axisModel.domain),
+            dilating ? "DG.Undo.axisDilate" : "DG.Undo.axisDrag",
+            dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag")
           dragging = false
+          dilating = false
         }
 
       if (rectRef.current) {

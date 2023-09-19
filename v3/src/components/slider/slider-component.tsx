@@ -25,7 +25,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
-  const animationRef = useRef(true)
+  const animationRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
 
   const axisProvider = useMemo(() => ({

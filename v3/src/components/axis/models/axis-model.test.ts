@@ -1,4 +1,6 @@
-import {AxisModel, AxisModelUnion, IAxisModelUnion, isNumericAxisModel, NumericAxisModel} from "./axis-model"
+import {
+  AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
+} from "./axis-model"
 import {getSnapshot, types} from "mobx-state-tree"
 
 describe("AxisModel", () => {
@@ -6,12 +8,63 @@ describe("AxisModel", () => {
     expect(() => AxisModel.create({ place: "left" })).toThrow()
   })
 
+  it("should identify numeric and categorical axes", () => {
+    const empty = EmptyAxisModel.create({ place: "bottom" })
+    expect(empty.isNumeric).toBe(false)
+    expect(empty.isCategorical).toBe(false)
+    expect(empty.isUpdatingDynamically).toBe(false)
+    expect(isEmptyAxisModel(empty)).toBe(true)
+    expect(isNumericAxisModel(empty)).toBe(false)
+    expect(isCategoricalAxisModel(empty)).toBe(false)
+
+    const numeric = NumericAxisModel.create({ place: "bottom", min: 0, max: 1 })
+    expect(numeric.isNumeric).toBe(true)
+    expect(numeric.isCategorical).toBe(false)
+    expect(numeric.isUpdatingDynamically).toBe(false)
+    expect(isEmptyAxisModel(numeric)).toBe(false)
+    expect(isNumericAxisModel(numeric)).toBe(true)
+    expect(isCategoricalAxisModel(numeric)).toBe(false)
+
+    const categorical = CategoricalAxisModel.create({ place: "bottom" })
+    expect(categorical.isNumeric).toBe(false)
+    expect(categorical.isCategorical).toBe(true)
+    expect(categorical.isUpdatingDynamically).toBe(false)
+    expect(isEmptyAxisModel(categorical)).toBe(false)
+    expect(isNumericAxisModel(categorical)).toBe(false)
+    expect(isCategoricalAxisModel(categorical)).toBe(true)
+  })
+
+  it("should set scale and transitionDuration", () => {
+    const numeric = NumericAxisModel.create({ place: "bottom", min: 0, max: 1 })
+    expect(numeric.scale).toBe("linear")
+    numeric.setScale("log")
+    expect(numeric.scale).toBe("log")
+
+    expect(numeric.transitionDuration).toBe(0)
+    numeric.setTransitionDuration(100)
+    expect(numeric.transitionDuration).toBe(100)
+  })
 })
 
 describe("NumericAxisModel", () => {
   it("should compute the correct orientation", () => {
     expect(NumericAxisModel.create({ place: "bottom", min: 0, max: 10 }).orientation).toBe("horizontal")
     expect(NumericAxisModel.create({ place: "left", min: 0, max: 10 }).orientation).toBe("vertical")
+  })
+  it("should set domain without undo and with undo", () => {
+    const aModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
+    aModel.setDynamicDomain(10, 20)
+    expect(aModel.isUpdatingDynamically).toBe(true)
+    expect(aModel.domain).toEqual([10, 20])
+    expect(aModel.min).toBe(0)
+    expect(aModel.max).toBe(10)
+    aModel.applyUndoableAction(
+      () => aModel.setDomain(10, 20),
+      "Undo the thing", "Redo the thing"
+    )
+    expect(aModel.isUpdatingDynamically).toBe(false)
+    expect(aModel.min).toBe(10)
+    expect(aModel.max).toBe(20)
   })
   it("should snap to zero for minimum", () => {
     const aModel = NumericAxisModel.create({ place: "bottom", min: 10, max: 100 })
@@ -30,11 +83,11 @@ describe("deserializes axes of the appropriate type", () => {
     const M = types.model("Test", {
       axis: AxisModelUnion
     })
-      .actions(self => ({
-        setAxis(axis: IAxisModelUnion) {
-          self.axis = axis
-        }
-      }))
+    .actions(self => ({
+      setAxis(axis: IAxisModelUnion) {
+        self.axis = axis
+      }
+    }))
 
     const numAxis = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     const num = M.create({ axis : numAxis })
@@ -44,4 +97,3 @@ describe("deserializes axes of the appropriate type", () => {
     expect(isNumericAxisModel(num2.axis) && num2.axis.domain).toBeDefined()
   })
 })
-

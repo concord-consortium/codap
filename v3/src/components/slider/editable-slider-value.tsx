@@ -40,8 +40,12 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = parseFloat(e.target.value)
     if (isFinite(inputValue)) {
-      sliderModel.encompassValue(inputValue)
-      sliderModel.setValue(inputValue)
+      sliderModel.applyUndoableAction(
+        () => {
+          sliderModel.encompassValue(inputValue)
+          sliderModel.setValue(inputValue)
+        },
+        "DG.Undo.slider.change", "DG.Redo.slider.change")
     }
   }
 

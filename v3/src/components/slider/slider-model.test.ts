@@ -94,12 +94,15 @@ describe("SliderModel", () => {
     const slider = tree.sliderModel
     expect(slider.isUpdatingDynamically).toBe(false)
     const initialValue = slider.value
-    const dynamicValue = initialValue + 1
-    const finalValue = dynamicValue + 1
-    slider.setDynamicValue(dynamicValue)
+    const dynamicValue1 = initialValue + 1
+    const dynamicValue2 = dynamicValue1 + 1
+    const finalValue = dynamicValue2 + 1
+    slider.setDynamicValue(dynamicValue1)
     expect(slider.isUpdatingDynamically).toBe(true)
-    expect(slider.value).toBe(dynamicValue)
+    expect(slider.value).toBe(dynamicValue1)
     expect(slider.globalValue.value).toBe(initialValue)
+    slider.setDynamicValueIfDynamic(dynamicValue2)
+    expect(slider.value).toBe(dynamicValue2)
     slider.applyUndoableAction(() => slider.setValue(finalValue), "Undo slider change", "Redo slider change")
     expect(slider.isUpdatingDynamically).toBe(false)
     expect(slider.value).toBe(finalValue)
