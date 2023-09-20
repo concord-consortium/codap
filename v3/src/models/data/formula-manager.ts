@@ -47,13 +47,18 @@ export class FormulaManager {
     this.globalValueManager = globalValueManager
   }
 
-  // Retrieves formula context like its attribute, dataset, etc. It also validates correctness of the formula
-  // and its context.
-  getFormulaContext(formulaId: string) {
+  getFormulaMetadata(formulaId: string) {
     const formulaMetadata = this.formulaMetadata.get(formulaId)
     if (!formulaMetadata) {
       throw new Error(`Formula ${formulaId} not registered`)
     }
+    return formulaMetadata
+  }
+
+  // Retrieves formula context like its attribute, dataset, etc. It also validates correctness of the formula
+  // and its context.
+  getFormulaContext(formulaId: string) {
+    const formulaMetadata = this.getFormulaMetadata(formulaId)
     const dataSet = this.dataSets.get(formulaMetadata.dataSetId)
     if (!dataSet) {
       throw new Error(`Dataset ${formulaMetadata.dataSetId} not available`)
@@ -228,17 +233,25 @@ export class FormulaManager {
       // Register formulas. For simplicity, we unregister all formulas and register them again when canonical form is
       // updated. Note that even empty formulas are registered, so the metadata is always available when cycle detection
       // is executed.
+      const updatedFormulas: string[] = []
       this.dataSets.forEach(dataSet => {
         dataSet.attributes.forEach(attr => {
-          if (this.formulaMetadata.has(attr.formula.id)) {
-            if (this.formulaMetadata.get(attr.formula.id)?.registeredDisplay !== attr.formula.display) {
-              this.unregisterFormula(attr.formula.id)
-              this.registerFormula(attr.formula, attr.id, dataSet)
-            }
-          } else {
+          const metadata = this.formulaMetadata.get(attr.formula.id)
+          if (!metadata || metadata.registeredDisplay !== attr.formula.display) {
+            this.unregisterFormula(attr.formula.id)
             this.registerFormula(attr.formula, attr.id, dataSet)
+            if (!attr.formula.empty) {
+              updatedFormulas.push(attr.formula.id)
+            }
           }
         })
+      })
+      updatedFormulas.forEach(formulaId => {
+        const errorPresent = this.registerFormulaErrors(formulaId)
+        if (!errorPresent) {
+          this.setupFormulaObservers(formulaId)
+          this.recalculateFormula(formulaId)
+        }
       })
     }, { fireImmediately: true })
   }
@@ -259,28 +272,34 @@ export class FormulaManager {
       dataSetId: dataSet.id
     }
     this.formulaMetadata.set(formula.id, formulaMetadata)
+  }
 
-    if (formula.empty) {
-      // Nothing else to do, formula is empty.
-      return
-    }
+  registerFormulaErrors(formulaId: string) {
+    const { formula } = this.getFormulaContext(formulaId)
 
     if (formula.syntaxError) {
-      return this.setFormulaError(formula.id, formulaError("DG.Formula.SyntaxErrorMiddle", [ formula.syntaxError ]))
+      this.setFormulaError(formulaId, formulaError("DG.Formula.SyntaxErrorMiddle", [ formula.syntaxError ]))
+      return true
     }
-
     // Check if there is a dependency cycle. Note that it needs to happen after formula is registered, so that
     // the dependency check can access all the metadata in the formula registry.
-    if (this.isDependencyCyclePresent(formula.id)) {
-      return this.setFormulaError(formula.id, formulaError("V3.formula.error.cycle"))
+    if (this.isDependencyCyclePresent(formulaId)) {
+      this.setFormulaError(formulaId, formulaError("V3.formula.error.cycle"))
+      return true
     }
+    return false
+  }
 
-    const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
-    const disposeLocalAttributeObserver = this.observeLocalAttributes(formula.id, formulaDependencies)
-    const disposeGlobalValueObservers = this.observeGlobalValues(formula.id, formulaDependencies)
-    const disposeLookupObservers = this.observeLookup(formula.id, formulaDependencies)
+  setupFormulaObservers(formulaId: string) {
+    const formulaMetadata = this.getFormulaMetadata(formulaId)
+    const { formula } = formulaMetadata
 
-    this.formulaMetadata.set(formula.id, {
+    const formulaDependencies = getFormulaDependencies(formula.canonical, formulaMetadata.attributeId)
+    const disposeLocalAttributeObserver = this.observeLocalAttributes(formulaId, formulaDependencies)
+    const disposeGlobalValueObservers = this.observeGlobalValues(formulaId, formulaDependencies)
+    const disposeLookupObservers = this.observeLookup(formulaId, formulaDependencies)
+
+    this.formulaMetadata.set(formulaId, {
       ...formulaMetadata,
       dispose: () => {
         disposeLocalAttributeObserver()
@@ -288,9 +307,6 @@ export class FormulaManager {
         disposeLookupObservers.forEach(disposeLookupObserver => disposeLookupObserver())
       },
     })
-
-    // Initial call of formula evaluation.
-    this.recalculateFormula(formula.id)
   }
 
   getDisplayNameMapForFormula(formulaId: string) {
