@@ -61,55 +61,52 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   const getCaseValues = useCallback(() => {
     const cases = getCases()
     const caseValues = cases && xAttrId
-      ? cases.map(c => dataset?.getNumeric(c.__id__, xAttrId)).filter(x => x) as number[]
+      ? cases.map(c => dataset?.getNumeric(c.__id__, xAttrId)).filter(x => x && isFinite(x)) as number[]
       : cases && yAttrId
-        ? cases.map(c => dataset?.getNumeric(c.__id__, yAttrId)).filter(x => x) as number[]
+        ? cases.map(c => dataset?.getNumeric(c.__id__, yAttrId)).filter(x => x && isFinite(x)) as number[]
         : [] as number[]
     return caseValues
   }, [getCases, dataset, xAttrId, yAttrId])
 
   // Updates the coordinates of the line, its cover, and text label
   const refreshValue = useCallback(() => {
-    const disposer = autorun(() => {
-      const { value } = model
-      if (!value) return
+    const { value } = model
+    if (!value) return
 
-      const caseValues = getCaseValues()
-      const valueIsInteger = Number.isInteger(Number(value))
-      const finalValue = !valueIsInteger ? model.evalFnString(value.toString(), caseValues) : Number(value)
-      const plotValue = valueIsInteger ? finalValue : Math.round(finalValue * 10) / 10
-      const newValueObject: IValueObject = {}
-      const selection = select(valueRef.current)
+    const caseValues = getCaseValues()
+    const valueIsInteger = Number.isInteger(Number(value))
+    const finalValue = !valueIsInteger ? model.evalFnString(value.toString(), caseValues) : Number(value)
+    const plotValue = valueIsInteger ? finalValue : Math.round(finalValue * 10) / 10
+    const newValueObject: IValueObject = {}
+    const selection = select(valueRef.current)
 
-      // Remove the previous value's elements
-      selection.html(null)
+    // Remove the previous value's elements
+    selection.html(null)
 
-      newValueObject.line = selection.append("line")
-        .attr("class", `plotted-value-line plotted-value${classFromKey ? `-${classFromKey}` : ""}`)
-        .attr("data-testid", `plotted-value-line${classFromKey ? `-${classFromKey}` : ""}`)
-        .attr("x1", isVertical.current ? xScale(plotValue) : 0)
-        .attr("x2", isVertical.current ? xScale(plotValue) : plotWidth)
-        .attr("y1", isVertical.current ? plotHeight : yScale(plotValue))
-        .attr("y2", isVertical.current ? offsetTop : yScale(plotValue))
+    newValueObject.line = selection.append("line")
+      .attr("class", `plotted-value-line plotted-value${classFromKey ? `-${classFromKey}` : ""}`)
+      .attr("data-testid", `plotted-value-line${classFromKey ? `-${classFromKey}` : ""}`)
+      .attr("x1", isVertical.current ? xScale(plotValue) : 0)
+      .attr("x2", isVertical.current ? xScale(plotValue) : plotWidth)
+      .attr("y1", isVertical.current ? plotHeight : yScale(plotValue))
+      .attr("y2", isVertical.current ? offsetTop : yScale(plotValue))
 
-      newValueObject.cover = selection.append("line")
-        .attr("class", "plotted-value-cover")
-        .attr("data-testid", `plotted-value-cover${classFromKey ? `-${classFromKey}` : ""}`)
-        .attr("x1", isVertical.current ? xScale(plotValue) : 0)
-        .attr("x2", isVertical.current ? xScale(plotValue) : plotWidth)
-        .attr("y1", isVertical.current ? plotHeight : yScale(plotValue))
-        .attr("y2", isVertical.current ? offsetTop : yScale(plotValue))
+    newValueObject.cover = selection.append("line")
+      .attr("class", "plotted-value-cover")
+      .attr("data-testid", `plotted-value-cover${classFromKey ? `-${classFromKey}` : ""}`)
+      .attr("x1", isVertical.current ? xScale(plotValue) : 0)
+      .attr("x2", isVertical.current ? xScale(plotValue) : plotWidth)
+      .attr("y1", isVertical.current ? plotHeight : yScale(plotValue))
+      .attr("y2", isVertical.current ? offsetTop : yScale(plotValue))
 
-      newValueObject.valueLabel = selection.append("text")
-        .text(`${plotValue}`)
-        .attr("class", "plotted-value-tip")
-        .attr("id", `plotted-value-tip-${containerId}-${classFromKey}`)
-        .attr("data-testid", `plotted-value-tip${classFromKey ? `-${classFromKey}` : ""}`)
-        .attr("x", isVertical.current ? xScale(plotValue) + 5 : plotWidth - 25)
-        .attr("y", isVertical.current ? offsetTop + 10 : yScale(plotValue) - 5)
+    newValueObject.valueLabel = selection.append("text")
+      .text(`${plotValue}`)
+      .attr("class", "plotted-value-tip")
+      .attr("id", `plotted-value-tip-${containerId}-${classFromKey}`)
+      .attr("data-testid", `plotted-value-tip${classFromKey ? `-${classFromKey}` : ""}`)
+      .attr("x", isVertical.current ? xScale(plotValue) + 5 : plotWidth - 25)
+      .attr("y", isVertical.current ? offsetTop + 10 : yScale(plotValue) - 5)
 
-    }, { name: "PlottedValue.refreshValue" })
-    return () => disposer()
   }, [getCaseValues, classFromKey, containerId, model, plotHeight, plotWidth, xScale, yScale])
 
   // Refresh the value when it changes
@@ -118,7 +115,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
       refreshValue()
     }, { name: "PlottedValue.refreshValueChange" })
     return () => disposer()
-  }, [refreshValue, model.value])
+  }, [refreshValue])
 
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
