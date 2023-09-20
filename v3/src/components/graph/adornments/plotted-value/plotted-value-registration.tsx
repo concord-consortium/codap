@@ -6,7 +6,7 @@ import { kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix,
          kPlottedValueType } from "./plotted-value-types"
 import { PlottedValue } from "./plotted-value"
 import { AdornmentCheckbox } from "../adornment-checkbox"
-import { PlottedValueUI } from "./plotted-value-ui"
+import { PlottedValueBanner } from "./plotted-value-banner"
 
 const Controls = () => {
   return (
@@ -29,7 +29,7 @@ registerAdornmentComponentInfo({
   adornmentEltClass: kPlottedValueClass,
   Component: PlottedValue,
   Controls,
-  HelperComponent: PlottedValueUI,
+  BannerComponent: PlottedValueBanner,
   labelKey: kPlottedValueLabelKey,
   order: 10,
   type: kPlottedValueType

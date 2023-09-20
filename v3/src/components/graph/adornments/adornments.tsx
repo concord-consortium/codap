@@ -24,12 +24,12 @@ export const Adornments = observer(function Adornments() {
 
   if (!adornments?.length) return null
 
-  const adornmentHelpers = adornments.map((adornment: IAdornmentModel) => {
+  const adornmentBanners = adornments.map((adornment: IAdornmentModel) => {
     const componentInfo = getAdornmentComponentInfo(adornment.type)
-    const HelperComponent = componentInfo?.HelperComponent
+    const BannerComponent = componentInfo?.BannerComponent
     return (
-      HelperComponent && adornment.isVisible &&
-        <HelperComponent key={"PlottedValue"} model={adornment} />
+      BannerComponent && adornment.isVisible &&
+        <BannerComponent key={"PlottedValue"} model={adornment} />
     )
   })
 
@@ -150,9 +150,9 @@ export const Adornments = observer(function Adornments() {
   )
   return (
     <>
-    {adornmentHelpers &&
-      <div className="graph-adornments-helpers" data-testid="graph-adornments-helpers">
-        {adornmentHelpers}
+    {adornmentBanners &&
+      <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
+        {adornmentBanners}
       </div>
     }
     <div className={containerClass} data-testid={kGraphAdornmentsClass} style={outerGridStyle}>

@@ -4,13 +4,13 @@ import t from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
 import { IPlottedValueModel } from "./plotted-value-model"
 
-import "./plotted-value-ui.scss"
+import "./plotted-value-banner.scss"
 
 interface IProps {
   model: IPlottedValueModel
 }
 
-export const PlottedValueUI = ({ model }: IProps) => {
+export const PlottedValueBanner = ({ model }: IProps) => {
   const value = model.value
   const formulaModal = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)

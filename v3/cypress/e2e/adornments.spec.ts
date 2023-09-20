@@ -117,7 +117,7 @@ context("Graph adornments", () => {
     const plottedValueCheckbox = inspectorPalette.find("[data-testid=adornment-checkbox-plotted-value]")
     plottedValueCheckbox.should("be.visible")
     plottedValueCheckbox.click()
-    cy.get("[data-testid=graph-adornments-helpers]").should("exist")
+    cy.get("[data-testid=graph-adornments-banners]").should("exist")
     cy.get("[data-testid=plotted-value-control]").should("exist")
     cy.get("[data-testid=plotted-value-control-label]").should("exist")
     cy.get("[data-testid=plotted-value-control-value]").should("exist")

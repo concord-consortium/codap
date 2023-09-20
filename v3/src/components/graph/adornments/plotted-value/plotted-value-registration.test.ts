@@ -14,7 +14,7 @@ describe("PlottedValueRegistration", () => {
     expect(plottedValueComponentInfo).toBeDefined()
     expect(plottedValueComponentInfo?.adornmentEltClass).toBe(kPlottedValueClass)
     expect(plottedValueComponentInfo?.Component).toBeDefined()
-    expect(plottedValueComponentInfo?.HelperComponent).toBeDefined()
+    expect(plottedValueComponentInfo?.BannerComponent).toBeDefined()
     expect(plottedValueComponentInfo?.type).toBe(kPlottedValueType)
   })
 })
