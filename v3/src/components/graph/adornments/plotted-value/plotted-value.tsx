@@ -52,7 +52,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   const getCases = useCallback(() => {
     const cases = xAttrId && isVertical
       ? dataset?.getCasesForAttributes([xAttrId])
-      : yAttrId && !isVertical
+      : yAttrId
         ? dataset?.getCasesForAttributes([yAttrId])
         : []
     return cases
@@ -72,13 +72,18 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   const refreshValue = useCallback(() => {
     const { value } = model
     if (!value) return
-
     const caseValues = getCaseValues()
+    if (caseValues.length < 1) return
+
     const valueIsInteger = Number.isInteger(Number(value))
     const finalValue = !valueIsInteger ? model.evalFnString(value.toString(), caseValues) : Number(value)
     const plotValue = valueIsInteger ? finalValue : Math.round(finalValue * 10) / 10
     const newValueObject: IValueObject = {}
     const selection = select(valueRef.current)
+    const x1 = isVertical.current ? xScale(plotValue) : 0
+    const x2 = isVertical.current ? xScale(plotValue) : plotWidth
+    const y1 = isVertical.current ? plotHeight : yScale(plotValue)
+    const y2 = isVertical.current ? offsetTop : yScale(plotValue)
 
     // Remove the previous value's elements
     selection.html(null)
@@ -86,18 +91,18 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
     newValueObject.line = selection.append("line")
       .attr("class", `plotted-value-line plotted-value${classFromKey ? `-${classFromKey}` : ""}`)
       .attr("data-testid", `plotted-value-line${classFromKey ? `-${classFromKey}` : ""}`)
-      .attr("x1", isVertical.current ? xScale(plotValue) : 0)
-      .attr("x2", isVertical.current ? xScale(plotValue) : plotWidth)
-      .attr("y1", isVertical.current ? plotHeight : yScale(plotValue))
-      .attr("y2", isVertical.current ? offsetTop : yScale(plotValue))
+      .attr("x1", x1)
+      .attr("x2", x2)
+      .attr("y1", y1)
+      .attr("y2", y2)
 
     newValueObject.cover = selection.append("line")
       .attr("class", "plotted-value-cover")
       .attr("data-testid", `plotted-value-cover${classFromKey ? `-${classFromKey}` : ""}`)
-      .attr("x1", isVertical.current ? xScale(plotValue) : 0)
-      .attr("x2", isVertical.current ? xScale(plotValue) : plotWidth)
-      .attr("y1", isVertical.current ? plotHeight : yScale(plotValue))
-      .attr("y2", isVertical.current ? offsetTop : yScale(plotValue))
+      .attr("x1", x1)
+      .attr("x2", x2)
+      .attr("y1", y1)
+      .attr("y2", y2)
 
     newValueObject.valueLabel = selection.append("text")
       .text(`${plotValue}`)
