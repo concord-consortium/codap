@@ -161,6 +161,7 @@ export class FormulaManager {
       : dataSet.childCases()
 
     const formulaScope = new FormulaMathJsScope({
+      formulaAttrId: attributeId,
       localDataSet: dataSet,
       dataSets: this.dataSets,
       globalValueManager: this.globalValueManager,
@@ -183,10 +184,16 @@ export class FormulaManager {
     }
 
     dataSet.setCaseValues(casesToRecalculate.map((c) => {
+      // This is necessary for functions like `prev` that need to know the previous result when they reference
+      // its own attribute.
+      formulaScope.setPreviousCaseId(formulaScope.getCaseId())
       formulaScope.setCaseId(c.__id__)
       let formulaValue: FValue
       try {
         formulaValue = compiledFormula.evaluate(formulaScope)
+        // This is necessary for functions like `prev` that need to know the previous result when they reference
+        // its own attribute.
+        formulaScope.setPreviousResult(formulaValue)
       } catch (e: any) {
         formulaValue = formulaError(e.message)
       }
@@ -265,12 +272,10 @@ export class FormulaManager {
     // Check if there is a dependency cycle. Note that it needs to happen after formula is registered, so that
     // the dependency check can access all the metadata in the formula registry.
     if (this.isDependencyCyclePresent(formula.id)) {
-      window.alert(`Dependency cycle detected for "${formula.canonical}". Formula will not be evaluated.`)
-      console.error(`[formula] dependency cycle detected for "${formula.canonical}". Formula will not be evaluated.`)
-      return
+      return this.setFormulaError(formula.id, formulaError("V3.formula.error.cycle"))
     }
 
-    const formulaDependencies = getFormulaDependencies(formula.canonical)
+    const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
     const disposeLocalAttributeObserver = this.observeLocalAttributes(formula.id, formulaDependencies)
     const disposeGlobalValueObservers = this.observeGlobalValues(formula.id, formulaDependencies)
     const disposeLookupObservers = this.observeLookup(formula.id, formulaDependencies)
@@ -459,8 +464,8 @@ export class FormulaManager {
       }
       visitedFormulas[currentFormula] = true
 
-      const { formula, dataSet } = this.getFormulaContext(currentFormula)
-      const formulaDependencies = getFormulaDependencies(formula.canonical)
+      const { formula, dataSet, attributeId } = this.getFormulaContext(currentFormula)
+      const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
 
       const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
         formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]

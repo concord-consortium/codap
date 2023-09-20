@@ -40,7 +40,8 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
   }
 }
 
-// CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior.
+// CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior. So that, for instance,
+// count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
 export const isValueTruthy = (value: any) => value !== "" && value !== false && value !== null && value !== undefined
 
 const UNDEF_RESULT = ""
@@ -288,6 +289,9 @@ export const fnRegistry = {
 
   // prev(expression, defaultValue, filter)
   prev: {
+    // Circular reference might be used to define a formula that calculates the cumulative value, e.g.:
+    // `CumulativeValue` attribute formula: `Value + prev(CumulativeValue, 0)`
+    selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
@@ -295,7 +299,7 @@ export const fnRegistry = {
         currentIndex: number
         resultIndex: number
         expressionValues: FValue[]
-        filterValues?: FValue[]
+        filterValues: FValue[]
       }
 
       const cacheKey = `prev(${args.toString()})-${scope.getCaseGroupId()}`
@@ -305,6 +309,15 @@ export const fnRegistry = {
 
       if (cachedData !== undefined) {
         const { currentIndex, resultIndex, expressionValues, filterValues } = cachedData
+        // This block will resolve attribute names to previous case values.
+        scope.withPreviousCase(() => {
+          const newExpressionValue = evaluateNode(expression, scope)
+          expressionValues.push(newExpressionValue)
+          if (filterValues) {
+            const newFilterValue = evaluateNode(filter, scope)
+            filterValues.push(newFilterValue)
+          }
+        })
         // In case we don't find a new result index, we need to reuse the old one.
         let newResultIndex = resultIndex
         if (!filterValues || isValueTruthy(filterValues[currentIndex - 1])) {
@@ -316,22 +329,21 @@ export const fnRegistry = {
         }
         result = expressionValues[newResultIndex]
         scope.setCached(cacheKey, {
-          ...cachedData,
           currentIndex: currentIndex + 1,
           resultIndex: newResultIndex,
+          expressionValues,
+          filterValues
         })
       } else {
         // This block of code will be executed only once for each group (if there's grouping), for the very first case.
         // The very first case can't return anything from prev() function.
         const currentIndex = 0
-        const filterValues = filter && evaluateNode(filter, scope)
-        const expressionValues = evaluateNode(expression, scope)
         result = undefined
         scope.setCached(cacheKey, {
           currentIndex: currentIndex + 1,
           resultIndex: currentIndex - 1,
-          expressionValues,
-          filterValues
+          expressionValues: [],
+          filterValues: filter ? [] : undefined
         })
       }
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)

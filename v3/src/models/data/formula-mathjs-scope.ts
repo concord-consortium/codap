@@ -1,4 +1,4 @@
-import { AGGREGATE_SYMBOL_SUFFIX, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY } from "./formula-types"
+import { AGGREGATE_SYMBOL_SUFFIX, FValue, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY } from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "./data-set"
 import type { IValueType } from "./attribute"
@@ -7,6 +7,7 @@ import type { ICase } from "./data-set-types"
 const CACHE_ENABLED = true
 
 export interface IFormulaMathjsScopeContext {
+  formulaAttrId: string
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
   childMostCollectionCases: ICase[]
@@ -19,11 +20,15 @@ export interface IFormulaMathjsScopeContext {
 // Official MathJS docs don't describe custom scopes in great detail, but there's a good example in their repo:
 // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js
 export class FormulaMathJsScope {
-  parent?: FormulaMathJsScope
   context: IFormulaMathjsScopeContext
   caseId = ""
   dataStorage: Record<string, any> = {}
   cache = new Map<string, any>()
+  // Previous result is used for calculating recursive functions like prev() referencing itself, e.g.:
+  // prev(CumulativeValue, 0) + Value
+  usePreviousCase = false
+  previousResult: FValue = ""
+  previousCaseId = ""
 
   constructor (context: IFormulaMathjsScopeContext) {
     this.context = context
@@ -47,6 +52,19 @@ export class FormulaMathJsScope {
       let cacheInitialized = false
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}${AGGREGATE_SYMBOL_SUFFIX}`, {
         get: () => {
+          if (this.usePreviousCase) {
+            // Note that this block is only used by `prev()` function that has iterative approach to calculating
+            // its values rather than relying on arrays of values like other aggregate functions. However, its arguments
+            // are still considered aggregate, so caching and grouping works as expected.
+            if (attr.id === this.context.formulaAttrId) {
+              // When formula references its own attribute, we cannot simply return case values - we're just trying
+              // to calculate them. In most cases this is not allowed, but there are some exceptions, e.g. prev function
+              // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
+              return this.previousResult
+            }
+            return context.localDataSet.getValue(this.previousCaseId, attr.id)
+          }
+
           if (!cacheInitialized) {
             // Cache is calculated lazily to avoid calculating it for all the attributes that are not referenced by
             // the formula. Note that each case is processed only once, so this mapping is only O(n) complexity.
@@ -117,8 +135,18 @@ export class FormulaMathJsScope {
     return this.caseId
   }
 
-  getCaseIndex() {
-    return this.context.localDataSet.caseIDMap[this.caseId]
+  setPreviousCaseId(caseId: string) {
+    this.previousCaseId = caseId
+  }
+
+  setPreviousResult(value: FValue) {
+    this.previousResult = value
+  }
+
+  withPreviousCase(callback: () => void) {
+    this.usePreviousCase = true
+    callback()
+    this.usePreviousCase = false
   }
 
   getCaseChildrenCount() {
