@@ -31,6 +31,7 @@ import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "./formula"
 import { typedId } from "../../utilities/js-utils"
 import t from "../../utilities/translation/translate"
+import { withoutUndo } from "../history/without-undo"
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -117,12 +118,14 @@ export const Attribute = types.model("Attribute", {
   // should be called before retrieving snapshot (i.e. before serialization)
   prepareSnapshot() {
     if (isDevelopment()) {
+      withoutUndo({ suppressWarning: true })
       self.values = [...self.strValues]
     }
   },
   // should be called after retrieving snapshot (i.e. after serialization)
   completeSnapshot() {
     if (isDevelopment()) {
+      withoutUndo({ suppressWarning: true })
       self.values = undefined
     }
   }

@@ -180,6 +180,23 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .views(self => ({
+  // map from attribute id to attribute
+  get attrIDMap() {
+    const idMap: Record<string, IAttribute> = {}
+    self.attributes.forEach(attr => {
+      idMap[attr.id] = attr
+    })
+    return idMap
+  },
+  // map from attribute name to attribute id
+  get attrNameMap() {
+    const nameMap: Record<string, string> = {}
+    self.attributes.forEach(attr => {
+      nameMap[attr.name] = attr.id
+    })
+    return nameMap
+
+  },
   attrIndexFromID(id: string) {
     const index = self.attributes.findIndex(attr => attr.id === id)
     return index >= 0 ? index : undefined
@@ -518,12 +535,9 @@ export const DataSet = types.model("DataSet", {
   /*
    * private closure
    */
-  const attrIDMap: { [index: string]: IAttribute } = {},
-        // map from attribute names to attribute IDs
-        attrNameMap: { [index: string]: string } = {},
-        disposers: { [index: string]: () => void } = {}
+  const disposers: { [index: string]: () => void } = {}
 
-  const attrIDFromName = (name: string) => attrNameMap[name]
+  const attrIDFromName = (name: string) => self.attrNameMap[name]
 
   function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
     const index = self.caseIDMap[caseID]
@@ -591,7 +605,7 @@ export const DataSet = types.model("DataSet", {
     if (index == null) { return }
     for (const key in caseValues) {
       if (key !== "__id__") {
-        const attribute = attrIDMap[key]
+        const attribute = self.attrIDMap[key]
         if (attribute) {
           const value = caseValues[key]
           attribute.setValue(index, value != null ? value : undefined)
@@ -606,11 +620,11 @@ export const DataSet = types.model("DataSet", {
      */
     views: {
       attrFromID(id: string) {
-        return attrIDMap[id]
+        return self.attrIDMap[id]
       },
       attrFromName(name: string) {
-        const id = attrNameMap[name]
-        return id ? attrIDMap[id] : undefined
+        const id = self.attrNameMap[name]
+        return id ? self.attrIDMap[id] : undefined
       },
       attrIDFromName,
       caseIndexFromID(id: string) {
@@ -638,7 +652,7 @@ export const DataSet = types.model("DataSet", {
                 : undefined
       },
       getValueAtIndex(index: number, attributeID: string) {
-        const attr = attrIDMap[attributeID],
+        const attr = self.attrIDMap[attributeID],
               caseID = self.cases[index]?.__id__,
               cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
         return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
@@ -658,7 +672,7 @@ export const DataSet = types.model("DataSet", {
                 : ""
       },
       getStrValueAtIndex(index: number, attributeID: string) {
-        const attr = attrIDMap[attributeID],
+        const attr = self.attrIDMap[attributeID],
               caseID = self.cases[index]?.__id__,
               cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
         return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
@@ -678,7 +692,7 @@ export const DataSet = types.model("DataSet", {
                 : undefined
       },
       getNumericAtIndex(index: number, attributeID: string) {
-        const attr = attrIDMap[attributeID],
+        const attr = self.attrIDMap[attributeID],
               caseID = self.cases[index]?.__id__,
               cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
         return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
@@ -720,12 +734,6 @@ export const DataSet = types.model("DataSet", {
       afterCreate() {
         const context: IEnvContext = getEnv(self),
               { srcDataSet, } = context
-
-        // build attrIDMap
-        self.attributes.forEach(attr => {
-          attrIDMap[attr.id] = attr
-          attrNameMap[attr.name] = attr.id
-        })
 
         // build caseIDMap
         self.cases.forEach((aCase, index) => {
@@ -792,8 +800,6 @@ export const DataSet = types.model("DataSet", {
           beforeIndex = self.attributes.push(snapshot) - 1
         }
         const attribute = self.attributes[beforeIndex]
-        attrIDMap[attribute.id] = attribute
-        attrNameMap[attribute.name] = attribute.id
         for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
           attribute.addValue()
         }
@@ -805,18 +811,16 @@ export const DataSet = types.model("DataSet", {
       },
 
       setAttributeName(attributeID: string, name: string | (() => string)) {
-        const attribute = attributeID && attrIDMap[attributeID]
+        const attribute = attributeID && self.attrIDMap[attributeID]
         if (attribute) {
           const nameStr = typeof name === "string" ? name : name()
-          delete attrNameMap[attribute.name]
           attribute.setName(nameStr)
-          attrNameMap[nameStr] = attributeID
         }
       },
 
       applyAttributeProperties(attributeID: string, attrProps: IAttributeSnapshot) {
         (attrProps.name != null) && this.setAttributeName(attributeID, attrProps.name)
-        const attribute = attributeID && attrIDMap[attributeID]
+        const attribute = attributeID && self.attrIDMap[attributeID]
         if (!attribute) return
         ;(attrProps.description != null) && attribute.setDescription(attrProps.description)
         ;(attrProps.userType != null) && attribute.setUserType(attrProps.userType)
@@ -827,10 +831,9 @@ export const DataSet = types.model("DataSet", {
 
       removeAttribute(attributeID: string) {
         const attrIndex = self.attrIndexFromID(attributeID),
-              attribute = attributeID ? attrIDMap[attributeID] : undefined,
-              attrName = attribute?.name
+              attribute = attributeID ? self.attrIDMap[attributeID] : undefined
 
-        if (attrIndex != null) {
+        if (attribute && attrIndex != null) {
           // remove attribute from any collection
           const collection = self.getCollectionForAttribute(attributeID)
           if (isCollectionModel(collection)) {
@@ -844,8 +847,6 @@ export const DataSet = types.model("DataSet", {
 
           // remove attribute from data set
           self.attributes.splice(attrIndex, 1)
-          attributeID && delete attrIDMap[attributeID]
-          attrName && delete attrNameMap[attrName]
         }
       },
 
