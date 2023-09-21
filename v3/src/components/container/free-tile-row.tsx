@@ -25,7 +25,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
       if (focusedTile && (focusedTile !== row.last)) {
         row.moveTileToTop(focusedTile)
       }
-    })
+    }, { name: "FreeTileRowComponent.useEffect.autorun [uiState.focusedTile]" })
   }, [row])
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {

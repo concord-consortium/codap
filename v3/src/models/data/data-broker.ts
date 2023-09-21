@@ -1,6 +1,6 @@
-import { action, makeObservable, observable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../shared/shared-case-metadata"
-import { ISharedDataSet, SharedDataSet } from "../shared/shared-data-set"
+import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { IDataSet } from "./data-set"
 import "../shared/shared-data-set-registration"
@@ -14,18 +14,25 @@ export interface IDataSetSummary {
 }
 
 interface IDataBrokerOptions {
+  sharedModelManager?: ISharedModelManager
   allowMultiple?: boolean
 }
 export class DataBroker {
-  @observable dataSets = new Map<string, IDataSet>()
-  readonly allowMultiple: boolean
   @observable selectedDataSetId = ""
   sharedModelManager?: ISharedModelManager
 
   constructor(options?: IDataBrokerOptions) {
-    const { allowMultiple = true } = options || {}
+    const { sharedModelManager } = options || {}
     makeObservable(this)
-    this.allowMultiple = allowMultiple
+    this.sharedModelManager = sharedModelManager
+  }
+
+  @computed
+  get dataSets() {
+    const dataArray = this.sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
+    const dataSetsMap = new Map<string, IDataSet>()
+    dataArray.forEach(set => dataSetsMap.set(set.dataSet.id, set.dataSet))
+    return dataSetsMap
   }
 
   get length() {
@@ -63,7 +70,6 @@ export class DataBroker {
 
   @action
   setSharedModelManager(manager: ISharedModelManager) {
-    this.clear()
     this.sharedModelManager = manager
   }
 
@@ -82,7 +88,6 @@ export class DataBroker {
     caseMetadata.setData(ds)
     this.sharedModelManager?.addSharedModel(caseMetadata)
 
-    !this.allowMultiple && this.dataSets.clear()
     this.addSharedDataSet(sharedModel)
 
     return { sharedData: sharedModel, caseMetadata }
@@ -94,7 +99,6 @@ export class DataBroker {
     metadata.setData(data.dataSet)
     this.sharedModelManager?.addSharedModel(metadata)
 
-    !this.allowMultiple && this.dataSets.clear()
     this.addSharedDataSet(data)
   }
 
@@ -107,12 +111,15 @@ export class DataBroker {
 
   @action
   removeDataSet(id: string) {
-    this.dataSets.delete(id)
+    const { sharedModelManager } = this
+    sharedModelManager?.removeSharedModel(id)
   }
 
   @action
   clear() {
-    this.dataSets.clear()
+    const { sharedModelManager } = this
+    const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
+    sharedDataSets.forEach(shared => this.removeDataSet(shared.dataSet.id))
   }
 }
 

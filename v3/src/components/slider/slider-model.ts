@@ -3,7 +3,7 @@ import { addDisposer, Instance, types} from "mobx-state-tree"
 import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { IGlobalValueManager, kGlobalValueManagerType } from "../../models/global/global-value-manager"
-import { withUndoRedoStrings } from "../../models/history/codap-undo-types"
+import { applyUndoableAction } from "../../models/history/apply-undoable-action"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -175,14 +175,8 @@ export const SliderModel = TileContentModel
       }
     },
   }))
-.actions(self => ({
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
-    const result = actionFn()
-    withUndoRedoStrings(undoStringKey, redoStringKey)
-    return result
-  }
-}))
+  .actions(applyUndoableAction)
 
 export interface ISliderModel extends Instance<typeof SliderModel> {}
 

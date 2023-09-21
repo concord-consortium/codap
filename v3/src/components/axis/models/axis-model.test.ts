@@ -1,5 +1,6 @@
 import {
-  AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
+  AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion,
+  isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "./axis-model"
 import {getSnapshot, types} from "mobx-state-tree"
 

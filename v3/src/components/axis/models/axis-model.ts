@@ -1,6 +1,6 @@
 import {Instance, SnapshotIn, isAlive, types} from "mobx-state-tree"
+import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
-import {withUndoRedoStrings} from "../../../models/history/codap-undo-types"
 
 export const AxisModel = types.model("AxisModel", {
   type: types.optional(types.string, () => {
@@ -35,14 +35,8 @@ export const AxisModel = types.model("AxisModel", {
       self.transitionDuration = duration
     }
   }))
-  .actions(self => ({
-    // performs the specified action so that response actions are included and undo/redo strings assigned
-    applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
-      const result = actionFn()
-      withUndoRedoStrings(undoStringKey, redoStringKey)
-      return result
-    }
-  }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
 
 export interface IAxisModel extends Instance<typeof AxisModel> {
 }

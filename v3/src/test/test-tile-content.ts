@@ -8,6 +8,11 @@ export const TestTileContent = TileContentModel
   .props({
     test: ""
   })
+  .actions(self => ({
+    updateAfterSharedModelChanges() {
+      // nop
+    }
+  }))
 export interface ITestTileContent extends Instance<typeof TestTileContent> {}
 
 registerTileContentInfo({

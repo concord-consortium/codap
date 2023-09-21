@@ -1,4 +1,5 @@
 import { getSnapshot } from "mobx-state-tree"
+import { SetOptional } from "type-fest"
 import { urlParams } from "../../utilities/url-params"
 import { createDocumentModel } from "../document/create-document-model"
 import { IDocumentModel, IDocumentModelSnapshot } from "../document/document"
@@ -13,11 +14,13 @@ import { getFormulaManager } from "../tiles/tile-environment"
 const { version } = pkg
 const { buildNumber } = build
 
+type ICodapDocumentModelSnapshot = SetOptional<IDocumentModelSnapshot, "type">
+
 interface IOptions {
   layout?: "free" | "mosaic"
   noGlobals?: boolean
 }
-export function createCodapDocument(snapshot?: IDocumentModelSnapshot, options?: IOptions): IDocumentModel {
+export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, options?: IOptions): IDocumentModel {
   const { layout = "free", noGlobals = false } = options || {}
   const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`, ...snapshot })
   // create the content if there isn't any

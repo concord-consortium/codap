@@ -1,4 +1,5 @@
 import { addDisposer, applySnapshot, destroy, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 import { Tree } from "../history/tree"
 import { TreeManager } from "../history/tree-manager"
 import { TreeMonitor } from "../history/tree-monitor"
@@ -54,6 +55,8 @@ export const DocumentModel = Tree.named("Document")
       return !!self.treeManagerAPI?.undoManager.canRedo
     }
   }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
   .actions((self) => ({
     afterCreate() {
       // TODO: it would be nice to unify this with the code in createDocumentModel

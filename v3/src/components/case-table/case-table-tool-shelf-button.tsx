@@ -50,16 +50,18 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   }
 
   const handleCreateNewDataSet = () => {
-    const newData = [{ AttributeName: "" }]
-    const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
-    ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
-    ds.addCases(toCanonical(ds, newData))
-    const tile = createDefaultTileOfType(kCaseTableTileType)
-    if (!tile) return
-    const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
-    // Add dataset to the formula manager
-    getFormulaManager(document)?.addDataSet(ds)
-    openTableForDataset(sharedData, caseMetadata)
+    document.applyUndoableAction(() => {
+      const newData = [{ AttributeName: "" }]
+      const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
+      ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
+      ds.addCases(toCanonical(ds, newData))
+      const tile = createDefaultTileOfType(kCaseTableTileType)
+      if (!tile) return
+      const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
+      // Add dataset to the formula manager
+      getFormulaManager(document)?.addDataSet(ds)
+      openTableForDataset(sharedData, caseMetadata)
+    }, "V3.Undo.caseTable.create", "V3.Redo.caseTable.create")
   }
 
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {

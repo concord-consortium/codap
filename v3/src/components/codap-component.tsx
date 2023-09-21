@@ -31,7 +31,12 @@ export const CodapComponent = observer(function CodapComponent({
   const info = getTileComponentInfo(tile.content.type)
 
   function handleFocusTile() {
-    isAlive(tile) && uiState.setFocusedTile(tile.id)
+    if (isAlive(tile)) {
+      uiState.setFocusedTile(tile.id)
+    }
+    else {
+      console.warn("CodapComponent.handleFocusTile ignoring focus of defunct tile")
+    }
   }
 
   if (!info) return null

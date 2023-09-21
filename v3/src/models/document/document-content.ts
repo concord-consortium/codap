@@ -11,6 +11,7 @@ import { typedId } from "../../utilities/js-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 import { withUndoRedoStrings } from "../history/codap-undo-types"
 import { linkTileToDataSet } from "../shared/shared-data-utils"
 import t from "../../utilities/translation/translate"
@@ -138,6 +139,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       getFormulaManager(self)?.addDataSet(data)
     }
   }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
 
 export type IDocumentContentModel = Instance<typeof DocumentContentModel>
 export type IDocumentContentSnapshotIn = SnapshotIn<typeof DocumentContentModel>

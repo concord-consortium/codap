@@ -21,13 +21,15 @@ export const Container: React.FC<IProps> = ({ content }) => {
   const getTile = useCallback((tileId: string) => content?.getTile(tileId), [content])
 
   const handleCloseTile = useCallback((tileId: string) => {
-    const manager = getSharedModelManager(content)
-    const tile = getTile(tileId)
-    const sharedModels = manager?.getTileSharedModels(tile?.content)
-    sharedModels?.forEach(model => {
-      manager?.removeTileSharedModel(tile?.content, model)
-    })
-    tileId && content?.deleteTile(tileId)
+    content?.applyUndoableAction(() => {
+      const manager = getSharedModelManager(content)
+      const tile = getTile(tileId)
+      const sharedModels = manager?.getTileSharedModels(tile?.content)
+      sharedModels?.forEach(model => {
+        manager?.removeTileSharedModel(tile?.content, model)
+      })
+      tileId && content?.deleteTile(tileId)
+    }, "DG.Undo.component.close", "DG.Redo.component.close")
   }, [content, getTile])
 
   const { setNodeRef } = useContainerDroppable("codap-container", evt => {
