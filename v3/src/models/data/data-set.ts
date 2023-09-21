@@ -57,7 +57,7 @@ import {
 import {
   IMoveAttributeCustomPatch, ISetCaseValuesCustomPatch, moveAttributeCustomUndoRedo, setCaseValuesCustomUndoRedo
 } from "./data-set-undo"
-import { withUndoRedoStrings } from "../history/codap-undo-types"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
@@ -976,12 +976,6 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .actions(self => ({
-  // performs the specified action so that response actions are included and undo/redo strings assigned
-  applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
-    const result = actionFn()
-    withUndoRedoStrings(undoStringKey, redoStringKey)
-    return result
-  },
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
   },
@@ -992,5 +986,7 @@ export const DataSet = types.model("DataSet", {
     }
   }
 }))
+// performs the specified action so that response actions are included and undo/redo strings assigned
+.actions(applyUndoableAction)
 
 export interface IDataSet extends Instance<typeof DataSet> {}

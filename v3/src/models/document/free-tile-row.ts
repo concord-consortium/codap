@@ -110,7 +110,7 @@ export const FreeTileRow = TileRowModel
       self.tiles.delete(tileId)
     },
     moveTileToTop(tileId: string) {
-      withoutUndo()
+      withoutUndo({ suppressWarning: true })
       const index = self.order.findIndex(id => id === tileId)
       if ((index >= 0) && (index < self.order.length - 1)) {
         self.order.splice(index, 1)

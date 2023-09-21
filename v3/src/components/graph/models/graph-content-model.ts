@@ -5,6 +5,7 @@
 import {reaction} from "mobx"
 import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
+import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
@@ -23,7 +24,6 @@ import {AdornmentModelUnion} from "../adornments/adornment-types"
 import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
-import { withUndoRedoStrings } from "../../../models/history/codap-undo-types"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -269,12 +269,6 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    // performs the specified action so that response actions are included and undo/redo strings assigned
-    applyUndoableAction<T = unknown>(actionFn: () => T, undoStringKey: string, redoStringKey: string) {
-      const result = actionFn()
-      withUndoRedoStrings(undoStringKey, redoStringKey)
-      return result
-    },
     addAdornment(adornment: IAdornmentModel) {
       self.hideAdornment(adornment.type)
       adornment.updateCategories(self.getUpdateCategoriesOptions())
@@ -284,6 +278,8 @@ export const GraphContentModel = DataDisplayContentModel
       callback()
     }
   }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
 
 export interface IGraphContentModel extends Instance<typeof GraphContentModel> {
 }

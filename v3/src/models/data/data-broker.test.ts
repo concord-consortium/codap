@@ -1,14 +1,22 @@
 import { reaction } from "mobx"
 import { DataBroker } from "./data-broker"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
+import { IDocumentModel } from "../document/document"
+import { createCodapDocument } from "../codap/create-codap-document"
+import { ISharedModelManager } from "../shared/shared-model-manager"
+import { getSharedModelManager } from "../tiles/tile-environment"
 
 describe("DataBroker", () => {
+  let document: IDocumentModel
+  let sharedModelManager: ISharedModelManager | undefined
   let broker: DataBroker
   let dsEmpty: IDataSet
   let dsCases: IDataSet
 
   beforeEach(() => {
-    broker = new DataBroker()
+    document = createCodapDocument()
+    sharedModelManager = getSharedModelManager(document)
+    broker = new DataBroker({ sharedModelManager })
     dsEmpty = DataSet.create({ name: "empty"})
     dsCases = DataSet.create({ name: "cases" })
     dsCases.addAttribute({ name: "a" })
@@ -75,25 +83,6 @@ describe("DataBroker", () => {
     broker.addDataSet(DataSet.create({ id: dsCases.id, name: dsCases.name }))
     expect(handler).toHaveBeenCalledTimes(4)
     expect(lastSummaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 0, cases: 0 }])
-  })
-
-  it("should work as expected when configured for a single dataset", () => {
-    broker = new DataBroker({ allowMultiple: false })
-    broker.addDataSet(dsEmpty)
-    broker.addDataSet(dsCases)
-    expect(broker.length).toBe(1)
-    expect(broker.first).toEqual(dsCases)
-    expect(broker.last).toEqual(dsCases)
-    expect(broker.summaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 1, cases: 3 }])
-    expect(broker.getDataSet(dsEmpty.id)).toBeUndefined()
-    expect(broker.getDataSet(dsCases.id)).toEqual(dsCases)
-    expect(broker.getDataSetByName("cases")).toEqual(dsCases)
-
-    broker.removeDataSet(dsEmpty.id)
-    expect(broker.length).toBe(1)
-    expect(broker.first).toEqual(dsCases)
-    expect(broker.last).toEqual(dsCases)
-    expect(broker.summaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 1, cases: 3 }])
   })
 
 })

@@ -1,16 +1,24 @@
-import { convertParsedCsvToDataSet } from "../../utilities/csv-import"
-import { gDataBroker } from "../data/data-broker"
-import { DocumentContentModel, IDocumentContentModel } from "./document-content"
 // register TestTileContent
 import "../../test/test-tile-content"
+import { convertParsedCsvToDataSet } from "../../utilities/csv-import"
+import { createCodapDocument } from "../codap/create-codap-document"
+import { gDataBroker } from "../data/data-broker"
+import { ISharedModelManager } from "../shared/shared-model-manager"
+import { getSharedModelManager } from "../tiles/tile-environment"
+import { IDocumentModel } from "./document"
+import { IDocumentContentModel } from "./document-content"
 import { FreeTileRow } from "./free-tile-row"
 
 describe("DocumentContent", () => {
+  let document: IDocumentModel
   let content: IDocumentContentModel
+  let sharedModelManager: ISharedModelManager | undefined
 
   beforeEach(() => {
-    gDataBroker.clear()
-    content = DocumentContentModel.create({})
+    document = createCodapDocument({})
+    content = document.content!
+    sharedModelManager = getSharedModelManager(document)
+    gDataBroker.setSharedModelManager(sharedModelManager!)
     const row = FreeTileRow.create()
     content.insertRow(row)
     content.setVisibleRows([row.id])
