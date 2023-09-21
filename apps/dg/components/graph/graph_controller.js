@@ -330,9 +330,9 @@ DG.GraphController = DG.DataDisplayController.extend(
                             this.appendChild(iDesc.control);
                           }
                           else {
-                            iDesc.layout = { height: kRowHeight }
-                            iDesc.localize = true
-                            this.appendChild(SC.CheckboxView.create(iDesc))
+                            iDesc.layout = { height: kRowHeight };
+                            iDesc.localize = true;
+                            this.appendChild(SC.CheckboxView.create(iDesc));
                           }
                         }.bind(this));
                       }
