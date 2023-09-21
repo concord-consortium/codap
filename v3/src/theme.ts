@@ -28,6 +28,16 @@ export const theme = extendTheme({
     Button: {
       baseStyle: {
         border: "1px solid gray"
+      },
+      variants: {
+        unstyled: {
+          border: "none",
+          borderRadius: 0,
+          display: "flex",
+          height: "auto",
+          outline: "none",
+          padding: 0
+        }
       }
     },
     Menu,
