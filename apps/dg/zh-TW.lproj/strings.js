@@ -1072,5 +1072,21 @@ SC.stringsFor("zh-TW", {
     "DG.Redo.graph.hideICI": "Redo hiding informal confidence interval",
     "DG.Undo.graph.hideICI": "Undo hiding informal confidence interval",
     "DG.Redo.graph.showICI": "Redo showing informal confidence interval",
-    "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI"
+    "DG.Undo.graph.showPlottedStErr": "Undo showing standard error",
+    "DG.Redo.graph.showPlottedStErr": "Redo showing standard error",
+    "DG.Undo.graph.hidePlottedStErr": "Undo hiding standard error",
+    "DG.Redo.graph.hidePlottedStErr": "Redo hiding standard error",
+    "DG.Undo.graph.setNumStErrs": "Undo setting the number of standard errors",
+    "DG.Redo.graph.setNumStErrs": "Redo setting the number of standard errors",
+    "DG.Undo.graph.showPlottedNormal": "Undo showing normal curve",
+    "DG.Redo.graph.hidePlottedNormal": "Redo hiding normal curve",
+    "DG.Undo.graph.hidePlottedNormal": "Undo hiding normal curve",
+    "DG.Redo.graph.showPlottedNormal": "Redo showing normal curve",
+    "DG.ScatterPlotModel.LSRLCIBandInfo": "Shaded regions shows the range\n in which the true regression line\n lies at 95% confidence level.",
+    "DG.PlottedAverageAdornment.stErrValueTitle": "±%@ SE, %@",
+    "DG.Inspector.graphLSRLSlopeCI": "Show Confidence Bands",
+    "DG.Inspector.graphSpreadOptions": "Measures of Spread",
+    "DG.Inspector.graphPlottedStErr": "Standard Error",
+    "DG.Inspector.graphPlottedNormal": "Normal Curve",
+    "DG.Inspector.graphPlottedGaussianFit": "Gaussian Fit"
 });
