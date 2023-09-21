@@ -1,7 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
 import { parse } from "mathjs"
 import { typedId } from "../../utilities/js-utils"
-import { canonicalizeExpression, isRandomFunctionPresent } from "./formula-utils"
+import { canonicalizeExpression, customizeFormula, isRandomFunctionPresent } from "./formula-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
@@ -27,7 +27,7 @@ export const Formula = types.model("Formula", {
   },
   get syntaxError() {
     try {
-      parse(self.display)
+      parse(customizeFormula(self.display))
     } catch (error: any) {
       return error.message
     }
