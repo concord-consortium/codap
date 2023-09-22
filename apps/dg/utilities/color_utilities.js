@@ -227,12 +227,15 @@ DG.ColorUtilities = {
                 tMinMax = {min: 0, max: 1},
                 tSpectrumEnds = this.getAttributeColorSpectrumEndsFromColorMap(tCategoryMap, tAttributeColor);
             iQuantileValues.forEach(function (iQV, iIndex) {
-              if (iIndex <= tNumQuantiles) {
-                if (iQV <= iCaseValue && iCaseValue <= iQuantileValues[iIndex + 1])
+              if (iIndex < tNumQuantiles) {
+                if (iQV <= iCaseValue && iCaseValue < iQuantileValues[iIndex + 1])
                   tFoundIndex = iIndex;
               }
             });
-            newColor = this.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high, (tFoundIndex + 1) / tNumQuantiles);
+            if( tFoundIndex >= 0)
+              newColor = this.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high, (tFoundIndex + 1) / tNumQuantiles);
+            else
+              newColor = DG.ColorUtilities.kMissingValueCaseColor;
           }
           break;
       }

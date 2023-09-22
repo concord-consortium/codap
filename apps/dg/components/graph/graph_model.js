@@ -1789,6 +1789,8 @@ DG.GraphModel = DG.DataLayerModel.extend(
 
       this._isBeingRestored = true;
 
+      tDataConfig.restoreLegendQuantiles( iStorage);
+
       var instantiateArrayOfPlots = function( iPlots) {
         iPlots.forEach( function( iModelDesc, iIndex) {
           if( !iModelDesc.plotClass)

@@ -224,11 +224,12 @@ DG.MapLayerModel = DG.DataLayerModel.extend(
        * @return {Object}
        */
       createStorage: function () {
-        var tStorage = {_links_: {}},
+        var tStorage = {},
             tDataContext = this.get('dataContext'),
             tDataConfiguration = this.get('dataConfiguration'),
             tHiddenCases = tDataConfiguration && tDataConfiguration.get('hiddenCases');
 
+        tStorage._links_ = {};
         if (tHiddenCases) {
           tStorage._links_.hiddenCases = tHiddenCases
               .filter(function (iCase) {

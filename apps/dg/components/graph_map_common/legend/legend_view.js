@@ -216,6 +216,15 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           value: ''
         });
         this.appendChild( this._hiddenDragView);
+
+        this.addObserver('model.dataConfiguration.cases', this, 'displayDidChange');
+        this.addObserver('model.dataConfiguration.hiddenCases', this, 'displayDidChange');
+      },
+
+      destroy: function() {
+        this.removeObserver('model.dataConfiguration.cases', this, 'displayDidChange');
+        this.removeObserver('model.dataConfiguration.hiddenCases', this, 'displayDidChange');
+        sc_super();
       },
 
       displayDidChange: function() {

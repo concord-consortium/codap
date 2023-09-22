@@ -583,6 +583,30 @@ DG.MapController = DG.DataDisplayController.extend(
                       controlView: tControlView
                     })
                 );
+                tResult.push(SC.CheckboxView.create({
+                  layout: {height: 25},
+                  title: 'DG.Inspector.lockLegendQuantiles',
+                  toolTip: 'DG.Inspector.lockLegendQuantilesTooltip',
+                  value: tDataConfig.get('legendQuantilesAreLocked'),
+                  classNames: 'dg-graph-lockLegendQuantiles-check'.w(),
+                  localize: true,
+                  valueDidChange: function () {
+                    var quantilesAreLocked = !tDataConfig.get('legendQuantilesAreLocked'),
+                       logMessage = "Set quantilesAreLocked to " + quantilesAreLocked;
+                    DG.UndoHistory.execute(DG.Command.create({
+                      name: 'legend.quantilesAreLockedChange',
+                      undoString: quantilesAreLocked ? 'DG.Undo.legend.lockQuantiles' : 'DG.Undo.legend.unlockQuantiles',
+                      redoString: quantilesAreLocked ? 'DG.Redo.legend.lockQuantiles' : 'DG.Redo.legend.unlockQuantiles',
+                      log: logMessage,
+                      execute: function () {
+                        tDataConfig.toggleProperty('legendQuantilesAreLocked');
+                      }.bind(this),
+                      undo: function () {
+                        tDataConfig.toggleProperty('legendQuantilesAreLocked');
+                      }.bind(this)
+                    }));
+                  }.bind(this).observes('value')
+                }));
               }
               tResult.push(
                   DG.PickerControlView.create({
@@ -744,6 +768,30 @@ DG.MapController = DG.DataDisplayController.extend(
                       controlView: tControlView
                     })
                 );
+                tPickerArray.push(SC.CheckboxView.create({
+                  layout: {height: 25},
+                  title: 'DG.Inspector.lockLegendQuantiles',
+                  toolTip: 'DG.Inspector.lockLegendQuantilesTooltip',
+                  value: tDataConfig.get('legendQuantilesAreLocked'),
+                  classNames: 'dg-graph-lockLegendQuantiles-check'.w(),
+                  localize: true,
+                  valueDidChange: function () {
+                    var quantilesAreLocked = !tDataConfig.get('legendQuantilesAreLocked'),
+                       logMessage = "Set quantilesAreLocked to " + quantilesAreLocked;
+                    DG.UndoHistory.execute(DG.Command.create({
+                      name: 'legend.quintilesAreLockedChange',
+                      undoString: quantilesAreLocked ? 'DG.Undo.legend.lockQuantiles' : 'DG.Undo.legend.unlockQuantiles',
+                      redoString: quantilesAreLocked ? 'DG.Redo.legend.lockQuantiles' : 'DG.Redo.legend.unlockQuantiles',
+                      log: logMessage,
+                      execute: function () {
+                        tDataConfig.toggleProperty('legendQuantilesAreLocked');
+                      }.bind(this),
+                      undo: function () {
+                        tDataConfig.toggleProperty('legendQuantilesAreLocked');
+                      }.bind(this)
+                    }));
+                  }.bind(this).observes('value')
+                }));
               }
               else if (tLegendAttrDesc.get('isCategorical')) {
                 tContentView = SC.View.create(SC.FlowedLayout,

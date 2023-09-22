@@ -217,6 +217,29 @@ DG.PlotDataConfiguration = SC.Object.extend(
         return this.attributeDescriptionForPlace(iKey, iValue, DG.GraphTypes.EPlace.eLegend);
       }.property(),
 
+      numberOfLegendQuantiles: 5,
+      legendQuantilesAreLocked: false,
+      _legendQuantiles: null,
+      legendQuantiles: function() {
+        if( !this.get('legendQuantilesAreLocked') || !this._legendQuantiles) {
+          var tNumQuantiles = this.get('numberOfLegendQuantiles'),
+              tValues = this.numericValuesForPlace(DG.GraphTypes.EPlace.eLegend);
+          this._legendQuantiles = DG.MathUtilities.nQuantileValues(tValues, tNumQuantiles);
+          // We need the last value to be slightly larger than the max value so that the max value
+          // will be included in the last quantile.
+          this._legendQuantiles[tNumQuantiles] += Math.abs(this._legendQuantiles[tNumQuantiles] -
+                                                   this._legendQuantiles[0]) * 0.000001;
+        }
+        return this._legendQuantiles;
+      }.property('numberOfLegendQuantiles', 'legendQuantilesAreLocked'),
+
+      quantilesAreLockedDidChange: function() {
+        if( !this.get('legendQuantilesAreLocked'))
+          this._legendQuantiles = null;
+        else
+          this.get('legendQuantiles');  // Make sure they are computed
+      }.observes('legendQuantilesAreLocked'),
+
       /**
        @property { DG.AttributePlacementDescription }
        */
@@ -314,6 +337,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
       legendAttributeIDDidChange: function () {
         this.notifyPropertyChange('legendAttributeID');
       }.observes('*legendAttributeDescription.attributeID'),
+
+      recomputeLegendQuantilesIfLocked: function() {
+        if( this.get('legendQuantilesAreLocked')) {
+          this.set('legendQuantilesAreLocked', false);
+          this.set('legendQuantilesAreLocked', true);
+        }
+      },
 
       /**
        @property {Boolean}
@@ -1048,6 +1078,28 @@ DG.PlotDataConfiguration = SC.Object.extend(
           ioStorage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
           ioStorage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
         }
+      },
+
+      /**
+       * Store the parameters relating to number of legend quantiles, whether they are locked, and,
+       * if locked, what they are.
+       * @param ioStorage
+       */
+      addLegendQuantilesToStorage: function (ioStorage) {
+        var tLocked = this.get('legendQuantilesAreLocked');
+        ioStorage.numberOfLegendQuantiles = this.get('numberOfLegendQuantiles');
+        ioStorage.legendQuantilesAreLocked = tLocked;
+        if( tLocked) {
+          ioStorage.legendQuantiles = this._legendQuantiles;
+        }
+      },
+
+      restoreLegendQuantiles: function (iStorage) {
+        this.set('numberOfLegendQuantiles', iStorage.numberOfLegendQuantiles || 5);
+        if( iStorage.legendQuantilesAreLocked) {
+          this._legendQuantiles = iStorage.legendQuantiles;
+        }
+        this.set('legendQuantilesAreLocked', iStorage.legendQuantilesAreLocked === true);
       },
 
       /**

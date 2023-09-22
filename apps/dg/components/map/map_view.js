@@ -28,7 +28,8 @@
 DG.MapView = SC.View.extend(DG.GraphDropTarget,
     /** @scope DG.MapView.prototype */ {
 
-      displayProperties: ['model.dataConfiguration.attributeAssignment'],
+      displayProperties: ['model.dataConfiguration.attributeAssignment',
+        'model.dataConfiguration.legendQuantilesAreLocked'],
 
       kPadding: [10, 10],
 

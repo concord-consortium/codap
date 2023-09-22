@@ -63,6 +63,7 @@ DG.GraphController = DG.DataDisplayController.extend(
 
           storage.displayOnlySelected = dataConfiguration.get('displayOnlySelected');
           dataConfiguration.addToStorageForDimension(storage, 'legend');
+          dataConfiguration.addLegendQuantilesToStorage(storage);
 
           if (hiddenCases) {
             storage._links_.hiddenCases = hiddenCases

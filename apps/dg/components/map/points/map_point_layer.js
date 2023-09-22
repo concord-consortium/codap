@@ -93,9 +93,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             tLegendAttrType = tLegendDesc.get('attributeType'),
             tStrokeParams = this.getStrokeParams(),
             tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
-                DG.MathUtilities.nQuantileValues(
-                    tConfig.numericValuesForPlace(DG.GraphTypes.EPlace.eLegend), 5) :
-                [];
+                tConfig.get('legendQuantiles') : [];
         return {
           // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
           casesAdded: true,
@@ -370,7 +368,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         }
       }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
           'model.transparency', 'model.strokeTransparency', 'model.pointsShouldBeVisible', 'model.strokeSameAsFill',
-          'model.colorMap', 'model.selection'),
+          'model.colorMap', 'model.selection', 'model.dataConfiguration.legendQuantilesAreLocked'),
 
       updateSelection: function () {
         if (SC.none(this.get('map')))

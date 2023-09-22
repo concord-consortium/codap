@@ -391,6 +391,10 @@
     "DG.Redo.graph.toggleTransparent": "Redo toggling plot transparency",
     "DG.Undo.graph.swapCategories": "Undo reordering categories",
     "DG.Redo.graph.swapCategories": "Redo reordering categories",
+    "DG.Undo.legend.lockQuantiles": "Undo locking legend color bins",
+    "DG.Redo.legend.lockQuantiles": "Redo locking legend color bins",
+    "DG.Undo.legend.unlockQuantiles": "Undo unlocking legend color bins",
+    "DG.Redo.legend.unlockQuantiles": "Redo unlocking legend color bins",
     "DG.Undo.guide.show": "Undo showing the guide",
     "DG.Redo.guide.show": "Redo showing the guide",
     "DG.Undo.guide.navigate": "Undo changing the guide page",
@@ -959,8 +963,10 @@
     "DG.Inspector.colorPicker.more": "more",
     "DG.Inspector.colorPicker.less": "less",
 
-    // Graph Inspector
+    // Graph/Map Inspector
     "DG.Inspector.strokeSameAsFill": "Stroke same color as fill",
+    "DG.Inspector.lockLegendQuantiles": "Lock legend color bins",
+    "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change.",
     "DG.Inspector.graphTransparency": "Transparent",
     "DG.Inspector.graphCount": "Count",
     "DG.Inspector.graphPercent": "Percent",

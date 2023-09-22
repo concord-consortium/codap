@@ -33,7 +33,7 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
       /** @scope DG.ChoroplethView.prototype */
       return {
         displayProperties: ['model.attributeDescription.attribute',
-          'model.numericRange'],
+          'model.numericRange', 'model.dataConfiguration.legendQuantilesAreLocked'],
 
         /**
          Set by owning LegendView on creation
@@ -49,10 +49,12 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
           var kStrokeWidth = 0.5,
               tAttrDesc = this.getPath('model.attributeDescription'),
               tAttrType = tAttrDesc.get('attributeType'),
-              tWidth = this._paper.width - 2;
+              tWidth = this._paper.width - 2,
+              tQuantiles = this.getPath('model.dataConfiguration.legendQuantiles'),
+              tQuantileN = tQuantiles.length - 1;
 
           var drawScale = function () {
-                var tMinMax = tAttrDesc.get('minMax'),
+                var tMinMax = {min: tQuantiles[0], max: tQuantiles[tQuantileN]},
                     tMin, tMax;
                 if( tAttrType === DG.Analysis.EAttributeType.eNumeric) {
                   var tMinFormatter = DG.Format.number().fractionDigits(0, 2),
@@ -75,22 +77,19 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                     .attr({'text-anchor': 'end'}));
               }.bind(this),
 
-              drawQuintiles = function () {
+              drawQuantiles = function () {
 
-                var tQuintileN = 5,
-                    tValues = this.getPath('model.dataConfiguration').numericValuesForPlace(DG.GraphTypes.EPlace.eLegend),
-                    tQuintileValues = DG.MathUtilities.nQuantileValues(tValues, tQuintileN),
-                    tMinMax = {min: 0, max: 1},
+                var tMinMax = {min: 0, max: 1},
                     tCategoryMap = tAttrDesc.getPath('attribute.categoryMap'),
                     tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc),
                     tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap(tCategoryMap, tAttrColor);
-                tQuintileValues.forEach(function (iStartValue, iIndex) {
-                  if ((typeof iStartValue === 'number') && iIndex < tQuintileN) {
-                    var tStopValue = tQuintileValues[iIndex + 1],
-                        tLeft = tWidth * iIndex / tQuintileN,
-                        tRight = tLeft + tWidth * (iIndex +1) / tQuintileN,
+                tQuantiles.forEach(function (iStartValue, iIndex) {
+                  if ((typeof iStartValue === 'number') && iIndex < tQuantileN) {
+                    var tStopValue = tQuantiles[iIndex + 1],
+                        tLeft = tWidth * iIndex / tQuantileN,
+                        tRight = tLeft + tWidth * (iIndex +1) / tQuantileN,
                         tColor = DG.ColorUtilities.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high,
-                            (iIndex + 1)/ tQuintileN),
+                            (iIndex + 1)/ tQuantileN),
                         tTitle = tAttrType === DG.Analysis.EAttributeType.eNumeric ?
                             '%@ – %@'.fmt( Math.round(iStartValue * 100) / 100,
                                 Math.round(tStopValue * 100) / 100) :
@@ -114,7 +113,7 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
           if (!tAttrDesc || tAttrDesc.get('attribute') === null)
             return;
           drawScale();
-          drawQuintiles();
+          drawQuantiles();
 
         },
 

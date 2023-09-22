@@ -205,7 +205,7 @@ DG.LegendModel = SC.Object.extend(
       }
     });
     this.set( 'selectionMap', tSelectionMap);
-  }
+  },
 
 });
 

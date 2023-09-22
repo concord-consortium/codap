@@ -821,6 +821,8 @@ DG.DataLayerModel = SC.Object.extend( DG.Destroyable,
       if( iDataContext)
         dataConfiguration.set('dataContext', iDataContext);
       dataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', iAttrRefs);
+      // This is a hack to force the legend to recompute legendQuantiles if necessary
+      dataConfiguration.recomputeLegendQuantilesIfLocked();
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
     },

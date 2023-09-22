@@ -367,7 +367,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
         styleControls: function () {
           var this_ = this,
-              tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
+              tDataConfiguration = this.getPath('dataDisplayModel.dataConfiguration'),
+              tLegendAttrDesc = tDataConfiguration.get('legendAttributeDescription'),
               tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap'),
               currentOpenSession = null,
               setCategoryColor = function (iColor, iColorKey) {
@@ -596,6 +597,30 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   controlView:tControlView
                 })
             );
+            tResult.push(SC.CheckboxView.create({
+              layout: {height: 25},
+              title: 'DG.Inspector.lockLegendQuantiles',
+              toolTip: 'DG.Inspector.lockLegendQuantilesTooltip',
+              value: tDataConfiguration.get('legendQuantilesAreLocked'),
+              classNames: 'dg-graph-lockLegendQuantiles-check'.w(),
+              localize: true,
+              valueDidChange: function () {
+                var quantilesAreLocked = !tDataConfiguration.get('legendQuantilesAreLocked'),
+                   logMessage = "Set quantilesAreLocked to " + quantilesAreLocked;
+                DG.UndoHistory.execute(DG.Command.create({
+                  name: 'legend.quantilesAreLockedChange',
+                  undoString: quantilesAreLocked ? 'DG.Undo.legend.lockQuantiles' : 'DG.Undo.legend.unlockQuantiles',
+                  redoString: quantilesAreLocked ? 'DG.Redo.legend.lockQuantiles' : 'DG.Redo.legend.unlockQuantiles',
+                  log: logMessage,
+                  execute: function () {
+                    tDataConfiguration.toggleProperty('legendQuantilesAreLocked');
+                  }.bind(this),
+                  undo: function () {
+                    tDataConfiguration.toggleProperty('legendQuantilesAreLocked');
+                  }.bind(this)
+                }));
+              }.bind(this).observes('value')
+            }));
           }
           tResult.push(
               DG.PickerControlView.create({
@@ -675,6 +700,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             }.bind(this));
             tResult.push(tScrollView);
           }
+
           return tResult;
         }.property(),
 

@@ -25,7 +25,8 @@
 DG.GraphView = SC.View.extend(
     /** @scope DG.GraphView.prototype */
     {
-      displayProperties: ['model.dataConfiguration.attributeAssignment'],
+      displayProperties: ['model.dataConfiguration.attributeAssignment',
+        'model.dataConfiguration.legendQuantilesAreLocked'],
 
       classNames: ['dg-graph-view'],
 

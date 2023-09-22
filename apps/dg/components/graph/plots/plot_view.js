@@ -524,9 +524,7 @@ DG.PlotView = DG.PlotLayer.extend(
             tYVarIDKey = tModel.getPath('verticalAxisIsY2') ? 'y2VarID' : 'yVarID',
             tStrokeParams = this.getStrokeParams(),
             tIsNumeric = tLegendDesc && tLegendDesc.get('isNumeric'),
-            tQuantileValues = (tIsNumeric) ? DG.MathUtilities.nQuantileValues(
-                    tConfig.numericValuesForPlace(DG.GraphTypes.EPlace.eLegend), 5) :
-                [];
+            tQuantileValues = (tIsNumeric) ? tConfig.get('legendQuantiles') : [];
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         return {
           // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)

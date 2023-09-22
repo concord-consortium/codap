@@ -80,10 +80,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
         tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor,
         tStrokeSameAsFill = tModel.get('strokeSameAsFill'),
         tIsNumeric = tLegendDesc && tLegendDesc.get('isNumeric'),
-        tQuantileValues = (tLegendDesc && tIsNumeric) ?
-            DG.MathUtilities.nQuantileValues(
-                tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
-            [];
+        tQuantileValues = tConfig.get('legendQuantiles');
     return {
       map: this.get('map' ),
       polygonVarID: tModel.getPath('dataConfiguration.polygonAttributeDescription.attributeID'),
@@ -141,7 +138,8 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
 
   handleAttributeChange: function() {
     this.dataDidChange();
-  }.observes('model.dataConfiguration.attributeAssignment'),
+  }.observes('model.dataConfiguration.attributeAssignment',
+     'model.dataConfiguration.legendQuantilesAreLocked'),
 
   /**
    We should only have to worry about the fill color and fill opacity

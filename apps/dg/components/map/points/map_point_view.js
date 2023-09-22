@@ -30,7 +30,8 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   autoDestroyProperties: [ ],
 
   displayProperties: ['model.dataConfiguration.attributeAssignment',
-                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType'],
+                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType',
+                      'model.dataConfiguration.legendQuantilesAreLocked'],
 
   classNames: ['dg-map-layer'],
   // When we go into marquee-mode we add this class which makes us translucent and able receive mousedown events.
