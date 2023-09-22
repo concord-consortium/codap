@@ -29,7 +29,6 @@ const TestSharedModel = SharedModel
     },
     setValueAsync: flow(function *setValueAsync(value: string) {
       self.value = value
-      // eslint-disable-next-line testing-library/await-async-utils
       yield wait(20)
       self.value = value+1
     })
@@ -87,7 +86,6 @@ const TestTile = TileContentModel
     },
     doSomethingAsync: flow(function *doSomethingAsync() {
       self.something += 1
-      // eslint-disable-next-line testing-library/await-async-utils
       yield wait(20)
       self.something += 1
     })

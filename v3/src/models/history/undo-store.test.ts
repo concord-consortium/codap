@@ -103,14 +103,12 @@ const TestTile = TileContentModel
     },
     updateCounterAsync: flow(function *updateCounterAsync() {
       self.counter += 1
-      // eslint-disable-next-line testing-library/await-async-utils
       yield wait(50) // intermittent failures with shorter waits
       self.counter += 1
     }),
     updateCounterWithoutUndoAsync: flow(function *updateCounterWithoutUndoAsync() {
       withoutUndo()
       self.counter += 1
-      // eslint-disable-next-line testing-library/await-async-utils
       yield wait(50) // intermittent failures with shorter waits
       self.counter += 1
     }),
