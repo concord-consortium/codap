@@ -22,11 +22,17 @@ type IFormulaMetadata = {
   registeredDisplay: string
   attributeId: string
   dataSetId: string
+  isInitialized: boolean
   dispose?: () => void
+}
+
+type IDataSetMetadata = {
+  dispose: () => void
 }
 
 export class FormulaManager {
   @observable dataSets = new Map<string, IDataSet>()
+  dataSetMetadata = new Map<string, IDataSetMetadata>()
   formulaMetadata = new Map<string, IFormulaMetadata>()
   globalValueManager?: IGlobalValueManager
 
@@ -36,10 +42,17 @@ export class FormulaManager {
   }
 
   addDataSet(dataSet: IDataSet) {
+    this.removeDataSet(dataSet.id)
+    this.observeDatasetChanges(dataSet)
     this.dataSets.set(dataSet.id, dataSet)
   }
 
   removeDataSet(dataSetId: string) {
+    const metadata = this.dataSetMetadata.get(dataSetId)
+    if (metadata) {
+      metadata.dispose()
+      this.dataSetMetadata.delete(dataSetId)
+    }
     this.dataSets.delete(dataSetId)
   }
 
@@ -53,6 +66,11 @@ export class FormulaManager {
       throw new Error(`Formula ${formulaId} not registered`)
     }
     return formulaMetadata
+  }
+
+  updateFormulaMetadata(formulaId: string, metadata: Partial<IFormulaMetadata>) {
+    const prevMetadata = this.getFormulaMetadata(formulaId)
+    this.formulaMetadata.set(formulaId, { ...prevMetadata, ...metadata })
   }
 
   // Retrieves formula context like its attribute, dataset, etc. It also validates correctness of the formula
@@ -129,7 +147,10 @@ export class FormulaManager {
   }
 
   recalculateFormula(formulaId: string, casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
-    const { formula, attributeId, dataSet } = this.getFormulaContext(formulaId)
+    const { formula, attributeId, dataSet, isInitialized } = this.getFormulaContext(formulaId)
+    if (!isInitialized) {
+      return
+    }
 
     let casesToRecalculate: ICase[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
@@ -249,11 +270,18 @@ export class FormulaManager {
       updatedFormulas.forEach(formulaId => {
         const errorPresent = this.registerFormulaErrors(formulaId)
         if (!errorPresent) {
+          this.updateFormulaMetadata(formulaId, { isInitialized: true })
           this.setupFormulaObservers(formulaId)
           this.recalculateFormula(formulaId)
         }
       })
     }, { fireImmediately: true })
+  }
+
+  recalculateAllFormulas() {
+    this.formulaMetadata.forEach((metadata, formulaId) => {
+      this.recalculateFormula(formulaId)
+    })
   }
 
   unregisterFormula(formulaId: string) {
@@ -269,7 +297,8 @@ export class FormulaManager {
       formula,
       registeredDisplay: formula.display,
       attributeId,
-      dataSetId: dataSet.id
+      dataSetId: dataSet.id,
+      isInitialized: false
     }
     this.formulaMetadata.set(formula.id, formulaMetadata)
   }
@@ -345,6 +374,20 @@ export class FormulaManager {
     })
 
     return displayNameMap
+  }
+
+  observeDatasetChanges(dataSet: IDataSet) {
+    const dispose = onAnyAction(dataSet, mstAction => {
+      switch (mstAction.name) {
+        // When attribute is moved to a new collection, it usually affects grouping that is respected by formulas.
+        // It'd be possible to optimize this by checking formula dependencies and limit number of updates, but
+        // for now let's keep it simple and see if we encounter any problems.
+        case "setCollectionForAttribute":
+          this.recalculateAllFormulas()
+          break
+      }
+    })
+    this.dataSetMetadata.set(dataSet.id, { dispose })
   }
 
   observeLocalAttributes(formulaId: string, formulaDependencies: IFormulaDependency[]) {
