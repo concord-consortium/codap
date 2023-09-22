@@ -31,7 +31,9 @@ export const App = observer(function App() {
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
-      appState.document.content?.importDataSet(data, options)
+      appState.document.content?.applyUndoableAction(() => {
+        appState.document.content?.importDataSet(data, options)
+      }, "V3.Undo.import.data", "V3.Redo.import.data")
     }, [])
 
   const handleImportV3Document = useCallback((document: IDocumentModelSnapshot) => {
