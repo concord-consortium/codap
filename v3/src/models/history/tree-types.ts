@@ -1,4 +1,4 @@
-import { getPath, getType, IActionContext, IPatchRecorder } from "mobx-state-tree"
+import { getPath, getRunningActionContext, getType, IActionContext, IPatchRecorder } from "mobx-state-tree"
 import { IActionTrackingMiddleware3Call } from "./create-action-tracking-middleware-3"
 
 export interface ICustomPatch {
@@ -26,6 +26,19 @@ export function isValidCallEnv(env?: CallEnv): env is CallEnv {
 export type SharedModelModifications = Record<string, number>
 
 export const runningCalls = new WeakMap<IActionContext, IActionTrackingMiddleware3Call<CallEnv>>()
+
+// find the currently extant running call
+export function getRunningActionCall() {
+  let actionCall = getRunningActionContext()
+  if (!actionCall) return
+
+  let call = runningCalls.get(actionCall)
+  while (!call && actionCall?.parentActionEvent) {
+    actionCall = actionCall?.parentActionEvent
+    call = runningCalls.get(actionCall)
+  }
+  return call
+}
 
 // returns true if the specified action is a child of an "undo" or "redo" action
 export function isChildOfUndoRedo(actionCall?: IActionContext) {

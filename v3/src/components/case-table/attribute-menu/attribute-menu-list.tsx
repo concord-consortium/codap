@@ -41,7 +41,14 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   }
 
   const handleDeleteAttribute = () => {
-    data?.removeAttribute(column.key)
+    const attrId = column.key
+    const attributeToDelete = data?.attrFromID(attrId)
+    // instantiate values so they're captured by undo/redo patches
+    attributeToDelete?.prepareSnapshot()
+    // delete the attribute
+    attributeToDelete && data?.applyUndoableAction(() => {
+      data?.removeAttribute(attrId)
+    }, "DG.Undo.caseTable.deleteAttribute", "DG.Redo.caseTable.deleteAttribute")
   }
 
   const handleEditAttributePropsOpen = () => {

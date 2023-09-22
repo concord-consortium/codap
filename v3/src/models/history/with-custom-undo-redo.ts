@@ -1,6 +1,6 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { ICustomPatch, isChildOfUndoRedo, runningCalls } from "./tree-types"
+import { ICustomPatch, getRunningActionCall, isChildOfUndoRedo } from "./tree-types"
 import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "./custom-undo-redo-registry"
 
 /*
@@ -13,7 +13,7 @@ import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "./custom-undo-re
  * or the undo/redo code can be passed as part of this call which will handle the registration.
  */
 export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(patch: T, undoRedo?: ICustomUndoRedoPatcher) {
-  let actionCall = getRunningActionContext()
+  const actionCall = getRunningActionContext()
   if (!actionCall) {
     throw new Error("withCustomUndoRedo called outside of an MST action")
   }
@@ -21,11 +21,7 @@ export function withCustomUndoRedo<T extends ICustomPatch = ICustomPatch>(patch:
   if (isChildOfUndoRedo(actionCall)) return
 
   // find the currently extant running call
-  let call = runningCalls.get(actionCall)
-  while (!call && actionCall?.parentActionEvent) {
-    actionCall = actionCall?.parentActionEvent
-    call = runningCalls.get(actionCall)
-  }
+  const call = getRunningActionCall()
   if (!call) {
     // It is normal for there to be no running calls. This can happen in two cases:
     //   - the document isn't being edited so the tree monitor is disabled

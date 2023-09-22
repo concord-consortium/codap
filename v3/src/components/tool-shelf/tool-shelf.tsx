@@ -2,7 +2,7 @@ import {Flex, Spacer, useToast} from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
-import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-buttons"
+import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 import { IDocumentModel } from "../../models/document/document"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {

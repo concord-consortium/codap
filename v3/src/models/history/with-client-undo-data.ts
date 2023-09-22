@@ -1,6 +1,6 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { IClientUndoData, runningCalls } from "./tree-types"
+import { IClientUndoData, getRunningActionCall } from "./tree-types"
 
 /*
  * withClientUndoData
@@ -13,7 +13,7 @@ export function withClientUndoData<T extends IClientUndoData = IClientUndoData>(
     throw new Error("withClientUndoData called outside of an MST action")
   }
 
-  const call = runningCalls.get(actionCall)
+  const call = getRunningActionCall()
   if (!call) {
     // It is normal for there to be no running calls. This can happen in two cases:
     //   - the document isn't being edited so the tree monitor is disabled
