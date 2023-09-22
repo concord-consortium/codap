@@ -22,7 +22,7 @@ type IFormulaMetadata = {
   registeredDisplay: string
   attributeId: string
   dataSetId: string
-  active: boolean
+  isInitialized: boolean
   dispose?: () => void
 }
 
@@ -147,8 +147,8 @@ export class FormulaManager {
   }
 
   recalculateFormula(formulaId: string, casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
-    const { formula, attributeId, dataSet, active } = this.getFormulaContext(formulaId)
-    if (!active) {
+    const { formula, attributeId, dataSet, isInitialized } = this.getFormulaContext(formulaId)
+    if (!isInitialized) {
       return
     }
 
@@ -270,7 +270,7 @@ export class FormulaManager {
       updatedFormulas.forEach(formulaId => {
         const errorPresent = this.registerFormulaErrors(formulaId)
         if (!errorPresent) {
-          this.updateFormulaMetadata(formulaId, { active: true })
+          this.updateFormulaMetadata(formulaId, { isInitialized: true })
           this.setupFormulaObservers(formulaId)
           this.recalculateFormula(formulaId)
         }
@@ -298,7 +298,7 @@ export class FormulaManager {
       registeredDisplay: formula.display,
       attributeId,
       dataSetId: dataSet.id,
-      active: false
+      isInitialized: false
     }
     this.formulaMetadata.set(formula.id, formulaMetadata)
   }
