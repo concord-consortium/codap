@@ -381,7 +381,7 @@ export class FormulaManager {
       switch (mstAction.name) {
         // When attribute is moved to a new collection, it usually affects grouping that is respected by formulas.
         // It'd be possible to optimize this by checking formula dependencies and limit number of updates, but
-        // for now let's keep it simple and see if we encounter
+        // for now let's keep it simple and see if we encounter any problems.
         case "setCollectionForAttribute":
           this.recalculateAllFormulas()
           break
