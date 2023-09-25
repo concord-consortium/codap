@@ -28,11 +28,11 @@ export class FormulaMathJsScope {
   caseIndexCache?: Record<string, number>
   // `cache` is used directly by custom formula functions like `prev`, `next` or other aggregate functions.
   cache = new Map<string, any>()
-  // Previous result is used for calculating recursive functions like prev() referencing itself, e.g.:
+  // Properties defined below are used for calculating recursive functions like prev() referencing itself, e.g.:
   // prev(CumulativeValue, 0) + Value
-  usePreviousCase = false
-  previousResult: FValue = ""
-  previousCaseId = ""
+  previousCaseIdxModifier = 0
+  previousResults: FValue[] = []
+  previousCaseIds: string[] = []
 
   constructor (context: IFormulaMathjsScopeContext) {
     this.context = context
@@ -58,7 +58,7 @@ export class FormulaMathJsScope {
       let cachedGroup: Record<string, IValueType[]>
       Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attrId}${AGGREGATE_SYMBOL_SUFFIX}`, {
         get: () => {
-          if (this.usePreviousCase) {
+          if (this.previousCaseIdxModifier !== 0) {
             // Note that this block is only used by `prev()` function that has iterative approach to calculating
             // its values rather than relying on arrays of values like other aggregate functions. However, its arguments
             // are still considered aggregate, so caching and grouping works as expected.
@@ -66,9 +66,10 @@ export class FormulaMathJsScope {
               // When formula references its own attribute, we cannot simply return case values - we're just trying
               // to calculate them. In most cases this is not allowed, but there are some exceptions, e.g. prev function
               // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
-              return this.previousResult
+              return this.previousResults[this.previousResults.length + this.previousCaseIdxModifier]
             }
-            return this.getLocalValue(this.previousCaseId, attrId)
+            const prevCaseId = this.previousCaseIds[this.previousCaseIds.length + this.previousCaseIdxModifier]
+            return this.getLocalValue(prevCaseId, attrId)
           }
 
           if (!cachedGroup) {
@@ -164,18 +165,18 @@ export class FormulaMathJsScope {
     return this.caseId
   }
 
-  setPreviousCaseId(caseId: string) {
-    this.previousCaseId = caseId
+  savePreviousCaseId(caseId: string) {
+    this.previousCaseIds.push(caseId)
   }
 
-  setPreviousResult(value: FValue) {
-    this.previousResult = value
+  savePreviousResult(value: FValue) {
+    this.previousResults.push(value)
   }
 
   withPreviousCase(callback: () => void) {
-    this.usePreviousCase = true
+    this.previousCaseIdxModifier -= 1
     callback()
-    this.usePreviousCase = false
+    this.previousCaseIdxModifier += 1
   }
 
   getCaseChildrenCount() {
