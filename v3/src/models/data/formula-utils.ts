@@ -1,6 +1,6 @@
 import { parse, MathNode, isFunctionNode, isSymbolNode } from "mathjs"
 import {
-  AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency,
+  AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency
 } from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
 import type { IDataSet } from "./data-set"
@@ -27,7 +27,7 @@ export const generateCanonicalSymbolName = (name: string, aggregate: boolean, di
   return canonicalName
 }
 
-export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDependency | null => {
+export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDependency | undefined => {
   if (canonicalName.startsWith(LOCAL_ATTR)) {
     const attrId = canonicalName.substring(LOCAL_ATTR.length)
     const result: ILocalAttributeDependency = { type: "localAttribute", attrId }
@@ -41,7 +41,7 @@ export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDepende
     const globalId = canonicalName.substring(GLOBAL_VALUE.length)
     return { type: "globalValue", globalId }
   }
-  return null
+  return undefined
 }
 
 export const safeSymbolName = (name: string) => {
@@ -61,6 +61,9 @@ export const customizeFormula = (formula: string) => {
     // eg. names with spaces or names that start with a number.
     .replace(/`([^`]+)`/g, (_, match) => safeSymbolName(match))
 }
+
+export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
+  formulaAttributeId && dependency?.type === "localAttribute" && dependency.attrId === formulaAttributeId
 
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
@@ -130,13 +133,12 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
     }
     const isSelfReferenceAllowed = !!node.isSelfReferenceAllowed
     if (isSymbolNode(node)) {
-      const parsedName = parseCanonicalSymbolName(node.name)
-      const isNodeReferencingItself = formulaAttributeId &&
-        parsedName?.type === "localAttribute" && parsedName.attrId === formulaAttributeId
+      const dependency = parseCanonicalSymbolName(node.name)
+      const isSelfReference = ifSelfReference(dependency, formulaAttributeId)
       // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
       // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
-      if (parsedName && (!isNodeReferencingItself || !isSelfReferenceAllowed)) {
-        result.push(parsedName)
+      if (dependency && (!isSelfReference || !isSelfReferenceAllowed)) {
+        result.push(dependency)
       }
     }
     // Some functions have special kind of dependencies that need to be calculated in a custom way
@@ -180,15 +182,16 @@ export const getExtremeCollectionDependency =
 export const getFormulaChildMostAggregateCollectionIndex = (formulaCanonical: string, dataSet: IDataSet) => {
   const attrId = getExtremeCollectionDependency(formulaCanonical, dataSet, { order: "max", aggregate: true })
   const collectionId = dataSet.getCollectionForAttribute(attrId || "")?.id
-  return dataSet.getCollectionIndex(collectionId || "") ?? null
+  const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+  return collectionIndex !== -1 ? dataSet.getCollectionIndex(collectionId || "") : null
 }
 
 export const getIncorrectParentAttrReference =
   (formulaCanonical: string, formulaCollectionIndex: number, dataSet: IDataSet) => {
   const attrId = getExtremeCollectionDependency(formulaCanonical, dataSet, { order: "min", aggregate: true })
   const collectionId = dataSet.getCollectionForAttribute(attrId || "")?.id
-  const collectionIndex = dataSet.getCollectionIndex(collectionId || "") ?? Infinity
-  if (collectionIndex < formulaCollectionIndex) {
+  const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+  if (collectionIndex !== -1 && collectionIndex < formulaCollectionIndex) {
     return attrId
   }
   return false
@@ -198,8 +201,8 @@ export const getIncorrectChildAttrReference =
   (formulaCanonical: string, formulaCollectionIndex: number, dataSet: IDataSet) => {
   const attrId = getExtremeCollectionDependency(formulaCanonical, dataSet, { order: "max", aggregate: false })
   const collectionId = dataSet.getCollectionForAttribute(attrId || "")?.id
-  const collectionIndex = dataSet.getCollectionIndex(collectionId || "") ?? -Infinity
-  if (collectionIndex > formulaCollectionIndex) {
+  const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+  if (collectionIndex !== -1 && collectionIndex > formulaCollectionIndex) {
     return attrId
   }
   return false

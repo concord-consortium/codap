@@ -9,7 +9,7 @@ import {
 } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
-  ILookupDependency, NO_PARENT_KEY, FValue
+  ILookupDependency, NO_PARENT_KEY, FValue, CASE_INDEX_FAKE_ATTR_ID
 } from "./formula-types"
 import { math } from "./formula-fn-registry"
 import { IDataSet } from "./data-set"
@@ -355,7 +355,10 @@ export class FormulaManager {
     }
 
     displayNameMap.localNames = {
-      ...mapAttributeNames(localDataSet, LOCAL_ATTR)
+      ...mapAttributeNames(localDataSet, LOCAL_ATTR),
+      // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
+      // that returns the current, 1-based index of the case in its collection group.
+      caseIndex: `${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
     }
 
     this.globalValueManager?.globals.forEach(global => {

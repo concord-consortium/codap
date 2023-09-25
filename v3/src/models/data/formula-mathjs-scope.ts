@@ -1,4 +1,6 @@
-import { AGGREGATE_SYMBOL_SUFFIX, FValue, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY } from "./formula-types"
+import {
+  FValue, AGGREGATE_SYMBOL_SUFFIX, CASE_INDEX_FAKE_ATTR_ID, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY
+} from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "./data-set"
 import type { IValueType } from "./attribute"
@@ -23,6 +25,8 @@ export class FormulaMathJsScope {
   context: IFormulaMathjsScopeContext
   caseId = ""
   dataStorage: Record<string, any> = {}
+  caseIndexCache?: Record<string, number>
+  // `cache` is used directly by custom formula functions like `prev`, `next` or other aggregate functions.
   cache = new Map<string, any>()
   // Previous result is used for calculating recursive functions like prev() referencing itself, e.g.:
   // prev(CumulativeValue, 0) + Value
@@ -36,36 +40,39 @@ export class FormulaMathJsScope {
   }
 
   initDataStorage(context: IFormulaMathjsScopeContext) {
+    // `caseIndex` is a special symbol that might be used by formulas.
+    const localAttributeIds = context.localDataSet.attributes.map(a => a.id).concat(CASE_INDEX_FAKE_ATTR_ID)
+
     // We could parse symbol name in get() function, but this should theoretically be faster, as it's done only once,
     // and no parsing is needed when the symbol is accessed for each dataset case.
     // First, provide local dataset attribute symbols.
-    context.localDataSet.attributes.forEach(attr => {
-      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}`, {
+    localAttributeIds.forEach(attrId => {
+      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attrId}`, {
         get: () => {
-          return context.localDataSet.getValue(this.caseId, attr.id)
+          return this.getLocalValue(this.caseId, attrId)
         }
       })
 
       // Make sure that all the caching and case processing is done lazily, only for attributes that are actually
       // referenced by the formula.
-      const cachedGroup: Record<string, IValueType[]> = {}
-      let cacheInitialized = false
-      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attr.id}${AGGREGATE_SYMBOL_SUFFIX}`, {
+      let cachedGroup: Record<string, IValueType[]>
+      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attrId}${AGGREGATE_SYMBOL_SUFFIX}`, {
         get: () => {
           if (this.usePreviousCase) {
             // Note that this block is only used by `prev()` function that has iterative approach to calculating
             // its values rather than relying on arrays of values like other aggregate functions. However, its arguments
             // are still considered aggregate, so caching and grouping works as expected.
-            if (attr.id === this.context.formulaAttrId) {
+            if (attrId === this.context.formulaAttrId) {
               // When formula references its own attribute, we cannot simply return case values - we're just trying
               // to calculate them. In most cases this is not allowed, but there are some exceptions, e.g. prev function
               // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
               return this.previousResult
             }
-            return context.localDataSet.getValue(this.previousCaseId, attr.id)
+            return this.getLocalValue(this.previousCaseId, attrId)
           }
 
-          if (!cacheInitialized) {
+          if (!cachedGroup) {
+            cachedGroup = {}
             // Cache is calculated lazily to avoid calculating it for all the attributes that are not referenced by
             // the formula. Note that each case is processed only once, so this mapping is only O(n) complexity.
             context.childMostCollectionCases.forEach(c => {
@@ -73,16 +80,15 @@ export class FormulaMathJsScope {
               if (!cachedGroup[groupId]) {
                 cachedGroup[groupId] = []
               }
-              cachedGroup[groupId].push(context.localDataSet.getValue(c.__id__, attr.id))
+              cachedGroup[groupId].push(this.getLocalValue(c.__id__, attrId))
             })
-            cacheInitialized = true
           }
           return cachedGroup[this.getCaseGroupId()] || cachedGroup[NO_PARENT_KEY]
         }
       })
     })
 
-    // Then, provide global value symbols.
+    // Global value symbols.
     context.globalValueManager?.globals.forEach(global => {
       Object.defineProperty(this.dataStorage, `${GLOBAL_VALUE}${global.id}`, {
         get: () => {
@@ -91,7 +97,6 @@ export class FormulaMathJsScope {
       })
     })
   }
-
   // --- Functions required by MathJS scope "interface". It doesn't seem to be defined/typed anywhere, so it's all
   //     based on: // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js ---
   get(key: string): any {
@@ -127,6 +132,30 @@ export class FormulaMathJsScope {
   }
 
   // --- Custom functions used by our formulas or formula manager --
+  getCaseIndex(caseId: string) {
+    if (!this.caseIndexCache) {
+      // Cache is calculated lazily to avoid calculating when not necessary.
+      // Note that each case is processed only once, so this mapping is only O(n) complexity.
+      this.caseIndexCache = {}
+      const casesCount: Record<string, number> = {}
+      this.context.childMostCollectionCases.forEach(c => {
+        const groupId = this.context.caseGroupId[c.__id__]
+        if (!casesCount[groupId]) {
+          casesCount[groupId] = 0
+        }
+        casesCount[groupId] += 1
+        this.caseIndexCache![c.__id__] = casesCount[groupId]
+      })
+    }
+    return this.caseIndexCache[caseId]
+  }
+
+  getLocalValue(caseId: string, attrId: string) {
+    return attrId === CASE_INDEX_FAKE_ATTR_ID
+      ? this.getCaseIndex(caseId)
+      : this.context.localDataSet.getValue(caseId, attrId)
+  }
+
   setCaseId(caseId: string) {
     this.caseId = caseId
   }

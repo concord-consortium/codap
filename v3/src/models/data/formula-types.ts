@@ -4,6 +4,7 @@ import type { FormulaMathJsScope } from "./formula-mathjs-scope"
 export const GLOBAL_VALUE = "GLOBAL_VALUE_"
 export const LOCAL_ATTR = "LOCAL_ATTR_"
 export const AGGREGATE_SYMBOL_SUFFIX = "_ALL"
+export const CASE_INDEX_FAKE_ATTR_ID = "CASE_INDEX"
 
 export const NO_PARENT_KEY = "__NO_PARENT__"
 
