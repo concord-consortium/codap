@@ -49,13 +49,14 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     }
   })
 
-  // find the `case-table` DOM element; divider must be drawn relative
-  // to the `case-table` (via React portal) so it isn't clipped by the cell
+  // find the `case-table-content` DOM element; divider must be drawn relative
+  // to the `case-table-content` (via React portal) so it isn't clipped by the cell,
+  // but must be a child of the `case-table-content` for auto-scroll to work.
   useEffect(() => {
     if (cellElt && !tableElt) {
       let parent: HTMLElement | null
       for (parent = cellElt; parent; parent = parent.parentElement) {
-        if (parent.classList.contains("case-table")) {
+        if (parent.classList.contains("case-table-content")) {
           setTableElt(parent)
           break
         }

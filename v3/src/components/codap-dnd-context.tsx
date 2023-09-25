@@ -1,5 +1,6 @@
 import {
-  DndContext, KeyboardCoordinateGetter, KeyboardSensor, PointerSensor, MouseSensor, useSensor, useSensors
+  AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
+  MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
 import { containerSnapToGridModifier } from "../hooks/use-drag-drop"
@@ -11,6 +12,13 @@ interface IProps {
 }
 export const CodapDndContext = ({ children }: IProps) => {
 
+  const autoScrollOptions: AutoScrollOptions = {
+    // scroll components before scrolling the document
+    order: TraversalOrder.ReversedTreeOrder,
+    // reduce the auto-scroll area to 5% (default is 20%)
+    threshold: { x: 0.05, y: 0.05 }
+  }
+
   const useMouseSensor = useSensor(MouseSensor)
   const sensors = useSensors(
                     // pointer must move three pixels before starting a drag
@@ -19,7 +27,11 @@ export const CodapDndContext = ({ children }: IProps) => {
                     // mouse sensor can be enabled for cypress tests, for instance
                     urlParams.mouseSensor !== undefined ? useMouseSensor : null)
   return (
-    <DndContext collisionDetection={dndDetectCollision} sensors={sensors} modifiers={[containerSnapToGridModifier]}>
+    <DndContext
+      autoScroll={autoScrollOptions}
+      collisionDetection={dndDetectCollision}
+      modifiers={[containerSnapToGridModifier]}
+      sensors={sensors} >
       {children}
     </DndContext>
   )
