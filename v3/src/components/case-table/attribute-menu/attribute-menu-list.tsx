@@ -37,7 +37,9 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     })
   }
   const handleHideAttribute = () => {
-   caseMetadata?.setIsHidden(column.key, true)
+    caseMetadata?.applyUndoableAction(
+      () => caseMetadata?.setIsHidden(column.key, true),
+      "DG.Undo.caseTable.hideAttribute", "DG.Redo.caseTable.hideAttribute")
   }
 
   const handleDeleteAttribute = () => {

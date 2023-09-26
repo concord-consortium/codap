@@ -5,13 +5,13 @@ import { useCaseTableModel } from "./use-case-table-model"
 
 export function useCollectionTableModel(collectionId?: string) {
   const tableModel = useCaseTableModel()
-  const collection = useCollectionContext()
+  const collectionIdFromContext = useCollectionContext()
   const collectionTableModel = useRef<CollectionTableModel | undefined>()
 
   useEffect(() => {
     const isMismatch = collectionTableModel.current?.collectionId !== collectionId
     if (!collectionTableModel.current || isMismatch) {
-      collectionTableModel.current = tableModel?.getCollectionTableModel(collectionId ?? collection.id)
+      collectionTableModel.current = tableModel?.getCollectionTableModel(collectionId ?? collectionIdFromContext)
     }
   })
 

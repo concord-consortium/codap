@@ -37,7 +37,7 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
 export const useIndexColumn = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
-  const collection = useCollectionContext()
+  const collectionId = useCollectionContext()
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row
@@ -53,6 +53,7 @@ export const useIndexColumn = () => {
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
+    const collection = data?.getCollection(collectionId)
     // rebuild index column definition when necessary
     indexColumn.current = {
       key: kIndexColumnKey,
@@ -63,11 +64,11 @@ export const useIndexColumn = () => {
       renderHeaderCell: ColumnHeader,
       cellClass: "codap-index-cell",
       colSpan(args: TColSpanArgs) {
-        return indexColumnSpan(args, { data, metadata: caseMetadata, collection })
+        return collection ? indexColumnSpan(args, { data, metadata: caseMetadata, collection }) : undefined
       },
       renderCell: RenderIndexCell
     }
-  }, [caseMetadata, collection, data, RenderIndexCell])
+  }, [caseMetadata, collectionId, data, RenderIndexCell])
 
   return indexColumn.current
 }

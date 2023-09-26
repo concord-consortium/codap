@@ -18,7 +18,7 @@ interface UseSelectedRows {
 
 export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSelectedRows) => {
   const data = useDataSetContext()
-  const collection = useCollectionContext()
+  const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
   const [selectedRows, _setSelectedRows] = useState<ReadonlySet<string>>(() => new Set())
   const syncCount = useRef(0)
@@ -36,7 +36,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
     prf.measure("Table.syncRowSelectionToRdg", () => {
       const newSelection = prf.measure("Table.syncRowSelectionToRdg[reaction-copy]", () => {
         const selection = new Set<string>()
-        const cases = data?.getCasesForCollection(collection.id) || []
+        const cases = data?.getCasesForCollection(collectionId) || []
         cases.forEach(aCase => data?.isCaseSelected(aCase.__id__) && selection.add(aCase.__id__))
         return selection
       })
@@ -44,7 +44,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
         _setSelectedRows(newSelection)
       })
     })
-  }, [collection, data])
+  }, [collectionId, data])
 
   const syncRowSelectionToDom = useCallback(() => {
     prf.measure("Table.syncRowSelectionToDom", () => {
@@ -52,7 +52,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       const rows = grid?.querySelectorAll(".rdg-row")
       rows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = collectionCaseIdFromIndex(rowIndex, data, collection.id)
+        const caseId = collectionCaseIdFromIndex(rowIndex, data, collectionId)
         const isSelected = row.getAttribute("aria-selected")
         const shouldBeSelected = caseId && data?.isCaseSelected(caseId)
         if (caseId && (isSelected !== shouldBeSelected)) {
@@ -60,7 +60,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
         }
       })
     })
-  }, [collection, data])
+  }, [collectionId, data])
 
   useEffect(() => {
     const disposer = reaction(() => appState.appMode, mode => {
@@ -90,16 +90,16 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
           }
           if (isPartialSelectionAction(action)) {
             const caseIds = action.args[0]
-            const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collection.id))
+            const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collectionId))
                                        .filter(index => index != null) as number[]
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
-            isSelecting && caseIndices.length && onScrollClosestRowIntoView(collection.id, caseIndices)
+            isSelecting && caseIndices.length && onScrollClosestRowIntoView(collectionId, caseIndices)
           }
         }
       })
     })
     return () => disposer?.()
-  }, [collection, collectionTableModel, data, onScrollClosestRowIntoView,
+  }, [collectionId, collectionTableModel, data, onScrollClosestRowIntoView,
       syncRowSelectionToDom, syncRowSelectionToRdg])
 
   // anchor row for shift-selection
@@ -110,14 +110,14 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
     const isCaseSelected = data?.isCaseSelected(caseId)
     const isExtending = event.shiftKey || event.altKey || event.metaKey
     if (event.shiftKey && anchorCase.current) {
-      const targetIndex = collectionCaseIndexFromId(caseId, data, collection.id)
-      const anchorIndex = collectionCaseIndexFromId(anchorCase.current, data, collection.id)
+      const targetIndex = collectionCaseIndexFromId(caseId, data, collectionId)
+      const anchorIndex = collectionCaseIndexFromId(anchorCase.current, data, collectionId)
       const casesToSelect: string[] = []
       if (targetIndex != null && anchorIndex != null) {
         const start = Math.min(anchorIndex, targetIndex)
         const end = Math.max(anchorIndex, targetIndex)
         for (let i = start; i <= end; ++i) {
-          const id = collectionCaseIdFromIndex(i, data, collection.id)
+          const id = collectionCaseIdFromIndex(i, data, collectionId)
           id && casesToSelect.push(id)
           data?.selectCases(casesToSelect, true)
         }
@@ -132,7 +132,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       data?.setSelectedCases([caseId])
       anchorCase.current = caseId
     }
-  }, [collection, data])
+  }, [collectionId, data])
 
   return { selectedRows, setSelectedRows, handleCellClick }
 }

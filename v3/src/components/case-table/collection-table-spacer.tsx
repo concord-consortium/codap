@@ -9,7 +9,6 @@ import { measureText } from "../../hooks/use-measure-text"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import t from "../../utilities/translation/translate"
-import { kChildMostTableCollectionId } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { CurvedSpline } from "./curved-spline"
 
@@ -19,12 +18,11 @@ interface IProps {
 export const CollectionTableSpacer = observer(function CollectionTableSpacer({ onDrop }: IProps) {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
-  const parentCollection = useParentCollectionContext()
-  const parentCollectionId = parentCollection?.id
+  const parentCollectionId = useParentCollectionContext()
+  const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)
   const parentScrollTop = parentTableModel?.scrollTop ?? 0
-  const childCollection = useCollectionContext()
-  const childCollectionId = childCollection?.id || kChildMostTableCollectionId
+  const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {

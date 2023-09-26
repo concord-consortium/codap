@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
-import { kChildMostTableCollectionId, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRow } from "./case-table-types"
+import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
 import { useColumns } from "./use-columns"
@@ -28,8 +28,7 @@ interface IProps {
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const { onMount, onNewCollectionDrop, onTableScroll, onScrollClosestRowIntoView } = props
   const data = useDataSetContext()
-  const collection = useCollectionContext()
-  const collectionId = collection?.id || kChildMostTableCollectionId
+  const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
@@ -63,8 +62,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
     const attr = dataSet.attrFromID(attrId)
-    attr && onNewCollectionDrop(dataSet, attrId, collection.id)
-  }, [collection.id, onNewCollectionDrop])
+    attr && onNewCollectionDrop(dataSet, attrId, collectionId)
+  }, [collectionId, onNewCollectionDrop])
 
   const handleGridScroll = useCallback(function handleGridScroll(event: React.UIEvent<HTMLDivElement, UIEvent>) {
     const gridElt = gridRef.current?.element
