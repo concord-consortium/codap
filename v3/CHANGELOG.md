@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.1331 - September 26, 2023
+
+### Features/Improvements
+- Any number of **movable values** can be placed on a dot plot [#181914428](https://www.pivotaltracker.com/story/show/181914428)
+- **Undo** and **Redo** icons appear in the right portion of the tool shelf [#181840941](https://www.pivotaltracker.com/story/show/181840941)
+- Users can add a **Plotted Value** to a scatterplot [#181940090](https://www.pivotaltracker.com/story/show/181940090)
+- Dropping attribute on graph axis should be undoable as a single action [#186037220](https://www.pivotaltracker.com/story/show/186037220)
+- Dragging slider should create one undo/redo step [#186053996](https://www.pivotaltracker.com/story/show/186053996)
+- Dragging/rescaling an axis should be undoable as a single action [#186066006](https://www.pivotaltracker.com/story/show/186066006)
+- New table undoable as a single action [#186075309](https://www.pivotaltracker.com/story/show/186075309)
+
+### Bug Fixes
+- aggregate functions in formula does not allow using attributes from parent tables [#186026563](https://www.pivotaltracker.com/story/show/186026563)
+- Fix fade in / out effects in graph adornment that start to break Cypress tests after upgrade of react-mobx-lite from v3 to v4 [#186031756](https://www.pivotaltracker.com/story/show/186031756)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   67800 bytes |                            4.09% |
+|  index.js | 3356410 bytes |                            1.71% |
+
 ## Version 3.0.0-pre.1307 - September 11, 2023
 
 ### Features/Improvements
