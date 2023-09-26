@@ -44,50 +44,6 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
 // count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
 export const isValueTruthy = (value: any) => value !== "" && value !== false && value !== null && value !== undefined
 
-
-// `next` and `prev` functions can share the same implementation assuming that `next` is just reversed `prev`.
-// `next` function needs to be executed for each case in the reverse order, and it'll also have different case pointer
-// modifier. `prev` will set scope to the previous index (-1), while next to the next one (+1).
-export const prevOrNextFactory = (variant: "next" | "prev") =>
-  (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-  interface ICachedData {
-    result?: FValue
-  }
-
-  const cacheKey = `${variant}(${args.toString()})-${scope.getSemiAggregateGroupId()}`
-  const [ expression, defaultValue, filter ] = args
-  const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
-  let result
-
-  if (cachedData !== undefined) {
-    // In case we don't find a new result, we need to reuse the old one.
-    result = cachedData.result
-    let newExpressionValue, newFilterValue
-    // This block will resolve attribute names to previous case values.
-    scope.withCaseIndexModifier(() => {
-      newExpressionValue = evaluateNode(expression, scope)
-      if (filter) {
-        newFilterValue = evaluateNode(filter, scope)
-      }
-    }, variant === "next" ? +1 : -1)
-
-    if (!filter || isValueTruthy(newFilterValue)) {
-      // If there's no filter, prev() returns the previous case value.
-      // If there's filter, prev() returns the previous case value that matches the filter. Note that in the
-      // previous case evaluations, we already checked all the previous indices. So, it's enough to check just
-      // the last value.
-      result = newExpressionValue
-    }
-    scope.setCached(cacheKey, { result })
-  } else {
-    // This block of code will be executed only once for each group (if there's grouping), for the very first case.
-    // The very first case can't return anything from prev() function.
-    result = undefined
-    scope.setCached(cacheKey, { result })
-  }
-  return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
-}
-
 const UNDEF_RESULT = ""
 
 export const fnRegistry = {
@@ -273,33 +229,63 @@ export const fnRegistry = {
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      // `next` is in fact a special case of `prev` function, where we iterate over cases in reverse order.
-      // However, since formula manager iterates in regular order, we need to simulate reversed iteration here when
-      // the first case is evaluated. Results are cached and immediately returned for all the other cases.
-      const nextFn = prevOrNextFactory("next")
-      const resultCacheKey = `next(${args.toString()})-RESULTS`
-      type CachedResults = Record<string, FValue>
-      let cachedResults = scope.getCached(resultCacheKey) as CachedResults | undefined
-
-      if (!cachedResults) {
-        cachedResults = {}
-        const originalCasePointer = scope.baseCasePointer
-        const originalCasePointerModifier = scope.casePointerModifier
-        scope.setCasePointerModifier(0)
-
-        scope.context.cases.forEach((c, idx) => {
-          scope.setBaseCasePointer(scope.context.cases.length - 1 - idx)
-          const result = nextFn(args, mathjs, scope)
-          const defaultValue = args[1]
-          cachedResults![scope.caseId] = result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
-        })
-
-        scope.setBaseCasePointer(originalCasePointer)
-        scope.setCasePointerModifier(originalCasePointerModifier)
-        scope.cache.set(resultCacheKey, cachedResults)
+      interface ICachedData {
+        result?: FValue
+        resultPointer: number
       }
 
-      return cachedResults[scope.caseId]
+      const caseGroupId = scope.getSemiAggregateGroupId()
+      const cacheKey = `next(${args.toString()})-${caseGroupId}`
+      const [ expression, defaultValue, filter ] = args
+      const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
+
+      let result
+      if (!cachedData || scope.casePointer >= cachedData.resultPointer) {
+        // We need to look for a new next value when there's no cached data (e.g. first case being processed) or when
+        // we already passed the index of cached result.
+        let pointerMod = 0
+        let expressionValue
+        if (filter) {
+          const maxMod = scope.context.cases.length - scope.casePointer
+          let filterValue, currentGroup = caseGroupId
+          // Keep looking for truthy filter value as long as cases are in the same group and we didn't reach the end.
+          while (!isValueTruthy(filterValue) && pointerMod < maxMod && currentGroup === caseGroupId) {
+            pointerMod += 1
+            scope.withCasePointerModifier(() => {
+              currentGroup = scope.getSemiAggregateGroupId()
+              if (currentGroup === caseGroupId) {
+                // It could be tempting to skip evaluation of expression if the filter is defined and evaluates to falsy
+                // value. But it's not possible, as we need to evaluate each case, one by one, as there can be nested
+                // `next` or `prev` calls. They rely on iterative execution for each case. In other words, we cannot
+                // skip evaluation for some cases, as it would break the assumption about iterative execution.
+                expressionValue = evaluateNode(expression, scope)
+                filterValue = evaluateNode(filter, scope)
+              } else {
+                pointerMod -= 1 // We reached the next group, so we need to step back and finish the loop.
+              }
+            }, pointerMod)
+          }
+          if (isValueTruthy(filterValue)) {
+            result = expressionValue
+          }
+        } else {
+          // When there's no filter, simply get the next expression value (within the same case group).
+          pointerMod = 1
+          scope.withCasePointerModifier(() => {
+            if (scope.getSemiAggregateGroupId() === caseGroupId) {
+              expressionValue = evaluateNode(expression, scope)
+            }
+          }, pointerMod)
+          result = expressionValue
+        }
+
+        scope.setCached(cacheKey, { result, resultPointer: scope.casePointer + pointerMod })
+      } else {
+        // When scope.casePointer < cachedData.resultPointer, we can reuse the previous result.
+        result = cachedData.result
+      }
+
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
     }
   },
 
@@ -310,7 +296,36 @@ export const fnRegistry = {
     selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: prevOrNextFactory("prev")
+    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+      const [ expression, defaultValue, filter ] = args
+
+      const caseGroupId = scope.getSemiAggregateGroupId()
+      const cacheKey = `prev(${args.toString()})-${caseGroupId}`
+      const cachedResult = scope.getCached(cacheKey) as FValue | undefined
+
+      let result = cachedResult
+      let newExpressionValue, newFilterValue
+      scope.withCasePointerModifier(() => {
+        // It could be tempting to skip evaluation of expression if the filter is defined and evaluates to falsy
+        // value. But it's not possible, as we need to evaluate each case, one by one, as there can be nested `next`
+        // or `prev` calls. They rely on iterative execution for each case. In other words, we cannot skip evaluation
+        // for some cases, as it would break the assumption about iterative execution.
+        if (scope.getSemiAggregateGroupId() === caseGroupId) {
+          newExpressionValue = evaluateNode(expression, scope)
+          if (filter) {
+            newFilterValue = evaluateNode(filter, scope)
+          }
+        }
+      }, -1)
+
+      // If there's no filter, prev() returns the previous case value.
+      if (!filter || isValueTruthy(newFilterValue)) {
+        result = newExpressionValue
+      }
+
+      scope.setCached(cacheKey, result)
+      return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
+    }
   },
 
   // if(expression, value_if_true, value_if_false)

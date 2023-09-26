@@ -178,7 +178,7 @@ export class FormulaMathJsScope {
     this.previousResults.push(value)
   }
 
-  withCaseIndexModifier(callback: () => void, casePointerModifier: number) {
+  withCasePointerModifier(callback: () => void, casePointerModifier: number) {
     const originalCasePointerModifier = this.casePointerModifier
     if (this.casePointerModifier === undefined) {
       this.casePointerModifier = 0
