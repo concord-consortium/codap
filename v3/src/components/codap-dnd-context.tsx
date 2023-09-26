@@ -12,6 +12,8 @@ interface IProps {
 }
 export const CodapDndContext = ({ children }: IProps) => {
 
+  // Note that as of this writing, the auto-scroll options are not documented in the official docs,
+  // but they are described in this PR: https://github.com/clauderic/dnd-kit/pull/140.
   const autoScrollOptions: AutoScrollOptions = {
     // scroll components before scrolling the document
     order: TraversalOrder.ReversedTreeOrder,
