@@ -32,9 +32,9 @@ interface IProps {
 export const PlottedValue = observer(function PlottedValue (props: IProps) {
   const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
+  const value = model.value
   const layout = useAxisLayoutContext()
   const dataConfig = useDataConfigurationContext()
-  const dataset = dataConfig?.dataset
   const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
   const xAttrId = dataConfig?.attributeID("x")
   const xAttrType = dataConfig?.attributeType("x")
@@ -49,30 +49,14 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   // space to the top of the graph to accommodate the Plotted Value's UI elements.
   const offsetTop = 20
 
-  const getCases = useCallback(() => {
-    const cases = xAttrId && isVertical
-      ? dataset?.getCasesForAttributes([xAttrId])
-      : yAttrId
-        ? dataset?.getCasesForAttributes([yAttrId])
-        : []
-    return cases
-  }, [dataset, isVertical, xAttrId, yAttrId])
-
-  const getCaseValues = useCallback(() => {
-    const cases = getCases()
-    const caseValues = cases && xAttrId
-      ? cases.map(c => dataset?.getNumeric(c.__id__, xAttrId)).filter(x => x && isFinite(x)) as number[]
-      : cases && yAttrId
-        ? cases.map(c => dataset?.getNumeric(c.__id__, yAttrId)).filter(x => x && isFinite(x)) as number[]
-        : [] as number[]
-    return caseValues
-  }, [getCases, dataset, xAttrId, yAttrId])
-
   // Updates the coordinates of the line, its cover, and text label
   const refreshValue = useCallback(() => {
-    const { value } = model
-    if (!value) return
-    const caseValues = getCaseValues()
+    if (!value || !dataConfig) return
+    const attrId = dataConfig.attributeType("x") === "numeric"
+      ? xAttrId
+      : dataConfig.attributeType("y") === "numeric"
+        ? yAttrId : undefined
+    const caseValues = attrId ? model.getCaseValues(attrId, cellKey, dataConfig) : []
     if (caseValues.length < 1) return
 
     const valueIsInteger = Number.isInteger(Number(value))
@@ -80,10 +64,17 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
     const plotValue = valueIsInteger ? finalValue : Math.round(finalValue * 10) / 10
     const newValueObject: IValueObject = {}
     const selection = select(valueRef.current)
-    const x1 = isVertical.current ? xScale(plotValue) : 0
-    const x2 = isVertical.current ? xScale(plotValue) : plotWidth
-    const y1 = isVertical.current ? plotHeight : yScale(plotValue)
-    const y2 = isVertical.current ? offsetTop : yScale(plotValue)
+    const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
+    const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
+    const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
+    const yCatSet = layout.getAxisMultiScale("left")?.categorySet
+    const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
+    const xCellCount = xCats.length * xSubAxesCount
+    const yCellCount = yCats.length
+    const x1 = isVertical.current ? xScale(plotValue) / xCellCount : 0
+    const x2 = isVertical.current ? xScale(plotValue) / xCellCount : plotWidth / xCellCount
+    const y1 = isVertical.current ? plotHeight / yCellCount : yScale(plotValue) / yCellCount
+    const y2 = isVertical.current ? offsetTop : yScale(plotValue) / yCellCount
 
     // Remove the previous value's elements
     selection.html(null)
@@ -109,10 +100,11 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
       .attr("class", "plotted-value-tip")
       .attr("id", `plotted-value-tip-${containerId}-${classFromKey}`)
       .attr("data-testid", `plotted-value-tip${classFromKey ? `-${classFromKey}` : ""}`)
-      .attr("x", isVertical.current ? xScale(plotValue) + 5 : plotWidth - 25)
-      .attr("y", isVertical.current ? offsetTop + 10 : yScale(plotValue) - 5)
+      .attr("x", isVertical.current ? xScale(plotValue) / xCellCount + 5 : plotWidth / xCellCount - 25)
+      .attr("y", isVertical.current ? offsetTop + 10 : yScale(plotValue) / yCellCount - 5)
 
-  }, [getCaseValues, classFromKey, containerId, model, plotHeight, plotWidth, xScale, yScale])
+  }, [value, dataConfig, xAttrId, yAttrId, model, cellKey, layout, xAttrType, yAttrType,
+      xScale, plotWidth, plotHeight, yScale, classFromKey, containerId])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
@@ -145,7 +137,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   return (
     <>
       <div className="plotted-value-container" id={`plotted-value-${containerId}`}>
-        { model.value &&
+        { value && model.isVisible &&
             <svg
               className={`plotted-value-${classFromKey}`}
               data-testid={`plotted-value-${classFromKey}`}
