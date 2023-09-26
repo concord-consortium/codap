@@ -16,13 +16,13 @@ describe("MedianAdornmentModel", () => {
   it("can have a new median value added to its measures map", () => {
     const adornment = MedianAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
-    adornment.addMeasure(10)
+    adornment.setInitialMeasure(10)
     expect(adornment.measures.size).toBe(1)
   })
   it("can have an existing median value removed from its measures map", () => {
     const adornment = MedianAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
-    adornment.addMeasure(10)
+    adornment.setInitialMeasure(10)
     expect(adornment.measures.size).toBe(1)
     adornment.removeMeasure("{}")
     expect(adornment.measures.size).toBe(0)

@@ -5,7 +5,6 @@ import {
   } from "../univariate-measure-adornment-model"
 import { kMedianType } from "./median-adornment-types"
 import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
-import { ICase } from "../../../../../models/data/data-set-types"
 
 export const MedianAdornmentModel = UnivariateMeasureAdornmentModel
   .named("MedianAdornmentModel")
@@ -13,7 +12,8 @@ export const MedianAdornmentModel = UnivariateMeasureAdornmentModel
     type: "Median"
   })
   .views(self => ({
-    getMeasureValue(attrId: string, casesInPlot: ICase[], dataConfig: IDataConfigurationModel) {
+    getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+      const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues = self.getCaseValues(attrId, casesInPlot, dataConfig)
       return median(caseValues)
     }

@@ -38,6 +38,7 @@ export interface IUpdateCategoriesOptions {
   rightCats: string[]
   rightAttrId: string
   resetPoints?: boolean
+  dataConfig?: any
 }
 
 export const AdornmentModel = types.model("AdornmentModel", {

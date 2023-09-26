@@ -213,21 +213,6 @@ export const UnivariateMeasureAdornmentComponent =
     }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" })
   }, [dataConfig, refreshValues, xAxis?.max, xAxis?.min, yAxis?.max, yAxis?.min])
 
-  // On initial load, set measure and measure values
-  useEffect(function setInitialValues() {
-    const disposer = autorun(() => {
-      if (!model || !dataConfig) return
-      const attrId = isVertical.current ? dataConfig.attributeID("x") : dataConfig.attributeID("y")
-      const casesInPlot = dataConfig.subPlotCases(cellKey) ?? []
-      const newMeasureValue = attrId ? model.getMeasureValue(attrId, casesInPlot, dataConfig) : undefined
-      newMeasureValue && model.addMeasure(newMeasureValue, instanceKey)
-      adornmentsStore?.addActiveUnivariateMeasure(model.type)
-    }, { name: "UnivariateMeasureAdornmentComponent.setInitialValues" })
-    return () => disposer()
-  // This effect should only run once on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   // On unmount, remove measure
   useEffect(function removeMean() {
     return () => {

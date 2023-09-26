@@ -1,6 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
-import { AdornmentModel, IAdornmentModel, PointModel } from "../adornment-models"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { ICase } from "../../../../models/data/data-set-types"
 
@@ -42,7 +42,10 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }
   }))
   .actions(self => ({
-    addMeasure(value: number, key="{}") {
+    getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+      // derived models should override to update their models when categories change
+    },
+    setInitialMeasure(value: number, key="{}") {
       const newMeasure = MeasureInstance.create()
       newMeasure.setValue(value)
       self.measures.set(key, newMeasure)
@@ -54,10 +57,29 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       self.showMeasureLabels = showLabels
     }
   }))
+  .actions(self => ({
+    updateCategories(options: IUpdateCategoriesOptions) {
+      const { xAttrId, yAttrId, topCats, rightCats, resetPoints, dataConfig } = options
+      const columnCount = topCats?.length || 1
+      const rowCount = rightCats?.length || 1
+      const totalCount = rowCount * columnCount
+      const attrId = xAttrId ? xAttrId : yAttrId
+      for (let i = 0; i < totalCount; ++i) {
+        const cellKey = self.setCellKey(options, i)
+        const instanceKey = self.instanceKey(cellKey)
+        const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
+        if (!self.measures.get(instanceKey) || resetPoints) {
+          self.setInitialMeasure(value, instanceKey)
+        }
+      }
+    }
+  }))
 
 export interface IMeasureInstance extends Instance<typeof MeasureInstance> {}
 export interface IUnivariateMeasureAdornmentModel extends Instance<typeof UnivariateMeasureAdornmentModel> {}
 export function isUnivariateMeasureAdornment(adornment: IAdornmentModel):
   adornment is IUnivariateMeasureAdornmentModel {
-    return adornment.type === "UnivariateMeasureAdornmentModel"
+    return adornment.type === "UnivariateMeasureAdornmentModel" ||
+           adornment.type === "Mean" ||
+           adornment.type === "Median"
   }

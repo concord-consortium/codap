@@ -5,7 +5,6 @@ import {
 } from "../univariate-measure-adornment-model"
 import { kMeanType } from "./mean-adornment-types"
 import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
-import { ICase } from "../../../../../models/data/data-set-types"
 
 export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
   .named("MeanAdornmentModel")
@@ -13,7 +12,8 @@ export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
     type: "Mean"
   })
   .views(self => ({
-    getMeasureValue(attrId: string, casesInPlot: ICase[], dataConfig: IDataConfigurationModel) {
+    getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+      const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues = self.getCaseValues(attrId, casesInPlot, dataConfig)
       return mean(caseValues)
     }

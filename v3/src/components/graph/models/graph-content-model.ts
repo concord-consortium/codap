@@ -101,19 +101,20 @@ export const GraphContentModel = DataDisplayContentModel
   .views(self => ({
     getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
       const xAttrId = self.getAttributeID("x"),
-        xAttrType = self.dataConfiguration.attributeType("x"),
+        dataConfig = self.dataConfiguration,
+        xAttrType = dataConfig.attributeType("x"),
         xCats = xAttrType === "categorical"
-          ? self.dataConfiguration.categoryArrayForAttrRole("x", [])
+          ? dataConfig.categoryArrayForAttrRole("x", [])
           : [""],
         yAttrId = self.getAttributeID("y"),
-        yAttrType = self.dataConfiguration.attributeType("y"),
+        yAttrType = dataConfig.attributeType("y"),
         yCats = yAttrType === "categorical"
-          ? self.dataConfiguration.categoryArrayForAttrRole("y", [])
+          ? dataConfig.categoryArrayForAttrRole("y", [])
           : [""],
         topAttrId = self.getAttributeID("topSplit"),
-        topCats = self.dataConfiguration.categoryArrayForAttrRole("topSplit", []) ?? [""],
+        topCats = dataConfig.categoryArrayForAttrRole("topSplit", []) ?? [""],
         rightAttrId = self.getAttributeID("rightSplit"),
-        rightCats = self.dataConfiguration.categoryArrayForAttrRole("rightSplit", []) ?? [""]
+        rightCats = dataConfig.categoryArrayForAttrRole("rightSplit", []) ?? [""]
       return {
         xAxis: self.getAxis("bottom"),
         xAttrId,
@@ -125,7 +126,8 @@ export const GraphContentModel = DataDisplayContentModel
         topCats,
         rightAttrId,
         rightCats,
-        resetPoints
+        resetPoints,
+        dataConfig
       }
     }
   }))
