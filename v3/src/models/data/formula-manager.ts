@@ -197,6 +197,7 @@ export class FormulaManager {
       // - Parent-child grouping, which is used when the table is hierarchical and the aggregate function is
       //   referencing attributes from child collections.
       useSameLevelGrouping: collectionIndex === childMostAggregateCollectionIndex,
+      cases: casesToRecalculate,
       childMostCollectionCases,
       caseGroupId: this.getCaseGroupMap(formulaId),
       caseChildrenCount: this.getCaseChildrenCountMap(formulaId)
@@ -209,11 +210,8 @@ export class FormulaManager {
       return this.setFormulaError(formulaId, formulaError(e.message))
     }
 
-    dataSet.setCaseValues(casesToRecalculate.map((c) => {
-      // This is necessary for functions like `prev` that need to know the previous result when they reference
-      // its own attribute.
-      formulaScope.savePreviousCaseId(formulaScope.getCaseId())
-      formulaScope.setCaseId(c.__id__)
+    dataSet.setCaseValues(casesToRecalculate.map((c, idx) => {
+      formulaScope.setBaseCasePointer(idx)
       let formulaValue: FValue
       try {
         formulaValue = compiledFormula.evaluate(formulaScope)
