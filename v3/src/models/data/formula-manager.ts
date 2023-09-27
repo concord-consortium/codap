@@ -212,14 +212,14 @@ export class FormulaManager {
     dataSet.setCaseValues(casesToRecalculate.map((c) => {
       // This is necessary for functions like `prev` that need to know the previous result when they reference
       // its own attribute.
-      formulaScope.setPreviousCaseId(formulaScope.getCaseId())
+      formulaScope.savePreviousCaseId(formulaScope.getCaseId())
       formulaScope.setCaseId(c.__id__)
       let formulaValue: FValue
       try {
         formulaValue = compiledFormula.evaluate(formulaScope)
         // This is necessary for functions like `prev` that need to know the previous result when they reference
         // its own attribute.
-        formulaScope.setPreviousResult(formulaValue)
+        formulaScope.savePreviousResult(formulaValue)
       } catch (e: any) {
         formulaValue = formulaError(e.message)
       }
