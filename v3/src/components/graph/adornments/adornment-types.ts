@@ -64,7 +64,7 @@ export const measures: IMeasures = {
   ],
   "scatterPlot": [
     { title: "DG.Inspector.graphCount", type: "Count" },
-    { title: "DG.Inspector.graphConnectingLine", type: "adornment" },
+    { title: "DG.Inspector.graphConnectingLine", type: "Connecting Lines" },
     { title: "DG.Inspector.graphMovablePoint", type: "Movable Point" },
     { title: "DG.Inspector.graphMovableLine", type: "Movable Line" },
     { title: "DG.Inspector.graphLSRL", type: "LSRL" },

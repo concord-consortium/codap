@@ -34,7 +34,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const caseValues: number[] = []
       casesInPlot.forEach((c: ICase) => {
         const caseValue = Number(dataset?.getValue(c.__id__, attrId))
-        if (Number.isInteger(caseValue)) {
+        if (Number.isFinite(caseValue)) {
           caseValues.push(caseValue)
         }
       })
@@ -63,6 +63,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
       const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
+      if (!dataConfig) return
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
       const xCatCount = xCats.length || 1
@@ -86,7 +87,5 @@ export interface IMeasureInstance extends Instance<typeof MeasureInstance> {}
 export interface IUnivariateMeasureAdornmentModel extends Instance<typeof UnivariateMeasureAdornmentModel> {}
 export function isUnivariateMeasureAdornment(adornment: IAdornmentModel):
   adornment is IUnivariateMeasureAdornmentModel {
-    return adornment.type === "UnivariateMeasureAdornmentModel" ||
-           adornment.type === "Mean" ||
-           adornment.type === "Median"
+    return adornment.isUnivariateMeasure
   }

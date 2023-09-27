@@ -25,10 +25,5 @@ export function getAdornmentContentModels() {
 }
 
 export function getAdornmentTypes() {
-  return Object.values(gAdornmentContentInfoMap).map((info) => {
-    return {
-      parentType: info.parentType,
-      type: info.type,
-    }
-  })
+  return Object.values(gAdornmentContentInfoMap).map(({ parentType, type }) => ({ parentType, type }))
 }

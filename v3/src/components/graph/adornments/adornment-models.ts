@@ -6,6 +6,7 @@ import {Instance, types} from "mobx-state-tree"
 import { IAxisModel } from "../../axis/models/axis-model"
 import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
 import {Point} from "../../data-display/data-display-types"
+import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -38,7 +39,7 @@ export interface IUpdateCategoriesOptions {
   rightCats: string[]
   rightAttrId: string
   resetPoints?: boolean
-  dataConfig?: any
+  dataConfig?: IDataConfigurationModel
 }
 
 export const AdornmentModel = types.model("AdornmentModel", {
