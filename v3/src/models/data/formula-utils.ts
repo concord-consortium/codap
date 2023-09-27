@@ -162,7 +162,7 @@ export const getFormulaChildMostAggregateCollectionIndex = (formulaCanonical: st
   const attrId = getExtremeCollectionDependency(formulaCanonical, dataSet, { order: "max", aggregate: true })
   const collectionId = dataSet.getCollectionForAttribute(attrId || "")?.id
   const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
-  return collectionIndex !== -1 ? dataSet.getCollectionIndex(collectionId || "") : null
+  return collectionIndex >= 0 ? collectionIndex : null
 }
 
 export const getIncorrectParentAttrReference =
@@ -170,7 +170,7 @@ export const getIncorrectParentAttrReference =
   const attrId = getExtremeCollectionDependency(formulaCanonical, dataSet, { order: "min", aggregate: true })
   const collectionId = dataSet.getCollectionForAttribute(attrId || "")?.id
   const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
-  if (collectionIndex !== -1 && collectionIndex < formulaCollectionIndex) {
+  if (collectionIndex >= 0 && collectionIndex < formulaCollectionIndex) {
     return attrId
   }
   return false
@@ -181,7 +181,7 @@ export const getIncorrectChildAttrReference =
   const attrId = getExtremeCollectionDependency(formulaCanonical, dataSet, { order: "max", aggregate: false })
   const collectionId = dataSet.getCollectionForAttribute(attrId || "")?.id
   const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
-  if (collectionIndex !== -1 && collectionIndex > formulaCollectionIndex) {
+  if (collectionIndex >= 0 && collectionIndex > formulaCollectionIndex) {
     return attrId
   }
   return false
