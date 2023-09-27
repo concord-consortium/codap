@@ -3,9 +3,9 @@ import * as contentInfo from "./adornment-content-info"
 
 jest.spyOn(contentInfo, "getAdornmentTypes").mockReturnValue(
   [
-    { type: "Count", subTypeOf: undefined },
-    { type: "Mean", subTypeOf: "Univariate Measure" },
-    { type: "Median", subTypeOf: "Univariate Measure" }
+    { type: "Count", parentType: undefined },
+    { type: "Mean", parentType: "Univariate Measure" },
+    { type: "Median", parentType: "Univariate Measure" },
   ]
 )
 
@@ -13,6 +13,7 @@ const mockAdornment = {
   classNameFromKey: () => "mock-count-adornment",
   id: "ADRN123",
   instanceKey: () => "mock-count-adornment",
+  isUnivariateMeasure: false,
   isVisible: false,
   setCellKey: () => ({}),
   setVisibility: () => true,
@@ -52,18 +53,10 @@ describe("AdornmentsStore", () => {
     const adornmentsMenuItems = adornmentsStore.getAdornmentsMenuItems("dotPlot")
     expect(adornmentsMenuItems).toBeDefined()
     expect(adornmentsMenuItems?.length).toBeGreaterThan(0)
-    expect(adornmentsMenuItems?.[0].title).toBe("Count")
-    expect(adornmentsMenuItems?.[1].title).toBe("Show Measure Labels")
-    expect(adornmentsMenuItems?.[2].title).toBe("Mean")
-    expect(adornmentsMenuItems?.[3].title).toBe("Median")
-  })
-  it("can add and remove active univariate measures", () => {
-    const adornmentsStore = AdornmentsStore.create()
-    expect(adornmentsStore.activeUnivariateMeasures.length).toBe(0)
-    adornmentsStore.addActiveUnivariateMeasure("Median")
-    expect(adornmentsStore.activeUnivariateMeasures.length).toBe(1)
-    adornmentsStore.removeActiveUnivariateMeasure("Median")
-    expect(adornmentsStore.activeUnivariateMeasures.length).toBe(0)
+    expect(adornmentsMenuItems?.[0].title).toBe("DG.Inspector.graphCount")
+    expect(adornmentsMenuItems?.[1].title).toBe("DG.Inspector.showLabels")
+    expect(adornmentsMenuItems?.[2].title).toBe("DG.Inspector.graphPlottedMean")
+    expect(adornmentsMenuItems?.[3].title).toBe("DG.Inspector.graphPlottedMedian")
   })
   it("can add adornments", () => {
     const adornmentsStore = AdornmentsStore.create()

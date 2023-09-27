@@ -3,7 +3,6 @@ import { IAdornmentContentInfo, getAdornmentContentInfo, getAdornmentTypes } fro
 import { IAdornmentComponentInfo, getAdornmentComponentInfo } from "./adornment-component-info"
 import { AdornmentModelUnion, IMeasure, PlotTypes, measures } from "./adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
-import t from "../../../utilities/translation/translate"
 
 interface IMeasureMenuItem {
   checked: boolean
@@ -19,25 +18,9 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     adornments: types.array(AdornmentModelUnion),
     showMeasureLabels: false
   })
-  .volatile(self => ({
-    activeUnivariateMeasures: [] as string[]
-  }))
   .actions(self => ({
     toggleShowLabels() {
       self.showMeasureLabels = !self.showMeasureLabels
-    },
-    addActiveUnivariateMeasure(measure: string) {
-      const activeUnivariateMeasures = [...self.activeUnivariateMeasures]
-      activeUnivariateMeasures.push(measure)
-      self.activeUnivariateMeasures = activeUnivariateMeasures
-    },
-    removeActiveUnivariateMeasure(measure: string) {
-      const activeUnivariateMeasures = [...self.activeUnivariateMeasures]
-      const index = activeUnivariateMeasures.indexOf(measure)
-      if (index > -1) {
-        activeUnivariateMeasures.splice(index, 1)
-      }
-      self.activeUnivariateMeasures = activeUnivariateMeasures
     },
     showAdornment(adornment: IAdornmentModel, type: string) {
       const adornmentExists = self.adornments.find(a => a.type === type)
@@ -60,19 +43,19 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
       measures[plotType].map((measure: IMeasure) => {
         const { title, type } = measure
         const checked = !!self.adornments.find(a => a.type === type)?.isVisible
-        const registeredAdornment = registeredAdornments.find(a => a.type === title)
-        const isUnivariateMeasure = registeredAdornment?.subTypeOf === "Univariate Measure"
+        const registeredAdornment = registeredAdornments.find(a => a.type === type)
+        const isUnivariateMeasure = registeredAdornment?.parentType === "Univariate Measure"
         if (isUnivariateMeasure && !addedShowMeasureLabels) {
           measureMenuItems.push({
             checked: self.showMeasureLabels,
-            title: t("DG.Inspector.showLabels"),
+            title: "DG.Inspector.showLabels",
             type: "control",
             clickHandler: self.toggleShowLabels
           })
           addedShowMeasureLabels = true
         }
-        const componentInfo = registeredAdornment ? getAdornmentComponentInfo(title) : undefined
-        const componentContentInfo = registeredAdornment ? getAdornmentContentInfo(title) : undefined
+        const componentInfo = registeredAdornment ? getAdornmentComponentInfo(type) : undefined
+        const componentContentInfo = registeredAdornment ? getAdornmentContentInfo(type) : undefined
         measureMenuItems.push({
           checked,
           componentInfo,
@@ -83,6 +66,12 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
       })
 
       return measureMenuItems
+    },
+    get activeUnivariateMeasures() {
+      return self.adornments.filter(adornment => adornment.isUnivariateMeasure && adornment.isVisible)
+    },
+    findAdornmentOfType<T extends IAdornmentModel = IAdornmentModel>(type: string): T | undefined {
+      return self.adornments.find(adornment => adornment.type === type) as T
     }
   }))
   .actions(self => ({

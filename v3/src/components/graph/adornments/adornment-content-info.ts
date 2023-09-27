@@ -1,11 +1,12 @@
 import { AdornmentModel } from "./adornment-models"
 import { PlotType } from "../graphing-types"
+import { ParentAdornmentType } from "./adornment-types"
 
 export interface IAdornmentContentInfo {
   modelClass: typeof AdornmentModel
   plots: PlotType[]
   prefix: string
-  subTypeOf?: string
+  parentType?: ParentAdornmentType
   type: string
 }
 
@@ -26,8 +27,8 @@ export function getAdornmentContentModels() {
 export function getAdornmentTypes() {
   return Object.values(gAdornmentContentInfoMap).map((info) => {
     return {
+      parentType: info.parentType,
       type: info.type,
-      subTypeOf: info.subTypeOf
     }
   })
 }

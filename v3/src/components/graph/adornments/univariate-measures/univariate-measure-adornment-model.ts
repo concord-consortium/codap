@@ -39,6 +39,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
         }
       })
       return caseValues
+    },
+    get isUnivariateMeasure() {
+      return true
     }
   }))
   .actions(self => ({

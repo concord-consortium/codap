@@ -1,5 +1,4 @@
 import { types } from "mobx-state-tree"
-import t from "../../../utilities/translation/translate"
 import { IAdornmentModel, IUnknownAdornmentModel, UnknownAdornmentModel } from "./adornment-models"
 import { IMovableLineModel, MovableLineModel } from "./movable-line/movable-line-model"
 import { IMovablePointModel, MovablePointModel } from "./movable-point/movable-point-model"
@@ -41,34 +40,37 @@ export interface IMeasure {
 export interface IMeasures {
   [key: string]: IMeasure[]
 }
+
+export const ParentAdornmentTypes = ["Univariate Measure"] as const
+export type ParentAdornmentType = typeof ParentAdornmentTypes[number]
   
 export const measures: IMeasures = {
   "casePlot": [
-    { title: t("DG.Inspector.graphCount"), type: "adornment" }
+    { title: "DG.Inspector.graphCount", type: "Count" }
   ],
   "dotChart": [
-    { title: t("DG.Inspector.graphCount"), type: "adornment" }
+    { title: "DG.Inspector.graphCount", type: "Count" }
   ],
   "dotPlot":  [
-    { title: t("DG.Inspector.graphCount"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedMean"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedMedian"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedStDev"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedMeanAbsDev"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedBoxPlot"), type: "adornment" },
-    { title: t("DG.Inspector.graphBoxPlotShowOutliers"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedValue"), type: "adornment" },
-    { title: t("DG.Inspector.graphMovableValue"), type: "adornment" }
+    { title: "DG.Inspector.graphCount", type: "Count" },
+    { title: "DG.Inspector.graphPlottedMean", type: "Mean" },
+    { title: "DG.Inspector.graphPlottedMedian", type: "Median" },
+    { title: "DG.Inspector.graphPlottedStDev", type: "Standard Deviation" },
+    { title: "DG.Inspector.graphPlottedMeanAbsDev", type: "Mean Absolute Deviation" },
+    { title: "DG.Inspector.graphPlottedBoxPlot", type: "Box Plot" },
+    { title: "DG.Inspector.graphBoxPlotShowOutliers", type: "Show Outliers" },
+    { title: "DG.Inspector.graphPlottedValue", type: "Plotted Value" },
+    { title: "DG.Inspector.graphMovableValue", type: "Movable Value" }
   ],
   "scatterPlot": [
-    { title: t("DG.Inspector.graphCount"), type: "adornment" },
-    { title: t("DG.Inspector.graphConnectingLine"), type: "adornment" },
-    { title: t("DG.Inspector.graphMovablePoint"), type: "adornment" },
-    { title: t("DG.Inspector.graphMovableLine"), type: "adornment" },
-    { title: t("DG.Inspector.graphLSRL"), type: "adornment" },
-    { title: t("DG.Inspector.graphInterceptLocked"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedFunction"), type: "adornment" },
-    { title: t("DG.Inspector.graphPlottedValue"), type: "adornment" },
-    { title: t("DG.Inspector.graphSquares"), type: "adornment" }
+    { title: "DG.Inspector.graphCount", type: "Count" },
+    { title: "DG.Inspector.graphConnectingLine", type: "adornment" },
+    { title: "DG.Inspector.graphMovablePoint", type: "Movable Point" },
+    { title: "DG.Inspector.graphMovableLine", type: "Movable Line" },
+    { title: "DG.Inspector.graphLSRL", type: "LSRL" },
+    { title: "DG.Inspector.graphInterceptLocked", type: "Intercept Locked" },
+    { title: "DG.Inspector.graphPlottedFunction", type: "Plotted Function" },
+    { title: "DG.Inspector.graphPlottedValue", type: "Plotted Value" },
+    { title: "DG.Inspector.graphSquares", type: "Squares" },
   ]
 }

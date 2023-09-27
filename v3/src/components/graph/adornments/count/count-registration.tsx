@@ -13,7 +13,7 @@ const Controls = () => {
   const graphModel = useGraphContentModelContext()
   const dataConfig = useDataConfigurationContext()
   const adornmentsStore = graphModel.adornmentsStore
-  const existingAdornment = adornmentsStore.adornments.find(a => a.type === kCountType) as ICountModel
+  const existingAdornment = adornmentsStore.findAdornmentOfType<ICountModel>(kCountType)
   const shouldShowPercentOption = dataConfig?.categoricalAttrCount ? dataConfig?.categoricalAttrCount > 0 : false
   const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)
@@ -22,7 +22,7 @@ const Controls = () => {
   )
 
   const handleSetting = (checked: boolean, checkBoxType: string) => {
-    const existingCountAdornment = adornmentsStore.adornments.find(a => a.type === kCountType) as ICountModel
+    const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountModel>(kCountType)
     const componentContentInfo = getAdornmentContentInfo(kCountType)
     const adornment = existingCountAdornment ?? componentContentInfo.modelClass.create() as ICountModel
 

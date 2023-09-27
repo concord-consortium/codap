@@ -47,27 +47,27 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
         <Box className="form-title">Show ...</Box>
         {graphModel && measures?.map((measure: Record<string, any>) => {
           const { checked, clickHandler, componentInfo, componentContentInfo, title } = measure
-          const titleSlug = title.replace(/ /g, "-").toLowerCase()
+          const titleSlug = t(title).replace(/ /g, "-").toLowerCase()
           if (componentInfo && componentContentInfo) {
             return (
-              <GraphContentModelContext.Provider key={`${title}-graph-model-context`} value={graphModel}>
+              <GraphContentModelContext.Provider key={`${titleSlug}-graph-model-context`} value={graphModel}>
                 <DataConfigurationContext.Provider
-                  key={`${title}-data-configuration-context`}
+                  key={`${titleSlug}-data-configuration-context`}
                   value={graphModel.dataConfiguration}
                 >
-                  <componentInfo.Controls key={title} adornmentModel={componentContentInfo.modelClass} />
+                  <componentInfo.Controls key={titleSlug} adornmentModel={componentContentInfo.modelClass} />
                 </DataConfigurationContext.Provider>
               </GraphContentModelContext.Provider>
             )           
           } else {
             return (
-              <FormControl key={title}>
+              <FormControl key={titleSlug}>
                 <Checkbox
                   data-testid={`adornment-checkbox-${titleSlug}`}
                   defaultChecked={checked}
-                  onChange={clickHandler ? clickHandler : e => handleSetting(title, e.target.checked)}
+                  onChange={clickHandler ? clickHandler : e => handleSetting(t(title), e.target.checked)}
                 >
-                  {title}
+                  {t(title)}
                 </Checkbox>
               </FormControl>
             )

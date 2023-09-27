@@ -59,6 +59,9 @@ export const AdornmentModel = types.model("AdornmentModel", {
         className += `${className ? "-" : ""}${key}-${valueNoSpaces}`
       })
       return className
+    },
+    get isUnivariateMeasure() {
+      return false
     }
   }))
   .actions(self => ({

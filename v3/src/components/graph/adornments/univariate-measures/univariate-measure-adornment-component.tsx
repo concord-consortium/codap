@@ -36,8 +36,7 @@ interface IProps {
   yAxis?: INumericAxisModel
 }
 
-export const UnivariateMeasureAdornmentComponent =
-  observer(function UnivariateMeasureAdornmentComponent (props: IProps) {
+export const UnivariateMeasureAdornmentComponent = observer(function UnivariateMeasureAdornmentComponent (props: IProps) {
   const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
   const layout = useAxisLayoutContext()
   const graphModel = useGraphContentModelContext()
@@ -139,7 +138,7 @@ export const UnivariateMeasureAdornmentComponent =
     if (showLabel) {
       const labelCoords = adornment.labelCoords
       const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
-      const adornmentIndex = activeUnivariateMeasures?.indexOf(model.type) ?? null
+      const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
       const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * 20 : 0
       const left = labelCoords ? labelCoords.x / xCellCount : isVertical.current ? xScale(plotValue) / xCellCount : 0
       const top = labelCoords ? labelCoords.y : topOffset
@@ -179,30 +178,27 @@ export const UnivariateMeasureAdornmentComponent =
     }
 
   }, [adornmentsStore?.activeUnivariateMeasures, classFromKey, containerId, handleEndMoveLabel,
-      handleMoveLabel, highlightCover, highlightLabel, layout, measureType, model.type, plotHeight,
+      handleMoveLabel, highlightCover, highlightLabel, layout, measureType, model, plotHeight,
       plotWidth, showLabel, xAttrType, xScale, yAttrType, yScale])
 
   // Add the lines and their associated covers and labels
   const refreshValues = useCallback(() => {
-    const disposer = autorun(() => {
-      const { isVisible } = model
-      if (!isVisible) return
+    const { isVisible } = model
+    if (!isVisible) return
 
-      const measure = model?.measures.get(instanceKey)
-      const newValueObj: IValueObject = {}
-      const newLabelObj: ILabelObject = {}
-      const selection = select(valueRef.current)
-      const labelSelection = select(labelRef.current)
+    const measure = model?.measures.get(instanceKey)
+    const newValueObj: IValueObject = {}
+    const newLabelObj: ILabelObject = {}
+    const selection = select(valueRef.current)
+    const labelSelection = select(labelRef.current)
 
-      // Remove the previous values' elements
-      selection.html(null)
-      labelSelection.html(null)
+    // Remove the previous values' elements
+    selection.html(null)
+    labelSelection.html(null)
 
-      if (measure) {
-        addLineCoverAndLabel(newValueObj, newLabelObj, measure)
-      }
-    }, { name: "UnivariateMeasureAdornmentComponent.refreshValues" })
-    return () => disposer()
+    if (measure) {
+      addLineCoverAndLabel(newValueObj, newLabelObj, measure)
+    }
   }, [model, instanceKey, addLineCoverAndLabel])
 
   // Refresh values on axis changes
@@ -212,14 +208,6 @@ export const UnivariateMeasureAdornmentComponent =
       refreshValues()
     }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" })
   }, [dataConfig, refreshValues, xAxis?.max, xAxis?.min, yAxis?.max, yAxis?.min])
-
-  // On unmount, remove measure
-  useEffect(function removeMean() {
-    return () => {
-      model?.removeMeasure(instanceKey)
-      adornmentsStore?.removeActiveUnivariateMeasure(model.type)
-    }
-  }, [model, instanceKey, adornmentsStore])
 
   return (
     <>

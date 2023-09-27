@@ -3,7 +3,6 @@ import { FormControl, Checkbox } from "@chakra-ui/react"
 import t from "../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { getAdornmentContentInfo } from "./adornment-content-info"
-import { isUnivariateMeasureAdornment } from "./univariate-measures/univariate-measure-adornment-model"
 
 interface IProps {
   classNameValue: string
@@ -23,10 +22,8 @@ export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
     adornment.setVisibility(checked)
     if (checked) {
       adornmentsStore.showAdornment(adornment, adornment.type)
-      isUnivariateMeasureAdornment(adornment) && adornmentsStore?.addActiveUnivariateMeasure(adornment.type)
     } else {
       adornmentsStore.hideAdornment(adornment.type)
-      isUnivariateMeasureAdornment(adornment) && adornmentsStore?.removeActiveUnivariateMeasure(adornment.type)
     }
   }
 

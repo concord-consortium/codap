@@ -18,7 +18,7 @@ const Controls = () => {
 
 registerAdornmentContentInfo({
   type: kMedianType,
-  subTypeOf: "Univariate Measure",
+  parentType: "Univariate Measure",
   plots: ["dotPlot"],
   prefix: kMedianPrefix,
   modelClass: MedianAdornmentModel

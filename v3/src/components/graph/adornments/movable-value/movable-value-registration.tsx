@@ -13,21 +13,19 @@ const Controls = () => {
   const adornmentsStore = graphModel.adornmentsStore
 
   const handleAddMovableValue = () => {
-    const existingAdornment =
-      adornmentsStore.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
+    const existingAdornment = adornmentsStore.findAdornmentOfType<IMovableValueModel>(kMovableValueType)
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueModel
     adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
   }
 
   const handleRemoveMovableValue = () => {
-    const adornment =
-      adornmentsStore.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
+    const adornment = adornmentsStore.findAdornmentOfType<IMovableValueModel>(kMovableValueType)
     adornmentsStore.updateAdornment(() => {
-      adornment.deleteValue()
+      adornment?.deleteValue()
     })
-    if (!adornment.hasValues) {
-      adornment.setVisibility(false)
+    if (!adornment?.hasValues) {
+      adornment?.setVisibility(false)
     }
   }
 
