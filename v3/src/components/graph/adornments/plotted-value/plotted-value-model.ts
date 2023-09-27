@@ -23,7 +23,7 @@ export const PlottedValueModel = AdornmentModel
       const caseValues: number[] = []
       casesInPlot.forEach((c: ICase) => {
         const caseValue = Number(dataset?.getValue(c.__id__, attrId))
-        if (Number.isInteger(caseValue)) {
+        if (Number.isFinite(caseValue)) {
           caseValues.push(caseValue)
         }
       })

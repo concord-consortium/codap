@@ -137,7 +137,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   return (
     <>
       <div className="plotted-value-container" id={`plotted-value-${containerId}`}>
-        { value && model.isVisible &&
+        { value != null && model.isVisible &&
             <svg
               className={`plotted-value-${classFromKey}`}
               data-testid={`plotted-value-${classFromKey}`}
