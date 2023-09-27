@@ -16,7 +16,7 @@ const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
 const cachedAggregateFnFactory =
 (fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-    const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseGroupId()}`
+    const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseAggregateGroupId()}`
     const cachedValue = scope.getCached(cacheKey)
     if (cachedValue !== undefined) {
       return cachedValue
@@ -235,28 +235,29 @@ export const fnRegistry = {
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       interface ICachedData {
         result?: FValue
-        resultPointer: number
+        resultCasePointer: number
       }
 
-      const caseGroupId = scope.getSemiAggregateGroupId()
+      const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `next(${args.toString()})-${caseGroupId}`
       const [ expression, defaultValue, filter ] = args
       const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
 
       let result
-      if (!cachedData || scope.casePointer >= cachedData.resultPointer) {
+      let casePointer = scope.getCasePointer()
+      if (!cachedData || casePointer >= cachedData.resultCasePointer) {
         // We need to look for a new next value when there's no cached data (e.g. first case being processed) or when
         // we already passed the index of cached result.
-        let pointerMod = 0
+        const numOfCases = scope.getNumberOfCases()
         let expressionValue
         if (filter) {
-          const maxMod = scope.context.cases.length - scope.casePointer
-          let filterValue, currentGroup = caseGroupId
+          let filterValue
+          let currentGroup = caseGroupId
           // Keep looking for truthy filter value as long as cases are in the same group and we didn't reach the end.
-          while (!isValueTruthy(filterValue) && pointerMod < maxMod && currentGroup === caseGroupId) {
-            pointerMod += 1
-            scope.withCasePointerModifier(() => {
-              currentGroup = scope.getSemiAggregateGroupId()
+          while (!isValueTruthy(filterValue) && casePointer < numOfCases && currentGroup === caseGroupId) {
+            casePointer += 1
+            scope.withCustomCasePointer(() => {
+              currentGroup = scope.getCaseGroupId()
               if (currentGroup === caseGroupId) {
                 // It could be tempting to skip evaluation of expression if the filter is defined and evaluates to falsy
                 // value. But it's not possible, as we need to evaluate each case, one by one, as there can be nested
@@ -265,27 +266,25 @@ export const fnRegistry = {
                 expressionValue = evaluateNode(expression, scope)
                 filterValue = evaluateNode(filter, scope)
               } else {
-                pointerMod -= 1 // We reached the next group, so we need to step back and finish the loop.
+                casePointer -= 1 // We reached the next group, so we need to step back and finish the loop.
               }
-            }, pointerMod)
+            }, casePointer)
           }
-          if (isValueTruthy(filterValue)) {
-            result = expressionValue
-          }
+          result = isValueTruthy(filterValue) ? expressionValue : undefined
         } else {
           // When there's no filter, simply get the next expression value (within the same case group).
-          pointerMod = 1
-          scope.withCasePointerModifier(() => {
-            if (scope.getSemiAggregateGroupId() === caseGroupId) {
+          casePointer = scope.getCasePointer() + 1
+          scope.withCustomCasePointer(() => {
+            if (scope.getCaseGroupId() === caseGroupId) {
               expressionValue = evaluateNode(expression, scope)
             }
-          }, pointerMod)
+          }, casePointer)
           result = expressionValue
         }
 
-        scope.setCached(cacheKey, { result, resultPointer: scope.casePointer + pointerMod })
+        scope.setCached(cacheKey, { result, resultCasePointer: casePointer })
       } else {
-        // When scope.casePointer < cachedData.resultPointer, we can reuse the previous result.
+        // When scope.casePointer < cachedData.resultCasePointer, we can reuse the previous result.
         result = cachedData.result
       }
 
@@ -303,29 +302,25 @@ export const fnRegistry = {
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const [ expression, defaultValue, filter ] = args
 
-      const caseGroupId = scope.getSemiAggregateGroupId()
+      const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `prev(${args.toString()})-${caseGroupId}`
       const cachedResult = scope.getCached(cacheKey) as FValue | undefined
 
-      let result = cachedResult
       let newExpressionValue, newFilterValue
-      scope.withCasePointerModifier(() => {
+      scope.withCustomCasePointer(() => {
         // It could be tempting to skip evaluation of expression if the filter is defined and evaluates to falsy
         // value. But it's not possible, as we need to evaluate each case, one by one, as there can be nested `next`
         // or `prev` calls. They rely on iterative execution for each case. In other words, we cannot skip evaluation
         // for some cases, as it would break the assumption about iterative execution.
-        if (scope.getSemiAggregateGroupId() === caseGroupId) {
+        if (scope.getCaseGroupId() === caseGroupId) {
           newExpressionValue = evaluateNode(expression, scope)
           if (filter) {
             newFilterValue = evaluateNode(filter, scope)
           }
         }
-      }, -1)
-
-      // If there's no filter, prev() returns the previous case value.
-      if (!filter || isValueTruthy(newFilterValue)) {
-        result = newExpressionValue
-      }
+      }, scope.getCasePointer() - 1)
+      // If there's no filter or filter value is truthy, prev() result is updated to the previous case value.
+      const result = !filter || isValueTruthy(newFilterValue) ? newExpressionValue : cachedResult
 
       scope.setCached(cacheKey, result)
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)
