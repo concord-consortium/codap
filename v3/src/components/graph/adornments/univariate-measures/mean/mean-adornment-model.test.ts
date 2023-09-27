@@ -16,13 +16,13 @@ describe("MeanModel", () => {
   it("can have a new mean value added to its measures map", () => {
     const adornment = MeanAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
-    adornment.setInitialMeasure(10)
+    adornment.addMeasure(10)
     expect(adornment.measures.size).toBe(1)
   })
   it("can have an existing mean value removed from its measures map", () => {
     const adornment = MeanAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
-    adornment.setInitialMeasure(10)
+    adornment.addMeasure(10)
     expect(adornment.measures.size).toBe(1)
     adornment.removeMeasure("{}")
     expect(adornment.measures.size).toBe(0)

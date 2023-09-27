@@ -48,7 +48,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override to update their models when categories change
     },
-    setInitialMeasure(value: number, key="{}") {
+    addMeasure(value: number, key="{}") {
       const newMeasure = MeasureInstance.create()
       newMeasure.setValue(value)
       self.measures.set(key, newMeasure)
@@ -62,9 +62,13 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAttrId, yAttrId, topCats, rightCats, resetPoints, dataConfig } = options
-      const columnCount = topCats?.length || 1
-      const rowCount = rightCats?.length || 1
+      const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
+      const topCatCount = topCats.length || 1
+      const rightCatCount = rightCats.length || 1
+      const xCatCount = xCats.length || 1
+      const yCatCount = yCats.length || 1
+      const columnCount = topCatCount * xCatCount
+      const rowCount = rightCatCount * yCatCount
       const totalCount = rowCount * columnCount
       const attrId = xAttrId ? xAttrId : yAttrId
       for (let i = 0; i < totalCount; ++i) {
@@ -72,7 +76,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
         const instanceKey = self.instanceKey(cellKey)
         const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {
-          self.setInitialMeasure(value, instanceKey)
+          self.addMeasure(value, instanceKey)
         }
       }
     }
