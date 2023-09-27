@@ -10,21 +10,22 @@ import { useGraphContentModelContext } from "../../hooks/use-graph-content-model
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
+  const adornmentsStore = graphModel.adornmentsStore
 
   const handleAddMovableValue = () => {
-    const existingAdornment = graphModel.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
+    const existingAdornment = adornmentsStore.findAdornmentOfType<IMovableValueModel>(kMovableValueType)
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueModel
-    graphModel.addAdornment(adornment)
+    adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
   }
 
   const handleRemoveMovableValue = () => {
-    const adornment = graphModel.adornments.find(a => a.type === kMovableValueType) as IMovableValueModel
-    graphModel.updateAdornment(() => {
-      adornment.deleteValue()
+    const adornment = adornmentsStore.findAdornmentOfType<IMovableValueModel>(kMovableValueType)
+    adornmentsStore.updateAdornment(() => {
+      adornment?.deleteValue()
     })
-    if (!adornment.hasValues) {
-      adornment.setVisibility(false)
+    if (!adornment?.hasValues) {
+      adornment?.setVisibility(false)
     }
   }
 

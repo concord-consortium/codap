@@ -56,12 +56,12 @@ export const Adornment = observer(function Adornment(
       data-testid={"adornment-wrapper"}
     >
       <Component
+        cellKey={cellKey}
         containerId={adornmentKey}
         key={adornmentKey}
         model={adornment}
         plotHeight={subPlotHeight}
         plotWidth={subPlotWidth}
-        cellKey={cellKey}
         xAxis={graphModel.getAxis('bottom') as INumericAxisModel}
         yAxis={graphModel.getAxis('left') as INumericAxisModel}
       />

@@ -20,7 +20,7 @@ export const Adornments = observer(function Adornments() {
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
     { isTileSelected } = useTileModelContext(),
-    adornments = graphModel.adornments
+    adornments = graphModel.adornmentsStore.adornments
 
   if (!adornments?.length) return null
 
