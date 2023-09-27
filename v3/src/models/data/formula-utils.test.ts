@@ -16,6 +16,11 @@ describe("customizeFormula", () => {
     expect(customizeFormula("a = b")).toEqual("a == b")
     expect(customizeFormula("a = b = c")).toEqual("a == b == c")
   })
+  it("doesn't replace unequality operator", () => {
+    expect(customizeFormula("a != 1")).toEqual("a != 1")
+    expect(customizeFormula("a != b")).toEqual("a != b")
+    expect(customizeFormula("a != b = c = d != e")).toEqual("a != b == c == d != e")
+  })
   it("replaces all the symbols enclosed between `` with safe symbol names", () => {
     expect(customizeFormula("mean(`Attribute Name`)")).toEqual("mean(Attribute_Name)")
     expect(customizeFormula("`Attribute Name` + `Attribute Name 2`")).toEqual("Attribute_Name + Attribute_Name_2")
