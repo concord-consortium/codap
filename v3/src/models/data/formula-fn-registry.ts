@@ -11,7 +11,8 @@ const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
   return node.compile().evaluate(scope)
 }
 
-// Every aggregate function can be cached in the same way.
+// Every aggregate function can be cached in the same way. Also, each aggregate function needs to be evaluated
+// within `withAggregateContext` method, so that the scope can be properly set up.
 const cachedAggregateFnFactory =
 (fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
@@ -20,7 +21,10 @@ const cachedAggregateFnFactory =
     if (cachedValue !== undefined) {
       return cachedValue
     }
-    const result = fn(args, mathjs, scope)
+    let result
+    scope.withAggregateContext(() => {
+      result = fn(args, mathjs, scope)
+    })
     scope.setCached(cacheKey, result)
     return result
   }

@@ -1,7 +1,5 @@
 import { parse, MathNode, isFunctionNode, isSymbolNode } from "mathjs"
-import {
-  AGGREGATE_SYMBOL_SUFFIX, LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, ILocalAttributeDependency
-} from "./formula-types"
+import { LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency } from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
 import type { IDataSet } from "./data-set"
 import t from "../../utilities/translation/translate"
@@ -10,32 +8,13 @@ import t from "../../utilities/translation/translate"
 
 export const formulaError = (message: string, vars?: string[]) => `❌ ${t(message, { vars })}`
 
-export const generateCanonicalSymbolName = (name: string, aggregate: boolean, displayNameMap: DisplayNameMap) => {
-  let canonicalName = null
-  if (name in displayNameMap.localNames) {
-    canonicalName = displayNameMap.localNames[name]
-    // Consider following formula example:
-    // "mean(Speed) + Speed"
-    // `Speed` is one that should be resolved to two very different values depending on the context:
-    // - if Speed is not an argument of aggregate function, it should be resolved to the current case value
-    // - if Speed is an argument of aggregate function, it should be resolved to an array containing all the values
-    // This differentiation can be done using the suffixes added to the symbol name.
-    if (aggregate) {
-      canonicalName += AGGREGATE_SYMBOL_SUFFIX
-    }
-  }
-  return canonicalName
-}
+export const generateCanonicalSymbolName = (name: string, displayNameMap: DisplayNameMap) =>
+  displayNameMap.localNames[name] || null
 
 export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDependency | undefined => {
   if (canonicalName.startsWith(LOCAL_ATTR)) {
     const attrId = canonicalName.substring(LOCAL_ATTR.length)
-    const result: ILocalAttributeDependency = { type: "localAttribute", attrId }
-    if (attrId.endsWith(AGGREGATE_SYMBOL_SUFFIX)) {
-      result.attrId = attrId.substring(0, attrId.length - AGGREGATE_SYMBOL_SUFFIX.length)
-      result.aggregate = true
-    }
-    return result
+    return { type: "localAttribute", attrId }
   }
   if (canonicalName.startsWith(GLOBAL_VALUE)) {
     const globalId = canonicalName.substring(GLOBAL_VALUE.length)
@@ -69,28 +48,9 @@ export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttribut
 // can be resolved by formula context and do not rely on user-based display names.
 export const canonicalizeExpression = (displayExpression: string, displayNameMap: DisplayNameMap) => {
   const formulaTree = parse(customizeFormula(displayExpression))
-
-  interface IExtendedMathNode extends MathNode {
-    isDescendantOfAggregateFunc?: boolean
-  }
-  const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isAggregate || parent?.isDescendantOfAggregateFunc) {
-      node.isDescendantOfAggregateFunc = true
-    }
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isSemiAggregate) {
-      // Current semi-aggregate functions usually have the following signature:
-      // fn(expression, defaultValue, filter)
-      // Symbols used in `expression` and `filter` arguments should be treated as aggregate symbols.
-      // In this case, `isSemiAggregate` would be equal to [true, false, true].
-      typedFnRegistry[node.fn.name].isSemiAggregate?.forEach((isAggregateArgument, index) => {
-        if (node.args[index] && isAggregateArgument) {
-          (node.args[index] as IExtendedMathNode).isDescendantOfAggregateFunc = true
-        }
-      })
-    }
-    const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
+  const visitNode = (node: MathNode) => {
     if (isSymbolNode(node)) {
-      const canonicalName = generateCanonicalSymbolName(node.name, isDescendantOfAggregateFunc, displayNameMap)
+      const canonicalName = generateCanonicalSymbolName(node.name, displayNameMap)
       if (canonicalName) {
         node.name = canonicalName
       }
@@ -124,16 +84,35 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
   const formulaTree = parse(formulaCanonical)
 
   interface IExtendedMathNode extends MathNode {
+    isDescendantOfAggregateFunc?: boolean
     isSelfReferenceAllowed?: boolean
   }
   const result: IFormulaDependency[] = []
   const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isAggregate || parent?.isDescendantOfAggregateFunc) {
+      node.isDescendantOfAggregateFunc = true
+    }
+    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isSemiAggregate) {
+      // Current semi-aggregate functions usually have the following signature:
+      // fn(expression, defaultValue, filter)
+      // Symbols used in `expression` and `filter` arguments should be treated as aggregate symbols.
+      // In this case, `isSemiAggregate` would be equal to [true, false, true].
+      typedFnRegistry[node.fn.name].isSemiAggregate?.forEach((isAggregateArgument, index) => {
+        if (node.args[index] && isAggregateArgument) {
+          (node.args[index] as IExtendedMathNode).isDescendantOfAggregateFunc = true
+        }
+      })
+    }
     if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.selfReferenceAllowed || parent?.isSelfReferenceAllowed) {
       node.isSelfReferenceAllowed = true
     }
+    const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
     const isSelfReferenceAllowed = !!node.isSelfReferenceAllowed
     if (isSymbolNode(node)) {
       const dependency = parseCanonicalSymbolName(node.name)
+      if (dependency?.type === "localAttribute" && isDescendantOfAggregateFunc) {
+        dependency.aggregate = true
+      }
       const isSelfReference = ifSelfReference(dependency, formulaAttributeId)
       // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
       // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
