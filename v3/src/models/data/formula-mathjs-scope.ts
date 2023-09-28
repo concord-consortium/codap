@@ -172,18 +172,20 @@ export class FormulaMathJsScope {
   // with... methods could be replaced by more elegant approach of creating sub-scope with modified properties,
   // but it would require re-initialization of the data storage. Since this could happen multiple times for each
   // evaluated case, it could be a performance hit. So, for now with... methods seem like a reasonable compromise.
-  withCustomCasePointer(callback: () => void, casePointer: number) {
+  withCustomCasePointer(callback: () => any, casePointer: number) {
     const originalCasePointer = this.casePointer
     this.casePointer = casePointer
-    callback()
+    const result = callback()
     this.casePointer = originalCasePointer
+    return result
   }
 
-  withAggregateContext(callback: () => void) {
+  withAggregateContext(callback: () => any) {
     const originalIsAggregate = this.isAggregate
     this.isAggregate = true
-    callback()
+    const result = callback()
     this.isAggregate = originalIsAggregate
+    return result
   }
 
   getCaseChildrenCount() {
