@@ -1540,6 +1540,14 @@ DG.DataContext = SC.Object.extend((function () // closure
       return result;
     },
 
+    doRerandomizeAll: function() {
+      var dependencyMgr = this.get('dependencyMgr'),
+         randomNode = dependencyMgr &&
+                      dependencyMgr.findNode({ type: DG.DEP_TYPE_SPECIAL,
+                        id: 'random' });
+      this.invalidateDependentsAndNotify([randomNode]);
+    },
+
     /**
      * Regenerates the case lists for all the collections in the context using the
      * dataSet as a reference.
