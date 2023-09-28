@@ -2,7 +2,8 @@ import React from "react"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { MeanAdornmentModel } from "./mean-adornment-model"
-import { kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix } from "./mean-adornment-types"
+import { kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix, kMeanUndoAddKey, kMeanRedoAddKey,
+         kMeanUndoRemoveKey, kMeanRedoRemoveKey } from "./mean-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
 
@@ -21,7 +22,13 @@ registerAdornmentContentInfo({
   parentType: "Univariate Measure",
   plots: ["dotPlot"],
   prefix: kMeanPrefix,
-  modelClass: MeanAdornmentModel
+  modelClass: MeanAdornmentModel,
+  undoRedoKeys: {
+    undoAdd: kMeanUndoAddKey,
+    redoAdd: kMeanRedoAddKey,
+    undoRemove: kMeanUndoRemoveKey,
+    redoRemove: kMeanRedoRemoveKey,
+  }
 })
 
 registerAdornmentComponentInfo({

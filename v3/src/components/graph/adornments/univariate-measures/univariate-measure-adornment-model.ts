@@ -5,11 +5,9 @@ import { IDataConfigurationModel } from "../../../data-display/models/data-confi
 import { ICase } from "../../../../models/data/data-set-types"
 
 export const MeasureInstance = types.model("MeasureInstance", {
-  labelCoords: types.maybe(PointModel)
+  labelCoords: types.maybe(PointModel),
+  value: types.optional(types.number, 0)
 })
-.volatile(self => ({
-  value: 0
-}))
 .actions(self => ({
   setLabelCoords(coords: Point) {
     self.labelCoords = PointModel.create(coords)

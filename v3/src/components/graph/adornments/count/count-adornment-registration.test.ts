@@ -1,7 +1,7 @@
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo } from "../adornment-content-info"
-import { kCountClass, kCountPrefix, kCountType } from "./count-types"
-import "./count-registration"
+import { kCountClass, kCountPrefix, kCountType } from "./count-adornment-types"
+import "./count-adornment-registration"
 
 describe("CountRegistration", () => {
   it("registers content and component info", () => {

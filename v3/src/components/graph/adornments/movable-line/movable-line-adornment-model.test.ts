@@ -1,4 +1,4 @@
-import { MovableLineModel, MovableLineInstance } from "./movable-line-model"
+import { MovableLineAdornmentModel, MovableLineInstance } from "./movable-line-adornment-model"
 
 describe("MovableLineInstance", () => {
   it("is created with intercept and slope properties", () => {
@@ -24,9 +24,9 @@ describe("MovableLineInstance", () => {
   })
 })
 
-describe("MovableLineModel", () => {
+describe("MovableLineAdornmentModel", () => {
   it("is created with its type property set to 'Movable Line' and with its lines property set to an empty map", () => {
-    const movableLine = MovableLineModel.create()
+    const movableLine = MovableLineAdornmentModel.create()
     expect(movableLine.type).toEqual("Movable Line")
     expect(movableLine.lines.size).toEqual(0)
   })
@@ -37,7 +37,7 @@ describe("MovableLineModel", () => {
       pivot1: {x: 2, y: 2},
       pivot2: {x: 3, y: 3}
     }
-    const movableLine = MovableLineModel.create()
+    const movableLine = MovableLineAdornmentModel.create()
     movableLine.setLine(line1)
     expect(movableLine.lines.size).toEqual(1)
     expect(movableLine.lines.get('')).toEqual(line1)
@@ -55,7 +55,7 @@ describe("MovableLineModel", () => {
       pivot1: {x: 3, y: 3},
       pivot2: {x: 4, y: 4}
     }
-    const movableLine = MovableLineModel.create()
+    const movableLine = MovableLineAdornmentModel.create()
     movableLine.setLine(line1, "line1key")
     movableLine.setLine(line2, "line2key")
     expect(movableLine.lines.size).toEqual(2)

@@ -1,7 +1,7 @@
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo } from "../adornment-content-info"
-import { kMovablePointClass, kMovablePointPrefix, kMovablePointType } from "./movable-point-types"
-import "./movable-point-registration"
+import { kMovablePointClass, kMovablePointPrefix, kMovablePointType } from "./movable-point-adornment-types"
+import "./movable-point-adornment-registration"
 
 describe("Movable point registration", () => {
   it("Registers content and component info", () => {

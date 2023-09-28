@@ -1,7 +1,7 @@
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo } from "../adornment-content-info"
-import { kMovableValueClass, kMovableValuePrefix, kMovableValueType } from "./movable-value-types"
-import "./movable-value-registration"
+import { kMovableValueClass, kMovableValuePrefix, kMovableValueType } from "./movable-value-adornment-types"
+import "./movable-value-adornment-registration"
 
 describe("Movable value registration", () => {
   it("Registers content and component info", () => {

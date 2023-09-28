@@ -2,9 +2,9 @@ import React, { useState } from "react"
 import { FormControl, Checkbox, RadioGroup, Radio } from "@chakra-ui/react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
-import { CountModel, ICountModel, isCount } from "./count-model"
-import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-types"
-import { Count } from "./count"
+import { CountAdornmentModel, ICountAdornmentModel, isCount } from "./count-adornment-model"
+import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
+import { CountAdornment } from "./count-adornment-component"
 import t from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
@@ -13,7 +13,7 @@ const Controls = () => {
   const graphModel = useGraphContentModelContext()
   const dataConfig = useDataConfigurationContext()
   const adornmentsStore = graphModel.adornmentsStore
-  const existingAdornment = adornmentsStore.findAdornmentOfType<ICountModel>(kCountType)
+  const existingAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
   const shouldShowPercentOption = dataConfig?.categoricalAttrCount ? dataConfig?.categoricalAttrCount > 0 : false
   const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)
@@ -21,24 +21,37 @@ const Controls = () => {
     existingAdornment && isCount(existingAdornment) ? existingAdornment.percentType : "row"
   )
 
-  const handleSetting = (checked: boolean, checkBoxType: string) => {
-    const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountModel>(kCountType)
-    const componentContentInfo = getAdornmentContentInfo(kCountType)
-    const adornment = existingCountAdornment ?? componentContentInfo.modelClass.create() as ICountModel
+  const handleShowPercent = (adornment: ICountAdornmentModel, checked: boolean) => {
+    adornment.setShowPercent(checked)
+    setEnablePercentOptions(checked)
+  }
 
-    adornmentsStore.hideAdornment(adornment.type)
-    if (!existingCountAdornment) {
-      adornment.updateCategories(graphModel.getUpdateCategoriesOptions())
-    }
-    if (checkBoxType === "count") {
-      adornment.setShowCount(checked)
-    }
-    if (checkBoxType === "percent") {
-      adornment.setShowPercent(checked)
-      setEnablePercentOptions(checked)
-    }
+  const handleSetting = (checked: boolean, checkBoxType: string) => {
+    const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
+    const componentContentInfo = getAdornmentContentInfo(kCountType)
+    const adornment = existingCountAdornment ?? componentContentInfo.modelClass.create() as ICountAdornmentModel
+    const undoAddKey = checkBoxType === "count" ? "DG.Undo.graph.showCount" : "DG.Undo.graph.showPercent"
+    const redoAddKey = checkBoxType === "count" ? "DG.Redo.graph.showCount" : "DG.Redo.graph.showPercent"
+    const undoRemoveKey = checkBoxType === "count" ? "DG.Undo.graph.hideCount" : "DG.Undo.graph.hidePercent"
+    const redoRemoveKey = checkBoxType === "count" ? "DG.Redo.graph.hideCount" : "DG.Redo.graph.hidePercent"
+
+    const setShowAdornment = checkBoxType === "count"
+      ? () => adornment.setShowCount(checked)
+      : () => handleShowPercent(adornment, checked)
+
     if (checked) {
-      adornmentsStore.showAdornment(adornment, adornment.type)
+      graphModel.applyUndoableAction(
+        () => {
+          adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
+          setShowAdornment()
+        },
+        undoAddKey, redoAddKey
+      )
+    } else {
+      graphModel.applyUndoableAction(
+        () => adornmentsStore.updateAdornment(setShowAdornment),
+        undoRemoveKey, redoRemoveKey
+      )
     }
   }
 
@@ -102,12 +115,12 @@ registerAdornmentContentInfo({
   type: kCountType,
   plots: ["casePlot", "dotChart", "dotPlot", "scatterPlot"],
   prefix: kCountPrefix,
-  modelClass: CountModel
+  modelClass: CountAdornmentModel
 })
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kCountClass,
-  Component: Count,
+  Component: CountAdornment,
   Controls,
   labelKey: kCountLabelKey,
   order: 10,

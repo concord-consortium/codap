@@ -1,10 +1,10 @@
 import { types } from "mobx-state-tree"
 import { IAdornmentModel, IUnknownAdornmentModel, UnknownAdornmentModel } from "./adornment-models"
-import { IMovableLineModel, MovableLineModel } from "./movable-line/movable-line-model"
-import { IMovablePointModel, MovablePointModel } from "./movable-point/movable-point-model"
-import { IMovableValueModel, MovableValueModel } from "./movable-value/movable-value-model"
-import { CountModel, ICountModel } from "./count/count-model"
-import { IPlottedValueModel, PlottedValueModel } from "./plotted-value/plotted-value-model"
+import { IMovableLineAdornmentModel, MovableLineAdornmentModel } from "./movable-line/movable-line-adornment-model"
+import { IMovablePointAdornmentModel, MovablePointAdornmentModel } from "./movable-point/movable-point-adornment-model"
+import { IMovableValueAdornmentModel, MovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
+import { CountAdornmentModel, ICountAdornmentModel } from "./count/count-adornment-model"
+import { IPlottedValueAdornmentModel, PlottedValueAdornmentModel } from "./plotted-value/plotted-value-adornment-model"
 import { IMeanAdornmentModel, MeanAdornmentModel } from "./univariate-measures/mean/mean-adornment-model"
 import { IMedianAdornmentModel, MedianAdornmentModel } from "./univariate-measures/median/median-adornment-model"
 
@@ -13,22 +13,23 @@ export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
 
 const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
   switch (adornmentSnap.type) {
-    case "Count": return CountModel
+    case "Count": return CountAdornmentModel
     case "Mean": return MeanAdornmentModel
     case "Median": return MedianAdornmentModel
-    case "Movable Line": return MovableLineModel
-    case "Movable Point": return MovablePointModel
-    case "Movable Value": return MovableValueModel
-    case "Plotted Value": return PlottedValueModel
+    case "Movable Line": return MovableLineAdornmentModel
+    case "Movable Point": return MovablePointAdornmentModel
+    case "Movable Value": return MovableValueAdornmentModel
+    case "Plotted Value": return PlottedValueAdornmentModel
     default: return UnknownAdornmentModel
   }
 }
 
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
-  CountModel, MeanAdornmentModel, MedianAdornmentModel, MovableValueModel, MovableLineModel, MovablePointModel,
-  PlottedValueModel, UnknownAdornmentModel)
-export type IAdornmentModelUnion = ICountModel | IMeanAdornmentModel | IMedianAdornmentModel | IMovableValueModel |
-  IMovableLineModel | IMovablePointModel | IPlottedValueModel | IUnknownAdornmentModel
+  CountAdornmentModel, MeanAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
+  MovablePointAdornmentModel, PlottedValueAdornmentModel, UnknownAdornmentModel)
+export type IAdornmentModelUnion = ICountAdornmentModel | IMeanAdornmentModel | IMedianAdornmentModel |
+  IMovableValueAdornmentModel | IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedValueAdornmentModel |
+  IUnknownAdornmentModel
 
 export type PlotTypes = "casePlot" | "dotChart" | "dotPlot" | "scatterPlot"
 

@@ -2,7 +2,8 @@ import React from "react"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { MedianAdornmentModel } from "./median-adornment-model"
-import { kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianType } from "./median-adornment-types"
+import { kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianRedoAddKey, kMedianRedoRemoveKey,
+         kMedianType, kMedianUndoAddKey, kMedianUndoRemoveKey } from "./median-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
 
@@ -21,7 +22,13 @@ registerAdornmentContentInfo({
   parentType: "Univariate Measure",
   plots: ["dotPlot"],
   prefix: kMedianPrefix,
-  modelClass: MedianAdornmentModel
+  modelClass: MedianAdornmentModel,
+  undoRedoKeys: {
+    undoAdd: kMedianUndoAddKey,
+    redoAdd: kMedianRedoAddKey,
+    undoRemove: kMedianUndoRemoveKey,
+    redoRemove: kMedianRedoRemoveKey,
+  }
 })
 
 registerAdornmentComponentInfo({

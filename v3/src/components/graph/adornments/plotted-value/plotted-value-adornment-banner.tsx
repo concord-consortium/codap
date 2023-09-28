@@ -1,16 +1,17 @@
 import React, { useState } from "react"
+import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
-import { IPlottedValueModel } from "./plotted-value-model"
+import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 
-import "./plotted-value-banner.scss"
+import "./plotted-value-adornment-banner.scss"
 
 interface IProps {
-  model: IPlottedValueModel
+  model: IPlottedValueAdornmentModel
 }
 
-export const PlottedValueBanner = ({ model }: IProps) => {
+export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornmentBanner({ model }: IProps) {
   const value = model.value
   const formulaModal = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -50,4 +51,4 @@ export const PlottedValueBanner = ({ model }: IProps) => {
       }
     </>
   )
-}
+})

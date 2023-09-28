@@ -4,7 +4,7 @@ import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel,
          kInfinitePoint } from "../adornment-models"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
-import { kMovableLineType } from "./movable-line-types"
+import { kMovableLineType } from "./movable-line-adornment-types"
 
 export const MovableLineInstance = types.model("MovableLineInstance", {
   equationCoords: types.maybe(PointModel),
@@ -27,10 +27,10 @@ export const MovableLineInstance = types.model("MovableLineInstance", {
   }
 }))
 
-export const MovableLineModel = AdornmentModel
-.named('MovableLineModel')
+export const MovableLineAdornmentModel = AdornmentModel
+.named("MovableLineAdornmentModel")
 .props({
-  type: 'Movable Line',
+  type: types.optional(types.literal(kMovableLineType), kMovableLineType),
   lines: types.map(MovableLineInstance)
 })
 .actions(self => ({
@@ -64,7 +64,9 @@ export const MovableLineModel = AdornmentModel
     }
   }
 }))
-export interface IMovableLineModel extends Instance<typeof MovableLineModel> {}
-export function isMovableLine(adornment: IAdornmentModel): adornment is IMovableLineModel {
+
+export interface IMovableLineInstance extends Instance<typeof MovableLineInstance> {}
+export interface IMovableLineAdornmentModel extends Instance<typeof MovableLineAdornmentModel> {}
+export function isMovableLine(adornment: IAdornmentModel): adornment is IMovableLineAdornmentModel {
   return adornment.type === kMovableLineType
 }

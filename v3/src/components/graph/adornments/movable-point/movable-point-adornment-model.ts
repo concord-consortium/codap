@@ -2,13 +2,13 @@ import { Instance, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
-import { kMovablePointType } from "./movable-point-types"
+import { kMovablePointType } from "./movable-point-adornment-types"
 
 
-export const MovablePointModel = AdornmentModel
-  .named('MovablePointModel')
+export const MovablePointAdornmentModel = AdornmentModel
+  .named("MovablePointAdornmentModel")
   .props({
-    type: 'Movable Point',
+    type: types.optional(types.literal(kMovablePointType), kMovablePointType),
     points: types.map(PointModel)
   })
   .views(self => ({
@@ -19,12 +19,12 @@ export const MovablePointModel = AdornmentModel
     }
   }))
   .actions(self => ({
-    setPoint(aPoint: Point, key='') {
+    setPoint(aPoint: Point, key="") {
       self.points.set(key, aPoint)
     }
   }))
   .actions(self => ({
-    setInitialPoint(xAxis?: IAxisModel, yAxis?: IAxisModel, key='') {
+    setInitialPoint(xAxis?: IAxisModel, yAxis?: IAxisModel, key="") {
       self.setPoint({ x: self.getInitialPosition(xAxis), y: self.getInitialPosition(yAxis) }, key)
     }
   }))
@@ -43,7 +43,7 @@ export const MovablePointModel = AdornmentModel
       }
     }
   }))
-export interface IMovablePointModel extends Instance<typeof MovablePointModel> {}
-export function isMovablePoint(adornment: IAdornmentModel): adornment is IMovablePointModel {
+export interface IMovablePointAdornmentModel extends Instance<typeof MovablePointAdornmentModel> {}
+export function isMovablePoint(adornment: IAdornmentModel): adornment is IMovablePointAdornmentModel {
   return adornment.type === kMovablePointType
 }

@@ -1,12 +1,13 @@
 import { Instance, types } from "mobx-state-tree"
 import { mean } from "mathjs"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
-import { kPlottedValueType } from "./plotted-value-types"
+import { kPlottedValueType } from "./plotted-value-adornment-types"
 import { ICase } from "../../../../models/data/data-set-types"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import { withUndoRedoStrings } from "../../../../models/history/codap-undo-types"
 
-export const PlottedValueModel = AdornmentModel
-  .named("PlottedValueModel")
+export const PlottedValueAdornmentModel = AdornmentModel
+  .named("PlottedValueAdornmentModel")
   .props({
     type: "Plotted Value",
     value: types.maybe(types.union(types.number, types.string))
@@ -33,10 +34,11 @@ export const PlottedValueModel = AdornmentModel
   .actions(self => ({
     setValue(aValue: number | string) {
       self.value = aValue
+      withUndoRedoStrings("DG.Undo.graph.changePlotValue", "DG.Redo.graph.changePlotValue")
     }
   }))
 
-export interface IPlottedValueModel extends Instance<typeof PlottedValueModel> {}
-export function isPlottedValue(adornment: IAdornmentModel): adornment is IPlottedValueModel {
+export interface IPlottedValueAdornmentModel extends Instance<typeof PlottedValueAdornmentModel> {}
+export function isPlottedValue(adornment: IAdornmentModel): adornment is IPlottedValueAdornmentModel {
   return adornment.type === kPlottedValueType
 }
