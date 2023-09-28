@@ -48,6 +48,35 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
 // count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
 export const isValueTruthy = (value: any) => value !== "" && value !== false && value !== null && value !== undefined
 
+export const equal = (a: any, b: any) => {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.map((v, i) => v === b[i])
+  }
+  if (Array.isArray(a) && !Array.isArray(b)) {
+    return a.map((v) => v === b)
+  }
+  if (!Array.isArray(a) && Array.isArray(b)) {
+    return b.map((v) => v === a)
+  }
+  // Checks below might seem redundant once the data set cases start using typed values, but they are not.
+  // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
+  // values when possible, so that the comparison can be performed without forcing users to think about types.
+  // Also, there's more ifs than needed, but it lets us avoid unnecessary casts.
+  if (typeof a === "number" && typeof b !== "number") {
+    return a === Number(b)
+  }
+  if (typeof a !== "number" && typeof b === "number") {
+    return Number(a) === b
+  }
+  if (typeof a === "boolean" && typeof b !== "boolean") {
+    return a === (b === "true")
+  }
+  if (typeof a !== "boolean" && typeof b === "boolean") {
+    return (a === "true") === b
+  }
+  return a === b
+}
+
 const UNDEF_RESULT = ""
 
 export const fnRegistry = {
@@ -55,34 +84,11 @@ export const fnRegistry = {
   // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
   // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
   equal: {
-    evaluateRaw: (a: any, b: any) => {
-      if (Array.isArray(a) && Array.isArray(b)) {
-        return a.map((v, i) => v === b[i])
-      }
-      if (Array.isArray(a) && !Array.isArray(b)) {
-        return a.map((v) => v === b)
-      }
-      if (!Array.isArray(a) && Array.isArray(b)) {
-        return b.map((v) => v === a)
-      }
-      // Checks below might seem redundant once the data set cases start using typed values, but they are not.
-      // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
-      // values when possible, so that the comparison can be performed without forcing users to think about types.
-      // Also, there's more ifs than needed, but it lets us avoid unnecessary casts.
-      if (typeof a === "number" && typeof b !== "number") {
-        return a === Number(b)
-      }
-      if (typeof a !== "number" && typeof b === "number") {
-        return Number(a) === b
-      }
-      if (typeof a === "boolean" && typeof b !== "boolean") {
-        return a === (b === "true")
-      }
-      if (typeof a !== "boolean" && typeof b === "boolean") {
-        return (a === "true") === b
-      }
-      return a === b
-    }
+    evaluate: equal
+  },
+
+  unequal: {
+    evaluate: (a: any, b: any) => !equal(a, b)
   },
 
   // lookupByIndex("dataSetName", "attributeName", index)
@@ -162,7 +168,7 @@ export const fnRegistry = {
       }
       for (const c of dataSet.cases) {
         const val = dataSet.getValue(c.__id__, keyAttrId)
-        if (val === keyAttrValue) {
+        if (equal(val, keyAttrValue)) {
           return dataSet.getValue(c.__id__, attrId) || UNDEF_RESULT
         }
       }

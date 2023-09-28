@@ -35,7 +35,7 @@ export const customizeFormula = (formula: string) => {
   // Over time, this function might grow significantly and require more advanced parsing of the formula.
   return formula
     // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
-    .replace(/=/g, "==")
+    .replace(/(?<!!)=(?!=)/g, "==")
     // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
     // eg. names with spaces or names that start with a number.
     .replace(/`([^`]+)`/g, (_, match) => safeSymbolName(match))
