@@ -1,39 +1,41 @@
-import {
-  FValue, AGGREGATE_SYMBOL_SUFFIX, CASE_INDEX_FAKE_ATTR_ID, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY
-} from "./formula-types"
+import { FValue, CASE_INDEX_FAKE_ATTR_ID, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY } from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "./data-set"
 import type { IValueType } from "./attribute"
-import type { ICase } from "./data-set-types"
 
 const CACHE_ENABLED = true
 
 export interface IFormulaMathjsScopeContext {
-  formulaAttrId: string
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
-  cases: ICase[]
-  childMostCollectionCases: ICase[]
-  useSameLevelGrouping: boolean
+  globalValueManager?: IGlobalValueManager
+  caseIds: string[]
+  formulaAttrId: string
+  formulaCollectionIndex: number
+  childMostAggregateCollectionIndex: number
+  childMostCollectionCaseIds: string[]
   caseGroupId: Record<string, string>
   caseChildrenCount: Record<string, number>
-  globalValueManager?: IGlobalValueManager
 }
 
 // Official MathJS docs don't describe custom scopes in great detail, but there's a good example in their repo:
 // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js
 export class FormulaMathJsScope {
   context: IFormulaMathjsScopeContext
-  baseCasePointer = 0
+  casePointer = 0
+  // When aggregate functions (functions working with multiple cases) are evaluated, this flag should be set to true.
+  isAggregate = false
   dataStorage: Record<string, any> = {}
   caseIndexCache?: Record<string, number>
-  // `cache` is used directly by custom formula functions like `prev`, `next` or other aggregate functions.
+  // `cache` is used directly by custom formula functions like `prev`, `next` or aggregate functions.
   cache = new Map<string, any>()
-  // Properties defined below are used for calculating recursive functions like prev() referencing itself, e.g.:
-  // prev(CumulativeValue, 0) + Value
-  casePointerModifier?: number
+  // `previousResults` is used for calculating self-referencing, recursive functions like prev(), e.g.:
+  // [CumulativeValue attribute formula]: "prev(CumulativeValue, 0) + Value"
   previousResults: FValue[] = []
-  previousCaseIds: string[] = []
+
+  get caseId() {
+    return this.context.caseIds[this.casePointer]
+  }
 
   constructor (context: IFormulaMathjsScopeContext) {
     this.context = context
@@ -41,54 +43,37 @@ export class FormulaMathJsScope {
   }
 
   initDataStorage(context: IFormulaMathjsScopeContext) {
+    // We could parse symbol name in scope.get() function, but this should be faster, as it's done only once,
+    // and no parsing is needed when the symbol is accessed for each dataset case.
     // `caseIndex` is a special symbol that might be used by formulas.
     const localAttributeIds = context.localDataSet.attributes.map(a => a.id).concat(CASE_INDEX_FAKE_ATTR_ID)
-
-    // We could parse symbol name in get() function, but this should theoretically be faster, as it's done only once,
-    // and no parsing is needed when the symbol is accessed for each dataset case.
-    // First, provide local dataset attribute symbols.
+    // Local dataset attribute symbols.
     localAttributeIds.forEach(attrId => {
-      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attrId}`, {
-        get: () => {
-          return this.getLocalValue(this.caseId, attrId)
-        }
-      })
-
       // Make sure that all the caching and case processing is done lazily, only for attributes that are actually
       // referenced by the formula.
       let cachedGroup: Record<string, IValueType[]>
-      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attrId}${AGGREGATE_SYMBOL_SUFFIX}`, {
+      Object.defineProperty(this.dataStorage, `${LOCAL_ATTR}${attrId}`, {
         get: () => {
-          if (this.casePointerModifier !== undefined) {
-            // Note that this block is only used by `prev()` function that has iterative approach to calculating
-            // its values rather than relying on arrays of values like other aggregate functions. However, its arguments
-            // are still considered aggregate, so caching and grouping works as expected.
-            if (attrId === this.context.formulaAttrId) {
-              // When formula references its own attribute, we cannot simply return case values - we're just trying
-              // to calculate them. In most cases this is not allowed, but there are some exceptions, e.g. prev function
-              // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
-              return this.previousResults[this.casePointer]
-            }
+          if (!this.isAggregate) {
             return this.getLocalValue(this.caseId, attrId)
+          } else {
+            if (!cachedGroup) {
+              cachedGroup = {}
+              // Cache is calculated lazily to avoid calculating it for all the attributes that are not referenced by
+              // the formula. Note that each case is processed only once, so this mapping is only O(n) complexity.
+              context.childMostCollectionCaseIds.forEach(cId => {
+                const groupId = context.caseGroupId[cId]
+                if (!cachedGroup[groupId]) {
+                  cachedGroup[groupId] = []
+                }
+                cachedGroup[groupId].push(this.getLocalValue(cId, attrId))
+              })
+            }
+            return cachedGroup[this.getCaseAggregateGroupId()] || cachedGroup[NO_PARENT_KEY]
           }
-
-          if (!cachedGroup) {
-            cachedGroup = {}
-            // Cache is calculated lazily to avoid calculating it for all the attributes that are not referenced by
-            // the formula. Note that each case is processed only once, so this mapping is only O(n) complexity.
-            context.childMostCollectionCases.forEach(c => {
-              const groupId = context.caseGroupId[c.__id__]
-              if (!cachedGroup[groupId]) {
-                cachedGroup[groupId] = []
-              }
-              cachedGroup[groupId].push(this.getLocalValue(c.__id__, attrId))
-            })
-          }
-          return cachedGroup[this.getCaseGroupId()] || cachedGroup[NO_PARENT_KEY]
         }
       })
     })
-
     // Global value symbols.
     context.globalValueManager?.globals.forEach(global => {
       Object.defineProperty(this.dataStorage, `${GLOBAL_VALUE}${global.id}`, {
@@ -99,16 +84,9 @@ export class FormulaMathJsScope {
     })
   }
 
-  get casePointer() {
-    return this.baseCasePointer + (this.casePointerModifier ?? 0)
-  }
-
-  get caseId() {
-    return this.context.cases[this.casePointer]?.__id__
-  }
-
   // --- Functions required by MathJS scope "interface". It doesn't seem to be defined/typed anywhere, so it's all
   //     based on: // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js ---
+
   get(key: string): any {
     return this.dataStorage[key]
   }
@@ -142,50 +120,70 @@ export class FormulaMathJsScope {
   }
 
   // --- Custom functions used by our formulas or formula manager --
+
+  getLocalValue(caseId: string, attrId: string) {
+    if (attrId === this.context.formulaAttrId) {
+      // When formula references its own attribute, we cannot simply return case values - we're just trying
+      // to calculate them. In most cases this is not allowed, but there are some exceptions, e.g. prev function
+      // referencing its own attribute. It could be used to calculate cumulative value in a recursive way.
+      return this.previousResults[this.casePointer]
+    }
+    return attrId === CASE_INDEX_FAKE_ATTR_ID
+      ? this.getCaseIndex(caseId)
+      : this.context.localDataSet.getValue(caseId, attrId)
+  }
+
+  // Note that case index is what user sees in the table: 1-based index that respects grouping.
+  // It's not the same as a case pointer (index in fact) that is used internally by this class.
   getCaseIndex(caseId: string) {
     if (!this.caseIndexCache) {
       // Cache is calculated lazily to avoid calculating when not necessary.
       // Note that each case is processed only once, so this mapping is only O(n) complexity.
       this.caseIndexCache = {}
       const casesCount: Record<string, number> = {}
-      this.context.childMostCollectionCases.forEach(c => {
-        const groupId = this.context.caseGroupId[c.__id__]
+      this.context.childMostCollectionCaseIds.forEach(cId => {
+        const groupId = this.context.caseGroupId[cId]
         if (!casesCount[groupId]) {
           casesCount[groupId] = 0
         }
         casesCount[groupId] += 1
-        this.caseIndexCache![c.__id__] = casesCount[groupId]
+        this.caseIndexCache![cId] = casesCount[groupId]
       })
     }
     return this.caseIndexCache[caseId]
   }
 
-  getLocalValue(caseId: string, attrId: string) {
-    return attrId === CASE_INDEX_FAKE_ATTR_ID
-      ? this.getCaseIndex(caseId)
-      : this.context.localDataSet.getValue(caseId, attrId)
+  getCasePointer() {
+    return this.casePointer
   }
 
-  setBaseCasePointer(baseCasePointer: number) {
-    this.baseCasePointer = baseCasePointer
+  setCasePointer(casePointer: number) {
+    this.casePointer = casePointer
   }
 
-  setCasePointerModifier(modifier: number | undefined) {
-    this.casePointerModifier = modifier
+  getNumberOfCases() {
+    return this.context.caseIds.length
   }
 
   savePreviousResult(value: FValue) {
     this.previousResults.push(value)
   }
 
-  withCaseIndexModifier(callback: () => void, casePointerModifier: number) {
-    const originalCasePointerModifier = this.casePointerModifier
-    if (this.casePointerModifier === undefined) {
-      this.casePointerModifier = 0
-    }
-    this.casePointerModifier += casePointerModifier
+  // with... methods could be replaced by more elegant approach of creating sub-scope with modified properties,
+  // but it would require re-initialization of the data storage. Since this could happen multiple times for each
+  // evaluated case, it could be a performance hit. So, for now with... methods seem like a reasonable compromise.
+  withCustomCasePointer(callback: () => void, casePointer: number) {
+    const originalCasePointer = this.casePointer
+    this.casePointer = casePointer
     callback()
-    this.casePointerModifier = originalCasePointerModifier
+    this.casePointer = originalCasePointer
+  }
+
+  withAggregateContext(callback: () => void) {
+    const originalIsAggregate = this.isAggregate
+    this.isAggregate = true
+    callback()
+    this.isAggregate = originalIsAggregate
   }
 
   getCaseChildrenCount() {
@@ -200,15 +198,23 @@ export class FormulaMathJsScope {
     return this.context.dataSets.get(dataSetId)
   }
 
-  getCaseGroupId() {
-    // Same-level grouping uses parent ID as a group ID, parent-child grouping uses case ID as a group ID.
-    return this.context.useSameLevelGrouping ? this.context.caseGroupId[this.caseId] : this.caseId
+  getCaseAggregateGroupId() {
+    // There are two separate kinds of aggregate cases grouping:
+    // - Same-level grouping, which is used when the table is flat or when the aggregate function is referencing
+    //   attributes only from the same collection.
+    // - Parent-child grouping, which is used when the table is hierarchical and the aggregate function is
+    //   referencing attributes from child collections.
+    // When aggregate function is defined in a parent table but it references an attribute in a child table, we need to
+    // use formula's case ID as a group ID.
+    const useSameLevelGrouping = this.context.formulaCollectionIndex === this.context.childMostAggregateCollectionIndex
+    return useSameLevelGrouping ? this.getCaseGroupId() : this.caseId
   }
 
-  getSemiAggregateGroupId() {
+  getCaseGroupId() {
     return this.context.caseGroupId[this.caseId]
   }
 
+  // Basic, flexible cache used by formula's custom functions, usually aggregate or semi-aggregate.
   setCached(key: string, value: any) {
     if (CACHE_ENABLED) {
       this.cache.set(key, value)

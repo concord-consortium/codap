@@ -182,23 +182,19 @@ export class FormulaManager {
     const childMostAggregateCollectionIndex =
       getFormulaChildMostAggregateCollectionIndex(formula.canonical, dataSet) ?? collectionIndex
     const childMostCollectionGroup = dataSet.collectionGroups[childMostAggregateCollectionIndex]
-    const childMostCollectionCases = childMostCollectionGroup
-      ? childMostCollectionGroup.groups.map((group: CaseGroup) => group.pseudoCase) || []
-      : dataSet.childCases()
+    const childMostCollectionCaseIds = childMostCollectionGroup
+      ? childMostCollectionGroup.groups.map((group: CaseGroup) => group.pseudoCase.__id__) || []
+      : dataSet.childCases().map(c => c.__id__)
 
     const formulaScope = new FormulaMathJsScope({
-      formulaAttrId: attributeId,
       localDataSet: dataSet,
       dataSets: this.dataSets,
       globalValueManager: this.globalValueManager,
-      // There are two separate kinds of aggregate cases grouping:
-      // - Same-level grouping, which is used when the table is flat or when the aggregate function is referencing
-      //   attributes only from the same collection.
-      // - Parent-child grouping, which is used when the table is hierarchical and the aggregate function is
-      //   referencing attributes from child collections.
-      useSameLevelGrouping: collectionIndex === childMostAggregateCollectionIndex,
-      cases: casesToRecalculate,
-      childMostCollectionCases,
+      formulaAttrId: attributeId,
+      formulaCollectionIndex: collectionIndex,
+      childMostAggregateCollectionIndex,
+      caseIds: casesToRecalculate.map(c => c.__id__),
+      childMostCollectionCaseIds,
       caseGroupId: this.getCaseGroupMap(formulaId),
       caseChildrenCount: this.getCaseChildrenCountMap(formulaId)
     })
@@ -211,7 +207,7 @@ export class FormulaManager {
     }
 
     dataSet.setCaseValues(casesToRecalculate.map((c, idx) => {
-      formulaScope.setBaseCasePointer(idx)
+      formulaScope.setCasePointer(idx)
       let formulaValue: FValue
       try {
         formulaValue = compiledFormula.evaluate(formulaScope)
