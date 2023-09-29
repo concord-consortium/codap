@@ -54,7 +54,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       newMeasure.setValue(value)
       self.measures.set(key, newMeasure)
     },
-    setMeasureValue(value: number, key="{}") {
+    updateMeasureValue(value: number, key="{}") {
       const measure = self.measures.get(key)
       if (measure) {
         measure.setValue(value)
@@ -92,7 +92,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
         if (!self.measures.get(instanceKey) || resetPoints) {
           self.addMeasure(value, instanceKey)
         } else {
-          self.setMeasureValue(value, instanceKey)
+          self.updateMeasureValue(value, instanceKey)
         }
       }
     }

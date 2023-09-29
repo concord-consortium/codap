@@ -144,7 +144,10 @@ export const UnivariateMeasureAdornmentComponent = observer(
         const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
         const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
         const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * 20 : 0
-        const labelLeft = labelCoords ? labelCoords.x / xCellCount : isVertical.current ? xScale(plotValue) / xCellCount : 0
+        const labelLeft = labelCoords
+          ? labelCoords.x / xCellCount
+          : isVertical.current
+            ? xScale(plotValue) / xCellCount : 0
         const labelTop = labelCoords ? labelCoords.y : topOffset
         const labelId = `${measureType}-measure-labels-tip-${containerId}${classFromKey ? `-${classFromKey}` : ""}`
         const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${measureType}`)
@@ -182,8 +185,8 @@ export const UnivariateMeasureAdornmentComponent = observer(
       }
 
     }, [adornmentsStore?.activeUnivariateMeasures, classFromKey, containerId, handleEndMoveLabel,
-        handleMoveLabel, highlightCover, highlightLabel, layout, measureType, model, plotHeight,
-        plotWidth, showLabel, xAttrType, xScale, yAttrType, yScale])
+        handleMoveLabel, highlightCover, highlightLabel, layout, measureType, model, plotWidth, showLabel,
+        xAttrType, xScale, yAttrType, yScale])
 
     // Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {
