@@ -1,6 +1,6 @@
 import { DisplayNameMap } from "./formula-types"
 import {
-  safeSymbolName, customizeFormula, reverseDisplayNameMap, canonicalToDisplay, makeNamesSafe
+  safeSymbolName, customizeFormula, reverseDisplayNameMap, canonicalToDisplay, makeNamesSafe, displayToCanonical
 } from "./formula-utils"
 
 const displayNameMapExample: DisplayNameMap = {
@@ -27,6 +27,47 @@ const displayNameMapExample: DisplayNameMap = {
     }
   }
 }
+
+describe("displayToCanonical", () => {
+  it("converts display formula to canonical formula", () => {
+    expect(displayToCanonical(
+      "mean(LifeSpan) * v1", displayNameMapExample
+    )).toEqual("mean(LOCAL_ATTR_ATTR_LIFE_SPAN) * GLOBAL_VALUE_GLOB_V1")
+  })
+  describe("when function name or constant is equal to attribute name", () => {
+    const displayMap: DisplayNameMap = {
+      localNames: {
+        mean: "LOCAL_ATTR_ATTR_MEAN",
+      },
+      dataSet: {}
+    }
+    it("still converts display formula to canonical formula correctly", () => {
+      expect(displayToCanonical(
+        "mean(mean) + 'mean'", displayMap
+      )).toEqual('mean(LOCAL_ATTR_ATTR_MEAN) + "mean"')
+    })
+  })
+  describe("when attribute name includes special characters", () => {
+    const testDisplayMap: DisplayNameMap = {
+      localNames: {
+        [safeSymbolName("mean attribute 🙃")]: "LOCAL_ATTR_ATTR_MEAN",
+      },
+      dataSet: {}
+    }
+    it("works as long as it's enclosed in backticks", () => {
+      expect(displayToCanonical(
+        "mean(`mean attribute 🙃`) + 'mean'", testDisplayMap
+      )).toEqual('mean(LOCAL_ATTR_ATTR_MEAN) + "mean"')
+    })
+  })
+  describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
+    it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
+      expect(displayToCanonical(
+        "lookupByKey('Roller Coaster', 'Park', 'Top Speed', Order) * 2", displayNameMapExample
+      )).toEqual('lookupByKey("DATA_ROLLER_COASTER", "ATTR_PARK", "ATTR_TOP_SPEED", LOCAL_ATTR_ATTR_ORDER) * 2')
+    })
+  })
+})
 
 describe("safeSymbolName", () => {
   it("converts strings that are not parsable by Mathjs to valid symbol names", () => {

@@ -1,7 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
 import { parse } from "mathjs"
 import { typedId } from "../../utilities/js-utils"
-import { canonicalizeExpression, customizeFormula, isRandomFunctionPresent } from "./formula-utils"
+import { displayToCanonical, customizeFormula, isRandomFunctionPresent } from "./formula-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
@@ -20,7 +20,7 @@ export const Formula = types.model("Formula", {
       return ""
     }
     const displayNameMap = this.formulaManager.getDisplayNameMapForFormula(self.id)
-    return canonicalizeExpression(self.display, displayNameMap)
+    return displayToCanonical(self.display, displayNameMap)
   },
   get empty() {
     return self.display.length === 0

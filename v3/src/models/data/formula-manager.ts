@@ -332,7 +332,7 @@ export class FormulaManager {
     })
   }
 
-  getDisplayNameMapForFormula(formulaId: string) {
+  getDisplayNameMapForFormula(formulaId: string, makeSymbolNamesSafe = true) {
     const { dataSet: localDataSet } = this.getFormulaContext(formulaId)
 
     const displayNameMap: DisplayNameMap = {
@@ -343,7 +343,7 @@ export class FormulaManager {
     const mapAttributeNames = (dataSet: IDataSet, prefix: string) => {
       const result: Record<string, string> = {}
       dataSet.attributes.forEach(attr => {
-        result[safeSymbolName(attr.name)] = `${prefix}${attr.id}`
+        result[makeSymbolNamesSafe ? safeSymbolName(attr.name) : attr.name] = `${prefix}${attr.id}`
       })
       return result
     }

@@ -109,7 +109,7 @@ export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttribut
 
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
-export const canonicalizeExpression = (displayExpression: string, displayNameMap: DisplayNameMap) => {
+export const displayToCanonical = (displayExpression: string, displayNameMap: DisplayNameMap) => {
   const formulaTree = parse(customizeFormula(makeNamesSafe(displayExpression)))
   const visitNode = (node: MathNode, path: string, parent: MathNode) => {
     if (isNonFunctionSymbolNode(node, parent)) {
