@@ -38,7 +38,7 @@ interface IProps {
 
 export const UnivariateMeasureAdornmentComponent = observer(
   function UnivariateMeasureAdornmentComponent (props: IProps) {
-    const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+    const {cellKey={}, containerId, model, plotWidth, xAxis, yAxis} = props
     const layout = useAxisLayoutContext()
     const graphModel = useGraphContentModelContext()
     const dataConfig = useDataConfigurationContext()
