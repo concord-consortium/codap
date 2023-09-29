@@ -51,6 +51,7 @@ export interface IAddAttributeOptions {
 export interface IMoveAttributeOptions {
   before?: string;  // id of attribute before which the moved attribute should be placed
   after?: string;   // id of attribute after which the moved attribute should be placed
+  withoutCustomUndo?: boolean;
 }
 
 export interface IMoveAttributeCollectionOptions extends IMoveAttributeOptions {

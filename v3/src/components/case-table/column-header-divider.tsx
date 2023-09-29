@@ -14,8 +14,7 @@ interface IProps {
   cellElt: HTMLElement | null
 }
 export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
-  const collection = useCollectionContext()
-  const collectionId = collection?.id || "child-most"
+  const collectionId = useCollectionContext()
   const droppableId = `attribute-divider:${collectionId}:${columnKey}`
   const data = useDataSetContext()
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
@@ -24,7 +23,8 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
 
   const { isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, active => {
     const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
-    if (!dataSet || (dataSet !== data) || !dragAttrId) return
+    const collection = data?.getCollection(collectionId)
+    if (!collection || !dataSet || (dataSet !== data) || !dragAttrId) return
 
     const srcCollection = dataSet.getCollectionForAttribute(dragAttrId)
     const firstAttr: IAttribute | undefined = getCollectionAttrs(collection, data)[0]
@@ -34,7 +34,9 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     if (collection === srcCollection) {
       if (isCollectionModel(collection)) {
         // move the attribute within a collection
-        collection.moveAttribute(dragAttrId, options)
+        data.applyUndoableAction(
+          () => collection.moveAttribute(dragAttrId, options),
+          "DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
       }
       else {
         // move an ungrouped attribute within the DataSet
@@ -45,7 +47,9 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     }
     else {
       // move the attribute to a new collection
-      data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options })
+      data.applyUndoableAction(
+        () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
+        "DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
     }
   })
 

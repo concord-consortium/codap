@@ -4,6 +4,14 @@ import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
 
+// mock the `ToolShelf` component because it generates warnings:
+//  Warning: An update to ToolShelf inside a test was not wrapped in act(...).
+// This shouldn't affect coverage because `ToolShelf` has its own jest test
+// and it's also tested by the cypress tests.
+jest.mock("./tool-shelf/tool-shelf", () => ({
+  ToolShelf: () => null
+}))
+
 describe("App component", () => {
 
   it("should render the App component with no data", () => {

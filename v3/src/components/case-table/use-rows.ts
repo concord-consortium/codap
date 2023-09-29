@@ -1,7 +1,7 @@
 import { format } from "d3"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
@@ -10,9 +10,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
-import {
-  AddCasesAction, isRemoveCasesAction, RemoveCasesAction, SetCaseValuesAction
-} from "../../models/data/data-set-actions"
+import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -20,15 +18,13 @@ import { prf } from "../../utilities/profiler"
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
-  const collection = useCollectionContext()
+  const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
 
-  const cases = useMemo(() => data?.collectionGroups?.length
-                                ? data.getCasesForCollection(collection?.id ?? "")
-                                : data ? getSnapshot(data.cases) as IGroupedCase[] : [],
-                        // disable warning for "unnecessary" dependency on data?.collectionGroups
-                        // eslint-disable-next-line react-hooks/exhaustive-deps
-                        [collection?.id, data, data?.collectionGroups])
+  const getCases = useCallback(() => data?.collectionGroups?.length
+                                      ? data.getCasesForCollection(collectionId)
+                                      : data ? getSnapshot(data.cases) as IGroupedCase[] : [],
+                                [collectionId, data])
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
@@ -36,12 +32,12 @@ export const useRows = () => {
     const { rowCache } = collectionTableModel
     rowCache.clear()
     let prevParent: string | undefined
-    cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
+    getCases().forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
       prevParent = parent
     })
-  }, [cases, collectionTableModel])
+  }, [collectionTableModel, getCases])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
     if (!collectionTableModel) return
@@ -57,7 +53,7 @@ export const useRows = () => {
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
       // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
       const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
-        return cases.map(({ __id__ }) => {
+        return getCases().map(({ __id__ }) => {
           const row = rowCache.get(__id__)
           const parentId = row?.[symParent]
           const isCollapsed = parentId && caseMetadata?.isCollapsed(parentId)
@@ -68,7 +64,7 @@ export const useRows = () => {
         collectionTableModel.resetRows(newRows || [])
       })
     })
-  }, [caseMetadata, cases, collectionTableModel])
+  }, [caseMetadata, collectionTableModel, getCases])
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
@@ -112,21 +108,31 @@ export const useRows = () => {
     if (!collectionTableModel) return
     const { rowCache } = collectionTableModel
 
-    // initialize the cache
-    resetRowCache()
-    syncRowsToRdg()
+    // rebuild the entire cache after grouping changes
+    const reactionDisposer = reaction(
+      () => data?.collectionGroups,
+      () => {
+        resetRowCache()
+        if (appState.appMode === "performance") {
+          syncRowsToDom()
+        }
+        else {
+          syncRowsToRdg()
+        }
+      }, { name: "useRows.useEffect.reaction [collectionGroups]", fireImmediately: true }
+    )
 
-    // update the cache on data changes
-    const beforeDisposer = data && onAnyAction(data, action => {
-      if (isRemoveCasesAction(action)) {
+    // update the affected rows on data changes without grouping changes
+    const beforeAnyActionDisposer = data && onAnyAction(data, action => {
+      if (!data?.collections.length && isRemoveCasesAction(action)) {
         const caseIds = action.args[0]
         // have to determine the lowest index before the cases are actually removed
         lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => index != null))
       }
     }, { attachAfter: false })
-    const afterDisposer = data && onAnyAction(data, action => {
+    const afterAnyActionDisposer = data && onAnyAction(data, action => {
       prf.measure("Table.useRows[onAnyAction]", () => {
-        let updateRows = true
+        let updateRows = false
 
         const getCasesToUpdate = (_cases: ICase[], index?: number) => {
           lowestIndex.current = index != null ? index : data.cases.length
@@ -140,38 +146,29 @@ export const useRows = () => {
           return casesToUpdate
         }
 
-        switch (action.name) {
-          case "addAttribute":
-          case "removeAttribute":
-          case "setFormat":
-            // render all rows
-            resetRowCache()
-            break
-          case "addCases": {
-            const _cases = (action as AddCasesAction).args[0] || []
-            // update cache only for entires after the added cases
+        if (!data?.collections.length) {
+          updateRows = true
+          if (isAddCasesAction(action)) {
+            const [_cases] = action.args
+            // update cache only for entries after the added cases
             const casesToUpdate = getCasesToUpdate(_cases)
             casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
-            break
           }
-          case "setCaseValues": {
+          else if (isSetCaseValuesAction(action)) {
             // update cache entries for each affected case
-            const _cases = (action as SetCaseValuesAction).args[0] || []
+            const [_cases] = action.args
             _cases.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
-            resetRowCache()
-            break
           }
-          case "removeCases": {
-            // remove affected cases from cache and update cache after deleted case
-            const caseIds = (action as RemoveCasesAction).args[0] || []
+          else if (isRemoveCasesAction(action)) {
+            // remove affected cases from cache and update cache after deleted cases
+            const [caseIds] = action.args
             caseIds.forEach(id => rowCache.delete(id))
             const casesToUpdate = getCasesToUpdate([], lowestIndex.current)
             casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
-            break
           }
-          default:
+          else {
             updateRows = false
-            break
+          }
         }
 
         if (updateRows) {
@@ -203,8 +200,9 @@ export const useRows = () => {
       }
     })
     return () => {
-      beforeDisposer?.()
-      afterDisposer?.()
+      reactionDisposer?.()
+      beforeAnyActionDisposer?.()
+      afterAnyActionDisposer?.()
       metadataDisposer?.()
     }
   }, [caseMetadata, collectionTableModel, data, resetRowCache, syncRowsToDom, syncRowsToRdg])

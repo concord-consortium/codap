@@ -2,7 +2,7 @@ import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
-import { kChildMostTableCollectionId, kIndexColumnKey } from "./case-table-types"
+import { kIndexColumnKey } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
@@ -63,8 +63,10 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
-      const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
-      lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
+      dataSet.applyUndoableAction(() => {
+        const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
+        lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
+      }, "DG.Undo.caseTable.createCollection", "DG.Redo.caseTable.createCollection")
     }
   }, [])
 
@@ -85,11 +87,11 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
         <div ref={setTableRef} className="case-table" data-testid="case-table">
           <div className="case-table-content" onScroll={handleHorizontalScroll}>
             {collections.map((collection, i) => {
-              const key = collection?.id || kChildMostTableCollectionId
+              const key = collection.id
               const parent = i > 0 ? collections[i - 1] : undefined
               return (
-                <ParentCollectionContext.Provider key={key} value={parent}>
-                  <CollectionContext.Provider key={key} value={collection}>
+                <ParentCollectionContext.Provider key={key} value={parent?.id}>
+                  <CollectionContext.Provider value={collection.id}>
                     <CollectionTable onMount={handleCollectionTableMount}
                       onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
                       onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />

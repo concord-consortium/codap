@@ -32,7 +32,7 @@ interface IUseColumnsProps {
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const caseMetadata = useCaseMetadata()
   const parentCollection = useParentCollectionContext()
-  const collection = useCollectionContext()
+  const collectionId = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
 
   // cell renderer
@@ -62,7 +62,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
     // rebuild column definitions when referenced properties change
     const disposer = reaction(
       () => {
-        const attrs: IAttribute[] = getCollectionAttrs(collection, data)
+        const collection = data?.getCollection(collectionId)
+        const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
         return visible.map(({ id, name, editable }) => ({ id, name, editable }))
       },
@@ -92,7 +93,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       { fireImmediately: true }
     )
     return () => disposer()
-  }, [RenderCell, caseMetadata, collection, data, indexColumn, parentCollection])
+  }, [RenderCell, caseMetadata, collectionId, data, indexColumn, parentCollection])
 
   return columns
 }

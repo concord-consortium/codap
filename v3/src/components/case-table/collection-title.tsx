@@ -16,10 +16,11 @@ import { useTileModelContext } from "../../hooks/use-tile-model-context"
 
 export const CollectionTitle = observer(function CollectionTitle() {
   const data = useDataSetContext()
-  const collection = useCollectionContext()
+  const collectionId = useCollectionContext()
+  const collection = data?.getCollection(collectionId)
   const { isTileSelected } = useTileModelContext()
-  const { setTitle, displayTitle } = collection
-  const defaultName = pluralize((getCollectionAttrs(collection, data)[0]?.name) ?? '')
+  const { setTitle, displayTitle } = collection || {}
+  const defaultName = collection ? pluralize((getCollectionAttrs(collection, data)[0]?.name) ?? "") : ""
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
@@ -73,7 +74,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
 
   const handleChangeTitle = (nextValue?: string) => {
     if (nextValue) {
-      setTitle(nextValue)
+      setTitle?.(nextValue)
     }
   }
 
@@ -81,7 +82,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
     const newAttrName = uniqueName("newAttr",
       (aName: string) => !data?.attributes.find(attr => aName === attr.name)
      )
-    data?.addAttribute({ name: newAttrName }, { collection: collection.id })
+    data?.addAttribute({ name: newAttrName }, { collection: collectionId })
   }
 
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")

@@ -45,21 +45,23 @@ export const HideShowMenuList = () => {
   }
 
   const handleShowAllAttributes = () => {
-    caseMetadata?.showAllAttributes()
+    caseMetadata?.applyUndoableAction(
+      () => caseMetadata?.showAllAttributes(),
+      "DG.Undo.caseTable.showAllHiddenAttributes", "DG.Redo.caseTable.showAllHiddenAttributes"
+    )
   }
-
-  const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
-  const noHiddenAttributes = !hiddenAttributes?.length || hiddenAttributes?.length <= 0
 
   const caseCount = data?.cases.length ?? 0
   const selectionCount = data?.selection.size ?? 0
   const setAsideCount = 0 // eventually will come from DataSet
   const restoreSetAsideCasesLabel = t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] })
-  const showAllHiddenAttributesLabel =
-    noHiddenAttributes  ? t("DG.Inspector.attributes.showAllHiddenAttributesDisabled")
-                        : hiddenAttributes?.length > 1
-                          ? t("DG.Inspector.attributes.showAllHiddenAttributesPlural")
-                          : t("DG.Inspector.attributes.showAllHiddenAttributesSing")
+
+  const hiddenAttributeCount = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id)).length ?? 0
+  const showAllHiddenAttributesKey = {
+    0: "DG.Inspector.attributes.showAllHiddenAttributesDisabled",
+    1: "DG.Inspector.attributes.showAllHiddenAttributesSing"
+  }[hiddenAttributeCount] ?? "DG.Inspector.attributes.showAllHiddenAttributesPlural"
+  const showAllHiddenAttributesLabel = t(showAllHiddenAttributesKey, { vars: [hiddenAttributeCount] })
 
   return (
     <MenuList data-testid="hide-show-menu-list">
@@ -72,7 +74,7 @@ export const HideShowMenuList = () => {
       <MenuItem isDisabled={setAsideCount === 0} onClick={handleRestoreSetAsideCases}>
         {restoreSetAsideCasesLabel}
       </MenuItem>
-      <MenuItem isDisabled={noHiddenAttributes} onClick={handleShowAllAttributes}>
+      <MenuItem isDisabled={!hiddenAttributeCount} onClick={handleShowAllAttributes}>
         {showAllHiddenAttributesLabel}
       </MenuItem>
     </MenuList>

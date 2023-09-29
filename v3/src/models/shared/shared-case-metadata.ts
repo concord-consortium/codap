@@ -3,6 +3,7 @@ import { getSnapshot, getType, Instance, ISerializedActionCall, onAction, types 
 import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { ISharedModel, SharedModel } from "./shared-model"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
 
@@ -135,6 +136,8 @@ export const SharedCaseMetadata = SharedModel
       return categorySet
     }
   }))
+  .actions(applyUndoableAction)
+
 export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata> {}
 
 export function isSharedCaseMetadata(model?: ISharedModel): model is ISharedCaseMetadata {

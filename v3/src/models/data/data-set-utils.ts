@@ -1,8 +1,13 @@
+import { isAlive } from "mobx-state-tree"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
 
 export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
+  if (collection && !isAlive(collection)) {
+    console.warn("DataSetUtils.getCollectionAttrs called for defunct collection")
+    return []
+  }
   return (isCollectionModel(collection)
     ? Array.from(collection.attributes) as IAttribute[]
     : data?.ungroupedAttributes) ?? []

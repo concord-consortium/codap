@@ -135,7 +135,7 @@ export const TableTileElements = {
   },
   showAllAttributes() {
     cy.get("[data-testid=hide-show-button]").click()
-    cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show Hidden Attribute").click()
+    cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show 1 Hidden Attribute").click()
   },
   createNewTableFromToolshelf() {
     c.createFromToolshelf("table")

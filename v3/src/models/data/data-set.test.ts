@@ -584,20 +584,17 @@ test("DataSet client synchronization", (done) => {
       applyAction(dst2, action)
       if ((srcActionCount <= 0) && (dstActionCount <= 0)) {
         // eslint-disable-next-line jest/no-conditional-expect
-        expect(getSnapshot(dst2)).toEqual(getSnapshot(dst))
+        expect(getSnapshot(dst2)).toEqualWithoutIds(getSnapshot(dst))
         done()
       }
     })
   })
 
-  // TODO: PJ: I had to temporarily disable this test because it was failing when formula ID in dst and dst2 were
-  // not matching formula ID in src. Currently, I don't understand how the auto-generated formula ID could match,
-  // and how this used to work for attributes that also have the same kind of auto-generated ID.
-  // src.addAttribute({ name: "str" })
-  // src.addAttribute({ name: "num" })
+  src.addAttribute({ name: "str" })
+  src.addAttribute({ name: "num" })
   src.addCases(toCanonical(src, [{ str: "a", num: 1 }]))
   src.addCases(toCanonical(src, [{ str: "b", num: 2 }, { str: "c", num: 3 }]))
-  // src.removeAttribute(src.attributes[0].id)
+  src.removeAttribute(src.attributes[0].id)
 })
 
 test("DataSet collection helpers", () => {
