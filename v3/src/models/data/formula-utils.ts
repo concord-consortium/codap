@@ -111,8 +111,8 @@ export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttribut
 // can be resolved by formula context and do not rely on user-based display names.
 export const canonicalizeExpression = (displayExpression: string, displayNameMap: DisplayNameMap) => {
   const formulaTree = parse(customizeFormula(makeNamesSafe(displayExpression)))
-  const visitNode = (node: MathNode) => {
-    if (isSymbolNode(node)) {
+  const visitNode = (node: MathNode, path: string, parent: MathNode) => {
+    if (isNonFunctionSymbolNode(node, parent)) {
       const canonicalName = generateCanonicalSymbolName(node.name, displayNameMap)
       if (canonicalName) {
         node.name = canonicalName
@@ -171,7 +171,7 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
     }
     const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
     const isSelfReferenceAllowed = !!node.isSelfReferenceAllowed
-    if (isSymbolNode(node)) {
+    if (isNonFunctionSymbolNode(node, parent)) {
       const dependency = parseCanonicalSymbolName(node.name)
       if (dependency?.type === "localAttribute" && isDescendantOfAggregateFunc) {
         dependency.aggregate = true
