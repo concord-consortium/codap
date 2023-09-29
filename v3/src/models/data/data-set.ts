@@ -240,6 +240,23 @@ export const DataSet = types.model("DataSet", {
     }
   }
 }))
+.views(self => ({
+  // array of attributes that are grouped into collections
+  get groupedAttributes() {
+    const groupedAttrs: IAttribute[] = []
+    self.collections.forEach(collection => {
+      collection.attributes.forEach(attr => attr && groupedAttrs.push(attr))
+    })
+    return groupedAttrs
+  }
+}))
+.views(self => ({
+  // array of attributes _not_ grouped into collections
+  get ungroupedAttributes(): IAttribute[] {
+    const grouped = new Set(self.groupedAttributes.map(attr => attr.id))
+    return self.attributes.filter(attr => attr && !grouped.has(attr.id))
+  },
+}))
 .extend(self => {
   // we do our own caching because MST's auto-caching wasn't working as expected
   const _collectionGroups = observable.box<CollectionGroup[]>([])
@@ -267,14 +284,6 @@ export const DataSet = types.model("DataSet", {
             (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
   }
 
-  function getGroupedAttributes() {
-    const groupedAttrs: IAttribute[] = []
-    self.collections.forEach(collection => {
-      collection.attributes.forEach(attr => attr && groupedAttrs.push(attr))
-    })
-    return groupedAttrs
-  }
-
   return {
     views: {
       // get real collection from id (ungrouped collection is not considered to be a real collection)
@@ -289,15 +298,6 @@ export const DataSet = types.model("DataSet", {
       // leaf-most child cases (i.e. those not grouped in a collection)
       childCases() {
         return _childCases
-      },
-      // array of attributes grouped that are grouped into collections
-      get groupedAttributes(): IAttribute[] {
-        return getGroupedAttributes()
-      },
-      // array of attributes _not_ grouped into collections
-      get ungroupedAttributes(): IAttribute[] {
-        const grouped = new Set(getGroupedAttributes().map(attr => attr.id))
-        return self.attributes.filter(attr => attr && !grouped.has(attr.id))
       },
       // the resulting collection groups
       get collectionGroups() {
