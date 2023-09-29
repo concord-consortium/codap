@@ -181,12 +181,19 @@ export const GraphContentModel = DataDisplayContentModel
           }
         },
         {name: "sharedModelSetup", fireImmediately: true}))
-    },
+    }
+  }))
+  .actions(self => ({
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
       if (type === "link") {
         self.dataConfiguration.setDataset(self.dataset, self.metadata)
       } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
         self.dataConfiguration.setDataset(undefined, undefined)
+      }
+      const currDataSetId = self.dataConfiguration.dataset?.id ?? ""
+      if (self.prevDataSetId !== currDataSetId) {
+        self.setDataSetListener()
+        self.prevDataSetId = currDataSetId
       }
     }
   }))

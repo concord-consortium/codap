@@ -99,17 +99,20 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
       const displayValue = multiScale ? multiScale.formatValueForScale(value) : valueLabelString(value)
       const plotValue = Number(displayValue)
+      const [left, right] = xScale?.range() || [0, 1]
+      const [bottom, top] = yScale?.range() || [0, 1]
       const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
+      const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
       const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
       const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
       const yCatSet = layout.getAxisMultiScale("left")?.categorySet
       const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
       const xCellCount = xCats.length * xSubAxesCount
-      const yCellCount = yCats.length
-      const x1 = isVertical.current ? xScale(plotValue) / xCellCount : 0
-      const x2 = isVertical.current ? xScale(plotValue) / xCellCount : plotWidth / xCellCount
-      const y1 = isVertical.current ? plotHeight / yCellCount : yScale(plotValue) / yCellCount
-      const y2 = isVertical.current ? 3 : yScale(plotValue) / yCellCount
+      const yCellCount = yCats.length * ySubAxesCount
+      const x1 = isVertical.current ? xScale(plotValue) / xCellCount : right / xCellCount
+      const x2 = isVertical.current ? xScale(plotValue) / xCellCount : left / xCellCount
+      const y1 = isVertical.current ? top / yCellCount : yScale(plotValue) / yCellCount
+      const y2 = isVertical.current ? bottom / yCellCount : yScale(plotValue) / yCellCount
 
       const selection = select(valueRef.current)
       const labelSelection = select(labelRef.current)
@@ -141,8 +144,8 @@ export const UnivariateMeasureAdornmentComponent = observer(
         const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
         const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
         const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * 20 : 0
-        const left = labelCoords ? labelCoords.x / xCellCount : isVertical.current ? xScale(plotValue) / xCellCount : 0
-        const top = labelCoords ? labelCoords.y : topOffset
+        const labelLeft = labelCoords ? labelCoords.x / xCellCount : isVertical.current ? xScale(plotValue) / xCellCount : 0
+        const labelTop = labelCoords ? labelCoords.y : topOffset
         const labelId = `${measureType}-measure-labels-tip-${containerId}${classFromKey ? `-${classFromKey}` : ""}`
         const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${measureType}`)
         labelObj.label = labelSelection.append("div")
@@ -150,8 +153,8 @@ export const UnivariateMeasureAdornmentComponent = observer(
           .attr("id", labelId)
           .attr("class", labelClass)
           .attr("data-testid", labelId)
-          .style("left", `${left}px`)
-          .style("top", `${top}px`)
+          .style("left", `${labelLeft}px`)
+          .style("top", `${labelTop}px`)
 
         labelObj.label.call(
           drag<HTMLDivElement, unknown>()
@@ -208,7 +211,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         isVertical.current = dataConfig?.attributeType("x") === "numeric"
         refreshValues()
       }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" })
-    }, [dataConfig, refreshValues, xAxis?.max, xAxis?.min, yAxis?.max, yAxis?.min])
+    }, [dataConfig, refreshValues, xAxis?.domain, yAxis?.domain])
 
     return (
       <>

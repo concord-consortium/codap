@@ -29,8 +29,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }),
   })
   .views(self => ({
-    getCaseValues(attrId: string, casesInPlot: ICase[], dataConfig: IDataConfigurationModel) {
+    getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const dataset = dataConfig?.dataset
+      const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues: number[] = []
       casesInPlot.forEach((c: ICase) => {
         const caseValue = Number(dataset?.getValue(c.__id__, attrId))
@@ -53,6 +54,12 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       newMeasure.setValue(value)
       self.measures.set(key, newMeasure)
     },
+    setMeasureValue(value: number, key="{}") {
+      const measure = self.measures.get(key)
+      if (measure) {
+        measure.setValue(value)
+      }
+    },
     removeMeasure(key: string) {
       self.measures.delete(key)
     },
@@ -74,10 +81,18 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const attrId = xAttrId ? xAttrId : yAttrId
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
-        const instanceKey = self.instanceKey(cellKey)
+        // If there are no cases in the cell, do not add an adornment
+        if (dataConfig.subPlotCases(cellKey).length === 0) continue
+
+        const instanceKey = self.instanceKey(cellKey) 
         const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
+        // If the value is not a number, do not add an adornment
+        if (!Number.isFinite(value)) continue
+
         if (!self.measures.get(instanceKey) || resetPoints) {
           self.addMeasure(value, instanceKey)
+        } else {
+          self.setMeasureValue(value, instanceKey)
         }
       }
     }

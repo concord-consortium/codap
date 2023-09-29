@@ -202,7 +202,7 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
       adjustAllValues()
       renderFills()
     }, { name: "MovableValue.refreshAxisChange" })
-  }, [adjustAllValues, dataConfig, renderFills, xAxis.max, xAxis.min, yAxis.max, yAxis.min])
+  }, [adjustAllValues, dataConfig, renderFills, xAxis.domain, yAxis.domain])
 
   // Make the movable values and their cover segments
   useEffect(function createElements() {
