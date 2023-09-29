@@ -91,7 +91,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               const parent = i > 0 ? collections[i - 1] : undefined
               return (
                 <ParentCollectionContext.Provider key={key} value={parent?.id}>
-                  <CollectionContext.Provider key={key} value={collection.id}>
+                  <CollectionContext.Provider value={collection.id}>
                     <CollectionTable onMount={handleCollectionTableMount}
                       onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
                       onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />

@@ -25,7 +25,7 @@ function removeIdsReplacer(key: string, value: any) {
   return key === "id" ? undefined : value
 }
 
-// for use with lodash's isEqualWith function to implement toEqualWithUniqueIds custom jest matcher
+// for use with lodash's isEqualWith function to implement toEqualWithoutIds custom jest matcher
 const withoutIdsCustomizer = (rec: any, exp: any) => {
   if (Array.isArray(rec) && Array.isArray(exp) && (rec?.length !== exp?.length)) {
     message = () =>
@@ -52,7 +52,7 @@ expect.extend({
     message = () => ""
     const pass = isEqualWith(received, expected, withoutIdsCustomizer)
     if (!pass && !message()) {
-      message = () => "values differed outside of geometry objects"
+      message = () => "values differed even with ids ignored"
     }
     return { pass, message }
   }
