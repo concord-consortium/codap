@@ -81,8 +81,14 @@ export const AdornmentModel = types.model("AdornmentModel", {
       const columnCount = topCatCount * xCatCount
       const rowCount = rightCatCount * yCatCount
       const cellKey: Record<string, string> = {}
-      const topCat = topCats[index % topCats.length]
-      const rightCat = rightCats[index % rightCats.length]
+      const topIndex = xCatCount > 0
+        ? Math.floor(index / xCatCount) % topCatCount
+        : index % topCatCount
+      const topCat = topCats[topIndex]
+      const rightIndex = yCatCount > 0
+        ? Math.floor(index / yCatCount) % rightCats.length
+        : index % rightCats.length
+      const rightCat = rightCats[rightIndex]
       const yCat = topCats.length > 0
         ? yCats[Math.floor(index / columnCount) % yCatCount]
         : yCats[index % yCats.length]
