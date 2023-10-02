@@ -443,13 +443,9 @@ DG.CaseDisplayController = DG.ComponentController.extend(
        * Randomize all attributes
        */
       randomizeAllAttributes: function() {
-        var dataContext = this.get('dataContext'),
-            dependencyMgr = dataContext && dataContext.get('dependencyMgr'),
-            randomNode = dependencyMgr &&
-                dependencyMgr.findNode({ type: DG.DEP_TYPE_SPECIAL,
-                  id: 'random' });
+        var dataContext = this.get('dataContext');
         if (dataContext)
-          dataContext.invalidateDependentsAndNotify([randomNode]);
+          dataContext.doRerandomizeAll();
       },
 
       /**

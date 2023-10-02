@@ -195,7 +195,7 @@ DG.DocumentHelper = SC.Object.extend(
       updateDataContext: function (iResources, iValues) {
         var context = iResources.dataContext;
         if (context) {
-          ['managingController', 'title', 'description', 'preventReorg', 'metadata']
+          ['managingController', 'title', 'description', 'preventReorg', 'metadata', 'rerandomize']
               .forEach(function (prop) {
                 var existingMetadata;
                 if (!SC.none(iValues[prop])) {
@@ -204,7 +204,10 @@ DG.DocumentHelper = SC.Object.extend(
                       existingMetadata = context.getPath('model.metadata') || {};
                       context.setPath('model.metadata', Object.assign(existingMetadata, iValues[prop]));
                     }
-                  } else {
+                  } else if (prop === 'rerandomize' && !!iValues[prop]) {
+                    context.doRerandomizeAll();
+                  }
+                  else {
                     context.set(prop, iValues[prop]);
                   }
                 }
