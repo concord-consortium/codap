@@ -69,7 +69,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAttrId, xAxis, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
+      const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
       if (!dataConfig) return
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
@@ -81,9 +81,6 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const attrId = xAttrId && dataConfig.attributeType("x") ? xAttrId : yAttrId
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
-        // If there are no cases in the cell, do not add an adornment
-        if (dataConfig.subPlotCases(cellKey).length === 0) continue
-
         const instanceKey = self.instanceKey(cellKey) 
         const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {
