@@ -12,8 +12,8 @@ export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
   })
   .views(self => ({
     getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
-      const casesInPlot = dataConfig.subPlotCases(cellKey)
-      const caseValues = self.getCaseValues(attrId, casesInPlot, dataConfig)
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      if (caseValues.length === 0) return NaN
       return mean(caseValues)
     }
   }))

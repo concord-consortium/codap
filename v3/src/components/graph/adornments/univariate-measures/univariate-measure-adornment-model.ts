@@ -29,8 +29,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }),
   })
   .views(self => ({
-    getCaseValues(attrId: string, casesInPlot: ICase[], dataConfig: IDataConfigurationModel) {
+    getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const dataset = dataConfig?.dataset
+      const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues: number[] = []
       casesInPlot.forEach((c: ICase) => {
         const caseValue = Number(dataset?.getValue(c.__id__, attrId))
@@ -53,6 +54,12 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       newMeasure.setValue(value)
       self.measures.set(key, newMeasure)
     },
+    updateMeasureValue(value: number, key="{}") {
+      const measure = self.measures.get(key)
+      if (measure) {
+        measure.setValue(value)
+      }
+    },
     removeMeasure(key: string) {
       self.measures.delete(key)
     },
@@ -71,13 +78,15 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const columnCount = topCatCount * xCatCount
       const rowCount = rightCatCount * yCatCount
       const totalCount = rowCount * columnCount
-      const attrId = xAttrId ? xAttrId : yAttrId
+      const attrId = xAttrId && dataConfig.attributeType("x") ? xAttrId : yAttrId
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
-        const instanceKey = self.instanceKey(cellKey)
+        const instanceKey = self.instanceKey(cellKey) 
         const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {
           self.addMeasure(value, instanceKey)
+        } else {
+          self.updateMeasureValue(value, instanceKey)
         }
       }
     }

@@ -198,11 +198,16 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
     return autorun(() => {
+      // We observe changes to the axis domains within the autorun by extracting them from the axes below.
+      // We do this instead of including domains in the useEffect dependency array to prevent domain changes
+      // from triggering a reinstall of the autorun.
+      const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+      const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
       isVertical.current = dataConfig?.attributeType("x") === "numeric"
       adjustAllValues()
       renderFills()
     }, { name: "MovableValue.refreshAxisChange" })
-  }, [adjustAllValues, dataConfig, renderFills, xAxis.max, xAxis.min, yAxis.max, yAxis.min])
+  }, [adjustAllValues, dataConfig, renderFills, xAxis, yAxis])
 
   // Make the movable values and their cover segments
   useEffect(function createElements() {

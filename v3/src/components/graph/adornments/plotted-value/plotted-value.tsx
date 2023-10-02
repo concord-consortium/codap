@@ -25,12 +25,12 @@ interface IProps {
   model: IPlottedValueModel
   plotHeight: number
   plotWidth: number
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
+  xAxis: INumericAxisModel
+  yAxis: INumericAxisModel
 }
 
 export const PlottedValue = observer(function PlottedValue (props: IProps) {
-  const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+  const {cellKey={}, containerId, model, plotWidth, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const value = model.value
   const layout = useAxisLayoutContext()
@@ -64,17 +64,20 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
     const plotValue = valueIsInteger ? finalValue : Math.round(finalValue * 10) / 10
     const newValueObject: IValueObject = {}
     const selection = select(valueRef.current)
+    const [left, right] = xScale?.range() || [0, 1]
+    const [bottom, top] = yScale?.range() || [0, 1]
     const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
+    const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
     const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
     const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
     const yCatSet = layout.getAxisMultiScale("left")?.categorySet
     const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
     const xCellCount = xCats.length * xSubAxesCount
-    const yCellCount = yCats.length
-    const x1 = isVertical.current ? xScale(plotValue) / xCellCount : 0
-    const x2 = isVertical.current ? xScale(plotValue) / xCellCount : plotWidth / xCellCount
-    const y1 = isVertical.current ? plotHeight / yCellCount : yScale(plotValue) / yCellCount
-    const y2 = isVertical.current ? offsetTop : yScale(plotValue) / yCellCount
+    const yCellCount = yCats.length * ySubAxesCount
+    const x1 = isVertical.current ? xScale(plotValue) / xCellCount : right / xCellCount
+    const x2 = isVertical.current ? xScale(plotValue) / xCellCount : left / xCellCount
+    const y1 = isVertical.current ? top / yCellCount : yScale(plotValue) / yCellCount
+    const y2 = isVertical.current ? bottom / yCellCount + offsetTop : yScale(plotValue) / yCellCount
 
     // Remove the previous value's elements
     selection.html(null)
@@ -104,7 +107,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
       .attr("y", isVertical.current ? offsetTop + 10 : yScale(plotValue) / yCellCount - 5)
 
   }, [value, dataConfig, xAttrId, yAttrId, model, cellKey, layout, xAttrType, yAttrType,
-      xScale, plotWidth, plotHeight, yScale, classFromKey, containerId])
+      xScale, plotWidth, yScale, classFromKey, containerId])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
@@ -117,6 +120,11 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
     return autorun(() => {
+      // We observe changes to the axis domains within the autorun by extracting them from the axes below.
+      // We do this instead of including domains in the useEffect dependency array to prevent domain changes
+      // from triggering a reinstall of the autorun.
+      const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+      const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
       // If a Plotted Value has already been added and set, and the axis attributes are 
       // reconfigured so that both x and y are numeric whereas only one of them was
       // numeric previously, then remove the Plotted Value.
@@ -132,7 +140,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
       refreshValue()
     }, { name: "PlottedValue.refreshAxisChange" })
   }, [dataConfig, graphModel, model, previousAttrTypes?.xAttrType, previousAttrTypes?.yAttrType,
-      refreshValue, xAttrType, xAxis?.max, xAxis?.min, yAttrType, yAxis?.max, yAxis?.min])
+      refreshValue, xAttrType, xAxis, yAttrType, yAxis])
 
   return (
     <>
