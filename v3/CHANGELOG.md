@@ -1,5 +1,31 @@
 # Changelog
 
+## Version 3.0.0-pre.1342 - October 2, 2023
+
+### Features/Improvements
+- Import formulas from CODAP V2 documents [#186002016](https://www.pivotaltracker.com/story/show/186002016)
+- Add support of formulas referencing attributes with special characters (e.g. whitespace, starting with numbers, unicode)  [#186033178](https://www.pivotaltracker.com/story/show/186033178)
+- Attribute formulas evaluate count() function [#186033205](https://www.pivotaltracker.com/story/show/186033205)
+- Attribute formulas evaluate if() function [#186040933](https://www.pivotaltracker.com/story/show/186040933)
+- Update formulas when attribute is moved between collections [#186040941](https://www.pivotaltracker.com/story/show/186040941)
+- Some attribute formulas can be recursive (e.g. prev()) [#186050666](https://www.pivotaltracker.com/story/show/186050666)
+- Handle and render formula syntax error [#186052466](https://www.pivotaltracker.com/story/show/186052466)
+- `caseIndex` evaluated correctly in attribute formulas [#185896734](https://www.pivotaltracker.com/story/show/185896734)
+- Formulas can evaluate nested `prev` calls (e.g. prev(fib, 1) + prev(prev(fib, 1), 1)) [#186090743](https://www.pivotaltracker.com/story/show/186090743)
+- Formulas can evaluate nested `next` calls [#186115784](https://www.pivotaltracker.com/story/show/186115784)
+- Case table hiding/showing/moving attributes should be undoable [#186138435](https://www.pivotaltracker.com/story/show/186138435)
+- Copy formula when moving attribute between parent and child case tables [#186019564](https://www.pivotaltracker.com/story/show/186019564)
+- Attribute formulas evaluate simple arithmetic functions (abs, round, etc.) [#185745409](https://www.pivotaltracker.com/story/show/185745409)
+
+### Bug Fixes
+- Auto-scroll bugs when dragging attribute from table [#186117412](https://www.pivotaltracker.com/story/show/186117412)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   69080 bytes |                            1.89% |
+|  index.js | 3369297 bytes |                            0.38% |
+
 ## Version 3.0.0-pre.1331 - September 26, 2023
 
 ### Features/Improvements
