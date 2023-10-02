@@ -211,7 +211,12 @@ export const UnivariateMeasureAdornmentComponent = observer(
     // Refresh values on axis changes
     useEffect(function refreshAxisChange() {
       return autorun(() => {
+        // We observe changes to the axis domains within the autorun by extracting them from the axes below.
+        // We do this instead of including domains in the useEffect dependency array to prevent domain changes
+        // from triggering a reinstall of the autorun.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { domain: xDomain } = xAxis
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { domain: yDomain } = yAxis
         isVertical.current = dataConfig?.attributeType("x") === "numeric"
         refreshValues()
