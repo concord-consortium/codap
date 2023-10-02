@@ -69,7 +69,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
+      const { xAttrId, xAxis, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
       if (!dataConfig) return
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
@@ -78,7 +78,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const columnCount = topCatCount * xCatCount
       const rowCount = rightCatCount * yCatCount
       const totalCount = rowCount * columnCount
-      const attrId = xAttrId ? xAttrId : yAttrId
+      const attrId = xAttrId && dataConfig.attributeType("x") ? xAttrId : yAttrId
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
         // If there are no cases in the cell, do not add an adornment
@@ -86,9 +86,6 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
 
         const instanceKey = self.instanceKey(cellKey) 
         const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
-        // If the value is not a number, do not add an adornment
-        if (!Number.isFinite(value)) continue
-
         if (!self.measures.get(instanceKey) || resetPoints) {
           self.addMeasure(value, instanceKey)
         } else {

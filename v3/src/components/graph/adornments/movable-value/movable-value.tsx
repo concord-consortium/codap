@@ -198,11 +198,13 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
     return autorun(() => {
+      const { domain: xDomain } = xAxis
+      const { domain: yDomain } = yAxis
       isVertical.current = dataConfig?.attributeType("x") === "numeric"
       adjustAllValues()
       renderFills()
     }, { name: "MovableValue.refreshAxisChange" })
-  }, [adjustAllValues, dataConfig, renderFills, xAxis.domain, yAxis.domain])
+  }, [adjustAllValues, dataConfig, renderFills, xAxis, yAxis])
 
   // Make the movable values and their cover segments
   useEffect(function createElements() {

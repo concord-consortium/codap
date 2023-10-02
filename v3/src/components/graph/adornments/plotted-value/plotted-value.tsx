@@ -25,12 +25,12 @@ interface IProps {
   model: IPlottedValueModel
   plotHeight: number
   plotWidth: number
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
+  xAxis: INumericAxisModel
+  yAxis: INumericAxisModel
 }
 
 export const PlottedValue = observer(function PlottedValue (props: IProps) {
-  const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+  const {cellKey={}, containerId, model, plotWidth, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const value = model.value
   const layout = useAxisLayoutContext()
@@ -107,7 +107,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
       .attr("y", isVertical.current ? offsetTop + 10 : yScale(plotValue) / yCellCount - 5)
 
   }, [value, dataConfig, xAttrId, yAttrId, model, cellKey, layout, xAttrType, yAttrType,
-      xScale, plotWidth, plotHeight, yScale, classFromKey, containerId])
+      xScale, plotWidth, yScale, classFromKey, containerId])
 
   // Refresh the value when it changes
   useEffect(function refreshValueChange() {
@@ -120,6 +120,8 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
     return autorun(() => {
+      const { domain: xDomain } = xAxis
+      const { domain: yDomain } = yAxis
       // If a Plotted Value has already been added and set, and the axis attributes are 
       // reconfigured so that both x and y are numeric whereas only one of them was
       // numeric previously, then remove the Plotted Value.
@@ -135,7 +137,7 @@ export const PlottedValue = observer(function PlottedValue (props: IProps) {
       refreshValue()
     }, { name: "PlottedValue.refreshAxisChange" })
   }, [dataConfig, graphModel, model, previousAttrTypes?.xAttrType, previousAttrTypes?.yAttrType,
-      refreshValue, xAttrType, xAxis?.domain, yAttrType, yAxis?.domain])
+      refreshValue, xAttrType, xAxis, yAttrType, yAxis])
 
   return (
     <>

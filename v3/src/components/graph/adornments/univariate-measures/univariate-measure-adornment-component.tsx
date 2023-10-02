@@ -32,8 +32,8 @@ interface IProps {
   model: IMeanAdornmentModel | IMedianAdornmentModel
   plotHeight: number
   plotWidth: number
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
+  xAxis: INumericAxisModel
+  yAxis: INumericAxisModel
 }
 
 export const UnivariateMeasureAdornmentComponent = observer(
@@ -203,7 +203,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       selection.html(null)
       labelSelection.html(null)
 
-      if (measure) {
+      if (measure && Number.isFinite(measure.value)) {
         addLineCoverAndLabel(newValueObj, newLabelObj, measure)
       }
     }, [model, instanceKey, addLineCoverAndLabel])
@@ -211,10 +211,12 @@ export const UnivariateMeasureAdornmentComponent = observer(
     // Refresh values on axis changes
     useEffect(function refreshAxisChange() {
       return autorun(() => {
+        const { domain: xDomain } = xAxis
+        const { domain: yDomain } = yAxis
         isVertical.current = dataConfig?.attributeType("x") === "numeric"
         refreshValues()
       }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" })
-    }, [dataConfig, refreshValues, xAxis?.domain, yAxis?.domain])
+    }, [dataConfig, refreshValues, xAxis, yAxis])
 
     return (
       <>
