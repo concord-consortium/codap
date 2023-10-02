@@ -1,4 +1,4 @@
-import { makeObservable, observable, reaction } from "mobx"
+import { comparer, makeObservable, observable, reaction } from "mobx"
 import { EvalFunction } from "mathjs"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
@@ -237,10 +237,10 @@ export class FormulaManager {
   registerAllFormulas() {
     reaction(() => {
       // Observe all the formulas
-      let result = ""
+      const result: Record<string, string> = {}
       this.dataSets.forEach(dataSet => {
         dataSet.attributes.forEach(attr => {
-          result += `${attr.formula.id}-${attr.formula.display}`
+          result[attr.formula.id] = attr.formula.display
         })
       })
       return result
@@ -269,7 +269,7 @@ export class FormulaManager {
           this.recalculateFormula(formulaId)
         }
       })
-    }, { fireImmediately: true })
+    }, { equals: comparer.structural, fireImmediately: true })
   }
 
   recalculateAllFormulas() {
@@ -386,23 +386,22 @@ export class FormulaManager {
   }
 
   observeDatasetChanges(dataSet: IDataSet) {
-    const disposeSetCollectionForAttributeObserver = onAnyAction(dataSet, mstAction => {
-      switch (mstAction.name) {
-        // When attribute is moved to a new collection, it usually affects grouping that is respected by formulas.
-        // It'd be possible to optimize this by checking formula dependencies and limit number of updates, but
-        // for now let's keep it simple and see if we encounter any problems.
-        case "setCollectionForAttribute":
-          this.recalculateAllFormulas()
-          break
-      }
-    })
-    // When any attribute name is updated, we need to update display formulas.
+    // When any collection is added or removed, or attribute is moved between collections,
+    // we need to recalculate all formulas.
+    const disposeAttrCollectionReaction = reaction(
+      () => Object.fromEntries(dataSet.collections.map(c => [ c.id, c.attributes.map(a => a?.id) ])),
+      () => this.recalculateAllFormulas(),
+      { equals: comparer.structural }
+    )
+    // When any attribute name is updated, we need to update display formulas. We could make this more granular,
+    // and observe only dependant attributes, but it doesn't seem necessary for now.
     const disposeAttrNameReaction = reaction(
       () => dataSet.attrNameMap,
-      () => this.updateDisplayFormulas()
+      () => this.updateDisplayFormulas(),
+      { equals: comparer.structural }
     )
     const dispose = () => {
-      disposeSetCollectionForAttributeObserver()
+      disposeAttrCollectionReaction()
       disposeAttrNameReaction()
     }
     this.dataSetMetadata.set(dataSet.id, { dispose })
@@ -466,19 +465,24 @@ export class FormulaManager {
     return disposeDatasetObserver
   }
 
-  // Observe global value changes. In theory, we could use MobX reaction to watch global value (after checking if it's
-  // synchronous or async). onAnyAction is guaranteed to be synchronous, so this might work better with undo-redo logic.
   observeGlobalValues(formulaId: string, formulaDependencies: IFormulaDependency[]) {
     const globalValueDependencies =
       formulaDependencies.filter(d => d.type === "globalValue") as IGlobalValueDependency[]
 
     const disposeGlobalValueObservers = globalValueDependencies.map(dependency =>
-      onAnyAction(this.globalValueManager?.getValueById(dependency.globalId), mstAction => {
-        if (mstAction.name === "setValue") {
-          this.recalculateFormula(formulaId)
-        }
-      })
-    )
+      [
+        // Recalculate formula when global value dependency is updated.
+        reaction(
+          () => this.globalValueManager?.getValueById(dependency.globalId)?.value,
+          () => this.recalculateFormula(formulaId)
+        ),
+        // Update display form of the formula when global value name is updated.
+        reaction(
+          () => this.globalValueManager?.getValueById(dependency.globalId)?.name,
+          () => this.getFormulaContext(formulaId).formula.updateDisplayFormula()
+        ),
+      ]
+    ).flat()
 
     return disposeGlobalValueObservers
   }
