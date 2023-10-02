@@ -120,11 +120,11 @@ describe("canonicalToDisplay", () => {
   it("converts canonical formula to display formula maintaining whitespace characters", () => {
     expect(canonicalToDisplay(
       "mean(LOCAL_ATTR_ATTR_LIFE_SPAN) + GLOBAL_VALUE_GLOB_V1",
-      "mean (\nLifeSpan\n) + v1 ", displayNameMapExample
+      "mean (\nLifeSpan\n) + v1 ", reverseDisplayNameMap(displayNameMapExample)
     )).toEqual("mean (\nLifeSpan\n) + v1 ")
     expect(canonicalToDisplay(
       "mean(LOCAL_ATTR_ATTR_LIFE_SPAN) + LOCAL_ATTR_ATTR_ORDER * GLOBAL_VALUE_GLOB_V1",
-      "mean (\nOldLifeSpan\n) + OldOrder * OldV1", displayNameMapExample
+      "mean (\nOldLifeSpan\n) + OldOrder * OldV1", reverseDisplayNameMap(displayNameMapExample)
     )).toEqual("mean (\nLifeSpan\n) + Order * v1")
   })
   describe("when function name or constant is equal to attribute name", () => {
@@ -137,7 +137,7 @@ describe("canonicalToDisplay", () => {
     it("still converts canonical formula to display formula correctly", () => {
       expect(canonicalToDisplay(
         "mean(LOCAL_ATTR_ATTR_MEAN) + 'mean'",
-        "mean ( mean ) + 'mean'", displayMap
+        "mean ( mean ) + 'mean'", reverseDisplayNameMap(displayMap)
       )).toEqual("mean ( NewMeanAttr ) + 'mean'")
     })
   })
@@ -151,7 +151,7 @@ describe("canonicalToDisplay", () => {
     it("is enclosed in backticks", () => {
       expect(canonicalToDisplay(
         "mean(LOCAL_ATTR_ATTR_MEAN) + 'mean'",
-        "mean ( mean ) + 'mean'", testDisplayMap
+        "mean ( mean ) + 'mean'", reverseDisplayNameMap(testDisplayMap)
       )).toEqual("mean ( `new mean attribute 🙃` ) + 'mean'")
     })
   })
@@ -160,7 +160,7 @@ describe("canonicalToDisplay", () => {
       expect(canonicalToDisplay(
         "lookupByKey('DATA_ROLLER_COASTER', 'ATTR_PARK', 'ATTR_TOP_SPEED', LOCAL_ATTR_ATTR_ORDER) * 2",
         "lookupByKey('Old Roller Coaster', 'Old Park', 'Old Top Speed', OldOrder) * 2",
-        displayNameMapExample
+        reverseDisplayNameMap(displayNameMapExample)
       )).toEqual("lookupByKey('Roller Coaster', 'Park', 'Top Speed', Order) * 2")
     })
   })

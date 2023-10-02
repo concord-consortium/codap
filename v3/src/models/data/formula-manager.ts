@@ -5,7 +5,7 @@ import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import {
   getFormulaDependencies, formulaError, getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference,
-  getIncorrectParentAttrReference, safeSymbolName
+  getIncorrectParentAttrReference, safeSymbolName, reverseDisplayNameMap
 } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
@@ -278,6 +278,12 @@ export class FormulaManager {
     })
   }
 
+  updateDisplayFormulas() {
+    this.formulaMetadata.forEach(({ formula }) => {
+      formula.updateDisplayFormula()
+    })
+  }
+
   unregisterFormula(formulaId: string) {
     const formulaMetadata = this.formulaMetadata.get(formulaId)
     if (formulaMetadata) {
@@ -332,8 +338,9 @@ export class FormulaManager {
     })
   }
 
-  getDisplayNameMapForFormula(formulaId: string, makeSymbolNamesSafe = true) {
+  getDisplayNameMapForFormula(formulaId: string, options?: { useSafeSymbolNames: boolean }) {
     const { dataSet: localDataSet } = this.getFormulaContext(formulaId)
+    const { useSafeSymbolNames } = options || { useSafeSymbolNames: true }
 
     const displayNameMap: DisplayNameMap = {
       localNames: {},
@@ -343,7 +350,7 @@ export class FormulaManager {
     const mapAttributeNames = (dataSet: IDataSet, prefix: string) => {
       const result: Record<string, string> = {}
       dataSet.attributes.forEach(attr => {
-        result[makeSymbolNamesSafe ? safeSymbolName(attr.name) : attr.name] = `${prefix}${attr.id}`
+        result[useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name] = `${prefix}${attr.id}`
       })
       return result
     }
@@ -373,8 +380,13 @@ export class FormulaManager {
     return displayNameMap
   }
 
+  getCanonicalNameMap(formulaId: string) {
+    const displayNameMap = this.getDisplayNameMapForFormula(formulaId, { useSafeSymbolNames: false })
+    return reverseDisplayNameMap(displayNameMap)
+  }
+
   observeDatasetChanges(dataSet: IDataSet) {
-    const dispose = onAnyAction(dataSet, mstAction => {
+    const disposeSetCollectionForAttributeObserver = onAnyAction(dataSet, mstAction => {
       switch (mstAction.name) {
         // When attribute is moved to a new collection, it usually affects grouping that is respected by formulas.
         // It'd be possible to optimize this by checking formula dependencies and limit number of updates, but
@@ -384,6 +396,15 @@ export class FormulaManager {
           break
       }
     })
+    // When any attribute name is updated, we need to update display formulas.
+    const disposeAttrNameReaction = reaction(
+      () => dataSet.attrNameMap,
+      () => this.updateDisplayFormulas()
+    )
+    const dispose = () => {
+      disposeSetCollectionForAttributeObserver()
+      disposeAttrNameReaction()
+    }
     this.dataSetMetadata.set(dataSet.id, { dispose })
   }
 

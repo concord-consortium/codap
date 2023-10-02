@@ -23,6 +23,9 @@ export type DisplayNameMap = {
   }>
 }
 
+// A map of canonical names to display names. Canonical names are unique, so simple map is enough.
+export type CanonicalNameMap = Record<string, string>
+
 export interface ILocalAttributeDependency {
   type: "localAttribute"
   attrId: string
