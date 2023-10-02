@@ -1088,5 +1088,11 @@ SC.stringsFor("de", {
     "DG.Inspector.graphSpreadOptions": "Measures of Spread",
     "DG.Inspector.graphPlottedStErr": "Standard Error",
     "DG.Inspector.graphPlottedNormal": "Normal Curve",
-    "DG.Inspector.graphPlottedGaussianFit": "Gaussian Fit"
+    "DG.Inspector.graphPlottedGaussianFit": "Gaussian Fit",
+    "DG.Undo.legend.lockQuantiles": "Undo locking legend color bins",
+    "DG.Redo.legend.lockQuantiles": "Redo locking legend color bins",
+    "DG.Undo.legend.unlockQuantiles": "Undo unlocking legend color bins",
+    "DG.Redo.legend.unlockQuantiles": "Redo unlocking legend color bins",
+    "DG.Inspector.lockLegendQuantiles": "Lock legend color bins",
+    "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change."
 });
