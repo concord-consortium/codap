@@ -3,6 +3,7 @@ import { applyUndoableAction } from "../history/apply-undoable-action"
 import { Tree } from "../history/tree"
 import { TreeManager } from "../history/tree-manager"
 import { TreeMonitor } from "../history/tree-monitor"
+import { withoutUndo } from "../history/without-undo"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { ITileModel } from "../tiles/tile-model"
 import { DocumentContentModel, IDocumentContentSnapshotIn } from "./document-content"
@@ -72,11 +73,13 @@ export const DocumentModel = Tree.named("Document")
     },
     undoLastAction() {
       if (self.canUndo) {
+        withoutUndo()
         self.treeManagerAPI?.undoManager.undo()
       }
     },
     redoLastAction() {
       if (self.canRedo) {
+        withoutUndo()
         self.treeManagerAPI?.undoManager.redo()
       }
     },
