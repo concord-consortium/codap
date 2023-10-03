@@ -1,4 +1,4 @@
-import { ConstantNode, MathNode, isConstantNode } from "mathjs"
+import { ConstantNode, MathNode, SymbolNode, isConstantNode, isFunctionNode, isSymbolNode } from "mathjs"
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
 
 export const GLOBAL_VALUE = "GLOBAL_VALUE_"
@@ -9,6 +9,11 @@ export const NO_PARENT_KEY = "__NO_PARENT__"
 
 export const isConstantStringNode = (node: MathNode): node is ConstantNode<string> =>
   isConstantNode(node) && typeof node.value === "string"
+
+// Note that when MathJS encounters function, it'll create a function node and a separate symbol node for the function
+// name. In most cases, it's more useful to handle function node explicitly and skip the function name symbol node.
+export const isNonFunctionSymbolNode = (node: MathNode, parent: MathNode): node is SymbolNode =>
+  isSymbolNode(node) && (!isFunctionNode(parent) || parent.fn !== node)
 
 export type DisplayNameMap = {
   localNames: Record<string, string>

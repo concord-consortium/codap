@@ -1,5 +1,7 @@
 import { parse, MathNode, isFunctionNode, isSymbolNode } from "mathjs"
-import { LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency } from "./formula-types"
+import {
+  LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, isConstantStringNode, isNonFunctionSymbolNode
+} from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
 import type { IDataSet } from "./data-set"
 import t from "../../utilities/translation/translate"
@@ -31,14 +33,75 @@ export const safeSymbolName = (name: string) => {
     .replace(/[^a-zA-Z0-9_]/g, "_")
 }
 
+export const makeNamesSafe = (formula: string) => {
+  // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
+  // eg. names with spaces or names that start with a number.
+  return formula.replace(/`([^`]+)`/g, (_, match) => safeSymbolName(match))
+}
+
 export const customizeFormula = (formula: string) => {
   // Over time, this function might grow significantly and require more advanced parsing of the formula.
-  return formula
-    // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
-    .replace(/(?<!!)=(?!=)/g, "==")
-    // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
-    // eg. names with spaces or names that start with a number.
-    .replace(/`([^`]+)`/g, (_, match) => safeSymbolName(match))
+  // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
+  return formula.replace(/(?<!!)=(?!=)/g, "==")
+}
+
+export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap) => {
+  return Object.fromEntries([
+    ...Object.entries(displayNameMap.localNames).map(([attrName, attrId]) => [attrId, attrName]),
+    ...Object.entries(displayNameMap.dataSet).map(([dataSetName, dataSet]) => [dataSet.id, dataSetName]),
+    ...Object.entries(displayNameMap.dataSet).flatMap(([dataSetName, dataSet]) =>
+      Object.entries(dataSet.attribute).map(([attrName, attrId]) => [attrId, attrName])
+    )
+  ])
+}
+
+export const canonicalToDisplay = (canonical: string, originalDisplay: string, displayNameMap: DisplayNameMap) => {
+  // Algorithm is as follows:
+  // 1. Parse original display formula and get all the names that need to be replaced.
+  // 2. Parse canonical formula and get all the names that will replace the original names.
+  // 3. Replace the names in the original formula with the new names, one by one in order.
+  // This will guarantee that we maintain white spaces and other formatting in the original formula.
+  // Note that by names we mean symbols, constants and function names. Function names and constants are necessary, as
+  // function names and constants might be identical to the symbol name. E.g. 'mean(mean) + "mean"' is a valid formula
+  // if there's attribute called "mean". If we process function names and constants, it'll be handled correctly.
+  originalDisplay = makeNamesSafe(originalDisplay) // so it can be parsed by MathJS
+  const idToName = reverseDisplayNameMap(displayNameMap)
+  const getNameFromId = (id: string, wrapInBackTicks: boolean) => {
+    let name = idToName[id]
+    if (wrapInBackTicks && name && name !== safeSymbolName(name)) {
+      name = `\`${name}\`` // wrap in backticks if it's not a valid symbol name
+    }
+    return name || id
+  }
+  const namesToReplace: string[] = []
+  const newNames: string[] = []
+
+  parse(originalDisplay).traverse((node: MathNode, path: string, parent: MathNode) => {
+    isNonFunctionSymbolNode(node, parent) && namesToReplace.push(node.name)
+    isConstantStringNode(node) && namesToReplace.push(node.value)
+    isFunctionNode(node) && namesToReplace.push(node.fn.name)
+  })
+  parse(canonical).traverse((node: MathNode, path: string, parent: MathNode) => {
+    // Symbol with nonstandard characters need to be wrapped in backticks, while constants don't (as they're already
+    // wrapped in string quotes).
+    isNonFunctionSymbolNode(node, parent) && newNames.push(getNameFromId(node.name, true))
+    isConstantStringNode(node) && newNames.push(getNameFromId(node.value, false))
+    isFunctionNode(node) && newNames.push(node.fn.name)
+  })
+
+  let result = ""
+  let formulaToProcess = originalDisplay
+  while (newNames.length > 0) {
+    const name = namesToReplace.shift()!
+    const newName = newNames.shift()!
+    const nameIndex = formulaToProcess.indexOf(name)
+    if (nameIndex < 0) {
+      throw new Error(`canonicalToDisplay: name ${name} not found in formula`)
+    }
+    result += formulaToProcess.substring(0, nameIndex) + newName
+    formulaToProcess = formulaToProcess.substring(nameIndex + name.length)
+  }
+  return result + formulaToProcess
 }
 
 export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
@@ -47,7 +110,7 @@ export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttribut
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
 export const canonicalizeExpression = (displayExpression: string, displayNameMap: DisplayNameMap) => {
-  const formulaTree = parse(customizeFormula(displayExpression))
+  const formulaTree = parse(customizeFormula(makeNamesSafe(displayExpression)))
   const visitNode = (node: MathNode) => {
     if (isSymbolNode(node)) {
       const canonicalName = generateCanonicalSymbolName(node.name, displayNameMap)
