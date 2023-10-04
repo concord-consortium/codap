@@ -26,7 +26,17 @@ export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDepende
   return undefined
 }
 
-export const safeSymbolName = (name: string) => {
+export const unescapeCharactersInSafeSymbolName = (name: string) =>
+  name.replace(/\\`/g, "`").replace(/\\\\/g, "\\")
+
+export const escapeCharactersInSafeSymbolName = (name: string) =>
+  name.replace(/\\/g, "\\\\").replace(/`/g, "\\`")
+
+export const safeSymbolName = (name: string, unescape = false) => {
+  if (unescape) {
+    // Replace escaped backslash and backticks with a single character, so they're not replaced by two underscores.
+    name = unescapeCharactersInSafeSymbolName(name)
+  }
   return name
     // Math.js does not allow to use symbols that start with a number, so we need to add a prefix.
     .replace(/^(\d+)/, '_$1')
@@ -34,19 +44,20 @@ export const safeSymbolName = (name: string) => {
     .replace(/[^a-zA-Z0-9_]/g, "_")
 }
 
-export const makeNamesSafe = (formula: string) => {
+export const makeDisplayNamesSafe = (formula: string) => {
   // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
-  // eg. names with spaces or names that start with a number.
-  return formula.replace(/`([^`]+)`/g, (_, match) => safeSymbolName(match))
+  // eg. names with spaces or names that start with a number. Also, it's necessary to ignore escaped backticks.
+  return formula
+    .replace(/(?<!\\)`((?:[^`\\]|\\.)+)`/g, (_, match) => safeSymbolName(match, true))
 }
 
-export const customizeFormula = (formula: string) => {
+export const customizeDisplayFormula = (formula: string) => {
   // Over time, this function might grow significantly and require more advanced parsing of the formula.
   // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
   return formula.replace(/(?<!!)=(?!=)/g, "==")
 }
 
-export const preprocessFormula = (formula: string) => customizeFormula(makeNamesSafe(formula))
+export const preprocessDisplayFormula = (formula: string) => customizeDisplayFormula(makeDisplayNamesSafe(formula))
 
 export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap): CanonicalNameMap => {
   return Object.fromEntries([
@@ -67,11 +78,15 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
   // Note that by names we mean symbols, constants and function names. Function names and constants are necessary, as
   // function names and constants might be identical to the symbol name. E.g. 'mean(mean) + "mean"' is a valid formula
   // if there's attribute called "mean". If we process function names and constants, it'll be handled correctly.
-  originalDisplay = makeNamesSafe(originalDisplay) // so it can be parsed by MathJS
+  originalDisplay = makeDisplayNamesSafe(originalDisplay) // so it can be parsed by MathJS
   const getNameFromId = (id: string, wrapInBackTicks: boolean) => {
     let name = canonicalNameMap[id]
+    // Wrap in backticks if it's not a (MathJS) safe symbol name.
     if (wrapInBackTicks && name && name !== safeSymbolName(name)) {
-      name = `\`${name}\`` // wrap in backticks if it's not a valid symbol name
+      // Escape special characters in the name. It reverses the process done by safeSymbolName.
+      name = escapeCharactersInSafeSymbolName(name)
+      // Finally, wrap in backticks.
+      name = `\`${name}\``
     }
     return name || id
   }
@@ -112,7 +127,7 @@ export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttribut
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
 export const displayToCanonical = (displayExpression: string, displayNameMap: DisplayNameMap) => {
-  const formulaTree = parse(preprocessFormula(displayExpression))
+  const formulaTree = parse(preprocessDisplayFormula(displayExpression))
   const visitNode = (node: MathNode, path: string, parent: MathNode) => {
     if (isNonFunctionSymbolNode(node, parent)) {
       const canonicalName = generateCanonicalSymbolName(node.name, displayNameMap)

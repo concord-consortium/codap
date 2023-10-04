@@ -1,6 +1,7 @@
 import { DisplayNameMap } from "./formula-types"
 import {
-  safeSymbolName, customizeFormula, reverseDisplayNameMap, canonicalToDisplay, makeNamesSafe, displayToCanonical
+  safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
+  displayToCanonical, unescapeCharactersInSafeSymbolName, escapeCharactersInSafeSymbolName
 } from "./formula-utils"
 
 const displayNameMapExample: DisplayNameMap = {
@@ -69,6 +70,28 @@ describe("displayToCanonical", () => {
   })
 })
 
+describe("unescapeCharactersInSafeSymbolName", () => {
+  it("converts escaped characters in safe symbol name to original characters", () => {
+    expect(unescapeCharactersInSafeSymbolName("Attribute\\`Test")).toEqual("Attribute`Test")
+    expect(unescapeCharactersInSafeSymbolName("Attribute\\\\Test")).toEqual("Attribute\\Test")
+  })
+  it("is's an inverse of escapeCharactersInSafeSymbolName", () => {
+    const testString = "Attribute\\\\\\`Test"
+    expect(unescapeCharactersInSafeSymbolName(escapeCharactersInSafeSymbolName(testString))).toEqual(testString)
+  })
+})
+
+describe("escapeCharactersInSafeSymbolName", () => {
+  it("converts some characters in safe symbol name to escaped characters", () => {
+    expect(escapeCharactersInSafeSymbolName("Attribute`Test")).toEqual("Attribute\\`Test")
+    expect(escapeCharactersInSafeSymbolName("Attribute\\Test")).toEqual("Attribute\\\\Test")
+  })
+  it("is's an inverse of unescapeCharactersInSafeSymbolName", () => {
+    const testString = "Attribute`Test\\"
+    expect(unescapeCharactersInSafeSymbolName(escapeCharactersInSafeSymbolName(testString))).toEqual(testString)
+  })
+})
+
 describe("safeSymbolName", () => {
   it("converts strings that are not parsable by Mathjs to valid symbol names", () => {
     expect(safeSymbolName("Valid_Name_Should_Not_Be_Changed")).toEqual("Valid_Name_Should_Not_Be_Changed")
@@ -76,26 +99,37 @@ describe("safeSymbolName", () => {
     expect(safeSymbolName("1")).toEqual("_1")
     expect(safeSymbolName("1a")).toEqual("_1a")
     expect(safeSymbolName("Attribute 🙃 Test")).toEqual("Attribute____Test")
+    expect(safeSymbolName("Attribute`Test")).toEqual("Attribute_Test")
+    expect(safeSymbolName("Attribute\\Test")).toEqual("Attribute_Test")
+    expect(safeSymbolName("Attribute\\\\Test")).toEqual("Attribute__Test")
+    expect(safeSymbolName("Attribute\\`Test")).toEqual("Attribute__Test")
+    expect(safeSymbolName("Attribute\\\\\\`Test")).toEqual("Attribute____Test")
+  })
+  it("supports `unescape` option", () => {
+    expect(safeSymbolName("Attribute\\Test", true)).toEqual("Attribute_Test")
+    expect(safeSymbolName("Attribute\\\\Test", true)).toEqual("Attribute_Test") // \\ treated as one character
+    expect(safeSymbolName("Attribute\\`Test", true)).toEqual("Attribute_Test") // \` treated as one character
+    expect(safeSymbolName("Attribute\\\\\\`Test", true)).toEqual("Attribute__Test")
   })
 })
 
-describe("makeNamesSafe", () => {
+describe("makeDisplayNamesSafe", () => {
   it("replaces all the symbols enclosed between `` with safe symbol names", () => {
-    expect(makeNamesSafe("mean(`Attribute Name`)")).toEqual("mean(Attribute_Name)")
-    expect(makeNamesSafe("`Attribute Name` + `Attribute Name 2`")).toEqual("Attribute_Name + Attribute_Name_2")
+    expect(makeDisplayNamesSafe("mean(`Attribute Name`)")).toEqual("mean(Attribute_Name)")
+    expect(makeDisplayNamesSafe("`Attribute Name` + `Attribute\\`Name 2`")).toEqual("Attribute_Name + Attribute_Name_2")
   })
 })
 
-describe("customizeFormula", () => {
+describe("customizeDisplayFormula", () => {
   it("replaces all the assignment operators with equality operators", () => {
-    expect(customizeFormula("a = 1")).toEqual("a == 1")
-    expect(customizeFormula("a = b")).toEqual("a == b")
-    expect(customizeFormula("a = b = c")).toEqual("a == b == c")
+    expect(customizeDisplayFormula("a = 1")).toEqual("a == 1")
+    expect(customizeDisplayFormula("a = b")).toEqual("a == b")
+    expect(customizeDisplayFormula("a = b = c")).toEqual("a == b == c")
   })
   it("doesn't replace unequality operator", () => {
-    expect(customizeFormula("a != 1")).toEqual("a != 1")
-    expect(customizeFormula("a != b")).toEqual("a != b")
-    expect(customizeFormula("a != b = c = d != e")).toEqual("a != b == c == d != e")
+    expect(customizeDisplayFormula("a != 1")).toEqual("a != 1")
+    expect(customizeDisplayFormula("a != b")).toEqual("a != b")
+    expect(customizeDisplayFormula("a != b = c = d != e")).toEqual("a != b == c == d != e")
   })
 })
 
