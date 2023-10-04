@@ -1,5 +1,5 @@
-import { getAdornmentComponentInfo } from "../adornment-component-info"
-import { getAdornmentContentInfo } from "../adornment-content-info"
+import { getAdornmentComponentInfo } from "../../adornment-component-info"
+import { getAdornmentContentInfo } from "../../adornment-content-info"
 import { kPlottedValueClass, kPlottedValuePrefix, kPlottedValueType } from "./plotted-value-adornment-types"
 import "./plotted-value-adornment-registration"
 

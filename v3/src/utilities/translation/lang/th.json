@@ -554,6 +554,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "Formula",
     "DG.PlottedValue.namePrompt": "ค่าที่พล็อตไว้",
     "DG.PlottedValue.formulaPrompt": "ค่า = ",
+    "DG.PlottedValue.valueTitle": "ค่า=%@",
     "DG.PlottedValue.formulaHint": "\u200b ",
     "DG.PlottedFunction.namePrompt": "ฟังก์ชั่นที่พล็อตไว้",
     "DG.PlottedFunction.formulaPrompt": "f() = ",

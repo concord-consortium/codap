@@ -554,6 +554,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "式",
     "DG.PlottedValue.namePrompt": "値の挿入",
     "DG.PlottedValue.formulaPrompt": "値=",
+    "DG.PlottedValue.valueTitle": "値=%@",
     "DG.PlottedValue.formulaHint": "\u200b",
     "DG.PlottedFunction.namePrompt": "関数の挿入",
     "DG.PlottedFunction.formulaPrompt": "f() =",

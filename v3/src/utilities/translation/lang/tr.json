@@ -554,6 +554,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "Formül",
     "DG.PlottedValue.namePrompt": "Çizilen Değer",
     "DG.PlottedValue.formulaPrompt": "değer =",
+    "DG.PlottedValue.valueTitle": "değer=%@",
     "DG.PlottedValue.formulaHint": "\u200b",
     "DG.PlottedFunction.namePrompt": "Çizilen Değer",
     "DG.PlottedFunction.formulaPrompt": "f() =",

@@ -3,13 +3,13 @@ import {
   Textarea, Tooltip
 } from "@chakra-ui/react"
 import React, { useState } from "react"
-import { CodapModal } from "../../../codap-modal"
-import t from "../../../../utilities/translation/translate"
+import { CodapModal } from "../../../../codap-modal"
+import t from "../../../../../utilities/translation/translate"
 
 interface IProps {
-  currentValue?: string | number
+  currentValue?: string
   isOpen: boolean
-  onClose: (value: number | string) => void
+  onClose: (value: string) => void
 }
 
 export const EditFormulaModal = ({ currentValue="", isOpen, onClose }: IProps) => {

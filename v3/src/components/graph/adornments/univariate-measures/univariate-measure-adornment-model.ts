@@ -29,6 +29,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     type: types.optional(types.string, () => {
       throw "type must be overridden"
     }),
+    labelTitle: types.optional(types.string, () => {
+      throw "valueTitle must be overridden"
+    })
   })
   .views(self => ({
     getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
@@ -86,7 +89,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
+      const { xCats, yCats, topCats, rightCats, resetPoints, dataConfig } = options
       if (!dataConfig) return
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
@@ -95,7 +98,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const columnCount = topCatCount * xCatCount
       const rowCount = rightCatCount * yCatCount
       const totalCount = rowCount * columnCount
-      const attrId = xAttrId && dataConfig.attributeType("x") ? xAttrId : yAttrId
+      const attrId = dataConfig.primaryAttributeID
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
         const instanceKey = self.instanceKey(cellKey) 

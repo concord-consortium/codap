@@ -1,14 +1,15 @@
 import { Instance, types } from "mobx-state-tree"
 import { median } from "mathjs"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
-import { kMedianType } from "./median-adornment-types"
+import { kMedianType, kMedianValueTitleKey } from "./median-adornment-types"
 import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
 import { IAdornmentModel } from "../../adornment-models"
 
 export const MedianAdornmentModel = UnivariateMeasureAdornmentModel
   .named("MedianAdornmentModel")
   .props({
-    type: types.optional(types.literal(kMedianType), kMedianType)
+    type: types.optional(types.literal(kMedianType), kMedianType),
+    labelTitle: types.optional(types.literal(kMedianValueTitleKey), kMedianValueTitleKey)
   })
   .views(self => ({
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {

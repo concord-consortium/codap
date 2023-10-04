@@ -897,6 +897,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "Formula",
     "DG.PlottedValue.namePrompt": "Plotted Value",
     "DG.PlottedValue.formulaPrompt": "value =",
+    "DG.PlottedValue.valueTitle": "value=%@", // "value=123.456"
     "DG.PlottedValue.formulaHint": "",
     "DG.PlottedFunction.namePrompt": "Plotted Function",
     "DG.PlottedFunction.formulaPrompt": "f() =",
