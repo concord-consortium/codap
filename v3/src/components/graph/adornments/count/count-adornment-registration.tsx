@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { FormControl, Checkbox, RadioGroup, Radio } from "@chakra-ui/react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
-import { CountAdornmentModel, ICountAdornmentModel, isCount } from "./count-adornment-model"
+import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
 import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
 import { CountAdornment } from "./count-adornment-component"
 import t from "../../../../utilities/translation/translate"
@@ -18,7 +18,7 @@ const Controls = () => {
   const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)
   const [percentTypeValue, setPercentTypeValue] = useState(
-    existingAdornment && isCount(existingAdornment) ? existingAdornment.percentType : "row"
+    existingAdornment && isCountAdornment(existingAdornment) ? existingAdornment.percentType : "row"
   )
 
   const handleShowPercent = (adornment: ICountAdornmentModel, checked: boolean) => {

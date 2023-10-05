@@ -44,6 +44,6 @@ export const MovablePointAdornmentModel = AdornmentModel
     }
   }))
 export interface IMovablePointAdornmentModel extends Instance<typeof MovablePointAdornmentModel> {}
-export function isMovablePoint(adornment: IAdornmentModel): adornment is IMovablePointAdornmentModel {
+export function isMovablePointAdornment(adornment: IAdornmentModel): adornment is IMovablePointAdornmentModel {
   return adornment.type === kMovablePointType
 }

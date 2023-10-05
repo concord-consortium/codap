@@ -39,6 +39,6 @@ export const PlottedValueAdornmentModel = AdornmentModel
   }))
 
 export interface IPlottedValueAdornmentModel extends Instance<typeof PlottedValueAdornmentModel> {}
-export function isPlottedValue(adornment: IAdornmentModel): adornment is IPlottedValueAdornmentModel {
+export function isPlottedValueAdornment(adornment: IAdornmentModel): adornment is IPlottedValueAdornmentModel {
   return adornment.type === kPlottedValueType
 }

@@ -44,6 +44,6 @@ export const CountAdornmentModel = AdornmentModel
   }))
 
 export interface ICountAdornmentModel extends Instance<typeof CountAdornmentModel> {}
-export function isCount(adornment: IAdornmentModel): adornment is ICountAdornmentModel {
+export function isCountAdornment(adornment: IAdornmentModel): adornment is ICountAdornmentModel {
   return adornment.type === kCountType
 }

@@ -67,6 +67,6 @@ export const MovableLineAdornmentModel = AdornmentModel
 
 export interface IMovableLineInstance extends Instance<typeof MovableLineInstance> {}
 export interface IMovableLineAdornmentModel extends Instance<typeof MovableLineAdornmentModel> {}
-export function isMovableLine(adornment: IAdornmentModel): adornment is IMovableLineAdornmentModel {
+export function isMovableLineAdornment(adornment: IAdornmentModel): adornment is IMovableLineAdornmentModel {
   return adornment.type === kMovableLineType
 }

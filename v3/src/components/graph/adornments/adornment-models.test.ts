@@ -1,9 +1,9 @@
 import { getSnapshot, types } from "mobx-state-tree"
 import { AdornmentModel, PointModel, UnknownAdornmentModel } from "./adornment-models"
 import { AdornmentModelUnion, IAdornmentModelUnion } from "./adornment-types"
-import { MovableLineAdornmentModel, isMovableLine } from "./movable-line/movable-line-adornment-model"
-import { MovablePointAdornmentModel, isMovablePoint } from "./movable-point/movable-point-adornment-model"
-import { MovableValueAdornmentModel, isMovableValue } from "./movable-value/movable-value-adornment-model"
+import { MovableLineAdornmentModel, isMovableLineAdornment } from "./movable-line/movable-line-adornment-model"
+import { MovablePointAdornmentModel, isMovablePointAdornment } from "./movable-point/movable-point-adornment-model"
+import { MovableValueAdornmentModel, isMovableValueAdornment } from "./movable-value/movable-value-adornment-model"
 
 describe("PointModel", () => {
   it("is valid if x and y are finite", () => {
@@ -92,25 +92,25 @@ describe("Deserialization", () => {
 
     const movableLine = MovableLineAdornmentModel.create({ type: "Movable Line", lines: {} })
     const testModel = M.create({ adornment: movableLine })
-    expect(isMovableLine(testModel.adornment) && testModel.adornment.lines).toBeDefined()
+    expect(isMovableLineAdornment(testModel.adornment) && testModel.adornment.lines).toBeDefined()
     const snap1 = getSnapshot(testModel)
     const testModel2 = M.create(snap1)
-    expect(isMovableLine(testModel2.adornment) && testModel2.adornment.lines).toBeDefined()
+    expect(isMovableLineAdornment(testModel2.adornment) && testModel2.adornment.lines).toBeDefined()
 
     const movablePoint = MovablePointAdornmentModel.create({ type: "Movable Point", points: {} })
     testModel.setAdornment(movablePoint)
-    expect(isMovablePoint(testModel.adornment) && testModel.adornment.points).toBeDefined()
+    expect(isMovablePointAdornment(testModel.adornment) && testModel.adornment.points).toBeDefined()
     const snap2 = getSnapshot(testModel)
     const testModel3 = M.create(snap2)
-    expect(isMovablePoint(testModel3.adornment) && testModel3.adornment.points).toBeDefined()
+    expect(isMovablePointAdornment(testModel3.adornment) && testModel3.adornment.points).toBeDefined()
 
     const movableValue = MovableValueAdornmentModel.create()
     movableValue.setInitialValue()
     testModel.setAdornment(movableValue)
-    expect(isMovablePoint(testModel.adornment) && testModel.adornment.points).toBeDefined()
+    expect(isMovablePointAdornment(testModel.adornment) && testModel.adornment.points).toBeDefined()
     const snap3 = getSnapshot(testModel)
     const testModel4 = M.create(snap3)
-    expect(isMovableValue(testModel4.adornment) && testModel4.adornment.values).toBeDefined()
+    expect(isMovableValueAdornment(testModel4.adornment) && testModel4.adornment.values).toBeDefined()
 
     const unknownAdornment = UnknownAdornmentModel.create()
     testModel.setAdornment(unknownAdornment)
