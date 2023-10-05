@@ -7,7 +7,7 @@ describe("MeasureInstance", () => {
   })
   it("can have its value set", () => {
     const measure = MeasureInstance.create()
-    expect(measure.value).toBe(0)
+    expect(measure.value).toBe(NaN)
     measure.setValue(10)
     expect(measure.value).toBe(10)
   })

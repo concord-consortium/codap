@@ -6,8 +6,10 @@ import { ICase } from "../../../../models/data/data-set-types"
 
 export const MeasureInstance = types.model("MeasureInstance", {
   labelCoords: types.maybe(PointModel),
-  value: types.optional(types.number, 0)
 })
+.volatile(self => ({
+  value: NaN
+}))
 .actions(self => ({
   setLabelCoords(coords: Point) {
     self.labelCoords = PointModel.create(coords)
@@ -44,7 +46,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }
   }))
   .actions(self => ({
-    getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override to update their models when categories change
     },
     addMeasure(value: number, key="{}") {
@@ -65,6 +67,22 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       self.showMeasureLabels = showLabels
     }
   }))
+  .views(self => ({
+    // Clients should call measureValue instead of accessing the measure's volatile value property directly.
+    // measureValue will compute the value in cases where the volatile property may have been reset to the 
+    // default. This can happen, for example, when the adornment is added to the graph, then removed and
+    // added back again using the undo/redo feature.
+    measureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+      const key = self.instanceKey(cellKey)
+      const measureValue = self.measures.get(key)?.value ?? NaN
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      if (isNaN(measureValue) && caseValues.length > 0) {
+        const newValue = self.computeMeasureValue(attrId, cellKey, dataConfig)
+        self.updateMeasureValue(Number(newValue), key)
+      }
+      return self.measures.get(key)?.value
+    }
+  }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
       const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
@@ -80,7 +98,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
         const instanceKey = self.instanceKey(cellKey) 
-        const value = Number(self.getMeasureValue(attrId, cellKey, dataConfig))
+        const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {
           self.addMeasure(value, instanceKey)
         } else {
