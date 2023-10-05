@@ -5,10 +5,11 @@ import { IDataConfigurationModel } from "../../../data-display/models/data-confi
 import { ICase } from "../../../../models/data/data-set-types"
 
 export const MeasureInstance = types.model("MeasureInstance", {
-  labelCoords: types.maybe(PointModel),
+  labelCoords: types.maybe(PointModel)
 })
 .volatile(self => ({
-  value: NaN
+  value: NaN,
+  isValid: false
 }))
 .actions(self => ({
   setLabelCoords(coords: Point) {
@@ -16,6 +17,7 @@ export const MeasureInstance = types.model("MeasureInstance", {
   },
   setValue(value: number) {
     self.value = value
+    self.isValid = true
   }
 }))
 
@@ -74,13 +76,12 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     // added back again using the undo/redo feature.
     measureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const key = self.instanceKey(cellKey)
-      const measureValue = self.measures.get(key)?.value ?? NaN
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      if (isNaN(measureValue) && caseValues.length > 0) {
+      const measure = self.measures.get(key)
+      if (!measure?.isValid) {
         const newValue = self.computeMeasureValue(attrId, cellKey, dataConfig)
         self.updateMeasureValue(Number(newValue), key)
       }
-      return self.measures.get(key)?.value
+      return measure?.value
     }
   }))
   .actions(self => ({
