@@ -1,6 +1,7 @@
-import { parse, MathNode, isFunctionNode, isSymbolNode } from "mathjs"
+import { parse, MathNode, isFunctionNode } from "mathjs"
 import {
-  LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, IFormulaDependency, isConstantStringNode, isNonFunctionSymbolNode
+  LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
+  isNonFunctionSymbolNode,
 } from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
 import type { IDataSet } from "./data-set"
@@ -45,7 +46,9 @@ export const customizeFormula = (formula: string) => {
   return formula.replace(/(?<!!)=(?!=)/g, "==")
 }
 
-export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap) => {
+export const preprocessFormula = (formula: string) => customizeFormula(makeNamesSafe(formula))
+
+export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap): CanonicalNameMap => {
   return Object.fromEntries([
     ...Object.entries(displayNameMap.localNames).map(([attrName, attrId]) => [attrId, attrName]),
     ...Object.entries(displayNameMap.dataSet).map(([dataSetName, dataSet]) => [dataSet.id, dataSetName]),
@@ -55,7 +58,7 @@ export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap) => {
   ])
 }
 
-export const canonicalToDisplay = (canonical: string, originalDisplay: string, displayNameMap: DisplayNameMap) => {
+export const canonicalToDisplay = (canonical: string, originalDisplay: string, canonicalNameMap: CanonicalNameMap) => {
   // Algorithm is as follows:
   // 1. Parse original display formula and get all the names that need to be replaced.
   // 2. Parse canonical formula and get all the names that will replace the original names.
@@ -65,9 +68,8 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, d
   // function names and constants might be identical to the symbol name. E.g. 'mean(mean) + "mean"' is a valid formula
   // if there's attribute called "mean". If we process function names and constants, it'll be handled correctly.
   originalDisplay = makeNamesSafe(originalDisplay) // so it can be parsed by MathJS
-  const idToName = reverseDisplayNameMap(displayNameMap)
   const getNameFromId = (id: string, wrapInBackTicks: boolean) => {
-    let name = idToName[id]
+    let name = canonicalNameMap[id]
     if (wrapInBackTicks && name && name !== safeSymbolName(name)) {
       name = `\`${name}\`` // wrap in backticks if it's not a valid symbol name
     }
@@ -110,7 +112,7 @@ export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttribut
 // Function replaces all the symbol names typed by user (display names) with the symbol canonical names that
 // can be resolved by formula context and do not rely on user-based display names.
 export const displayToCanonical = (displayExpression: string, displayNameMap: DisplayNameMap) => {
-  const formulaTree = parse(customizeFormula(makeNamesSafe(displayExpression)))
+  const formulaTree = parse(preprocessFormula(displayExpression))
   const visitNode = (node: MathNode, path: string, parent: MathNode) => {
     if (isNonFunctionSymbolNode(node, parent)) {
       const canonicalName = generateCanonicalSymbolName(node.name, displayNameMap)

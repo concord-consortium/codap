@@ -1,33 +1,24 @@
 import { Instance, types } from "mobx-state-tree"
 import { parse } from "mathjs"
 import { typedId } from "../../utilities/js-utils"
-import { displayToCanonical, customizeFormula, isRandomFunctionPresent } from "./formula-utils"
+import { canonicalToDisplay, displayToCanonical, isRandomFunctionPresent, preprocessFormula } from "./formula-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORM")),
-  display: ""
+  display: "",
+  canonical: ""
 })
 .views(self => ({
   get formulaManager() {
     return getFormulaManager(self)
-  },
-  get canonical() {
-    if (!this.valid) {
-      return ""
-    }
-    if (!this.formulaManager || !self.display) {
-      return ""
-    }
-    const displayNameMap = this.formulaManager.getDisplayNameMapForFormula(self.id)
-    return displayToCanonical(self.display, displayNameMap)
   },
   get empty() {
     return self.display.length === 0
   },
   get syntaxError() {
     try {
-      parse(customizeFormula(self.display))
+      parse(preprocessFormula(self.display))
     } catch (error: any) {
       return error.message
     }
@@ -37,12 +28,27 @@ export const Formula = types.model("Formula", {
     return !this.empty && !this.syntaxError
   },
   get isRandomFunctionPresent() {
-    return isRandomFunctionPresent(this.canonical)
+    return isRandomFunctionPresent(self.canonical)
   },
 }))
 .actions(self => ({
   setDisplayFormula(displayFormula: string) {
     self.display = displayFormula
+    self.canonical = "" // reset canonical formula immediately, in case of errors that are handled below
+    if (self.empty || !self.valid || !self.formulaManager) {
+      return
+    }
+    const displayNameMap = self.formulaManager.getDisplayNameMapForFormula(self.id)
+    self.canonical = displayToCanonical(self.display, displayNameMap)
+  },
+  updateDisplayFormula() {
+    // This action should be called when one of the attributes is renamed. The canonical form is still valid, while
+    // display form needs to be updated. The old display form is used to preserve the user's whitespace / formatting.
+    if (self.empty || !self.valid || !self.formulaManager) {
+      return
+    }
+    const canonicalNameMap = self.formulaManager.getCanonicalNameMap(self.id)
+    self.display = canonicalToDisplay(self.canonical, self.display, canonicalNameMap)
   },
   rerandomize() {
     self.formulaManager?.recalculateFormula(self.id)
