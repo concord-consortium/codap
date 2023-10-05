@@ -1,8 +1,10 @@
 import { Instance, types } from "mobx-state-tree"
 import { parse } from "mathjs"
 import { typedId } from "../../utilities/js-utils"
-import { canonicalToDisplay, displayToCanonical, isRandomFunctionPresent, preprocessFormula } from "./formula-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
+import {
+  canonicalToDisplay, displayToCanonical, isRandomFunctionPresent, preprocessDisplayFormula
+} from "./formula-utils"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORM")),
@@ -18,7 +20,7 @@ export const Formula = types.model("Formula", {
   },
   get syntaxError() {
     try {
-      parse(preprocessFormula(self.display))
+      parse(preprocessDisplayFormula(self.display))
     } catch (error: any) {
       return error.message
     }
