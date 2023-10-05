@@ -1,7 +1,7 @@
 import { DisplayNameMap } from "./formula-types"
 import {
   safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
-  displayToCanonical, unescapeCharactersInSafeSymbolName, escapeCharactersInSafeSymbolName
+  displayToCanonical, unescapeBacktickString, escapeBacktickString, safeSymbolNameFromDisplayFormula
 } from "./formula-utils"
 
 const displayNameMapExample: DisplayNameMap = {
@@ -22,8 +22,9 @@ const displayNameMapExample: DisplayNameMap = {
     "Roller Coaster": {
       "id": "DATA_ROLLER_COASTER",
       "attribute": {
-        "Park": "ATTR_PARK",
-        "Top Speed": "ATTR_TOP_SPEED",
+        // \, ', and " are added to test characters escaping
+        "Park\"": "ATTR_PARK",
+        "Top\\Speed'": "ATTR_TOP_SPEED",
       }
     }
   }
@@ -51,44 +52,44 @@ describe("displayToCanonical", () => {
   describe("when attribute name includes special characters", () => {
     const testDisplayMap: DisplayNameMap = {
       localNames: {
-        [safeSymbolName("mean attribute 🙃")]: "LOCAL_ATTR_ATTR_MEAN",
+        [safeSymbolName("mean`attribute\\🙃")]: "LOCAL_ATTR_ATTR_MEAN",
       },
       dataSet: {}
     }
     it("works as long as it's enclosed in backticks", () => {
       expect(displayToCanonical(
-        "mean(`mean attribute 🙃`) + 'mean'", testDisplayMap
+        "mean(`mean\\`attribute\\\\🙃`) + 'mean'", testDisplayMap
       )).toEqual('mean(LOCAL_ATTR_ATTR_MEAN) + "mean"')
     })
   })
   describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
     it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
       expect(displayToCanonical(
-        "lookupByKey('Roller Coaster', 'Park', 'Top Speed', Order) * 2", displayNameMapExample
+        'lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2', displayNameMapExample
       )).toEqual('lookupByKey("DATA_ROLLER_COASTER", "ATTR_PARK", "ATTR_TOP_SPEED", LOCAL_ATTR_ATTR_ORDER) * 2')
     })
   })
 })
 
-describe("unescapeCharactersInSafeSymbolName", () => {
+describe("unescapeBacktickString", () => {
   it("converts escaped characters in safe symbol name to original characters", () => {
-    expect(unescapeCharactersInSafeSymbolName("Attribute\\`Test")).toEqual("Attribute`Test")
-    expect(unescapeCharactersInSafeSymbolName("Attribute\\\\Test")).toEqual("Attribute\\Test")
+    expect(unescapeBacktickString("Attribute\\`Test")).toEqual("Attribute`Test")
+    expect(unescapeBacktickString("Attribute\\\\Test")).toEqual("Attribute\\Test")
   })
-  it("is's an inverse of escapeCharactersInSafeSymbolName", () => {
+  it("is's an inverse of escapeBacktickString", () => {
     const testString = "Attribute\\\\\\`Test"
-    expect(unescapeCharactersInSafeSymbolName(escapeCharactersInSafeSymbolName(testString))).toEqual(testString)
+    expect(unescapeBacktickString(escapeBacktickString(testString))).toEqual(testString)
   })
 })
 
-describe("escapeCharactersInSafeSymbolName", () => {
+describe("escapeBacktickString", () => {
   it("converts some characters in safe symbol name to escaped characters", () => {
-    expect(escapeCharactersInSafeSymbolName("Attribute`Test")).toEqual("Attribute\\`Test")
-    expect(escapeCharactersInSafeSymbolName("Attribute\\Test")).toEqual("Attribute\\\\Test")
+    expect(escapeBacktickString("Attribute`Test")).toEqual("Attribute\\`Test")
+    expect(escapeBacktickString("Attribute\\Test")).toEqual("Attribute\\\\Test")
   })
-  it("is's an inverse of unescapeCharactersInSafeSymbolName", () => {
+  it("is's an inverse of unescapeBacktickString", () => {
     const testString = "Attribute`Test\\"
-    expect(unescapeCharactersInSafeSymbolName(escapeCharactersInSafeSymbolName(testString))).toEqual(testString)
+    expect(unescapeBacktickString(escapeBacktickString(testString))).toEqual(testString)
   })
 })
 
@@ -105,18 +106,22 @@ describe("safeSymbolName", () => {
     expect(safeSymbolName("Attribute\\`Test")).toEqual("Attribute__Test")
     expect(safeSymbolName("Attribute\\\\\\`Test")).toEqual("Attribute____Test")
   })
-  it("supports `unescape` option", () => {
-    expect(safeSymbolName("Attribute\\Test", true)).toEqual("Attribute_Test")
-    expect(safeSymbolName("Attribute\\\\Test", true)).toEqual("Attribute_Test") // \\ treated as one character
-    expect(safeSymbolName("Attribute\\`Test", true)).toEqual("Attribute_Test") // \` treated as one character
-    expect(safeSymbolName("Attribute\\\\\\`Test", true)).toEqual("Attribute__Test")
+})
+describe("safeSymbolNameFromDisplayFormula", () => {
+  it("unescapes special characters and converts strings that are not parsable by Mathjs to valid symbol names", () => {
+    // \\ and \` treated as one character
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\Test")).toEqual("Attribute_Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\\\Test")).toEqual("Attribute_Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\`Test")).toEqual("Attribute_Test")
+    expect(safeSymbolNameFromDisplayFormula("Attribute\\\\\\`Test")).toEqual("Attribute__Test")
   })
 })
 
 describe("makeDisplayNamesSafe", () => {
   it("replaces all the symbols enclosed between `` with safe symbol names", () => {
     expect(makeDisplayNamesSafe("mean(`Attribute Name`)")).toEqual("mean(Attribute_Name)")
-    expect(makeDisplayNamesSafe("`Attribute Name` + `Attribute\\`Name 2`")).toEqual("Attribute_Name + Attribute_Name_2")
+    // \` and \\ treated as one symbol - unescaping is done in safeSymbolNameFromDisplayFormula
+    expect(makeDisplayNamesSafe("`Attr\\\\Name` + `Attr\\`Name 2`")).toEqual("Attr_Name + Attr_Name_2")
   })
 })
 
@@ -144,8 +149,8 @@ describe("reverseDisplayNameMap", () => {
       ATTR_LIFE_SPAN: "LifeSpan",
       ATTR_ORDER: "Order",
       DATA_ROLLER_COASTER: "Roller Coaster",
-      ATTR_PARK: "Park",
-      ATTR_TOP_SPEED: "Top Speed",
+      ATTR_PARK: "Park\"",
+      ATTR_TOP_SPEED: "Top\\Speed'",
     })
   })
 })
@@ -178,24 +183,24 @@ describe("canonicalToDisplay", () => {
   describe("when attribute name includes special characters", () => {
     const testDisplayMap: DisplayNameMap = {
       localNames: {
-        "new mean attribute 🙃": "LOCAL_ATTR_ATTR_MEAN",
+        "new\\mean`attribute 🙃": "LOCAL_ATTR_ATTR_MEAN",
       },
       dataSet: {}
     }
-    it("is enclosed in backticks", () => {
+    it("is enclosed in backticks and special characters are escaped", () => {
       expect(canonicalToDisplay(
         "mean(LOCAL_ATTR_ATTR_MEAN) + 'mean'",
         "mean ( mean ) + 'mean'", reverseDisplayNameMap(testDisplayMap)
-      )).toEqual("mean ( `new mean attribute 🙃` ) + 'mean'")
+      )).toEqual("mean ( `new\\\\mean\\`attribute 🙃` ) + 'mean'")
     })
   })
   describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
     it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
       expect(canonicalToDisplay(
-        "lookupByKey('DATA_ROLLER_COASTER', 'ATTR_PARK', 'ATTR_TOP_SPEED', LOCAL_ATTR_ATTR_ORDER) * 2",
-        "lookupByKey('Old Roller Coaster', 'Old Park', 'Old Top Speed', OldOrder) * 2",
+        'lookupByKey("DATA_ROLLER_COASTER", "ATTR_PARK", "ATTR_TOP_SPEED", LOCAL_ATTR_ATTR_ORDER) * 2',
+        'lookupByKey("Old Roller Coaster", "Old Park", "Old Top Speed", OldOrder) * 2',
         reverseDisplayNameMap(displayNameMapExample)
-      )).toEqual("lookupByKey('Roller Coaster', 'Park', 'Top Speed', Order) * 2")
+      )).toEqual('lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2')
     })
   })
 })

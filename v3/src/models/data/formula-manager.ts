@@ -347,23 +347,24 @@ export class FormulaManager {
       dataSet: {}
     }
 
-    const mapAttributeNames = (dataSet: IDataSet, prefix: string) => {
+    const mapAttributeNames = (dataSet: IDataSet, prefix: string, _useSafeSymbolNames: boolean) => {
       const result: Record<string, string> = {}
       dataSet.attributes.forEach(attr => {
-        result[useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name] = `${prefix}${attr.id}`
+        result[_useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name] = `${prefix}${attr.id}`
       })
       return result
     }
 
     displayNameMap.localNames = {
-      ...mapAttributeNames(localDataSet, LOCAL_ATTR),
+      ...mapAttributeNames(localDataSet, LOCAL_ATTR, useSafeSymbolNames),
       // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
       // that returns the current, 1-based index of the case in its collection group.
       caseIndex: `${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
     }
 
     this.globalValueManager?.globals.forEach(global => {
-      displayNameMap.localNames[safeSymbolName(global.name)] = `${GLOBAL_VALUE}${global.id}`
+      const key = useSafeSymbolNames ? safeSymbolName(global.name) : global.name
+      displayNameMap.localNames[key] = `${GLOBAL_VALUE}${global.id}`
     })
 
     this.dataSets.forEach(dataSet => {
@@ -371,8 +372,9 @@ export class FormulaManager {
         displayNameMap.dataSet[dataSet.name] = {
           id: dataSet.id,
           // No prefix is necessary for external attributes. They always need to be resolved manually by custom
-          // mathjs functions (like "lookupByIndex").
-          attribute: mapAttributeNames(dataSet, "")
+          // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
+          // are string constants, not a symbols, so MathJS will not care about special characters there.
+          attribute: mapAttributeNames(dataSet, "", false)
         }
       }
     })

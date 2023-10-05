@@ -26,29 +26,34 @@ export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDepende
   return undefined
 }
 
-export const unescapeCharactersInSafeSymbolName = (name: string) =>
+export const unescapeBacktickString = (name: string) =>
   name.replace(/\\`/g, "`").replace(/\\\\/g, "\\")
 
-export const escapeCharactersInSafeSymbolName = (name: string) =>
+export const escapeBacktickString = (name: string) =>
   name.replace(/\\/g, "\\\\").replace(/`/g, "\\`")
 
-export const safeSymbolName = (name: string, unescape = false) => {
-  if (unescape) {
-    // Replace escaped backslash and backticks with a single character, so they're not replaced by two underscores.
-    name = unescapeCharactersInSafeSymbolName(name)
-  }
-  return name
+export const escapeDoubleQuoteString = (constant: string) =>
+  constant.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")
+
+export const safeSymbolName = (name: string) =>
+  name
     // Math.js does not allow to use symbols that start with a number, so we need to add a prefix.
     .replace(/^(\d+)/, '_$1')
     // We also need to escape all the symbols that are not allowed in Math.js.
     .replace(/[^a-zA-Z0-9_]/g, "_")
-}
+
+
+export const safeSymbolNameFromDisplayFormula = (name: string) =>
+  // Replace escaped backslash and backticks in user-generated string with a single character, so they're not replaced
+  // by two underscores by safeSymbolName.
+  safeSymbolName(unescapeBacktickString(name))
+
 
 export const makeDisplayNamesSafe = (formula: string) => {
   // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
   // eg. names with spaces or names that start with a number. Also, it's necessary to ignore escaped backticks.
   return formula
-    .replace(/(?<!\\)`((?:[^`\\]|\\.)+)`/g, (_, match) => safeSymbolName(match, true))
+    .replace(/(?<!\\)`((?:[^`\\]|\\.)+)`/g, (_, match) => safeSymbolNameFromDisplayFormula(match))
 }
 
 export const customizeDisplayFormula = (formula: string) => {
@@ -79,30 +84,25 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
   // function names and constants might be identical to the symbol name. E.g. 'mean(mean) + "mean"' is a valid formula
   // if there's attribute called "mean". If we process function names and constants, it'll be handled correctly.
   originalDisplay = makeDisplayNamesSafe(originalDisplay) // so it can be parsed by MathJS
-  const getNameFromId = (id: string, wrapInBackTicks: boolean) => {
-    let name = canonicalNameMap[id]
-    // Wrap in backticks if it's not a (MathJS) safe symbol name.
-    if (wrapInBackTicks && name && name !== safeSymbolName(name)) {
-      // Escape special characters in the name. It reverses the process done by safeSymbolName.
-      name = escapeCharactersInSafeSymbolName(name)
-      // Finally, wrap in backticks.
-      name = `\`${name}\``
-    }
-    return name || id
-  }
+  const getNameFromId = (id: string) => canonicalNameMap[id] || id
+  // Wrap in backticks if it's not a (MathJS) safe symbol name.
+  const wrapInBackticksIfNecessary = (name: string) => name !== safeSymbolName(name) ? `\`${name}\`` : name
+
   const namesToReplace: string[] = []
   const newNames: string[] = []
 
   parse(originalDisplay).traverse((node: MathNode, path: string, parent: MathNode) => {
     isNonFunctionSymbolNode(node, parent) && namesToReplace.push(node.name)
-    isConstantStringNode(node) && namesToReplace.push(node.value)
+    isConstantStringNode(node) && namesToReplace.push(escapeDoubleQuoteString(node.value))
     isFunctionNode(node) && namesToReplace.push(node.fn.name)
   })
   parse(canonical).traverse((node: MathNode, path: string, parent: MathNode) => {
     // Symbol with nonstandard characters need to be wrapped in backticks, while constants don't (as they're already
     // wrapped in string quotes).
-    isNonFunctionSymbolNode(node, parent) && newNames.push(getNameFromId(node.name, true))
-    isConstantStringNode(node) && newNames.push(getNameFromId(node.value, false))
+    isNonFunctionSymbolNode(node, parent) && newNames.push(
+      wrapInBackticksIfNecessary(escapeBacktickString(getNameFromId(node.name)))
+    )
+    isConstantStringNode(node) && newNames.push(escapeDoubleQuoteString(getNameFromId(node.value)))
     isFunctionNode(node) && newNames.push(node.fn.name)
   })
 
@@ -140,6 +140,9 @@ export const displayToCanonical = (displayExpression: string, displayNameMap: Di
     if (isFunctionNode(node) && typedFnRegistry[node.fn.name]) {
       // Note that parseArguments will modify args array in place, because we're passing canonicalizeWith option.
       typedFnRegistry[node.fn.name].canonicalize?.(node.args, displayNameMap)
+    }
+    if (isConstantStringNode(node)) {
+      node.value = escapeDoubleQuoteString(node.value)
     }
   }
   formulaTree.traverse(visitNode)
