@@ -36,6 +36,10 @@ export const Formula = types.model("Formula", {
 .actions(self => ({
   setDisplayFormula(displayFormula: string) {
     self.display = displayFormula
+  },
+  updateCanonicalFormula() {
+    // This action will be called by formula manager when it detects that the display formula has changed.
+    // It can happen either as a result of user editing the formula, or when a document with display formulas is loaded.
     self.canonical = "" // reset canonical formula immediately, in case of errors that are handled below
     if (self.empty || !self.valid || !self.formulaManager) {
       return
