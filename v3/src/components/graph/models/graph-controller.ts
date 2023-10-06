@@ -93,7 +93,7 @@ export class GraphController {
     const {graphModel, layout} = this,
       dataset = getDataSetFromId(graphModel, dataSetID),
       dataConfig = graphModel?.dataConfiguration
-    if (!(graphModel && layout && dataset && dataConfig)) {
+    if (!(graphModel && layout && dataConfig)) {
       return
     }
     this.callMatchCirclesToData()
