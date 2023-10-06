@@ -1,7 +1,7 @@
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo } from "../adornment-content-info"
-import { kMovableLineClass, kMovableLinePrefix, kMovableLineType } from "./movable-line-types"
-import "./movable-line-registration"
+import { kMovableLineClass, kMovableLinePrefix, kMovableLineType } from "./movable-line-adornment-types"
+import "./movable-line-adornment-registration"
 
 describe("Movable line registration", () => {
   it("Registers content and component info", () => {

@@ -11,7 +11,7 @@ export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
     type: types.optional(types.literal(kMeanType), kMeanType)
   })
   .views(self => ({
-    getMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return mean(caseValues)

@@ -2,10 +2,11 @@ import React from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
-import { IMovableValueModel, MovableValueModel } from "./movable-value-model"
-import { kMovableValueClass, kMovableValueLabelKey, kMovableValuePrefix,
-         kMovableValueType } from "./movable-value-types"
-import { MovableValue } from "./movable-value"
+import { IMovableValueAdornmentModel, MovableValueAdornmentModel } from "./movable-value-adornment-model"
+import { kMovableValueClass, kMovableValueLabelKey, kMovableValuePrefix, kMovableValueRedoAddKey,
+         kMovableValueRedoRemoveKey, kMovableValueType, kMovableValueUndoAddKey,
+         kMovableValueUndoRemoveKey} from "./movable-value-adornment-types"
+import { MovableValueAdornment } from "./movable-value-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
 const Controls = () => {
@@ -13,20 +14,26 @@ const Controls = () => {
   const adornmentsStore = graphModel.adornmentsStore
 
   const handleAddMovableValue = () => {
-    const existingAdornment = adornmentsStore.findAdornmentOfType<IMovableValueModel>(kMovableValueType)
+    const existingAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
-    const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueModel
-    adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
+    const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueAdornmentModel
+
+    graphModel.applyUndoableAction(
+      () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
+      kMovableValueUndoAddKey, kMovableValueRedoAddKey
+    )
   }
 
   const handleRemoveMovableValue = () => {
-    const adornment = adornmentsStore.findAdornmentOfType<IMovableValueModel>(kMovableValueType)
-    adornmentsStore.updateAdornment(() => {
-      adornment?.deleteValue()
-    })
-    if (!adornment?.hasValues) {
-      adornment?.setVisibility(false)
-    }
+    const adornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
+
+    graphModel.applyUndoableAction(
+      () => {
+          adornmentsStore.updateAdornment(() => { adornment?.deleteValue() })
+          if (!adornment?.hasValues) adornment?.setVisibility(false)
+      },
+      kMovableValueUndoRemoveKey, kMovableValueRedoRemoveKey
+    )
   }
 
   return (
@@ -54,12 +61,12 @@ registerAdornmentContentInfo({
   type: kMovableValueType,
   plots: ['dotPlot'],
   prefix: kMovableValuePrefix,
-  modelClass: MovableValueModel
+  modelClass: MovableValueAdornmentModel
 })
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kMovableValueClass,
-  Component: MovableValue,
+  Component: MovableValueAdornment,
   Controls,
   labelKey: kMovableValueLabelKey,
   order: 100,

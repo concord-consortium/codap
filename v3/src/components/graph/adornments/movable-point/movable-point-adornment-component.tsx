@@ -7,9 +7,10 @@ import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
-import { IMovablePointModel } from "./movable-point-model"
+import { IMovablePointAdornmentModel } from "./movable-point-adornment-model"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
-import "./movable-point.scss"
+import "./movable-point-adornment-component.scss"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')
   .attr('data-testid', 'graph-movable-point-data-tip')
@@ -24,7 +25,7 @@ interface IPointObject {
 
 interface IProps {
   containerId?: string
-  model: IMovablePointModel
+  model: IMovablePointAdornmentModel
   plotHeight: number
   plotWidth: number
   cellKey: Record<string, string>
@@ -32,8 +33,9 @@ interface IProps {
   yAxis?: INumericAxisModel
 }
 
-export const MovablePoint = observer(function MovablePoint(props: IProps) {
+export const MovablePointAdornment = observer(function MovablePointAdornment(props: IProps) {
   const {model, plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props,
+    graphModel = useGraphContentModelContext(),
     dataConfig = useDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
@@ -83,7 +85,7 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       .attr('cy', yPoint + 1)
   }, [pointObject.point, pointObject.shadow])
 
-  const handleDragPoint = useCallback((event: MouseEvent) => {
+  const handleDrag = useCallback((event: MouseEvent) => {
     const { x: xPoint, y: yPoint } = event
     // don't allow point to be dragged outside plot area
     if (xPoint < 0 || xPoint > plotWidth || yPoint < 0 || yPoint > plotHeight) return
@@ -96,9 +98,20 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
       .classed('dragging', true)
     dataTip.show(string, event.target)
     movePoint(xPoint, yPoint)
-    model.setPoint({x: xValue, y: yValue}, instanceKey)
-  }, [classFromKey, instanceKey, model, movePoint, plotHeight, plotWidth, xAttrName,
-      xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
+  }, [classFromKey, movePoint, plotHeight, plotWidth, xAttrName, xScale, xSubAxesCount,
+      yAttrName, yScale, ySubAxesCount])
+
+  const handleDragEnd = useCallback((event: MouseEvent) => {
+    const { x: xPoint, y: yPoint } = event
+    const xValue = Math.round(xScale.invert(xPoint * xSubAxesCount) * 10) / 10
+    const yValue = Math.round(yScale.invert(yPoint * ySubAxesCount) * 10) / 10
+
+    graphModel.applyUndoableAction(
+      () => model.setPoint({x: xValue, y: yValue}, instanceKey),
+      "DG.Undo.graph.moveMovablePoint", "DG.Redo.graph.moveMovablePoint"
+    )
+
+  }, [graphModel, instanceKey, model, xScale, xSubAxesCount, yScale, ySubAxesCount])
 
   useEffect(function repositionPoint() {
     return autorun(() => {
@@ -125,8 +138,12 @@ export const MovablePoint = observer(function MovablePoint(props: IProps) {
     pointObject.point?.on('mouseover', showCoordinates)
       .on('mouseout', hideCoordinates)
       .call(dataTip)
-      .call(drag<SVGCircleElement, unknown>().on("drag", handleDragPoint))
-  }, [pointObject, handleDragPoint, showCoordinates, hideCoordinates])
+      .call(
+        drag<SVGCircleElement, unknown>()
+          .on("drag", handleDrag)
+          .on("end", handleDragEnd)
+      )
+  }, [pointObject, handleDrag, handleDragEnd, showCoordinates, hideCoordinates])
 
   // Set up the point and shadow
   useEffect(function createElements() {

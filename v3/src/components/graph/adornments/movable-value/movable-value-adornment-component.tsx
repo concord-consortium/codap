@@ -6,10 +6,11 @@ import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
-import { IMovableValueModel } from "./movable-value-model"
+import { IMovableValueAdornmentModel } from "./movable-value-adornment-model"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
-import "./movable-value.scss"
+import "./movable-value-adornment-component.scss"
 
 interface IValueObject {
   cover?: Selection<SVGLineElement, unknown, null, undefined>
@@ -20,7 +21,7 @@ interface IValueObject {
 interface IProps {
   cellKey: Record<string, string>
   containerId: string
-  model: IMovableValueModel
+  model: IMovableValueAdornmentModel
   plotHeight: number
   plotWidth: number
   transform: string
@@ -28,9 +29,10 @@ interface IProps {
   yAxis: INumericAxisModel
 }
 
-export const MovableValue = observer(function MovableValue (props: IProps) {
+export const MovableValueAdornment = observer(function MovableValueAdornment(props: IProps) {
   const {containerId, model, cellKey={}, transform, xAxis, yAxis} = props
   const layout = useAxisLayoutContext(),
+    graphModel = useGraphContentModelContext(),
     dataConfig = useDataConfigurationContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
@@ -152,9 +154,12 @@ export const MovableValue = observer(function MovableValue (props: IProps) {
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model
     if (isDragging) {
-      model.endDrag(dragValue, instanceKey, dragIndex)
+      graphModel.applyUndoableAction(
+        () => model.endDrag(dragValue, instanceKey, dragIndex),
+        "DG.Undo.graph.moveMovableValue", "DG.Redo.graph.moveMovableValue"
+      )
     }
-  }, [instanceKey, model])
+  }, [graphModel, instanceKey, model])
 
   // Add drag behaviors to the line cover
   const addDragHandlers = useCallback(() => {

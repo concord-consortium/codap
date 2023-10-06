@@ -1,10 +1,11 @@
 import React from "react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { registerAdornmentContentInfo } from "../adornment-content-info"
-import { MovablePointModel } from "./movable-point-model"
-import { kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix,
-         kMovablePointType } from "./movable-point-types"
-import { MovablePoint } from "./movable-point"
+import { MovablePointAdornmentModel } from "./movable-point-adornment-model"
+import { kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix, kMovablePointRedoAddKey,
+         kMovablePointRedoRemoveKey, kMovablePointType, kMovablePointUndoAddKey, 
+         kMovablePointUndoRemoveKey} from "./movable-point-adornment-types"
+import { MovablePointAdornment } from "./movable-point-adornment-component"
 import { AdornmentCheckbox } from "../adornment-checkbox"
 
 const Controls = () => {
@@ -21,12 +22,18 @@ registerAdornmentContentInfo({
   type: kMovablePointType,
   plots: ['scatterPlot'],
   prefix: kMovablePointPrefix,
-  modelClass: MovablePointModel
+  modelClass: MovablePointAdornmentModel,
+  undoRedoKeys: {
+    undoAdd: kMovablePointUndoAddKey,
+    redoAdd: kMovablePointRedoAddKey,
+    undoRemove: kMovablePointUndoRemoveKey,
+    redoRemove: kMovablePointRedoRemoveKey
+  }
 })
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kMovablePointClass,
-  Component: MovablePoint,
+  Component: MovablePointAdornment,
   Controls,
   labelKey: kMovablePointLabelKey,
   order: 10,

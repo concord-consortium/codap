@@ -2,12 +2,19 @@ import { AdornmentModel } from "./adornment-models"
 import { PlotType } from "../graphing-types"
 import { ParentAdornmentType } from "./adornment-types"
 
+export interface IAdornmentUndoRedoKeys {
+  undoAdd: string,
+  redoAdd: string,
+  undoRemove: string,
+  redoRemove: string
+}
 export interface IAdornmentContentInfo {
   modelClass: typeof AdornmentModel
   plots: PlotType[]
   prefix: string
   parentType?: ParentAdornmentType
   type: string
+  undoRedoKeys?: IAdornmentUndoRedoKeys
 }
 
 const gAdornmentContentInfoMap: Record<string, IAdornmentContentInfo> = {}

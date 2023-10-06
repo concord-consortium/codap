@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useRef } from "react"
 import { autorun } from "mobx"
 import { select, Selection } from "d3"
-import { IPlottedValueModel } from "./plotted-value-model"
+import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { observer } from "mobx-react-lite"
-import { kPlottedValueType } from "./plotted-value-types"
+import { kPlottedValueType } from "./plotted-value-adornment-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { usePrevious } from "../../hooks/use-previous"
 
-import "./plotted-value.scss"
+import "./plotted-value-adornment-component.scss"
 
 interface IValueObject {
   line?: Selection<SVGLineElement, unknown, null, undefined>
@@ -22,14 +22,14 @@ interface IValueObject {
 interface IProps {
   cellKey: Record<string, string>
   containerId?: string
-  model: IPlottedValueModel
+  model: IPlottedValueAdornmentModel
   plotHeight: number
   plotWidth: number
   xAxis: INumericAxisModel
   yAxis: INumericAxisModel
 }
 
-export const PlottedValue = observer(function PlottedValue (props: IProps) {
+export const PlottedValueAdornment = observer(function PlottedValueAdornment(props: IProps) {
   const {cellKey={}, containerId, model, plotWidth, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const value = model.value

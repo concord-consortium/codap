@@ -1,0 +1,8 @@
+export const kPlottedValueClass = "plotted-value"
+export const kPlottedValueType = "Plotted Value"
+export const kPlottedValuePrefix = "ADRN"
+export const kPlottedValueLabelKey = "DG.Inspector.graphPlottedValue"
+export const kPlottedValueUndoAddKey = "DG.Undo.graph.showPlotValue"
+export const kPlottedValueRedoAddKey = "DG.Redo.graph.showPlotValue"
+export const kPlottedValueUndoRemoveKey = "DG.Undo.graph.hidePlotValue"
+export const kPlottedValueRedoRemoveKey = "DG.Redo.graph.hidePlotValue"

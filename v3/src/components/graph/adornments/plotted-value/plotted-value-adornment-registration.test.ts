@@ -1,7 +1,7 @@
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo } from "../adornment-content-info"
-import { kPlottedValueClass, kPlottedValuePrefix, kPlottedValueType } from "./plotted-value-types"
-import "./plotted-value-registration"
+import { kPlottedValueClass, kPlottedValuePrefix, kPlottedValueType } from "./plotted-value-adornment-types"
+import "./plotted-value-adornment-registration"
 
 describe("PlottedValueRegistration", () => {
   it("registers content and component info", () => {

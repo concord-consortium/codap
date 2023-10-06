@@ -18,12 +18,24 @@ export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
   const handleSetting = (checked: boolean) => {
     const componentContentInfo = getAdornmentContentInfo(type)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create()
-    adornment.updateCategories(graphModel.getUpdateCategoriesOptions())
-    adornment.setVisibility(checked)
+    const defaultUndoRedoKeys = {
+      undoAdd: "DG.mainPage.mainPane.undoButton.toolTip",
+      redoAdd: "DG.mainPage.mainPane.redoButton.toolTip",
+      undoRemove: "DG.mainPage.mainPane.undoButton.toolTip",
+      redoRemove: "DG.mainPage.mainPane.redoButton.toolTip"
+    }
+    const undoRedoKeys = componentContentInfo.undoRedoKeys ?? defaultUndoRedoKeys
+
     if (checked) {
-      adornmentsStore.showAdornment(adornment, adornment.type)
+      graphModel.applyUndoableAction(
+        () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
+        undoRedoKeys.undoAdd, undoRedoKeys.redoAdd
+      )
     } else {
-      adornmentsStore.hideAdornment(adornment.type)
+      graphModel.applyUndoableAction(
+        () => adornmentsStore.hideAdornment(adornment.type),
+        undoRedoKeys.undoRemove, undoRedoKeys.redoRemove
+      )
     }
   }
 

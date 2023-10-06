@@ -93,9 +93,12 @@ export const UnivariateMeasureAdornmentComponent = observer(
     }, [instanceKey, model])
 
     const addLineCoverAndLabel = useCallback((
-      valueObj: IValueObject, labelObj: ILabelObject, adornment: IMeasureInstance
+      valueObj: IValueObject, labelObj: ILabelObject, measure: IMeasureInstance
     ) => {
-      const value = adornment.value
+      const attrId = dataConfig?.primaryAttributeID
+      const value = attrId ? model.measureValue(attrId, cellKey, dataConfig) : undefined
+      if (value === undefined) return
+
       const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
       const displayValue = multiScale ? multiScale.formatValueForScale(value) : valueLabelString(value)
       const plotValue = Number(displayValue)
@@ -140,7 +143,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         .attr("y2", y2)
 
       if (showLabel) {
-        const labelCoords = adornment.labelCoords
+        const labelCoords = measure.labelCoords
         const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
         const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
         const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * 20 : 0
@@ -184,9 +187,9 @@ export const UnivariateMeasureAdornmentComponent = observer(
           .attr("y", y / yCellCount)
       }
 
-    }, [adornmentsStore?.activeUnivariateMeasures, classFromKey, containerId, handleEndMoveLabel,
-        handleMoveLabel, highlightCover, highlightLabel, layout, measureType, model, plotWidth, showLabel,
-        xAttrType, xScale, yAttrType, yScale])
+    }, [adornmentsStore?.activeUnivariateMeasures, cellKey, classFromKey, containerId, dataConfig,
+        handleEndMoveLabel, handleMoveLabel, highlightCover, highlightLabel, layout, measureType, model,
+        plotWidth, showLabel, xAttrType, xScale, yAttrType, yScale])
 
     // Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {
@@ -203,7 +206,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       selection.html(null)
       labelSelection.html(null)
 
-      if (measure && Number.isFinite(measure.value)) {
+      if (measure) {
         addLineCoverAndLabel(newValueObj, newLabelObj, measure)
       }
     }, [model, instanceKey, addLineCoverAndLabel])

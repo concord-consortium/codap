@@ -1,0 +1,8 @@
+export const kMovableLineClass = "movable-line"
+export const kMovableLineType = "Movable Line"
+export const kMovableLinePrefix = "ADRN"
+export const kMovableLineLabelKey = "DG.Inspector.graphMovableLine"
+export const kMovableLineUndoAddKey = "DG.Undo.graph.showMovableLine"
+export const kMovableLineRedoAddKey = "DG.Redo.graph.showMovableLine"
+export const kMovableLineUndoRemoveKey = "DG.Undo.graph.hideMovableLine"
+export const kMovableLineRedoRemoveKey = "DG.Redo.graph.hideMovableLine"

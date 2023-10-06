@@ -1,12 +1,12 @@
 import { Instance, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
-import { kMovableValueType } from "./movable-value-types"
+import { kMovableValueType } from "./movable-value-adornment-types"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 
-export const MovableValueModel = AdornmentModel
-  .named('MovableValueModel')
+export const MovableValueAdornmentModel = AdornmentModel
+  .named("MovableValueAdornmentModel")
   .props({
-    type: 'Movable Value',
+    type: "Movable Value",
     values: types.map(types.array(types.number)),
   })
   .volatile(() => ({
@@ -146,7 +146,7 @@ export const MovableValueModel = AdornmentModel
     }
   }))
 
-export interface IMovableValueModel extends Instance<typeof MovableValueModel> {}
-export function isMovableValue(adornment: IAdornmentModel): adornment is IMovableValueModel {
+export interface IMovableValueAdornmentModel extends Instance<typeof MovableValueAdornmentModel> {}
+export function isMovableValueAdornment(adornment: IAdornmentModel): adornment is IMovableValueAdornmentModel {
   return adornment.type === kMovableValueType
 }
