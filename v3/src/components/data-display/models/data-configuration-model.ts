@@ -702,6 +702,7 @@ export const DataConfigurationModel = types
         this._updateFilteredCasesCollectionID()
         self.filteredCases?.push(new FilteredCases({
           source: self.dataset,
+          casesArrayNumber: self.filteredCases.length,
           filter: self.filterCase,
           collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
           onSetCaseValues: this.handleSetCaseValues
@@ -772,7 +773,8 @@ export const DataConfigurationModel = types
       }
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot) {
-      self._yAttributeDescriptions.push(desc)
+      // multiple Y only supported for numeric axes
+      self._yAttributeDescriptions.push({ ...desc, type: 'numeric' })
       self._addNewFilteredCases()
     },
     setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
