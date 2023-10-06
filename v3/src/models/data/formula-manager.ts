@@ -393,14 +393,20 @@ export class FormulaManager {
     const disposeAttrCollectionReaction = reaction(
       () => Object.fromEntries(dataSet.collections.map(c => [ c.id, c.attributes.map(a => a?.id) ])),
       () => this.recalculateAllFormulas(),
-      { equals: comparer.structural }
+      {
+        equals: comparer.structural,
+        name: "FormulaManager.observeDatasetChanges.reaction [collections]"
+      }
     )
     // When any attribute name is updated, we need to update display formulas. We could make this more granular,
     // and observe only dependant attributes, but it doesn't seem necessary for now.
     const disposeAttrNameReaction = reaction(
       () => dataSet.attrNameMap,
       () => this.updateDisplayFormulas(),
-      { equals: comparer.structural }
+      {
+        equals: comparer.structural,
+        name: "FormulaManager.observeDatasetChanges.reaction [attrNameMap]"
+      }
     )
     const dispose = () => {
       disposeAttrCollectionReaction()
@@ -476,12 +482,14 @@ export class FormulaManager {
         // Recalculate formula when global value dependency is updated.
         reaction(
           () => this.globalValueManager?.getValueById(dependency.globalId)?.value,
-          () => this.recalculateFormula(formulaId)
+          () => this.recalculateFormula(formulaId),
+          { name: "FormulaManager.observeGlobalValues.reaction [globalValue]" }
         ),
         // Update display form of the formula when global value name is updated.
         reaction(
           () => this.globalValueManager?.getValueById(dependency.globalId)?.name,
-          () => this.getFormulaContext(formulaId).formula.updateDisplayFormula()
+          () => this.getFormulaContext(formulaId).formula.updateDisplayFormula(),
+          { name: "FormulaManager.observeGlobalValues.reaction [globalValueName]" }
         ),
       ]
     ).flat()
