@@ -255,6 +255,7 @@ export class FormulaManager {
           if (!metadata || metadata.registeredDisplay !== attr.formula.display) {
             this.unregisterFormula(attr.formula.id)
             this.registerFormula(attr.formula, attr.id, dataSet)
+            attr.formula.updateCanonicalFormula()
             if (!attr.formula.empty) {
               updatedFormulas.push(attr.formula.id)
             }
