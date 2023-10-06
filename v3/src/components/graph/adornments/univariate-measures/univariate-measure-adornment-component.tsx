@@ -97,7 +97,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
     ) => {
       const attrId = dataConfig?.primaryAttributeID
       const value = attrId ? model.measureValue(attrId, cellKey, dataConfig) : undefined
-      if (!value && value !== 0) return
+      if (value === undefined) return
 
       const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
       const displayValue = multiScale ? multiScale.formatValueForScale(value) : valueLabelString(value)
