@@ -59,7 +59,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     }
   }))
   .actions(self => ({
-    addValue(aValue?: number, init=false) {
+    addValue(aValue?: number) {
       self.values.forEach((values, key) => {
         const newValue = !aValue ? self.newValue(key) : aValue
         const newValues = [...values]
@@ -99,7 +99,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     setInitialValue(aValue=10, key="{}") {
       self.deleteAllValues()
       self.values.set(key, [])
-      self.addValue(aValue, true)
+      self.addValue(aValue)
     },
     updateDrag(value: number, instanceKey: string, index: number) {
       self.dragIndex = index
