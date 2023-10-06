@@ -1,4 +1,5 @@
 import { cloneDeep } from "lodash"
+import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import { Attribute, IAttributeSnapshot, importValueToString, kDefaultFormatStr } from "./attribute"
 
@@ -179,6 +180,49 @@ describe("Attribute", () => {
     expect(attribute.editable).toBe(false)
   })
 
+  test("caching/invalidation of views based on data values works as expected", () => {
+    const a = Attribute.create({ id: "aId", name: "a", values: ["1", "2", "3"] })
+
+    // value changes should trigger length reevaluation
+    const lengthListener = jest.fn()
+    const lengthDisposer = reaction(() => a.length, () => lengthListener())
+    expect(a.length).toBe(3)
+    expect(lengthListener).toHaveBeenCalledTimes(0)
+    a.addValue("4")
+    expect(a.length).toBe(4)
+    expect(lengthListener).toHaveBeenCalledTimes(1)
+    lengthDisposer()
+
+    // value changes should trigger emptyCount reevaluation
+    const emptyCountListener = jest.fn()
+    const emptyCountDisposer = reaction(() => a.emptyCount, () => emptyCountListener())
+    expect(a.emptyCount).toBe(0)
+    expect(emptyCountListener).toHaveBeenCalledTimes(0)
+    a.setValue(2, "")
+    expect(a.emptyCount).toBe(1)
+    expect(emptyCountListener).toHaveBeenCalledTimes(1)
+    emptyCountDisposer()
+
+    // value changes should trigger numericCount reevaluation
+    const numericCountListener = jest.fn()
+    const numericCountDisposer = reaction(() => a.numericCount, () => numericCountListener())
+    expect(a.numericCount).toBe(3)
+    expect(numericCountListener).toHaveBeenCalledTimes(0)
+    a.setValue(2, "3")
+    expect(a.numericCount).toBe(4)
+    expect(numericCountListener).toHaveBeenCalledTimes(1)
+    numericCountDisposer()
+
+    const typeListener = jest.fn()
+    const typeDisposer = reaction(() => a.type, () => typeListener())
+    expect(a.type).toBe("numeric")
+    expect(typeListener).toHaveBeenCalledTimes(0)
+    a.setValue(2, "a")
+    expect(a.type).toBe("categorical")
+    expect(typeListener).toHaveBeenCalledTimes(1)
+    typeDisposer()
+  })
+
   test("Serialization (development)", () => {
     process.env.NODE_ENV = "development"
     const x = Attribute.create({ name: "x", values: ["1", "2", "3"] })
@@ -241,12 +285,12 @@ describe("Attribute", () => {
     // current behavior of formulas is based on CLUE's limited needs
     // CODAP will need something more sophisticated
     const attr = Attribute.create({ name: "foo" })
-    // expect(attr.formula.display).toBeUndefined()
+    expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
     // attr.formula.canonicalize("x")
     expect(attr.formula.canonical).toBe("")
-    // attr.setDisplayFormula("2 * x", "x")
-    // expect(attr.formula.display).toBe("2 * x")
+    attr.setDisplayFormula("2 * x")
+    expect(attr.formula.display).toBe("2 * x")
     // expect(attr.formula.canonical).toBe(`(2 * ${kSerializedXKey})`)
     // attr.formula.setDisplay()
     // attr.formula.synchronize("x")
@@ -258,7 +302,7 @@ describe("Attribute", () => {
     // attr.formula.synchronize("x")
     // expect(attr.formula.display).toBe("2 * y")
     attr.clearFormula()
-    // expect(attr.formula.display).toBeUndefined()
+    expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
   })
 
@@ -278,7 +322,7 @@ describe("Attribute", () => {
     expect(barSnap.values?.length).toBe(0)
   })
 
-  test.skip("value.toString() vs. JSON.stringify(value)", () => {
+  test.skip("performance of value.toString() vs. JSON.stringify(value)", () => {
     const values: number[] = []
     for (let i = 0; i < 5000; ++i) {
       const factor = Math.pow(10, Math.floor(6 * Math.random()))

@@ -75,7 +75,13 @@ export const Attribute = types.model("Attribute", {
 })
 .volatile(self => ({
   strValues: [] as string[],
-  numValues: [] as number[]
+  numValues: [] as number[],
+  changeCount: 0
+}))
+.actions(self => ({
+  incChangeCount() {
+    ++self.changeCount
+  }
 }))
 .views(self => ({
   importValue(value: IValueType) {
@@ -88,9 +94,11 @@ export const Attribute = types.model("Attribute", {
     return Number(value)
   },
   get emptyCount() {
+    self.changeCount  // eslint-disable-line no-unused-expressions
     return self.strValues.reduce((prev, current) => current === "" ? ++prev : prev, 0)
   },
   get numericCount() {
+    self.changeCount  // eslint-disable-line no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }
 }))
@@ -132,13 +140,14 @@ export const Attribute = types.model("Attribute", {
 }))
 .views(self => ({
   get length() {
+    self.changeCount  // eslint-disable-line no-unused-expressions
     return self.strValues.length
   },
   get type() {
     if (self.userType) return self.userType
-    if (self.numValues.length === 0) return
+    if (this.length === 0) return
     // only infer numeric if all non-empty values are numeric (CODAP2)
-    return self.numericCount === self.numValues.length - self.emptyCount ? "numeric" : "categorical"
+    return self.numericCount === this.length - self.emptyCount ? "numeric" : "categorical"
   },
   get format() {
     return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
@@ -199,6 +208,7 @@ export const Attribute = types.model("Attribute", {
       self.strValues.push(strValue)
       self.numValues.push(numValue)
     }
+    self.incChangeCount()
   },
   addValues(values: IValueType[], beforeIndex?: number) {
     const strValues = values.map(v => self.importValue(v))
@@ -210,12 +220,14 @@ export const Attribute = types.model("Attribute", {
     else {
       self.strValues.push(...strValues)
       self.numValues.push(...numValues)
-  }
+    }
+    self.incChangeCount()
   },
   setValue(index: number, value: IValueType) {
     if ((index >= 0) && (index < self.strValues.length)) {
       self.strValues[index] = self.importValue(value)
       self.numValues[index] = self.toNumeric(self.strValues[index])
+      self.incChangeCount()
     }
   },
   setValues(indices: number[], values: IValueType[]) {
@@ -227,11 +239,13 @@ export const Attribute = types.model("Attribute", {
         self.numValues[index] = self.toNumeric(self.strValues[index])
       }
     }
+    self.incChangeCount()
   },
   removeValues(index: number, count = 1) {
     if ((index != null) && (index < self.strValues.length) && (count > 0)) {
       self.strValues.splice(index, count)
       self.numValues.splice(index, count)
+      self.incChangeCount()
     }
   }
 }))
