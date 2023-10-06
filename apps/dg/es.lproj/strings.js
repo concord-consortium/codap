@@ -1094,5 +1094,6 @@ SC.stringsFor("es", {
     "DG.Undo.legend.unlockQuantiles": "Undo unlocking legend color bins",
     "DG.Redo.legend.unlockQuantiles": "Redo unlocking legend color bins",
     "DG.Inspector.lockLegendQuantiles": "Lock legend color bins",
-    "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change."
+    "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change.",
+    "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI"
 });
