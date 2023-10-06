@@ -269,6 +269,10 @@ export const DataSet = types.model("DataSet", {
   }
 
   function getCollection(collectionId: string): ICollectionPropsModel | undefined {
+    if (!isAlive(self)) {
+      console.warn("DataSet.getCollection called on a defunct DataSet")
+      return
+    }
     return collectionId === self.ungrouped.id ? self.ungrouped : getGroupedCollection(collectionId)
   }
 
