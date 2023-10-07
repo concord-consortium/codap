@@ -44,8 +44,7 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
     if (filter) {
       const filterValues = evaluateNode(filter, scope)
       expressionValues = expressionValues.filter((v: any, i: number) =>
-        // Non-truthy expression values should not be part of the aggregate function result following V2 behavior.
-        // E.g. empty cells should not be counted in mean() function.
+        // Empty cells should not be included in aggregate functions.
         isValueNonEmpty(v) && isValueTruthy(filterValues[i])
       )
     } else {
