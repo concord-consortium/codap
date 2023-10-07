@@ -43,25 +43,33 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
     let expressionValues = evaluateNode(expression, scope)
     if (filter) {
       const filterValues = evaluateNode(filter, scope)
-      expressionValues = expressionValues.filter((v: any, i: number) => !!filterValues[i])
+      expressionValues = expressionValues.filter((v: any, i: number) =>
+        // Empty cells should not be included in aggregate functions.
+        isValueNonEmpty(v) && isValueTruthy(filterValues[i])
+      )
+    } else {
+      // Empty cells should not be included in aggregate functions.
+      expressionValues = expressionValues.filter((v: any) => isValueNonEmpty(v))
     }
-    return fn(expressionValues)
+    return expressionValues.length > 0 ? fn(expressionValues) : UNDEF_RESULT
   }
 }
 
+export const isValueNonEmpty = (value: any) => value !== "" && value !== null && value !== undefined
+
 // CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior. So that, for instance,
 // count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
-export const isValueTruthy = (value: any) => value !== "" && value !== false && value !== null && value !== undefined
+export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false
 
-export const equal = (a: any, b: any) => {
+export const equal = (a: any, b: any): boolean | boolean[] => {
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.map((v, i) => v === b[i])
+    return a.map((v, i) => equal(v, b[i])) as boolean[]
   }
   if (Array.isArray(a) && !Array.isArray(b)) {
-    return a.map((v) => v === b)
+    return a.map((v) => equal(v, b)) as boolean[]
   }
   if (!Array.isArray(a) && Array.isArray(b)) {
-    return b.map((v) => v === a)
+    return b.map((v) => equal(v, a)) as boolean[]
   }
   // Checks below might seem redundant once the data set cases start using typed values, but they are not.
   // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
