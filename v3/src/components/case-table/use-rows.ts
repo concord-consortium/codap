@@ -132,22 +132,32 @@ export const useRows = () => {
     }, { attachAfter: false })
     const afterAnyActionDisposer = data && onAnyAction(data, action => {
       prf.measure("Table.useRows[onAnyAction]", () => {
+        const isHierarchical = !!data?.collections.length
+        const alwaysResetRowCacheActions = ["addAttribute", "removeAttribute", "setFormat"]
+        const hierarchicalResetRowCacheActions = ["addCases", "setCaseValues", "removeCases"]
         let updateRows = false
 
-        const getCasesToUpdate = (_cases: ICase[], index?: number) => {
-          lowestIndex.current = index != null ? index : data.cases.length
-          const casesToUpdate = []
-          for (let i=0; i<_cases.length; ++i) {
-            lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__))
-          }
-          for (let j=lowestIndex.current; j < data.cases.length; ++j) {
-            casesToUpdate.push(data.cases[j])
-          }
-          return casesToUpdate
+        // some actions (more with hierarchical data sets) require rebuilding the entire row cache
+        if (alwaysResetRowCacheActions.includes(action.name) ||
+            (isHierarchical && hierarchicalResetRowCacheActions.includes(action.name))) {
+          resetRowCache()
+          updateRows = true
         }
 
-        if (!data?.collections.length) {
-          updateRows = true
+        // non-hierarchical data sets can respond more efficiently to some actions
+        if (!isHierarchical && hierarchicalResetRowCacheActions.includes(action.name)) {
+          const getCasesToUpdate = (_cases: ICase[], index?: number) => {
+            lowestIndex.current = index != null ? index : data.cases.length
+            const casesToUpdate = []
+            for (let i=0; i<_cases.length; ++i) {
+              lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__))
+            }
+            for (let j=lowestIndex.current; j < data.cases.length; ++j) {
+              casesToUpdate.push(data.cases[j])
+            }
+            return casesToUpdate
+          }
+
           if (isAddCasesAction(action)) {
             const [_cases] = action.args
             // update cache only for entries after the added cases
@@ -166,9 +176,7 @@ export const useRows = () => {
             const casesToUpdate = getCasesToUpdate([], lowestIndex.current)
             casesToUpdate.forEach(({ __id__ }) => rowCache.set(__id__, { __id__ }))
           }
-          else {
-            updateRows = false
-          }
+          updateRows = true
         }
 
         if (updateRows) {
