@@ -247,7 +247,7 @@ export const fnRegistry = {
 
       const filterValues = filter && evaluateNode(filter, scope)
       const validExpressionValues = evaluateNode(expression, scope).filter((v: FValue, i: number) =>
-        v !== "" && (filter ? isValueTruthy(filterValues[i]) : true)
+        isValueTruthy(v) && (filter ? isValueTruthy(filterValues[i]) : true)
       )
       const result = validExpressionValues.length
 
