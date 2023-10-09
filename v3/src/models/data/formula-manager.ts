@@ -1,4 +1,5 @@
 import { comparer, makeObservable, observable, reaction } from "mobx"
+import { isAlive } from "@concord-consortium/mobx-state-tree"
 import { EvalFunction } from "mathjs"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
@@ -245,6 +246,7 @@ export class FormulaManager {
       })
       return result
     }, () => {
+      this.unregisterDeletedFormulas()
       // Register formulas. For simplicity, we unregister all formulas and register them again when canonical form is
       // updated. Note that even empty formulas are registered, so the metadata is always available when cycle detection
       // is executed.
@@ -270,7 +272,31 @@ export class FormulaManager {
           this.recalculateFormula(formulaId)
         }
       })
-    }, { equals: comparer.structural, fireImmediately: true })
+    }, {
+      equals: comparer.structural,
+      fireImmediately: true,
+      name: "FormulaManager.registerAllFormulas.reaction"
+    })
+  }
+
+  unregisterDeletedFormulas() {
+    this.formulaMetadata.forEach((metadata, formulaId) => {
+      const { dataSetId, attributeId } = this.getFormulaMetadata(formulaId)
+      const dataSet = this.dataSets.get(dataSetId)
+      if (!dataSet) {
+        this.unregisterFormula(formulaId)
+        return
+      }
+      if (!dataSet.attrFromID(attributeId)) {
+        this.unregisterFormula(formulaId)
+        return
+      }
+      // In 99% of cases, the two `if` statements above will be sufficient to detect deleted formulas. However, this
+      // could serve as the ultimate check in case a formula instance was deleted in a different manner.
+      if (!isAlive(metadata.formula)) {
+        this.unregisterFormula(formulaId)
+      }
+    })
   }
 
   recalculateAllFormulas() {
@@ -393,7 +419,10 @@ export class FormulaManager {
     // we need to recalculate all formulas.
     const disposeAttrCollectionReaction = reaction(
       () => Object.fromEntries(dataSet.collections.map(c => [ c.id, c.attributes.map(a => a?.id) ])),
-      () => this.recalculateAllFormulas(),
+      () => {
+        this.unregisterDeletedFormulas()
+        this.recalculateAllFormulas()
+      },
       {
         equals: comparer.structural,
         name: "FormulaManager.observeDatasetChanges.reaction [collections]"
@@ -403,7 +432,10 @@ export class FormulaManager {
     // and observe only dependant attributes, but it doesn't seem necessary for now.
     const disposeAttrNameReaction = reaction(
       () => dataSet.attrNameMap,
-      () => this.updateDisplayFormulas(),
+      () => {
+        this.unregisterDeletedFormulas()
+        this.updateDisplayFormulas()
+      },
       {
         equals: comparer.structural,
         name: "FormulaManager.observeDatasetChanges.reaction [attrNameMap]"
@@ -468,7 +500,9 @@ export class FormulaManager {
           break
       }
 
-      this.recalculateFormula(formulaId, casesToRecalculate)
+      if (casesToRecalculate.length > 0) {
+        this.recalculateFormula(formulaId, casesToRecalculate)
+      }
     })
 
     return disposeDatasetObserver
