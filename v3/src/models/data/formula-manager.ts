@@ -283,11 +283,7 @@ export class FormulaManager {
     this.formulaMetadata.forEach((metadata, formulaId) => {
       const { dataSetId, attributeId } = this.getFormulaMetadata(formulaId)
       const dataSet = this.dataSets.get(dataSetId)
-      if (!dataSet) {
-        this.unregisterFormula(formulaId)
-        return
-      }
-      if (!dataSet.attrFromID(attributeId)) {
+      if (!dataSet?.attrFromID(attributeId)) {
         this.unregisterFormula(formulaId)
         return
       }
