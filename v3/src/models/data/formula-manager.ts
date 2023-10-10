@@ -6,7 +6,8 @@ import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import {
   getFormulaDependencies, formulaError, getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference,
-  getIncorrectParentAttrReference, safeSymbolName, reverseDisplayNameMap
+  getIncorrectParentAttrReference, safeSymbolName, reverseDisplayNameMap, getLocalAttrCasesToRecalculate,
+  getLookupCasesToRecalculate
 } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
@@ -451,35 +452,8 @@ export class FormulaManager {
   observeLocalAttributes(formulaId: string, formulaDependencies: IFormulaDependency[]) {
     const { dataSet } = this.getFormulaContext(formulaId)
 
-    const regularDatasetAttributeDependencies: ILocalAttributeDependency[] =
-      formulaDependencies.filter(d => d.type === "localAttribute" && !d.aggregate) as ILocalAttributeDependency[]
-    const aggregateDatasetAttributeDependencies: ILocalAttributeDependency[] =
-      formulaDependencies.filter(d => d.type === "localAttribute" && d.aggregate) as ILocalAttributeDependency[]
-
-    const getCasesToRecalculate = (cases: ICase[]) => {
-      const aggregateDependencyPresent = !!cases.find(c => {
-        for (const dependency of aggregateDatasetAttributeDependencies) {
-          if (c[dependency.attrId] !== undefined) {
-            return true
-          }
-        }
-        return false
-      })
-      if (aggregateDependencyPresent) {
-        return "ALL_CASES"
-      }
-
-      // Otherwise, check all the updated cases if they have any of the dependency attributes. Each case that
-      // includes one of the regular dependency attributes needs to be recalculated.
-      return cases.filter(c => {
-        for (const dependency of regularDatasetAttributeDependencies) {
-          if (Object.prototype.hasOwnProperty.call(c, dependency.attrId)) {
-            return true
-          }
-        }
-        return false
-      })
-    }
+    const localAttrDependencies =
+      formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
 
     // Observe local dataset attribute changes
     const disposeDatasetObserver = onAnyAction(dataSet, mstAction => {
@@ -493,7 +467,7 @@ export class FormulaManager {
         case "setCaseValues": {
           // recalculate cases with dependency attribute updated
           const cases = (mstAction as SetCaseValuesAction).args[0] || []
-          casesToRecalculate = getCasesToRecalculate(cases)
+          casesToRecalculate = getLocalAttrCasesToRecalculate(cases, localAttrDependencies)
           break
         }
         default:
@@ -542,12 +516,6 @@ export class FormulaManager {
         throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
       }
 
-      const getCasesToRecalculate = (cases: ICase[]) => {
-        return cases.find(c =>
-          c[dependency.attrId] !== undefined || (dependency.keyAttrId && c[dependency.keyAttrId] !== undefined)
-        ) ? "ALL_CASES" : []
-      }
-
       return onAnyAction(externalDataSet, mstAction => {
         let casesToRecalculate: ICase[] | "ALL_CASES" = []
         switch (mstAction.name) {
@@ -563,7 +531,7 @@ export class FormulaManager {
           case "setCaseValues": {
             // recalculate cases with dependency attribute updated
             const cases = (mstAction as SetCaseValuesAction).args[0] || []
-            casesToRecalculate = getCasesToRecalculate(cases)
+            casesToRecalculate = getLookupCasesToRecalculate(cases, dependency)
             break
           }
           default:
