@@ -4,7 +4,7 @@ import { drag, select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import t from "../../../../utilities/translation/translate"
-import { IMeasureInstance } from "./univariate-measure-adornment-model"
+import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
@@ -12,9 +12,7 @@ import { useDataConfigurationContext } from "../../hooks/use-data-configuration-
 import { valueLabelString } from "../../utilities/graph-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { IMeanAdornmentModel } from "./mean/mean-adornment-model"
-import { IMedianAdornmentModel } from "./median/median-adornment-model"
-import { IPlottedValueAdornmentModel, isPlottedValueAdornment } from "./plotted-value/plotted-value-adornment-model"
+import { isPlottedValueAdornment } from "./plotted-value/plotted-value-adornment-model"
 
 import "./univariate-measure-adornment-component.scss"
 
@@ -31,7 +29,7 @@ interface ILabelObject {
 interface IProps {
   cellKey: Record<string, string>
   containerId?: string
-  model: IMeanAdornmentModel | IMedianAdornmentModel | IPlottedValueAdornmentModel
+  model: IUnivariateMeasureAdornmentModel
   plotHeight: number
   plotWidth: number
   xAxis: INumericAxisModel
@@ -219,6 +217,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       return autorun(() => {
         // The next line should not be needed, but without it this autorun doesn't get triggered.
         // TODO: Figure out exactly why this is needed and adjust accordingly.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const modelValue = isPlottedValueAdornment(model) ? model.expression : undefined
         model.updateCategories(graphModel.getUpdateCategoriesOptions())
       })
