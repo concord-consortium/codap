@@ -290,6 +290,7 @@ export class FormulaManager {
       // In 99% of cases, the two `if` statements above will be sufficient to detect deleted formulas. However, this
       // could serve as the ultimate check in case a formula instance was deleted in a different manner.
       if (!isAlive(metadata.formula)) {
+        console.warn("FormulaManager.unregisterDeletedFormulas unregistering a defunct formula that was not detected by the usual means.")
         this.unregisterFormula(formulaId)
       }
     })
