@@ -1,5 +1,29 @@
 # Changelog
 
+## Version 3.0.0-pre.1360 - October 10, 2023
+
+### Features/Improvements
+- Dot plots can show **mean** and **median** [#181914405](https://www.pivotaltracker.com/story/show/181914405)
+- Formula is updated when attribute name is changed [#186144182](https://www.pivotaltracker.com/story/show/186144182)
+- Formula is updated when global value name is changed [#186166594](https://www.pivotaltracker.com/story/show/186166594)
+- Handle characters that need escaping in formula backtick strings (e.g. `Attr\\` Name`) [#186176018](https://www.pivotaltracker.com/story/show/186176018)
+- Handle characters that need escaping in formula double quote strings (e.g. lookup("Attr\\" Name") + "cons\\"tant") [#186145125](https://www.pivotaltracker.com/story/show/186145125)
+- The **count** function can take an argument [#186185032](https://www.pivotaltracker.com/story/show/186185032)
+- Evaluation of formula with mean counts blank cells as 0 in mean calculation [#186145218](https://www.pivotaltracker.com/story/show/186145218)
+- Delete attribute from case table should be undoable [#186095272](https://www.pivotaltracker.com/story/show/186095272)
+
+### Bug Fixes
+- Syntax error in formula not caught [#186185461](https://www.pivotaltracker.com/story/show/186185461)
+- Hierarchical tables don't update properly [#186204753](https://www.pivotaltracker.com/story/show/186204753)
+- Formula doesn't work when attribute name is the same as one of the supported functions (e.g. "mean(mean)") [#186152786](https://www.pivotaltracker.com/story/show/186152786)
+- Case table content should resize to fill component when component is resized [#186095283](https://www.pivotaltracker.com/story/show/186095283)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   69080 bytes |                               0% |
+|  index.js | 3382101 bytes |                            0.38% |
+
 ## Version 3.0.0-pre.1342 - October 2, 2023
 
 ### Features/Improvements
