@@ -34,7 +34,9 @@ context('will test graph ruler functions', ()=>{
             graph.getCountAdorn().should('have.length',hash.length)
             graph.turnOnRulerTool('plottedMean')
             graph.turnOnRulerTool('plottedMedian')
+            graph.expandMeasuresOfSpread()
                 graph.turnOnRulerTool('plottedStDev')
+                graph.collapseMesuresOfSpread()
                 graph.turnOnRulerTool('plottedBoxPlot')
                 graph.turnOnRulerTool('plottedValue')
                 graph.getMovableValueButton().click();
@@ -48,7 +50,9 @@ context('will test graph ruler functions', ()=>{
                 graph.getCountAdorn().should('not.be.visible')
                 graph.turnOffRulerTool('plottedMean')
                 graph.turnOffRulerTool('plottedMedian')
+                graph.expandMeasuresOfSpread()
                 graph.turnOffRulerTool('plottedStDev')
+                graph.collapseMesuresOfSpread()
                 graph.turnOffRulerTool('plottedBoxPlot')
                 graph.turnOffRulerTool('plottedValue')
                 graph.getMovableValueButton().click();
@@ -97,7 +101,9 @@ context('will test graph ruler functions', ()=>{
             graph.clickRulerTool();
             graph.turnOnRulerTool('plottedMean')
             graph.turnOnRulerTool('plottedMedian')
+            graph.expandMeasuresOfSpread()
             graph.turnOnRulerTool('plottedStDev')
+            graph.collapseMesuresOfSpread()
             graph.turnOnRulerTool('plottedBoxPlot')
             graph.turnOnRulerTool('plottedValue')
             if (idx===0) {
@@ -114,7 +120,9 @@ context('will test graph ruler functions', ()=>{
             graph.clickRulerTool({force:true});//have to click ruler twice to open panel
             graph.turnOffRulerTool('plottedMean')
             graph.turnOffRulerTool('plottedMedian')
+            graph.expandMeasuresOfSpread()
             graph.turnOffRulerTool('plottedStDev')
+            graph.collapseMesuresOfSpread()
             graph.turnOffRulerTool('plottedBoxPlot')
             graph.turnOffRulerTool('plottedValue')
             graph.getMovableValueButton().click();
@@ -198,10 +206,11 @@ context('will test graph ruler functions', ()=>{
             })
             cy.matchImageSnapshot('p_'+hash[0].attribute+'_on_'+hash[0].axis+'_adorned');
             cy.dragAttributeToTarget('table',hash[1].attribute, hash[1].axis)
-            cy.wait(1000)
+            graph.clickRulerTool({force:true});//have to click ruler twice to open panel
+            graph.turnOffRulerTool('plottedMean')
+            graph.turnOnRulerTool('plottedMean')
             graph.getMeanLine().should('be.visible').and('have.length',1);
-            graph.getMeanLine().last().click()
-            cy.get('.dg-graph-view svg path[stroke="#0000ff"]').last().trigger('mouseover').then(()=>{
+            graph.hoverMeanLine().then(()=>{
                 graph.getGraphAdornmentText().should('contain','mean=−0.24')
             })
             cy.matchImageSnapshot('p_'+hash[1].attribute+'_on_'+hash[1].axis+'_adorned');

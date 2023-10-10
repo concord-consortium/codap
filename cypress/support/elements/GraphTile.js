@@ -128,6 +128,12 @@ class GraphTile {
     clickShowParentVisibilityToggles() {
         cy.get('.dg-display-hideshow-popup .sc-menu-item a').contains('Show Parent Visibility Toggles').parent().click();
     }
+    expandMeasuresOfSpread() {
+      cy.get('label').contains('Measures of Spread').parent().click();
+    }
+    collapseMesuresOfSpread() {
+      cy.get('label').contains('←').parent().click();
+    }
     turnOnRulerTool(tool) {
         cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});
     }
