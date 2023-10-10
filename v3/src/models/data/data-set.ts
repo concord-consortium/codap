@@ -301,6 +301,10 @@ export const DataSet = types.model("DataSet", {
       getCollectionForAttribute,
       // leaf-most child cases (i.e. those not grouped in a collection)
       childCases() {
+        if (!isValidCollectionGroups.get()) {
+          // childCases array cache is built by collectionGroups()
+          this.collectionGroups // eslint-disable-line no-unused-expressions
+        }
         return _childCases
       },
       // the resulting collection groups
@@ -877,8 +881,8 @@ export const DataSet = types.model("DataSet", {
           })
           insertCaseIDAtIndex(__id__, insertPosition)
         })
-        // invalidate collectionGroups if there's any grouping
-        self.collections.length && self.invalidateCollectionGroups()
+        // invalidate collectionGroups (including childCases)
+        self.invalidateCollectionGroups()
       },
 
       // Supports regular cases or pseudo-cases, but not mixing the two.
@@ -945,8 +949,8 @@ export const DataSet = types.model("DataSet", {
             }
           }
         })
-        // invalidate collectionGroups if there's grouping going on
-        self.collections.length && self.invalidateCollectionGroups()
+        // invalidate collectionGroups (including childCases)
+        self.invalidateCollectionGroups()
       },
 
       selectAll(select = true) {
