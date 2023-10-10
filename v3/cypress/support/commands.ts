@@ -17,13 +17,15 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
     y_axis: ".codap-graph .droppable-axis.droppable-svg.left",
     y_axis_label: ".codap-graph .axis-legend-attribute-menu.left .chakra-menu__menu-button",
     mapTile: ".dg.leaflet-container",
-    newCollection: ".dg-table-drop-target"
+    newCollection: ".collection-table-spacer.parentMost",
+    prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
   }
 
   let source_el = "", target_el = ""
 
   switch (source) {
     case ("table"):
+    case ("newCollection"):
       source_el = el.tableHeader
       break
     case ("attribute"):
@@ -75,6 +77,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
       break
     case ("newCollection"):
       target_el = el.newCollection
+      break
+    case ("prevCollection"):
+      target_el = el.prevCollection
       break
     default:
       target_el = el.tableColumnHeader

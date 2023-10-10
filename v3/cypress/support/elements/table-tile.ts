@@ -10,25 +10,33 @@ export const TableTileElements = {
   getNumOfAttributes() {
     return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-colcount")
   },
-  getNumOfCases() {
-    return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-rowcount")
+  getNumOfRows(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]")
+      .invoke("attr", "aria-rowcount")
   },
-  getCollectionTitle() {
-    return this.getTableTile().find("[data-testid=editable-component-title]")
+  getCollection(collectionIndex = 1) {
+    return this.getTableTile().find(`.collection-table:nth-child(${collectionIndex})`)
   },
-  getColumnHeaders() {
-    return cy.get("[data-testid=case-table] [role=columnheader]")
+  getCollectionTitle(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(".collection-title")
   },
-  getColumnHeader(index) {
-    return cy.get("[data-testid=codap-column-header-content]").eq(index)
+  getColumnHeaders(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[role=columnheader]")
+  },
+  getColumnHeader(index, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[data-testid=codap-column-header-content]").eq(index)
   },
   // doesn't work in more recent chakra versions
   // getColumnHeaderTooltip() {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
-  openIndexMenuForRow(rowNum) {
-    cy.get(`[data-testid=collection-table-grid] [role=row][aria-rowindex="${rowNum}"]
-            [data-testid=codap-index-content-button]`).click("top")
+  getIndexRow(rowNum, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid] 
+      [role=row][aria-rowindex="${rowNum}"]
+      [data-testid=codap-index-content-button]`)
+  },
+  openIndexMenuForRow(rowNum, collectionIndex = 1) {
+    this.getIndexRow(rowNum, collectionIndex).click("top")
   },
   getIndexMenu() {
     return cy.get("[data-testid=index-menu-list]")
@@ -62,8 +70,8 @@ export const TableTileElements = {
   getAttributeHeader() {
     return cy.get("[data-testid^=codap-attribute-button]")
   },
-  getAttribute(name) {
-    return cy.get(`[data-testid^="codap-attribute-button ${name}"]`)
+  getAttribute(name, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
   openAttributeMenu(name) {
     this.getAttribute(name).click()
@@ -123,8 +131,8 @@ export const TableTileElements = {
     this.getApplyButton().click()
 
   },
-  getCell(line, row) {
-    return cy.get(`[data-testid=case-table] [aria-rowindex="${row}"] [aria-colindex="${line}"] .cell-span`)
+  getCell(line, row, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${line}"] .cell-span`)
   },
   verifyRowSelected(row) {
     cy.get(`[data-testid=case-table] [aria-rowindex="${row}"]`).invoke("attr", "aria-selected")
@@ -166,5 +174,64 @@ export const TableTileElements = {
   },
   getAttributesButton() {
     return c.getInspectorPanel().find("[data-testid=table-attributes-button]")
+  },
+  verifyAttributeValues(attributes, values, collectionIndex = 1) {
+    attributes.forEach(a => {
+      const attribute = a.name
+      for (let rowIndex = 0; rowIndex < values[attribute].length; rowIndex++) {
+        cy.wait(1000)
+        this.getAttributeValue(attribute, rowIndex+2, collectionIndex).then(cell => {
+          expect(values[attribute]).to.include(cell.text())
+        })
+      }
+    })
+  },
+  getAttributeValue(attribute, rowIndex, collectionIndex = 1) {
+    return this.getAttribute(attribute, collectionIndex).parent().parent().then($header => {
+      return cy.wrap($header).invoke("attr", "aria-colindex").then(colIndex => {
+        return this.getCell(colIndex, rowIndex, collectionIndex)
+      })
+    })
+  },
+  moveAttributeToParent(name, moveType) {
+    cy.dragAttributeToTarget("table", name, moveType)
+  },
+  getExpandAllGroupsButton(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[title=\"expand all groups\"]")
+  },
+  getCollapseAllGroupsButton(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[title=\"collapse all groups\"]")
+  },
+  verifyExpandAllGroupseButton(collectionIndex = 1) {
+    this.getExpandAllGroupsButton(collectionIndex).should("exist")
+  },
+  verifyCollapseAllGroupsButton(collectionIndex = 1) {
+    this.getCollapseAllGroupsButton(collectionIndex).should("exist")
+  },
+  expandAllGroups(collectionIndex = 1) {
+    this.getExpandAllGroupsButton(collectionIndex).click()
+  },
+  collapseAllGroups(collectionIndex = 1) {
+    this.getCollapseAllGroupsButton(collectionIndex).click()
+  },
+  getCollapsedIndex(rowIndex, collectionIndex = 1) {
+    return this.getIndexRow(rowIndex, collectionIndex)
+  },
+  getRowExpandCollapseButton(rowIndex, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(".spacer-mid-layer .expand-collapse-button img")
+      .eq(Number(rowIndex)-2)
+  },
+  verifyRowCollapsedButton(rowIndex, collectionIndex = 1) {
+    this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "closed")
+  },
+  verifyRowExpandedButton(rowIndex, collectionIndex = 1) {
+    this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "open")
+  },
+  verifyCollapsedRows(childCases, collectionIndex = 1) {
+    for (let childCaseIndex = 0; childCaseIndex < childCases.length; childCaseIndex++) {
+      this.getIndexRow(childCaseIndex+2, collectionIndex).then(indexCell => {
+        expect(childCases).to.include(indexCell.text())
+      })
+    }
   }
 }

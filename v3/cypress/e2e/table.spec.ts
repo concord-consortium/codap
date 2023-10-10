@@ -17,7 +17,7 @@ beforeEach(() => {
   cy.visit(url)
   cy.wait(2000)
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
-  table.getNumOfCases().then($cases => {
+  table.getNumOfRows().then($cases => {
     numOfCases = $cases
     lastRowIndex = Number($cases)
     middleRowIndex = Math.floor(lastRowIndex / 2)
@@ -136,7 +136,7 @@ context("case table ui", () => {
       cy.wait(500)
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify insert multiple cases below current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")
@@ -148,7 +148,7 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(lastRowIndex + 1)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify insert multiple cases above current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")
@@ -160,7 +160,7 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify delete last case", () => {
       table.getCaseTableGrid().scrollTo("bottom")
@@ -176,7 +176,7 @@ context("case table ui", () => {
       cy.wait(500)
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify insert multiple cases below current case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -190,7 +190,7 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(firstRowIndex + 1)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify insert multiple cases above current case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -204,7 +204,7 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify delete first case", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -220,7 +220,7 @@ context("case table ui", () => {
       cy.wait(500)
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify insert multiple cases below current case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -234,7 +234,7 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(middleRowIndex + 1)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify insert multiple cases above current case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -248,7 +248,7 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
-      table.getNumOfCases().should("equal", numOfCases)
+      table.getNumOfRows().should("equal", numOfCases)
     })
     it("verify delete case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")

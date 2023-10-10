@@ -1,0 +1,159 @@
+{
+  "tests": [
+    {
+      "testName": "Move a categorical attribute to a parent collection",
+      "collections": [
+        {
+          "name": "Diets (3 cases)",
+          "cases": 3,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Diet",
+              "move": "newCollection"
+            }
+          ],
+          "childCases": [ "9 cases", "11 cases", "7 cases"],
+          "totalChildren": 27
+        }
+      ]
+    },
+    {
+      "testName": "Move a numerical attribute to a parent collection",
+      "collections": [
+        {
+          "name": "Speeds (18 cases)",
+          "cases": 18,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Speed",
+              "move": "newCollection"
+            }
+          ],
+          "childCases": [ "1 case", "2 cases", "3 cases"],
+          "totalChildren": 27
+        }
+      ]
+    },
+    {
+      "testName": "Move multiple categorical attributes to a parent collection",
+      "collections": [
+        {
+          "name": "Diets (5 cases)",
+          "cases": 5,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Diet",
+              "move": "newCollection"
+            },
+            {
+              "name": "Habitat",
+              "move": "prevCollection"
+            }
+          ],
+          "childCases": ["7 cases", "8 cases", "2 cases", "9 cases", "1 case"],
+          "totalChildren": 27
+        }
+      ]
+    },
+    {
+      "testName": "Move numeric and categorical attributes to a parent collection",
+      "collections": [
+        {
+          "name": "Habitats (20 cases)",
+          "cases": 20,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Habitat",
+              "move": "newCollection"
+            },
+            {
+              "name": "Speed",
+              "move": "prevCollection"
+            }
+          ],
+          "childCases": ["1 case", "2 cases", "3 cases"],
+          "totalChildren": 27
+        }
+      ]
+    },
+    {
+      "testName": "Move categorical attributes to multilevel hierarchical collections",
+      "collections": [
+        {
+          "name": "Diets (3 cases)",
+          "cases": 3,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Diet",
+              "move": "newCollection"
+            }
+          ],
+          "childCases": ["9 cases", "11 cases", "7 cases"],
+          "totalChildren": 27
+        },
+        {
+          "name": "Habitats (3 cases)",
+          "cases": 3,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Habitat",
+              "move": "newCollection"
+            }
+          ],
+          "childCases": ["3 cases", "1 case", "1 case"],
+          "totalChildren": 5
+        }
+      ]
+    },
+    {
+      "testName": "Move numeric and categorical attributes to multilevel hierarchical collections",
+      "collections": [
+        {
+          "name": "Habitats (3 cases)",
+          "cases": 3,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Habitat",
+              "move": "newCollection"
+            }
+          ],
+          "childCases": ["1 case", "2 cases", "24 cases"],
+          "totalChildren": 27
+        },
+        {
+          "name": "Speeds (18 cases)",
+          "cases": 18,
+          "index": 1,
+          "attributes": [
+            {
+              "name": "Speed",
+              "move": "newCollection"
+            }
+          ],
+          "childCases": ["1 case", "2 cases"],
+          "totalChildren": 20
+        }
+      ]
+    }
+  ],
+  "attributes": {
+    "Diet": [
+      "both",
+      "meat",
+      "plants"
+    ],
+    "Habitat": [
+      "land",
+      "water",
+      "both"
+    ],
+    "Speed": []
+  }
+}
