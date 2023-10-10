@@ -25,7 +25,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
 
   switch (source) {
     case ("table"):
-    case("newCollection"):
+    case ("newCollection"):
       source_el = el.tableHeader
       break
     case ("attribute"):

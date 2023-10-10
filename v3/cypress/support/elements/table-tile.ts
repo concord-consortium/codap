@@ -11,7 +11,8 @@ export const TableTileElements = {
     return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-colcount")
   },
   getNumOfRows(collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]").invoke("attr", "aria-rowcount")
+    return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]")
+      .invoke("attr", "aria-rowcount")
   },
   getCollection(collectionIndex = 1) {
     return this.getTableTile().find(`.collection-table:nth-child(${collectionIndex})`)
@@ -30,7 +31,8 @@ export const TableTileElements = {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
   getIndexRow(rowNum, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid] [role=row][aria-rowindex="${rowNum}"]
+    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid] 
+      [role=row][aria-rowindex="${rowNum}"]
       [data-testid=codap-index-content-button]`)
   },
   openIndexMenuForRow(rowNum, collectionIndex = 1) {
@@ -176,11 +178,11 @@ export const TableTileElements = {
   verifyAttributeValues(attributes, values, collectionIndex = 1) {
     attributes.forEach(a => {
       const attribute = a.name
-      for(let rowIndex = 0; rowIndex < values[attribute].length; rowIndex++) {
+      for (let rowIndex = 0; rowIndex < values[attribute].length; rowIndex++) {
         cy.wait(1000)
         this.getAttributeValue(attribute, rowIndex+2, collectionIndex).then(cell => {
-          expect(values[attribute]).to.include(cell.text());
-        });
+          expect(values[attribute]).to.include(cell.text())
+        })
       }
     })
   },
@@ -216,7 +218,8 @@ export const TableTileElements = {
     return this.getIndexRow(rowIndex, collectionIndex)
   },
   getRowExpandCollapseButton(rowIndex, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(".spacer-mid-layer .expand-collapse-button img").eq(Number(rowIndex)-2)
+    return this.getCollection(collectionIndex).find(".spacer-mid-layer .expand-collapse-button img")
+      .eq(Number(rowIndex)-2)
   },
   verifyRowCollapsedButton(rowIndex, collectionIndex = 1) {
     this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "closed")
@@ -225,7 +228,7 @@ export const TableTileElements = {
     this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "open")
   },
   verifyCollapsedRows(childCases, collectionIndex = 1) {
-    for(let childCaseIndex = 0; childCaseIndex < childCases.length; childCaseIndex++) {
+    for (let childCaseIndex = 0; childCaseIndex < childCases.length; childCaseIndex++) {
       this.getIndexRow(childCaseIndex+2, collectionIndex).then(indexCell => {
         expect(childCases).to.include(indexCell.text())
       })
