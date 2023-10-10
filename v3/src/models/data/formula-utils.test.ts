@@ -1,74 +1,95 @@
 import { ICase } from "./data-set-types"
-import { DisplayNameMap, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
+import { CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, ILocalAttributeDependency, ILookupDependency, LOCAL_ATTR } from "./formula-types"
 import {
   safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
   displayToCanonical, unescapeBacktickString, escapeBacktickString, safeSymbolNameFromDisplayFormula,
-  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined
+  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, parseBasicCanonicalName
 } from "./formula-utils"
 
 const displayNameMapExample: DisplayNameMap = {
   "localNames": {
-    "LifeSpan": "LOCAL_ATTR_ATTR_LIFE_SPAN",
-    "Order": "LOCAL_ATTR_ATTR_ORDER",
-    "caseIndex": "LOCAL_ATTR_CASE_INDEX",
-    "v1": "GLOBAL_VALUE_GLOB_V1"
+    "LifeSpan": "__CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN",
+    "Order": "__CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER",
+    "caseIndex": "__CANONICAL_NAME__LOCAL_ATTR_CASE_INDEX",
+    "v1": "__CANONICAL_NAME__GLOBAL_VALUE_GLOB_V1"
   },
   "dataSet": {
     "Mammals": {
-      "id": "DATA_MAMMALS",
+      "id": "__CANONICAL_NAME__DATA_MAMMALS",
       "attribute": {
-        "LifeSpan": "ATTR_LIFE_SPAN",
-        "Order": "ATTR_ORDER",
+        "LifeSpan": "__CANONICAL_NAME__ATTR_LIFE_SPAN",
+        "Order": "__CANONICAL_NAME__ATTR_ORDER",
       }
     },
     "Roller Coaster": {
-      "id": "DATA_ROLLER_COASTER",
+      "id": "__CANONICAL_NAME__DATA_ROLLER_COASTER",
       "attribute": {
         // \, ', and " are added to test characters escaping
-        "Park\"": "ATTR_PARK",
-        "Top\\Speed'": "ATTR_TOP_SPEED",
+        "Park\"": "__CANONICAL_NAME__ATTR_PARK",
+        "Top\\Speed'": "__CANONICAL_NAME__ATTR_TOP_SPEED",
       }
     }
   }
 }
 
+describe("parseBasicCanonicalName", () => {
+  it("returns undefined if the name is not a canonical name", () => {
+    const name = "FOO_BAR"
+    const result = parseBasicCanonicalName(name)
+    expect(result).toBeUndefined()
+  })
+  it("returns a local attribute dependency if the name starts with the local attribute prefix", () => {
+    const name = `${CANONICAL_NAME}${LOCAL_ATTR}foo`
+    const result = parseBasicCanonicalName(name)
+    expect(result).toEqual({ type: "localAttribute", attrId: "foo" })
+  })
+  it("returns a global value dependency if the name starts with the global value prefix", () => {
+    const name = `${CANONICAL_NAME}${GLOBAL_VALUE}bar`
+    const result = parseBasicCanonicalName(name)
+    expect(result).toEqual({ type: "globalValue", globalId: "bar" })
+  })
+})
+
 describe("displayToCanonical", () => {
   it("converts display formula to canonical formula", () => {
     expect(displayToCanonical(
       "mean(LifeSpan) * v1", displayNameMapExample
-    )).toEqual("mean(LOCAL_ATTR_ATTR_LIFE_SPAN) * GLOBAL_VALUE_GLOB_V1")
+    )).toEqual("mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN) * __CANONICAL_NAME__GLOBAL_VALUE_GLOB_V1")
   })
   describe("when function name or constant is equal to attribute name", () => {
     const displayMap: DisplayNameMap = {
       localNames: {
-        mean: "LOCAL_ATTR_ATTR_MEAN",
+        mean: "__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN",
       },
       dataSet: {}
     }
     it("still converts display formula to canonical formula correctly", () => {
       expect(displayToCanonical(
         "mean(mean) + 'mean'", displayMap
-      )).toEqual('mean(LOCAL_ATTR_ATTR_MEAN) + "mean"')
+      )).toEqual('mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN) + "mean"')
     })
   })
   describe("when attribute name includes special characters", () => {
     const testDisplayMap: DisplayNameMap = {
       localNames: {
-        [safeSymbolName("mean`attribute\\🙃")]: "LOCAL_ATTR_ATTR_MEAN",
+        [safeSymbolName("mean`attribute\\🙃")]: "__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN",
       },
       dataSet: {}
     }
     it("works as long as it's enclosed in backticks", () => {
       expect(displayToCanonical(
         "mean(`mean\\`attribute\\\\🙃`) + 'mean'", testDisplayMap
-      )).toEqual('mean(LOCAL_ATTR_ATTR_MEAN) + "mean"')
+      )).toEqual('mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN) + "mean"')
     })
   })
   describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
     it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
       expect(displayToCanonical(
         'lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2', displayNameMapExample
-      )).toEqual('lookupByKey("DATA_ROLLER_COASTER", "ATTR_PARK", "ATTR_TOP_SPEED", LOCAL_ATTR_ATTR_ORDER) * 2')
+      )).toEqual(
+        'lookupByKey("__CANONICAL_NAME__DATA_ROLLER_COASTER", "__CANONICAL_NAME__ATTR_PARK", ' +
+        '"__CANONICAL_NAME__ATTR_TOP_SPEED", __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER) * 2'
+      )
     })
   })
 })
@@ -143,16 +164,16 @@ describe("customizeDisplayFormula", () => {
 describe("reverseDisplayNameMap", () => {
   it("reverses the display name map", () => {
     expect(reverseDisplayNameMap(displayNameMapExample)).toEqual({
-      LOCAL_ATTR_ATTR_LIFE_SPAN: "LifeSpan",
-      LOCAL_ATTR_ATTR_ORDER: "Order",
-      LOCAL_ATTR_CASE_INDEX: "caseIndex",
-      GLOBAL_VALUE_GLOB_V1: "v1",
-      DATA_MAMMALS: "Mammals",
-      ATTR_LIFE_SPAN: "LifeSpan",
-      ATTR_ORDER: "Order",
-      DATA_ROLLER_COASTER: "Roller Coaster",
-      ATTR_PARK: "Park\"",
-      ATTR_TOP_SPEED: "Top\\Speed'",
+      __CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN: "LifeSpan",
+      __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER: "Order",
+      __CANONICAL_NAME__LOCAL_ATTR_CASE_INDEX: "caseIndex",
+      __CANONICAL_NAME__GLOBAL_VALUE_GLOB_V1: "v1",
+      __CANONICAL_NAME__DATA_MAMMALS: "Mammals",
+      __CANONICAL_NAME__ATTR_LIFE_SPAN: "LifeSpan",
+      __CANONICAL_NAME__ATTR_ORDER: "Order",
+      __CANONICAL_NAME__DATA_ROLLER_COASTER: "Roller Coaster",
+      __CANONICAL_NAME__ATTR_PARK: "Park\"",
+      __CANONICAL_NAME__ATTR_TOP_SPEED: "Top\\Speed'",
     })
   })
 })
@@ -160,24 +181,32 @@ describe("reverseDisplayNameMap", () => {
 describe("canonicalToDisplay", () => {
   it("converts canonical formula to display formula maintaining whitespace characters", () => {
     expect(canonicalToDisplay(
-      "mean(LOCAL_ATTR_ATTR_LIFE_SPAN) + GLOBAL_VALUE_GLOB_V1",
+      "mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN) +__CANONICAL_NAME__GLOBAL_VALUE_GLOB_V1",
       "mean (\nLifeSpan\n) + v1 ", reverseDisplayNameMap(displayNameMapExample)
     )).toEqual("mean (\nLifeSpan\n) + v1 ")
     expect(canonicalToDisplay(
-      "mean(LOCAL_ATTR_ATTR_LIFE_SPAN) + LOCAL_ATTR_ATTR_ORDER * GLOBAL_VALUE_GLOB_V1",
+      "mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_LIFE_SPAN) + __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER" +
+      " * __CANONICAL_NAME__GLOBAL_VALUE_GLOB_V1",
       "mean (\nOldLifeSpan\n) + OldOrder * OldV1", reverseDisplayNameMap(displayNameMapExample)
     )).toEqual("mean (\nLifeSpan\n) + Order * v1")
   })
+  it("throws an error if canonical formula contains unresolved canonical names", () => {
+    expect(() => canonicalToDisplay(
+      "mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_REMOVED_ATTRIBUTE)",
+      "mean(RemovedAttribute)", reverseDisplayNameMap(displayNameMapExample)
+    )).toThrow("canonicalToDisplay: canonical name not found in canonicalNameMap")
+  })
+
   describe("when function name or constant is equal to attribute name", () => {
     const displayMap: DisplayNameMap = {
       localNames: {
-        NewMeanAttr: "LOCAL_ATTR_ATTR_MEAN",
+        NewMeanAttr: "__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN",
       },
       dataSet: {}
     }
     it("still converts canonical formula to display formula correctly", () => {
       expect(canonicalToDisplay(
-        "mean(LOCAL_ATTR_ATTR_MEAN) + 'mean'",
+        "mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN) + 'mean'",
         "mean ( mean ) + 'mean'", reverseDisplayNameMap(displayMap)
       )).toEqual("mean ( NewMeanAttr ) + 'mean'")
     })
@@ -185,13 +214,13 @@ describe("canonicalToDisplay", () => {
   describe("when attribute name includes special characters", () => {
     const testDisplayMap: DisplayNameMap = {
       localNames: {
-        "new\\mean`attribute 🙃": "LOCAL_ATTR_ATTR_MEAN",
+        "new\\mean`attribute 🙃": "__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN",
       },
       dataSet: {}
     }
     it("is enclosed in backticks and special characters are escaped", () => {
       expect(canonicalToDisplay(
-        "mean(LOCAL_ATTR_ATTR_MEAN) + 'mean'",
+        "mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN) + 'mean'",
         "mean ( mean ) + 'mean'", reverseDisplayNameMap(testDisplayMap)
       )).toEqual("mean ( `new\\\\mean\\`attribute 🙃` ) + 'mean'")
     })
@@ -199,7 +228,8 @@ describe("canonicalToDisplay", () => {
   describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
     it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
       expect(canonicalToDisplay(
-        'lookupByKey("DATA_ROLLER_COASTER", "ATTR_PARK", "ATTR_TOP_SPEED", LOCAL_ATTR_ATTR_ORDER) * 2',
+        'lookupByKey("__CANONICAL_NAME__DATA_ROLLER_COASTER", "__CANONICAL_NAME__ATTR_PARK",' +
+        ' "__CANONICAL_NAME__ATTR_TOP_SPEED", __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER) * 2',
         'lookupByKey("Old Roller Coaster", "Old Park", "Old Top Speed", OldOrder) * 2',
         reverseDisplayNameMap(displayNameMapExample)
       )).toEqual('lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2')
