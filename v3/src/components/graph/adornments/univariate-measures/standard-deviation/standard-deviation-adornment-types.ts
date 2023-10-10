@@ -1,0 +1,5 @@
+export const kStandardDeviationClass = "standard-deviation"
+export const kStandardDeviationType = "Standard Deviation"
+export const kStandardDeviationPrefix = "ADRN"
+export const kStandardDeviationLabelKey = "DG.Inspector.graphPlottedStDev"
+export const kStandardDeviationKey = "DG.PlottedAverageAdornment.stDevValueTitle"

@@ -12,11 +12,29 @@
     &.mean-line {
       stroke: #00f;
     }
+    &.mean-absolute-deviation-line {
+      stroke: #9980ff;
+      stroke-width: .5px;
+
+      &.range-line {
+        stroke: #00adff;
+        stroke-width: 1;
+      }
+    }
     &.median-line {
       stroke: #f00;
     }
     &.plotted-value-line {
       stroke: green;
+    }
+    &.standard-deviation-line {
+      stroke: #9980ff;
+      stroke-width: .5px;
+
+      &.range-line {
+        stroke: #30f;
+        stroke-width: 1;
+      }
     }
   }
 
@@ -28,6 +46,10 @@
     pointer-events: all;
     position: absolute;
     stroke: transparent;
+
+    &.visible {
+      display: block;
+    }
   }
 
   .measure-cover {
@@ -41,18 +63,34 @@
     &.mean-cover {
       stroke: #00f;
     }
+    &.mean-absolute-deviation-cover {
+      stroke: #5bbaff;
+    }
     &.median-cover {
       stroke: #f00;
     }
     &.plotted-value-cover {
       stroke: green;
     }
+    &.standard-deviation-cover {
+      stroke: #9980ff;
+    }
     &:hover, &.highlighted {
       opacity: .2;
     }
-    &:hover + .measure-tip {
-      display: block;
-      &.always-hidden { display: none; }
+  }
+
+  .measure-range {
+    fill-opacity: .5;
+    pointer-events: none;
+    stroke: none;
+    stroke-width: 0;
+
+    &.mean-absolute-deviation-range {
+      fill: #9ac6ff;
+    }
+    &.standard-deviation-range {
+      fill: #9980ff;
     }
   }
 }
@@ -72,6 +110,7 @@
     padding: 2px 4px;
     pointer-events: all;
     position: absolute;
+    z-index: 10;
 
     &:hover, &.highlighted { opacity: 1; }
   }

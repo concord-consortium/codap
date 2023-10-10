@@ -30,7 +30,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       throw "type must be overridden"
     }),
     labelTitle: types.optional(types.string, () => {
-      throw "valueTitle must be overridden"
+      throw "labelTitle must be overridden"
     })
   })
   .views(self => ({

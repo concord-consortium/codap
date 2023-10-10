@@ -27,4 +27,7 @@ describe("UnivariateMeasureAdornmentModel", () => {
   it("throws an error when type is not specified on creation", () => {
     expect(() => UnivariateMeasureAdornmentModel.create()).toThrow("type must be overridden")
   })
+  it("throws an error when labelTitle is not specified on creation", () => {
+    expect(() => UnivariateMeasureAdornmentModel.create({ type: "Fake Type" })).toThrow("labelTitle must be overridden")
+  })
 })

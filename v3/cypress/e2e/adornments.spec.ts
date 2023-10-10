@@ -14,7 +14,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
   })
-  it("adds a count to the graph when the Count checkbox is checked", () => {
+  it("adds a count to graph when Count checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Speed", "y")
@@ -36,7 +36,7 @@ context("Graph adornments", () => {
     countCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds a percent to the graph when the Percent checkbox is checked", () => {
+  it("adds a percent to graph when Percent checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Diet", "x")
     cy.dragAttributeToTarget("table", "Habitat", "y")
@@ -61,7 +61,7 @@ context("Graph adornments", () => {
     percentCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds a mean adornment to the graph when the Mean checkbox is checked", () => {
+  it("adds mean adornment to graph when Mean checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     graph.getDisplayValuesButton().click()
@@ -85,7 +85,7 @@ context("Graph adornments", () => {
     meanCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds a median adornment to the graph when the Median checkbox is checked", () => {
+  it("adds median adornment to graph when Median checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     graph.getDisplayValuesButton().click()
@@ -109,7 +109,67 @@ context("Graph adornments", () => {
     medianCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds movable labels for mean and median to the graph when the Show Measure Labels checkbox is checked", () => {
+  it("adds standard deviation adornment to graph when Standard Deviation checkbox is checked", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    graph.getDisplayValuesButton().click()
+    const inspectorPalette = graph.getInspectorPalette()
+    inspectorPalette.should("be.visible")
+    const sdCheckbox = inspectorPalette.find("[data-testid=adornment-checkbox-standard-deviation]")
+    sdCheckbox.should("be.visible")
+    sdCheckbox.click()
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]")
+      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=standard-deviation]").should("exist")
+    cy.get("*[data-testid^=standard-deviation]").should("exist")
+    cy.get("*[data-testid^=standard-deviation-cover]").should("not.exist")
+    cy.get("*[data-testid^=standard-deviation-range]").should("exist")
+    cy.get("*[data-testid^=standard-deviation-min]").should("exist")
+    cy.get("*[data-testid^=standard-deviation-min-cover]").should("exist")
+    cy.get("*[data-testid^=standard-deviation-max]").should("exist")
+    cy.get("*[data-testid^=standard-deviation-max-cover]").should("exist")
+    cy.get("*[data-testid^=standard-deviation-tip]").should("exist").should("not.be.visible")
+    // TODO: Test that standard-deviation-tip appears on mouseover
+    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are
+    // multiple standard deviations)
+    cy.wait(250)
+    sdCheckbox.click()
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+  })
+  it("adds mean absolute deviation adornment to graph when Mean Absolute Deviation checkbox is checked", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    graph.getDisplayValuesButton().click()
+    const inspectorPalette = graph.getInspectorPalette()
+    inspectorPalette.should("be.visible")
+    const sdCheckbox = inspectorPalette.find("[data-testid=adornment-checkbox-mean-absolute-deviation]")
+    sdCheckbox.should("be.visible")
+    sdCheckbox.click()
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]")
+      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=mean-absolute-deviation]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-cover]").should("not.exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-range]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-min]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-min-cover]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-max]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-max-cover]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-tip]").should("exist").should("not.be.visible")
+    // TODO: Test that mean-absolute-deviation-tip appears on mouseover
+    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are
+    // multiple mean absolute deviations)
+    cy.wait(250)
+    sdCheckbox.click()
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+  })
+  it("adds movable labels for univariate measures to graph when Show Measure Labels checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     graph.getDisplayValuesButton().click()
@@ -124,12 +184,22 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=mean-line]").should("exist")
     cy.get("*[data-testid^=mean-cover]").should("exist")
     cy.get("*[data-testid^=mean-tip]").should("not.exist")
-    cy.get("*[data-testid^=mean-measure-labels-tip]").should("exist").should("be.visible")
+    cy.get("*[data-testid^=mean-measure-labels-tip]").should("exist")
+      .should("be.visible")
       .should("have.text", "mean=10.79")
+      .should("have.css", "top", "0px")
+      // The exact value of left may vary slightly depending on browser, screen resolution, etc.
+      // The below checks that the value is within an expected range to accommodate these variations.
+      // Modeled after https://github.com/cypress-io/cypress/issues/14722#issuecomment-767367519
+      .should("have.css", "left").should((left: string) => {
+        expect(left).to.include("px")
+        expect(parseInt(left, 10)).to.be.within(271, 273)
+      })
+    // TODO: Test drag and drop of label and saving of dropped coordinates
     cy.get("[data-testid=adornment-checkbox-show-measure-labels]").click()
     cy.get("*[data-testid^=mean-measure-labels-tip]").should("not.exist")
   })
-  it("adds a movable line to the graph when the Movable Line checkbox is checked", () => {
+  it("adds movable line to graph when Movable Line checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Speed", "y")
@@ -154,7 +224,7 @@ context("Graph adornments", () => {
     movableLineCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds a movable point to the graph when the Movable Point checkbox is checked", () => {
+  it("adds movable point to graph when Movable Point checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Speed", "y")
@@ -176,7 +246,7 @@ context("Graph adornments", () => {
     movablePointCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds the plotted value UI to the graph when the Plotted Value checkbox is checked", () => {
+  it("adds plotted value UI to graph when Plotted Value checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     graph.getDisplayValuesButton().click()
@@ -223,7 +293,7 @@ context("Graph adornments", () => {
     // TODO: Also test the above after attributes are added to top and right axes
     // (i.e. when there are multiple plotted values)
   })
-  it("removes a plotted value from the graph when both x and y axes are set to numeric attributes", () => {
+  it("removes plotted value from the graph when both x and y axes are set to numeric attributes", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     const displayValuesButton = graph.getDisplayValuesButton()
@@ -245,7 +315,7 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=plotted-value-cover]").should("not.exist")
     cy.get("*[data-testid^=plotted-value-tip]").should("not.exist")
   })
-  it("adds a movable value to the graph when the Movable Value button is clicked", () => {
+  it("adds movable value to graph when Movable Value button is clicked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     graph.getDisplayValuesButton().click()
