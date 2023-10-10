@@ -24,7 +24,7 @@ const displayNameMapExample: DisplayNameMap = {
     "Roller Coaster": {
       "id": "DATA_ROLLER_COASTER",
       "attribute": {
-        // \, ", and " are added to test characters escaping
+        // \, ', and " are added to test characters escaping
         "Park\"": "ATTR_PARK",
         "Top\\Speed'": "ATTR_TOP_SPEED",
       }
