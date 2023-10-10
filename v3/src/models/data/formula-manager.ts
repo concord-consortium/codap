@@ -473,7 +473,7 @@ export class FormulaManager {
       // includes one of the regular dependency attributes needs to be recalculated.
       return cases.filter(c => {
         for (const dependency of regularDatasetAttributeDependencies) {
-          if (c[dependency.attrId]) {
+          if (Object.prototype.hasOwnProperty.call(c, dependency.attrId)) {
             return true
           }
         }
