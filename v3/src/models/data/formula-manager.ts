@@ -11,7 +11,7 @@ import {
 } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
-  ILookupDependency, NO_PARENT_KEY, FValue, CASE_INDEX_FAKE_ATTR_ID
+  ILookupDependency, NO_PARENT_KEY, FValue, CASE_INDEX_FAKE_ATTR_ID, CANONICAL_NAME
 } from "./formula-types"
 import { math } from "./formula-fn-registry"
 import { IDataSet } from "./data-set"
@@ -303,12 +303,6 @@ export class FormulaManager {
     })
   }
 
-  updateDisplayFormulas() {
-    this.formulaMetadata.forEach(({ formula }) => {
-      formula.updateDisplayFormula()
-    })
-  }
-
   unregisterFormula(formulaId: string) {
     const formulaMetadata = this.formulaMetadata.get(formulaId)
     if (formulaMetadata) {
@@ -372,10 +366,11 @@ export class FormulaManager {
       dataSet: {}
     }
 
-    const mapAttributeNames = (dataSet: IDataSet, prefix: string, _useSafeSymbolNames: boolean) => {
+    const mapAttributeNames = (dataSet: IDataSet, localPrefix: string, _useSafeSymbolNames: boolean) => {
       const result: Record<string, string> = {}
       dataSet.attributes.forEach(attr => {
-        result[_useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name] = `${prefix}${attr.id}`
+        const key = _useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name
+        result[key] = `${CANONICAL_NAME}${localPrefix}${attr.id}`
       })
       return result
     }
@@ -384,18 +379,18 @@ export class FormulaManager {
       ...mapAttributeNames(localDataSet, LOCAL_ATTR, useSafeSymbolNames),
       // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
       // that returns the current, 1-based index of the case in its collection group.
-      caseIndex: `${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
+      caseIndex: `${CANONICAL_NAME}${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
     }
 
     this.globalValueManager?.globals.forEach(global => {
       const key = useSafeSymbolNames ? safeSymbolName(global.name) : global.name
-      displayNameMap.localNames[key] = `${GLOBAL_VALUE}${global.id}`
+      displayNameMap.localNames[key] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
     })
 
     this.dataSets.forEach(dataSet => {
       if (dataSet.name) {
         displayNameMap.dataSet[dataSet.name] = {
-          id: dataSet.id,
+          id: `${CANONICAL_NAME}${dataSet.id}`,
           // No prefix is necessary for external attributes. They always need to be resolved manually by custom
           // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
           // are string constants, not a symbols, so MathJS will not care about special characters there.
@@ -432,7 +427,19 @@ export class FormulaManager {
       () => dataSet.attrNameMap,
       () => {
         this.unregisterDeletedFormulas()
-        this.updateDisplayFormulas()
+        this.formulaMetadata.forEach(({ formula }) => {
+          formula.updateDisplayFormula()
+          // Note that when attribute is removed or renamed, this can also affect the formula's canonical form.
+          // 1. Attribute is removed - its ID needs to be removed from the canonical form and the formula should be
+          //    recalculated (usually to show the error about undefined symbol).
+          // 2. Attribute is renamed - if the previous display form had undefined symbols, they might now be resolved
+          //    to the renamed attribute. This means that the canonical form needs to be updated.
+          const oldCanonical = formula.canonical
+          formula.updateCanonicalFormula()
+          if (oldCanonical !== formula.canonical) {
+            this.recalculateFormula(formula.id)
+          }
+        })
       },
       {
         equals: comparer.structural,

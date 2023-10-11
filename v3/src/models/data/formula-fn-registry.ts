@@ -1,7 +1,7 @@
 import { create, all, mean, median, mad, max, min, sum, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
-  DisplayNameMap, FValue, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode
+  DisplayNameMap, FValue, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode, rmCanonicalPrefix
 } from './formula-types'
 import type { IDataSet } from './data-set'
 
@@ -132,8 +132,8 @@ export const fnRegistry = {
       validArgs[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
     },
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const dataSetId = evaluateNode(args[0], scope)
-      const attrId = evaluateNode(args[1], scope)
+      const dataSetId = rmCanonicalPrefix(evaluateNode(args[0], scope))
+      const attrId = rmCanonicalPrefix(evaluateNode(args[1], scope))
       const zeroBasedIndex = evaluateNode(args[2], scope) - 1
       return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
     }
@@ -170,9 +170,9 @@ export const fnRegistry = {
       validArgs[2].value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
     },
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const dataSetId = evaluateNode(args[0], scope)
-      const attrId = evaluateNode(args[1], scope)
-      const keyAttrId = evaluateNode(args[2], scope)
+      const dataSetId = rmCanonicalPrefix(evaluateNode(args[0], scope))
+      const attrId = rmCanonicalPrefix(evaluateNode(args[1], scope))
+      const keyAttrId = rmCanonicalPrefix(evaluateNode(args[2], scope))
       const keyAttrValue = evaluateNode(args[3], scope)
 
       const dataSet: IDataSet | undefined = scope.getDataSet(dataSetId)

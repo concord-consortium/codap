@@ -1,21 +1,24 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import {
   LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
-  isNonFunctionSymbolNode, ILocalAttributeDependency, ILookupDependency
+  isNonFunctionSymbolNode, ILocalAttributeDependency, ILookupDependency, isCanonicalName, rmCanonicalPrefix
 } from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
+import t from "../../utilities/translation/translate"
 import type { IDataSet } from "./data-set"
 import type { ICase } from "./data-set-types"
-import t from "../../utilities/translation/translate"
 
 // Set of formula helpers that can be used outside FormulaManager context. It should make them easier to test.
 
 export const formulaError = (message: string, vars?: string[]) => `❌ ${t(message, { vars })}`
 
-export const generateCanonicalSymbolName = (name: string, displayNameMap: DisplayNameMap) =>
-  displayNameMap.localNames[name] || null
-
-export const parseCanonicalSymbolName = (canonicalName: string): IFormulaDependency | undefined => {
+// Currently, canonical names can be "basic": they can refer to local attributes or global values.
+// Or they can be custom, like ones used by lookup functions. This helper parses basic canonical names.
+export const parseBasicCanonicalName = (canonicalName: string): IFormulaDependency | undefined => {
+  if (!isCanonicalName(canonicalName)) {
+    return undefined
+  }
+  canonicalName = rmCanonicalPrefix(canonicalName)
   if (canonicalName.startsWith(LOCAL_ATTR)) {
     const attrId = canonicalName.substring(LOCAL_ATTR.length)
     return { type: "localAttribute", attrId }
@@ -85,7 +88,17 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
   // function names and constants might be identical to the symbol name. E.g. 'mean(mean) + "mean"' is a valid formula
   // if there's attribute called "mean". If we process function names and constants, it'll be handled correctly.
   originalDisplay = makeDisplayNamesSafe(originalDisplay) // so it can be parsed by MathJS
-  const getNameFromId = (id: string) => canonicalNameMap[id] || id
+  const getDisplayNameFromSymbol = (name: string) => {
+    if (isCanonicalName(name)) {
+      if (!canonicalNameMap[name]) {
+        // It'll happen when attribute has been deleted and it's no longer available.
+        throw new Error("canonicalToDisplay: canonical name not found in canonicalNameMap")
+      }
+      return canonicalNameMap[name]
+    }
+    // Not a canonical symbol (e.g. regular string or math symbol like Pi).
+    return name
+  }
   // Wrap in backticks if it's not a (MathJS) safe symbol name.
   const wrapInBackticksIfNecessary = (name: string) => name !== safeSymbolName(name) ? `\`${name}\`` : name
 
@@ -101,9 +114,9 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
     // Symbol with nonstandard characters need to be wrapped in backticks, while constants don't (as they're already
     // wrapped in string quotes).
     isNonFunctionSymbolNode(node, parent) && newNames.push(
-      wrapInBackticksIfNecessary(escapeBacktickString(getNameFromId(node.name)))
+      wrapInBackticksIfNecessary(escapeBacktickString(getDisplayNameFromSymbol(node.name)))
     )
-    isConstantStringNode(node) && newNames.push(escapeDoubleQuoteString(getNameFromId(node.value)))
+    isConstantStringNode(node) && newNames.push(escapeDoubleQuoteString(getDisplayNameFromSymbol(node.value)))
     isFunctionNode(node) && newNames.push(node.fn.name)
   })
 
@@ -131,7 +144,7 @@ export const displayToCanonical = (displayExpression: string, displayNameMap: Di
   const formulaTree = parse(preprocessDisplayFormula(displayExpression))
   const visitNode = (node: MathNode, path: string, parent: MathNode) => {
     if (isNonFunctionSymbolNode(node, parent)) {
-      const canonicalName = generateCanonicalSymbolName(node.name, displayNameMap)
+      const canonicalName = displayNameMap.localNames[node.name]
       if (canonicalName) {
         node.name = canonicalName
       }
@@ -193,7 +206,7 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
     const isDescendantOfAggregateFunc = !!node.isDescendantOfAggregateFunc
     const isSelfReferenceAllowed = !!node.isSelfReferenceAllowed
     if (isNonFunctionSymbolNode(node, parent)) {
-      const dependency = parseCanonicalSymbolName(node.name)
+      const dependency = parseBasicCanonicalName(node.name)
       if (dependency?.type === "localAttribute" && isDescendantOfAggregateFunc) {
         dependency.aggregate = true
       }

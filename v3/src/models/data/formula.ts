@@ -54,7 +54,13 @@ export const Formula = types.model("Formula", {
       return
     }
     const canonicalNameMap = self.formulaManager.getCanonicalNameMap(self.id)
-    self.display = canonicalToDisplay(self.canonical, self.display, canonicalNameMap)
+    try {
+      self.display = canonicalToDisplay(self.canonical, self.display, canonicalNameMap)
+    } catch {
+      // If the canonical formula can't be converted to display formula, it usually means there are some unresolved
+      // canonical names. It usually happens when an attribute is removed. Nothing to do here, just keep the original
+      // display form.
+    }
   },
   rerandomize() {
     self.formulaManager?.recalculateFormula(self.id)
