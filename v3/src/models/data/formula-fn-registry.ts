@@ -112,7 +112,7 @@ export const fnRegistry = {
       }
       if (!isConstantStringNode(args[0]) || !isConstantStringNode(args[1])) {
         throw new Error("lookupByIndex function expects first two arguments to be strings " +
-          "and the third one to be numeric")
+          "and the third one to be numeric (or evaluate to number)")
       }
       return [args[0], args[1], args[2]]
     },
@@ -120,8 +120,8 @@ export const fnRegistry = {
       const validArgs = fnRegistry.lookupByIndex.validateArguments(args)
       return {
         type: "lookup",
-        dataSetId: validArgs[0].value,
-        attrId: validArgs[1].value,
+        dataSetId: rmCanonicalPrefix(validArgs[0].value),
+        attrId: rmCanonicalPrefix(validArgs[1].value),
       }
     },
     canonicalize: (args: MathNode[], displayNameMap: DisplayNameMap) => {
@@ -132,8 +132,7 @@ export const fnRegistry = {
       validArgs[1].value = displayNameMap.dataSet[dataSetName]?.attribute[attrName]
     },
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const dataSetId = rmCanonicalPrefix(evaluateNode(args[0], scope))
-      const attrId = rmCanonicalPrefix(evaluateNode(args[1], scope))
+      const { dataSetId, attrId } = fnRegistry.lookupByIndex.getDependency(args)
       const zeroBasedIndex = evaluateNode(args[2], scope) - 1
       return scope.getDataSet(dataSetId)?.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
     }
@@ -151,13 +150,13 @@ export const fnRegistry = {
       }
       return [args[0], args[1], args[2], args[3]]
     },
-    getDependency: (args: MathNode[]): ILookupDependency => {
+    getDependency: (args: MathNode[]): Required<ILookupDependency> => {
       const validArgs = fnRegistry.lookupByKey.validateArguments(args)
       return {
         type: "lookup",
-        dataSetId: validArgs[0].value,
-        attrId: validArgs[1].value,
-        keyAttrId: validArgs[2].value,
+        dataSetId: rmCanonicalPrefix(validArgs[0].value),
+        attrId: rmCanonicalPrefix(validArgs[1].value),
+        keyAttrId: rmCanonicalPrefix(validArgs[2].value),
       }
     },
     canonicalize: (args: MathNode[], displayNameMap: DisplayNameMap) => {
@@ -170,11 +169,8 @@ export const fnRegistry = {
       validArgs[2].value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName]
     },
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
-      const dataSetId = rmCanonicalPrefix(evaluateNode(args[0], scope))
-      const attrId = rmCanonicalPrefix(evaluateNode(args[1], scope))
-      const keyAttrId = rmCanonicalPrefix(evaluateNode(args[2], scope))
+      const { dataSetId, attrId, keyAttrId } = fnRegistry.lookupByKey.getDependency(args)
       const keyAttrValue = evaluateNode(args[3], scope)
-
       const dataSet: IDataSet | undefined = scope.getDataSet(dataSetId)
       if (!dataSet) {
         return UNDEF_RESULT
