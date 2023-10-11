@@ -25,22 +25,18 @@ export const SliderModel = TileContentModel
     _animationRate: types.maybe(types.number),  // frames per second
     axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.5, max: 11.5 })
   })
-  .volatile(self => ({
-    // defined while dragging (or animating?), undefined otherwise
-    dynamicValue: undefined as number | undefined
-  }))
   .views(self => ({
     get name() {
       return self.globalValue.name
     },
     get value() {
-      return self.dynamicValue ?? self.globalValue.value
+      return self.globalValue.value
     },
     get domain() {
       return self.axis.domain
     },
     get isUpdatingDynamically() {
-      return self.dynamicValue != null
+      return self.globalValue.isUpdatingDynamically
     },
     get increment() {
       // TODO: implement v2 algorithm which determines default increment from axis bounds
@@ -77,11 +73,10 @@ export const SliderModel = TileContentModel
   }))
   .actions(self => ({
     setDynamicValue(value: number) {
-      self.dynamicValue = self.constrainValue(value)
+      self.globalValue.setDynamicValue(self.constrainValue(value))
     },
     setValue(value: number) {
       self.globalValue.setValue(self.constrainValue(value))
-      self.dynamicValue = undefined
     },
   }))
   .actions(self => ({

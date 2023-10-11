@@ -100,14 +100,15 @@ describe("SliderModel", () => {
     slider.setDynamicValue(dynamicValue1)
     expect(slider.isUpdatingDynamically).toBe(true)
     expect(slider.value).toBe(dynamicValue1)
-    expect(slider.globalValue.value).toBe(initialValue)
+    expect(slider.globalValue._value).toBe(initialValue)
     slider.setDynamicValueIfDynamic(dynamicValue2)
     expect(slider.value).toBe(dynamicValue2)
     slider.applyUndoableAction(() => slider.setValue(finalValue), "Undo slider change", "Redo slider change")
     expect(slider.isUpdatingDynamically).toBe(false)
     expect(slider.value).toBe(finalValue)
+    expect(slider.globalValue._value).toBe(finalValue)
     expect(slider.globalValue.value).toBe(finalValue)
-    expect(slider.dynamicValue).toBeUndefined()
+    expect(slider.globalValue.dynamicValue).toBeUndefined()
   })
 
   it("responds to axis domain changes", () => {
