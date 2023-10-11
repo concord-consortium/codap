@@ -1,27 +1,35 @@
+import { useInterval } from "@chakra-ui/react"
 import { useCallback, useEffect, useRef } from "react"
 import { ISliderModel } from "./slider-model"
-import { useInterval } from "@chakra-ui/react"
+import { kAnimationDefaults } from "./slider-types"
 
 interface IUseSliderAnimationProps {
-  sliderModel: ISliderModel
+  sliderModel?: ISliderModel
   running: boolean
   setRunning: (running: boolean) => void
 }
 
 export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSliderAnimationProps) => {
-  const tickTime = 1000/sliderModel.animationRate
-  const direction = sliderModel.animationDirection
-  const mode = sliderModel.animationMode
+  const { animationRate, animationDirection, animationMode } = sliderModel || kAnimationDefaults
+  const tickTime = 1000 / animationRate
+  const direction = animationDirection
+  const mode = animationMode
   const prevDirectionRef = useRef("")
   const maxMinHitsRef = useRef(0)
 
-  const resetSlider = useCallback((val?: number) => {
-    const dir = sliderModel.animationDirection
-    const testValue = val || sliderModel.value
-    if (dir === "lowToHigh" && testValue >= sliderModel.axis.max) sliderModel.setValue(sliderModel.axis.min)
-    if (dir === "highToLow" && testValue <= sliderModel.axis.min) sliderModel.setValue(sliderModel.axis.max)
-    return sliderModel.value
+  const getAxisDomain = useCallback(function getAxisDomain(): readonly [number, number] {
+    const { axis: { domain } } = sliderModel || { axis: { domain: [0, 10] } }
+    return domain
   }, [sliderModel])
+
+  const resetSlider = useCallback((val?: number) => {
+    if (!sliderModel) return 0
+    const [axisMin, axisMax] = getAxisDomain()
+    const testValue = val || sliderModel.value
+    if (animationDirection === "lowToHigh" && testValue >= axisMax) sliderModel.setValue(axisMin)
+    if (animationDirection === "highToLow" && testValue <= axisMin) sliderModel.setValue(axisMax)
+    return sliderModel.value
+  }, [animationDirection, getAxisDomain, sliderModel])
 
   useEffect(()=> {
     running && resetSlider()
@@ -30,14 +38,15 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   // Reset the prevDirectionRef to blank when user changes animation direction.
   // Otherwise the increment modifier in moveSlider() stays to -1 because the logic check will always return true
   useEffect(()=> {
-    if (sliderModel.animationDirection === "lowToHigh" || sliderModel.animationDirection === "highToLow") {
+    if (animationDirection === "lowToHigh" || animationDirection === "highToLow") {
       prevDirectionRef.current = ""
     }
-  }, [sliderModel.animationDirection])
+  }, [animationDirection])
 
   useInterval(() => {
-    if (running) {
-      const newValue = moveSlider()
+    if (running && sliderModel) {
+      const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
+      const newValue = sliderModel.value + sliderModel.increment * incrementModifier
 
       switch (direction) {
         case "lowToHigh":
@@ -53,55 +62,53 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     }
   }, tickTime)
 
-  const moveSlider = () => {
-    const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
-    return sliderModel.value + sliderModel.increment * incrementModifier
-  }
-
   const handleLowToHighAnimation = (newValue: number) => {
+    const [axisMin, axisMax] = getAxisDomain()
     const aboveMax = (val: number) => {
       if (mode === "onceOnly") {
         setRunning(false)
-        return sliderModel.axis.max
+        return axisMax
       } else {
         return resetSlider(newValue)
       }
     }
     const belowMin = (val: number) => {
-      return sliderModel.axis.min
+      return axisMin
     }
-    sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
+    sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 
   const handleHighToLowAnimation = (newValue: number) => {
-      const aboveMax = (val: number) => {
-        return sliderModel.axis.max
+    const [axisMin, axisMax] = getAxisDomain()
+    const aboveMax = (val: number) => {
+      return axisMax
+    }
+    const belowMin = (val: number) => {
+      if (mode === "onceOnly") {
+        setRunning(false)
+        return axisMin
       }
-      const belowMin = (val: number) => {
-        if (mode === "onceOnly") {
-          setRunning(false)
-          return sliderModel.axis.min
-        }
-        else {
-          return resetSlider(newValue)
-        }
+      else {
+        return resetSlider(newValue)
       }
-      sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
+    }
+    sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 
   const handleBackAndForthAnimation = (newValue: number) => {
-    const reachedLimit = (prevDirectionRef.current === 'lowToHigh' && newValue >= sliderModel.axis.max) ||
-                         (prevDirectionRef.current === 'highToLow' && newValue <= sliderModel.axis.min)
+    const [axisMin, axisMax] = getAxisDomain()
+    const reachedLimit = (prevDirectionRef.current === 'lowToHigh' && newValue >= axisMax) ||
+                         (prevDirectionRef.current === 'highToLow' && newValue <= axisMin)
 
     const aboveMax = (val: number) => {
       prevDirectionRef.current = 'highToLow'
       maxMinHitsRef.current += 1
-      return sliderModel.axis.max
+      return axisMax
     }
     const belowMin = (val: number) => {
       prevDirectionRef.current = 'lowToHigh'
       maxMinHitsRef.current += 1
-      return sliderModel.axis.min
+      return axisMin
     }
 
     if (prevDirectionRef.current === "") {
@@ -113,6 +120,6 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       setRunning(false)
       maxMinHitsRef.current = 0
     }
-    sliderModel.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
+    sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 }

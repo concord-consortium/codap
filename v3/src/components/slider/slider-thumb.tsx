@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
 import { ISliderModel } from "./slider-model"
+import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { useSliderAnimation } from "./use-slider-animation"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
@@ -18,20 +19,22 @@ interface IProps {
 // offset from left edge of thumb to center of thumb
 const kThumbOffset = 10
 
-export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContainer, sliderModel,
-    running, setRunning} : IProps) {
+export const CodapSliderThumb = observer(function CodapSliderThumb({
+  sliderContainer, sliderModel: _sliderModel, running, setRunning
+} : IProps) {
+  const sliderModel = isAliveSafe(_sliderModel) ? _sliderModel : undefined
   const layout = useAxisLayoutContext()
   const scale = layout.getAxisMultiScale("bottom")
   const [isDragging, setIsDragging] = useState(false)
   // offset from center of thumb to pointerDown
   const downOffset = useRef(0)
-  const thumbPos = (scale?.getScreenCoordinate({cell: 0, data: sliderModel.value}) ?? 0) - kThumbOffset
+  const thumbPos = (scale?.getScreenCoordinate({cell: 0, data: sliderModel?.value ?? 0}) ?? 0) - kThumbOffset
   const thumbStyle: CSSProperties = {
     left: thumbPos
   }
 
   // forces thumbnail to rerender when axis bounds change
-  sliderModel.axis.domain // eslint-disable-line no-unused-expressions
+  sliderModel?.axis.domain // eslint-disable-line no-unused-expressions
 
   useEffect(() => {
     const containerX = sliderContainer?.getBoundingClientRect().x
@@ -46,7 +49,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
     const handlePointerMove = (e: PointerEvent) => {
       const sliderValue = getSliderValueFromEvent(e)
       if (sliderValue != null) {
-        sliderModel.setDynamicValue(sliderValue)
+        sliderModel?.setDynamicValue(sliderValue)
       }
       e.preventDefault()
       e.stopImmediatePropagation()
@@ -55,7 +58,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({sliderContai
     const handlePointerUp = (e: PointerEvent) => {
       const sliderValue = getSliderValueFromEvent(e)
       if (sliderValue != null) {
-        sliderModel.applyUndoableAction(
+        sliderModel?.applyUndoableAction(
           () => sliderModel.setValue(sliderValue),
           "DG.Undo.slider.change", "DG.Redo.slider.change")
       }

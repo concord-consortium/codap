@@ -1,5 +1,5 @@
 import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
-import {autorun, reaction} from "mobx"
+import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {transitionDuration} from "../../data-display/data-display-types"
@@ -8,6 +8,7 @@ import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
+import {MobXAutorun} from "../../../utilities/mobx-autorun"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
   getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
@@ -350,8 +351,8 @@ export const useSubAxis = ({
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
-    const disposer = autorun(() => {
-      const _axisModel = axisProvider.getAxis?.(axisPlace)
+    const mobXAutorun = new MobXAutorun(() => {
+      const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (_axisModel && isAlive(_axisModel)) {
         if (isNumericAxisModel(_axisModel)) {
           const {domain} = _axisModel || {}
@@ -362,8 +363,8 @@ export const useSubAxis = ({
       else if (_axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
       }
-    }, { name: "useSubAxis.installDomainSync" })
-    return () => disposer()
+    }, { name: "useSubAxis.installDomainSync" }, axisProvider)
+    return () => mobXAutorun.dispose()
   }, [axisPlace, axisProvider, layout, renderSubAxis])
 
   // Refresh when category set, if any, changes

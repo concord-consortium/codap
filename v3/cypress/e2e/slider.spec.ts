@@ -198,13 +198,13 @@ context("Slider UI", () => {
     slider.getVariableValue(2).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(2)
   })
-  it("creates sliders with incrementing names when existing ones are closed", () => {
+  it("reuses slider names after existing ones are closed", () => {
     c.closeComponent("slider")
     c.checkComponentDoesNotExist("slider")
     c.createFromToolshelf("slider")
 
-    c.getComponentTitle("slider").should("contain", "v2")
-    slider.getVariableName().should("have.text", "v2")
+    c.getComponentTitle("slider").should("contain", "v1")
+    slider.getVariableName().should("have.text", "v1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
@@ -212,8 +212,8 @@ context("Slider UI", () => {
     c.checkComponentDoesNotExist("slider")
     c.createFromToolshelf("slider")
 
-    c.getComponentTitle("slider").should("contain", "v3")
-    slider.getVariableName().should("have.text", "v3")
+    c.getComponentTitle("slider").should("contain", "v1")
+    slider.getVariableName().should("have.text", "v1")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
