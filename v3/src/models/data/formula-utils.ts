@@ -37,7 +37,10 @@ export const escapeBacktickString = (name: string) =>
   name.replace(/\\/g, "\\\\").replace(/`/g, "\\`")
 
 export const escapeDoubleQuoteString = (constant: string) =>
-  constant.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")
+  constant.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+
+export const escapeSingleQuoteString = (constant: string) =>
+  constant.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
 
 export const safeSymbolName = (name: string) =>
   name
@@ -78,6 +81,31 @@ export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap): Canonical
   ])
 }
 
+// "Names" in formula can refer to symbols, constants or function names. Symbols and function names are easy, nothing
+// special to do there. String constants become tricky, as MathJS parser stores only string constant, but it doesn't
+// store the string delimiter. So we need to determine the original string delimiter, as it affects necessary escaping.
+// It'd be easier if MathJS stored the string delimiter / kind of string constant, but currently it doesn't
+// See: https://github.com/josdejong/mathjs/issues/3073#issuecomment-1758267336
+export const formulaIndexOf = (formula: string, name: string, isStringConstant: boolean) => {
+  if (!isStringConstant) {
+    return { stringDelimiter: null, nameIndex: formula.indexOf(name), finalName: name }
+  }
+  const doubleQuoteString = `"${escapeDoubleQuoteString(name)}"`
+  const singleQuoteString = `'${escapeSingleQuoteString(name)}'`
+  const dQuoteIndex = formula.indexOf(doubleQuoteString)
+  const sQuoteIndex = formula.indexOf(singleQuoteString)
+
+  // We need to check both indices, as formula can contain both "foobar" and 'foobar'. In such case, we need to
+  // pick the first one.
+  if (dQuoteIndex >= 0 && (sQuoteIndex < 0 || dQuoteIndex < sQuoteIndex)) {
+    return { stringDelimiter: '"', nameIndex: dQuoteIndex, finalName: doubleQuoteString }
+  }
+  if (sQuoteIndex >= 0 && (dQuoteIndex < 0 || sQuoteIndex < dQuoteIndex)) {
+    return { stringDelimiter: "'", nameIndex: sQuoteIndex, finalName: singleQuoteString }
+  }
+  return { stringDelimiter: null, nameIndex: -1, finalName: name }
+}
+
 export const canonicalToDisplay = (canonical: string, originalDisplay: string, canonicalNameMap: CanonicalNameMap) => {
   // Algorithm is as follows:
   // 1. Parse original display formula and get all the names that need to be replaced.
@@ -104,11 +132,21 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
 
   const namesToReplace: string[] = []
   const newNames: string[] = []
+  const isStringConstantNode: boolean[] = []
 
   parse(originalDisplay).traverse((node: MathNode, path: string, parent: MathNode) => {
-    isNonFunctionSymbolNode(node, parent) && namesToReplace.push(node.name)
-    isConstantStringNode(node) && namesToReplace.push(escapeDoubleQuoteString(node.value))
-    isFunctionNode(node) && namesToReplace.push(node.fn.name)
+    if (isNonFunctionSymbolNode(node, parent)) {
+      namesToReplace.push(node.name)
+      isStringConstantNode.push(false)
+    }
+    if (isConstantStringNode(node)) {
+      namesToReplace.push(node.value)
+      isStringConstantNode.push(true)
+    }
+    if (isFunctionNode(node)) {
+      namesToReplace.push(node.fn.name)
+      isStringConstantNode.push(false)
+    }
   })
   parse(canonical).traverse((node: MathNode, path: string, parent: MathNode) => {
     // Symbol with nonstandard characters need to be wrapped in backticks, while constants don't (as they're already
@@ -116,7 +154,7 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
     isNonFunctionSymbolNode(node, parent) && newNames.push(
       wrapInBackticksIfNecessary(escapeBacktickString(getDisplayNameFromSymbol(node.name)))
     )
-    isConstantStringNode(node) && newNames.push(escapeDoubleQuoteString(getDisplayNameFromSymbol(node.value)))
+    isConstantStringNode(node) && newNames.push(getDisplayNameFromSymbol(node.value))
     isFunctionNode(node) && newNames.push(node.fn.name)
   })
 
@@ -124,13 +162,20 @@ export const canonicalToDisplay = (canonical: string, originalDisplay: string, c
   let formulaToProcess = originalDisplay
   while (newNames.length > 0) {
     const name = namesToReplace.shift()!
-    const newName = newNames.shift()!
-    const nameIndex = formulaToProcess.indexOf(name)
+    const isStringConstant = isStringConstantNode.shift()!
+    const { nameIndex, stringDelimiter, finalName } = formulaIndexOf(formulaToProcess, name, isStringConstant)
     if (nameIndex < 0) {
       throw new Error(`canonicalToDisplay: name ${name} not found in formula`)
     }
+    let newName = newNames.shift()!
+    if (stringDelimiter === "'") {
+      newName = `'${escapeSingleQuoteString(newName)}'`
+    }
+    if (stringDelimiter === '"') {
+      newName = `"${escapeDoubleQuoteString(newName)}"`
+    }
     result += formulaToProcess.substring(0, nameIndex) + newName
-    formulaToProcess = formulaToProcess.substring(nameIndex + name.length)
+    formulaToProcess = formulaToProcess.substring(nameIndex + finalName.length)
   }
   return result + formulaToProcess
 }
