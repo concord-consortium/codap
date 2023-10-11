@@ -7,14 +7,34 @@ export const kDefaultNamePrefix = "v"
 export const GlobalValue = types.model("GlobalValue", {
     id: types.optional(types.identifier, () => typedId("GLOB")),
     name: types.string,
-    value: types.number
+    _value: types.number
   })
+  .preProcessSnapshot((snap: any) => {
+    const { value: _value, ...others } = snap
+    return _value != null ? { _value, ...others } : snap
+  })
+  .volatile(self => ({
+    // defined while dragging (or animating?), undefined otherwise
+    dynamicValue: undefined as number | undefined
+  }))
+  .views(self => ({
+    get value() {
+      return self.dynamicValue ?? self._value
+    },
+    get isUpdatingDynamically() {
+      return self.dynamicValue != null
+    }
+  }))
   .actions(self => ({
     setName(name: string) {
       self.name = name
     },
-    setValue(val: number) {
-      self.value = val
+    setDynamicValue(value: number) {
+      self.dynamicValue = value
+    },
+    setValue(value: number) {
+      self._value = value
+      self.dynamicValue = undefined
     }
   }))
 export interface IGlobalValue extends Instance<typeof GlobalValue> {}
