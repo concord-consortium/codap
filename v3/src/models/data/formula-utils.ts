@@ -13,7 +13,7 @@ import type { ICase } from "./data-set-types"
 export const formulaError = (message: string, vars?: string[]) => `❌ ${t(message, { vars })}`
 
 // Currently, canonical names can be "basic": they can refer to local attributes or global values.
-// Or they can be custom, like ones used by lookup functions. This helpers parses basic canonical names.
+// Or they can be custom, like ones used by lookup functions. This helper parses basic canonical names.
 export const parseBasicCanonicalName = (canonicalName: string): IFormulaDependency | undefined => {
   if (!isCanonicalName(canonicalName)) {
     return undefined
