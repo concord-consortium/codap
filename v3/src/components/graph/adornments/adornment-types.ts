@@ -4,7 +4,8 @@ import { IMovableLineAdornmentModel, MovableLineAdornmentModel } from "./movable
 import { IMovablePointAdornmentModel, MovablePointAdornmentModel } from "./movable-point/movable-point-adornment-model"
 import { IMovableValueAdornmentModel, MovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
 import { CountAdornmentModel, ICountAdornmentModel } from "./count/count-adornment-model"
-import { IPlottedValueAdornmentModel, PlottedValueAdornmentModel } from "./plotted-value/plotted-value-adornment-model"
+import { IPlottedValueAdornmentModel, PlottedValueAdornmentModel
+       } from "./univariate-measures/plotted-value/plotted-value-adornment-model"
 import { IMeanAdornmentModel, MeanAdornmentModel } from "./univariate-measures/mean/mean-adornment-model"
 import { IMedianAdornmentModel, MedianAdornmentModel } from "./univariate-measures/median/median-adornment-model"
 

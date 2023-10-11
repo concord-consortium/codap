@@ -3,7 +3,8 @@ import { autorun } from "mobx"
 import { drag, select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { IMeasureInstance } from "./univariate-measure-adornment-model"
+import t from "../../../../utilities/translation/translate"
+import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
@@ -11,8 +12,7 @@ import { useDataConfigurationContext } from "../../hooks/use-data-configuration-
 import { valueLabelString } from "../../utilities/graph-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { IMeanAdornmentModel } from "./mean/mean-adornment-model"
-import { IMedianAdornmentModel } from "./median/median-adornment-model"
+import { isPlottedValueAdornment } from "./plotted-value/plotted-value-adornment-model"
 
 import "./univariate-measure-adornment-component.scss"
 
@@ -29,7 +29,7 @@ interface ILabelObject {
 interface IProps {
   cellKey: Record<string, string>
   containerId?: string
-  model: IMeanAdornmentModel | IMedianAdornmentModel
+  model: IUnivariateMeasureAdornmentModel
   plotHeight: number
   plotWidth: number
   xAxis: INumericAxisModel
@@ -43,7 +43,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
     const graphModel = useGraphContentModelContext()
     const dataConfig = useDataConfigurationContext()
     const adornmentsStore = graphModel.adornmentsStore
-    const measureType = model.type.toLowerCase()
+    const measureType = model.type.toLowerCase().replace(" ", "-")
     const showLabel = adornmentsStore?.showMeasureLabels
     const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
     const xAttrType = dataConfig?.attributeType("x")
@@ -97,7 +97,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
     ) => {
       const attrId = dataConfig?.primaryAttributeID
       const value = attrId ? model.measureValue(attrId, cellKey, dataConfig) : undefined
-      if (value === undefined) return
+      if (value === undefined || isNaN(value)) return
 
       const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
       const displayValue = multiScale ? multiScale.formatValueForScale(value) : valueLabelString(value)
@@ -123,6 +123,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const lineClass = clsx("measure-line", `${measureType}-line`)
       const coverId = `${measureType}-cover-${containerId}${classFromKey ? `-${classFromKey}` : ""}`
       const coverClass = clsx("measure-cover", `${measureType}-cover`)
+      const textContent = `${t(model.labelTitle, { vars: [displayValue]})}`
 
       valueObj.line = selection.append("line")
         .attr("class", lineClass)
@@ -155,7 +156,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         const labelId = `${measureType}-measure-labels-tip-${containerId}${classFromKey ? `-${classFromKey}` : ""}`
         const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${measureType}`)
         labelObj.label = labelSelection.append("div")
-          .text(`${measureType}=${displayValue}`)
+          .text(textContent)
           .attr("id", labelId)
           .attr("class", labelClass)
           .attr("data-testid", labelId)
@@ -179,7 +180,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         const textId = `${measureType}-tip-${containerId}${classFromKey ? `-${classFromKey}` : ""}`
         const textClass = clsx("measure-tip", `${measureType}-tip`)
         valueObj.text = selection.append("text")
-          .text(`${measureType}=${displayValue}`)
+          .text(textContent)
           .attr("id", textId)
           .attr("class", textClass)
           .attr("data-testid", textId)
@@ -202,7 +203,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const selection = select(valueRef.current)
       const labelSelection = select(labelRef.current)
 
-      // Remove the previous values' elements
+      // Remove the previous value's elements
       selection.html(null)
       labelSelection.html(null)
 
@@ -210,6 +211,17 @@ export const UnivariateMeasureAdornmentComponent = observer(
         addLineCoverAndLabel(newValueObj, newLabelObj, measure)
       }
     }, [model, instanceKey, addLineCoverAndLabel])
+
+    // Refresh values on Plotted Value expression changes
+    useEffect(function refreshExpressionChange() {
+      return autorun(() => {
+        // The next line should not be needed, but without it this autorun doesn't get triggered.
+        // TODO: Figure out exactly why this is needed and adjust accordingly.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const modelValue = isPlottedValueAdornment(model) ? model.expression : undefined
+        model.updateCategories(graphModel.getUpdateCategoriesOptions())
+      })
+    }, [graphModel, model])
 
     // Refresh values on axis changes
     useEffect(function refreshAxisChange() {

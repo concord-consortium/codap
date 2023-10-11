@@ -6,4 +6,4 @@ export const kMeanUndoAddKey = "DG.Undo.graph.showPlottedMean"
 export const kMeanRedoAddKey = "DG.Redo.graph.showPlottedMean"
 export const kMeanUndoRemoveKey = "DG.Undo.graph.hidePlottedMean"
 export const kMeanRedoRemoveKey = "DG.Redo.graph.hidePlottedMean"
-
+export const kMeanValueTitleKey = "DG.PlottedAverageAdornment.meanValueTitle"

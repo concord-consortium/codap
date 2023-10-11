@@ -554,6 +554,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "Fórmula",
     "DG.PlottedValue.namePrompt": "Plotar Valor",
     "DG.PlottedValue.formulaPrompt": "valor = ",
+    "DG.PlottedValue.valueTitle": "valor=%@",
     "DG.PlottedValue.formulaHint": "\u200b",
     "DG.PlottedFunction.namePrompt": "Plotar Função",
     "DG.PlottedFunction.formulaPrompt": "f() =",

@@ -1,13 +1,13 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../adornment-component-info"
-import { registerAdornmentContentInfo } from "../adornment-content-info"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { PlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 import { kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix, kPlottedValueRedoAddKey,
          kPlottedValueRedoRemoveKey, kPlottedValueType, kPlottedValueUndoAddKey,
          kPlottedValueUndoRemoveKey} from "./plotted-value-adornment-types"
-import { PlottedValueAdornment } from "./plotted-value-adornment-component"
-import { AdornmentCheckbox } from "../adornment-checkbox"
+import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { PlottedValueAdornmentBanner } from "./plotted-value-adornment-banner"
+import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
 
 const Controls = () => {
   return (
@@ -21,6 +21,7 @@ const Controls = () => {
 
 registerAdornmentContentInfo({
   type: kPlottedValueType,
+  parentType: "Univariate Measure",
   plots: ["dotPlot", "scatterPlot"],
   prefix: kPlottedValuePrefix,
   modelClass: PlottedValueAdornmentModel,
@@ -34,7 +35,7 @@ registerAdornmentContentInfo({
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kPlottedValueClass,
-  Component: PlottedValueAdornment,
+  Component: UnivariateMeasureAdornmentComponent,
   Controls,
   BannerComponent: PlottedValueAdornmentBanner,
   labelKey: kPlottedValueLabelKey,

@@ -554,6 +554,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "公式",
     "DG.PlottedValue.namePrompt": "标绘值",
     "DG.PlottedValue.formulaPrompt": "值=",
+    "DG.PlottedValue.valueTitle": "值=%@",
     "DG.PlottedValue.formulaHint": "\u200b",
     "DG.PlottedFunction.namePrompt": "绘制函数",
     "DG.PlottedFunction.formulaPrompt": "f() =",

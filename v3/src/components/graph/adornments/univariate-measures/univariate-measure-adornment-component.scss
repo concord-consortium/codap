@@ -15,6 +15,9 @@
     &.median-line {
       stroke: #f00;
     }
+    &.plotted-value-line {
+      stroke: green;
+    }
   }
 
   .measure-tip {
@@ -41,7 +44,9 @@
     &.median-cover {
       stroke: #f00;
     }
-
+    &.plotted-value-cover {
+      stroke: green;
+    }
     &:hover, &.highlighted {
       opacity: .2;
     }

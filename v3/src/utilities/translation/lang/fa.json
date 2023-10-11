@@ -554,6 +554,7 @@
     "DG.PlottedFormula.defaultNamePrompt": "فرمول",
     "DG.PlottedValue.namePrompt": "مقدار رسم شده",
     "DG.PlottedValue.formulaPrompt": "مقدار=",
+    "DG.PlottedValue.valueTitle": "مقدار=%@",
     "DG.PlottedValue.formulaHint": "\u200b",
     "DG.PlottedFunction.namePrompt": "تابع رسم شده",
     "DG.PlottedFunction.formulaPrompt": "f() =",
