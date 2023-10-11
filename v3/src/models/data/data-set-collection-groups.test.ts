@@ -52,6 +52,21 @@ describe("CollectionGroups", () => {
     expect(data.getCasesForAttributes(["cId"])).toEqual(data.cases)
     expect(data.groupedAttributes).toEqual([])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId", "cId"])
+    // case caches are updated when cases are added/removed
+    const allCases = data.cases.map(({ __id__ }) => ({ __id__ }))
+    const childCases = data.childCases()
+    expect(childCases).toEqual(allCases)
+    data.addCases([{ __id__: "4-5-6", aId: 4, bId: 5, cId: 6 }])
+    const allCases2 = data.cases.map(({ __id__ }) => ({ __id__ }))
+    expect(allCases2).not.toEqual(allCases)
+    const childCases2 = data.childCases()
+    expect(childCases2).not.toEqual(childCases)
+    expect(childCases2).toEqual(allCases2)
+    data.removeCases(["4-5-6"])
+    const allCases3 = data.cases.map(({ __id__ }) => ({ __id__ }))
+    const childCases3 = data.childCases()
+    expect(childCases3).toEqual(childCases)
+    expect(childCases3).toEqual(allCases3)
   })
 
   it("handles grouping by a single attribute", () => {
