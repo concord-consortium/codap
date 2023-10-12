@@ -1,9 +1,11 @@
 import { ICase } from "./data-set-types"
-import { CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, ILocalAttributeDependency, ILookupDependency, LOCAL_ATTR } from "./formula-types"
+import {
+  CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, ILocalAttributeDependency, ILookupDependency, LOCAL_ATTR
+} from "./formula-types"
 import {
   safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
   displayToCanonical, unescapeBacktickString, escapeBacktickString, safeSymbolNameFromDisplayFormula,
-  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, parseBasicCanonicalName
+  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, parseBasicCanonicalName, formulaIndexOf
 } from "./formula-utils"
 
 const displayNameMapExample: DisplayNameMap = {
@@ -47,6 +49,39 @@ describe("parseBasicCanonicalName", () => {
     const name = `${CANONICAL_NAME}${GLOBAL_VALUE}bar`
     const result = parseBasicCanonicalName(name)
     expect(result).toEqual({ type: "globalValue", globalId: "bar" })
+  })
+})
+
+describe("formulaIndexOf", () => {
+  const formula = "foo.bar + 'baz' + \"qux\" + 'qux' + \"baz\""
+
+  describe("when name is a symbol, not a string constant", () => {
+    const isStringConstant = false
+    it("returns the index of the name in the formula", () => {
+      const result = formulaIndexOf(formula, "bar", isStringConstant)
+      expect(result).toEqual({ stringDelimiter: null, nameIndex: 4, finalName: "bar" })
+    })
+  })
+
+  describe("when name is a string constant", () => {
+    const isStringConstant = true
+    it("returns the index of the first found name in the formula if it is a double-quoted string constant", () => {
+      const name = "qux"
+      const result = formulaIndexOf(formula, name, isStringConstant)
+      expect(result).toEqual({ stringDelimiter: "\"", nameIndex: 18, finalName: "\"qux\"" })
+    })
+
+    it("returns the index of the name in the formula if it is a single-quoted string constant", () => {
+      const name = "baz"
+      const result = formulaIndexOf(formula, name, isStringConstant)
+      expect(result).toEqual({ stringDelimiter: "'", nameIndex: 10, finalName: "'baz'" })
+    })
+
+    it("returns -1 if the name is not found in the formula", () => {
+      const name = "quux"
+      const result = formulaIndexOf(formula, name, isStringConstant)
+      expect(result).toEqual({ stringDelimiter: null, nameIndex: -1, finalName: "quux" })
+    })
   })
 })
 
@@ -225,14 +260,24 @@ describe("canonicalToDisplay", () => {
       )).toEqual("mean ( `new\\\\mean\\`attribute 🙃` ) + 'mean'")
     })
   })
-  describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
+  describe("when attribute name is provided as a double quote string constant (e.g. lookup functions)", () => {
     it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
       expect(canonicalToDisplay(
         'lookupByKey("__CANONICAL_NAME__DATA_ROLLER_COASTER", "__CANONICAL_NAME__ATTR_PARK",' +
         ' "__CANONICAL_NAME__ATTR_TOP_SPEED", __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER) * 2',
-        'lookupByKey("Old Roller Coaster", "Old Park", "Old Top Speed", OldOrder) * 2',
+        'lookupByKey("Old Roller Coaster", "Old\\"Park", "Old\\"Top\'Speed", OldOrder) * 2',
         reverseDisplayNameMap(displayNameMapExample)
       )).toEqual('lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2')
+    })
+  })
+  describe("when attribute name is provided as a single quote string constant (e.g. lookup functions)", () => {
+    it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
+      expect(canonicalToDisplay(
+        "lookupByKey('__CANONICAL_NAME__DATA_ROLLER_COASTER', '__CANONICAL_NAME__ATTR_PARK'," +
+        " '__CANONICAL_NAME__ATTR_TOP_SPEED', __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER) * 2",
+        "lookupByKey('Old Roller Coaster', 'Old\"Park', 'Old\"Top\\'Speed', OldOrder) * 2",
+        reverseDisplayNameMap(displayNameMapExample)
+      )).toEqual("lookupByKey('Roller Coaster', 'Park\"', 'Top\\\\Speed\\'', Order) * 2")
     })
   })
 })

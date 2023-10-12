@@ -174,7 +174,7 @@
     "escape-string-regexp": "^5.0.0",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
-    "mathjs": "^11.11.0",
+    "mathjs": "^11.11.2",
     "mobx": "^6.10.2",
     "mobx-react-lite": "^4.0.4",
     "nanoid": "^4.0.2",
