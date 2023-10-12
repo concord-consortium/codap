@@ -7,7 +7,7 @@ import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
-import { MobXReaction } from "../../utilities/mobx-reaction"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { ColumnHeader } from "./column-header"
@@ -60,7 +60,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
 
   useEffect(() => {
     // rebuild column definitions when referenced properties change
-    const mobxReaction = new MobXReaction(
+    return mstReaction(
       () => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
@@ -92,7 +92,6 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       },
       { name: "useColumns [rebuild columns]", fireImmediately: true }, data
     )
-    return () => mobxReaction.dispose()
   }, [RenderCell, caseMetadata, collectionId, data, indexColumn, parentCollection])
 
   return columns

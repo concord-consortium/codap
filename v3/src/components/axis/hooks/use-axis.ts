@@ -2,7 +2,7 @@ import {ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal} from "d3"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {useCallback, useEffect, useRef} from "react"
-import {MobXAutorun} from "../../../utilities/mobx-autorun"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import {AxisPlace, axisGap} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
@@ -102,7 +102,7 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
     if (isNumeric) {
-      const mobXAutorun = new MobXAutorun(() => {
+      return mstAutorun(() => {
         const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
         if (_axisModel && !isAlive(_axisModel)) {
           console.warn("useAxis.installDomainSync skipping sync of defunct axis model")
@@ -111,7 +111,6 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
         _axisModel?.domain && multiScale?.setNumericDomain(_axisModel?.domain)
         layout.setDesiredExtent(axisPlace, computeDesiredExtent())
       }, { name: "useAxis.installDomainSync" }, axisProvider)
-      return () => mobXAutorun.dispose()
     }
     // Note axisModelChanged as a dependent. Shouldn't be necessary.
   }, [axisModelChanged, isNumeric, multiScale, axisPlace, layout, computeDesiredExtent, axisProvider])
