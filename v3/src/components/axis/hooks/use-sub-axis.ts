@@ -1,6 +1,5 @@
 import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
 import {reaction} from "mobx"
-import {isAlive} from "mobx-state-tree"
 import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {AxisBounds, AxisPlace, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
@@ -9,6 +8,7 @@ import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
 import {MobXAutorun} from "../../../utilities/mobx-autorun"
+import {isAliveSafe} from "../../../utilities/mst-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
   getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
@@ -56,7 +56,7 @@ export const useSubAxis = ({
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
-      if (_axisModel && !isAlive(_axisModel)) {
+      if (!isAliveSafe(_axisModel)) {
         console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model")
         return
       }
@@ -353,7 +353,7 @@ export const useSubAxis = ({
   useEffect(function installDomainSync() {
     const mobXAutorun = new MobXAutorun(() => {
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
-      if (_axisModel && isAlive(_axisModel)) {
+      if (isAliveSafe(_axisModel)) {
         if (isNumericAxisModel(_axisModel)) {
           const {domain} = _axisModel || {}
           layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
