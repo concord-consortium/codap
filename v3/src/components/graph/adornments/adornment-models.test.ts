@@ -52,7 +52,7 @@ describe("AdornmentModel", () => {
       rightCats: ["new", "used"]
     }
     const adornment = AdornmentModel.create({type: "Movable Line"})
-    const cellKey = adornment.setCellKey(options, 0)
+    const cellKey = adornment.generateCellKey(options, 0)
     expect(cellKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
   })
   it("will create an instance key value from given category values", () => {

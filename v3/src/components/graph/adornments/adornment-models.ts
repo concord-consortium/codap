@@ -63,16 +63,8 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     get isUnivariateMeasure() {
       return false
-    }
-  }))
-  .actions(self => ({
-    setVisibility(isVisible: boolean) {
-      self.isVisible = isVisible
     },
-    updateCategories(options: IUpdateCategoriesOptions) {
-      // derived models should override to update their models when categories change
-    },
-    setCellKey(options: IUpdateCategoriesOptions, index: number) {
+    generateCellKey(options: IUpdateCategoriesOptions, index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
@@ -108,6 +100,14 @@ export const AdornmentModel = types.model("AdornmentModel", {
       if (xAttrId && xCats[0]) cellKey[xAttrId] = xCat
 
       return cellKey
+    }
+  }))
+  .actions(self => ({
+    setVisibility(isVisible: boolean) {
+      self.isVisible = isVisible
+    },
+    updateCategories(options: IUpdateCategoriesOptions) {
+      // derived models should override to update their models when categories change
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
