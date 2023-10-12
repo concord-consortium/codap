@@ -101,7 +101,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const attrId = dataConfig.primaryAttributeID
       for (let i = 0; i < totalCount; ++i) {
         const cellKey = self.setCellKey(options, i)
-        const instanceKey = self.instanceKey(cellKey) 
+        const instanceKey = self.instanceKey(cellKey)
         const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {
           self.addMeasure(value, instanceKey)
