@@ -105,7 +105,15 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   entries.sort((a, b) => a.shelf.position - b.shelf.position)
 
   function handleTileButtonClick(tileType: string) {
-    document?.content?.createOrShowTile?.(tileType)
+    const undoRedoStringKeysMap: Record<string, [string, string]> = {
+      Calculator: ["DG.Undo.toggleComponent.add.calcView", "DG.Redo.toggleComponent.add.calcView"],
+      CodapSlider: ["DG.Undo.sliderComponent.create", "DG.Redo.sliderComponent.create"],
+      Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"]
+    }
+    const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType]
+    document?.content?.applyUndoableAction(() => {
+      document?.content?.createOrShowTile?.(tileType)
+    }, undoStringKey, redoStringKey)
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

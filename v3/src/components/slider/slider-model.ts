@@ -1,6 +1,6 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, types} from "mobx-state-tree"
-import { NumericAxisModel } from "../axis/models/axis-model"
+import { INumericAxisModel, NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { IGlobalValueManager, kGlobalValueManagerType } from "../../models/global/global-value-manager"
 import { applyUndoableAction } from "../../models/history/apply-undoable-action"
@@ -31,6 +31,12 @@ export const SliderModel = TileContentModel
     },
     get value() {
       return self.globalValue.value
+    },
+    getAxis(): INumericAxisModel {
+      return self.axis
+    },
+    getNumericAxis(): INumericAxisModel {
+      return self.axis
     },
     get domain() {
       return self.axis.domain
@@ -118,12 +124,9 @@ export const SliderModel = TileContentModel
         }, { name: "SliderModel [sharedModelManager]", fireImmediately: true }
       ))
     },
-    beforeDestroy() {
-      // destroying the slider component removes the underlying global value
-      // unfortunately, removing the global value here invalidates the reference and leads to MST warnings.
-      // TODO: figure out a mechanism to remove the slider model and its global value safely
-      // for now, the global value stays in the registry when the slider model is removed
-      // self.globalValue && self.globalValueManager?.removeValue(self.globalValue)
+    destroyGlobalValue() {
+      // the underlying global value should be removed when the slider model is destroyed
+      self.globalValue && self.globalValueManager?.removeValue(self.globalValue)
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // nothing to do

@@ -21,4 +21,10 @@ export const kDefaultAnimationMode = "onceOnly"
 
 export const kDefaultAnimationRate = 20 // frames/second
 
+export const kAnimationDefaults = {
+  animationMode: kDefaultAnimationMode,
+  animationDirection: kDefaultAnimationDirection,
+  animationRate: kDefaultAnimationRate
+}
+
 export type FixValueFn = (value: number) => number

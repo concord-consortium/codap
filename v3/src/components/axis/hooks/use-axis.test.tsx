@@ -1,27 +1,38 @@
 /* eslint-disable testing-library/no-node-access */
 import { renderHook } from "@testing-library/react"
+import { Instance, types } from "mobx-state-tree"
 import React from "react"
 import { SliderAxisLayout } from "../../slider/slider-layout"
 import { AxisLayoutContext } from "../models/axis-layout-context"
 import { INumericAxisModel, NumericAxisModel } from "../models/axis-model"
 import {IUseAxis, useAxis} from "./use-axis"
-import { AxisProviderContext, IAxisProvider } from "./use-axis-provider-context"
+import { AxisProviderContext } from "./use-axis-provider-context"
 
-describe("useNumericAxis", () => {
+const TestAxisProvider = types.model("TestAxisProvider", {
+  axis: NumericAxisModel
+})
+.views(self => ({
+  getAxis() {
+    return self.axis
+  },
+  getNumericAxis() {
+    return self.axis
+  }
+}))
+interface ITestAxisProvider extends Instance<typeof TestAxisProvider> {}
 
-  let provider: IAxisProvider
-  let layout: SliderAxisLayout
+describe("useAxis", () => {
+
+  let provider: ITestAxisProvider
   let axisModel: INumericAxisModel
+  let layout: SliderAxisLayout
   let axisElt: SVGGElement
   let useAxisOptions: IUseAxis
 
   beforeEach(() => {
-    provider = {
-      getAxis: () => axisModel,
-      getNumericAxis: () => axisModel
-    }
+    provider = TestAxisProvider.create({ axis: { place: "bottom", min: 0, max: 10 }})
+    axisModel = provider.axis
     layout = new SliderAxisLayout()
-    axisModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
     axisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
     useAxisOptions = { axisPlace: "bottom", centerCategoryLabels: true }
   })

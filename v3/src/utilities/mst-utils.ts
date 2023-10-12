@@ -31,6 +31,10 @@ export function getParentWithTypeName(target: IAnyStateTreeNode, typeName: strin
   return undefined
 }
 
+export function isAliveSafe(target: IAnyStateTreeNode | undefined) {
+  return !!target && isAlive(target)
+}
+
 /**
  * A short circuit isAlive check. It is intended to be used in observing
  * components. If the observing component is working with a MST object that
