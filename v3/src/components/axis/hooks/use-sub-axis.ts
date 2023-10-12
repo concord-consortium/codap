@@ -7,7 +7,7 @@ import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
-import {MobXAutorun} from "../../../utilities/mobx-autorun"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import {isAliveSafe} from "../../../utilities/mst-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
@@ -351,7 +351,7 @@ export const useSubAxis = ({
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
-    const mobXAutorun = new MobXAutorun(() => {
+    return mstAutorun(() => {
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
         if (isNumericAxisModel(_axisModel)) {
@@ -364,7 +364,6 @@ export const useSubAxis = ({
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
       }
     }, { name: "useSubAxis.installDomainSync" }, axisProvider)
-    return () => mobXAutorun.dispose()
   }, [axisPlace, axisProvider, layout, renderSubAxis])
 
   // Refresh when category set, if any, changes
