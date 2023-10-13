@@ -3,7 +3,7 @@ import { mean, std } from "mathjs"
 import {
   UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel
 } from "../univariate-measure-adornment-model"
-import { kStandardDeviationKey, kStandardDeviationType } from "./standard-deviation-adornment-types"
+import { kStandardDeviationValueTitleKey, kStandardDeviationType } from "./standard-deviation-adornment-types"
 import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
 
 export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
@@ -11,7 +11,7 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .props({
     type: "Standard Deviation",
     hasRange: true,
-    labelTitle: types.optional(types.literal(kStandardDeviationKey), kStandardDeviationKey)
+    labelTitle: types.optional(types.literal(kStandardDeviationValueTitleKey), kStandardDeviationValueTitleKey)
   })
   .views(self => ({
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {

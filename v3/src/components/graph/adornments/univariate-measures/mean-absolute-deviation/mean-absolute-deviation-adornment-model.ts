@@ -3,7 +3,8 @@ import { mean, mad } from "mathjs"
 import {
   UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel
 } from "../univariate-measure-adornment-model"
-import { kMeanAbsoluteDeviationKey, kMeanAbsoluteDeviationType } from "./mean-absolute-deviation-adornment-types"
+import { kMeanAbsoluteDeviationValueTitleKey,
+         kMeanAbsoluteDeviationType } from "./mean-absolute-deviation-adornment-types"
 import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
 
 export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentModel
@@ -11,7 +12,7 @@ export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentMod
   .props({
     type: "Mean Absolute Deviation",
     hasRange: true,
-    labelTitle: types.optional(types.literal(kMeanAbsoluteDeviationKey), kMeanAbsoluteDeviationKey)
+    labelTitle: types.optional(types.literal(kMeanAbsoluteDeviationValueTitleKey), kMeanAbsoluteDeviationValueTitleKey)
   })
   .views(self => ({
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
