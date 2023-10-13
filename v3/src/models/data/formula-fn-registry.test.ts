@@ -24,7 +24,7 @@ describe("numericMultiArgsFnFactory", () => {
   const fn = (valueA: number, valueB = 0) => valueA + valueB
   const numericFn = numericMultiArgsFnFactory(fn, { numOfRequiredArgs: 1 })
 
-  it("returns a function that applies the specified function to a multiple numeric values", () => {
+  it("returns a function that applies the specified function to multiple numeric values", () => {
     const result = numericFn(10, 20)
     expect(result).toBe(30)
   })
