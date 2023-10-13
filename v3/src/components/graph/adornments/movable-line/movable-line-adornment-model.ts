@@ -56,7 +56,7 @@ export const MovableLineAdornmentModel = AdornmentModel
     const rowCount = rightCats?.length || 1
     const totalCount = rowCount * columnCount
     for (let i = 0; i < totalCount; ++i) {
-      const cellKey = self.generateCellKey(options, i)
+      const cellKey = self.cellKey(options, i)
       const instanceKey = self.instanceKey(cellKey)
       if (!self.lines.get(instanceKey) || resetPoints) {
         self.setInitialLine(xAxis, yAxis, instanceKey)

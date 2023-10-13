@@ -64,7 +64,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     get isUnivariateMeasure() {
       return false
     },
-    generateCellKey(options: IUpdateCategoriesOptions, index: number) {
+    cellKey(options: IUpdateCategoriesOptions, index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
