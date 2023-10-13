@@ -79,7 +79,7 @@ export const numericMultiArgsFnFactory = (fn: (...values: number[]) => number, o
   return (...args: (FValue | FValue[])[]) => {
     const array = args.find((a) => Array.isArray(a)) as FValue[]
     if (array) {
-      // One of the arguments is an array. In means the context of the expression is aggregate function.
+      // One of the arguments is an array. It means the context of the expression is aggregate function.
       // Other arguments can be arrays, but they don't have to (e.g. if user provided constants as arguments).
       return array.map((v, idx) => calculateCaseValue(args, idx))
     }
