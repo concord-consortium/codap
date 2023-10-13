@@ -10,6 +10,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useCurrent} from "../../../hooks/use-current"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 
 interface IDragHandlers {
@@ -122,12 +123,12 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   // respond to attribute assignment changes
   useEffect(() => {
-    const disposer = reaction(
+    const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
         startAnimation(enableAnimation)
         callRefreshPointPositions(false)
-      }, { name: "usePlot [attribute assignment]" }
+      }, { name: "usePlot [attribute assignment]" }, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, enableAnimation])

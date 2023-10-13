@@ -1,6 +1,6 @@
-import { reaction } from "mobx"
 import { useEffect } from "react"
 import { useMemo } from "use-memo-one"
+import { mstReaction } from "../../../utilities/mst-reaction"
 import { AxisPlace } from "../../axis/axis-types"
 import {IGraphContentModel} from "../models/graph-content-model"
 import { GraphLayout } from "../models/graph-layout"
@@ -10,11 +10,12 @@ export function useInitGraphLayout(model?: IGraphContentModel) {
 
   useEffect(() => {
     // synchronize the number of repetitions from the DataConfiguration to the layout's MultiScales
-    return reaction(
+    const { dataConfiguration } = model || {}
+    return mstReaction(
       () => {
         const repetitions: Partial<Record<AxisPlace, number>> = {}
         layout.axisScales.forEach((multiScale, place) => {
-          repetitions[place] = model?.dataConfiguration.numRepetitionsForPlace(place) ?? 1
+          repetitions[place] = dataConfiguration?.numRepetitionsForPlace(place) ?? 1
         })
         return repetitions
       },
@@ -22,9 +23,9 @@ export function useInitGraphLayout(model?: IGraphContentModel) {
         (Object.keys(repetitions) as AxisPlace[]).forEach((place: AxisPlace) => {
           layout.getAxisMultiScale(place)?.setRepetitions(repetitions[place] ?? 0)
         })
-      }, { name: "useInitGraphLayout repetitions" }
+      }, { name: "useInitGraphLayout repetitions" }, dataConfiguration
     )
-  }, [layout, model?.dataConfiguration])
+  }, [layout, model])
 
   return layout
 }

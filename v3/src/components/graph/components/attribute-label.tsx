@@ -3,6 +3,7 @@ import {createPortal} from "react-dom"
 import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import {select} from "d3"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
@@ -143,7 +144,7 @@ export const AttributeLabel = observer(
 
     // Respond to changes in attributeID assigned to my place
     useEffect(() => {
-        const disposer = reaction(
+        const disposer = mstReaction(
           () => {
             if (place === 'left') {
               return dataConfiguration?.yAttributeDescriptionsExcludingY2.map((desc) => desc.attributeID)
@@ -154,7 +155,7 @@ export const AttributeLabel = observer(
           },
           () => {
             refreshAxisTitle()
-          }, { name: "AttributeLabel [attribute configuration]"}
+          }, { name: "AttributeLabel [attribute configuration]" }, dataConfiguration
         )
         return () => disposer()
     }, [place, dataConfiguration, refreshAxisTitle])
