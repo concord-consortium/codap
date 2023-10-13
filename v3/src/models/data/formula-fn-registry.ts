@@ -1,4 +1,4 @@
-import { create, all, mean, median, mad, max, min, sum, random, pickRandom, MathNode, ConstantNode } from 'mathjs'
+import { create, all, MathNode, ConstantNode } from 'mathjs'
 import { FormulaMathJsScope } from './formula-mathjs-scope'
 import {
   DisplayNameMap, FValue, CODAPMathjsFunctionRegistry, ILookupDependency, isConstantStringNode, rmCanonicalPrefix
@@ -37,25 +37,75 @@ const cachedAggregateFnFactory =
 
 // Note that aggregate functions like mean, max, min, etc., all have exactly the same signature and implementation.
 // The only difference is the final math operation applies to the expression results.
-const aggregateFnWithFilterFactory = (fn: (values: number[]) => number) => {
+const aggregateFnWithFilterFactory = (fn: (values: number[]) => FValue) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     const [ expression, filter ] = args
     let expressionValues = evaluateNode(expression, scope)
-    if (filter) {
-      const filterValues = evaluateNode(filter, scope)
-      expressionValues = expressionValues.filter((v: any, i: number) =>
-        // Empty cells should not be included in aggregate functions.
-        isValueNonEmpty(v) && isValueTruthy(filterValues[i])
-      )
-    } else {
-      // Empty cells should not be included in aggregate functions.
-      expressionValues = expressionValues.filter((v: any) => isValueNonEmpty(v))
-    }
+    const filterValues = !!filter && evaluateNode(filter, scope)
+    expressionValues = expressionValues.filter((v: FValue, i: number) =>
+      // Numeric aggregate functions should ignore non-numeric values.
+      isNumber(v) && (filterValues ? isValueTruthy(filterValues[i]) : true)
+    )
     return expressionValues.length > 0 ? fn(expressionValues) : UNDEF_RESULT
   }
 }
 
+// Numeric functions (like round, abs, etc.) should ignore non-numeric values. This factory is used for functions
+// with multiple arguments like pow(number, power). Note that even simple functions need to handle arrays, as they can
+// be used within aggregate functions.
+export const numericMultiArgsFnFactory = (fn: (...values: number[]) => number, opts: { numOfRequiredArgs: number}) => {
+  const { numOfRequiredArgs } = opts
+  const calculateCaseValue = (args: (FValue | FValue[])[], caseIdx?: number) => {
+    const caseExpressionArguments: (number | undefined)[] = []
+    for (let i = 0; i < args.length; i += 1) {
+      const arg = args[i]
+      const argValue = caseIdx !== undefined && Array.isArray(arg) ? arg[caseIdx] : arg
+      if (isNumber(argValue)) {
+        caseExpressionArguments.push(Number(argValue))
+      } else {
+        if (i < numOfRequiredArgs) {
+          // When at least one required argument is not a number, the result is undefined. No need to continue the loop.
+          return UNDEF_RESULT
+        } else {
+          // Optional argument can be non-numeric, so we need to push undefined to the arguments array so the default
+          // value is used by the original function.
+          caseExpressionArguments.push(undefined)
+        }
+      }
+    }
+    // undefined values are ignored by fn, they're only allowed for optional arguments.
+    return fn(...caseExpressionArguments as number[])
+  }
+  return (...args: (FValue | FValue[])[]) => {
+    const array = args.find((a) => Array.isArray(a)) as FValue[]
+    if (array) {
+      // One of the arguments is an array. In means the context of the expression is aggregate function.
+      // Other arguments can be arrays, but they don't have to (e.g. if user provided constants as arguments).
+      return array.map((v, idx) => calculateCaseValue(args, idx))
+    }
+    // At this point we know that none of the arguments is an array.
+    return calculateCaseValue(args, undefined)
+  }
+}
+
+// Simple version of numericMultiArgsFnFactory that is used for functions with single argument, like round(number).
+// It's not necessary, as numericMultiArgsFnFactory can be used for single argument functions as well, but it can be
+// faster. Also, it's easier to read and can help to understand what happens in numericMultiArgsFnFactory.
+export const numericFnFactory = (fn: (value: number) => number) => {
+  return (expressionValue: FValue | FValue[]) => {
+    if (Array.isArray(expressionValue)) {
+      return expressionValue.map((v) => isNumber(v) ? fn(Number(v)) : UNDEF_RESULT)
+    }
+    return isNumber(expressionValue) ? fn(Number(expressionValue)) : UNDEF_RESULT
+  }
+}
+
 export const isValueNonEmpty = (value: any) => value !== "" && value !== null && value !== undefined
+
+// `isNumber` should be consistent within all formula functions. If more advanced parsing is necessary, MathJS
+// provides its own `number` helper might be worth considering. However, besides hex number parsing, I haven't found
+// any other benefits of using it (and hex numbers support doesn't seem to be necessary).
+export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 
 // CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior. So that, for instance,
 // count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
@@ -90,7 +140,7 @@ export const equal = (a: any, b: any): boolean | boolean[] => {
   return a === b
 }
 
-const UNDEF_RESULT = ""
+export const UNDEF_RESULT = ""
 
 export const fnRegistry = {
   // equal(a, b) or a == b
@@ -102,6 +152,58 @@ export const fnRegistry = {
 
   unequal: {
     evaluate: (a: any, b: any) => !equal(a, b)
+  },
+
+  abs: {
+    evaluate: numericFnFactory(Math.abs)
+  },
+
+  ceil: {
+    evaluate: numericFnFactory(Math.ceil)
+  },
+
+  combinations: {
+    evaluate: numericMultiArgsFnFactory(math.combinations, { numOfRequiredArgs: 2 })
+  },
+
+  exp: {
+    evaluate: numericFnFactory(Math.exp)
+  },
+
+  floor: {
+    evaluate: numericFnFactory(Math.floor)
+  },
+
+  frac: {
+    evaluate: numericFnFactory((v: number) => v - (v < 0 ? Math.ceil(v) : Math.floor(v)))
+  },
+
+  ln: {
+    evaluate: numericFnFactory(Math.log)
+  },
+
+  log: {
+    evaluate: numericFnFactory(Math.log10)
+  },
+
+  pow: {
+    evaluate: numericMultiArgsFnFactory(Math.pow, { numOfRequiredArgs: 2 })
+  },
+
+  round: {
+    evaluate: numericMultiArgsFnFactory((num: number, digits = 0): number => {
+      // It works correctly for negative digits value too.
+      const factor = 10 ** digits
+      return Math.round(num * factor) / factor
+    }, { numOfRequiredArgs: 1 })
+  },
+
+  sqrt: {
+    evaluate: numericFnFactory(Math.sqrt)
+  },
+
+  trunc: {
+    evaluate: numericFnFactory(Math.trunc)
   },
 
   // lookupByIndex("dataSetName", "attributeName", index)
@@ -189,42 +291,42 @@ export const fnRegistry = {
   mean: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(mean)
+    evaluateRaw: aggregateFnWithFilterFactory(math.mean)
   },
 
   // median(expression, filterExpression)
   median: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(median)
+    evaluateRaw: aggregateFnWithFilterFactory(math.median)
   },
 
   // mad(expression, filterExpression)
   mad: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(mad)
+    evaluateRaw: aggregateFnWithFilterFactory(math.mad)
   },
 
   // max(expression, filterExpression)
   max: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(max)
+    evaluateRaw: aggregateFnWithFilterFactory(math.max)
   },
 
   // min(expression, filterExpression)
   min: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(min)
+    evaluateRaw: aggregateFnWithFilterFactory(math.min)
   },
 
   // sum(expression, filterExpression)
   sum: {
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
-    evaluateRaw: aggregateFnWithFilterFactory(sum)
+    evaluateRaw: aggregateFnWithFilterFactory(math.sum)
   },
 
   // count(expression, filterExpression)
@@ -367,14 +469,14 @@ export const fnRegistry = {
     isRandomFunction: true,
     // Nothing to do here, mathjs.pickRandom() has exactly the same signature as CODAP V2 randomPick() function,
     // just the name is different.
-    evaluate: (...args: FValue[]) => pickRandom(args)
+    evaluate: (...args: FValue[]) => math.pickRandom(args)
   },
 
   // random(min, max)
   random: {
     isRandomFunction: true,
     // Nothing to do here, mathjs.random() has exactly the same signature as CODAP V2 random() function.
-    evaluate: (...args: FValue[]) => random(...args as number[])
+    evaluate: (...args: FValue[]) => math.random(...args as number[])
   }
 }
 
