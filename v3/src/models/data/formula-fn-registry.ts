@@ -175,7 +175,7 @@ export const fnRegistry = {
   },
 
   frac: {
-    evaluate: numericFnFactory((v: number) => v - (v < 0 ? Math.ceil(v) : Math.floor(v)))
+    evaluate: numericFnFactory((v: number) => v - Math.trunc(v))
   },
 
   ln: {
