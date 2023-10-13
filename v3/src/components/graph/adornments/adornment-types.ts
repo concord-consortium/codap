@@ -12,12 +12,14 @@ import { IStandardDeviationAdornmentModel, StandardDeviationAdornmentModel }
   from "./univariate-measures/standard-deviation/standard-deviation-adornment-model"
 import { IMeanAbsoluteDeviationAdornmentModel, MeanAbsoluteDeviationAdornmentModel }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
+import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
 
 export const kGraphAdornmentsClass = "graph-adornments-grid"
 export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
 
 const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
   switch (adornmentSnap.type) {
+    case "Box Plot": return BoxPlotAdornmentModel
     case "Count": return CountAdornmentModel
     case "Mean": return MeanAdornmentModel
     case "Mean Absolute Deviation": return MeanAbsoluteDeviationAdornmentModel
@@ -32,12 +34,13 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
 }
 
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
-  CountAdornmentModel, MeanAdornmentModel, MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel,
-  MovableValueAdornmentModel, MovableLineAdornmentModel, MovablePointAdornmentModel, PlottedValueAdornmentModel,
-  StandardDeviationAdornmentModel, UnknownAdornmentModel)
-export type IAdornmentModelUnion = ICountAdornmentModel | IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel |
-  IMedianAdornmentModel | IMovableValueAdornmentModel | IMovableLineAdornmentModel | IMovablePointAdornmentModel |
-  IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
+  BoxPlotAdornmentModel, CountAdornmentModel, MeanAdornmentModel, MeanAbsoluteDeviationAdornmentModel,
+  MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel, MovablePointAdornmentModel,
+  PlottedValueAdornmentModel, StandardDeviationAdornmentModel, UnknownAdornmentModel)
+export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | IMeanAdornmentModel |
+  IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
+  IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedValueAdornmentModel |
+  IStandardDeviationAdornmentModel | IUnknownAdornmentModel
 
 export type PlotTypes = "casePlot" | "dotChart" | "dotPlot" | "scatterPlot"
 
@@ -67,7 +70,6 @@ export const measures: IMeasures = {
     { title: "DG.Inspector.graphPlottedStDev", type: "Standard Deviation" },
     { title: "DG.Inspector.graphPlottedMeanAbsDev", type: "Mean Absolute Deviation" },
     { title: "DG.Inspector.graphPlottedBoxPlot", type: "Box Plot" },
-    { title: "DG.Inspector.graphBoxPlotShowOutliers", type: "Show Outliers" },
     { title: "DG.Inspector.graphPlottedValue", type: "Plotted Value" },
     { title: "DG.Inspector.graphMovableValue", type: "Movable Value" }
   ],
