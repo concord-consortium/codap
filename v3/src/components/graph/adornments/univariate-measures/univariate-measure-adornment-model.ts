@@ -30,7 +30,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       throw "type must be overridden"
     }),
     labelTitle: types.optional(types.string, () => {
-      throw "valueTitle must be overridden"
+      throw "labelTitle must be overridden"
     })
   })
   .views(self => ({
@@ -48,12 +48,19 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     },
     get isUnivariateMeasure() {
       return true
+    },
+    get hasRange() {
+      return false
+    },
+    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+      // derived models should override if they have a range
+      return undefined
+    },
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+      // derived models should override to compute their respective values
     }
   }))
   .actions(self => ({
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
-      // derived models should override to update their models when categories change
-    },
     addMeasure(value: number, key="{}") {
       const newMeasure = MeasureInstance.create()
       newMeasure.setValue(value)
