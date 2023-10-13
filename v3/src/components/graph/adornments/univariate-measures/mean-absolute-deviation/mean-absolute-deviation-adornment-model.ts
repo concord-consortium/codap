@@ -11,10 +11,12 @@ export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentMod
   .named("MeanAbsoluteDeviationAdornmentModel")
   .props({
     type: "Mean Absolute Deviation",
-    hasRange: true,
     labelTitle: types.optional(types.literal(kMeanAbsoluteDeviationValueTitleKey), kMeanAbsoluteDeviationValueTitleKey)
   })
   .views(self => ({
+    get hasRange() {
+      return true
+    },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       return mad(caseValues)

@@ -10,10 +10,12 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .named("StandardDeviationAdornmentModel")
   .props({
     type: "Standard Deviation",
-    hasRange: true,
     labelTitle: types.optional(types.literal(kStandardDeviationValueTitleKey), kStandardDeviationValueTitleKey)
   })
   .views(self => ({
+    get hasRange() {
+      return true
+    },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       return std(caseValues)

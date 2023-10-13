@@ -24,7 +24,6 @@ export const MeasureInstance = types.model("MeasureInstance", {
 export const UnivariateMeasureAdornmentModel = AdornmentModel
   .named("UnivariateMeasureAdornmentModel")
   .props({
-    hasRange: false,
     measures: types.map(MeasureInstance),
     showMeasureLabels: false,
     type: types.optional(types.string, () => {
@@ -49,6 +48,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     },
     get isUnivariateMeasure() {
       return true
+    },
+    get hasRange() {
+      return false
     },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override if they have a range
