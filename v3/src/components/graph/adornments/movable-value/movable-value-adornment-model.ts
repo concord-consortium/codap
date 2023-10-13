@@ -130,7 +130,7 @@ export const MovableValueAdornmentModel = AdornmentModel
       self.setAxisMax(axisMax)
 
       for (let i = 0; i < totalCount; ++i) {
-        const subPlotKey = self.setCellKey(options, i)
+        const subPlotKey = self.cellKey(options, i)
         const instanceKey = self.instanceKey(subPlotKey)
         // Each array in the model's values map should have the same length as all the others. If there are no existing
         // values for the current instance key, check if there is at least one array in the map. If there is, copy those

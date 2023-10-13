@@ -15,7 +15,7 @@ const mockAdornment = {
   instanceKey: () => "mock-count-adornment",
   isUnivariateMeasure: false,
   isVisible: false,
-  setCellKey: () => ({}),
+  cellKey: () => ({}),
   setVisibility: () => true,
   updateCategories: () => ({}),
   type: "Mock Adornment"

@@ -63,6 +63,43 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     get isUnivariateMeasure() {
       return false
+    },
+    cellKey(options: IUpdateCategoriesOptions, index: number) {
+      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
+      const topCatCount = topCats.length || 1
+      const rightCatCount = rightCats.length || 1
+      const yCatCount = yCats.length || 1
+      const xCatCount = xCats.length || 1
+      const columnCount = topCatCount * xCatCount
+      const rowCount = rightCatCount * yCatCount
+      const cellKey: Record<string, string> = {}
+
+      // Determine which categories are associated with the cell's axes using the provided index value and
+      // the attributes and categories present in the graph.      
+      const topIndex = xCatCount > 0
+        ? Math.floor(index / xCatCount) % topCatCount
+        : index % topCatCount
+      const topCat = topCats[topIndex]
+      const rightIndex = topCatCount > 0 && yCatCount > 1
+        ? Math.floor(index / (topCatCount * yCatCount)) % rightCatCount
+        : yCatCount > 0
+          ? Math.floor(index / yCatCount) % rightCatCount
+          : index % rightCatCount
+      const rightCat = rightCats[rightIndex]
+      const yCat = topCats.length > 0
+        ? yCats[Math.floor(index / columnCount) % yCatCount]
+        : yCats[index % yCats.length]
+      const xCat = rightCats.length > 0
+        ? xCats[Math.floor(index / rowCount) % xCatCount]
+        : xCats[index % xCats.length]
+
+      // Assign the categories determined above to the associated properties of the cellKey object.
+      if (topAttrId) cellKey[topAttrId] = topCat
+      if (rightAttrId) cellKey[rightAttrId] = rightCat
+      if (yAttrId && yCats[0]) cellKey[yAttrId] = yCat
+      if (xAttrId && xCats[0]) cellKey[xAttrId] = xCat
+
+      return cellKey
     }
   }))
   .actions(self => ({
@@ -71,35 +108,6 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     updateCategories(options: IUpdateCategoriesOptions) {
       // derived models should override to update their models when categories change
-    },
-    setCellKey(options: IUpdateCategoriesOptions, index: number) {
-      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const cellKey: Record<string, string> = {}
-      const topIndex = xCatCount > 0
-        ? Math.floor(index / xCatCount) % topCatCount
-        : index % topCatCount
-      const topCat = topCats[topIndex]
-      const rightIndex = yCatCount > 0
-        ? Math.floor(index / yCatCount) % rightCats.length
-        : index % rightCats.length
-      const rightCat = rightCats[rightIndex]
-      const yCat = topCats.length > 0
-        ? yCats[Math.floor(index / columnCount) % yCatCount]
-        : yCats[index % yCats.length]
-      const xCat = rightCats.length > 0
-        ? xCats[Math.floor(index / rowCount) % xCatCount]
-        : xCats[index % xCats.length]
-      if (topAttrId) cellKey[topAttrId] = topCat
-      if (rightAttrId) cellKey[rightAttrId] = rightCat
-      if (yAttrId && yCats[0]) cellKey[yAttrId] = yCat
-      if (xAttrId && xCats[0]) cellKey[xAttrId] = xCat
-      return cellKey
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
