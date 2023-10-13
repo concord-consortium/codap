@@ -10,6 +10,7 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .named("StandardDeviationAdornmentModel")
   .props({
     type: "Standard Deviation",
+    hasRange: true,
     labelTitle: types.optional(types.literal(kStandardDeviationKey), kStandardDeviationKey)
   })
   .views(self => ({

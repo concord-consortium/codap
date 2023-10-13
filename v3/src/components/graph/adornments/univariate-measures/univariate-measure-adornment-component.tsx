@@ -13,8 +13,6 @@ import { valueLabelString } from "../../utilities/graph-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { isPlottedValueAdornment } from "./plotted-value/plotted-value-adornment-model"
-import { isStandardDeviationAdornment } from "./standard-deviation/standard-deviation-adornment-model"
-import { isMeanAbsoluteDeviationAdornment } from "./mean-absolute-deviation/mean-absolute-deviation-adornment-model"
 
 import "./univariate-measure-adornment-component.scss"
 
@@ -140,7 +138,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
     const addRange = useCallback((
       range: number, coverClass: string, lineClass: string, valueObj: IValue, coords: ILineCoords
     ) => {
-      if (!dataConfig || (!isStandardDeviationAdornment(model) && !isMeanAbsoluteDeviationAdornment(model))) return
+      if (!dataConfig) return
       const { x1, x2, y1, y2 } = coords
       const selection = select(valueRef.current)
       const rangeId = generateIdString("range")
@@ -188,7 +186,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         valueObj.rangeMaxCover.on("mouseover", () => toggleTextTip(true))
           .on("mouseout", () => toggleTextTip(false))
       }
-    }, [generateIdString, dataConfig, highlightLabel, measureSlug, model, newLine, showLabel, toggleTextTip])
+    }, [generateIdString, dataConfig, highlightLabel, measureSlug, newLine, showLabel, toggleTextTip])
 
     const addLabels = useCallback((
       labelObj: ILabel, measure: IMeasureInstance, textContent: string, valueObj: IValue,
@@ -198,7 +196,8 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const labelCoords = measure.labelCoords
       const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
       const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
-      const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * 20 : 0
+      const labelOffset = 20
+      const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * labelOffset : 0
       let labelLeft = labelCoords
         ? labelCoords.x / xCellCount
         : isVertical.current
@@ -237,9 +236,11 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const selection = select(valueRef.current)
       const textId = generateIdString("tip")
       const textClass = clsx("measure-tip", `${measureSlug}-tip`)
-      let x = isVertical.current ? xScale(plotValue) / xCellCount + 5 : (plotWidth - plotWidth/2) / xCellCount
+      const lineOffset = 5
+      const topOffset = 50
+      let x = isVertical.current ? xScale(plotValue) / xCellCount + lineOffset : (plotWidth - plotWidth/2) / xCellCount
       if (range && isVertical.current) x = x + range
-      let y = isVertical.current ? 50 : yScale(plotValue) / yCellCount - 5
+      let y = isVertical.current ? topOffset : yScale(plotValue) / yCellCount - lineOffset
       if (range && !isVertical.current) y = y - range
 
       valueObj.text = selection.append("text")
@@ -250,7 +251,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         .attr("x", x)
         .attr("y", y)
 
-      if (!range && valueObj.cover) {
+      if (valueObj.cover) {
         valueObj.cover
           .on("mouseover", () => toggleTextTip(true))
           .on("mouseout", () => toggleTextTip(false))
@@ -265,10 +266,12 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
       const displayValue = multiScale?.formatValueForScale(value) || valueLabelString(value)
       const plotValue = Number(displayValue)
-      const measureRange = attrId && (isStandardDeviationAdornment(model) || isMeanAbsoluteDeviationAdornment(model))
+      const measureRange = attrId && model.hasRange
         ? model.computeMeasureRange(attrId, cellKey, dataConfig)
         : undefined
-      const displayRange = multiScale?.formatValueForScale(measureRange) || valueLabelString(measureRange)
+      const displayRange = measureRange
+        ? multiScale?.formatValueForScale(measureRange) || valueLabelString(measureRange)
+        : undefined
       const range = measureRange && Number(measureRange)
       const [left, right] = xScale?.range() || [0, 1]
       const [bottom, top] = yScale?.range() || [0, 1]

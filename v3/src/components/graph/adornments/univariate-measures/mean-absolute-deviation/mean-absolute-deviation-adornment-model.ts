@@ -10,6 +10,7 @@ export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentMod
   .named("MeanAbsoluteDeviationAdornmentModel")
   .props({
     type: "Mean Absolute Deviation",
+    hasRange: true,
     labelTitle: types.optional(types.literal(kMeanAbsoluteDeviationKey), kMeanAbsoluteDeviationKey)
   })
   .views(self => ({
