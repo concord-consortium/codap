@@ -259,14 +259,17 @@ export const UnivariateMeasureAdornmentComponent = observer(
     }, [generateIdString, measureSlug, plotWidth, toggleTextTip, xCellCount, xScale, yCellCount, yScale])
 
     const addLineCoverAndLabel = useCallback((valueObj: IValue, labelObj: ILabel, measure: IMeasureInstance) => {
-      const attrId = dataConfig?.primaryAttributeID
-      const value = attrId ? model.measureValue(attrId, cellKey, dataConfig) : undefined
+      const xAttrId = dataConfig?.attributeID("x")
+      const yAttrId = dataConfig?.attributeID("y")
+      const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      if (!attrId || !dataConfig) return
+      const value = model.measureValue(attrId, cellKey, dataConfig)
       if (value === undefined || isNaN(value)) return
 
       const multiScale = isVertical.current ? layout.getAxisMultiScale("bottom") : layout.getAxisMultiScale("left")
       const displayValue = multiScale?.formatValueForScale(value) || valueLabelString(value)
       const plotValue = Number(displayValue)
-      const measureRange = attrId && model.hasRange
+      const measureRange = model.hasRange
         ? model.computeMeasureRange(attrId, cellKey, dataConfig)
         : undefined
       const displayRange = measureRange
@@ -297,7 +300,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       } else {
         addTextTip(plotValue, textContent, valueObj, range)
       }
-    }, [dataConfig, model, cellKey, layout, xScale, yScale, xCellCount, yCellCount, measureSlug,
+    }, [dataConfig, xAttrType, model, cellKey, layout, xScale, yScale, xCellCount, yCellCount, measureSlug,
         generateIdString, newLine, showLabel, addRange, addLabels, addTextTip])
 
     // Add the lines and their associated covers and labels
