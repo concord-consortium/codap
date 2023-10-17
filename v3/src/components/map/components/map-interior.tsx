@@ -19,8 +19,6 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
     {enableAnimation} = mapController,
     instanceId = useInstanceIdContext()
 
-  // useDataTips({dotsRef, dataset, mapModel, enableAnimation})
-
   useMapModel({dotsElement, mapModel, enableAnimation, instanceId})
 
   const renderMapLayerComponents = () => {
@@ -37,8 +35,8 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
   }
 
   return (
-      <div className='map-svg'>
-          {renderMapLayerComponents()}
-      </div>
+      <>
+         {renderMapLayerComponents()}
+      </>
   )
 })

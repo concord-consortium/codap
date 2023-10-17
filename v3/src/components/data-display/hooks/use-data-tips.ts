@@ -2,12 +2,14 @@ import {select} from "d3"
 import React, {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IDataSet} from "../../../models/data/data-set"
-import {IDotsRef, transitionDuration} from "../../data-display/data-display-types"
-import { CaseData } from "../../data-display/d3-types"
-import {getPointTipText} from "../../data-display/data-display-utils"
-import {IGraphContentModel} from "../models/graph-content-model"
-import {RoleAttrIDPair} from "../../data-display/models/data-configuration-model"
-import { urlParams } from "../../../utilities/url-params"
+import {IDotsRef, transitionDuration} from "../data-display-types"
+import {CaseData} from "../d3-types"
+import {getPointTipText} from "../data-display-utils"
+import {IGraphContentModel} from "../../graph/models/graph-content-model"
+import {RoleAttrIDPair} from "../models/data-configuration-model"
+import {urlParams} from "../../../utilities/url-params"
+import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
+import {isGraphDataConfigurationModel} from "../../graph/models/graph-data-configuration-model"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -18,17 +20,20 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
 interface IUseDataTips {
   dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
-  graphModel: IGraphContentModel,
+  displayModel: IGraphContentModel | IMapPointLayerModel,
   enableAnimation: React.MutableRefObject<boolean>
 }
-export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUseDataTips) => {
-  const hoverPointRadius = graphModel.getPointRadius('hover-drag'),
-    pointRadius = graphModel.getPointRadius(),
-    selectedPointRadius = graphModel.getPointRadius('select'),
-    yAttrIDs = graphModel.dataConfiguration.yAttributeIDs
+
+export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: IUseDataTips) => {
+  const hoverPointRadius = displayModel.getPointRadius('hover-drag'),
+    pointRadius = displayModel.getPointRadius(),
+    selectedPointRadius = displayModel.getPointRadius('select'),
+    dataConfiguration = displayModel.dataConfiguration,
+    yAttrIDs = isGraphDataConfigurationModel(dataConfiguration)
+      ? dataConfiguration.yAttributeIDs : undefined
 
   useEffect(() => {
-    const roleAttrIDPairs: RoleAttrIDPair[] = graphModel.dataConfiguration.uniqueTipAttributes ?? []
+    const roleAttrIDPairs: RoleAttrIDPair[] = displayModel.dataConfiguration.uniqueTipAttributes ?? []
 
     function okToTransition(target: any) {
       return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
@@ -73,5 +78,5 @@ export const useDataTips = ({dotsRef, dataset, graphModel, enableAnimation}:IUse
         .call(dataTip)
     }
   }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
-      graphModel.dataConfiguration.uniqueTipAttributes])
+    displayModel.dataConfiguration.uniqueTipAttributes])
 }

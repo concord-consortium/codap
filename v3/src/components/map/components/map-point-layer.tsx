@@ -1,13 +1,19 @@
 import {reaction} from "mobx"
-import {select} from "d3"
-import React, {useCallback, useEffect} from "react"
+import {onAnyAction} from "../../../utilities/mst-utils"
+import React, {useCallback, useEffect, useRef} from "react"
 import {useMap} from "react-leaflet"
-import {mstAutorun} from "../../../utilities/mst-autorun"
-import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
-import {CaseData, DotSelection, DotsElt} from "../../data-display/d3-types"
-import {computePointRadius} from "../../data-display/data-display-utils"
+import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {
+  defaultSelectedStroke,
+  defaultSelectedStrokeWidth,
+  defaultStrokeWidth
+} from "../../../utilities/color-utils"
+import {CaseData, DotsElt, selectDots} from "../../data-display/d3-types"
+import {computePointRadius, setPointSelection} from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
+import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
+import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useMapLayoutContext} from "../models/map-layout"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 
@@ -19,35 +25,35 @@ export const MapPointLayer = function MapPointLayer(props: {
   const {mapLayerModel, dotsElement, enableAnimation} = props,
     {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
+    mapModel = useMapModelContext(),
     leafletMap = useMap(),
-    layout = useMapLayoutContext()
+    layout = useMapLayoutContext(),
+    dotsRef = useRef(dotsElement)
 
-  /*
-    const refreshPointSelection = useCallback(() => {
-      const {pointColor, pointStrokeColor} = mapLayerModel,
-        selectedPointRadius = mapLayerModel.getPointRadius('select')
-      dataConfiguration && setPointSelection({
-        dotsRef, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
-        pointColor, pointStrokeColor
-      })
-    }, [dataConfiguration, mapLayerModel, dotsRef])
-  */
+  dotsRef.current = dotsElement
+
+  useDataTips({dotsRef, dataset, displayModel: mapLayerModel, enableAnimation})
+
+  const refreshPointSelection = useCallback(() => {
+    const {pointColor, pointStrokeColor} = pointDescription,
+      selectedPointRadius = mapLayerModel.getPointRadius('select')
+    dataConfiguration && setPointSelection({
+      dotsRef, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
+      pointColor, pointStrokeColor
+    })
+  }, [pointDescription, mapLayerModel, dataConfiguration])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
 
     const lookupLegendColor = (aCaseData: CaseData) => {
-      return dataConfiguration.attributeID('legend')
-        ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
-        : pointColor
-    },
+        return dataConfiguration.attributeID('legend')
+          ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
+          : pointColor
+      },
       getCoords = (anID: string) => {
-        const long = dataset?.getNumeric(anID, latId) || 0,
-          lat = dataset?.getNumeric(anID, longId) || 0,
-          coords = leafletMap.latLngToLayerPoint([lat, long])
-        coords.x /= 10
-        coords.y /= 10
-        console.log(`getCoords: ${anID} ${coords.x} ${coords.y}`)
-        return coords
+        const long = dataset?.getNumeric(anID, longId) || 0,
+          lat = dataset?.getNumeric(anID, latId) || 0
+        return leafletMap.latLngToContainerPoint([lat, long])
       },
       getScreenX = (anID: string) => {
         const coords = getCoords(anID)
@@ -60,8 +66,7 @@ export const MapPointLayer = function MapPointLayer(props: {
 
     if (!dotsElement || !dataset) return
     const
-      // theSelection = selectDots(dotsElement, selectedOnly),
-      theSelection:DotSelection = select(dotsElement).selectAll('.graph-dot'),
+      theSelection = selectDots(dotsElement, selectedOnly),
       duration = enableAnimation.current ? transitionDuration : 0,
       pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
         pointDescription.pointSizeMultiplier),
@@ -73,10 +78,10 @@ export const MapPointLayer = function MapPointLayer(props: {
       {latId, longId} = latLongAttributesFromDataSet(dataset)
     if (theSelection?.size()) {
       theSelection
-        .transition()
-        .duration(duration)
         .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
         .attr('cy', (aCaseData: CaseData) => getScreenY(aCaseData.caseID))
+        .transition()
+        .duration(duration)
         .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
           ? selectedPointRadius : pointRadius)
         .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
@@ -90,15 +95,25 @@ export const MapPointLayer = function MapPointLayer(props: {
 
   }, [dotsElement, dataset, enableAnimation, dataConfiguration, pointDescription, leafletMap])
 
-  useEffect(function respondToPointsNeedUpdate() {
-    return mstAutorun(
-      () => {
-        !dataConfiguration.pointsNeedUpdating && refreshPointPositions(false)
-      }, { name: "mapPointLayer.respondToPointsNeedUpdate" }, dataConfiguration)
-  }, [dataConfiguration, dataConfiguration.pointsNeedUpdating, refreshPointPositions])
+  // Actions in the dataset can trigger need point updates
+  useEffect(function setupResponsesToDatasetActions() {
+    if (dataset) {
+      const disposer = onAnyAction(dataset, action => {
+        if (isSelectionAction(action)) {
+          refreshPointSelection()
+        } else if (isSetCaseValuesAction(action)) {
+          // assumes that if we're caching then only selected cases are being updated
+          refreshPointPositions(dataset.isCaching)
+        } else if (["addCases", "removeCases"].includes(action.name)) {
+          refreshPointPositions(false)
+        }
+      })
+      return () => disposer()
+    }
+  }, [dataset, refreshPointPositions, refreshPointSelection])
 
-  // respond to layout size changes (e.g. component resizing)
-  useEffect(() => {
+  // Changes in layout require repositioning points
+  useEffect(function setupResponsesToLayoutChanges() {
     const disposer = reaction(
       () => [layout.mapWidth, layout.mapHeight, layout.legendHeight],
       () => {
@@ -108,6 +123,16 @@ export const MapPointLayer = function MapPointLayer(props: {
     return () => disposer()
   }, [layout, refreshPointPositions])
 
+  // respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
+  useEffect(function setupReactionToDisplayChangeCount() {
+    const disposer = reaction(
+      () => [mapModel.displayChangeCount],
+      () => {
+        refreshPointPositions(false)
+      }
+    )
+    return () => disposer()
+  }, [layout, mapModel.displayChangeCount, refreshPointPositions])
 
   return (
     <></>

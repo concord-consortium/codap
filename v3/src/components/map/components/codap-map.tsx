@@ -13,7 +13,6 @@ import {IDotsRef} from "../../data-display/data-display-types"
 // eslint-disable-next-line import/no-extraneous-dependencies
 import 'leaflet/dist/leaflet.css'
 import "./map.scss"
-// import {useDataTips} from "../../graph/hooks/use-data-tips"
 
 interface IProps {
   mapController: MapController
@@ -24,7 +23,6 @@ interface IProps {
 
 export const CodapMap = observer(function CodapMap({mapController, mapRef, dotsRef, dotsElement}: IProps) {
   const instanceId = useInstanceIdContext()
-  // useDataTips({dotsRef, dataset, graphModel, enableAnimation})
 
   return (
     <div className='map-container' ref={mapRef} data-testid="map">

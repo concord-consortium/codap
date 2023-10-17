@@ -7,7 +7,7 @@ import {typedId} from "../../../utilities/js-utils"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
-import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot}
+import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
@@ -447,4 +447,8 @@ export interface IGraphDataConfigurationModel extends Instance<typeof GraphDataC
 }
 
 export interface IGraphDataConfigurationModelSnapshot extends SnapshotIn<typeof GraphDataConfigurationModel> {
+}
+
+export function isGraphDataConfigurationModel(model: IDataConfigurationModel): model is IGraphDataConfigurationModel {
+  return model.type === kGraphDataConfigurationType
 }

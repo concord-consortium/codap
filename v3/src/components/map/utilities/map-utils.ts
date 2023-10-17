@@ -1,4 +1,4 @@
-import {latLngBounds} from 'leaflet'
+import {LatLngBounds, latLngBounds} from 'leaflet'
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {IDataSet} from "../../../models/data/data-set"
 import {kLatNames, kLongNames} from "../map-types"
@@ -84,8 +84,11 @@ export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => 
       return isFiniteNumber(iMinMax.min) && isFiniteNumber(iMinMax.max)
     }
   const latValues = dataConfiguration.numericValuesForAttrRole('lat'),
-    longValues = dataConfiguration.numericValuesForAttrRole('long'),
-    latMin = Math.min(...latValues),
+    longValues = dataConfiguration.numericValuesForAttrRole('long')
+  if (latValues.length === 0 || longValues.length === 0) {
+    return undefined
+  }
+  const latMin = Math.min(...latValues),
     latMax = Math.max(...latValues)
   let longMin = Math.min(...longValues),
     longMax = Math.max(...longValues)
@@ -99,4 +102,15 @@ export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => 
   const tSouthWest = {lat: latMin, lng: longMin},
     tNorthEast = {lat: latMax, lng: longMax}
   return latLngBounds([tSouthWest, tNorthEast])
+}
+
+export const expandLatLngBounds = (bounds: LatLngBounds, fraction:number) => {
+  const center = bounds.getCenter(),
+    latDelta = bounds.getNorth() - bounds.getSouth(),
+    lngDelta = bounds.getEast() - bounds.getWest(),
+    newLatDelta = latDelta * fraction,
+    newLngDelta = lngDelta * fraction,
+    southWest = {lat: center.lat - newLatDelta / 2, lng: center.lng - newLngDelta / 2},
+    northEast = {lat: center.lat + newLatDelta / 2, lng: center.lng + newLngDelta / 2}
+  return latLngBounds([southWest, northEast])
 }

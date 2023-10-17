@@ -109,6 +109,9 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
+    afterCreate() {
+      console.log(`DataConfigurationModel.afterCreate`)
+    },
     clearFilteredCases() {
       self.filteredCases.forEach(aFilteredCases => aFilteredCases.destroy())
       self.filteredCases = []
