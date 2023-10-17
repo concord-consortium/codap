@@ -12,12 +12,12 @@ export interface IFormulaMathjsScopeContext {
   dataSets: Map<string, IDataSet>
   globalValueManager?: IGlobalValueManager
   caseIds: string[]
-  formulaAttrId: string
-  formulaCollectionIndex: number
-  childMostAggregateCollectionIndex: number
   childMostCollectionCaseIds: string[]
-  caseGroupId: Record<string, string>
-  caseChildrenCount: Record<string, number>
+  formulaAttrId?: string
+  formulaCollectionIndex?: number
+  childMostAggregateCollectionIndex?: number
+  caseGroupId?: Record<string, string>
+  caseChildrenCount?: Record<string, number>
 }
 
 // Official MathJS docs don't describe custom scopes in great detail, but there's a good example in their repo:
@@ -64,7 +64,7 @@ export class FormulaMathJsScope {
               // Cache is calculated lazily to avoid calculating it for all the attributes that are not referenced by
               // the formula. Note that each case is processed only once, so this mapping is only O(n) complexity.
               context.childMostCollectionCaseIds.forEach(cId => {
-                const groupId = context.caseGroupId[cId]
+                const groupId = context.caseGroupId?.[cId] ?? NO_PARENT_KEY
                 if (!cachedGroup[groupId]) {
                   cachedGroup[groupId] = []
                 }
@@ -144,7 +144,7 @@ export class FormulaMathJsScope {
       this.caseIndexCache = {}
       const casesCount: Record<string, number> = {}
       this.context.childMostCollectionCaseIds.forEach(cId => {
-        const groupId = this.context.caseGroupId[cId]
+        const groupId = this.context.caseGroupId?.[cId] || NO_PARENT_KEY
         if (!casesCount[groupId]) {
           casesCount[groupId] = 0
         }
@@ -182,7 +182,7 @@ export class FormulaMathJsScope {
     return result
   }
 
-  withAggregateContext(callback: () => any) {
+   withAggregateContext(callback: () => any) {
     const originalIsAggregate = this.isAggregate
     this.isAggregate = true
     const result = callback()
@@ -191,7 +191,7 @@ export class FormulaMathJsScope {
   }
 
   getCaseChildrenCount() {
-    return this.context.caseChildrenCount[this.caseId] ?? 0
+    return this.context.caseChildrenCount?.[this.caseId] ?? 0
   }
 
   getLocalDataSet() {
@@ -203,6 +203,10 @@ export class FormulaMathJsScope {
   }
 
   getCaseAggregateGroupId() {
+    if (this.context.formulaCollectionIndex === undefined ||
+      this.context.childMostAggregateCollectionIndex === undefined) {
+      return NO_PARENT_KEY
+    }
     // There are two separate kinds of aggregate cases grouping:
     // - Same-level grouping, which is used when the table is flat or when the aggregate function is referencing
     //   attributes only from the same collection.
@@ -215,7 +219,7 @@ export class FormulaMathJsScope {
   }
 
   getCaseGroupId() {
-    return this.context.caseGroupId[this.caseId]
+    return this.context.caseGroupId?.[this.caseId] ?? NO_PARENT_KEY
   }
 
   // Basic, flexible cache used by formula's custom functions, usually aggregate or semi-aggregate.

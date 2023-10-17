@@ -24,6 +24,9 @@ import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-m
 import {IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
 import { AdornmentsStore } from "../adornments/adornments-store"
+import { IAdornmentModelUnion } from "../adornments/adornment-types"
+import { typedId } from "../../../utilities/js-utils"
+import { getPlottedValueFormulaAdapter } from "../../../models/data/plotted-value-formula-adapter"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -44,6 +47,7 @@ export const NumberToggleModel = types
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
+    id: types.optional(types.identifier, () => typedId("GRCM")),
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
@@ -82,6 +86,9 @@ export const GraphContentModel = DataDisplayContentModel
     get metadata() {
       return getTileCaseMetadata(self)
     },
+    get adornments(): IAdornmentModelUnion[] {
+      return self.adornmentsStore.adornments
+    }
   }))
   .views(self => ({
     getAxis(place: AxisPlace) {
@@ -163,10 +170,12 @@ export const GraphContentModel = DataDisplayContentModel
             ? sharedModelManager?.getTileSharedModels(self)
             : undefined
 
-          return {sharedModelManager, sharedDataSets, tileSharedModels}
+          const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
+
+          return {sharedModelManager, sharedDataSets, tileSharedModels, plottedValueFormulaAdapter}
         },
         // reaction/effect
-        ({sharedModelManager, sharedDataSets}) => {
+        ({sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}) => {
           if (!sharedModelManager?.isReady) {
             // We aren't added to a document yet, so we can't do anything yet
             return
@@ -179,8 +188,19 @@ export const GraphContentModel = DataDisplayContentModel
           else if (!tileDataSet && sharedDataSets.length === 1) {
             linkTileToDataSet(self, sharedDataSets[0].dataSet)
           }
+
+          if (plottedValueFormulaAdapter) {
+            // TODO: This cast should not be necessary. Is it an MST quirk?
+            plottedValueFormulaAdapter.addGraphContentModel(self as IGraphContentModel)
+          }
         },
         {name: "sharedModelSetup", fireImmediately: true}))
+    },
+    beforeDestroy() {
+      const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
+      if (plottedValueFormulaAdapter) {
+        plottedValueFormulaAdapter.removeGraphContentModel(self.id)
+      }
     }
   }))
   .actions(self => ({
