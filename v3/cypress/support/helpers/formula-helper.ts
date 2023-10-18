@@ -52,7 +52,7 @@ export const FormulaHelper = {
     }
   },
   visitURL(step) {
-    const queryParams = step.queryParams
+    const queryParams = step.queryParams || ""
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)

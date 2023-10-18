@@ -4,8 +4,7 @@
       "testName": "Check arithmetic functions",
       "steps": [
         {
-          "name": "visitURL",
-          "queryParams": "?sample=four&dashboard"
+          "name": "visitURL"
         },
         {
           "name": "importFile",
@@ -45,7 +44,7 @@
         {
           "name": "verifyValues",
           "attributeName": "ceil",
-          "values": [2,1,0,"−2",0,1,"−1","Infinity","-Infinity",""]
+          "values": [2,1,0,"−2",0,1,"−1","Infinity","-Infinity","",""]
         },
         {
           "name": "addNewAttribute"
@@ -63,7 +62,7 @@
         {
           "name": "verifyValues",
           "attributeName": "exp",
-          "values": [7.389,2.718,1,0.135,0.864,2.655,0.208,"Infinity",0,""]
+          "values": [7.389,2.718,1,0.135,0.864,2.655,0.208,"Infinity",0,"",""]
         },
         {
           "name": "addNewAttribute"
@@ -81,7 +80,7 @@
         {
           "name": "verifyValues",
           "attributeName": "floor",
-          "values": [2,1,0,"−2","−1",0,"−2","Infinity","-Infinity",""]
+          "values": [2,1,0,"−2","−1",0,"−2","Infinity","-Infinity","",""]
         },
         {
           "name": "addNewAttribute"
@@ -99,7 +98,7 @@
         {
           "name": "verifyValues",
           "attributeName": "frac",
-          "values": [0,0,0,0,"−0.147",0.976,"−0.571","NaN","NaN",""]
+          "values": [0,0,0,0,"−0.147",0.976,"−0.571","NaN","NaN","",""]
         },
         {
           "name": "addNewAttribute"
@@ -117,7 +116,7 @@
         {
           "name": "verifyValues",
           "attributeName": "ln",
-          "values": [0.693,0,"-Infinity","NaN","NaN","−0.024","NaN","Infinity","NaN",""]
+          "values": [0.693,0,"-Infinity","NaN","NaN","−0.024","NaN","Infinity","NaN","",""]
         },
         {
           "name": "addNewAttribute"
@@ -135,7 +134,7 @@
         {
           "name": "verifyValues",
           "attributeName": "log",
-          "values": [0.301,0,"-Infinity","NaN","NaN","−0.01","NaN","Infinity","NaN",""]
+          "values": [0.301,0,"-Infinity","NaN","NaN","−0.01","NaN","Infinity","NaN","",""]
         },
         {
           "name": "addNewAttribute"
@@ -153,7 +152,7 @@
         {
           "name": "verifyValues",
           "attributeName": "pow",
-          "values": [4,1,0,4,0.021,0.953,2.468,"Infinity","Infinity",""]
+          "values": [4,1,0,4,0.021,0.953,2.468,"Infinity","Infinity","",""]
         },
         {
           "name": "addNewAttribute"
@@ -171,7 +170,7 @@
         {
           "name": "verifyValues",
           "attributeName": "round",
-          "values": [2,1,0,"−2",0,1,"−2","Infinity","-Infinity",""]
+          "values": [2,1,0,"−2",0,1,"−2","Infinity","-Infinity","",""]
         },
         {
           "name": "addNewAttribute"
@@ -189,7 +188,7 @@
         {
           "name": "verifyValues",
           "attributeName": "sqrt",
-          "values": [1.414,1,0,"NaN","NaN",0.988,"NaN","Infinity","NaN",""]
+          "values": [1.414,1,0,"NaN","NaN",0.988,"NaN","Infinity","NaN","",""]
         },
         {
           "name": "addNewAttribute"
@@ -207,7 +206,7 @@
         {
           "name": "verifyValues",
           "attributeName": "trunc",
-          "values": [2,1,0,"−2",0,0,"−1","Infinity","-Infinity",""]
+          "values": [2,1,0,"−2",0,0,"−1","Infinity","-Infinity","",""]
         },
         {
           "name": "addNewAttribute"
@@ -233,7 +232,7 @@
             "❌ Positive integer value expected in function combinations",
             "❌ Positive integer value expected in function combinations",
             "❌ Positive integer value expected in function combinations",
-            ""
+            "",""
           ]
         }
       ]

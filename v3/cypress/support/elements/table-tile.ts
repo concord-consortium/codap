@@ -237,7 +237,6 @@ export const TableTileElements = {
   addNewAttribute(collectionIndex = 1) {
     this.getCollection(collectionIndex).find("[data-testid=collection-add-attribute-icon-button] svg")
       .click({force:true})
-    cy.wait(500)
   },
   deleteAttrbute(attributeName, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
@@ -293,7 +292,6 @@ export const TableTileElements = {
   verifyFormulaError(attribute, error, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < error.cases; rowIndex++) {
       this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", error.value)
-      cy.wait(500)
     }
   },
   createNewDataset() {
