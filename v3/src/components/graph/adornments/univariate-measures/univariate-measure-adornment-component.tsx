@@ -13,6 +13,7 @@ import { valueLabelString } from "../../utilities/graph-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { isPlottedValueAdornment } from "./plotted-value/plotted-value-adornment-model"
+import { measureText } from "../../../../hooks/use-measure-text"
 
 import "./univariate-measure-adornment-component.scss"
 
@@ -246,7 +247,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
 
       // If x plus the approximate width of the text tip would extend beyond the right boundary of the subplot, set x to
       // plotWidth minus the text tip width or zero, whichever is greater.
-      const textTipWidth = textContent.length * 8
+      const textTipWidth = measureText(textContent)
       if (x + textTipWidth > plotWidth) x = Math.max(plotWidth - textTipWidth, 0)
 
       valueObj.text = selection.append("text")
