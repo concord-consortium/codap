@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-pre.1378 - October 18, 2023
+
+### Features/Improvements
+- Handle characters that need escaping in formula single quote strings (e.g. lookup('Attr\\' Name') + 'cons\\'tant') [#186179035](https://www.pivotaltracker.com/story/show/186179035)
+- Dot plots can display **standard deviation** and **mean absolute deviation** [#181914408](https://www.pivotaltracker.com/story/show/181914408)
+
+### Bug Fixes
+- Dot plot split categorically on x-axis does not show mean and median adornments [#186223632](https://www.pivotaltracker.com/story/show/186223632)
+- Improve error handling when an attribute used by formula is deleted [#186201910](https://www.pivotaltracker.com/story/show/186201910)
+- Slider values used in formulas are showing decimal places even when they're whole numbers in the slider  [#186218519](https://www.pivotaltracker.com/story/show/186218519)
+- Formula evaluation responds dynamically to slider value changes during drag [#186182162](https://www.pivotaltracker.com/story/show/186182162)
+- In new dataset formula only applies to first case [#186182255](https://www.pivotaltracker.com/story/show/186182255)
+- Adornments not always rendered for all subplots [#186164083](https://www.pivotaltracker.com/story/show/186164083)
+- numeric attribute formulas should ignore non-numeric case values [#186235751](https://www.pivotaltracker.com/story/show/186235751)
+- V3 formulas support all the arithmetic functions from V2 [#186245938](https://www.pivotaltracker.com/story/show/186245938)
+- Develop testing pattern for non-aggregate formula functions [#186245948](https://www.pivotaltracker.com/story/show/186245948)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   69479 bytes |                            0.58% |
+|  index.js | 3386895 bytes |                            0.14% |
+
 ## Version 3.0.0-pre.1360 - October 10, 2023
 
 ### Features/Improvements
