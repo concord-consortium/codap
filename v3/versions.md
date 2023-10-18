@@ -5,6 +5,7 @@
 ### Versions
 |      Version    |          Release Date |
 |-----------------|-----------------------|
+| [3.0.0-pre.1378](https://codap3.concord.org/version/3.0.0-pre.1378/) | October 18, 2023 |
 | [3.0.0-pre.1360](https://codap3.concord.org/version/3.0.0-pre.1360/) | October 10, 2023 |
 | [3.0.0-pre.1342](https://codap3.concord.org/version/3.0.0-pre.1342/) | October 2, 2023 |
 | [3.0.0-pre.1331](https://codap3.concord.org/version/3.0.0-pre.1331/) | September 26, 2023 |
