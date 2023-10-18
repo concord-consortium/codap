@@ -90,6 +90,10 @@ To deploy a production release:
 10. Stage the release by running the [Release v3 Staging Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml) and entering the version tag you just pushed
 11. Test the staged release at https://codap3.concord.org/index-staging.html
 12. Update production by running the [Release v3 Production Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml) and entering the release version tag
+13. Update versions.md with the new version and release date
+
+### Versions
+[Here](https://github.com/concord-consortium/codap/blob/main/v3/versions.md) is a link to the various versions of CODAP along with their release dates.
 
 ### Testing
 - run `npm run lint` to lint the source files
