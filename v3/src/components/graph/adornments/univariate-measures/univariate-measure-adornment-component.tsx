@@ -13,6 +13,7 @@ import { valueLabelString } from "../../utilities/graph-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { isPlottedValueAdornment } from "./plotted-value/plotted-value-adornment-model"
+import { measureText } from "../../../../hooks/use-measure-text"
 
 import "./univariate-measure-adornment-component.scss"
 
@@ -136,7 +137,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
     }, [])
 
     const addRange = useCallback((
-      range: number, coverClass: string, lineClass: string, valueObj: IValue, coords: ILineCoords
+      range: number, plotValue: number, coverClass: string, lineClass: string, valueObj: IValue, coords: ILineCoords
     ) => {
       if (!dataConfig) return
       const { x1, x2, y1, y2 } = coords
@@ -146,15 +147,15 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const rangeMinCoverId = generateIdString("min-cover")
       const rangeMaxId = generateIdString("max")
       const rangeMaxCoverId = generateIdString("max-cover")
-      const rangeMinX1 = isVertical.current ? x1 - range : x1
-      const rangeMinX2 = isVertical.current ? x2 - range : x2
-      const rangeMinY1 = isVertical.current ? y1 : y1 - range
-      const rangeMinY2 = isVertical.current ? y2 : y2 - range
+      const rangeMinX1 = isVertical.current ? xScale(plotValue - range) / xCellCount : x1
+      const rangeMinX2 = isVertical.current ? xScale(plotValue - range) / xCellCount : x2
+      const rangeMinY1 = isVertical.current ? y1 : yScale(plotValue + range) / yCellCount
+      const rangeMinY2 = isVertical.current ? y2 : yScale(plotValue + range) / yCellCount
       const rangeMinCoords = { x1: rangeMinX1, x2: rangeMinX2, y1: rangeMinY1, y2: rangeMinY2 }
-      const rangeMaxX1 = isVertical.current ? x1 + range : x1
-      const rangeMaxX2 = isVertical.current ? x2 + range : x2
-      const rangeMaxY1 = isVertical.current ? y1 : y1 + range
-      const rangeMaxY2 = isVertical.current ? y2 : y2 + range
+      const rangeMaxX1 = isVertical.current ? xScale(plotValue + range) / xCellCount : x1
+      const rangeMaxX2 = isVertical.current ? xScale(plotValue + range) / xCellCount : x2
+      const rangeMaxY1 = isVertical.current ? y1 : yScale(plotValue - range) / yCellCount
+      const rangeMaxY2 = isVertical.current ? y2 : yScale(plotValue - range) / yCellCount
       const rangeMaxCoords = { x1: rangeMaxX1, x2: rangeMaxX2, y1: rangeMaxY1, y2: rangeMaxY2 }
   
       // Add the shaded rectangle that covers the range
@@ -164,8 +165,8 @@ export const UnivariateMeasureAdornmentComponent = observer(
         .attr("data-testid", rangeId)
         .attr("x", isVertical.current ? rangeMinX1 : 0)
         .attr("y", isVertical.current ? 0 : rangeMinY1)
-        .attr("width", isVertical.current ? range * 2 : "100%")
-        .attr("height", isVertical.current ? "100%" : range * 2)
+        .attr("width", isVertical.current ? rangeMaxX1 - rangeMinX1 : "100%")
+        .attr("height", isVertical.current ? "100%" : rangeMaxY1 - rangeMinY1)
 
       // Add the lines at the range min and max
       valueObj.rangeMin = newLine(`${lineClass} range-line`, rangeMinId, rangeMinCoords)
@@ -186,7 +187,8 @@ export const UnivariateMeasureAdornmentComponent = observer(
         valueObj.rangeMaxCover.on("mouseover", () => toggleTextTip(true))
           .on("mouseout", () => toggleTextTip(false))
       }
-    }, [generateIdString, dataConfig, highlightLabel, measureSlug, newLine, showLabel, toggleTextTip])
+    }, [dataConfig, generateIdString, xScale, xCellCount, yScale, yCellCount, measureSlug, newLine, showLabel,
+        highlightLabel, toggleTextTip])
 
     const addLabels = useCallback((
       labelObj: ILabel, measure: IMeasureInstance, textContent: string, valueObj: IValue,
@@ -203,7 +205,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
         : isVertical.current
           ? xScale(plotValue) / xCellCount
           : 0
-      if (range && isVertical.current) labelLeft = labelLeft + range
+      if (range && isVertical.current) labelLeft = xScale(plotValue + range) / xCellCount
       const labelTop = labelCoords ? labelCoords.y : topOffset
       const labelId = `${measureSlug}-measure-labels-tip-${containerId}${classFromKey ? `-${classFromKey}` : ""}`
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${measureSlug}`)
@@ -239,9 +241,14 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const lineOffset = 5
       const topOffset = 50
       let x = isVertical.current ? xScale(plotValue) / xCellCount + lineOffset : (plotWidth - plotWidth/2) / xCellCount
-      if (range && isVertical.current) x = x + range
+      if (range && isVertical.current) x = xScale(plotValue + range) / xCellCount + lineOffset
       let y = isVertical.current ? topOffset : yScale(plotValue) / yCellCount - lineOffset
-      if (range && !isVertical.current) y = y - range
+      if (range && !isVertical.current) y = yScale(plotValue + range) / yCellCount - lineOffset
+
+      // If x plus the approximate width of the text tip would extend beyond the right boundary of the subplot, set x to
+      // plotWidth minus the text tip width or zero, whichever is greater.
+      const textTipWidth = measureText(textContent)
+      if (x + textTipWidth > plotWidth) x = Math.max(plotWidth - textTipWidth, 0)
 
       valueObj.text = selection.append("text")
         .text(textContent)
@@ -272,7 +279,7 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const measureRange = model.hasRange
         ? model.computeMeasureRange(attrId, cellKey, dataConfig)
         : undefined
-      const displayRange = measureRange
+      const displayRange = measureRange || measureRange === 0
         ? multiScale?.formatValueForScale(measureRange) || valueLabelString(measureRange)
         : undefined
       const range = measureRange && Number(measureRange)
@@ -286,11 +293,11 @@ export const UnivariateMeasureAdornmentComponent = observer(
       const lineId = generateIdString("line")
       const coverClass = clsx("measure-cover", `${measureSlug}-cover`)
       const coverId = generateIdString("cover")
-      const textContent = `${t(model.labelTitle, { vars: [`${range ? `${displayRange}` : `${displayValue}`}`]})}`
+      const textContent = `${t(model.labelTitle, { vars: [`${displayRange ? `${displayRange}` : `${displayValue}`}`]})}`
 
       valueObj.line = newLine(lineClass, lineId, {x1, x2, y1, y2})
       if (range) {
-        addRange(range, coverClass, lineClass, valueObj, {x1, x2, y1, y2})
+        addRange(range, plotValue, coverClass, lineClass, valueObj, {x1, x2, y1, y2})
       } else {
         // Only add a cover for the value line if the adornment doesn't have a range
         valueObj.cover = newLine(coverClass, coverId, {x1, x2, y1, y2})

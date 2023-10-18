@@ -1,5 +1,5 @@
 import { Instance, types } from "mobx-state-tree"
-import { mean, mad } from "mathjs"
+import { mean } from "mathjs"
 import {
   UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel
 } from "../univariate-measure-adornment-model"
@@ -19,7 +19,8 @@ export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentMod
     },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      return mad(caseValues)
+      const mad = caseValues.reduce((acc, val) => acc + Math.abs(val - mean(caseValues)), 0) / caseValues.length
+      return mad
     },
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
