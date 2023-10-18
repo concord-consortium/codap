@@ -73,8 +73,8 @@ export const TableTileElements = {
   getAttribute(name, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
-  openAttributeMenu(name) {
-    this.getAttribute(name).click()
+  openAttributeMenu(name, collectionIndex = 1) {
+    this.getAttribute(name, collectionIndex).click()
   },
   getAttributeMenuItem(item) {
     return cy.get("[data-testid=attribute-menu-list] button").contains(item)
@@ -233,5 +233,71 @@ export const TableTileElements = {
         expect(childCases).to.include(indexCell.text())
       })
     }
+  },
+  addNewAttribute(collectionIndex = 1) {
+    this.getCollection(collectionIndex).find("[data-testid=collection-add-attribute-icon-button] svg")
+      .click({force:true})
+    cy.wait(500)
+  },
+  deleteAttrbute(attributeName, collectionIndex = 1) {
+    this.openAttributeMenu(attributeName, collectionIndex)
+    this.selectMenuItemFromAttributeMenu("Delete Attribute")
+    this.getAttribute(attributeName, collectionIndex).should("not.exist")
+  },
+  renameAttribute(attributeName, newAttributeName, collectionIndex = 1) {
+    this.openAttributeMenu(attributeName, collectionIndex)
+    this.selectMenuItemFromAttributeMenu("Rename")
+    this.renameColumnName(`${newAttributeName}{enter}`)
+    // this.getAttribute(newAttributeName, collectionIndex).should("exist")
+  },
+  addFormula(attributeName, formula, collectionIndex = 1) {
+    this.openAttributeMenu(attributeName, collectionIndex)
+    this.selectMenuItemFromAttributeMenu("Edit Formula...")
+    this.addFormulaInModal(attributeName, formula)
+  },
+  editFormula(attributeName, formula, collectionIndex = 1) {
+    this.openAttributeMenu(attributeName, collectionIndex)
+    this.selectMenuItemFromAttributeMenu("Edit Formula...")
+    this.clearFormulaInModal(attributeName)
+    this.addFormula(attributeName, formula, collectionIndex)
+  },
+  checkFormulaExists(attributeName, formula, collectionIndex = 1) {
+    this.openAttributeMenu(attributeName, collectionIndex)
+    this.selectMenuItemFromAttributeMenu("Edit Formula...")
+    this.checkFormulaInModal(attributeName, formula)
+  },
+  addFormulaInModal(attributeName, formula) {
+    cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
+    cy.get("[data-testid=attr-formula-input]").type(formula, {force:true})
+    cy.get("[data-testid=Apply-button]").click()
+    cy.get("[data-testid=attr-name-input]").should("not.exist")
+  },
+  clearFormulaInModal(attributeName) {
+    cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
+    cy.get("[data-testid=attr-formula-input]").type(`{selectAll}{del}`)
+    cy.get("[data-testid=Apply-button]").click()
+    cy.get("[data-testid=attr-name-input]").should("not.exist")
+  },
+  checkFormulaInModal(attributeName, formula) {
+    cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
+    cy.get("[data-testid=attr-formula-input]").should("have.text", formula)
+    cy.get("[data-testid=Cancel-button]").click()
+    cy.get("[data-testid=attr-name-input]").should("not.exist")
+  },
+  verifyFormulaValues(attribute, values, collectionIndex = 1) {
+    for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {
+      this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", values[rowIndex].toString())
+      cy.wait(500)
+    }
+  },
+  verifyFormulaError(attribute, error, collectionIndex = 1) {
+    for (let rowIndex = 0; rowIndex < error.cases; rowIndex++) {
+      this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", error.value)
+      cy.wait(500)
+    }
+  },
+  createNewDataset() {
+    c.createFromToolshelf("table")
+    cy.get("[data-testid=tool-shelf-table-new]").click()
   }
 }
