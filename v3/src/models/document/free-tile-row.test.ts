@@ -213,6 +213,5 @@ describe("FreeTileRow", () => {
     expect(isFreeTileInRowOptions({ x: 10 })).toBe(false)
     expect(isFreeTileInRowOptions({ y: 10 })).toBe(false)
     expect(isFreeTileInRowOptions({ x: 10, y: 10 })).toBe(true)
-
   })
 })
