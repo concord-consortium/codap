@@ -1,9 +1,9 @@
-import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
 import { IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { FreeTileComponent } from "./free-tile-component"
 
 import "./free-tile-row.scss"
@@ -20,12 +20,24 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
 
   // focused tile should always be on top
   useEffect(() => {
-    return autorun(() => {
-      const { focusedTile } = uiState
-      if (focusedTile && (focusedTile !== row.last)) {
-        row.moveTileToTop(focusedTile)
-      }
-    }, { name: "FreeTileRowComponent.useEffect.autorun [uiState.focusedTile]" })
+    return mstReaction(
+      () => uiState.focusedTile,
+      focusedTileId => {
+        if (focusedTileId && (focusedTileId !== row.last)) {
+          row.moveTileToTop(focusedTileId)
+        }
+      }, { name: "FreeTileRowComponent.useEffect.autorun [uiState.focusedTile => row.last]" }, row)
+  }, [row])
+
+  // focused tile should always be on top
+  useEffect(() => {
+    return mstReaction(
+      () => row.last,
+      topTileId => {
+        if (topTileId && (topTileId !== uiState.focusedTile)) {
+          uiState.setFocusedTile(topTileId)
+        }
+      }, { name: "FreeTileRowComponent.useEffect.autorun [row.last => uiState.focusedTile]" }, row)
   }, [row])
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {

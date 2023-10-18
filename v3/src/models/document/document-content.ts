@@ -12,7 +12,7 @@ import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyUndoableAction } from "../history/apply-undoable-action"
-import { linkTileToDataSet } from "../shared/shared-data-utils"
+import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
 import t from "../../utilities/translation/translate"
 
 /**
@@ -44,6 +44,22 @@ export interface IImportDataSetOptions {
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
   .actions(self => ({
+    prepareSnapshot() {
+      // prepare each row for serialization
+      self.rowMap.forEach(row => row.prepareSnapshot())
+
+      // prepare each data set for serialization
+      const sharedDataSets = getSharedDataSets(self)
+      sharedDataSets.forEach(model => model.dataSet.prepareSnapshot())
+    },
+    completeSnapshot() {
+      // complete serialization for each data set
+      const sharedDataSets = getSharedDataSets(self)
+      sharedDataSets.forEach(model => model.dataSet.completeSnapshot())
+
+      // complete serialization for each row
+      self.rowMap.forEach(row => row.completeSnapshot())
+    },
     createDefaultTileOfType(tileType: string) {
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)

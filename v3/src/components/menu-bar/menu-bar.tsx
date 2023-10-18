@@ -3,7 +3,7 @@ import React from "react"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import { appState } from "../../models/app-state"
-import { wrapSerialization } from "../../models/shared/shared-data-utils"
+import { serializeDocument } from "../../models/document/serialize-document"
 import { HamburgerIcon } from "./hamburger-icon"
 
 import "./menu-bar.scss"
@@ -46,7 +46,7 @@ function download(path: string, filename: string) {
 
 function handleExportDocument() {
   // Convert JSON to string
-  const data = wrapSerialization(appState.document, () => JSON.stringify(appState.document))
+  const data = serializeDocument(appState.document, () => JSON.stringify(appState.document))
 
   // Create a Blob object
   const blob = new Blob([data], { type: 'application/json' })
