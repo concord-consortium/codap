@@ -4,7 +4,7 @@ describe("PlottedValueAdornmentModel", () => {
   it("is created with its type property set to 'Plotted Value' and with its value property not defined", () => {
     const plottedValue = PlottedValueAdornmentModel.create()
     expect(plottedValue.type).toEqual("Plotted Value")
-    expect(plottedValue.expression).toBeUndefined()
+    expect(plottedValue.expression).toEqual("")
   })
   it("can have its value property set", () => {
     const plottedValue = PlottedValueAdornmentModel.create()
