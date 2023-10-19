@@ -286,7 +286,6 @@ export const TableTileElements = {
   verifyFormulaValues(attribute, values, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {
       this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", values[rowIndex].toString())
-      cy.wait(500)
     }
   },
   verifyFormulaError(attribute, error, collectionIndex = 1) {
