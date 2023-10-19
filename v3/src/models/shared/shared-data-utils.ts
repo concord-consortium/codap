@@ -77,18 +77,3 @@ export function linkTileToDataSet(tile: ITileContentModel, dataSet: IDataSet) {
     sharedCaseMetadata && sharedModelManager.addTileSharedModel(tile, sharedCaseMetadata)
   }
 }
-
-export function wrapSerialization<T>(node: IAnyStateTreeNode, serializeFn: () => T) {
-  const sharedDataSets = getSharedDataSets(node)
-  try {
-    // prepare each data set for serialization
-    sharedDataSets.forEach(model => model.dataSet.prepareSnapshot())
-
-    // perform the serialization with the prepared data sets
-    return serializeFn()
-  }
-  finally {
-    // complete the serialization process for each data set
-    sharedDataSets.forEach(model => model.dataSet.completeSnapshot())
-  }
-}

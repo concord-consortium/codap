@@ -50,6 +50,12 @@ export const TileRowModel = types
     }
   }))
   .actions(self => ({
+    prepareSnapshot() {
+      // derived models may override
+    },
+    completeSnapshot() {
+      // derived models may override
+    },
     // undefined height == default to content height
     setRowHeight(height?: number) {
       self.height = height

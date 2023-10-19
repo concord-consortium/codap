@@ -1,4 +1,5 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { observable } from "mobx"
+import { Instance, SnapshotIn, addDisposer, onPatch, types } from "mobx-state-tree"
 import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
 import { withoutUndo } from "../history/without-undo"
 import { withUndoRedoStrings } from "../history/codap-undo-types"
@@ -56,7 +57,7 @@ export interface IFreeTileInRowOptions extends ITileInRowOptions {
   height?: number
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
-              (options as any)?.x != null && (options as any)?.y != null
+              !!options && ("x" in options && options.x != null) && ("y" in options && options.y != null)
 
 /*
   Tiles are represented as a map of layouts and an array of tile ids representing the order.
@@ -67,8 +68,15 @@ export const FreeTileRow = TileRowModel
   .props({
     type: types.optional(types.literal("free"), "free"),
     tiles: types.map(FreeTileLayout), // tile id => layout
-    order: types.array(types.string)  // tile ids ordered from back to front
+    savedOrder: types.array(types.string)  // tile ids ordered from back to front
   })
+  .preProcessSnapshot((snap: any) => {
+    const { order, ...others } = snap
+    return order ? { savedOrder: order, ...others } : snap
+  })
+  .volatile(self => ({
+    order: observable.array<string>()
+  }))
   .views(self => ({
     get acceptDefaultInsert() {
       return true
@@ -97,16 +105,37 @@ export const FreeTileRow = TileRowModel
     }
   }))
   .actions(self => ({
+    afterCreate() {
+      // initialize volatile order from savedOrder on creation
+      self.order.replace([...self.savedOrder])
+
+      addDisposer(self, onPatch(self, ({ op, path }) => {
+        // update order whenever tiles are added/removed
+        if (op === "add" || op === "remove") {
+          const match = /^\/tiles\/(.+)$/.exec(path)
+          const tileId = match?.[1]
+          if (tileId) {
+            // newly added tiles should be front-most
+            if (op === "add") {
+              self.order.push(tileId)
+            }
+            // removed tiles should be removed from order
+            else {
+              self.order.remove(tileId)
+            }
+          }
+        }
+      }))
+    },
+    prepareSnapshot() {
+      withoutUndo({ suppressWarning: true })
+      self.savedOrder.replace(self.order)
+    },
     insertTile(tileId: string, options?: ITileInRowOptions) {
       const { x = 50, y = 50, width = undefined, height = undefined } = isFreeTileInRowOptions(options) ? options : {}
       self.tiles.set(tileId, { tileId, x, y, width, height })
-      self.order.push(tileId)
     },
     removeTile(tileId: string) {
-      const index = self.order.findIndex(id => id === tileId)
-      if (index >= 0) {
-        self.order.splice(index, 1)
-      }
       self.tiles.delete(tileId)
     },
     moveTileToTop(tileId: string) {

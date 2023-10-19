@@ -50,6 +50,10 @@ export function isChildOfUndoRedo(actionCall?: IActionContext) {
   return false
 }
 
+export function isUndoingOrRedoing() {
+  return isChildOfUndoRedo(getRunningActionContext())
+}
+
 export function getActionModelName(call: IActionTrackingMiddleware3Call<CallEnv>) {
   return getType(call.actionCall.context).name
 }

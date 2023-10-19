@@ -2,7 +2,7 @@ import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../models/app-state"
 import { createCodapDocument } from "../models/codap/create-codap-document"
 import { gDataBroker } from "../models/data/data-broker"
-import { wrapSerialization } from "../models/shared/shared-data-utils"
+import { serializeDocument } from "../models/document/serialize-document"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -43,7 +43,7 @@ import { importV2Component } from "../v2/codap-v2-tile-importers"
     })
 
     // retrieve document snapshot
-    const docSnapshot = wrapSerialization(v3Document, () => getSnapshot(v3Document))
+    const docSnapshot = serializeDocument(v3Document, () => getSnapshot(v3Document))
     // use document snapshot
     appState.setDocument(docSnapshot)
   }
