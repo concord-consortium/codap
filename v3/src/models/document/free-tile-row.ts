@@ -57,7 +57,7 @@ export interface IFreeTileInRowOptions extends ITileInRowOptions {
   height?: number
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
-              (options as any)?.x != null && (options as any).y != null
+              !!options && ("x" in options && options.x != null) && ("y" in options && options.y != null)
 
 /*
   Tiles are represented as a map of layouts and an array of tile ids representing the order.
