@@ -89,7 +89,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
-    const disposer = reaction(
+    return mstReaction(
       () => {
         const xNumeric = graphModel.getNumericAxis('bottom')
         const yNumeric = graphModel.getNumericAxis('left')
@@ -105,9 +105,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       },
       () => {
         callRefreshPointPositions(false)
-      }, {name: "usePlot [numeric domains]", fireImmediately: true}
+      }, {name: "usePlot [numeric domains]", fireImmediately: true}, graphModel
     )
-    return () => disposer()
   }, [callRefreshPointPositions, graphModel])
 
   useEffect(function respondToCategorySetChanges() {
