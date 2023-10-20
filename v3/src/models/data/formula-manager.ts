@@ -1,46 +1,89 @@
 import { comparer, makeObservable, observable, reaction } from "mobx"
-import { isAlive } from "@concord-consortium/mobx-state-tree"
-import { EvalFunction } from "mathjs"
-import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
+import { isAlive } from "mobx-state-tree"
+import { ICase } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import {
-  getFormulaDependencies, formulaError, getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference,
-  getIncorrectParentAttrReference, safeSymbolName, reverseDisplayNameMap, getLocalAttrCasesToRecalculate,
+  getFormulaDependencies, formulaError, safeSymbolName, reverseDisplayNameMap, getLocalAttrCasesToRecalculate,
   getLookupCasesToRecalculate
 } from "./formula-utils"
 import {
   DisplayNameMap, IFormulaDependency, GLOBAL_VALUE, LOCAL_ATTR, ILocalAttributeDependency, IGlobalValueDependency,
-  ILookupDependency, NO_PARENT_KEY, FValue, CASE_INDEX_FAKE_ATTR_ID, CANONICAL_NAME
+  ILookupDependency, CASE_INDEX_FAKE_ATTR_ID, CANONICAL_NAME
 } from "./formula-types"
-import { math } from "./formula-fn-registry"
 import { IDataSet } from "./data-set"
 import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
+import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
+import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
 
-type IFormulaMetadata = {
+export interface IFormulaMetadata {
   formula: IFormula
   registeredDisplay: string
-  attributeId: string
-  dataSetId: string
   isInitialized: boolean
+  adapter: IFormulaManagerAdapter
   dispose?: () => void
 }
 
-type IDataSetMetadata = {
+// Note that specific formula adapters might extend this interface and provide more information.
+// `dataSetId` is the required minimum, as each formula is always associated with a single data set that is considered
+// to be the "local one" (e.g. any formula's symbol is resolved to an attribute of this data set).
+export interface IFormulaExtraMetadata {
+  dataSetId: string
+  attributeId?: string
+}
+
+export interface IFormulaContext {
+  formula: IFormula
+  dataSet: IDataSet
+}
+
+export interface IDataSetMetadata {
   dispose: () => void
 }
 
+export interface IFormulaAdapterApi {
+  getDatasets: () => Map<string, IDataSet>
+  getGlobalValueManager: () => IGlobalValueManager | undefined
+  getFormulaContext(formulaId: string): IFormulaContext
+  getFormulaExtraMetadata(formulaId: string): IFormulaExtraMetadata
+}
+
+export interface IFormulaManagerAdapter {
+  type: string
+  getAllFormulas: () => ({ formula: IFormula, extraMetadata?: any })[]
+  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any,
+    casesToRecalculateDesc?: ICase[] | "ALL_CASES") => void
+  setupFormulaObservers: (formulaContext: IFormulaContext, extraMetadata: any, recalculate: () => void) => () => void
+  getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => undefined | string
+  setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
+}
+
 export class FormulaManager {
-  @observable dataSets = new Map<string, IDataSet>()
-  dataSetMetadata = new Map<string, IDataSetMetadata>()
   formulaMetadata = new Map<string, IFormulaMetadata>()
+  extraMetadata = new Map<string, IFormulaExtraMetadata>()
+
+  @observable.shallow dataSets = new Map<string, IDataSet>()
+  dataSetMetadata = new Map<string, IDataSetMetadata>()
   globalValueManager?: IGlobalValueManager
+
+  adapters: IFormulaManagerAdapter[] = [
+    new AttributeFormulaAdapter(this.getAdapterApi()),
+    new PlottedValueFormulaAdapter(this.getAdapterApi())
+  ]
 
   constructor() {
     makeObservable(this)
     this.registerAllFormulas()
+  }
+
+  getAdapterApi() {
+    return {
+      getDatasets: () => this.dataSets,
+      getGlobalValueManager: () => this.globalValueManager,
+      getFormulaContext: (formulaId: string) => this.getFormulaContext(formulaId),
+      getFormulaExtraMetadata: (formulaId: string) => this.getExtraMetadata(formulaId)
+    }
   }
 
   addDataSet(dataSet: IDataSet) {
@@ -75,175 +118,52 @@ export class FormulaManager {
     this.formulaMetadata.set(formulaId, { ...prevMetadata, ...metadata })
   }
 
+  getExtraMetadata(formulaId: string) {
+    const extraMetadata = this.extraMetadata.get(formulaId)
+    if (!extraMetadata) {
+      throw new Error(`Formula ${formulaId} not registered`)
+    }
+    return extraMetadata
+  }
+
   // Retrieves formula context like its attribute, dataset, etc. It also validates correctness of the formula
   // and its context.
   getFormulaContext(formulaId: string) {
     const formulaMetadata = this.getFormulaMetadata(formulaId)
-    const dataSet = this.dataSets.get(formulaMetadata.dataSetId)
+    const extraMetadata = this.getExtraMetadata(formulaId)
+    const dataSet = this.dataSets.get(extraMetadata.dataSetId)
     if (!dataSet) {
-      throw new Error(`Dataset ${formulaMetadata.dataSetId} not available`)
-    }
-    if (!dataSet.attrFromID(formulaMetadata.attributeId)) {
-      throw new Error(`Attribute ${formulaMetadata.attributeId} not available in dataset ${formulaMetadata.dataSetId}`)
+      throw new Error(`Dataset ${extraMetadata.dataSetId} not available`)
     }
     return { dataSet, ...formulaMetadata }
   }
 
-  getCaseGroupMap(formulaId: string) {
-    const { attributeId, dataSet } = this.getFormulaContext(formulaId)
-
-    const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
-    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
-    const caseGroupId: Record<string, string> = {}
-
-    const processCase = (c: IGroupedCase) => {
-      const parentId = c[symParent] || NO_PARENT_KEY
-      caseGroupId[c.__id__] = caseGroupId[parentId] || parentId
-    }
-
-    const calculateChildCollectionGroups = () => {
-      for (let i = collectionIndex + 1; i < dataSet.collections.length; i++) {
-        const collectionGroup = dataSet.collectionGroups[i]
-        collectionGroup.groups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
-      }
-      // Note that the child cases are never in any collection and they require separate processing.
-      dataSet.childCases().forEach(childCase => processCase(childCase))
-    }
-
-    const calculateSameLevelGroups = () => {
-      const formulaCollection = dataSet.collectionGroups[collectionIndex]
-      if (formulaCollection) {
-        dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
-          processCase(group.pseudoCase)
-        )
-      }
-    }
-
-    // Note that order of execution of these functions is critical. First, we need to calculate child collection groups,
-    // as child collection cases are grouped using the pseudo cases from the collection where the formula attribute is.
-    // Next, we can calculate grouping for the formula attribute collection (same-level grouping). These will be parents
-    // of the formula attribute collection cases. If we reversed the order, the child collection cases would be
-    // grouped incorrectly (using a collection too high in the collections hierarchy).
-    calculateChildCollectionGroups()
-    calculateSameLevelGroups()
-
-    return caseGroupId
+  recalculateAllFormulas() {
+    this.formulaMetadata.forEach((metadata, formulaId) => {
+      this.recalculateFormula(formulaId)
+    })
   }
 
-  getCaseChildrenCountMap(formulaId: string) {
-    const { attributeId, dataSet } = this.getFormulaContext(formulaId)
-
-    const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
-    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
-    const caseChildrenCount: Record<string, number> = {}
-
-    const formulaCollection = dataSet.collectionGroups[collectionIndex]
-    if (formulaCollection) {
-      dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
-        caseChildrenCount[group.pseudoCase.__id__] =
-          group.childPseudoCaseIds ? group.childPseudoCaseIds.length : group.childCaseIds.length
-      )
-    }
-
-    return caseChildrenCount
-  }
-
-  recalculateFormula(formulaId: string, casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
-    const { formula, attributeId, dataSet, isInitialized } = this.getFormulaContext(formulaId)
+  recalculateFormula(formulaId: string, casesToRecalculate?: ICase[] | "ALL_CASES") {
+    const formulaContext = this.getFormulaContext(formulaId)
+    const { adapter, isInitialized } = formulaContext
     if (!isInitialized) {
       return
     }
-
-    let casesToRecalculate: ICase[] = []
-    if (casesToRecalculateDesc === "ALL_CASES") {
-      // When casesToRecalculate is not provided, recalculate all cases.
-      casesToRecalculate = dataSet.getCasesForAttributes([attributeId])
-    } else {
-      casesToRecalculate = casesToRecalculateDesc
-    }
-    if (!casesToRecalculate || casesToRecalculate.length === 0) {
-      return
-    }
-    console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
-
-    const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
-    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
-
-    const incorrectParentAttrId = getIncorrectParentAttrReference(formula.canonical, collectionIndex, dataSet)
-    if (incorrectParentAttrId) {
-      const attrName = dataSet.attrFromID(incorrectParentAttrId).name
-      return this.setFormulaError(formulaId, formulaError("V3.formula.error.invalidParentAttrRef", [ attrName ]))
-    }
-
-    const incorrectChildAttrId = getIncorrectChildAttrReference(formula.canonical, collectionIndex, dataSet)
-    if (incorrectChildAttrId) {
-      const attrName = dataSet.attrFromID(incorrectChildAttrId).name
-      return this.setFormulaError(formulaId, formulaError("DG.Formula.HierReferenceError.message", [ attrName ]))
-    }
-
-    const childMostAggregateCollectionIndex =
-      getFormulaChildMostAggregateCollectionIndex(formula.canonical, dataSet) ?? collectionIndex
-    const childMostCollectionGroup = dataSet.collectionGroups[childMostAggregateCollectionIndex]
-    const childMostCollectionCaseIds = childMostCollectionGroup
-      ? childMostCollectionGroup.groups.map((group: CaseGroup) => group.pseudoCase.__id__) || []
-      : dataSet.childCases().map(c => c.__id__)
-
-    const formulaScope = new FormulaMathJsScope({
-      localDataSet: dataSet,
-      dataSets: this.dataSets,
-      globalValueManager: this.globalValueManager,
-      formulaAttrId: attributeId,
-      formulaCollectionIndex: collectionIndex,
-      childMostAggregateCollectionIndex,
-      caseIds: casesToRecalculate.map(c => c.__id__),
-      childMostCollectionCaseIds,
-      caseGroupId: this.getCaseGroupMap(formulaId),
-      caseChildrenCount: this.getCaseChildrenCountMap(formulaId)
-    })
-
-    let compiledFormula: EvalFunction
-    try {
-      compiledFormula = math.compile(formula.canonical)
-    } catch (e: any) {
-      return this.setFormulaError(formulaId, formulaError(e.message))
-    }
-
-    dataSet.setCaseValues(casesToRecalculate.map((c, idx) => {
-      formulaScope.setCasePointer(idx)
-      let formulaValue: FValue
-      try {
-        formulaValue = compiledFormula.evaluate(formulaScope)
-        // This is necessary for functions like `prev` that need to know the previous result when they reference
-        // its own attribute.
-        formulaScope.savePreviousResult(formulaValue)
-      } catch (e: any) {
-        formulaValue = formulaError(e.message)
-      }
-      return {
-        __id__: c.__id__,
-        [attributeId]: formulaValue
-      }
-    }))
+    const extraMetadata = this.getExtraMetadata(formulaId)
+    adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
   }
 
-  // Error message is set as formula output, similarly as in CODAP V2.
-  setFormulaError(formulaId: string, errorMsg: string) {
-    const { attributeId, dataSet } = this.getFormulaContext(formulaId)
-    const allCases = dataSet.getCasesForAttributes([attributeId])
-    dataSet.setCaseValues(allCases.map(c => ({
-      __id__: c.__id__,
-      [attributeId]: errorMsg
-    })))
+  getAllFormulas() {
+    return this.adapters.flatMap(a => a.getAllFormulas())
   }
 
   registerAllFormulas() {
     reaction(() => {
       // Observe all the formulas
       const result: Record<string, string> = {}
-      this.dataSets.forEach(dataSet => {
-        dataSet.attributes.forEach(attr => {
-          result[attr.formula.id] = attr.formula.display
-        })
+      this.getAllFormulas().forEach(({ formula }) => {
+        result[formula.id] = formula.display
       })
       return result
     }, () => {
@@ -252,16 +172,14 @@ export class FormulaManager {
       // updated. Note that even empty formulas are registered, so the metadata is always available when cycle detection
       // is executed.
       const updatedFormulas: string[] = []
-      this.dataSets.forEach(dataSet => {
-        dataSet.attributes.forEach(attr => {
-          const metadata = this.formulaMetadata.get(attr.formula.id)
-          if (!metadata || metadata.registeredDisplay !== attr.formula.display) {
-            this.unregisterFormula(attr.formula.id)
-            this.registerFormula(attr.formula, attr.id, dataSet)
-            attr.formula.updateCanonicalFormula()
-            if (!attr.formula.empty) {
-              updatedFormulas.push(attr.formula.id)
-            }
+      this.adapters.forEach(adapter => {
+        adapter.getAllFormulas().forEach(({ formula, extraMetadata }) => {
+          const metadata = this.formulaMetadata.get(formula.id)
+          if (!metadata || metadata.registeredDisplay !== formula.display) {
+            this.unregisterFormula(formula.id)
+            this.registerFormula(formula, adapter, extraMetadata)
+            formula.updateCanonicalFormula()
+            updatedFormulas.push(formula.id)
           }
         })
       })
@@ -282,25 +200,9 @@ export class FormulaManager {
 
   unregisterDeletedFormulas() {
     this.formulaMetadata.forEach((metadata, formulaId) => {
-      const { dataSetId, attributeId } = this.getFormulaMetadata(formulaId)
-      const dataSet = this.dataSets.get(dataSetId)
-      if (!dataSet?.attrFromID(attributeId)) {
-        this.unregisterFormula(formulaId)
-        return
-      }
-      // In 99% of cases, the two `if` statements above will be sufficient to detect deleted formulas. However, this
-      // could serve as the ultimate check in case a formula instance was deleted in a different manner.
       if (!isAlive(metadata.formula)) {
-        console.warn("FormulaManager.unregisterDeletedFormulas unregistering a defunct formula that " +
-          "was not detected by the usual means.")
         this.unregisterFormula(formulaId)
       }
-    })
-  }
-
-  recalculateAllFormulas() {
-    this.formulaMetadata.forEach((metadata, formulaId) => {
-      this.recalculateFormula(formulaId)
     })
   }
 
@@ -310,52 +212,37 @@ export class FormulaManager {
       formulaMetadata.dispose?.() // dispose MST observers
       this.formulaMetadata.delete(formulaId)
     }
+    this.extraMetadata.delete(formulaId)
   }
 
-  registerFormula(formula: IFormula, attributeId: string, dataSet: IDataSet) {
-    const formulaMetadata: IFormulaMetadata = {
+  registerFormula(formula: IFormula, adapter: IFormulaManagerAdapter, extraMetadata: IFormulaExtraMetadata) {
+    this.formulaMetadata.set(formula.id, {
       formula,
+      adapter,
       registeredDisplay: formula.display,
-      attributeId,
-      dataSetId: dataSet.id,
       isInitialized: false
-    }
-    this.formulaMetadata.set(formula.id, formulaMetadata)
+    })
+    this.extraMetadata.set(formula.id, extraMetadata)
   }
 
   registerFormulaErrors(formulaId: string) {
-    const { formula } = this.getFormulaContext(formulaId)
-
+    const formulaContext = this.getFormulaContext(formulaId)
+    const extraMetadata = this.getExtraMetadata(formulaId)
+    const { adapter, formula } = formulaContext
+    // Generic errors that can be applied to all the formulas:
     if (formula.syntaxError) {
-      this.setFormulaError(formulaId, formulaError("DG.Formula.SyntaxErrorMiddle", [ formula.syntaxError ]))
+      adapter.setFormulaError(
+        formulaContext, extraMetadata, formulaError("DG.Formula.SyntaxErrorMiddle", [ formula.syntaxError ])
+      )
       return true
     }
-    // Check if there is a dependency cycle. Note that it needs to happen after formula is registered, so that
-    // the dependency check can access all the metadata in the formula registry.
-    if (this.isDependencyCyclePresent(formulaId)) {
-      this.setFormulaError(formulaId, formulaError("V3.formula.error.cycle"))
+    // Errors specific to given formula context (e.g. attribute formulas can have dependency cycle):
+    const formulaTypeSpecificError = adapter.getFormulaError(formulaContext, extraMetadata)
+    if (formulaTypeSpecificError) {
+      adapter.setFormulaError(formulaContext, extraMetadata, formulaTypeSpecificError)
       return true
     }
     return false
-  }
-
-  setupFormulaObservers(formulaId: string) {
-    const formulaMetadata = this.getFormulaMetadata(formulaId)
-    const { formula } = formulaMetadata
-
-    const formulaDependencies = getFormulaDependencies(formula.canonical, formulaMetadata.attributeId)
-    const disposeLocalAttributeObserver = this.observeLocalAttributes(formulaId, formulaDependencies)
-    const disposeGlobalValueObservers = this.observeGlobalValues(formulaId, formulaDependencies)
-    const disposeLookupObservers = this.observeLookup(formulaId, formulaDependencies)
-
-    this.formulaMetadata.set(formulaId, {
-      ...formulaMetadata,
-      dispose: () => {
-        disposeLocalAttributeObserver()
-        disposeGlobalValueObservers.forEach(disposeGlobalValObserver => disposeGlobalValObserver())
-        disposeLookupObservers.forEach(disposeLookupObserver => disposeLookupObserver())
-      },
-    })
   }
 
   getDisplayNameMapForFormula(formulaId: string, options?: { useSafeSymbolNames: boolean }) {
@@ -406,6 +293,33 @@ export class FormulaManager {
   getCanonicalNameMap(formulaId: string) {
     const displayNameMap = this.getDisplayNameMapForFormula(formulaId, { useSafeSymbolNames: false })
     return reverseDisplayNameMap(displayNameMap)
+  }
+
+  setupFormulaObservers(formulaId: string) {
+    const formulaContext = this.getFormulaContext(formulaId)
+    const formulaMetadata = this.getFormulaMetadata(formulaId)
+    const extraMetadata = this.getExtraMetadata(formulaId)
+    const { formula, adapter } = formulaMetadata
+    if (formula.empty) {
+      return
+    }
+    const formulaDependencies = getFormulaDependencies(formula.canonical, extraMetadata.attributeId)
+    const disposeLocalAttributeObserver = this.observeLocalAttributes(formulaId, formulaDependencies)
+    const disposeGlobalValueObservers = this.observeGlobalValues(formulaId, formulaDependencies)
+    const disposeLookupObservers = this.observeLookup(formulaId, formulaDependencies)
+    const disposeAdapterObservers = adapter.setupFormulaObservers(formulaContext, extraMetadata, () => {
+      this.recalculateFormula(formula.id)
+    })
+
+    this.formulaMetadata.set(formulaId, {
+      ...formulaMetadata,
+      dispose: () => {
+        disposeLocalAttributeObserver()
+        disposeGlobalValueObservers.forEach(disposeGlobalValObserver => disposeGlobalValObserver())
+        disposeLookupObservers.forEach(disposeLookupObserver => disposeLookupObserver())
+        disposeAdapterObservers()
+      },
+    })
   }
 
   observeDatasetChanges(dataSet: IDataSet) {
@@ -548,52 +462,5 @@ export class FormulaManager {
     })
 
     return disposeLookupObservers
-  }
-
-  // Simple DFS (depth first search) algorithm to detect dependency cycles.
-  isDependencyCyclePresent(formulaId: string) {
-    const visitedFormulas: Record<string, boolean> = {}
-    const stack: string[] = [formulaId]
-
-    while (stack.length > 0) {
-      const currentFormula = stack.pop() as string
-
-      if (visitedFormulas[currentFormula]) {
-        return true // cycle detected
-      }
-      visitedFormulas[currentFormula] = true
-
-      const { formula, dataSet, attributeId } = this.getFormulaContext(currentFormula)
-      const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
-
-      const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
-        formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
-      for (const dependency of localDatasetAttributeDependencies) {
-        const dependencyAttribute = dataSet.attrFromID(dependency.attrId)
-        if (dependencyAttribute?.formula.valid) {
-          stack.push(dependencyAttribute.formula.id)
-        }
-      }
-
-      const lookupDependencies: ILookupDependency[] =
-        formulaDependencies.filter(d => d.type === "lookup") as ILookupDependency[]
-      for (const dependency of lookupDependencies) {
-        const externalDataSet = this.dataSets.get(dependency.dataSetId)
-        if (!externalDataSet) {
-          throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
-        }
-        const dependencyAttribute = externalDataSet.attrFromID(dependency.attrId)
-        if (dependencyAttribute?.formula.valid) {
-          stack.push(dependencyAttribute.formula.id)
-        }
-        if (dependency.keyAttrId) {
-          const dependencyKeyAttribute = externalDataSet.attrFromID(dependency.keyAttrId)
-          if (dependencyKeyAttribute?.formula.valid) {
-            stack.push(dependencyKeyAttribute.formula.id)
-          }
-        }
-      }
-    }
-    return false // no cycle detected
   }
 }

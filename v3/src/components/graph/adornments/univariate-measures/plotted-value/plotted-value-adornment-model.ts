@@ -1,36 +1,30 @@
 import { Instance, types } from "mobx-state-tree"
-import { mean } from "mathjs"
 import { IAdornmentModel } from "../../adornment-models"
 import { kPlottedValueType, kPlottedValueValueTitleKey } from "./plotted-value-adornment-types"
-import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
+import { Formula } from "../../../../../models/data/formula"
 
 export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
   .named("PlottedValueAdornmentModel")
   .props({
     type: types.optional(types.literal(kPlottedValueType), kPlottedValueType),
-    expression: types.maybe(types.string),
+    formula: types.optional(Formula, () => Formula.create()),
     labelTitle: types.optional(types.literal(kPlottedValueValueTitleKey), kPlottedValueValueTitleKey)
   })
   .views(self => ({
-    evalFnString(fnString: string, caseValues: number[]) {
-      if (Number.isFinite(Number(self.expression))) return Number(self.expression)
-      if (caseValues.length === 0) return NaN
-      // As a proof-of-concept placeholder, we for now always return the mean of case values no matter
-      // what the fnString values is.
-      return mean(caseValues)
-    },
-  }))
-  .views(self => ({
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
-      if (!self.expression) return NaN
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      return self.evalFnString(self.expression, caseValues)
+    get expression() {
+      return self.formula.display
     }
   }))
   .actions(self => ({
     setExpression(expression: string) {
-      self.expression = expression
+      self.formula.setDisplayFormula(expression)
+    },
+    updateCategories() {
+      // Overwrite the super method to do... nothing. GraphContentModel and adornments have their own way of observing
+      // actions that should trigger recalculation of basic adornments. However, formulas have more complex dependencies
+      // that are not tracked by the graph content model. Rather than splitting observing between GraphContentModel and
+      // FormulaManager, we just do nothing here and let the formula manager handle all the scenarios.
     }
   }))
 

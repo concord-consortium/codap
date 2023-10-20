@@ -21,9 +21,11 @@ import {hoverRadiusFactor, pointRadiusLogBase, pointRadiusMax, pointRadiusMin, p
   from "../../data-display/data-display-types"
 import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
 import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
-import {IUpdateCategoriesOptions} from "../adornments/adornment-models"
+import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
 import { AdornmentsStore } from "../adornments/adornments-store"
+import { typedId } from "../../../utilities/js-utils"
+import { getPlottedValueFormulaAdapter } from "../../../models/data/plotted-value-formula-adapter"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -44,6 +46,7 @@ export const NumberToggleModel = types
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
+    id: types.optional(types.identifier, () => typedId("GRCM")),
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
@@ -82,6 +85,9 @@ export const GraphContentModel = DataDisplayContentModel
     get metadata() {
       return getTileCaseMetadata(self)
     },
+    get adornments(): IAdornmentModel[] {
+      return self.adornmentsStore.adornments
+    }
   }))
   .views(self => ({
     getAxis(place: AxisPlace) {
@@ -159,14 +165,12 @@ export const GraphContentModel = DataDisplayContentModel
             ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
             : []
 
-          const tileSharedModels = sharedModelManager?.isReady
-            ? sharedModelManager?.getTileSharedModels(self)
-            : undefined
+          const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
 
-          return {sharedModelManager, sharedDataSets, tileSharedModels}
+          return {sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}
         },
         // reaction/effect
-        ({sharedModelManager, sharedDataSets}) => {
+        ({sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}) => {
           if (!sharedModelManager?.isReady) {
             // We aren't added to a document yet, so we can't do anything yet
             return
@@ -179,10 +183,18 @@ export const GraphContentModel = DataDisplayContentModel
           else if (!tileDataSet && sharedDataSets.length === 1) {
             linkTileToDataSet(self, sharedDataSets[0].dataSet)
           }
+
+          if (plottedValueFormulaAdapter) {
+            plottedValueFormulaAdapter.addGraphContentModel(self as IGraphContentModel)
+          }
         },
         {name: "sharedModelSetup", fireImmediately: true}))
     },
     beforeDestroy() {
+      const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
+      if (plottedValueFormulaAdapter) {
+        plottedValueFormulaAdapter.removeGraphContentModel(self.id)
+      }
       self.disposeDataSetListener?.()
     }
   }))
