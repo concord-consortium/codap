@@ -5,13 +5,14 @@ import {
   formulaError, getFormulaChildMostAggregateCollectionIndex, getFormulaDependencies, getIncorrectChildAttrReference,
   getIncorrectParentAttrReference
 } from "./formula-utils"
-import { NO_PARENT_KEY, FValue, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
+import { NO_PARENT_KEY, FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
 import { math } from "./formula-fn-registry"
 import { IFormula } from "./formula"
 import { DEBUG_FORMULAS } from "../../lib/debug"
 import type {
   IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "./formula-manager"
+import { observeDatasetHierarchyChanges } from "./formula-observers"
 
 const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"
 
@@ -214,9 +215,10 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     })))
   }
 
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: any) {
-    // TODO: Move dataset hierarchy observing here
-    return () => {}
+  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {
+    return observeDatasetHierarchyChanges(this.api.getDatasets(), (casesToRecalculate?: CaseList) => {
+      this.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
+    })
   }
 
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {

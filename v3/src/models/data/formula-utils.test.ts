@@ -1,11 +1,8 @@
-import { ICase } from "./data-set-types"
-import {
-  CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, ILocalAttributeDependency, ILookupDependency, LOCAL_ATTR
-} from "./formula-types"
+import { CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-types"
 import {
   safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
   displayToCanonical, unescapeBacktickString, escapeBacktickString, safeSymbolNameFromDisplayFormula,
-  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, parseBasicCanonicalName, formulaIndexOf
+  parseBasicCanonicalName, formulaIndexOf
 } from "./formula-utils"
 
 const displayNameMapExample: DisplayNameMap = {
@@ -279,74 +276,5 @@ describe("canonicalToDisplay", () => {
         reverseDisplayNameMap(displayNameMapExample)
       )).toEqual("lookupByKey('Roller Coaster', 'Park\"', 'Top\\\\Speed\\'', Order) * 2")
     })
-  })
-})
-
-describe("isAttrDefined", () => {
-  const dataSetCase: ICase = { __id__: "1", attr1: 1, attr2: 2 }
-
-  it("returns true if the attribute is defined in the data set case", () => {
-    const attributeId = "attr1"
-    const result = isAttrDefined(dataSetCase, attributeId)
-    expect(result).toBe(true)
-  })
-
-  it("returns false if the attribute is not defined in the data set case", () => {
-    const attributeId = "attr3"
-    const result = isAttrDefined(dataSetCase, attributeId)
-    expect(result).toBe(false)
-  })
-
-  it("returns false if the attribute ID is not provided", () => {
-    const attributeId = undefined
-    const result = isAttrDefined(dataSetCase, attributeId)
-    expect(result).toBe(false)
-  })
-})
-
-describe("getLocalAttrCasesToRecalculate", () => {
-  const cases: ICase[] = [
-    { __id__: "1", attr1: 0, attr2: 1 },
-    { __id__: "2", attr1: 2, attr2: 3 },
-    { __id__: "3", attr1: "" }, // empty string should be considered as value that needs to trigger recalculation
-    { __id__: "4", attr2: 4 },
-  ]
-
-  it("returns 'ALL_CASES' if any case has an attribute that depends on an aggregate attribute", () => {
-    const formulaDependencies: ILocalAttributeDependency[] = [
-      { attrId: "attr1", type: "localAttribute", aggregate: false },
-      { attrId: "attr2", type: "localAttribute", aggregate: true },
-    ]
-    const result = getLocalAttrCasesToRecalculate(cases, formulaDependencies)
-    expect(result).toBe("ALL_CASES")
-  })
-
-  it("returns an array of cases that have an attribute that depends on a regular attribute", () => {
-    const formulaDependencies: ILocalAttributeDependency[] = [
-      { attrId: "attr1", type: "localAttribute", aggregate: false }
-    ]
-    const result = getLocalAttrCasesToRecalculate(cases, formulaDependencies)
-    expect(result).toEqual([cases[0], cases[1], cases[2]])
-  })
-
-  it("returns an empty array if no case has an attribute that depends on a regular attribute", () => {
-    const formulaDependencies: ILocalAttributeDependency[] = [
-      { attrId: "attr3", type: "localAttribute", aggregate: false }
-    ]
-    const result = getLocalAttrCasesToRecalculate(cases, formulaDependencies)
-    expect(result).toEqual([])
-  })
-})
-
-describe("getLookupCasesToRecalculate", () => {
-  const dependency: ILookupDependency = { type: "lookup", dataSetId: "ds1", attrId: "attr1", keyAttrId: "attr2" }
-
-  it("returns 'ALL_CASES' if any case has the lookup attribute or the lookup key attribute", () => {
-    expect(getLookupCasesToRecalculate([{ __id__: "1", attr1: 1 }], dependency)).toBe("ALL_CASES")
-    expect(getLookupCasesToRecalculate([{ __id__: "1", attr2: "" }], dependency)).toBe("ALL_CASES")
-  })
-
-  it("returns an empty array if no case has the lookup attribute or the lookup key attribute", () => {
-    expect(getLookupCasesToRecalculate([{ __id__: "1", attr3: 3 }], dependency)).toEqual([])
   })
 })

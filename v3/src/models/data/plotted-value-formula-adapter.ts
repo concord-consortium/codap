@@ -48,13 +48,12 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
     this.graphContentModels.delete(graphContentModelId)
   }
 
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata,
-    recalculate: () => void) {
+  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
     const { graphContentModelId } = extraMetadata
     const graphContentModel = this.graphContentModels.get(graphContentModelId)
     const dispose = onAnyAction(graphContentModel, mstAction => {
       if (mstAction.name === "setAttributeID") {
-        recalculate()
+        this.recalculateFormula(formulaContext, extraMetadata)
       }
     })
     return dispose

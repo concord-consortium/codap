@@ -1,12 +1,11 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import {
   LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
-  isNonFunctionSymbolNode, ILocalAttributeDependency, ILookupDependency, isCanonicalName, rmCanonicalPrefix
+  isNonFunctionSymbolNode, isCanonicalName, rmCanonicalPrefix
 } from "./formula-types"
 import { typedFnRegistry } from "./formula-fn-registry"
 import t from "../../utilities/translation/translate"
 import type { IDataSet } from "./data-set"
-import type { ICase } from "./data-set-types"
 
 // Set of formula helpers that can be used outside FormulaManager context. It should make them easier to test.
 
@@ -328,18 +327,3 @@ export const getIncorrectChildAttrReference =
   }
   return false
 }
-
-export const isAttrDefined = (dataSetCase: ICase, attributeId?: string) =>
-  !!attributeId && Object.prototype.hasOwnProperty.call(dataSetCase, attributeId)
-
-export const getLocalAttrCasesToRecalculate = (cases: ICase[], formulaDependencies: ILocalAttributeDependency[]) => {
-  const regularAttrDeps = formulaDependencies.filter(d => d.type === "localAttribute" && !d.aggregate)
-  const aggregateAttrDeps = formulaDependencies.filter(d => d.type === "localAttribute" && d.aggregate)
-
-  return cases.some(c => aggregateAttrDeps.some(d => isAttrDefined(c, d.attrId)))
-    ? "ALL_CASES"
-    : cases.filter(c => regularAttrDeps.some(d => isAttrDefined(c, d.attrId)))
-}
-
-export const getLookupCasesToRecalculate = (cases: ICase[], dependency: ILookupDependency) =>
-  cases.some(c => isAttrDefined(c, dependency.attrId) || isAttrDefined(c, dependency.keyAttrId)) ? "ALL_CASES" : []
