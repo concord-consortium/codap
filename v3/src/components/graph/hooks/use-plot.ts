@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef} from "react"
-import {autorun, reaction} from "mobx"
+import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {IDotsRef} from "../../data-display/data-display-types"
@@ -10,6 +10,7 @@ import {useGraphLayoutContext} from "../models/graph-layout"
 import {matchCirclesToData, startAnimation} from "../utilities/graph-utils"
 import {useCurrent} from "../../../hooks/use-current"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 
@@ -89,7 +90,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
-    const disposer = reaction(
+    return mstReaction(
       () => {
         const xNumeric = graphModel.getNumericAxis('bottom')
         const yNumeric = graphModel.getNumericAxis('left')
@@ -105,9 +106,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       },
       () => {
         callRefreshPointPositions(false)
-      }, {name: "usePlot [numeric domains]", fireImmediately: true}
+      }, {name: "usePlot [numeric domains]", fireImmediately: true}, graphModel
     )
-    return () => disposer()
   }, [callRefreshPointPositions, graphModel])
 
   useEffect(function respondToCategorySetChanges() {
@@ -186,10 +186,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
   useEffect(() => {
-    return autorun(
+    return mstAutorun(
       () => {
         !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions(false)
-      }, { name: "usePlot [callRefreshPointPositions]" })
+      }, { name: "usePlot [callRefreshPointPositions]" }, graphModel)
   }, [graphModel, callRefreshPointPositions])
-
 }

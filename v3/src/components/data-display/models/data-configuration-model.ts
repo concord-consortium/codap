@@ -57,7 +57,7 @@ export const DataConfigurationModel = types
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
-    filteredCases: undefined as FilteredCases[] | undefined,
+    filteredCases: [] as FilteredCases[],
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
     pointsNeedUpdating: false
   }))
@@ -173,7 +173,7 @@ export const DataConfigurationModel = types
     get graphCaseIDs() {
       const allGraphCaseIds = new Set<string>()
       // todo: We're bypassing get caseDataArray to avoid infinite recursion. Is it necessary?
-      self.filteredCases?.forEach(aFilteredCases => {
+      self.filteredCases.forEach(aFilteredCases => {
         if (aFilteredCases) {
           aFilteredCases.caseIds.forEach(id => allGraphCaseIds.add(id))
         }
@@ -182,6 +182,15 @@ export const DataConfigurationModel = types
     }
   }))
   .actions(self => ({
+    clearFilteredCases() {
+      self.filteredCases.forEach(aFilteredCases => aFilteredCases.destroy())
+      self.filteredCases = []
+    },
+    beforeDestroy() {
+      this.clearFilteredCases()
+
+      self.actionHandlerDisposer?.()
+    },
     _setAttributeDescription(iRole: GraphAttrRole, iDesc?: IAttributeDescriptionSnapshot) {
       if (iRole === 'y') {
         self._yAttributeDescriptions.clear()
@@ -257,7 +266,7 @@ export const DataConfigurationModel = types
       return this.attributes.length <= 1
     },
     get numberOfPlots() {
-      return self.filteredCases?.length ?? 0  // filteredCases is an array of CaseArrays
+      return self.filteredCases.length  // filteredCases is an array of CaseArrays
     },
     get hasY2Attribute() {
       return !!self.attributeID('rightNumeric')
@@ -267,7 +276,7 @@ export const DataConfigurationModel = types
      * present in any of the case sets, not just the 0th one.
      */
     get selection() {
-      if (!self.dataset || !self.filteredCases?.[0]) return []
+      if (!self.dataset || !self.filteredCases[0]) return []
       const selection = Array.from(self.dataset.selection),
         allGraphCaseIds = self.graphCaseIDs
       return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))
@@ -394,7 +403,7 @@ export const DataConfigurationModel = types
   .views(self => ({
     subPlotCases(cellKey: Record<string, string>) {
       const casesInPlot: ICase[] = []
-      self.filteredCases?.forEach(aFilteredCases => {
+      self.filteredCases.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
           const caseAlreadyMatched = casesInPlot.find(aCase => aCase.__id__ === id)
@@ -413,7 +422,7 @@ export const DataConfigurationModel = types
       const rightAttrID = self.attributeID("rightSplit")
       const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
-      self.filteredCases?.forEach(aFilteredCases => {
+      self.filteredCases.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach(id => {
           const caseData = self.dataset?.getCase(id)
           if (!caseData) return
@@ -437,7 +446,7 @@ export const DataConfigurationModel = types
       const topAttrID = self.attributeID("topSplit")
       const topValue = topAttrID ? cellKey[topAttrID] : ""
 
-      self.filteredCases?.forEach(aFilteredCases => {
+      self.filteredCases.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach(id => {
           const caseData = self.dataset?.getCase(id)
           if (!caseData) return
@@ -456,7 +465,7 @@ export const DataConfigurationModel = types
     cellCases(cellKey: Record<string, string>) {
       const casesInCell: ICase[] = []
 
-      self.filteredCases?.forEach(aFilteredCases => {
+      self.filteredCases.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach(id => {
           const caseData = self.dataset?.getCase(id)
           if (!caseData) return
@@ -492,7 +501,7 @@ export const DataConfigurationModel = types
     },
     get joinedCaseDataArrays() {
       const joinedCaseData: CaseData[] = []
-      self.filteredCases?.forEach((aFilteredCases, index) => {
+      self.filteredCases.forEach((aFilteredCases, index) => {
           aFilteredCases.caseIds.forEach(
             (id) => joinedCaseData.push({plotNum: index, caseID: id}))
         }
@@ -688,19 +697,19 @@ export const DataConfigurationModel = types
     },
     _updateFilteredCasesCollectionID() {
       const childmostCollectionID = idOfChildmostCollectionForAttributes(self.attributes, self.dataset)
-      self.filteredCases?.forEach((aFilteredCases) => {
+      self.filteredCases.forEach((aFilteredCases) => {
         aFilteredCases.setCollectionID(childmostCollectionID)
       })
     },
     _invalidateCases() {
-      self.filteredCases?.forEach((aFilteredCases) => {
+      self.filteredCases.forEach((aFilteredCases) => {
         aFilteredCases.invalidateCases()
       })
     },
     _addNewFilteredCases() {
       if (self.dataset) {
         this._updateFilteredCasesCollectionID()
-        self.filteredCases?.push(new FilteredCases({
+        self.filteredCases.push(new FilteredCases({
           source: self.dataset,
           casesArrayNumber: self.filteredCases.length,
           filter: self.filterCase,
@@ -717,7 +726,7 @@ export const DataConfigurationModel = types
       self.actionHandlerDisposer = undefined
       self.dataset = dataset
       self.metadata = metadata
-      self.filteredCases = []
+      self.clearFilteredCases()
       if (dataset) {
         self.actionHandlerDisposer = onAnyAction(self.dataset, self.handleAction)
         self.filteredCases[0] = new FilteredCases({
@@ -784,10 +793,10 @@ export const DataConfigurationModel = types
       if (isNewAttribute) {
         self._addNewFilteredCases()
       } else if (isEmpty) {
-        self.filteredCases?.pop() // remove the last one because it is the array
+        self.filteredCases.pop() // remove the last one because it is the array
         self.setPointsNeedUpdating(true)
       } else {
-        const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
+        const existingFilteredCases = self.filteredCases[self.numberOfPlots - 1]
         existingFilteredCases?.invalidateCases()
       }
     },
@@ -795,7 +804,7 @@ export const DataConfigurationModel = types
       const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
       if (index >= 0) {
         self._yAttributeDescriptions.splice(index, 1)
-        self.filteredCases?.splice(index, 1)
+        self.filteredCases.splice(index, 1)
         self._updateFilteredCasesCollectionID()
         self.setPointsNeedUpdating(true)
       }

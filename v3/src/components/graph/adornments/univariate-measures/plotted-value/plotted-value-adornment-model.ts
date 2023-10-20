@@ -7,7 +7,7 @@ import { Formula } from "../../../../../models/data/formula"
 export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
   .named("PlottedValueAdornmentModel")
   .props({
-    type: "Plotted Value",
+    type: types.optional(types.literal(kPlottedValueType), kPlottedValueType),
     formula: types.optional(Formula, () => Formula.create()),
     labelTitle: types.optional(types.literal(kPlottedValueValueTitleKey), kPlottedValueValueTitleKey)
   })

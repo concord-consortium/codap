@@ -148,12 +148,12 @@ export const GraphContentModel = DataDisplayContentModel
       self.disposeDataSetListener?.()
       self.disposeDataSetListener = self.dataset
         ? onAnyAction(self.dataset, action => {
-          // TODO: check whether categories have actually changed before updating
-          if (actionsAffectingCategories.includes(action.name)) {
-            const updateCategoriesOptions = self.getUpdateCategoriesOptions()
-            self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-          }
-        })
+            // TODO: check whether categories have actually changed before updating
+            if (actionsAffectingCategories.includes(action.name)) {
+              const updateCategoriesOptions = self.getUpdateCategoriesOptions()
+              self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+            }
+          })
         : undefined
     },
     afterAttachToDocument() {
@@ -195,6 +195,7 @@ export const GraphContentModel = DataDisplayContentModel
       if (plottedValueFormulaAdapter) {
         plottedValueFormulaAdapter.removeGraphContentModel(self.id)
       }
+      self.disposeDataSetListener?.()
     }
   }))
   .actions(self => ({
