@@ -6,7 +6,7 @@ import { INumericAxisModel } from "../../../axis/models/axis-model"
 export const MovableValueAdornmentModel = AdornmentModel
   .named("MovableValueAdornmentModel")
   .props({
-    type: "Movable Value",
+    type: types.optional(types.literal(kMovableValueType), kMovableValueType),
     values: types.map(types.array(types.number)),
   })
   .volatile(() => ({
