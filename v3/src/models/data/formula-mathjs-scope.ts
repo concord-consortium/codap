@@ -182,7 +182,7 @@ export class FormulaMathJsScope {
     return result
   }
 
-   withAggregateContext(callback: () => any) {
+  withAggregateContext(callback: () => any) {
     const originalIsAggregate = this.isAggregate
     this.isAggregate = true
     const result = callback()
