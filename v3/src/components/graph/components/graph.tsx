@@ -1,4 +1,5 @@
 import {observer} from "mobx-react-lite"
+import {isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {IDotsRef} from "../../data-display/data-display-types"
@@ -159,6 +160,8 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   }
 
   useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
+
+  if (!isAlive(graphModel)) return null
 
   return (
     <DataConfigurationContext.Provider value={graphModel.dataConfiguration}>

@@ -182,6 +182,9 @@ export const DataConfigurationModel = types
     }
   }))
   .actions(self => ({
+    beforeDestroy() {
+      self.actionHandlerDisposer?.()
+    },
     _setAttributeDescription(iRole: GraphAttrRole, iDesc?: IAttributeDescriptionSnapshot) {
       if (iRole === 'y') {
         self._yAttributeDescriptions.clear()
