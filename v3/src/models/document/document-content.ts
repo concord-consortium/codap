@@ -142,6 +142,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       }
       // Add dataset to the formula manager
       getFormulaManager(self)?.addDataSet(data)
+
+      return sharedData
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

@@ -59,6 +59,7 @@ import {
 } from "./data-set-undo"
 import { applyUndoableAction } from "../history/apply-undoable-action"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
+import { withoutUndo } from "../history/without-undo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
 
@@ -790,11 +791,13 @@ export const DataSet = types.model("DataSet", {
       // should be called before retrieving snapshot (pre-serialization)
       prepareSnapshot() {
         // move volatile data into serializable properties
+        withoutUndo({ suppressWarning: true })
         self.attributes.forEach(attr => attr.prepareSnapshot())
       },
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
         // move data back into volatile storage for efficiency
+        withoutUndo({ suppressWarning: true })
         self.attributes.forEach(attr => attr.completeSnapshot())
       },
       setName(name: string) {

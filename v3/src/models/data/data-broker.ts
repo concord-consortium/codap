@@ -82,6 +82,8 @@ export class DataBroker {
   addDataSet(ds: IDataSet, providerId?: string) {
     const sharedModel = SharedDataSet.create({providerId})
     sharedModel.setDataSet(ds)
+    // so values are captured in undo/redo patches
+    ds.prepareSnapshot()
     this.sharedModelManager?.addSharedModel(sharedModel)
 
     const caseMetadata = SharedCaseMetadata.create()
