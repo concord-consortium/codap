@@ -144,7 +144,7 @@ export class FormulaMathJsScope {
       this.caseIndexCache = {}
       const casesCount: Record<string, number> = {}
       this.context.childMostCollectionCaseIds.forEach(cId => {
-        const groupId = this.context.caseGroupId?.[cId] || NO_PARENT_KEY
+        const groupId = this.context.caseGroupId?.[cId] ?? NO_PARENT_KEY
         if (!casesCount[groupId]) {
           casesCount[groupId] = 0
         }
