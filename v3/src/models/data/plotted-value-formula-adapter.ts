@@ -32,7 +32,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   type = PLOTTED_VALUE_FORMULA_ADAPTER
   api: IFormulaAdapterApi
 
-  @observable graphContentModels = new Map<string, IGraphContentModel>()
+  @observable.shallow graphContentModels = new Map<string, IGraphContentModel>()
 
   constructor(api: IFormulaAdapterApi) {
     makeObservable(this)

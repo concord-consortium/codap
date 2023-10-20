@@ -21,10 +21,9 @@ import {hoverRadiusFactor, pointRadiusLogBase, pointRadiusMax, pointRadiusMin, p
   from "../../data-display/data-display-types"
 import {GraphAttrRole, PlotType, PlotTypes} from "../graphing-types"
 import {GraphPointLayerModel, IGraphPointLayerModel} from "./graph-point-layer-model"
-import {IUpdateCategoriesOptions} from "../adornments/adornment-models"
+import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
 import { AdornmentsStore } from "../adornments/adornments-store"
-import { IAdornmentModelUnion } from "../adornments/adornment-types"
 import { typedId } from "../../../utilities/js-utils"
 import { getPlottedValueFormulaAdapter } from "../../../models/data/plotted-value-formula-adapter"
 
@@ -86,7 +85,7 @@ export const GraphContentModel = DataDisplayContentModel
     get metadata() {
       return getTileCaseMetadata(self)
     },
-    get adornments(): IAdornmentModelUnion[] {
+    get adornments(): IAdornmentModel[] {
       return self.adornmentsStore.adornments
     }
   }))
@@ -166,13 +165,9 @@ export const GraphContentModel = DataDisplayContentModel
             ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
             : []
 
-          const tileSharedModels = sharedModelManager?.isReady
-            ? sharedModelManager?.getTileSharedModels(self)
-            : undefined
-
           const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
 
-          return {sharedModelManager, sharedDataSets, tileSharedModels, plottedValueFormulaAdapter}
+          return {sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}
         },
         // reaction/effect
         ({sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}) => {
@@ -190,7 +185,6 @@ export const GraphContentModel = DataDisplayContentModel
           }
 
           if (plottedValueFormulaAdapter) {
-            // TODO: This cast should not be necessary. Is it an MST quirk?
             plottedValueFormulaAdapter.addGraphContentModel(self as IGraphContentModel)
           }
         },

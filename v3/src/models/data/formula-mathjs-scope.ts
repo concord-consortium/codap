@@ -71,7 +71,7 @@ export class FormulaMathJsScope {
                 cachedGroup[groupId].push(this.getLocalValue(cId, attrId))
               })
             }
-            return cachedGroup[this.getCaseAggregateGroupId()] || cachedGroup[NO_PARENT_KEY]
+            return cachedGroup[this.getCaseAggregateGroupId()] ?? cachedGroup[NO_PARENT_KEY]
           }
         }
       })

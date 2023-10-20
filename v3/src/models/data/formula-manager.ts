@@ -1,4 +1,5 @@
 import { comparer, makeObservable, observable, reaction } from "mobx"
+import { isAlive } from "mobx-state-tree"
 import { ICase } from "./data-set-types"
 import { onAnyAction } from "../../utilities/mst-utils"
 import {
@@ -13,7 +14,6 @@ import { IDataSet } from "./data-set"
 import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
-import { isAlive } from "@concord-consortium/mobx-state-tree"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
 
@@ -63,7 +63,7 @@ export class FormulaManager {
   formulaMetadata = new Map<string, IFormulaMetadata>()
   extraMetadata = new Map<string, IFormulaExtraMetadata>()
 
-  @observable dataSets = new Map<string, IDataSet>()
+  @observable.shallow dataSets = new Map<string, IDataSet>()
   dataSetMetadata = new Map<string, IDataSetMetadata>()
   globalValueManager?: IGlobalValueManager
 
