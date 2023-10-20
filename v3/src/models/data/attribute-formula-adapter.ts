@@ -8,6 +8,7 @@ import {
 import { NO_PARENT_KEY, FValue, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
 import { math } from "./formula-fn-registry"
 import { IFormula } from "./formula"
+import { DEBUG_FORMULAS } from "../../lib/debug"
 import type {
   IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "./formula-manager"
@@ -135,7 +136,10 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     if (!casesToRecalculate || casesToRecalculate.length === 0) {
       return
     }
-    console.log(`[formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
+
+    if (DEBUG_FORMULAS) {
+      console.log(`[attr formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
+    }
 
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
     const collectionIndex = dataSet.getCollectionIndex(collectionId || "")

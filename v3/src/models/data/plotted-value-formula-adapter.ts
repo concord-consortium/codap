@@ -14,6 +14,7 @@ import {
 import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
 import { getFormulaManager } from "../tiles/tile-environment"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
+import { DEBUG_FORMULAS } from "../../lib/debug"
 
 // This should match type of PlottedValueAdornmentModel. Currently all these models use regular string instead of
 // enums / constants / literals, so I can only copy the value and save it here.
@@ -117,7 +118,10 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   computeFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata,
     childMostCases: ICase[]) {
     const { formula, dataSet } = formulaContext
-    console.log(`[plotted value formula] recalculate "${formula.canonical}"`)
+
+    if (DEBUG_FORMULAS) {
+      console.log(`[plotted value formula] recalculate "${formula.canonical}"`)
+    }
 
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,
