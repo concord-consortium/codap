@@ -15,10 +15,9 @@ import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
 import { getFormulaManager } from "../tiles/tile-environment"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { DEBUG_FORMULAS } from "../../lib/debug"
-
-// This should match type of PlottedValueAdornmentModel. Currently all these models use regular string instead of
-// enums / constants / literals, so I can only copy the value and save it here.
-const ADORNMENT_TYPE = "Plotted Value"
+import {
+  kPlottedValueType
+} from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-types"
 
 const PLOTTED_VALUE_FORMULA_ADAPTER = "PlottedValueFormulaAdapter"
 
@@ -83,9 +82,9 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
     if (!graphContentModel) {
       throw new Error(`GraphContentModel with id "${graphContentModelId}" not found`)
     }
-    const adornment = graphContentModel.adornments.find(a => a.type === ADORNMENT_TYPE)
+    const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)
     if (!adornment || !isPlottedValueAdornment(adornment)) {
-      throw new Error(`Adornment of type "${ADORNMENT_TYPE}" not found`)
+      throw new Error(`Adornment of type "${kPlottedValueType}" not found`)
     }
     // This code is mostly copied from UnivariateMeasureAdornmentModel.updateCategories.
     // TODO: Is there a way to share it somehow?
