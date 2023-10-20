@@ -8,7 +8,7 @@ import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment
 export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
   .named("PlottedValueAdornmentModel")
   .props({
-    type: "Plotted Value",
+    type: types.optional(types.literal(kPlottedValueType), kPlottedValueType),
     expression: types.maybe(types.string),
     labelTitle: types.optional(types.literal(kPlottedValueValueTitleKey), kPlottedValueValueTitleKey)
   })

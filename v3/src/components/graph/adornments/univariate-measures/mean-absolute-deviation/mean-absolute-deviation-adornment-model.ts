@@ -10,7 +10,7 @@ import { IDataConfigurationModel } from "../../../../data-display/models/data-co
 export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .named("MeanAbsoluteDeviationAdornmentModel")
   .props({
-    type: "Mean Absolute Deviation",
+    type: types.optional(types.literal(kMeanAbsoluteDeviationType), kMeanAbsoluteDeviationType),
     labelTitle: types.optional(types.literal(kMeanAbsoluteDeviationValueTitleKey), kMeanAbsoluteDeviationValueTitleKey)
   })
   .views(self => ({

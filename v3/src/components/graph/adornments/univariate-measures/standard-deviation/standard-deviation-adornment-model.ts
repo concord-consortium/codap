@@ -9,7 +9,7 @@ import { IDataConfigurationModel } from "../../../../data-display/models/data-co
 export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .named("StandardDeviationAdornmentModel")
   .props({
-    type: "Standard Deviation",
+    type: types.optional(types.literal(kStandardDeviationType), kStandardDeviationType),
     labelTitle: types.optional(types.literal(kStandardDeviationValueTitleKey), kStandardDeviationValueTitleKey)
   })
   .views(self => ({
