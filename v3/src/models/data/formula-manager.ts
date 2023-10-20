@@ -235,10 +235,12 @@ export class FormulaManager {
       dataSet: {}
     }
 
+    const nonEmptyName = (name: string) => name || "_empty_symbol_name_"
+
     const mapAttributeNames = (dataSet: IDataSet, localPrefix: string, _useSafeSymbolNames: boolean) => {
       const result: Record<string, string> = {}
       dataSet.attributes.forEach(attr => {
-        const key = _useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name
+        const key = nonEmptyName(_useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name)
         result[key] = `${CANONICAL_NAME}${localPrefix}${attr.id}`
       })
       return result
@@ -252,13 +254,13 @@ export class FormulaManager {
     }
 
     this.globalValueManager?.globals.forEach(global => {
-      const key = useSafeSymbolNames ? safeSymbolName(global.name) : global.name
+      const key = nonEmptyName(useSafeSymbolNames ? safeSymbolName(global.name) : global.name)
       displayNameMap.localNames[key] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
     })
 
     this.dataSets.forEach(dataSet => {
       if (dataSet.name) {
-        displayNameMap.dataSet[dataSet.name] = {
+        displayNameMap.dataSet[nonEmptyName(dataSet.name)] = {
           id: `${CANONICAL_NAME}${dataSet.id}`,
           // No prefix is necessary for external attributes. They always need to be resolved manually by custom
           // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
