@@ -1,13 +1,13 @@
 import { comparer, makeObservable, observable, reaction } from "mobx"
 import { isAlive } from "mobx-state-tree"
-import { ICase } from "./data-set-types"
+import { ICase } from "../data/data-set-types"
 import {
   getFormulaDependencies, formulaError, safeSymbolName, reverseDisplayNameMap
 } from "./formula-utils"
 import {
   DisplayNameMap, GLOBAL_VALUE, LOCAL_ATTR, CASE_INDEX_FAKE_ATTR_ID, CANONICAL_NAME, CaseList
 } from "./formula-types"
-import { IDataSet } from "./data-set"
+import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"

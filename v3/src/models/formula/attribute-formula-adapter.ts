@@ -1,17 +1,16 @@
 import { EvalFunction } from "mathjs"
+import { math } from "./functions/math"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { CaseGroup, ICase, IGroupedCase, symParent } from "./data-set-types"
+import { CaseGroup, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import {
   formulaError, getFormulaChildMostAggregateCollectionIndex, getFormulaDependencies, getIncorrectChildAttrReference,
   getIncorrectParentAttrReference
 } from "./formula-utils"
 import { NO_PARENT_KEY, FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
-import { math } from "./formula-fn-registry"
 import { IFormula } from "./formula"
 import { DEBUG_FORMULAS } from "../../lib/debug"
 import type {
-  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "./formula-manager"
+  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter } from "./formula-manager"
 import { observeDatasetHierarchyChanges } from "./formula-observers"
 
 const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"

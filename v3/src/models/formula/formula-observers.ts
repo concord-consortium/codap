@@ -1,12 +1,12 @@
 import { comparer, reaction } from "mobx"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { IDataSet } from "./data-set"
-import { AddCasesAction, SetCaseValuesAction } from "./data-set-actions"
+import { IDataSet } from "../data/data-set"
+import { AddCasesAction, SetCaseValuesAction } from "../data/data-set-actions"
 import {
   CaseList, IFormulaDependency, IGlobalValueDependency, ILocalAttributeDependency, ILookupDependency
 } from "./formula-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
-import { ICase } from "./data-set-types"
+import { ICase } from "../data/data-set-types"
 
 export const isAttrDefined = (dataSetCase: ICase, attributeId?: string) =>
   !!attributeId && Object.prototype.hasOwnProperty.call(dataSetCase, attributeId)

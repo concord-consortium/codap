@@ -25,7 +25,7 @@ import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
 import { AdornmentsStore } from "../adornments/adornments-store"
 import { typedId } from "../../../utilities/js-utils"
-import { getPlottedValueFormulaAdapter } from "../../../models/data/plotted-value-formula-adapter"
+import { getPlottedValueFormulaAdapter } from "../../../models/formula/plotted-value-formula-adapter"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>

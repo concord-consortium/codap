@@ -1,4 +1,4 @@
-import { ICase } from "./data-set-types"
+import { ICase } from "../data/data-set-types"
 import {
   IGlobalValueDependency,
   ILocalAttributeDependency, ILookupDependency
@@ -7,7 +7,7 @@ import {
   getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, observeDatasetHierarchyChanges,
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
-import { DataSet, IDataSet } from "./data-set"
+import { DataSet, IDataSet } from "../data/data-set"
 import { GlobalValueManager } from "../global/global-value-manager"
 import { GlobalValue } from "../global/global-value"
 

@@ -1,6 +1,6 @@
 import { ConstantNode, MathNode, SymbolNode, isConstantNode, isFunctionNode, isSymbolNode } from "mathjs"
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
-import type { ICase } from "./data-set-types"
+import type { ICase } from "../data/data-set-types"
 
 export const CANONICAL_NAME = "__CANONICAL_NAME__"
 export const GLOBAL_VALUE = "GLOBAL_VALUE_"

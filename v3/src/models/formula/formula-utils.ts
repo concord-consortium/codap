@@ -3,9 +3,9 @@ import {
   LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
   isNonFunctionSymbolNode, isCanonicalName, rmCanonicalPrefix
 } from "./formula-types"
-import { typedFnRegistry } from "./formula-fn-registry"
+import { typedFnRegistry } from "./functions/math"
 import t from "../../utilities/translation/translate"
-import type { IDataSet } from "./data-set"
+import type { IDataSet } from "../data/data-set"
 
 // Set of formula helpers that can be used outside FormulaManager context. It should make them easier to test.
 
