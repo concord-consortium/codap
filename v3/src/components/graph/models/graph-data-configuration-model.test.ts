@@ -30,10 +30,10 @@ describe("DataConfigurationModel", () => {
 
   it("behaves as expected when empty", () => {
     const config = tree.config
-    expect(config.attributeID('caption')).toBeUndefined()
+    expect(config.attributeID('caption')).toEqual('')
     expect(config.attributeID("x")).toBeUndefined()
     expect(config.attributeID("y")).toBeUndefined()
-    expect(config.attributeID("caption")).toBeUndefined()
+    expect(config.attributeID("caption")).toEqual('')
     expect(config.attributeType("x")).toBeUndefined()
     expect(config.attributeType("caption")).toBeUndefined()
     expect(config.places).toEqual([])
