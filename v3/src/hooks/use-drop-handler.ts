@@ -25,7 +25,7 @@ function importCodapV3Document(file: File | null, onComplete: (document: IDocume
   file && reader.readAsText(file)
 }
 
-interface IDropHandler {
+export interface IDropHandler {
   selector: string
   onImportDataSet?: (data: IDataSet) => void
   onImportV2Document?: (document: CodapV2Document) => void
