@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 3.0.0-pre.1389 - October 23, 2023
+
+### Features/Improvements
+- Close component should be undoable as a single action [#186075314](https://www.pivotaltracker.com/story/show/186075314)
+
+### Bug Fixes
+- Wrong attribute sometimes passed to formula in **Plotted Value** [#186266057](https://www.pivotaltracker.com/story/show/186266057)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   69479 bytes |                               0% |
+|  index.js | 3394788 bytes |                            0.23% |
+
 ## Version 3.0.0-pre.1378 - October 18, 2023
 
 ### Features/Improvements
