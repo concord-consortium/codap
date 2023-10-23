@@ -11,6 +11,7 @@ import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
 import { IImportDataSetOptions } from "../models/document/document-content"
+import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { DocumentContext } from "../hooks/use-document-context"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -31,9 +32,12 @@ export const App = observer(function App() {
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
+      let sharedData: ISharedDataSet | undefined
       appState.document.content?.applyUndoableAction(() => {
-        appState.document.content?.importDataSet(data, options)
+        sharedData = appState.document.content?.importDataSet(data, options)
       }, "V3.Undo.import.data", "V3.Redo.import.data")
+      // return to "normal" after import process is complete
+      sharedData?.dataSet.completeSnapshot()
     }, [])
 
   const handleImportV3Document = useCallback((document: IDocumentModelSnapshot) => {

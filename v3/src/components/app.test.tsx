@@ -1,5 +1,9 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import React from "react"
+import { IDropHandler } from "../hooks/use-drop-handler"
+import { appState } from "../models/app-state"
+import { DataSet } from "../models/data/data-set"
+import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
@@ -10,6 +14,20 @@ import { App } from "./app"
 // and it's also tested by the cypress tests.
 jest.mock("./tool-shelf/tool-shelf", () => ({
   ToolShelf: () => null
+}))
+
+const testImportDataSet = jest.fn()
+
+jest.mock("../hooks/use-drop-handler", () => ({
+  useDropHandler: ({ onImportDataSet }: IDropHandler) => {
+    testImportDataSet.mockImplementation(() => {
+      const data = DataSet.create()
+      data.addAttribute({ id: "aId", name: "a", values: ["1", "2", "3"]})
+      data.addAttribute({ id: "bId", name: "b", values: ["4", "5", "6"]})
+      data.addAttribute({ id: "cId", name: "c", values: ["7", "8", "9"]})
+      onImportDataSet?.(data)
+    })
+  }
 }))
 
 describe("App component", () => {
@@ -46,5 +64,15 @@ describe("App component", () => {
     prf.report()
     mockConsole.mockRestore()
     expect(screen.getByTestId("app")).toBeInTheDocument()
+  })
+
+  it("should import a data set", () => {
+    render(<App/>)
+
+    expect(getSharedDataSets(appState.document).length).toBe(1)
+    act(() => {
+      testImportDataSet()
+    })
+    expect(getSharedDataSets(appState.document).length).toBe(2)
   })
 })
