@@ -27,7 +27,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .named('GraphDataConfigurationModel')
   .props({
     id: types.optional(types.identifier, () => typedId("GDCON")),
-    type: types.optional(types.string, kGraphDataConfigurationType),
+    type: types.optional(types.literal(kGraphDataConfigurationType), kGraphDataConfigurationType),
     // determines stacking direction in categorical-categorical, for instance
     primaryRole: types.maybe(types.enumeration([...PrimaryAttrRoles])),
     // all attributes for (left) y role
@@ -351,6 +351,18 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         }
       }
     }))
+  .extend(self => {
+    const superClearAttributes = self.clearAttributes
+
+    return {
+      actions: {
+        clearAttributes() {
+          superClearAttributes()
+          self._yAttributeDescriptions.clear()
+        }
+      }
+    }
+  })
   .actions(self => ({
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
       self._setDataset(dataset, metadata)
@@ -370,10 +382,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (role === 'x' || role === 'y') {
         self.primaryRole = role
       }
-    },
-    clearAttributes() {
-      self._clearAttributes()
-      self._yAttributeDescriptions.clear()
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
 
@@ -435,6 +443,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
   }))
 
-export interface IGraphDataConfigurationModel extends Instance<typeof GraphDataConfigurationModel> {}
+export interface IGraphDataConfigurationModel extends Instance<typeof GraphDataConfigurationModel> {
+}
 
-export interface IGraphDataConfigurationModelSnapshot extends SnapshotIn<typeof GraphDataConfigurationModel> {}
+export interface IGraphDataConfigurationModelSnapshot extends SnapshotIn<typeof GraphDataConfigurationModel> {
+}

@@ -207,7 +207,7 @@ export const DataConfigurationModel = types
           allCaseIDs = Array.from(self.allCaseIDs),
           allValues = attrID ? allCaseIDs.map((anID: string) => String(dataset?.getValue(anID, attrID)))
             : []
-        return allValues.filter(aValue => aValue !== '')
+        return allValues.filter(aValue => aValue)
       },
       numericValuesForAttrRole(role: AttrRole): number[] {
         return this.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
@@ -344,7 +344,7 @@ export const DataConfigurationModel = types
           thresholds = self.legendQuantileScale.quantiles(),
           min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
           max = quantile === thresholds.length ? Infinity : thresholds[quantile]
-        return legendID && legendID !== ''
+        return legendID
           ? self.caseDataArray.filter((aCaseData: CaseData) => {
             const value = dataset?.getNumeric(aCaseData.caseID, legendID)
             return value !== undefined && value >= min && value < max
@@ -493,9 +493,6 @@ export const DataConfigurationModel = types
         })
       }
     },
-    _clearAttributes() {
-      self._attributeDescriptions.clear()
-    },
     _setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       this._updateFilteredCasesCollectionID()
       if (role === 'legend') {
@@ -513,7 +510,7 @@ export const DataConfigurationModel = types
       self._setDataset(dataset, metadata)
     },
     clearAttributes() {
-      self._clearAttributes()
+      self._attributeDescriptions.clear()
     },
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)

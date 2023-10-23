@@ -7,7 +7,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {kMapModelName, kMapTileType} from "../map-defs"
-import {datasetHasPointData, pointAttributesFromDataSet} from "../utilities/map-utils"
+import {datasetHasLatLongData, latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
 
@@ -37,7 +37,7 @@ export const MapContentModel = DataDisplayContentModel
       const newPointLayer = MapPointLayerModel.create()
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPointLayer.dataConfiguration,
-        {latId, longId} = pointAttributesFromDataSet(dataSet)
+        {latId, longId} = latLongAttributesFromDataSet(dataSet)
       dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
       dataConfiguration.setAttribute('lat', {attributeID: latId})
       dataConfiguration.setAttribute('long', {attributeID: longId})
@@ -57,19 +57,22 @@ export const MapContentModel = DataDisplayContentModel
             // We aren't added to a document yet, so we can't do anything yet
             return
           }
+          // We make a copy of the layers array and remove any layers that are still in the shared model
+          // If there are any layers left in the copy, they are no longer in any shared  dataset and should be removed
           const layersToCheck = self.layers.splice(0)
           sharedDataSets.forEach(sharedDataSet => {
-            if (datasetHasPointData(sharedDataSet.dataSet)) {
-              const layer = layersToCheck.find(aLayer => aLayer.data === sharedDataSet.dataSet)
-              if (layer) {
-                layersToCheck.splice(layersToCheck.indexOf(layer), 1)
+            if (datasetHasLatLongData(sharedDataSet.dataSet)) {
+              const foundIndex = layersToCheck.findIndex(aLayer => aLayer.data === sharedDataSet.dataSet)
+              if (foundIndex >= 0) {
+                // Remove this layer from the list of layers to check since it _is_ present
+                layersToCheck.splice(foundIndex, 1)
               } else {
                 // Add a new layer for this dataset
                 this.addPointLayer(sharedDataSet.dataSet)
               }
             }
           })
-          // Remove any layers that are no longer in the shared model
+          // Remove any remaining layers in layersToCheck since they are no longer in any shared dataset
           layersToCheck.forEach(layer => {
             self.layers.splice(self.layers.indexOf(layer), 1)
           })

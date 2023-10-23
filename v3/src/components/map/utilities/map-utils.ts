@@ -1,11 +1,13 @@
 import {latLngBounds} from 'leaflet'
-import {isFiniteNonEmpty} from "../../../utilities/math-utils"
+import {isFiniteNumber} from "../../../utilities/math-utils"
 import {IDataSet} from "../../../models/data/data-set"
 import {kLatNames, kLongNames} from "../map-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 
 
-export const datasetHasPointData = (dataset: IDataSet) => {
+// A dataset has point data if it has both a latitude and longitude attribute; i.e. an attribute whose name
+// is in kLatNames and an attribute whose name is in kLongNames
+export const datasetHasLatLongData = (dataset: IDataSet) => {
   const attrNames = dataset.attributes.map(attr => attr.name)
   let hasLatAttribute = false,
     hasLngAttribute = false
@@ -22,7 +24,9 @@ export const datasetHasPointData = (dataset: IDataSet) => {
   return hasLatAttribute && hasLngAttribute
 }
 
-export const pointAttributesFromDataSet = (dataSet: IDataSet) => {
+// Returns the attribute IDs for the latitude and longitude attributes in the given dataset
+// Throws an error if the dataset does not have both latitude and longitude attributes
+export const latLongAttributesFromDataSet = (dataSet: IDataSet) => {
   const attributes = dataSet.attributes,
     latAttr = attributes.find(attr => kLatNames.includes(attr.name)),
     longAttr = attributes.find(attr => kLongNames.includes(attr.name))
@@ -77,7 +81,7 @@ export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => 
     },
 
     isValid = (iMinMax: { min: number, max: number }) => {
-      return isFiniteNonEmpty(iMinMax.min) && isFiniteNonEmpty(iMinMax.max)
+      return isFiniteNumber(iMinMax.min) && isFiniteNumber(iMinMax.max)
     }
   const latValues = dataConfiguration.numericValuesForAttrRole('lat'),
     longValues = dataConfiguration.numericValuesForAttrRole('long'),

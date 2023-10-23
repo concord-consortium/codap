@@ -1,7 +1,3 @@
-import {
-  hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
-  pointRadiusSelectionAddend, Rect, rTreeRect
-} from "./data-display-types"
 import React from "react"
 import {format, select, timeout} from "d3"
 import {measureText} from "../../hooks/use-measure-text"
@@ -10,6 +6,10 @@ import {defaultStrokeWidth} from "../../utilities/color-utils"
 import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel} from "./models/data-configuration-model"
 import {CaseData, DotsElt, selectCircles} from "./d3-types"
+import {
+  hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
+  pointRadiusSelectionAddend, Rect, rTreeRect
+} from "./data-display-types"
 
 export const startAnimation = (enableAnimation: React.MutableRefObject<boolean>) => {
   enableAnimation.current = true

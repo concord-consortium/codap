@@ -1,12 +1,13 @@
-import {autorun, reaction} from "mobx"
+import {reaction} from "mobx"
 import {select} from "d3"
 import React, {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
 import {CaseData, DotSelection, DotsElt} from "../../data-display/d3-types"
 import {computePointRadius} from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
-import {pointAttributesFromDataSet} from "../utilities/map-utils"
+import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {useMapLayoutContext} from "../models/map-layout"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 
@@ -69,7 +70,7 @@ export const MapPointLayer = function MapPointLayer(props: {
       {pointColor, pointStrokeColor} = pointDescription,
       getLegendColor = dataConfiguration?.attributeID('legend')
         ? dataConfiguration?.getLegendColorForCase : undefined,
-      {latId, longId} = pointAttributesFromDataSet(dataset)
+      {latId, longId} = latLongAttributesFromDataSet(dataset)
     if (theSelection?.size()) {
       theSelection
         .transition()
@@ -90,10 +91,10 @@ export const MapPointLayer = function MapPointLayer(props: {
   }, [dotsElement, dataset, enableAnimation, dataConfiguration, pointDescription, leafletMap])
 
   useEffect(function respondToPointsNeedUpdate() {
-    return autorun(
+    return mstAutorun(
       () => {
         !dataConfiguration.pointsNeedUpdating && refreshPointPositions(false)
-      })
+      }, { name: "mapPointLayer.respondToPointsNeedUpdate" }, dataConfiguration)
   }, [dataConfiguration.pointsNeedUpdating, refreshPointPositions])
 
   // respond to layout size changes (e.g. component resizing)

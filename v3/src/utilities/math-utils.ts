@@ -97,6 +97,6 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
   })
 }
 
-export function isFiniteNonEmpty(val:any) {
+export function isFiniteNumber(val:any) {
   return typeof val === 'number' && isFinite(val)
 }
