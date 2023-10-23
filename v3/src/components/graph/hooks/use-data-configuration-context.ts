@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react"
-import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
+import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
 
-export const DataConfigurationContext = createContext<IDataConfigurationModel | undefined>(undefined)
+export const GraphDataConfigurationContext = createContext<IGraphDataConfigurationModel | undefined>(undefined)
 
-export const useDataConfigurationContext = () => {
-  return useContext(DataConfigurationContext)
+export const useGraphDataConfigurationContext = () => {
+  return useContext(GraphDataConfigurationContext)
 }

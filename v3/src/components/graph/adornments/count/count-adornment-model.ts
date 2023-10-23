@@ -1,8 +1,8 @@
 import { Instance, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kCountType } from "./count-adornment-types"
-import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { withUndoRedoStrings } from "../../../../models/history/codap-undo-types"
+import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 
 export const CountAdornmentModel = AdornmentModel
   .named("CountAdornmentModel")
@@ -13,7 +13,7 @@ export const CountAdornmentModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "cell"),
   })
   .views(self => ({
-    percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IDataConfigurationModel) {
+    percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
       const divisor = self.percentType === "row"
         ? dataConfig?.rowCases(cellKey)?.length ?? 0
         : self.percentType === "column"

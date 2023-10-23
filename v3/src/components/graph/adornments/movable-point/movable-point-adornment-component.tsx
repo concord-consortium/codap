@@ -4,7 +4,7 @@ import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
-import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { IMovablePointAdornmentModel } from "./movable-point-adornment-model"
@@ -36,7 +36,7 @@ interface IProps {
 export const MovablePointAdornment = observer(function MovablePointAdornment(props: IProps) {
   const {model, plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props,
     graphModel = useGraphContentModelContext(),
-    dataConfig = useDataConfigurationContext(),
+    dataConfig = useGraphDataConfigurationContext(),
     layout = useAxisLayoutContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.getAxisScale("left") as ScaleNumericBaseType,

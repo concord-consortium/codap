@@ -3,7 +3,7 @@ import React, {CSSProperties, useRef, memo} from "react"
 import t from "../../../utilities/translation/translate"
 import {GraphPlace} from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../graph/graphing-types"
-import { useDataConfigurationContext } from "../../graph/hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../graph/hooks/use-data-configuration-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
@@ -33,7 +33,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 const _AxisOrLegendAttributeMenu = ({ place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
-  const dataConfig = useDataConfigurationContext()
+  const dataConfig = useGraphDataConfigurationContext()
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfig?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()

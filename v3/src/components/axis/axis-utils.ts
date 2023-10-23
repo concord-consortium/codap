@@ -1,12 +1,12 @@
 import {ScaleLinear} from "d3"
 import {kAxisGap, kAxisTickLength} from "../graph/graphing-types"
-import {kGraphFont} from "../data-display/data-display-types"
+import {kDataDisplayFont} from "../data-display/data-display-types"
 import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import {ICategorySet} from "../../models/data/category-set"
 import {MutableRefObject} from "react"
 
-export const getStringBounds = (s = 'Wy', font = kGraphFont) => {
+export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
 }
 

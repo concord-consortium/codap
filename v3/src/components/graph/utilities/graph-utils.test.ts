@@ -1,4 +1,5 @@
-import {equationString, getScreenCoord, lineToAxisIntercepts, ptInRect, valueLabelString} from "./graph-utils"
+import {ptInRect} from "../../data-display/data-display-utils"
+import {equationString, getScreenCoord, lineToAxisIntercepts, valueLabelString} from "./graph-utils"
 import {DataSet, toCanonical} from "../../../models/data/data-set"
 import {scaleLinear} from "d3"
 

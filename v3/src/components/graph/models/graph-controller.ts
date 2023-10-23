@@ -1,6 +1,8 @@
 import React from "react"
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {IDotsRef} from "../../data-display/data-display-types"
+import {matchCirclesToData} from "../../data-display/data-display-utils"
+import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
@@ -9,7 +11,6 @@ import {
 } from "../../axis/models/axis-model"
 import {axisPlaceToAttrRole, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
-import {matchCirclesToData, setNiceDomain} from "../utilities/graph-utils"
 
 // keys are [primaryAxisType][secondaryAxisType]
 const plotChoices: Record<string, Record<string, PlotType>> = {
@@ -55,7 +56,8 @@ export class GraphController {
   callMatchCirclesToData() {
     const {graphModel, dotsRef, enableAnimation, instanceId} = this
     if (graphModel && dotsRef?.current) {
-      const { dataConfiguration, pointColor, pointStrokeColor } = graphModel,
+      const { dataConfiguration } = graphModel,
+        {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius()
       dataConfiguration && matchCirclesToData({
         dataConfiguration, dotsElement: dotsRef.current,

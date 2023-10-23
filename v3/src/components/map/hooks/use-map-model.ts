@@ -1,60 +1,54 @@
 import {MutableRefObject, useEffect} from "react"
+// eslint-disable-next-line import/no-extraneous-dependencies
+import {LatLngBounds} from 'leaflet'
 import {useMap} from "react-leaflet"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {IDotsRef} from "../../data-display/data-display-types"
-import {IMapContentModel} from "../models/map-content-model"
+import {DotsElt} from "../../data-display/d3-types"
 import {kDefaultMapZoomForGeoLocation} from "../map-types"
+import {IMapContentModel} from "../models/map-content-model"
+import {getLatLongBounds} from "../utilities/map-utils"
 
 interface IProps {
-  mapContentModel: IMapContentModel
+  mapModel: IMapContentModel
   enableAnimation: MutableRefObject<boolean>
-  dotsRef: IDotsRef
+  dotsElement: DotsElt
   instanceId: string | undefined
 }
 
 export function useMapModel(props: IProps) {
-  const // {mapContentModel, enableAnimation, dotsRef, instanceId} = props,
-    // dataConfig = mapContentModel.config,
-    dataset = useDataSetContext(),
+  const {mapModel} = props,
     leafletMap = useMap()
 
   // Initialize
-  useEffect(function initializeMapModel() {
-    if (!dataset) {
+  useEffect(function initializeLeafletMap() {
+    mapModel.setLeafletMap(leafletMap)
+  }, [leafletMap, mapModel])
+
+  // Initialize
+  useEffect(function initializeLeafletMap() {
+    if (mapModel.layers.length === 0) {
       if (navigator.geolocation?.getCurrentPosition) {
         navigator.geolocation.getCurrentPosition(
-          (pos:GeolocationPosition) => {
+          (pos: GeolocationPosition) => {
             const coords = pos.coords
-            leafletMap.setView([coords.latitude, coords.longitude], kDefaultMapZoomForGeoLocation, {animate: true})
+            mapModel.leafletMap.setView([coords.latitude, coords.longitude],
+              kDefaultMapZoomForGeoLocation, {animate: true})
           }
         )
       }
+    } else {
+      let overallBounds: LatLngBounds | undefined = undefined
+      mapModel.layers.forEach((layer) => {
+        const bounds = getLatLongBounds(layer.dataConfiguration)
+        if (bounds) {
+          if (!overallBounds) {
+            overallBounds = bounds
+          } else {
+            overallBounds.extend(bounds)
+          }
+        }
+      })
+      overallBounds && mapModel.leafletMap.fitBounds(overallBounds, {animate: true})
     }
-  }, [dataset, leafletMap])
-
-/*
-  const callMatchCirclesToData = useCallback(() => {
-    matchCirclesToData({
-      dataConfiguration: dataConfig,
-      pointRadius: mapModel.getPointRadius(),
-      pointColor: mapModel.pointColor,
-      pointStrokeColor: mapModel.pointStrokeColor,
-      dotsElement: dotsRef.current,
-      enableAnimation, instanceId
-    })
-  }, [dataConfig, mapModel, dotsRef, enableAnimation, instanceId])
-*/
-
-/*
-  // respond to point properties change
-  useEffect(function respondToMapPointVisualAction() {
-    const disposer = onAnyAction(mapModel, action => {
-      if (isMapVisualPropsAction(action)) {
-        callMatchCirclesToData()
-      }
-    })
-    return () => disposer()
-  }, [callMatchCirclesToData, mapModel])
-*/
+  }, [mapModel.layers, mapModel.leafletMap])
 
 }

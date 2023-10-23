@@ -6,7 +6,7 @@ import { isGraphContentModel } from "../../models/graph-content-model"
 import { GraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { InspectorPalette } from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
-import { DataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { GraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 
 import "./point-format-panel.scss"
 
@@ -51,12 +51,12 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
           if (componentInfo && componentContentInfo) {
             return (
               <GraphContentModelContext.Provider key={`${titleSlug}-graph-model-context`} value={graphModel}>
-                <DataConfigurationContext.Provider
+                <GraphDataConfigurationContext.Provider
                   key={`${titleSlug}-data-configuration-context`}
                   value={graphModel.dataConfiguration}
                 >
                   <componentInfo.Controls key={titleSlug} adornmentModel={componentContentInfo.modelClass} />
-                </DataConfigurationContext.Provider>
+                </GraphDataConfigurationContext.Provider>
               </GraphContentModelContext.Provider>
             )           
           } else {

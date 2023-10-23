@@ -3,14 +3,15 @@ import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {useCallback, useEffect, useRef} from "react"
 import {mstAutorun} from "../../../utilities/mst-autorun"
+import {maxWidthOfStringsD3} from "../../data-display/data-display-utils"
+import {graphPlaceToAttrRole} from "../../graph/graphing-types"
 import {AxisPlace, axisGap} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
-import {graphPlaceToAttrRole} from "../../graph/graphing-types"
-import {maxWidthOfStringsD3} from "../../graph/utilities/graph-utils"
-import {useDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 import {collisionExists, getStringBounds} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
+
 import graphVars from "../../graph/components/graph.scss"
 
 export interface IUseAxis {
@@ -34,7 +35,7 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
     // Todo: Revisit and figure out whether we can remove the workaround.
     previousAxisModel = useRef<IAxisModel>(),
     axisModelChanged = previousAxisModel.current !== axisModel,
-    dataConfiguration = useDataConfigurationContext(),
+    dataConfiguration = useGraphDataConfigurationContext(),
     attrRole = graphPlaceToAttrRole[axisPlace],
     type = axisModel?.type ?? 'empty',
     attributeID = dataConfiguration?.attributeID(attrRole)

@@ -2,7 +2,7 @@ import {autorun} from "mobx"
 import React, {useEffect, useRef} from "react"
 import {select} from "d3"
 import {Active} from "@dnd-kit/core"
-import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useGraphLayoutContext} from "../../models/graph-layout"
 import {AttributeLabel} from "../attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
@@ -28,7 +28,7 @@ export const Legend = function Legend({
                                         legendAttrID, graphElt,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
-  const dataConfiguration = useDataConfigurationContext(),
+  const dataConfiguration = useGraphDataConfigurationContext(),
     isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
     layout = useGraphLayoutContext(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,

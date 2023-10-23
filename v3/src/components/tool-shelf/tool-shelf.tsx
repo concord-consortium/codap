@@ -108,7 +108,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     const undoRedoStringKeysMap: Record<string, [string, string]> = {
       Calculator: ["DG.Undo.toggleComponent.add.calcView", "DG.Redo.toggleComponent.add.calcView"],
       CodapSlider: ["DG.Undo.sliderComponent.create", "DG.Redo.sliderComponent.create"],
-      Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"]
+      Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"],
+      Map: ["DG.Undo.map.create", "DG.Redo.map.create"]
     }
     const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType]
     document?.content?.applyUndoableAction(() => {

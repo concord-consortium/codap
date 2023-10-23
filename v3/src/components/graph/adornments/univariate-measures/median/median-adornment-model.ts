@@ -1,8 +1,8 @@
 import { Instance, types } from "mobx-state-tree"
 import { median } from "mathjs"
+import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kMedianType, kMedianValueTitleKey } from "./median-adornment-types"
-import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
 import { IAdornmentModel } from "../../adornment-models"
 
 export const MedianAdornmentModel = UnivariateMeasureAdornmentModel
@@ -12,7 +12,7 @@ export const MedianAdornmentModel = UnivariateMeasureAdornmentModel
     labelTitle: types.optional(types.literal(kMedianValueTitleKey), kMedianValueTitleKey)
   })
   .views(self => ({
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return median(caseValues)

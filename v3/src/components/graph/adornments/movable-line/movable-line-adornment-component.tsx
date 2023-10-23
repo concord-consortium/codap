@@ -7,7 +7,7 @@ import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
-import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -35,7 +35,7 @@ interface IProps {
 export const MovableLineAdornment = observer(function MovableLineAdornment(props: IProps) {
   const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
-  const dataConfig = useDataConfigurationContext()
+  const dataConfig = useGraphDataConfigurationContext()
   const layout = useAxisLayoutContext()
   const instanceId = useInstanceIdContext()
   const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType

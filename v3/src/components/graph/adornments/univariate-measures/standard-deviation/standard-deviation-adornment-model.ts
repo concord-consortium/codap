@@ -1,10 +1,10 @@
 import { Instance, types } from "mobx-state-tree"
 import { mean, std } from "mathjs"
+import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import {
   UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel
 } from "../univariate-measure-adornment-model"
 import { kStandardDeviationValueTitleKey, kStandardDeviationType } from "./standard-deviation-adornment-types"
-import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
 
 export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .named("StandardDeviationAdornmentModel")
@@ -16,11 +16,11 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
     get hasRange() {
       return true
     },
-    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       return std(caseValues)
     },
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return mean(caseValues)

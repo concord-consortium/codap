@@ -7,7 +7,7 @@ import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
 import { IMovableValueAdornmentModel } from "./movable-value-adornment-model"
-import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
 import "./movable-value-adornment-component.scss"
@@ -33,7 +33,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const {containerId, model, cellKey={}, transform, xAxis, yAxis} = props
   const layout = useAxisLayoutContext(),
     graphModel = useGraphContentModelContext(),
-    dataConfig = useDataConfigurationContext(),
+    dataConfig = useGraphDataConfigurationContext(),
     xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
     yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
     instanceKey = model.instanceKey(cellKey),

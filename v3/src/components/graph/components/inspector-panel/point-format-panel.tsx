@@ -5,7 +5,7 @@ import {
   SliderTrack
 } from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
-import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { missingColor } from "../../../../utilities/color-utils"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
@@ -23,7 +23,7 @@ interface IProps {
 
 export const PointFormatPalette = observer(function PointFormatPalette({tile, panelRect, buttonRect,
     setShowPalette}: IProps) {
-  const dataConfiguration = useDataConfigurationContext()
+  const dataConfiguration = useGraphDataConfigurationContext()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const legendAttrID = graphModel?.getAttributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
@@ -32,7 +32,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
 
   if (!graphModel) return null
   const handlePointSizeMultiplierSetting = (val: any) => {
-    graphModel.setPointSizeMultiplier(val)
+    graphModel.pointDescription.setPointSizeMultiplier(val)
   }
   const handleTransparencySetting = (isTransparent: boolean) => {
     graphModel.setIsTransparent(isTransparent)
@@ -41,13 +41,13 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
     graphModel.setPlotBackgroundColor(color)
   }
   const handlePointColorSetting = (color: string) => {
-    graphModel.setPointColor(color) //TODO: not yet implemented
+    graphModel.pointDescription.setPointColor(color) //TODO: not yet implemented
   }
   const handlePointStrokeColorSetting = (color: string) => {
-    graphModel.setPointStrokeColor(color)
+    graphModel.pointDescription.setPointStrokeColor(color)
   }
   const handleStrokeSameAsPointColorSetting = (isTheSame: boolean) => {
-    graphModel.setPointStrokeSameAsFill(isTheSame)
+    graphModel.pointDescription.setPointStrokeSameAsFill(isTheSame)
   }
 
 const catPointColorSettingArr: ReactElement[] = []
@@ -75,17 +75,17 @@ categoriesRef.current?.forEach(cat => {
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Inspector.pointSize")}</FormLabel>
             <Slider aria-label="point-size-slider" ml="10px" min={0} max={2}
-                    defaultValue={graphModel.pointSizeMultiplier} step={0.01}
+                    defaultValue={graphModel.pointDescription.pointSizeMultiplier} step={0.01}
                     onChange={(val) => handlePointSizeMultiplierSetting(val)}>
               <SliderTrack/>
               <SliderThumb/>
             </Slider>
           </Flex>
         </FormControl>
-        <FormControl isDisabled={graphModel.pointStrokeSameAsFill}>
+        <FormControl isDisabled={graphModel.pointDescription.pointStrokeSameAsFill}>
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
-            <Input type="color" className="color-picker-thumb" value={graphModel.pointStrokeColor}
+            <Input type="color" className="color-picker-thumb" value={graphModel.pointDescription.pointStrokeColor}
                     onChange={e => handlePointStrokeColorSetting(e.target.value)}/>
           </Flex>
         </FormControl>
@@ -108,7 +108,8 @@ categoriesRef.current?.forEach(cat => {
                         </FormControl>
                       : <Flex className="palette-row">
                           <FormLabel className="form-label">{t("DG.Inspector.color")}</FormLabel>
-                          <Input type="color" className="color-picker-thumb" value={graphModel.pointColor}
+                          <Input type="color" className="color-picker-thumb"
+                                 value={graphModel.pointDescription.pointColor}
                                 onChange={e => handlePointColorSetting(e.target.value)}/>
                         </Flex>
               }
@@ -116,7 +117,7 @@ categoriesRef.current?.forEach(cat => {
         </FormControl>
         <FormControl>
           <Checkbox
-            mt="6px" isChecked={graphModel.pointStrokeSameAsFill}
+            mt="6px" isChecked={graphModel.pointDescription.pointStrokeSameAsFill}
             onChange={e => handleStrokeSameAsPointColorSetting(e.target.checked)}>
             {t("DG.Inspector.strokeSameAsFill")}
           </Checkbox>

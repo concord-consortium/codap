@@ -22,6 +22,16 @@
   }
 }
 
+.map-dot-area {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+
 .map-dot {
   fill: rgba(230, 128, 91);
   stroke: white;

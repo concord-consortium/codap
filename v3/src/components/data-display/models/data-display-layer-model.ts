@@ -1,13 +1,13 @@
 import {Instance, types} from "mobx-state-tree"
-import {DataConfigurationModel} from "./data-configuration-model"
 import { typedId } from "../../../utilities/js-utils"
+import {DataConfigurationModelUnion} from "./data-configuration-union"
 
 export const kUnknownLayerModelType = "unknownLayer"
 
 export const DataDisplayLayerModel = types.model("DataDisplayLayerModel", {
     id: types.optional(types.identifier, () => typedId("LAYR")),
     type: types.optional(types.string, kUnknownLayerModelType),
-    dataConfiguration: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
+    dataConfiguration: types.optional(DataConfigurationModelUnion, {} as any),
   })
   .views(self => ({
     get data() {

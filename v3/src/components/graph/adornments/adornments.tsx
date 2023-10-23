@@ -8,7 +8,7 @@ import { getAdornmentContentInfo } from "./adornment-content-info"
 import { IAdornmentModel } from "./adornment-models"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { useDataConfigurationContext } from "../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../hooks/use-data-configuration-context"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
 
@@ -16,7 +16,7 @@ import "./adornments.scss"
 
 export const Adornments = observer(function Adornments() {
   const graphModel = useGraphContentModelContext(),
-    dataConfig = useDataConfigurationContext(),
+    dataConfig = useGraphDataConfigurationContext(),
     instanceId = useInstanceIdContext(),
     layout = useGraphLayoutContext(),
     { isTileSelected } = useTileModelContext(),

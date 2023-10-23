@@ -2,6 +2,7 @@ import { Instance, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { ICase } from "../../../../models/data/data-set-types"
 
 export const MeasureInstance = types.model("MeasureInstance", {
@@ -34,7 +35,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     })
   })
   .views(self => ({
-    getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const dataset = dataConfig?.dataset
       const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues: number[] = []

@@ -2,7 +2,7 @@ import { Instance, types } from "mobx-state-tree"
 import { mean } from "mathjs"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kMeanType, kMeanValueTitleKey } from "./mean-adornment-types"
-import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
+import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import { IAdornmentModel } from "../../adornment-models"
 
 export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
@@ -12,7 +12,7 @@ export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
     labelTitle: types.optional(types.literal(kMeanValueTitleKey), kMeanValueTitleKey)
   })
   .views(self => ({
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return mean(caseValues)

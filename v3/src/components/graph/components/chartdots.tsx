@@ -3,7 +3,7 @@ import React, {useCallback} from "react"
 import {CaseData, selectDots} from "../../data-display/d3-types"
 import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
@@ -14,8 +14,8 @@ type BinMap = Record<string, Record<string, Record<string, Record<string, number
 export const ChartDots = function ChartDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphContentModelContext(),
-    {pointColor, pointStrokeColor} = graphModel,
-    dataConfiguration = useDataConfigurationContext(),
+    {pointColor, pointStrokeColor} = graphModel.pointDescription,
+    dataConfiguration = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     primaryAttrRole = dataConfiguration?.primaryRole ?? 'x',

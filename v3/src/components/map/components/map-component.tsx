@@ -10,15 +10,15 @@ import {CodapMap} from "./codap-map"
 import {isMapContentModel} from "../models/map-content-model"
 import {MapController} from "../models/map-controller"
 import {MapLayoutContext} from "../models/map-layout"
-import {MapContentModelContext} from "../hooks/use-map-content-model-context"
+import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
 import {useMapController} from "../hooks/use-map-controller"
 
 export const MapComponent = observer(function MapComponent({tile}: ITileBaseProps) {
-  const mapContentModel = isMapContentModel(tile?.content) ? tile?.content : undefined
+  const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("map")
-  const layout = useInitMapLayout(mapContentModel)
+  const layout = useInitMapLayout(mapModel)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: mapRef})
   const enableAnimation = useRef(true)
@@ -28,7 +28,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
     [layout, instanceId]
   )
 
-  useMapController({mapController, mapContentModel, dotsRef})
+  useMapController({mapController, mapModel, dotsElement: dotsRef.current})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height)
@@ -51,18 +51,19 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const overlayDragId = active && `${active.id}`.startsWith(instanceId)
     ? `${active.id}` : undefined
 
-  if (!mapContentModel) return null
+  if (!mapModel) return null
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <MapLayoutContext.Provider value={layout}>
-        <MapContentModelContext.Provider value={mapContentModel}>
+        <MapModelContext.Provider value={mapModel}>
           <CodapMap mapController={mapController}
                     mapRef={mapRef}
                     dotsRef={dotsRef}
+                    dotsElement={dotsRef.current}
           />
           <AttributeDragOverlay activeDragId={overlayDragId}/>
-        </MapContentModelContext.Provider>
+        </MapModelContext.Provider>
       </MapLayoutContext.Provider>
     </InstanceIdContext.Provider>
   )

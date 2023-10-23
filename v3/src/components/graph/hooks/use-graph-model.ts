@@ -1,10 +1,11 @@
 import {MutableRefObject, useCallback, useEffect} from "react"
+import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {IDotsRef} from "../../data-display/data-display-types"
+import {matchCirclesToData, startAnimation} from "../../data-display/data-display-utils"
+import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel, isGraphVisualPropsAction} from "../models/graph-content-model"
 import {INumericAxisModel} from "../../axis/models/axis-model"
-import {onAnyAction} from "../../../utilities/mst-utils"
-import {IDotsRef} from "../../data-display/data-display-types"
-import {matchCirclesToData, setNiceDomain, startAnimation} from "../utilities/graph-utils"
 
 interface IProps {
   graphModel: IGraphContentModel
@@ -24,8 +25,8 @@ export function useGraphModel(props: IProps) {
     dataConfig && matchCirclesToData({
       dataConfiguration: dataConfig,
       pointRadius: graphModel.getPointRadius(),
-      pointColor: graphModel.pointColor,
-      pointStrokeColor: graphModel.pointStrokeColor,
+      pointColor: graphModel.pointDescription.pointColor,
+      pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
       dotsElement: dotsRef.current,
       enableAnimation, instanceId
     })

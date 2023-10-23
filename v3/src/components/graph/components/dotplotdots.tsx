@@ -3,25 +3,26 @@ import {observer} from "mobx-react-lite"
 import React, {useCallback, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
+import {handleClickOnDot, startAnimation} from "../../data-display/data-display-utils"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
-import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
-import {handleClickOnDot, setPointCoordinates, setPointSelection, startAnimation} from "../utilities/graph-utils"
+import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphContentModelContext(),
-    dataConfiguration = useDataConfigurationContext(),
+    dataConfiguration = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     primaryAttrRole = dataConfiguration?.primaryRole ?? 'x',
     primaryIsBottom = primaryAttrRole === 'x',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
-    {pointColor, pointStrokeColor} = graphModel,
+    {pointColor, pointStrokeColor} = graphModel.pointDescription,
     // Used for tracking drag events
     [dragID, setDragID] = useState(''),
     currPos = useRef(0),
