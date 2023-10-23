@@ -95,7 +95,7 @@ export const MapPointLayer = function MapPointLayer(props: {
       () => {
         !dataConfiguration.pointsNeedUpdating && refreshPointPositions(false)
       }, { name: "mapPointLayer.respondToPointsNeedUpdate" }, dataConfiguration)
-  }, [dataConfiguration.pointsNeedUpdating, refreshPointPositions])
+  }, [dataConfiguration, dataConfiguration.pointsNeedUpdating, refreshPointPositions])
 
   // respond to layout size changes (e.g. component resizing)
   useEffect(() => {
