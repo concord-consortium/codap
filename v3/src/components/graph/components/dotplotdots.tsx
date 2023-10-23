@@ -6,7 +6,6 @@ import {PlotProps} from "../graphing-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
@@ -16,7 +15,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {dotsRef, enableAnimation} = props,
     graphModel = useGraphContentModelContext(),
     dataConfiguration = useDataConfigurationContext(),
-    dataset = useDataSetContext(),
+    dataset = dataConfiguration?.dataset ?? undefined,
     layout = useGraphLayoutContext(),
     primaryAttrRole = dataConfiguration?.primaryRole ?? 'x',
     primaryIsBottom = primaryAttrRole === 'x',

@@ -1,6 +1,5 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {reaction} from "mobx"
-import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
@@ -20,7 +19,7 @@ interface INumericLegendProps {
 export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumericLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     layout = useGraphLayoutContext(),
-    dataset = useDataSetContext(),
+    dataset = dataConfiguration?.dataset ?? undefined,
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),

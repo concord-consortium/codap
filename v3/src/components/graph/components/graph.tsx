@@ -17,7 +17,6 @@ import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {DataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain, startAnimation} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
@@ -47,7 +46,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     {plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
-    dataset = useDataSetContext(),
+    dataset = graphModel.dataConfiguration?.dataset ?? undefined,
     layout = useGraphLayoutContext(),
     xScale = layout.getAxisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),

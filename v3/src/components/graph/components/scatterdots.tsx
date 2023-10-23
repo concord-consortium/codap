@@ -7,7 +7,6 @@ import {PlotProps} from "../graphing-types"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
@@ -19,7 +18,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useDataConfigurationContext(),
-    dataset = useDataSetContext(),
+    dataset = dataConfiguration?.dataset ?? undefined,
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
     selectedPointRadiusRef = useRef(0),

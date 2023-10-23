@@ -9,7 +9,6 @@ import {MarqueeState} from "../models/marquee-state"
 import {rectangleSubtract, rectNormalize} from "../utilities/graph-utils"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {InternalizedData} from "../graphing-types"
@@ -47,9 +46,9 @@ const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
 export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
   const {marqueeState} = props,
     instanceId = useInstanceIdContext() || 'background',
-    dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphContentModelContext(),
+    dataset = useCurrent(graphModel.dataConfiguration?.dataset ?? undefined),
     bgRef = ref as MutableRefObject<SVGGElement | null>,
     startX = useRef(0),
     startY = useRef(0),

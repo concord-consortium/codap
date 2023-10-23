@@ -634,8 +634,8 @@ export const DataConfigurationModel = types
           typeToDropIsNumeric = !!idToDrop && dataSet?.attrFromID(idToDrop)?.type === 'numeric',
           xIsNumeric = self.attributeType('x') === 'numeric',
           existingID = self.attributeID(role)
-        // only drops on left/bottom axes can change data set
-        if (dataSet?.id !== self.dataset?.id && !['left', 'bottom'].includes(place)) {
+        // If we have a dataset, only drops on left/bottom axes can change it
+        if (self.dataset && dataSet?.id !== self.dataset?.id && !['left', 'bottom'].includes(place)) {
           return false
         }
         if (place === 'yPlus') {

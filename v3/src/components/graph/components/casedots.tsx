@@ -4,7 +4,6 @@ import {CaseData} from "../../data-display/d3-types"
 import {IDotsRef} from "../../data-display/data-display-types"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataConfigurationContext} from "../hooks/use-data-configuration-context"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
 import {handleClickOnDot, setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
@@ -18,8 +17,8 @@ export const CaseDots = function CaseDots(props: {
       enableAnimation
     } = props,
     graphModel = useGraphContentModelContext(),
-    dataset = useDataSetContext(),
     dataConfiguration = useDataConfigurationContext(),
+    dataset = dataConfiguration?.dataset ?? undefined,
     layout = useGraphLayoutContext(),
     randomPointsRef = useRef<Record<string, { x: number, y: number }>>({}),
     dragPointRadius = graphModel.getPointRadius('hover-drag'),
