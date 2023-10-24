@@ -39,7 +39,6 @@ export const MapContentModel = DataDisplayContentModel
       const center = self.leafletMap.getCenter()
       self.center.replace({lat: center.lat, lng: center.lng})
       self.zoom = self.leafletMap.getZoom()
-      console.log(`syncCenter: ${JSON.stringify(self.center)}; zoom: ${self.zoom}`)
     },
     addPointLayer(dataSet: IDataSet) {
       const newPointLayer = MapPointLayerModel.create()
@@ -49,9 +48,6 @@ export const MapContentModel = DataDisplayContentModel
       dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
       dataConfiguration.setAttribute('lat', {attributeID: latId})
       dataConfiguration.setAttribute('long', {attributeID: longId})
-    },
-    afterCreate() {
-      console.log(`MapContentModel.afterCreate`)
     },
     afterAttachToDocument() {
       // Monitor our parents and update our shared model when we have a document parent
@@ -75,6 +71,9 @@ export const MapContentModel = DataDisplayContentModel
             if (datasetHasLatLongData(sharedDataSet.dataSet)) {
               const foundIndex = layersToCheck.findIndex(aLayer => aLayer.data === sharedDataSet.dataSet)
               if (foundIndex >= 0) {
+                const layer = layersToCheck[foundIndex],
+                  dataset = sharedDataSet.dataSet
+                layer.dataConfiguration.setDataset(dataset, getSharedCaseMetadataFromDataset(dataset))
                 // Remove this layer from the list of layers to check since it _is_ present
                 layersToCheck.splice(foundIndex, 1)
               } else {

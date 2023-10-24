@@ -7,7 +7,8 @@ export const kUnknownLayerModelType = "unknownLayer"
 export const DataDisplayLayerModel = types.model("DataDisplayLayerModel", {
     id: types.optional(types.identifier, () => typedId("LAYR")),
     type: types.optional(types.string, kUnknownLayerModelType),
-    dataConfiguration: types.optional(DataConfigurationModelUnion, {} as any),
+    dataConfiguration: types.optional(DataConfigurationModelUnion,
+      () => { throw "dataConfiguration must be overridden" }),
   })
   .views(self => ({
     get data() {

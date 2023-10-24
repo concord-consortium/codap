@@ -32,3 +32,19 @@ export const
   hoverRadiusFactor = 1.5,
   kDataDisplayFont = '12px sans-serif',
   kChoroplethHeight = 16
+
+export const PrimaryAttrRoles = ['x', 'y'] as const
+export type PrimaryAttrRole = typeof PrimaryAttrRoles[number]
+export const GraphTipAttrRoles =
+  [...PrimaryAttrRoles, 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'caption'] as const
+export const GraphAttrRoles = [
+  ...GraphTipAttrRoles, 'yPlus'] as const
+export type GraphAttrRole = typeof GraphAttrRoles[number]
+
+export const MapAttrRoles = ['lat', 'long', 'polygon'] as const
+export type MapAttrRole = typeof MapAttrRoles[number]
+
+export const AttrRoles = [...GraphAttrRoles, ...MapAttrRoles] as const
+export type AttrRole = typeof AttrRoles[number]
+export const TipAttrRoles = [...GraphTipAttrRoles, ...MapAttrRoles] as const
+

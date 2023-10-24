@@ -1,11 +1,11 @@
 import {MutableRefObject, useEffect} from "react"
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {latLng, LatLngBounds} from 'leaflet'
+import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
 import {DotsElt} from "../../data-display/d3-types"
 import {kDefaultMapZoomForGeoLocation} from "../map-types"
 import {IMapContentModel} from "../models/map-content-model"
-import {expandLatLngBounds, getLatLongBounds} from "../utilities/map-utils"
+import {fitMapBoundsToData} from "../utilities/map-utils"
 
 interface IProps {
   mapModel: IMapContentModel
@@ -19,7 +19,7 @@ export function useMapModel(props: IProps) {
     leafletMap = useMap()
 
   // Initialize
-  useEffect(function initializeLeafletMap() {
+  useEffect(function initializeLeafletMapHandlers() {
     const onLayerAdd = () => {
         console.log('onLayerAdd')
       },
@@ -33,10 +33,7 @@ export function useMapModel(props: IProps) {
       },
       onMapIsChanging = () => {
         mapModel.incrementDisplayChangeCount()
-      }/*,
-      onEndDragMove = () => {
-        mapModel.incrementDisplayChangeCount()
-      }*/
+      }
 
     leafletMap.on('layeradd', onLayerAdd)
       .on('click', onClick)
@@ -46,7 +43,7 @@ export function useMapModel(props: IProps) {
   }, [leafletMap, mapModel])
 
   // Initialize
-  useEffect(function initializeLeafletMap() {
+  useEffect(function initializeLeafletMapView() {
     if (mapModel.hasBeenInitialized) {
       return
     }
@@ -66,22 +63,9 @@ export function useMapModel(props: IProps) {
         )
       }
     } else {
-      let overallBounds: LatLngBounds | undefined = undefined
-      mapModel.layers.forEach((layer) => {
-        const bounds = getLatLongBounds(layer.dataConfiguration)
-        if (bounds) {
-          if (!overallBounds) {
-            overallBounds = bounds
-          } else {
-            overallBounds.extend(bounds)
-          }
-        }
-      })
-      if (overallBounds) {
-        mapModel.leafletMap.fitBounds(expandLatLngBounds(overallBounds, 1.1), {animate: true})
-      }
+      fitMapBoundsToData(mapModel.layers, leafletMap)
     }
     mapModel.setHasBeenInitialized()
-  }, [leafletMap, mapModel, mapModel.layers, mapModel.leafletMap])
+  }, [leafletMap, mapModel, mapModel.layers])
 
 }

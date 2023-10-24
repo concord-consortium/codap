@@ -53,13 +53,13 @@ $corner-drag-size: calc($border-drag-width * 2);
   position: absolute;
   margin: 0;
   user-select: none;
-  z-index: 1000;
+  z-index: 11;
   &.bottom-left {
     bottom: 0;
     left: 0;
     height: $corner-drag-size;
     width: $corner-drag-size;
-    z-index: 5;
+    //z-index: 5;
     cursor: sw-resize;
   }
   &.bottom-right {

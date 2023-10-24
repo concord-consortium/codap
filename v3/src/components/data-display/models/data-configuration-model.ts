@@ -1,5 +1,6 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
+import {onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
@@ -9,15 +10,8 @@ import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
-import {onAnyAction} from "../../../utilities/mst-utils"
 import {CaseData} from "../d3-types"
-import {GraphAttrRoles, graphPlaceToAttrRole, GraphTipAttrRoles} from "../../graph/graphing-types"
-import {AxisPlace} from "../../axis/axis-types"
-import {MapAttrRoles} from "../../map/map-types"
-
-export const AttrRoles = [...GraphAttrRoles, ...MapAttrRoles] as const
-export type AttrRole = typeof AttrRoles[number]
-export const TipAttrRoles = [...GraphTipAttrRoles, ...MapAttrRoles] as const
+import {AttrRole, TipAttrRoles} from "../data-display-types"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -109,9 +103,6 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
-    afterCreate() {
-      console.log(`DataConfigurationModel.afterCreate`)
-    },
     clearFilteredCases() {
       self.filteredCases.forEach(aFilteredCases => aFilteredCases.destroy())
       self.filteredCases = []
@@ -376,12 +367,6 @@ export const DataConfigurationModel = types
           : legendType === 'categorical' ? self.getLegendColorForCategory(legendValue)
             : legendType === 'numeric' ? self.getLegendColorForNumericValue(Number(legendValue))
               : ''
-      },
-      categorySetForPlace(place: AxisPlace) {
-        if (self.metadata) {
-          const role = graphPlaceToAttrRole[place]
-          return self.metadata.getCategorySet(self.attributeID(role) ?? '')
-        }
       },
     }))
   .actions(self => ({
