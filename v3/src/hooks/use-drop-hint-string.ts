@@ -1,6 +1,5 @@
 import {useDndContext} from "@dnd-kit/core"
 import { AttributeType } from "../models/data/attribute"
-import {useDataSetContext} from "./use-data-set-context"
 import {getDragAttributeInfo} from "./use-drag-drop"
 import {useGraphDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"
 import {attrRoleToGraphPlace, GraphAttrRole} from "../components/graph/graphing-types"
@@ -80,16 +79,15 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
 }
 
 export const useDropHintString = ({role} : IUseDropHintStringProps) => {
-  const dataSet = useDataSetContext(),
-    dataConfig = useGraphDataConfigurationContext(),
+  const dataConfig = useGraphDataConfigurationContext(),
     { active } = useDndContext(),
-    { attributeId: dragAttrId = "" } = getDragAttributeInfo(active) || {},
+    { attributeId: dragAttrId = "", dataSet } = getDragAttributeInfo(active) || {},
     place = attrRoleToGraphPlace[role] as GraphPlace,
     dropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop(place, dataSet, dragAttrId)
 
   if (dataSet && active?.data.current && dropAllowed) {
-    const dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId).name : undefined,
-      dragAttrType = dragAttrId? dataSet.attrFromID(dragAttrId).type : undefined
+    const dragAttrName = dragAttrId ? dataSet.attrFromID(dragAttrId)?.name : undefined,
+      dragAttrType = dragAttrId ? dataSet.attrFromID(dragAttrId)?.type : undefined
 
     const
       priorAttrId = dataConfig?.attributeID(role),

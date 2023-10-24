@@ -17,7 +17,7 @@ export interface IDragData {
 
 export interface IDragAttributeData extends IDragData {
   type: "attribute"
-  dataSet?: IDataSet
+  dataSet: IDataSet | undefined
   attributeId: string
 }
 export function isDragAttributeData(data: DataRef): data is DataRef<IDragAttributeData> {

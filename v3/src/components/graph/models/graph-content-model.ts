@@ -227,6 +227,9 @@ export const GraphContentModel = DataDisplayContentModel
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
       const newDataSet = getDataSetFromId(self, dataSetID)
       if (newDataSet && newDataSet !== self.dataConfiguration.dataset) {
+        // update shared model manager
+        linkTileToDataSet(self, newDataSet)
+        // update data configuration
         self.dataConfiguration.clearAttributes()
         self.dataConfiguration.setDataset(newDataSet, getSharedCaseMetadataFromDataset(newDataSet))
       }

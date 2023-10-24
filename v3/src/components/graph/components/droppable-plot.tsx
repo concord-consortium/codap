@@ -19,13 +19,14 @@ const _DroppablePlot = ({graphElt, plotElt, onDropAttribute}: IProps) => {
   const dataConfig = useGraphDataConfigurationContext()
   const isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true)
   const droppableId = `${instanceId}-plot-area-drop`
+  const place: GraphPlace = dataConfig?.noAttributesAssigned ? 'bottom' : 'legend'
   const role = dataConfig?.noAttributesAssigned ? 'x' : 'legend'
   const hintString = useDropHintString({role})
 
   const handleIsActive = (active: Active) => {
     const { dataSet, attributeId: droppedAttrId } = getDragAttributeInfo(active) || {}
     if (isDropAllowed) {
-      return isDropAllowed('legend', dataSet, droppedAttrId)
+      return isDropAllowed(place, dataSet, droppedAttrId)
     } else {
       return !!droppedAttrId
     }
@@ -33,8 +34,8 @@ const _DroppablePlot = ({graphElt, plotElt, onDropAttribute}: IProps) => {
 
   useDropHandler(droppableId, active => {
     const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(active) || {}
-    dataSet && dragAttributeID && isDropAllowed('legend', dataSet, dragAttributeID) &&
-      onDropAttribute('plot', dataSet, dragAttributeID)
+    dataSet && dragAttributeID && isDropAllowed(place, dataSet, dragAttributeID) &&
+      onDropAttribute(place, dataSet, dragAttributeID)
   })
 
   return (

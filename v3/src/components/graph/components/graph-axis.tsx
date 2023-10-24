@@ -54,7 +54,7 @@ export const GraphAxis = observer(function GraphAxis(
   useDropHandler(droppableId, active => {
     const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
     dataSet && droppedAttrId && isDropAllowed(place, dataSet, droppedAttrId) &&
-    onDropAttribute?.(place, dataSet, droppedAttrId)
+      onDropAttribute?.(place, dataSet, droppedAttrId)
   })
 
   /**
