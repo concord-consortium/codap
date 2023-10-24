@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.0.0-pre.1389 - October 23, 2023
+## Version 3.0.0-pre.1389 - October 24, 2023
 
 ### Features/Improvements
 - Close component should be undoable as a single action [#186075314](https://www.pivotaltracker.com/story/show/186075314)
