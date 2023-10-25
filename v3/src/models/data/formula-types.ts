@@ -1,5 +1,6 @@
 import { ConstantNode, MathNode, SymbolNode, isConstantNode, isFunctionNode, isSymbolNode } from "mathjs"
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
+import type { ICase } from "./data-set-types"
 
 export const CANONICAL_NAME = "__CANONICAL_NAME__"
 export const GLOBAL_VALUE = "GLOBAL_VALUE_"
@@ -56,6 +57,8 @@ export type FValue = string | number | boolean
 export type EvaluateFunc = (...args: FValue[]) => FValue | FValue[]
 
 export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]
+
+export type CaseList = ICase[] | "ALL_CASES"
 
 export interface IFormulaMathjsFunction {
   rawArgs?: boolean
