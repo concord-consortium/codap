@@ -46,5 +46,6 @@ export type MapAttrRole = typeof MapAttrRoles[number]
 
 export const AttrRoles = [...GraphAttrRoles, ...MapAttrRoles] as const
 export type AttrRole = typeof AttrRoles[number]
-export const TipAttrRoles = [...GraphTipAttrRoles, ...MapAttrRoles] as const
+// We leave open the possibility that TipAttrRoles may include some that are not GraphTipAttrRoles
+export const TipAttrRoles = [...GraphTipAttrRoles] as const
 
