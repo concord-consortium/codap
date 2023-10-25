@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 3.0.0-pre.1389 - October 24, 2023
+
+### Features/Improvements
+- Dot plots can display **standard deviation** and **mean absolute deviation** [#181914408](https://www.pivotaltracker.com/story/show/181914408)
+- Close component should be undoable as a single action [#186075314](https://www.pivotaltracker.com/story/show/186075314)
+- A newly created map with no data to display defaults to user location [#186252775](https://www.pivotaltracker.com/story/show/186252775)
+- Update all adornment model type properties that are currently set to simple strings [#186297171](https://www.pivotaltracker.com/story/show/186297171)
+
+### Bug Fixes
+- Wrong attribute sometimes passed to formula in **Plotted Value** [#186266057](https://www.pivotaltracker.com/story/show/186266057)
+- Evaluate plotted value adornment formula [#186267057](https://www.pivotaltracker.com/story/show/186267057)
+- Unable to add attribute to graph in presence of two datasets [#186316077](https://www.pivotaltracker.com/story/show/186316077)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   69479 bytes |                               0% |
+|  index.js | 3394788 bytes |                            0.23% |
+
 ## Version 3.0.0-pre.1378 - October 18, 2023
 
 ### Features/Improvements
