@@ -1,4 +1,6 @@
-import { UNDEF_RESULT, numericFnFactory, numericMultiArgsFnFactory, math } from "./formula-fn-registry"
+import { numericFnFactory, numericMultiArgsFnFactory } from "./arithmetic-functions"
+import { UNDEF_RESULT } from "./function-utils"
+import { math } from "./math"
 
 describe("numericFnFactory", () => {
   const fn = (value: number) => value * 2

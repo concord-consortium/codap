@@ -1,8 +1,8 @@
 import { makeObservable, observable } from "mobx"
-import { ICase } from "./data-set-types"
+import { ICase } from "../data/data-set-types"
 import { formulaError } from "./formula-utils"
-import { math } from "./formula-fn-registry"
 import { IFormula } from "./formula"
+import { math } from "./functions/math"
 import type {
   IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "./formula-manager"

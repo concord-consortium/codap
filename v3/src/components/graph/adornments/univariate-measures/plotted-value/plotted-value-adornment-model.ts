@@ -2,7 +2,7 @@ import { Instance, types } from "mobx-state-tree"
 import { IAdornmentModel } from "../../adornment-models"
 import { kPlottedValueType, kPlottedValueValueTitleKey } from "./plotted-value-adornment-types"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
-import { Formula } from "../../../../../models/data/formula"
+import { Formula } from "../../../../../models/formula/formula"
 
 export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
   .named("PlottedValueAdornmentModel")

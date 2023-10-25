@@ -2,8 +2,8 @@ import {
   FValue, CASE_INDEX_FAKE_ATTR_ID, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY, CANONICAL_NAME
 } from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
-import type { IDataSet } from "./data-set"
-import type { IValueType } from "./attribute"
+import type { IDataSet } from "../data/data-set"
+import type { IValueType } from "../data/attribute"
 
 const CACHE_ENABLED = true
 
