@@ -9,13 +9,6 @@
     stroke: #000;
     stroke-width: 1px;
 
-    &.box-plot-line {
-      stroke: #ff3300;
-
-      &.range-line {
-        stroke: #ff3300;
-      }
-    }
     &.mean-line {
       stroke: #00f;
     }
@@ -45,25 +38,6 @@
     }
   }
 
-  .measure-outlier {
-    stroke: #ff3300;
-  }
-
-  .measure-outlier-cover {
-    border-radius: 50%;
-    cursor: pointer;
-    fill: #ff3000;
-    opacity: 0;
-    pointer-events: all;
-    position: relative;
-    stroke: transparent;
-    stroke-width: 0;
-
-    &:hover {
-      opacity: .2;
-    }
-  }
-
   .measure-tip {
     display: none;
     fill: #000;
@@ -86,10 +60,6 @@
     stroke: #000;
     stroke-width: 5px;
 
-    &.box-plot-cover {
-      cursor: pointer;
-      stroke: #ff3000;
-    }
     &.mean-cover {
       stroke: #00f;
     }
@@ -116,13 +86,6 @@
     stroke: none;
     stroke-width: 0;
 
-    &.box-plot-range {
-      cursor: pointer;
-      fill: #ffb280;
-      stroke: #ff3300;
-      stroke-opacity: 1;
-      stroke-width: .5px;
-    }
     &.mean-absolute-deviation-range {
       fill: #9ac6ff;
     }
@@ -150,11 +113,5 @@
     z-index: 10;
 
     &:hover, &.highlighted { opacity: 1; }
-  }
-
-  &.box-plot-label {
-    background: #ffc;
-    box-shadow: 1px 1px 1px rgba(51, 51, 51, .7);
-    padding: 2px 4px;
   }
 }

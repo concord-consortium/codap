@@ -1,8 +1,8 @@
 import { Instance, types } from "mobx-state-tree"
-import { median, quantileSeq } from "mathjs"
+import { median } from "mathjs"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kBoxPlotType, kBoxPlotValueTitleKey } from "./box-plot-adornment-types"
-import { IDataConfigurationModel } from "../../../../data-display/models/data-configuration-model"
+import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
 import { IAdornmentModel } from "../../adornment-models"
 
 export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
@@ -17,6 +17,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       return true
     },
     getQuantileValue(quantile: number, caseValues: number[]) {
+      if (caseValues.length === 0) return NaN
       const sortedCaseValues = caseValues.sort((a, b) => a - b)
       const lastIndex = sortedCaseValues.length - 1
       const i = lastIndex * quantile / 100
@@ -47,15 +48,16 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
   }))
   .views(self => ({
     interquartileRange(caseValues: number[]) {
-      const lowerQuartile = self.lowerQuartile(caseValues)
-      const upperQuartile = self.upperQuartile(caseValues)
-      return upperQuartile - lowerQuartile
+      return self.upperQuartile(caseValues) - self.lowerQuartile(caseValues)
     },
   }))
   .views(self => ({
-    minValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    // Returns the minimum value to use in constructing the whisker line. If we're showing outliers, we need to return
+    // the lowest non-outlier value since outliers are not part of the line.
+    minWhiskerValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig).filter(v => !Number.isNaN(v))
       if (self.showOutliers) {
+        // If we're showing outliers, the min is the lowest non-outlier value.
         const interquartileRange = self.interquartileRange(caseValues)
         const lowerQuartile = self.lowerQuartile(caseValues)
         const min = lowerQuartile - 1.5 * interquartileRange
@@ -63,9 +65,12 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       }
       return Math.min(...caseValues)
     },
-    maxValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    // Returns the maximum value to use in constructing the whisker line. If we're showing outliers, we need to return
+    // the greatest non-outlier value since outliers are not part of the line.
+    maxWhiskerValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig).filter(v => !Number.isNaN(v))
       if (self.showOutliers) {
+        // If we're showing outliers, the max is the highest non-outlier value.
         const interquartileRange = self.interquartileRange(caseValues)
         const upperQuartile = self.upperQuartile(caseValues)
         const max = upperQuartile + 1.5 * interquartileRange
@@ -73,32 +78,28 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       }
       return Math.max(...caseValues)
     },
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return median(caseValues)
     }
   }))
   .views(self => ({
-    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      const lowerQuartile = self.lowerQuartile(caseValues)
-      const upperQuartile = self.upperQuartile(caseValues)
-      const min = Number(lowerQuartile)
-      const max = Number(upperQuartile)
-      return { min, max }
+      return { min: self.lowerQuartile(caseValues), max: self.upperQuartile(caseValues) }
     },
-    lowerOutliers(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    lowerOutliers(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       const interquartileRange = self.interquartileRange(caseValues)
-      const lowerQuartile = Number(quantileSeq(caseValues, 0.25))
+      const lowerQuartile = self.lowerQuartile(caseValues)
       const min = lowerQuartile - 1.5 * interquartileRange
       return caseValues.filter(v => v < min).sort((a, b) => a - b)
     },
-    upperOutliers(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    upperOutliers(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       const interquartileRange = self.interquartileRange(caseValues)
-      const upperQuartile = Number(quantileSeq(caseValues, 0.75))
+      const upperQuartile = self.upperQuartile(caseValues)
       const max = upperQuartile + 1.5 * interquartileRange
       return caseValues.filter(v => v > max).sort((a, b) => a - b)
     }

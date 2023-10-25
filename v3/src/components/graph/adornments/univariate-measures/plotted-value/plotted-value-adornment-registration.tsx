@@ -7,7 +7,7 @@ import { kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix, kPlotte
          kPlottedValueUndoRemoveKey} from "./plotted-value-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { PlottedValueAdornmentBanner } from "./plotted-value-adornment-banner"
-import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
+import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 
 const Controls = () => {
   return (
@@ -35,7 +35,7 @@ registerAdornmentContentInfo({
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kPlottedValueClass,
-  Component: UnivariateMeasureAdornmentComponent,
+  Component: UnivariateMeasureAdornmentSimpleComponent,
   Controls,
   BannerComponent: PlottedValueAdornmentBanner,
   labelKey: kPlottedValueLabelKey,

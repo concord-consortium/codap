@@ -6,7 +6,7 @@ import { kStandardDeviationClass, kStandardDeviationLabelKey, kStandardDeviation
          kStandardDeviationUndoAddKey, kStandardDeviationRedoAddKey, kStandardDeviationRedoRemoveKey,
          kStandardDeviationUndoRemoveKey} from "./standard-deviation-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
-import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
+import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 
 const Controls = () => {
   return (
@@ -34,7 +34,7 @@ registerAdornmentContentInfo({
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kStandardDeviationClass,
-  Component: UnivariateMeasureAdornmentComponent,
+  Component: UnivariateMeasureAdornmentSimpleComponent,
   Controls,
   labelKey: kStandardDeviationLabelKey,
   order: 10,

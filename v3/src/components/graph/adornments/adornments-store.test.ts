@@ -10,6 +10,7 @@ jest.spyOn(contentInfo, "getAdornmentTypes").mockReturnValue(
 )
 
 const mockAdornment = {
+  cellCount: () => ({x: 1, y: 1}),
   classNameFromKey: () => "mock-count-adornment",
   id: "ADRN123",
   instanceKey: () => "mock-count-adornment",
