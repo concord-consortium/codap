@@ -18,7 +18,7 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphAttrRole} from "../../data-display/data-display-types"
-import {AxisPlace} from "../../axis/axis-types"
+import {AxisPlace, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
 import {PlotType, PlotTypes} from "../graphing-types"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
@@ -105,7 +105,9 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .views(self => ({
-    getUpdateCategoriesOptions(resetPoints=false): IUpdateCategoriesOptions {
+    getUpdateCategoriesOptions(
+      resetPoints=false, xScale?: ScaleNumericBaseType, yScale?: ScaleNumericBaseType
+    ): IUpdateCategoriesOptions {
       const xAttrId = self.getAttributeID("x"),
         dataConfig = self.dataConfiguration,
         xAttrType = dataConfig.attributeType("x"),
@@ -133,7 +135,9 @@ export const GraphContentModel = DataDisplayContentModel
         rightAttrId,
         rightCats,
         resetPoints,
-        dataConfig
+        dataConfig,
+        xScale,
+        yScale
       }
     }
   }))

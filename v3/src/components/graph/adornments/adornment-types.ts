@@ -13,6 +13,8 @@ import { IStandardDeviationAdornmentModel, StandardDeviationAdornmentModel }
 import { IMeanAbsoluteDeviationAdornmentModel, MeanAbsoluteDeviationAdornmentModel }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
+import { PlottedFunctionAdornmentModel, IPlottedFunctionAdornmentModel }
+  from "./plotted-function/plotted-function-adornment-model"
 
 export const kGraphAdornmentsClass = "graph-adornments-grid"
 export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
@@ -27,6 +29,7 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
     case "Movable Line": return MovableLineAdornmentModel
     case "Movable Point": return MovablePointAdornmentModel
     case "Movable Value": return MovableValueAdornmentModel
+    case "Plotted Function": return PlottedFunctionAdornmentModel
     case "Plotted Value": return PlottedValueAdornmentModel
     case "Standard Deviation": return StandardDeviationAdornmentModel
     default: return UnknownAdornmentModel
@@ -36,11 +39,11 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
   BoxPlotAdornmentModel, CountAdornmentModel, MeanAdornmentModel, MeanAbsoluteDeviationAdornmentModel,
   MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel, MovablePointAdornmentModel,
-  PlottedValueAdornmentModel, StandardDeviationAdornmentModel, UnknownAdornmentModel)
+  PlottedFunctionAdornmentModel, PlottedValueAdornmentModel, StandardDeviationAdornmentModel, UnknownAdornmentModel)
 export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | IMeanAdornmentModel |
   IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
-  IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedValueAdornmentModel |
-  IStandardDeviationAdornmentModel | IUnknownAdornmentModel
+  IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedFunctionAdornmentModel |
+  IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
 
 export type PlotTypes = "casePlot" | "dotChart" | "dotPlot" | "scatterPlot"
 
