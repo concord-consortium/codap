@@ -125,14 +125,13 @@ export const MapPointLayer = function MapPointLayer(props: {
 
   // respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
   useEffect(function setupReactionToDisplayChangeCount() {
+    const { displayChangeCount } = mapModel
     const disposer = reaction(
-      () => [mapModel.displayChangeCount],
-      () => {
-        refreshPointPositions(false)
-      }
+      () => mapModel.displayChangeCount,
+      () => refreshPointPositions(false)
     )
     return () => disposer()
-  }, [layout, mapModel.displayChangeCount, refreshPointPositions])
+  }, [layout, mapModel, refreshPointPositions])
 
   return (
     <></>

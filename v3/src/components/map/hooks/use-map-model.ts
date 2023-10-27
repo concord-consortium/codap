@@ -1,5 +1,4 @@
 import {MutableRefObject, useEffect} from "react"
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
 import {DotsElt} from "../../data-display/d3-types"

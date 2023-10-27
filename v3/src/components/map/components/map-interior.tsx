@@ -25,7 +25,7 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
     return mapModel?.layers.map((layerModel, index) => {
       if (layerModel.type === kMapPointLayerType) {
         return <MapPointLayer
-          key ={`${kMapPointLayerType}-${index}`}
+          key={`${kMapPointLayerType}-${index}`}
           mapLayerModel={layerModel}
           dotsElement={dotsElement}
           enableAnimation={enableAnimation}
@@ -35,8 +35,8 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
   }
 
   return (
-      <>
-         {renderMapLayerComponents()}
-      </>
+    <>
+      {renderMapLayerComponents()}
+    </>
   )
 })
