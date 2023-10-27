@@ -258,15 +258,12 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
         formulaDependencies.filter(d => d.type === "lookup") as ILookupDependency[]
       for (const dependency of lookupDependencies) {
         const externalDataSet = dataSets.get(dependency.dataSetId)
-        if (!externalDataSet) {
-          throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
-        }
-        const dependencyAttribute = externalDataSet.attrFromID(dependency.attrId)
+        const dependencyAttribute = externalDataSet?.attrFromID(dependency.attrId)
         if (dependencyAttribute?.formula.valid) {
           stack.push(dependencyAttribute.formula.id)
         }
         if (dependency.keyAttrId) {
-          const dependencyKeyAttribute = externalDataSet.attrFromID(dependency.keyAttrId)
+          const dependencyKeyAttribute = externalDataSet?.attrFromID(dependency.keyAttrId)
           if (dependencyKeyAttribute?.formula.valid) {
             stack.push(dependencyKeyAttribute.formula.id)
           }
