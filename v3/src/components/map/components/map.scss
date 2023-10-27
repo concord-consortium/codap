@@ -11,6 +11,7 @@
   overflow: hidden;
   width: 100%;
   height: calc(100% - $title-bar-height);
+  z-index: 10;
 
   .leaflet-container {
     width: 100%;

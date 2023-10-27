@@ -1,15 +1,7 @@
 import React from "react"
 import {AxisPlace} from "../axis/axis-types"
 import {GraphPlace} from "../axis-graph-shared"
-import {IDotsRef} from "../data-display/data-display-types"
-
-export const PrimaryAttrRoles = ['x', 'y'] as const
-export type PrimaryAttrRole = typeof PrimaryAttrRoles[number]
-export const GraphTipAttrRoles =
-  [...PrimaryAttrRoles, 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'caption'] as const
-export const GraphAttrRoles = [
-  ...GraphTipAttrRoles, 'yPlus'] as const
-export type GraphAttrRole = typeof GraphAttrRoles[number]
+import {GraphAttrRole, IDotsRef} from "../data-display/data-display-types"
 
 export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
   x: "bottom",

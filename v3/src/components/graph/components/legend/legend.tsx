@@ -13,7 +13,7 @@ import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-d
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
 import {IDataSet} from "../../../../models/data/data-set"
-import {GraphAttrRole} from "../../graphing-types"
+import {GraphAttrRole} from "../../../data-display/data-display-types"
 import {GraphPlace} from "../../../axis-graph-shared"
 
 interface ILegendProps {

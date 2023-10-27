@@ -1,9 +1,6 @@
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
 
-export const MapAttrRoles = ['lat', 'long', 'polygon'] as const
-export type MapAttrRole = typeof MapAttrRoles[number]
-
 export const
   kMapAttribution = '&copy; <a href="https://static.arcgis.com/attribution/World_Topo_Map">USGS, NOAA</a>',
   kMapUrl = "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",

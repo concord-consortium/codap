@@ -5,9 +5,10 @@ import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {setPointSelection} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../models/graph-layout"
-import {setPointCoordinates, setPointSelection} from "../utilities/graph-utils"
+import {setPointCoordinates} from "../utilities/graph-utils"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
 

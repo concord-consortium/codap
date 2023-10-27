@@ -1,11 +1,10 @@
 import {MutableRefObject, useEffect} from "react"
-// eslint-disable-next-line import/no-extraneous-dependencies
-import {LatLngBounds} from 'leaflet'
+import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
 import {DotsElt} from "../../data-display/d3-types"
 import {kDefaultMapZoomForGeoLocation} from "../map-types"
 import {IMapContentModel} from "../models/map-content-model"
-import {getLatLongBounds} from "../utilities/map-utils"
+import {fitMapBoundsToData} from "../utilities/map-utils"
 
 interface IProps {
   mapModel: IMapContentModel
@@ -19,13 +18,40 @@ export function useMapModel(props: IProps) {
     leafletMap = useMap()
 
   // Initialize
-  useEffect(function initializeLeafletMap() {
+  useEffect(function initializeLeafletMapHandlers() {
+    const onLayerAdd = () => {
+        console.log('onLayerAdd')
+      },
+      onDisplayChangeEvent = () => {
+        mapModel.syncCenterAndZoom()
+      },
+      onClick = () => {
+        mapModel.layers.forEach((layer) => {
+          layer.dataConfiguration.dataset?.setSelectedCases([])
+        })
+      },
+      onMapIsChanging = () => {
+        mapModel.incrementDisplayChangeCount()
+      }
+
+    leafletMap.on('layeradd', onLayerAdd)
+      .on('click', onClick)
+      .on('drag move zoom', onMapIsChanging)
+      .on('load dragend zoomend moveend', onDisplayChangeEvent)
     mapModel.setLeafletMap(leafletMap)
   }, [leafletMap, mapModel])
 
   // Initialize
-  useEffect(function initializeLeafletMap() {
-    if (mapModel.layers.length === 0) {
+  useEffect(function initializeLeafletMapView() {
+    if (mapModel.hasBeenInitialized) {
+      return
+    }
+    if (mapModel.zoom >= 0) {
+      const storedCenter = mapModel.center,
+        center = latLng(storedCenter?.get('lat') ?? 0,
+          storedCenter?.get('lng') ?? 0)
+      leafletMap.setView(center, mapModel.zoom)
+    } else if (mapModel.layers.length === 0) {
       if (navigator.geolocation?.getCurrentPosition) {
         navigator.geolocation.getCurrentPosition(
           (pos: GeolocationPosition) => {
@@ -36,19 +62,9 @@ export function useMapModel(props: IProps) {
         )
       }
     } else {
-      let overallBounds: LatLngBounds | undefined = undefined
-      mapModel.layers.forEach((layer) => {
-        const bounds = getLatLongBounds(layer.dataConfiguration)
-        if (bounds) {
-          if (!overallBounds) {
-            overallBounds = bounds
-          } else {
-            overallBounds.extend(bounds)
-          }
-        }
-      })
-      overallBounds && mapModel.leafletMap.fitBounds(overallBounds, {animate: true})
+      fitMapBoundsToData(mapModel.layers, leafletMap)
     }
-  }, [mapModel.layers, mapModel.leafletMap])
+    mapModel.setHasBeenInitialized()
+  }, [leafletMap, mapModel, mapModel.layers])
 
 }

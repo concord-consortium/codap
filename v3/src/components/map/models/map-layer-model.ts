@@ -1,6 +1,7 @@
 /**
  * MapLayerModel serves as a base model for map layers: MapPolygonLayerModel and MapPointLayerModel.
  */
+import {Instance} from "mobx-state-tree"
 import {DataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 
 export const MapLayerModel = DataDisplayLayerModel
@@ -11,3 +12,5 @@ export const MapLayerModel = DataDisplayLayerModel
   }))
   .actions(self => ({
   }))
+
+export interface IMapLayerModel extends Instance<typeof MapLayerModel> {}

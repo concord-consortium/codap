@@ -1,8 +1,9 @@
-import {latLngBounds} from 'leaflet'
+import {LatLngBounds, latLngBounds} from 'leaflet'
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {IDataSet} from "../../../models/data/data-set"
 import {kLatNames, kLongNames} from "../map-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
+import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 
 
 // A dataset has point data if it has both a latitude and longitude attribute; i.e. an attribute whose name
@@ -84,8 +85,11 @@ export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => 
       return isFiniteNumber(iMinMax.min) && isFiniteNumber(iMinMax.max)
     }
   const latValues = dataConfiguration.numericValuesForAttrRole('lat'),
-    longValues = dataConfiguration.numericValuesForAttrRole('long'),
-    latMin = Math.min(...latValues),
+    longValues = dataConfiguration.numericValuesForAttrRole('long')
+  if (latValues.length === 0 || longValues.length === 0) {
+    return undefined
+  }
+  const latMin = Math.min(...latValues),
     latMax = Math.max(...latValues)
   let longMin = Math.min(...longValues),
     longMax = Math.max(...longValues)
@@ -99,4 +103,38 @@ export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => 
   const tSouthWest = {lat: latMin, lng: longMin},
     tNorthEast = {lat: latMax, lng: longMax}
   return latLngBounds([tSouthWest, tNorthEast])
+}
+
+export const expandLatLngBounds = (bounds: LatLngBounds, fraction:number) => {
+  const center = bounds.getCenter(),
+    latDelta = bounds.getNorth() - bounds.getSouth(),
+    lngDelta = bounds.getEast() - bounds.getWest(),
+    newLatDelta = latDelta * fraction,
+    newLngDelta = lngDelta * fraction,
+    southWest = {lat: center.lat - newLatDelta / 2, lng: center.lng - newLngDelta / 2},
+    northEast = {lat: center.lat + newLatDelta / 2, lng: center.lng + newLngDelta / 2}
+  return latLngBounds([southWest, northEast])
+}
+
+/**
+ * Fits the map bounds to the data in the given layers, some of which are point layers and some of which are polygon
+ * layers.
+ * @param layers
+ * @param leafletMap
+ */
+export const fitMapBoundsToData = (layers: IDataDisplayLayerModel[], leafletMap: any) => {
+  let overallBounds: LatLngBounds | undefined = undefined
+  layers.forEach((layer: any) => {
+    const bounds = getLatLongBounds(layer.dataConfiguration)
+    if (bounds) {
+      if (!overallBounds) {
+        overallBounds = bounds
+      } else {
+        overallBounds.extend(bounds)
+      }
+    }
+  })
+  if (overallBounds) {
+    leafletMap.fitBounds(expandLatLngBounds(overallBounds, 1.1), {animate: true})
+  }
 }

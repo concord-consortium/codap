@@ -2,14 +2,14 @@ import React from "react"
 import {format, select, timeout} from "d3"
 import {measureText} from "../../hooks/use-measure-text"
 import {between} from "../../utilities/math-utils"
-import {defaultStrokeWidth} from "../../utilities/color-utils"
+import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
+  defaultStrokeOpacity, defaultStrokeWidth} from "../../utilities/color-utils"
 import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel} from "./models/data-configuration-model"
-import {CaseData, DotsElt, selectCircles} from "./d3-types"
-import {
-  hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
-  pointRadiusSelectionAddend, Rect, rTreeRect
-} from "./data-display-types"
+import {CaseData, DotsElt, selectCircles, selectDots} from "./d3-types"
+import {hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
+  pointRadiusSelectionAddend, Rect, rTreeRect} from "./data-display-types"
+import {ISetPointSelection} from "../graph/utilities/graph-utils"
 
 export const startAnimation = (enableAnimation: React.MutableRefObject<boolean>) => {
   enableAnimation.current = true
@@ -114,9 +114,48 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
       const target = select(event.target as SVGSVGElement)
       if (target.node()?.nodeName === 'circle') {
         handleClickOnDot(event, (target.datum() as CaseData).caseID, dataConfiguration.dataset)
+        event.stopPropagation()
       }
     })
   dataConfiguration.setPointsNeedUpdating(false)
+}
+
+export function setPointSelection(props: ISetPointSelection) {
+  const
+    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius,
+      pointColor, pointStrokeColor, getPointColorAtIndex} = props,
+    dataset = dataConfiguration.dataset,
+    dots = selectCircles(dotsRef.current, dataConfiguration.id),
+    legendID = dataConfiguration.attributeID('legend')
+
+  if (!(dotsRef.current && dots)) return
+
+  // First set the class based on selection
+  dots
+    .classed('graph-dot-highlighted', (aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID))
+    // Then set properties to defaults w/o selection
+    .attr('r', pointRadius)
+    .style('stroke', pointStrokeColor)
+    .style('fill', (aCaseData:CaseData) => {
+      return legendID
+        ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
+        : aCaseData.plotNum && getPointColorAtIndex
+          ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
+    })
+    .style('stroke-width', defaultStrokeWidth)
+    .style('stroke-opacity', defaultStrokeOpacity)
+
+  const selectedDots = selectDots(dotsRef.current, true)
+  // How we deal with this depends on whether there is a legend or not
+  if (legendID) {
+    selectedDots?.style('stroke', defaultSelectedStroke)
+      .style('stroke-width', defaultSelectedStrokeWidth)
+      .style('stroke-opacity', defaultSelectedStrokeOpacity)
+  } else {
+    selectedDots?.style('fill', defaultSelectedColor)
+  }
+  selectedDots?.attr('r', selectedPointRadius)
+    .raise()
 }
 
 export function rectNormalize(iRect: rTreeRect) {

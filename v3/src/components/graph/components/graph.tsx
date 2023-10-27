@@ -30,7 +30,7 @@ import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {useDataTips} from "../hooks/use-data-tips"
+import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { Adornments } from "../adornments/adornments"
 
@@ -108,7 +108,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
   }
 
-  useDataTips({dotsRef, dataset, graphModel, enableAnimation})
+  useDataTips({dotsRef, dataset, displayModel: graphModel, enableAnimation})
 
   const renderPlotComponent = () => {
     const props = {

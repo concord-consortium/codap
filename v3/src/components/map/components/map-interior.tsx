@@ -19,15 +19,13 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
     {enableAnimation} = mapController,
     instanceId = useInstanceIdContext()
 
-  // useDataTips({dotsRef, dataset, mapModel, enableAnimation})
-
   useMapModel({dotsElement, mapModel, enableAnimation, instanceId})
 
   const renderMapLayerComponents = () => {
     return mapModel?.layers.map((layerModel, index) => {
       if (layerModel.type === kMapPointLayerType) {
         return <MapPointLayer
-          key ={`${kMapPointLayerType}-${index}`}
+          key={`${kMapPointLayerType}-${index}`}
           mapLayerModel={layerModel}
           dotsElement={dotsElement}
           enableAnimation={enableAnimation}
@@ -37,8 +35,8 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
   }
 
   return (
-      <div className='map-svg'>
-          {renderMapLayerComponents()}
-      </div>
+    <>
+      {renderMapLayerComponents()}
+    </>
   )
 })

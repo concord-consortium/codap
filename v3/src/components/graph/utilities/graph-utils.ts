@@ -2,12 +2,12 @@ import {extent, format} from "d3"
 import React from "react"
 import {isInteger} from "lodash"
 import {IDataSet} from "../../../models/data/data-set"
-import {CaseData, selectCircles, selectDots} from "../../data-display/d3-types"
+import {CaseData, selectDots} from "../../data-display/d3-types"
 import {IDotsRef, Point, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
-  defaultStrokeOpacity, defaultStrokeWidth} from "../../../utilities/color-utils"
+import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
+  from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 
 /**
@@ -196,44 +196,6 @@ export interface ISetPointSelection {
   getPointColorAtIndex?: (index: number) => string
 }
 
-export function setPointSelection(props: ISetPointSelection) {
-  const
-    {dotsRef, dataConfiguration, pointRadius, selectedPointRadius,
-      pointColor, pointStrokeColor, getPointColorAtIndex} = props,
-    dataset = dataConfiguration.dataset,
-    dots = selectCircles(dotsRef.current, dataConfiguration.id),
-    legendID = dataConfiguration.attributeID('legend')
-
-  if (!(dotsRef.current && dots)) return
-
-  // First set the class based on selection
-  dots
-    .classed('graph-dot-highlighted', (aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID))
-    // Then set properties to defaults w/o selection
-    .attr('r', pointRadius)
-    .style('stroke', pointStrokeColor)
-    .style('fill', (aCaseData:CaseData) => {
-      return legendID
-        ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
-        : aCaseData.plotNum && getPointColorAtIndex
-          ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
-    })
-    .style('stroke-width', defaultStrokeWidth)
-    .style('stroke-opacity', defaultStrokeOpacity)
-
-  const selectedDots = selectDots(dotsRef.current, true)
-  // How we deal with this depends on whether there is a legend or not
-  if (legendID) {
-    selectedDots?.style('stroke', defaultSelectedStroke)
-      .style('stroke-width', defaultSelectedStrokeWidth)
-      .style('stroke-opacity', defaultSelectedStrokeOpacity)
-  } else {
-    selectedDots?.style('fill', defaultSelectedColor)
-  }
-  selectedDots?.attr('r', selectedPointRadius)
-    .raise()
-}
-
 export interface ISetPointCoordinates {
   dataset?: IDataSet
   dotsRef: IDotsRef
@@ -305,7 +267,7 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
     yLower = yAxis && isNumericAxisModel(yAxis) ? yAxis.min : 0,
     yUpper = yAxis && isNumericAxisModel(yAxis) ? yAxis.max : 0
 
-  // Make the default a bit steeper so it's less likely to look like
+  // Make the default a bit steeper, so it's less likely to look like
   // it fits a typical set of points
   const adjustedXUpper = xLower + (xUpper - xLower) / 2,
     slope = (yUpper - yLower) / (adjustedXUpper - xLower),
