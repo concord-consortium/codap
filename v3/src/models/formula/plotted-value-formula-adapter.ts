@@ -125,7 +125,6 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
       localDataSet: dataSet,
       dataSets: this.api.getDatasets(),
       globalValueManager: this.api.getGlobalValueManager(),
-      caseIds: [],
       childMostCollectionCaseIds: childMostCases.map(c => c.__id__),
     })
 
@@ -139,6 +138,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
 
   setFormulaError(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata, errorMsg: string) {
     // TODO
+    console.error(errorMsg)
   }
 
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: any) {
