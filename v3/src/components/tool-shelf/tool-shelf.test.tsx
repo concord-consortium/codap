@@ -1,5 +1,5 @@
 import React from "react"
-import userEvent from '@testing-library/user-event'
+import { userEvent } from '@testing-library/user-event'
 import { ToolShelf } from "./tool-shelf"
 import { render, screen } from "@testing-library/react"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
