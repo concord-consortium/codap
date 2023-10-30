@@ -544,7 +544,7 @@
       ]
     }
   ],
-  "specialChararcterTests": [
+  "specialCharacterTests": [
     {
       "testName": "Check backtick in symbol name",
       "steps": [
