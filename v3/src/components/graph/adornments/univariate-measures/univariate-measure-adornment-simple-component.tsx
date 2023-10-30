@@ -260,17 +260,6 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       }
     }, [model, helper.instanceKey, labelRef, addAdornmentElements])
 
-    // Refresh values on Plotted Value expression changes
-    useEffect(function refreshExpressionChange() {
-      return mstAutorun(() => {
-        // The next line should not be needed, but without it this autorun doesn't get triggered.
-        // TODO: Figure out exactly why this is needed and adjust accordingly.
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const modelValue = isPlottedValueAdornment(model) ? model.expression : undefined
-        model.updateCategories(graphModel.getUpdateCategoriesOptions())
-      }, { name: "UnivariateMeasureAdornmentComponent.refreshExpressionChange" }, model)
-    }, [graphModel, model])
-
     return (
       <UnivariateMeasureAdornmentBaseComponent
         classFromKey={helper.classFromKey}
