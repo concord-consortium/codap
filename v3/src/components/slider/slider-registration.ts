@@ -1,7 +1,5 @@
 import { NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
-import { IGlobalValueManager, kGlobalValueManagerType } from "../../models/global/global-value-manager"
-import { ISharedModelManager } from "../../models/shared/shared-model-manager"
 import { TileModel } from "../../models/tiles/tile-model"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
@@ -15,13 +13,9 @@ import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
 import SliderIcon from '../../assets/icons/icon-slider.svg'
+import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 
 export const kSliderIdPrefix = "SLID"
-
-function getGlobalValueManager(sharedModelManager?: ISharedModelManager) {
-  const sharedModels = sharedModelManager?.getSharedModelsByType(kGlobalValueManagerType)
-  return sharedModels?.[0] as IGlobalValueManager | undefined
-}
 
 registerTileContentInfo({
   type: kSliderTileType,

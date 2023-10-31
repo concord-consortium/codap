@@ -5,7 +5,7 @@ import { GlobalValue } from "../../models/global/global-value"
 import { IGlobalValueManager, kGlobalValueManagerType } from "../../models/global/global-value-manager"
 import { applyUndoableAction } from "../../models/history/apply-undoable-action"
 import { ISharedModel } from "../../models/shared/shared-model"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kSliderTileType } from "./slider-defs"
 import {
@@ -52,9 +52,7 @@ export const SliderModel = TileContentModel
       return self._animationRate ?? kDefaultAnimationRate
     },
     get globalValueManager() {
-      const sharedModelManager = getSharedModelManager(self)
-      const sharedModels = sharedModelManager?.getSharedModelsByType(kGlobalValueManagerType)
-      return sharedModels?.[0] as IGlobalValueManager | undefined
+      return getGlobalValueManager(getSharedModelManager(self))
     }
   }))
   .views(self => ({
