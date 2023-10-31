@@ -8,6 +8,7 @@ import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
 import {Point} from "../../data-display/data-display-types"
 import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
 import { IAxisLayout } from "../../axis/models/axis-layout-context"
+import { ScaleNumericBaseType } from "../../axis/axis-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -41,6 +42,8 @@ export interface IUpdateCategoriesOptions {
   rightAttrId: string
   resetPoints?: boolean
   dataConfig?: IGraphDataConfigurationModel
+  xScale?: ScaleNumericBaseType
+  yScale?: ScaleNumericBaseType
 }
 
 export const AdornmentModel = types.model("AdornmentModel", {

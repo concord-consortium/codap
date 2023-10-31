@@ -1,7 +1,7 @@
 import { select } from "d3"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { ILineCoords, ILineSpecs, IRange, IRangeSpecs, IRectSpecs, IValue } from "./univariate-measure-adornment-types"
-import clsx from "clsx"
+import { clsx } from "clsx"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { isBoxPlotAdornment } from "./box-plot/box-plot-adornment-model"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
