@@ -1,11 +1,12 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import {
   LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
-  isNonFunctionSymbolNode, isCanonicalName, rmCanonicalPrefix
+  isNonFunctionSymbolNode, isCanonicalName, rmCanonicalPrefix, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID
 } from "./formula-types"
 import { typedFnRegistry } from "./functions/math"
 import t from "../../utilities/translation/translate"
 import type { IDataSet } from "../data/data-set"
+import type{ IGlobalValueManager } from "../global/global-value-manager"
 
 // Set of formula helpers that can be used outside FormulaManager context. It should make them easier to test.
 
@@ -69,6 +70,64 @@ export const customizeDisplayFormula = (formula: string) => {
 }
 
 export const preprocessDisplayFormula = (formula: string) => customizeDisplayFormula(makeDisplayNamesSafe(formula))
+
+export interface IDisplayNameMapOptions {
+  localDataSet: IDataSet
+  dataSets: Map<string, IDataSet>
+  globalValueManager?: IGlobalValueManager
+}
+
+// useSafeSymbolNames should be set to false only when display map is generated to be reversed into canonical map.
+export const getDisplayNameMap = (options: IDisplayNameMapOptions, useSafeSymbolNames = true) => {
+  const { localDataSet, dataSets, globalValueManager } = options
+
+  const displayNameMap: DisplayNameMap = {
+    localNames: {},
+    dataSet: {}
+  }
+
+  const nonEmptyName = (name: string) => name || "_empty_symbol_name_"
+
+  const mapAttributeNames = (dataSet: IDataSet, localPrefix: string, _useSafeSymbolNames: boolean) => {
+    const result: Record<string, string> = {}
+    dataSet.attributes.forEach(attr => {
+      const key = nonEmptyName(_useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name)
+      result[key] = `${CANONICAL_NAME}${localPrefix}${attr.id}`
+    })
+    return result
+  }
+
+  displayNameMap.localNames = {
+    ...mapAttributeNames(localDataSet, LOCAL_ATTR, useSafeSymbolNames),
+    // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
+    // that returns the current, 1-based index of the case in its collection group.
+    caseIndex: `${CANONICAL_NAME}${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
+  }
+
+  globalValueManager?.globals.forEach(global => {
+    const key = nonEmptyName(useSafeSymbolNames ? safeSymbolName(global.name) : global.name)
+    displayNameMap.localNames[key] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
+  })
+
+  dataSets.forEach(dataSet => {
+    if (dataSet.name) {
+      displayNameMap.dataSet[nonEmptyName(dataSet.name)] = {
+        id: `${CANONICAL_NAME}${dataSet.id}`,
+        // No prefix is necessary for external attributes. They always need to be resolved manually by custom
+        // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
+        // are string constants, not a symbols, so MathJS will not care about special characters there.
+        attribute: mapAttributeNames(dataSet, "", false)
+      }
+    }
+  })
+
+  return displayNameMap
+}
+
+export const getCanonicalNameMap = (options: IDisplayNameMapOptions) => {
+  const displayNameMap = getDisplayNameMap(options, false) // useSafeSymbolNames = false
+  return reverseDisplayNameMap(displayNameMap)
+}
 
 export const reverseDisplayNameMap = (displayNameMap: DisplayNameMap): CanonicalNameMap => {
   return Object.fromEntries([
