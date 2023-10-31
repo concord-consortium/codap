@@ -1,6 +1,6 @@
 import { DndContext } from "@dnd-kit/core"
 import { render, screen } from "@testing-library/react"
-import userEvent from '@testing-library/user-event'
+import { userEvent } from '@testing-library/user-event'
 import { getSnapshot } from "mobx-state-tree"
 import React from "react"
 import { CaseTableComponent } from "./case-table-component"

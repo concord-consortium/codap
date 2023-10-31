@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index 5ae3bcb..69714b2 100644
+index 62ba483..9b912a7 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
-@@ -2845,5 +2845,6 @@ exports.renderSortPriority = renderSortPriority;
+@@ -3293,5 +3293,6 @@ exports.renderSortPriority = renderSortPriority;
  exports.renderToggleGroup = renderToggleGroup;
  exports.renderValue = renderValue;
  exports.textEditor = textEditor;
@@ -10,22 +10,22 @@ index 5ae3bcb..69714b2 100644
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 88540dd..dd6c1d5 100644
+index 6dd95a7..018da1a 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
-@@ -2827,5 +2827,6 @@ function textEditor({
+@@ -3274,5 +3274,6 @@ function textEditor({
    });
  }
  
--export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, useRowSelection };
+-export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, useRowSelection };
 +// [CC] (patch-package) export textEditorClassname
-+export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, textEditorClassname, useRowSelection };
++export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, textEditorClassname, useRowSelection };
  //# sourceMappingURL=bundle.js.map
 diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
-index d6ac112..b562b6d 100644
+index 9c47c25..cdd58ac 100644
 --- a/node_modules/react-data-grid/lib/index.d.ts
 +++ b/node_modules/react-data-grid/lib/index.d.ts
-@@ -407,6 +407,8 @@ export declare interface SortColumn {
+@@ -437,6 +437,8 @@ export declare interface SortColumn {
  
  export declare type SortDirection = 'ASC' | 'DESC';
  

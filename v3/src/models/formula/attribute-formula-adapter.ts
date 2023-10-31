@@ -138,6 +138,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     }
 
     if (DEBUG_FORMULAS) {
+      // eslint-disable-next-line no-console
       console.log(`[attr formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
     }
 
