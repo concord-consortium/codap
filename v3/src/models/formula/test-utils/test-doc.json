@@ -1,0 +1,1996 @@
+{
+  "key": "DOC_3ixbGeqhiqeC",
+  "type": "CODAP",
+  "version": "3.0.0-pre.1389",
+  "build": "1395",
+  "createdAt": 0,
+  "properties": {},
+  "content": {
+    "rowMap": {
+      "TROWZa13HkpU_ngU": {
+        "id": "TROWZa13HkpU_ngU",
+        "type": "free",
+        "tiles": {
+          "TABL0QABN2D2xzrt": {
+            "tileId": "TABL0QABN2D2xzrt",
+            "x": 5,
+            "y": 5,
+            "width": 580,
+            "height": 300
+          },
+          "TABLFVRtITdvcyfc": {
+            "tileId": "TABLFVRtITdvcyfc",
+            "x": 590,
+            "y": 5,
+            "width": 580,
+            "height": 300
+          },
+          "SLID29PREydHyk8p": {
+            "tileId": "SLID29PREydHyk8p",
+            "x": 1175,
+            "y": 5,
+            "width": 300,
+            "height": 98
+          },
+          "SLIDMKuYMEqMS1Fc": {
+            "tileId": "SLIDMKuYMEqMS1Fc",
+            "x": 1480,
+            "y": 5,
+            "width": 300,
+            "height": 98
+          }
+        },
+        "savedOrder": [
+          "SLID29PREydHyk8p",
+          "SLIDMKuYMEqMS1Fc",
+          "TABLFVRtITdvcyfc",
+          "TABL0QABN2D2xzrt"
+        ]
+      }
+    },
+    "rowOrder": [
+      "TROWZa13HkpU_ngU"
+    ],
+    "tileMap": {
+      "TABL0QABN2D2xzrt": {
+        "id": "TABL0QABN2D2xzrt",
+        "title": "Mammals",
+        "content": {
+          "type": "CaseTable"
+        }
+      },
+      "TABLFVRtITdvcyfc": {
+        "id": "TABLFVRtITdvcyfc",
+        "title": "Cats",
+        "content": {
+          "type": "CaseTable"
+        }
+      },
+      "SLID29PREydHyk8p": {
+        "id": "SLID29PREydHyk8p",
+        "content": {
+          "type": "CodapSlider",
+          "globalValue": "GLOBqRLnshLJT6RL",
+          "animationDirection": "lowToHigh",
+          "animationMode": "onceOnly",
+          "axis": {
+            "type": "numeric",
+            "place": "bottom",
+            "scale": "linear",
+            "min": -0.5,
+            "max": 11.5
+          }
+        }
+      },
+      "SLIDMKuYMEqMS1Fc": {
+        "id": "SLIDMKuYMEqMS1Fc",
+        "content": {
+          "type": "CodapSlider",
+          "globalValue": "GLOBsy0ZXg9dUZvt",
+          "animationDirection": "lowToHigh",
+          "animationMode": "onceOnly",
+          "axis": {
+            "type": "numeric",
+            "place": "bottom",
+            "scale": "linear",
+            "min": -0.5,
+            "max": 11.5
+          }
+        }
+      }
+    },
+    "sharedModelMap": {
+      "SHARCn3j76YJG6q_": {
+        "sharedModel": {
+          "type": "GlobalValueManager",
+          "id": "SHARCn3j76YJG6q_",
+          "globals": {
+            "GLOBqRLnshLJT6RL": {
+              "id": "GLOBqRLnshLJT6RL",
+              "name": "v1",
+              "_value": 0.5
+            },
+            "GLOBsy0ZXg9dUZvt": {
+              "id": "GLOBsy0ZXg9dUZvt",
+              "name": "v2",
+              "_value": 2
+            }
+          }
+        },
+        "tiles": [
+          "SLID29PREydHyk8p",
+          "SLIDMKuYMEqMS1Fc"
+        ]
+      },
+      "SHARpl1meN9NCZgn": {
+        "sharedModel": {
+          "type": "SharedDataSet",
+          "id": "SHARpl1meN9NCZgn",
+          "providerId": "",
+          "dataSet": {
+            "id": "DATAJXM3nKZTmvL8",
+            "name": "Mammals",
+            "collections": [],
+            "ungrouped": {
+              "id": "COLLMh5J7OqbMRvK",
+              "name": "",
+              "title": ""
+            },
+            "attributes": [
+              {
+                "id": "ATTRBWlW1AbMTAlH",
+                "clientKey": "",
+                "name": "Mammal",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMGvufLAC9yfQJ",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "African Elephant",
+                  "Asian Elephant",
+                  "Big Brown Bat",
+                  "Bottlenose Dolphin",
+                  "Cheetah",
+                  "Chimpanzee",
+                  "Domestic Cat",
+                  "Donkey",
+                  "Giraffe",
+                  "Gray Wolf",
+                  "Grey Seal",
+                  "Ground Squirrel",
+                  "Horse",
+                  "House Mouse",
+                  "Human",
+                  "Jaguar",
+                  "Killer Whale",
+                  "Lion",
+                  "N. American Opossum",
+                  "Nine-Banded Armadillo",
+                  "Owl Monkey",
+                  "Patas Monkey",
+                  "Pig",
+                  "Pronghorn Antelope",
+                  "Rabbit",
+                  "Red Fox",
+                  "Spotted Hyena"
+                ]
+              },
+              {
+                "id": "ATTRSn_zW_Cmyl1G",
+                "clientKey": "",
+                "name": "Order",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORM1cPXRewJQvCy",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "Proboscidae",
+                  "Proboscidae",
+                  "Chiroptera",
+                  "Cetacea",
+                  "Carnivora",
+                  "Primate",
+                  "Carnivora",
+                  "Perissodactyla",
+                  "Artiodactyla",
+                  "Carnivora",
+                  "Pinnipedia",
+                  "Rodentia",
+                  "Perissodactyla",
+                  "Rodentia",
+                  "Primate",
+                  "Carnivora",
+                  "Cetacea",
+                  "Carnivora",
+                  "Didelphimorphia",
+                  "Xenarthra",
+                  "Primate",
+                  "Primate",
+                  "Artiodactyla",
+                  "Artiodactyla",
+                  "Lagomorpha",
+                  "Carnivora",
+                  "Carnivora"
+                ]
+              },
+              {
+                "id": "ATTRomXh7fH2nyrH",
+                "clientKey": "",
+                "name": "LifeSpan",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMu0UrWjtC0WPz",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "70",
+                  "70",
+                  "19",
+                  "25",
+                  "14",
+                  "40",
+                  "16",
+                  "40",
+                  "25",
+                  "16",
+                  "30",
+                  "9",
+                  "25",
+                  "3",
+                  "80",
+                  "20",
+                  "50",
+                  "15",
+                  "5",
+                  "10",
+                  "12",
+                  "20",
+                  "10",
+                  "10",
+                  "5",
+                  "7",
+                  "25"
+                ]
+              },
+              {
+                "id": "ATTRbTY852h1USQZ",
+                "clientKey": "",
+                "name": "Height",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMEhMFvHl_ARnD",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "4",
+                  "3",
+                  "0.1",
+                  "3.5",
+                  "1.5",
+                  "1.5",
+                  "0.8",
+                  "1.2",
+                  "5",
+                  "1.6",
+                  "2.1",
+                  "0.3",
+                  "1.5",
+                  "0.1",
+                  "1.9",
+                  "1.8",
+                  "6.5",
+                  "2.5",
+                  "0.5",
+                  "0.6",
+                  "0.4",
+                  "0.9",
+                  "1",
+                  "0.9",
+                  "0.5",
+                  "0.8",
+                  "0.9"
+                ]
+              },
+              {
+                "id": "ATTRUiaBOgPAOiu0",
+                "clientKey": "",
+                "name": "Mass",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMi2qfQfmO6G20",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "6400",
+                  "5000",
+                  "0.02",
+                  "635",
+                  "50",
+                  "68",
+                  "4.5",
+                  "187",
+                  "1100",
+                  "80",
+                  "275",
+                  "0.1",
+                  "521",
+                  "0.03",
+                  "80",
+                  "115",
+                  "4000",
+                  "250",
+                  "5",
+                  "7",
+                  "1",
+                  "13",
+                  "192",
+                  "70",
+                  "3",
+                  "5",
+                  "70"
+                ]
+              },
+              {
+                "id": "ATTRlgjzH8Zouak4",
+                "clientKey": "",
+                "name": "Sleep",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMGYHNtuAtHnn0",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "3",
+                  "4",
+                  "20",
+                  "5",
+                  "12",
+                  "10",
+                  "12",
+                  "3",
+                  "2",
+                  "13",
+                  "6",
+                  "15",
+                  "3",
+                  "12",
+                  "8",
+                  "11",
+                  "",
+                  "20",
+                  "19",
+                  "17",
+                  "17",
+                  "",
+                  "8",
+                  "",
+                  "11",
+                  "10",
+                  "18"
+                ]
+              },
+              {
+                "id": "ATTRUmG4vmDYa9CC",
+                "clientKey": "",
+                "name": "Speed",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORM7EGQ2BKeCxEE",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "40",
+                  "40",
+                  "40",
+                  "37",
+                  "110",
+                  "",
+                  "50",
+                  "50",
+                  "50",
+                  "64",
+                  "19",
+                  "19",
+                  "69",
+                  "13",
+                  "45",
+                  "60",
+                  "48",
+                  "80",
+                  "",
+                  "1",
+                  "",
+                  "55",
+                  "18",
+                  "98",
+                  "56",
+                  "48",
+                  "64"
+                ]
+              },
+              {
+                "id": "ATTRx8a3s6Wlt56J",
+                "clientKey": "",
+                "name": "Habitat",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMoOO4CenJ3svw",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "land",
+                  "land",
+                  "land",
+                  "water",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "both",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "water",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land",
+                  "land"
+                ]
+              },
+              {
+                "id": "ATTR1ReY3dlsdbuv",
+                "clientKey": "",
+                "name": "Diet",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORM8LOnkCBrLV2d",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "plants",
+                  "plants",
+                  "meat",
+                  "meat",
+                  "meat",
+                  "both",
+                  "meat",
+                  "plants",
+                  "plants",
+                  "meat",
+                  "meat",
+                  "both",
+                  "plants",
+                  "both",
+                  "both",
+                  "meat",
+                  "meat",
+                  "meat",
+                  "both",
+                  "meat",
+                  "both",
+                  "both",
+                  "both",
+                  "plants",
+                  "plants",
+                  "both",
+                  "meat"
+                ]
+              }
+            ],
+            "cases": [
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKR"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKS"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKT"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKV"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKW"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKX"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKY"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWKZ"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM0"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM1"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM2"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM3"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM4"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM5"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM6"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM7"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM8"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWM9"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMA"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMB"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMC"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMD"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWME"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMF"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMG"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMH"
+              },
+              {
+                "__id__": "CASE01HE2YX6J1AKDT7W3CYZBYPWMJ"
+              }
+            ],
+            "snapSelection": []
+          }
+        },
+        "tiles": [
+          "TABL0QABN2D2xzrt"
+        ]
+      },
+      "SHARwEI4xZsJqXA_": {
+        "sharedModel": {
+          "type": "SharedCaseMetadata",
+          "id": "SHARwEI4xZsJqXA_",
+          "title": "Mammals",
+          "data": "DATAJXM3nKZTmvL8",
+          "collections": {},
+          "categories": {},
+          "columnWidths": {},
+          "hidden": {}
+        },
+        "tiles": [
+          "TABL0QABN2D2xzrt"
+        ]
+      },
+      "SHAR4JHrJo689CN2": {
+        "sharedModel": {
+          "type": "SharedDataSet",
+          "id": "SHAR4JHrJo689CN2",
+          "providerId": "",
+          "dataSet": {
+            "id": "DATAlL2AlOmWYdDV",
+            "name": "Cats",
+            "collections": [],
+            "ungrouped": {
+              "id": "COLLh_oGF3ie4rHK",
+              "name": "",
+              "title": ""
+            },
+            "attributes": [
+              {
+                "id": "ATTR9c4fIOmUIRmW",
+                "clientKey": "",
+                "name": "Name",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMKaNmRdlNZ4El",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "Bits",
+                  "Speedy",
+                  "Ginger",
+                  "Grey Girl",
+                  "Sasha",
+                  "Blue",
+                  "Boots",
+                  "Fire Smoke",
+                  "Seymour",
+                  "Simon",
+                  "Ting",
+                  "Tom",
+                  "Black Foot",
+                  "Booty",
+                  "Smoky",
+                  "Bradley",
+                  "Nancy Blue",
+                  "Bubba",
+                  "Blacky",
+                  "Chubbs",
+                  "Duffy",
+                  "Gabriel",
+                  "Pip",
+                  "Tabby",
+                  "Joto",
+                  "Fuzzy",
+                  "Chessis",
+                  "Kahlua",
+                  "Kiki",
+                  "Pink Lady",
+                  "Tabby",
+                  "Koshoshio",
+                  "Augustus",
+                  "Chelsea",
+                  "Jinglebob",
+                  "Pepper",
+                  "Precious",
+                  "Feather",
+                  "Smokey",
+                  "Boggie",
+                  "Gray Kitty",
+                  "Harmony",
+                  "Priscilla",
+                  "Ralph",
+                  "Sassy",
+                  "Samantha",
+                  "Shiver",
+                  "Sparky",
+                  "Taint",
+                  "Boo",
+                  "Diva",
+                  "Hanna",
+                  "Bob",
+                  "Cookie",
+                  "Emma",
+                  "Emmie",
+                  "Gizmo",
+                  "Lady Jane",
+                  "Lucky",
+                  "Prissy",
+                  "Sophie",
+                  "Magnum",
+                  "Tigger",
+                  "Treasure",
+                  "Amanda",
+                  "Matilda",
+                  "Ethel",
+                  "Fluffy",
+                  "Poupon",
+                  "K.C.",
+                  "Lucy",
+                  "Oddfuzz",
+                  "Peebles",
+                  "Tiger",
+                  "Wally",
+                  "Ravena",
+                  "Simon",
+                  "Scooter",
+                  "Smudge",
+                  "Wiley",
+                  "Gracie",
+                  "Melissa",
+                  "Smokey",
+                  "Weary",
+                  "Cricket",
+                  "Elizabeth",
+                  "Lady",
+                  "Mercedes",
+                  "Midnight",
+                  "Momma Kat",
+                  "Millie",
+                  "Charcoal",
+                  "Miss Moppet",
+                  "George",
+                  "Grey Boy",
+                  "Mittens",
+                  "Peau de Soie",
+                  "Molly",
+                  "Strawberry",
+                  "",
+                  "Alexander"
+                ]
+              },
+              {
+                "id": "ATTRTMcETOBAbIBq",
+                "clientKey": "",
+                "name": "Gender",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMA0aSSjlKbYy0",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "male",
+                  "male",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "male",
+                  "male",
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "male",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "female",
+                  "male",
+                  "male",
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "female",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "male",
+                  "female",
+                  "male",
+                  "male",
+                  "female",
+                  "female",
+                  "female",
+                  "female",
+                  "",
+                  "male"
+                ]
+              },
+              {
+                "id": "ATTRgxF6Y65KXTGI",
+                "clientKey": "",
+                "name": "Age",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMk2FiLtneE3pO",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "0.2",
+                  "0.2",
+                  "0.2",
+                  "0.2",
+                  "0.2",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.3",
+                  "0.5",
+                  "0.6",
+                  "0.6",
+                  "0.8",
+                  "1",
+                  "1",
+                  "1",
+                  "1",
+                  "1",
+                  "1",
+                  "1",
+                  "1.3",
+                  "1.5",
+                  "1.5",
+                  "1.5",
+                  "1.5",
+                  "1.5",
+                  "1.6",
+                  "2",
+                  "2",
+                  "2",
+                  "2",
+                  "2",
+                  "2.5",
+                  "2.5",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3",
+                  "3.5",
+                  "3.5",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4",
+                  "4.5",
+                  "4.5",
+                  "5",
+                  "5",
+                  "5",
+                  "5",
+                  "5",
+                  "5",
+                  "5",
+                  "5",
+                  "5",
+                  "6",
+                  "6",
+                  "7",
+                  "7",
+                  "7",
+                  "8",
+                  "8",
+                  "8",
+                  "8",
+                  "10",
+                  "10",
+                  "10",
+                  "10",
+                  "10",
+                  "10",
+                  "10.5",
+                  "11",
+                  "11",
+                  "12",
+                  "13",
+                  "14",
+                  "15",
+                  "15.5",
+                  "16",
+                  "",
+                  "18"
+                ]
+              },
+              {
+                "id": "ATTRdPSOPZAR7auo",
+                "clientKey": "",
+                "name": "Weight",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMCAC8B2clIeFr",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "13",
+                  "3.5",
+                  "2",
+                  "1.5",
+                  "2",
+                  "2",
+                  "3",
+                  "2.5",
+                  "1.5",
+                  "2",
+                  "2.5",
+                  "3",
+                  "1.5",
+                  "1.5",
+                  "1.5",
+                  "11",
+                  "5",
+                  "8",
+                  "5",
+                  "7",
+                  "9",
+                  "7",
+                  "9",
+                  "10",
+                  "6.5",
+                  "2",
+                  "6",
+                  "15",
+                  "6",
+                  "6.5",
+                  "7",
+                  "10",
+                  "10",
+                  "9",
+                  "18.5",
+                  "12",
+                  "12",
+                  "13",
+                  "8",
+                  "10",
+                  "9",
+                  "12",
+                  "8.5",
+                  "9",
+                  "8",
+                  "8",
+                  "12",
+                  "12",
+                  "11",
+                  "10.75",
+                  "11",
+                  "5",
+                  "12",
+                  "9",
+                  "9.25",
+                  "7",
+                  "10",
+                  "8.5",
+                  "5",
+                  "9",
+                  "12",
+                  "8",
+                  "8",
+                  "8",
+                  "9.75",
+                  "9",
+                  "8",
+                  "10",
+                  "16",
+                  "16",
+                  "10",
+                  "18",
+                  "9",
+                  "13",
+                  "10",
+                  "14",
+                  "13",
+                  "16",
+                  "12",
+                  "10",
+                  "12",
+                  "11",
+                  "10",
+                  "15",
+                  "8",
+                  "9",
+                  "8.5",
+                  "14",
+                  "18",
+                  "6",
+                  "5",
+                  "12",
+                  "12",
+                  "14.5",
+                  "12",
+                  "10.5",
+                  "7",
+                  "10",
+                  "14.5",
+                  "",
+                  "11"
+                ]
+              },
+              {
+                "id": "ATTRrrw8aIZT8YfW",
+                "clientKey": "",
+                "name": "BodyLength",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMOtdRARurS_Oh",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "20",
+                  "15",
+                  "11",
+                  "13",
+                  "11",
+                  "17",
+                  "15.5",
+                  "13",
+                  "13",
+                  "16",
+                  "12",
+                  "14.5",
+                  "15",
+                  "14",
+                  "12",
+                  "25",
+                  "14",
+                  "19",
+                  "18",
+                  "22",
+                  "17",
+                  "14",
+                  "17",
+                  "20",
+                  "14",
+                  "13",
+                  "19.5",
+                  "13",
+                  "21",
+                  "15",
+                  "18",
+                  "19",
+                  "21",
+                  "17",
+                  "26",
+                  "17",
+                  "18.5",
+                  "18",
+                  "21",
+                  "27",
+                  "15",
+                  "24",
+                  "23",
+                  "23",
+                  "23",
+                  "27",
+                  "23",
+                  "18",
+                  "14",
+                  "19.5",
+                  "20",
+                  "12",
+                  "21",
+                  "20",
+                  "18",
+                  "18",
+                  "23",
+                  "19",
+                  "19",
+                  "22",
+                  "18",
+                  "19",
+                  "17",
+                  "19",
+                  "17",
+                  "19",
+                  "19",
+                  "20",
+                  "17.5",
+                  "24",
+                  "21",
+                  "21",
+                  "17",
+                  "19",
+                  "18",
+                  "23",
+                  "21",
+                  "21",
+                  "21",
+                  "16",
+                  "15",
+                  "21",
+                  "22",
+                  "17",
+                  "22",
+                  "16",
+                  "17",
+                  "22",
+                  "21",
+                  "13.5",
+                  "26.5",
+                  "21",
+                  "14",
+                  "21",
+                  "18",
+                  "17",
+                  "16",
+                  "17",
+                  "21",
+                  "",
+                  "21"
+                ]
+              },
+              {
+                "id": "ATTRvuG8keOGYpe7",
+                "clientKey": "",
+                "name": "TailLength",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMNovnyFz1IT00",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "13",
+                  "8",
+                  "6.5",
+                  "9.5",
+                  "6.5",
+                  "8",
+                  "9",
+                  "7",
+                  "9",
+                  "8.5",
+                  "6",
+                  "7.5",
+                  "7",
+                  "7.5",
+                  "7",
+                  "13",
+                  "8.5",
+                  "10",
+                  "12",
+                  "11",
+                  "10",
+                  "10",
+                  "12",
+                  "10.5",
+                  "1.5",
+                  "8",
+                  "10",
+                  "9",
+                  "9",
+                  "11",
+                  "10.5",
+                  "2",
+                  "11",
+                  "8",
+                  "12",
+                  "9",
+                  "10.5",
+                  "12",
+                  "9.5",
+                  "10",
+                  "8.5",
+                  "11",
+                  "11",
+                  "11",
+                  "12",
+                  "12",
+                  "10",
+                  "8",
+                  "11",
+                  "11.5",
+                  "12",
+                  "6",
+                  "13",
+                  "11",
+                  "12",
+                  "8",
+                  "11",
+                  "11",
+                  "12",
+                  "10",
+                  "10",
+                  "10",
+                  "10",
+                  "10",
+                  "11",
+                  "12",
+                  "12",
+                  "12",
+                  "10.5",
+                  "12",
+                  "11",
+                  "9",
+                  "11",
+                  "11",
+                  "12",
+                  "12",
+                  "11",
+                  "10",
+                  "10.5",
+                  "8",
+                  "12",
+                  "11",
+                  "10",
+                  "12",
+                  "9",
+                  "8.5",
+                  "13",
+                  "12",
+                  "9",
+                  "7.5",
+                  "10",
+                  "13",
+                  "12",
+                  "12",
+                  "12",
+                  "10",
+                  "13",
+                  "10",
+                  "10",
+                  "",
+                  "11"
+                ]
+              },
+              {
+                "id": "ATTRydFTiJn6OHr0",
+                "clientKey": "",
+                "name": "EyeColor",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORM18n0FB9Ew5Wy",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "yellowish",
+                  "yellowish",
+                  "yellowish",
+                  "yellowish",
+                  "yellowish",
+                  "green",
+                  "brown",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "yellowish",
+                  "gray",
+                  "yellowish",
+                  "blue",
+                  "blue",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "blue",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "blue",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "yellowish",
+                  "blue",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "yellowish",
+                  "blue",
+                  "yellowish",
+                  "blue",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "blue",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "green",
+                  "blue",
+                  "yellowish",
+                  "green",
+                  "green",
+                  "yellowish",
+                  "yellowish",
+                  "green",
+                  "yellowish",
+                  "green",
+                  "",
+                  "green"
+                ]
+              },
+              {
+                "id": "ATTRz6jOChMIwbTW",
+                "clientKey": "",
+                "name": "PadColor",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMIMvktF0LevLS",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "brown",
+                  "pink",
+                  "pink",
+                  "mixed",
+                  "pink",
+                  "gray",
+                  "black",
+                  "pink",
+                  "mixed",
+                  "mixed",
+                  "mixed",
+                  "gray",
+                  "gray",
+                  "pink",
+                  "gray",
+                  "mixed",
+                  "gray",
+                  "pink",
+                  "mixed",
+                  "pink",
+                  "black",
+                  "white",
+                  "pink",
+                  "black",
+                  "pink",
+                  "pink",
+                  "brown",
+                  "brown",
+                  "black",
+                  "pink",
+                  "black",
+                  "pink",
+                  "mixed",
+                  "black",
+                  "pink",
+                  "pink",
+                  "pink",
+                  "pink",
+                  "black",
+                  "pink",
+                  "gray",
+                  "black",
+                  "mixed",
+                  "black",
+                  "gray",
+                  "black",
+                  "pink",
+                  "pink",
+                  "pink",
+                  "brown",
+                  "pink",
+                  "black",
+                  "black",
+                  "black",
+                  "pink",
+                  "black",
+                  "black",
+                  "gray",
+                  "pink",
+                  "pink",
+                  "black",
+                  "pink",
+                  "brown",
+                  "pink",
+                  "gray",
+                  "pink",
+                  "black",
+                  "pink",
+                  "mixed",
+                  "black",
+                  "pink",
+                  "pink",
+                  "black",
+                  "pink",
+                  "mixed",
+                  "mixed",
+                  "black",
+                  "black",
+                  "pink",
+                  "mixed",
+                  "pink",
+                  "pink",
+                  "gray",
+                  "pink",
+                  "black",
+                  "pink",
+                  "black",
+                  "pink",
+                  "pink",
+                  "mixed",
+                  "black",
+                  "black",
+                  "mixed",
+                  "black",
+                  "pink",
+                  "pink",
+                  "pink",
+                  "gray",
+                  "black",
+                  "",
+                  "black"
+                ]
+              },
+              {
+                "id": "ATTRPDkNH9bz51th",
+                "clientKey": "",
+                "name": "Tail_Body_Ratio",
+                "title": "",
+                "editable": true,
+                "formula": {
+                  "id": "FORMa2Q257vlQDCL",
+                  "display": "",
+                  "canonical": ""
+                },
+                "values": [
+                  "0.65",
+                  "0.53",
+                  "0.59",
+                  "0.73",
+                  "0.59",
+                  "0.47",
+                  "0.58",
+                  "0.54",
+                  "0.69",
+                  "0.53",
+                  "0.5",
+                  "0.52",
+                  "0.47",
+                  "0.54",
+                  "0.58",
+                  "0.52",
+                  "0.61",
+                  "0.53",
+                  "0.67",
+                  "0.5",
+                  "0.59",
+                  "0.71",
+                  "0.71",
+                  "0.53",
+                  "0.11",
+                  "0.62",
+                  "0.51",
+                  "0.69",
+                  "0.43",
+                  "0.73",
+                  "0.58",
+                  "0.11",
+                  "0.52",
+                  "0.47",
+                  "0.46",
+                  "0.53",
+                  "0.57",
+                  "0.67",
+                  "0.45",
+                  "0.37",
+                  "0.57",
+                  "0.46",
+                  "0.48",
+                  "0.48",
+                  "0.52",
+                  "0.44",
+                  "0.43",
+                  "0.44",
+                  "0.79",
+                  "0.59",
+                  "0.6",
+                  "0.5",
+                  "0.62",
+                  "0.55",
+                  "0.67",
+                  "0.44",
+                  "0.48",
+                  "0.58",
+                  "0.63",
+                  "0.45",
+                  "0.56",
+                  "0.53",
+                  "0.59",
+                  "0.53",
+                  "0.65",
+                  "0.63",
+                  "0.63",
+                  "0.6",
+                  "0.6",
+                  "0.5",
+                  "0.52",
+                  "0.43",
+                  "0.65",
+                  "0.58",
+                  "0.67",
+                  "0.52",
+                  "0.52",
+                  "0.48",
+                  "0.5",
+                  "0.5",
+                  "0.8",
+                  "0.52",
+                  "0.45",
+                  "0.71",
+                  "0.41",
+                  "0.53",
+                  "0.76",
+                  "0.55",
+                  "0.43",
+                  "0.56",
+                  "0.38",
+                  "0.62",
+                  "0.86",
+                  "0.57",
+                  "0.67",
+                  "0.59",
+                  "0.81",
+                  "0.59",
+                  "0.48",
+                  "",
+                  "0.52"
+                ]
+              }
+            ],
+            "cases": [
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA0Y"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA0Z"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA10"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA11"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA12"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA13"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA14"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA15"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA16"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA17"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA18"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA19"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1A"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1B"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1C"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1D"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1E"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1F"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1G"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1H"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1J"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1K"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1M"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1N"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1P"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1Q"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1R"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1S"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1T"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1V"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1W"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1X"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1Y"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA1Z"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA20"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA21"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA22"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA23"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA24"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA25"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA26"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA27"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA28"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA29"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2A"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2B"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2C"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2D"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2E"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2F"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2G"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2H"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2J"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2K"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2M"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2N"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2P"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2Q"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2R"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2S"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2T"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2V"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2W"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2X"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2Y"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA2Z"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA30"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA31"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA32"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA33"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA34"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA35"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA36"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA37"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA38"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA39"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3A"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3B"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3C"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3D"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3E"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3F"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3G"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3H"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3J"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3K"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3M"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3N"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3P"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3Q"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3R"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3S"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3T"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3V"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3W"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3X"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3Y"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA3Z"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA40"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA41"
+              },
+              {
+                "__id__": "CASE01HE2YX8NVTZSFDZ3CDPVJJA42"
+              }
+            ],
+            "snapSelection": []
+          }
+        },
+        "tiles": [
+          "TABLFVRtITdvcyfc"
+        ]
+      },
+      "SHARndwhwHW3zRyB": {
+        "sharedModel": {
+          "type": "SharedCaseMetadata",
+          "id": "SHARndwhwHW3zRyB",
+          "title": "Cats",
+          "data": "DATAlL2AlOmWYdDV",
+          "collections": {},
+          "categories": {},
+          "columnWidths": {},
+          "hidden": {}
+        },
+        "tiles": [
+          "TABLFVRtITdvcyfc"
+        ]
+      }
+    }
+  },
+  "changeCount": 0
+}
