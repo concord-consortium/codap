@@ -30,7 +30,7 @@ context("Formula Engine", () => {
     })
   })
   describe("Special Character Tests", () => {
-    formula.specialChararcterTests.forEach(f => {
+    formula.specialCharacterTests.forEach(f => {
       it(`${f.testName}`, () => {
         f.steps.forEach(s => {
           fh.stepExecutor(s)

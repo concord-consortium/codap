@@ -118,6 +118,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
     const { formula, dataSet } = formulaContext
 
     if (DEBUG_FORMULAS) {
+      // eslint-disable-next-line no-console
       console.log(`[plotted value formula] recalculate "${formula.canonical}"`)
     }
 

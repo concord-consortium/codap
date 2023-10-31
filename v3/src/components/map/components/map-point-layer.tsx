@@ -127,7 +127,7 @@ export const MapPointLayer = function MapPointLayer(props: {
   useEffect(function setupReactionToDisplayChangeCount() {
     const { displayChangeCount } = mapModel
     const disposer = reaction(
-      () => mapModel.displayChangeCount,
+      () => displayChangeCount,
       () => refreshPointPositions(false)
     )
     return () => disposer()
