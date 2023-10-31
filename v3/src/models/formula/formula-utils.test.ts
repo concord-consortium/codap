@@ -2,8 +2,9 @@ import { CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, LOCAL_ATTR } from "./form
 import {
   safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
   displayToCanonical, unescapeBacktickString, escapeBacktickString, safeSymbolNameFromDisplayFormula,
-  parseBasicCanonicalName, formulaIndexOf
+  parseBasicCanonicalName, formulaIndexOf, getDisplayNameMap, getCanonicalNameMap
 } from "./formula-utils"
+import { getFormulaTestEnv } from "./test-utils/formula-test-utils"
 
 const displayNameMapExample: DisplayNameMap = {
   "localNames": {
@@ -275,6 +276,110 @@ describe("canonicalToDisplay", () => {
         "lookupByKey('Old Roller Coaster', 'Old\"Park', 'Old\"Top\\'Speed', OldOrder) * 2",
         reverseDisplayNameMap(displayNameMapExample)
       )).toEqual("lookupByKey('Roller Coaster', 'Park\"', 'Top\\\\Speed\\'', Order) * 2")
+    })
+  })
+})
+
+describe("getDisplayNameMap", () => {
+  it("returns a display name map", () => {
+    const formulaTestEnv = getFormulaTestEnv()
+    const nameMap = getDisplayNameMap({
+      localDataSet: formulaTestEnv.dataSetsByName.Mammals,
+      dataSets: formulaTestEnv.dataSets,
+      globalValueManager: formulaTestEnv.globalValueManager,
+    })
+    // Note that all the ids should be possible to find in test-utils/test-doc.json
+    expect(nameMap).toEqual({
+      localNames: {
+        Diet: "__CANONICAL_NAME__LOCAL_ATTR_ATTR1ReY3dlsdbuv",
+        Habitat: "__CANONICAL_NAME__LOCAL_ATTR_ATTRx8a3s6Wlt56J",
+        Height: "__CANONICAL_NAME__LOCAL_ATTR_ATTRbTY852h1USQZ",
+        LifeSpan: "__CANONICAL_NAME__LOCAL_ATTR_ATTRomXh7fH2nyrH",
+        Mammal: "__CANONICAL_NAME__LOCAL_ATTR_ATTRBWlW1AbMTAlH",
+        Mass: "__CANONICAL_NAME__LOCAL_ATTR_ATTRUiaBOgPAOiu0",
+        Order: "__CANONICAL_NAME__LOCAL_ATTR_ATTRSn_zW_Cmyl1G",
+        Sleep: "__CANONICAL_NAME__LOCAL_ATTR_ATTRlgjzH8Zouak4",
+        Speed: "__CANONICAL_NAME__LOCAL_ATTR_ATTRUmG4vmDYa9CC",
+        caseIndex: "__CANONICAL_NAME__LOCAL_ATTR_CASE_INDEX",
+        v1: "__CANONICAL_NAME__GLOBAL_VALUE_GLOBqRLnshLJT6RL",
+        v2: "__CANONICAL_NAME__GLOBAL_VALUE_GLOBsy0ZXg9dUZvt",
+      },
+      dataSet: {
+        Mammals: {
+          id: "__CANONICAL_NAME__DATAJXM3nKZTmvL8",
+          attribute: {
+            "Diet": "__CANONICAL_NAME__ATTR1ReY3dlsdbuv",
+            "Habitat": "__CANONICAL_NAME__ATTRx8a3s6Wlt56J",
+            "Height": "__CANONICAL_NAME__ATTRbTY852h1USQZ",
+            "LifeSpan": "__CANONICAL_NAME__ATTRomXh7fH2nyrH",
+            "Mammal": "__CANONICAL_NAME__ATTRBWlW1AbMTAlH",
+            "Mass": "__CANONICAL_NAME__ATTRUiaBOgPAOiu0",
+            "Order": "__CANONICAL_NAME__ATTRSn_zW_Cmyl1G",
+            "Sleep": "__CANONICAL_NAME__ATTRlgjzH8Zouak4",
+            "Speed": "__CANONICAL_NAME__ATTRUmG4vmDYa9CC",
+          },
+        },
+        Cats: {
+          id: "__CANONICAL_NAME__DATAlL2AlOmWYdDV",
+          attribute: {
+            "Age": "__CANONICAL_NAME__ATTRgxF6Y65KXTGI",
+            "BodyLength": "__CANONICAL_NAME__ATTRrrw8aIZT8YfW",
+            "EyeColor": "__CANONICAL_NAME__ATTRydFTiJn6OHr0",
+            "Gender": "__CANONICAL_NAME__ATTRTMcETOBAbIBq",
+            "Name": "__CANONICAL_NAME__ATTR9c4fIOmUIRmW",
+            "PadColor": "__CANONICAL_NAME__ATTRz6jOChMIwbTW",
+            "TailLength": "__CANONICAL_NAME__ATTRvuG8keOGYpe7",
+            "Tail_Body_Ratio": "__CANONICAL_NAME__ATTRPDkNH9bz51th",
+            "Weight": "__CANONICAL_NAME__ATTRdPSOPZAR7auo",
+          },
+        }
+      }
+    })
+  })
+})
+
+describe("getCanonicalNameMap", () => {
+  it("returns a display name map", () => {
+    const formulaTestEnv = getFormulaTestEnv()
+    const nameMap = getCanonicalNameMap({
+      localDataSet: formulaTestEnv.dataSetsByName.Mammals,
+      dataSets: formulaTestEnv.dataSets,
+      globalValueManager: formulaTestEnv.globalValueManager,
+    })
+    // Note that all the ids should be possible to find in test-utils/test-doc.json
+    expect(nameMap).toEqual({
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRBWlW1AbMTAlH: 'Mammal',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRSn_zW_Cmyl1G: 'Order',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRomXh7fH2nyrH: 'LifeSpan',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRbTY852h1USQZ: 'Height',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRUiaBOgPAOiu0: 'Mass',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRlgjzH8Zouak4: 'Sleep',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRUmG4vmDYa9CC: 'Speed',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTRx8a3s6Wlt56J: 'Habitat',
+      __CANONICAL_NAME__LOCAL_ATTR_ATTR1ReY3dlsdbuv: 'Diet',
+      __CANONICAL_NAME__LOCAL_ATTR_CASE_INDEX: 'caseIndex',
+      __CANONICAL_NAME__GLOBAL_VALUE_GLOBqRLnshLJT6RL: 'v1',
+      __CANONICAL_NAME__GLOBAL_VALUE_GLOBsy0ZXg9dUZvt: 'v2',
+      __CANONICAL_NAME__DATAJXM3nKZTmvL8: 'Mammals',
+      __CANONICAL_NAME__DATAlL2AlOmWYdDV: 'Cats',
+      __CANONICAL_NAME__ATTRBWlW1AbMTAlH: 'Mammal',
+      __CANONICAL_NAME__ATTRSn_zW_Cmyl1G: 'Order',
+      __CANONICAL_NAME__ATTRomXh7fH2nyrH: 'LifeSpan',
+      __CANONICAL_NAME__ATTRbTY852h1USQZ: 'Height',
+      __CANONICAL_NAME__ATTRUiaBOgPAOiu0: 'Mass',
+      __CANONICAL_NAME__ATTRlgjzH8Zouak4: 'Sleep',
+      __CANONICAL_NAME__ATTRUmG4vmDYa9CC: 'Speed',
+      __CANONICAL_NAME__ATTRx8a3s6Wlt56J: 'Habitat',
+      __CANONICAL_NAME__ATTR1ReY3dlsdbuv: 'Diet',
+      __CANONICAL_NAME__ATTR9c4fIOmUIRmW: 'Name',
+      __CANONICAL_NAME__ATTRTMcETOBAbIBq: 'Gender',
+      __CANONICAL_NAME__ATTRgxF6Y65KXTGI: 'Age',
+      __CANONICAL_NAME__ATTRdPSOPZAR7auo: 'Weight',
+      __CANONICAL_NAME__ATTRrrw8aIZT8YfW: 'BodyLength',
+      __CANONICAL_NAME__ATTRvuG8keOGYpe7: 'TailLength',
+      __CANONICAL_NAME__ATTRydFTiJn6OHr0: 'EyeColor',
+      __CANONICAL_NAME__ATTRz6jOChMIwbTW: 'PadColor',
+      __CANONICAL_NAME__ATTRPDkNH9bz51th: 'Tail_Body_Ratio'
     })
   })
 })
