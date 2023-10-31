@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { INumericAxisModel } from "../../../axis/models/axis-model"
 
 import "./univariate-measure-adornment-base-component.scss"
 
@@ -14,8 +15,8 @@ interface IProps {
   model: IUnivariateMeasureAdornmentModel
   showLabel?: boolean
   valueRef: React.RefObject<SVGGElement>
-  xAxis: any
-  yAxis: any
+  xAxis: INumericAxisModel
+  yAxis: INumericAxisModel
   refreshValues: () => void
   setIsVertical: (isVertical: boolean) => void
 }
@@ -40,25 +41,23 @@ export const UnivariateMeasureAdornmentBaseComponent = observer(
     }, [dataConfig, model, refreshValues, setIsVertical, xAxis, yAxis])
 
     return (
-      <>
-        <div className="measure-container" id={`${measureSlug}-${containerId}`}>
-            <svg
-              className={`${measureSlug}-${classFromKey}`}
-              data-testid={`${measureSlug}-${classFromKey}`}
-              style={{height: "100%", width: "100%"}}
-              x={0}
-              y={0}
-            >
-            <g>
-              <g className={measureSlug} ref={valueRef}/>
-            </g>
-            </svg>
-          {
-            (showLabel) &&
-              <div className="measure-labels" id={`measure-labels-${containerId}`} ref={labelRef} />
-          }
-        </div>
-      </>
+      <div className="measure-container" id={`${measureSlug}-${containerId}`}>
+        <svg
+          className={`${measureSlug}-${classFromKey}`}
+          data-testid={`${measureSlug}-${classFromKey}`}
+          style={{height: "100%", width: "100%"}}
+          x={0}
+          y={0}
+        >
+        <g>
+          <g className={measureSlug} ref={valueRef}/>
+        </g>
+        </svg>
+        {
+          (showLabel) &&
+            <div className="measure-labels" id={`measure-labels-${containerId}`} ref={labelRef} />
+        }
+      </div>
     )
   }
 )
