@@ -5,7 +5,7 @@ import { MedianAdornmentModel } from "./median-adornment-model"
 import { kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianRedoAddKey, kMedianRedoRemoveKey,
          kMedianType, kMedianUndoAddKey, kMedianUndoRemoveKey } from "./median-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
-import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
+import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 
 const Controls = () => {
   return (
@@ -33,7 +33,7 @@ registerAdornmentContentInfo({
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kMedianClass,
-  Component: UnivariateMeasureAdornmentComponent,
+  Component: UnivariateMeasureAdornmentSimpleComponent,
   Controls,
   labelKey: kMedianLabelKey,
   order: 10,

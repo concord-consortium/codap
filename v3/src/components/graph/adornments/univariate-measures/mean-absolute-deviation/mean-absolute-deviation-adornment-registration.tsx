@@ -5,7 +5,7 @@ import { MeanAbsoluteDeviationAdornmentModel } from "./mean-absolute-deviation-a
 import { kMeanAbsoluteDeviationClass, kMeanAbsoluteDeviationLabelKey, kMeanAbsoluteDeviationType,
          kMeanAbsoluteDeviationPrefix } from "./mean-absolute-deviation-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
-import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
+import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 
 const Controls = () => {
   return (
@@ -27,7 +27,7 @@ registerAdornmentContentInfo({
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kMeanAbsoluteDeviationClass,
-  Component: UnivariateMeasureAdornmentComponent,
+  Component: UnivariateMeasureAdornmentSimpleComponent,
   Controls,
   labelKey: kMeanAbsoluteDeviationLabelKey,
   order: 10,

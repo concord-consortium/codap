@@ -17,15 +17,20 @@ export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentMod
     get hasRange() {
       return true
     },
-    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      const mad = caseValues.reduce((acc, val) => acc + Math.abs(val - mean(caseValues)), 0) / caseValues.length
-      return mad
-    },
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return mean(caseValues)
+    }
+  }))
+  .views(self => ({
+    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      const mad = Number(caseValues.reduce((acc, val) => acc + Math.abs(val - mean(caseValues)), 0) / caseValues.length)
+      const meanValue = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
+      const min = meanValue - mad
+      const max = meanValue + mad
+      return { min, max }
     }
   }))
 
