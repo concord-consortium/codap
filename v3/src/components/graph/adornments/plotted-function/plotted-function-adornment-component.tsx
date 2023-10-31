@@ -8,6 +8,7 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { IPlottedFunctionAdornmentModel, isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { curveBasis } from "../../utilities/graph-utils"
 
 import "./plotted-function-adornment-component.scss"
 
@@ -55,7 +56,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
     const tPixelMax = xScale(xMax)
     const kPixelGap = 1
     const tPoints = model.computePoints(tPixelMin, tPixelMax, xCellCount, yCellCount, kPixelGap, xScale, yScale)
-    path.current = `M${tPoints[0].x},${tPoints[0].y},${model.curveBasis(tPoints)}`
+    path.current = `M${tPoints[0].x},${tPoints[0].y},${curveBasis(tPoints)}`
 
     const selection = select(plottedFunctionRef.current)
     newPathObject.path = selection.append("path")

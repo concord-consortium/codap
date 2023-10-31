@@ -200,6 +200,39 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=box-plot-outlier-cover]").should("not.exist")
     // TODO: Test Show Outliers option. Test that labels appear on mouseover.
   })
+  it("adds a least squares line to graph when Least Squares Line checkbox is checked", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Mass", "x")
+    cy.dragAttributeToTarget("table", "Speed", "y")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("have.attr", "disabled")
+    cy.get("[data-testid=adornment-checkbox-lsrl]").click()
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]")
+      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-cover]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
+      .should("contain.html", "<em>Speed</em> = (−0.00142) (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933")
+    cy.get("*[data-testid=lsrl-confidence-band]").should("exist").should("not.have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("not.have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("not.have.attr", "d")
+    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("not.have.attr", "disabled")
+    cy.get("[data-testid=adornment-show-confidence-bands-options]").click()
+    cy.get("*[data-testid=lsrl-confidence-band]").should("have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("have.attr", "d")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
+      .should(
+        "contain.html",
+        "<em>Speed</em> = (−0.00142) (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933<br>SE<sub>slope</sub> = 0.003"
+      )
+    // TODO: Test that mousing over equation highlights the line and vice versa
+    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are
+    // multiple least squares lines)
+  })
   it("adds movable labels for univariate measures to graph when Show Measure Labels checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")

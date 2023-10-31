@@ -1,4 +1,5 @@
 import "./adornments/count/count-adornment-registration"
+import "./adornments/lsrl/lsrl-adornment-registration"
 import "./adornments/movable-line/movable-line-adornment-registration"
 import "./adornments/movable-point/movable-point-adornment-registration"
 import "./adornments/movable-value/movable-value-adornment-registration"
