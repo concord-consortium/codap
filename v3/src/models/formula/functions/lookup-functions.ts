@@ -5,21 +5,21 @@ import { UNDEF_RESULT, equal, evaluateNode } from "./function-utils"
 import type { IDataSet } from "../../data/data-set"
 import t from "../../../utilities/translation/translate"
 
-type LookupStringContantArg = ConstantNode<string> | undefined
+type LookupStringConstantArg = ConstantNode<string> | undefined
 
 export const lookupFunctions = {
   // lookupByIndex("dataSetName", "attributeName", index)
   lookupByIndex: {
     getDependency: (args: MathNode[]): ILookupDependency => {
+      const [dataSetNameArg, attrNameArg] = args as LookupStringConstantArg[]
       return {
         type: "lookup",
-        dataSetId: rmCanonicalPrefix((args[0] as LookupStringContantArg)?.value),
-        attrId: rmCanonicalPrefix((args[1] as LookupStringContantArg)?.value),
+        dataSetId: rmCanonicalPrefix(dataSetNameArg?.value),
+        attrId: rmCanonicalPrefix(attrNameArg?.value),
       }
     },
     canonicalize: (args: MathNode[], displayNameMap: DisplayNameMap) => {
-      const dataSetNameArg = args[0] as LookupStringContantArg
-      const attrNameArg = args[1] as LookupStringContantArg
+      const [dataSetNameArg, attrNameArg] = args as LookupStringConstantArg[]
       const dataSetName = dataSetNameArg?.value || ""
       const attrName = attrNameArg?.value || ""
       if (dataSetNameArg) {
@@ -55,17 +55,16 @@ export const lookupFunctions = {
   // lookupByKey("dataSetName", "attributeName", "keyAttributeName", "keyAttributeValue" | localKeyAttribute)
   lookupByKey: {
     getDependency: (args: MathNode[]): Required<ILookupDependency> => {
+      const [dataSetNameArg, attrNameArg, keyAttrNameArg] = args as LookupStringConstantArg[]
       return {
         type: "lookup",
-        dataSetId: rmCanonicalPrefix((args[0] as LookupStringContantArg)?.value),
-        attrId: rmCanonicalPrefix((args[1] as LookupStringContantArg)?.value),
-        keyAttrId: rmCanonicalPrefix((args[2] as LookupStringContantArg)?.value)
+        dataSetId: rmCanonicalPrefix(dataSetNameArg?.value),
+        attrId: rmCanonicalPrefix(attrNameArg?.value),
+        keyAttrId: rmCanonicalPrefix(keyAttrNameArg?.value)
       }
     },
     canonicalize: (args: MathNode[], displayNameMap: DisplayNameMap) => {
-      const dataSetNameArg = args[0] as LookupStringContantArg
-      const attrNameArg = args[1] as LookupStringContantArg
-      const keyAttrNameArg = args[2] as LookupStringContantArg
+      const [dataSetNameArg, attrNameArg, keyAttrNameArg] = args as LookupStringConstantArg[]
       const dataSetName = dataSetNameArg?.value || ""
       const attrName = attrNameArg?.value || ""
       const keyAttrName = keyAttrNameArg?.value || ""
