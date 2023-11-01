@@ -31,6 +31,7 @@ import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { Adornments } from "../adornments/adornments"
 
@@ -67,6 +68,15 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         .attr('height', layout.plotHeight)
     }
   }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
+
+  useEffect(function handleAttributeConfigurationChange() {
+    // Handles attribute configuration changes from undo/redo, for instance, among others.
+    // `initializeGraph()` has mechanisms to prevent running redundantly.
+    return mstReaction(
+      () => graphModel.dataConfiguration.attributeDescriptionsStr,
+      () => graphController.initializeGraph(),
+      { name: "Graph.handleAttributeConfigurationChange" }, graphModel)
+  }, [graphController, graphModel])
 
   const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place

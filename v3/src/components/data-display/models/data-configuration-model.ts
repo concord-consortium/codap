@@ -55,6 +55,9 @@ export const DataConfigurationModel = types
     get attributeDescriptions() {
       return {...getSnapshot(self._attributeDescriptions)}
     },
+    get attributeDescriptionsStr() {
+      return JSON.stringify(this.attributeDescriptions)
+    },
     /**
      * For the 'y' role we return the first y-attribute, for 'rightNumeric' we return the last y-attribute.
      * For all other roles we return the attribute description for the role.
