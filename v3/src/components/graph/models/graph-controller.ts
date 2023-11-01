@@ -37,7 +37,7 @@ export class GraphController {
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
   // tracks the currently configured attribute descriptions so that we know whether
-  // initializeGraph needs to be called or not, e.g. when handling undo/redo.
+  // initializeGraph needs to do anything or not, e.g. when handling undo/redo.
   attrConfigForInitGraph = ""
 
   constructor({layout, enableAnimation, instanceId}: IGraphControllerConstructorProps) {
