@@ -114,8 +114,17 @@ describe("displayToCanonical", () => {
       )).toEqual('mean(__CANONICAL_NAME__LOCAL_ATTR_ATTR_MEAN) + "mean"')
     })
   })
+  describe("when string constant includes special characters", () => {
+    it("is converted and escaped correctly", () => {
+      expect(displayToCanonical(
+        `if(1 < 2, 'ok\\'ay', "not\\"okay")`, displayNameMapExample
+      )).toEqual(`if(1 < 2, "ok'ay", "not\\"okay")`)
+      // MathJS always uses double quotes for string constants.
+      // This is fine, as the reverse function, canonicalToDisplay, will convert them back to single quotes.
+    })
+  })
   describe("when attribute name is provided as string constant (e.g. lookup functions)", () => {
-    it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
+    it("is still converted correctly", () => {
       expect(displayToCanonical(
         'lookupByKey("Roller Coaster", "Park\\"", "Top\\\\Speed\'", Order) * 2', displayNameMapExample
       )).toEqual(
@@ -257,8 +266,16 @@ describe("canonicalToDisplay", () => {
       )).toEqual("mean ( `new\\\\mean\\`attribute 🙃` ) + 'mean'")
     })
   })
+  describe("when string constant includes special characters", () => {
+    it("is maintained and escaped correctly", () => {
+      expect(canonicalToDisplay(
+        `if(1 < 50, "ok'ay", "not\\"okay")`,
+        `if(1 < 2, 'ok\\'ay', "not\\"okay")`, reverseDisplayNameMap(displayNameMapExample)
+      )).toEqual(`if(1 < 2, 'ok\\'ay', "not\\"okay")`)
+    })
+  })
   describe("when attribute name is provided as a double quote string constant (e.g. lookup functions)", () => {
-    it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
+    it("is still converted correctly and is NOT enclosed in backticks", () => {
       expect(canonicalToDisplay(
         'lookupByKey("__CANONICAL_NAME__DATA_ROLLER_COASTER", "__CANONICAL_NAME__ATTR_PARK",' +
         ' "__CANONICAL_NAME__ATTR_TOP_SPEED", __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER) * 2',
@@ -268,7 +285,7 @@ describe("canonicalToDisplay", () => {
     })
   })
   describe("when attribute name is provided as a single quote string constant (e.g. lookup functions)", () => {
-    it("is still converted correctly and names with special characters are NOT enclosed in backticks", () => {
+    it("is still converted correctly and is NOT enclosed in backticks", () => {
       expect(canonicalToDisplay(
         "lookupByKey('__CANONICAL_NAME__DATA_ROLLER_COASTER', '__CANONICAL_NAME__ATTR_PARK'," +
         " '__CANONICAL_NAME__ATTR_TOP_SPEED', __CANONICAL_NAME__LOCAL_ATTR_ATTR_ORDER) * 2",
