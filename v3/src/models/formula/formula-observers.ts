@@ -66,9 +66,8 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
   const disposeLookupObserver = lookupDependencies.map(dependency => {
     const externalDataSet = dataSets.get(dependency.dataSetId)
     if (!externalDataSet) {
-      throw new Error(`External dataSet with id "${dependency.dataSetId}" not found`)
+      return
     }
-
     return onAnyAction(externalDataSet, mstAction => {
       let casesToRecalculate: CaseList = []
       switch (mstAction.name) {
@@ -97,7 +96,7 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
     })
   })
 
-  return () => disposeLookupObserver.forEach(dispose => dispose())
+  return () => disposeLookupObserver.forEach(dispose => dispose?.())
 }
 
 export const observeGlobalValues = (formulaDependencies: IFormulaDependency[],
