@@ -3,6 +3,7 @@ import { GlobalValue } from "../../models/global/global-value"
 import { TileModel } from "../../models/tiles/tile-model"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2SliderComponent } from "../../v2/codap-v2-types"
@@ -13,7 +14,6 @@ import { SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
 import SliderIcon from '../../assets/icons/icon-slider.svg'
-import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 
 export const kSliderIdPrefix = "SLID"
 
