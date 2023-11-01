@@ -17,6 +17,7 @@
     "V3.formula.error.invalidParentAttrRef": "invalid reference to parent attribute '%@' within aggregate function",
     "V3.formula.error.cycle": "Circular reference: formula refers to its own attribute either directly or indirectly",
     "V3.formula.error.stringConstantArg": "The '%@()' function expects %@ argument to be a string constant",
+    "V3.formula.error.caseDependentNotSupported": "This formula scope does not support case-dependent formulas",
 
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",

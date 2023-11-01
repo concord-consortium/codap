@@ -1,12 +1,10 @@
-import { comparer, makeObservable, observable, reaction } from "mobx"
+import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { ICase } from "../data/data-set-types"
 import {
-  getFormulaDependencies, formulaError, safeSymbolName, reverseDisplayNameMap
+  getFormulaDependencies, formulaError, getDisplayNameMap, getCanonicalNameMap
 } from "./formula-utils"
-import {
-  DisplayNameMap, GLOBAL_VALUE, LOCAL_ATTR, CASE_INDEX_FAKE_ATTR_ID, CANONICAL_NAME, CaseList
-} from "./formula-types"
+import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
@@ -80,11 +78,11 @@ export class FormulaManager {
     }
   }
 
-  addDataSet(dataSet: IDataSet) {
+  @action addDataSet(dataSet: IDataSet) {
     this.dataSets.set(dataSet.id, dataSet)
   }
 
-  removeDataSet(dataSetId: string) {
+  @action removeDataSet(dataSetId: string) {
     this.dataSets.delete(dataSetId)
   }
 
@@ -226,56 +224,22 @@ export class FormulaManager {
     return false
   }
 
-  getDisplayNameMapForFormula(formulaId: string, options?: { useSafeSymbolNames: boolean }) {
+  getDisplayNameMap(formulaId: string) {
     const { dataSet: localDataSet } = this.getFormulaContext(formulaId)
-    const { useSafeSymbolNames } = options || { useSafeSymbolNames: true }
-
-    const displayNameMap: DisplayNameMap = {
-      localNames: {},
-      dataSet: {}
-    }
-
-    const nonEmptyName = (name: string) => name || "_empty_symbol_name_"
-
-    const mapAttributeNames = (dataSet: IDataSet, localPrefix: string, _useSafeSymbolNames: boolean) => {
-      const result: Record<string, string> = {}
-      dataSet.attributes.forEach(attr => {
-        const key = nonEmptyName(_useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name)
-        result[key] = `${CANONICAL_NAME}${localPrefix}${attr.id}`
-      })
-      return result
-    }
-
-    displayNameMap.localNames = {
-      ...mapAttributeNames(localDataSet, LOCAL_ATTR, useSafeSymbolNames),
-      // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
-      // that returns the current, 1-based index of the case in its collection group.
-      caseIndex: `${CANONICAL_NAME}${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
-    }
-
-    this.globalValueManager?.globals.forEach(global => {
-      const key = nonEmptyName(useSafeSymbolNames ? safeSymbolName(global.name) : global.name)
-      displayNameMap.localNames[key] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
+    return getDisplayNameMap({
+      localDataSet,
+      dataSets: this.dataSets,
+      globalValueManager: this.globalValueManager,
     })
-
-    this.dataSets.forEach(dataSet => {
-      if (dataSet.name) {
-        displayNameMap.dataSet[nonEmptyName(dataSet.name)] = {
-          id: `${CANONICAL_NAME}${dataSet.id}`,
-          // No prefix is necessary for external attributes. They always need to be resolved manually by custom
-          // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
-          // are string constants, not a symbols, so MathJS will not care about special characters there.
-          attribute: mapAttributeNames(dataSet, "", false)
-        }
-      }
-    })
-
-    return displayNameMap
   }
 
   getCanonicalNameMap(formulaId: string) {
-    const displayNameMap = this.getDisplayNameMapForFormula(formulaId, { useSafeSymbolNames: false })
-    return reverseDisplayNameMap(displayNameMap)
+    const { dataSet: localDataSet } = this.getFormulaContext(formulaId)
+    return getCanonicalNameMap({
+      localDataSet,
+      dataSets: this.dataSets,
+      globalValueManager: this.globalValueManager,
+    })
   }
 
   setupFormulaObservers(formulaId: string) {

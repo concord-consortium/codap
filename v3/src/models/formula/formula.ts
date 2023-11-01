@@ -44,7 +44,7 @@ export const Formula = types.model("Formula", {
     if (self.empty || !self.valid || !self.formulaManager) {
       return
     }
-    const displayNameMap = self.formulaManager.getDisplayNameMapForFormula(self.id)
+    const displayNameMap = self.formulaManager.getDisplayNameMap(self.id)
     self.canonical = displayToCanonical(self.display, displayNameMap)
   },
   updateDisplayFormula() {

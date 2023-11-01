@@ -4,6 +4,7 @@ import {
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "../data/data-set"
 import type { IValueType } from "../data/attribute"
+import t from "../../utilities/translation/translate"
 
 const CACHE_ENABLED = true
 
@@ -11,8 +12,11 @@ export interface IFormulaMathjsScopeContext {
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
   globalValueManager?: IGlobalValueManager
-  caseIds: string[]
+  // Cases used by aggregate functions. E.g `mean(NewAttribute)` will use all the cases from this array.
   childMostCollectionCaseIds: string[]
+  // Cases that the formula is evaluated for, in case it's evaluated for a group of cases during one evaluation.
+  // This is necessary for case-dependant formulas to work, e.g. `round(NewAttribute)` or `prev(NewAttribute, 0) + 1`.
+  caseIds?: string[]
   formulaAttrId?: string
   formulaCollectionIndex?: number
   childMostAggregateCollectionIndex?: number
@@ -36,6 +40,9 @@ export class FormulaMathJsScope {
   previousResults: FValue[] = []
 
   get caseId() {
+    if (!this.context.caseIds) {
+      throw new Error(t("V3.formula.error.caseDependentNotSupported"))
+    }
     return this.context.caseIds[this.casePointer]
   }
 
@@ -164,6 +171,9 @@ export class FormulaMathJsScope {
   }
 
   getNumberOfCases() {
+    if (!this.context.caseIds) {
+      throw new Error(t("V3.formula.error.caseDependentNotSupported"))
+    }
     return this.context.caseIds.length
   }
 

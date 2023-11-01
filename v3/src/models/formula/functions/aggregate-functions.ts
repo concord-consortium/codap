@@ -4,7 +4,7 @@ import { FValue } from "../formula-types"
 import { UNDEF_RESULT, evaluateNode, isNumber, isValueTruthy } from "./function-utils"
 
 // Almost every aggregate function can be cached in the same way.
-const cachedAggregateFnFactory =
+export const cachedAggregateFnFactory =
 (fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseAggregateGroupId()}`
