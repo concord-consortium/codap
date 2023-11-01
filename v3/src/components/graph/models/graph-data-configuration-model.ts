@@ -459,6 +459,19 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self._setAttributeType(role, type, plotNumber)
     },
   }))
+  .actions(self => {
+    const baseRemoveAttributeFromRole = self.removeAttributeFromRole
+    return {
+      removeAttributeFromRole(role: GraphAttrRole, attrID: string) {
+        if (role === "yPlus") {
+          self.removeYAttributeWithID(attrID)
+        }
+        else {
+          baseRemoveAttributeFromRole(role, attrID)
+        }
+      }
+    }
+  })
 
 export interface IGraphDataConfigurationModel extends Instance<typeof GraphDataConfigurationModel> {
 }

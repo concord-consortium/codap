@@ -527,6 +527,11 @@ export const DataConfigurationModel = types
       self._setAttributeType(role, type, plotNumber)
     }
   }))
+  .actions(self => ({
+    removeAttributeFromRole(role: AttrRole, attrID: string) {
+      self.setAttribute(role)
+    },
+  }))
   .views(self => ({
     onAction(handler: (actionCall: ISerializedActionCall) => void) {
       const id = uniqueId()
