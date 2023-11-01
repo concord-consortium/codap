@@ -71,10 +71,10 @@
     "test:debug": "node --nolazy --inspect-brk ./node_modules/.bin/jest --runInBand --no-cache",
     "test:watch": "jest --watch",
     "test:coverage:watch": "jest --coverage --watchAll",
-    "test:cypress": "cypress run",
+    "test:cypress": "cypress run --browser chrome",
     "test:cypress:dev": "cypress run --env testEnv=dev",
     "test:cypress:staging": "cypress run --env testEnv=staging",
-    "test:cypress:open": "cypress open",
+    "test:cypress:open": "cypress open --browser chrome",
     "test:coverage:cypress:open": "cypress open --env coverage=true",
     "test:full": "npm-run-all test test:cypress"
   },
