@@ -68,6 +68,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
       return descriptions
     },
+    get attributeDescriptionsStr() {
+      return JSON.stringify(this.attributeDescriptions)
+    },
     /**
      * For the 'y' role we return the first y-attribute, for 'rightNumeric' we return the last y-attribute.
      * For all other roles we return the attribute description for the role.

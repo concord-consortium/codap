@@ -36,6 +36,9 @@ export class GraphController {
   layout: GraphLayout
   enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
+  // tracks the currently configured attribute descriptions so that we know whether
+  // initializeGraph needs to do anything or not, e.g. when handling undo/redo.
+  attrConfigForInitGraph = ""
 
   constructor({layout, enableAnimation, instanceId}: IGraphControllerConstructorProps) {
     this.layout = layout
@@ -66,10 +69,13 @@ export class GraphController {
     }
   }
 
+  // Called after restore from document or undo/redo, i.e. the models are all configured
+  // appropriately but the scales and other non-serialized properties need to be synced.
   initializeGraph() {
     const {graphModel, dotsRef, layout} = this,
       dataConfig = graphModel?.dataConfiguration
-    if (dataConfig && layout && dotsRef?.current) {
+    if (dataConfig && layout && dotsRef?.current &&
+        this.attrConfigForInitGraph !== dataConfig?.attributeDescriptionsStr) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
         const axisModel = graphModel.getAxis(axisPlace),
           attrRole = axisPlaceToAttrRole[axisPlace]
@@ -88,6 +94,7 @@ export class GraphController {
         }
       })
       this.callMatchCirclesToData()
+      this.attrConfigForInitGraph = dataConfig?.attributeDescriptionsStr
     }
   }
 
@@ -178,5 +185,6 @@ export class GraphController {
 
     setPrimaryRoleAndPlotType()
     AxisPlaces.forEach(setupAxis)
+    this.attrConfigForInitGraph = dataConfig?.attributeDescriptionsStr
   }
 }
