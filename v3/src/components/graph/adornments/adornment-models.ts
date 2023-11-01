@@ -7,6 +7,8 @@ import { IAxisModel } from "../../axis/models/axis-model"
 import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
 import {Point} from "../../data-display/data-display-types"
 import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
+import { IAxisLayout } from "../../axis/models/axis-layout-context"
+import { ScaleNumericBaseType } from "../../axis/axis-types"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -40,6 +42,8 @@ export interface IUpdateCategoriesOptions {
   rightAttrId: string
   resetPoints?: boolean
   dataConfig?: IGraphDataConfigurationModel
+  xScale?: ScaleNumericBaseType
+  yScale?: ScaleNumericBaseType
 }
 
 export const AdornmentModel = types.model("AdornmentModel", {
@@ -63,6 +67,17 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     get isUnivariateMeasure() {
       return false
+    },
+    cellCount(layout: IAxisLayout, xAttrType?: string, yAttrType?: string) {
+      const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
+      const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
+      const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
+      const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
+      const yCatSet = layout.getAxisMultiScale("left")?.categorySet
+      const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
+      const xCellCount = xCats.length * xSubAxesCount
+      const yCellCount = yCats.length * ySubAxesCount
+      return {x: xCellCount, y: yCellCount}
     },
     cellKey(options: IUpdateCategoriesOptions, index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options

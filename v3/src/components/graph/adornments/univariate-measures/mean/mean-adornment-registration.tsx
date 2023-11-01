@@ -5,7 +5,7 @@ import { MeanAdornmentModel } from "./mean-adornment-model"
 import { kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix, kMeanUndoAddKey, kMeanRedoAddKey,
          kMeanUndoRemoveKey, kMeanRedoRemoveKey } from "./mean-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
-import { UnivariateMeasureAdornmentComponent } from "../univariate-measure-adornment-component"
+import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 
 const Controls = () => {
   return (
@@ -33,7 +33,7 @@ registerAdornmentContentInfo({
 
 registerAdornmentComponentInfo({
   adornmentEltClass: kMeanClass,
-  Component: UnivariateMeasureAdornmentComponent,
+  Component: UnivariateMeasureAdornmentSimpleComponent,
   Controls,
   labelKey: kMeanLabelKey,
   order: 10,

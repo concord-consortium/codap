@@ -55,7 +55,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override if they have a range
-      return undefined
+      return {}
     },
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override to compute their respective values

@@ -16,14 +16,20 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
     get hasRange() {
       return true
     },
-    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      return std(caseValues)
-    },
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       if (caseValues.length === 0) return NaN
       return mean(caseValues)
+    }
+  }))
+  .views(self => ({
+    computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      const standardDeviation = Number(std(caseValues))
+      const meanValue = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
+      const min = meanValue - standardDeviation
+      const max = meanValue + standardDeviation
+      return { min, max }
     }
   }))
 

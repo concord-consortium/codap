@@ -258,9 +258,6 @@ export const displayToCanonical = (displayExpression: string, displayNameMap: Di
       // Note that parseArguments will modify args array in place, because we're passing canonicalizeWith option.
       typedFnRegistry[node.fn.name].canonicalize?.(node.args, displayNameMap)
     }
-    if (isConstantStringNode(node)) {
-      node.value = escapeDoubleQuoteString(node.value)
-    }
   }
   formulaTree.traverse(visitNode)
   return formulaTree.toString()

@@ -25,11 +25,14 @@ export const Adornments = observer(function Adornments() {
   if (!adornments?.length) return null
 
   const adornmentBanners = adornments.map((adornment: IAdornmentModel) => {
+    const componentContentInfo = getAdornmentContentInfo(adornment.type)
+    if (!componentContentInfo?.plots.includes(graphModel.plotType)) return
+
     const componentInfo = getAdornmentComponentInfo(adornment.type)
     const BannerComponent = componentInfo?.BannerComponent
     return (
       BannerComponent && adornment.isVisible &&
-        <BannerComponent key={"PlottedValue"} model={adornment} />
+        <BannerComponent key={componentInfo.type} model={adornment} />
     )
   })
 

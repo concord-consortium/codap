@@ -1,0 +1,12 @@
+svg[class^="plotted-function-"] {
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+}
+
+.plotted-function {
+  fill: transparent;
+  stroke: #f00;
+  stroke-width: 1px;
+}
