@@ -105,6 +105,19 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return matchedValCount === numOfKeys
     }
   }))
+  .views(self => {
+    const baseRolesForAttribute = self.rolesForAttribute
+    return {
+      rolesForAttribute(attrID: string) {
+        const roles = baseRolesForAttribute(attrID)
+        if (self.yAttributeIDs.includes(attrID)) {
+          // role depends on whether there are attributes remaining
+          roles.push(self.yAttributeDescriptions.length > 1 ? "yPlus" : "y")
+        }
+        return roles
+      }
+    }
+  })
   .views(self => ({
     get primaryAttributeID(): string {
       return self.primaryRole && self.attributeID(self.primaryRole) || ''

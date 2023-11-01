@@ -1,8 +1,8 @@
 import {observer} from "mobx-react-lite"
-import {isAlive} from "mobx-state-tree"
+import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
-import {IDotsRef} from "../../data-display/data-display-types"
+import {GraphAttrRole, IDotsRef} from "../../data-display/data-display-types"
 import {startAnimation} from "../../data-display/data-display-utils"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -30,6 +30,7 @@ import {MarqueeState} from "../models/marquee-state"
 import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
+import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -78,6 +79,22 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
       { name: "Graph.handleAttributeConfigurationChange" }, graphModel)
   }, [graphController, graphModel])
 
+  useEffect(function handleDeleteAttribute() {
+    return dataset && addDisposer(dataset, onAnyAction(dataset, action => {
+      if (isRemoveAttributeAction(action)) {
+        const [attrId] = action.args
+        graphModel.dataConfiguration.rolesForAttribute(attrId).forEach(role => {
+          if (role === "yPlus") {
+            graphModel.dataConfiguration.removeYAttributeWithID(attrId)
+          }
+          else {
+            graphModel.setAttributeID(role as GraphAttrRole, "", "")
+          }
+        })
+      }
+    }))
+  })
+
   const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
@@ -114,8 +131,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   }, [graphController, dataset, layout, enableAnimation, graphModel])
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
-    graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
-    dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
+    dataset && graphModel.applyUndoableAction(() => {
+      graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
+      dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
+    }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
   }
 
   useDataTips({dotsRef, dataset, displayModel: graphModel, enableAnimation})

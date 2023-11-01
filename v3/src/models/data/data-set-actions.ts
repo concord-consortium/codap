@@ -7,7 +7,6 @@ export interface AddCasesAction extends ISerializedActionCall {
   name: "addCases"
   args: [ICase[], IAddCaseOptions | undefined]
 }
-
 export const isAddCasesAction = (action: ISerializedActionCall): action is AddCasesAction =>
               action.name === "addCases"
 
@@ -15,7 +14,6 @@ export interface SetCaseValuesAction extends ISerializedActionCall {
   name: "setCaseValues"
   args: [ICase[], string[]]
 }
-
 export const isSetCaseValuesAction = (action: ISerializedActionCall): action is SetCaseValuesAction =>
               action.name === "setCaseValues"
 
@@ -23,15 +21,20 @@ export interface SetAttributeNameAction extends ISerializedActionCall {
   name: "setAttributeName"
   args: [string /*attributeID*/, string /*newName*/]
 }
-
 export const isSetAttributeNameAction = (action: ISerializedActionCall): action is SetAttributeNameAction =>
               action.name === "setAttributeName"
+
+export interface RemoveAttributeAction extends ISerializedActionCall {
+  name: "removeAttribute"
+  args: [attrID: string]
+}
+export const isRemoveAttributeAction = (action: ISerializedActionCall): action is SetAttributeNameAction =>
+              action.name === "removeAttribute"
 
 export interface RemoveCasesAction extends ISerializedActionCall {
   name: "removeCases"
   args: [string[]]
 }
-
 export const isRemoveCasesAction = (action: ISerializedActionCall): action is RemoveCasesAction =>
               action.name === "removeCases"
 

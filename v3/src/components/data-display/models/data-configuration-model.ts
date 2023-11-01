@@ -1,5 +1,6 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
+import {reaction} from "mobx"
+import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
@@ -104,6 +105,15 @@ export const DataConfigurationModel = types
       self.dataset?.attributes.length && places.add("caption")
       return Array.from(places) as AttrRole[]
     },
+    rolesForAttribute(attrID: string) {
+      const roles: AttrRole[] = []
+      self._attributeDescriptions.forEach((desc, role) => {
+        if (desc?.attributeID === attrID) {
+          roles.push(role as AttrRole)
+        }
+      })
+      return roles
+    }
   }))
   .actions(self => ({
     clearFilteredCases() {
@@ -373,6 +383,13 @@ export const DataConfigurationModel = types
       },
     }))
   .actions(self => ({
+    afterCreate() {
+      addDisposer(self, reaction(
+        () => JSON.stringify(self.attributeDescriptionForRole("legend")),
+        () => self.invalidateQuantileScale(),
+        { name: "DataConfigurationModel.afterCreate.reaction [legend attribute]" }
+      ))
+    },
     /**
      * This is called when the user swaps categories in the legend, but not when the user swaps categories
      * by dragging categories on an axis.
@@ -486,9 +503,6 @@ export const DataConfigurationModel = types
     },
     _setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       this._updateFilteredCasesCollectionID()
-      if (role === 'legend') {
-        self.invalidateQuantileScale()
-      }
     },
     _setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self.filteredCases?.forEach((aFilteredCases) => {
