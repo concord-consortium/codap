@@ -68,6 +68,7 @@ jobs:
           record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
           # only do parallel if we have a record key
           parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
+          browser: chrome
         env:
           # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

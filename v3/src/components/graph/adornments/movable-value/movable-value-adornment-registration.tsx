@@ -43,7 +43,7 @@ const Controls = () => {
           <MenuButton isActive={isOpen} as={Button} size="xs" w="120px" data-testid="adornment-button-movable-value">
             Movable Value
           </MenuButton>
-          <MenuList>
+          <MenuList data-testid="adornment-button-movable-value-list">
             <MenuItem onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add">
               Add
             </MenuItem>
