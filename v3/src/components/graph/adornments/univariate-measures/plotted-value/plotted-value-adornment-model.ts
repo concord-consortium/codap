@@ -10,7 +10,7 @@ export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
     type: types.optional(types.literal(kPlottedValueType), kPlottedValueType),
     formula: types.optional(Formula, () => Formula.create()),
     labelTitle: types.optional(types.literal(kPlottedValueValueTitleKey), kPlottedValueValueTitleKey),
-    error: types.optional(types.string, "")
+    error: ""
   })
   .views(self => ({
     get expression() {
