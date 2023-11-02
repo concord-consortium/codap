@@ -20,9 +20,12 @@ $deleteButton: #4B8ADD;
     background-color: $codap-tool-shelf-gray;
 
     .tool-shelf-button {
+      &.undo-button, &.redo-button {
+        width: 34px;
+      }
       // separate undo/redo buttons from other buttons
       &.redo-button {
-        margin-left: -8px;
+        margin-left: -1px;
         margin-right: 12px;
       }
 
@@ -52,10 +55,18 @@ $deleteButton: #4B8ADD;
       justify-items: center;
       align-items: center;
       margin: 10px 3px 0 3px;
-      &:active {
-        box-shadow: 2px 2px 2px 0px rgb(0, 0, 0, 0.5) !important
-      }
 
+      &:disabled {
+        opacity: 0.5;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+      &:hover:not(:disabled) {
+        box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.5) !important;
+      }
+      &:active:not(:disabled) {
+        box-shadow: 2px 2px 2px rgb(0, 0, 0, 0.5) !important;
+      }
       .tool-shelf-tool-label {
         font-family: "museo-sans", sans-serif;
         font-size: 11px;

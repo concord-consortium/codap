@@ -147,7 +147,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
         {rightButtons.map(entry => {
           const { className, icon, label, hint } = entry
           return <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
-                    background="#ececec" onClick={() => handleRightButtonClick(entry)} />
+                    disabled={entry.isDisabled?.()} background="#ececec"
+                    onClick={() => handleRightButtonClick(entry)} />
         })}
       </Flex>
     </Flex>
