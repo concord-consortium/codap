@@ -2,7 +2,7 @@ import { reaction } from "mobx"
 import {Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
-import {GraphDataConfigurationModel} from "./graph-data-configuration-model"
+import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
 
 const TreeModel = types.model("Tree", {
   data: DataSet,
@@ -42,6 +42,7 @@ describe("DataConfigurationModel", () => {
     expect(config.tipAttributes).toEqual([])
     expect(config.uniqueTipAttributes).toEqual([])
     expect(config.caseDataArray).toEqual([])
+    expect(isGraphDataConfigurationModel(config)).toBe(true)
   })
 
   it("behaves as expected with empty/case plot", () => {
@@ -75,6 +76,8 @@ describe("DataConfigurationModel", () => {
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBe("categorical")
     expect(config.attributeType("caption")).toBe("categorical")
+    expect(config.rolesForAttribute("nId")).toEqual(["x"])
+    expect(config.categoricalAttrCount).toBe(1)
     expect(config.places).toEqual(["x", "caption"])
     expect(config.attributes).toEqual(["nId", "nId"])
     expect(config.uniqueAttributes).toEqual(["nId"])
@@ -97,6 +100,7 @@ describe("DataConfigurationModel", () => {
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBe("numeric")
     expect(config.attributeType("caption")).toBe("categorical")
+    expect(config.rolesForAttribute("xId")).toEqual(["x"])
     expect(config.places).toEqual(["x", "caption"])
     expect(config.attributes).toEqual(["xId", "nId"])
     expect(config.uniqueAttributes).toEqual(["xId", "nId"])
@@ -122,6 +126,8 @@ describe("DataConfigurationModel", () => {
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBe("numeric")
     expect(config.attributeType("y")).toBe("numeric")
+    expect(config.rolesForAttribute("xId")).toEqual(["x"])
+    expect(config.rolesForAttribute("yId")).toEqual(["y"])
     expect(config.attributeType("caption")).toBe("categorical")
     expect(config.places).toEqual(["x", "caption", "y"])
     expect(config.attributes).toEqual(["xId", "nId", "yId"])
@@ -132,8 +138,22 @@ describe("DataConfigurationModel", () => {
       {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: "c1"}])
 
+    // behaves as expected after adding "x" as an additional y attribute
+    config.addYAttribute({ attributeID: "xId" })
+    expect(config.attributeID("y")).toBe("yId")
+    expect(config.yAttributeIDs).toEqual(["yId", "xId"])
+    config.removeAttributeFromRole("yPlus", "xId")
+    expect(config.yAttributeIDs).toEqual(["yId"])
+
+    // behaves as expected after adding "x" as right y attribute
+    config.setY2Attribute({ attributeID: "xId" })
+    expect(config.attributeID("y")).toBe("yId")
+    expect(config.yAttributeIDs).toEqual(["yId", "xId"])
+    config.removeAttributeFromRole("rightNumeric", "xId")
+    expect(config.yAttributeIDs).toEqual(["yId"])
+
     // behaves as expected after removing x-axis attribute
-    config.setAttribute("x")
+    config.removeAttributeFromRole("x", "xId")
     expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBeUndefined()
     expect(config.attributeID("y")).toBe("yId")

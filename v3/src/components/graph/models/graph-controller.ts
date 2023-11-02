@@ -100,12 +100,14 @@ export class GraphController {
 
   handleAttributeAssignment(graphPlace: GraphPlace, dataSetID: string, attrID: string) {
     const {graphModel, layout} = this,
-      dataset = getDataSetFromId(graphModel, dataSetID),
-      dataConfig = graphModel?.dataConfiguration
+      dataConfig = graphModel?.dataConfiguration,
+      dataset = getDataSetFromId(graphModel, dataSetID) ?? dataConfig?.dataset
     if (!(graphModel && layout && dataConfig)) {
       return
     }
     this.callMatchCirclesToData()
+    this.attrConfigForInitGraph = dataConfig?.attributeDescriptionsStr
+
     if (['plot', 'legend'].includes(graphPlace)) {
       // Since there is no axis associated with the legend and the plotType will not change, we bail
       return
