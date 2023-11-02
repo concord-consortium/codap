@@ -9,7 +9,8 @@ export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
   .props({
     type: types.optional(types.literal(kPlottedValueType), kPlottedValueType),
     formula: types.optional(Formula, () => Formula.create()),
-    labelTitle: types.optional(types.literal(kPlottedValueValueTitleKey), kPlottedValueValueTitleKey)
+    labelTitle: types.optional(types.literal(kPlottedValueValueTitleKey), kPlottedValueValueTitleKey),
+    error: ""
   })
   .views(self => ({
     get expression() {
@@ -19,6 +20,9 @@ export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
   .actions(self => ({
     setExpression(expression: string) {
       self.formula.setDisplayFormula(expression)
+    },
+    setError(error: string) {
+      self.error = error
     },
     updateCategories() {
       // Overwrite the super method to do... nothing. GraphContentModel and adornments have their own way of observing

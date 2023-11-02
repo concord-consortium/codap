@@ -3,6 +3,7 @@
   border: none;
   color: #000;
   display: flex;
+  flex-direction: column;
   font: 12px "MuseoSans-500", sans-serif;
   left: 0;
   min-height: 22px;
@@ -12,6 +13,12 @@
   text-align: left;
   top: 0;
   width: 100%;
+  overflow: clip;
+
+  .plotted-value-control-row {
+    display: flex;
+    width: 100%;
+  }
 
   .plotted-value-control-label {
     background: gray;
@@ -20,12 +27,16 @@
     padding: 1px 3px 3px;
     width: 54px;
   }
-  .plotted-value-control-value {
+  .plotted-value-control-value, .plotted-value-error {
     background: #fff;
     cursor: text;
     flex: 1;
     height: 100%;
     min-height: 22px;
     padding: 1px 3px 3px;
+  }
+  .plotted-value-error {
+    background: rgb(254, 224, 228);
+    width: 100%;
   }
 }

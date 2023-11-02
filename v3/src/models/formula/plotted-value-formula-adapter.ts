@@ -47,9 +47,26 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
     this.graphContentModels.delete(graphContentModelId)
   }
 
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
+  getGraphContentModel(extraMetadata: IPlottedValueFormulaExtraMetadata) {
     const { graphContentModelId } = extraMetadata
     const graphContentModel = this.graphContentModels.get(graphContentModelId)
+    if (!graphContentModel) {
+      throw new Error(`GraphContentModel with id "${graphContentModelId}" not found`)
+    }
+    return graphContentModel
+  }
+
+  getAdornment(extraMetadata: IPlottedValueFormulaExtraMetadata) {
+    const graphContentModel = this.getGraphContentModel(extraMetadata)
+    const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)
+    if (!adornment || !isPlottedValueAdornment(adornment)) {
+      throw new Error(`Adornment of type "${kPlottedValueType}" not found`)
+    }
+    return adornment
+  }
+
+  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
+    const graphContentModel = this.getGraphContentModel(extraMetadata)
     const dispose = onAnyAction(graphContentModel, mstAction => {
       if (mstAction.name === "setAttributeID") {
         this.recalculateFormula(formulaContext, extraMetadata)
@@ -77,15 +94,10 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   }
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
-    const { graphContentModelId } = extraMetadata
-    const graphContentModel = this.graphContentModels.get(graphContentModelId)
-    if (!graphContentModel) {
-      throw new Error(`GraphContentModel with id "${graphContentModelId}" not found`)
-    }
-    const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)
-    if (!adornment || !isPlottedValueAdornment(adornment)) {
-      throw new Error(`Adornment of type "${kPlottedValueType}" not found`)
-    }
+    const graphContentModel = this.getGraphContentModel(extraMetadata)
+    const adornment = this.getAdornment(extraMetadata)
+    // Clear any previous error first.
+    this.setFormulaError(formulaContext, extraMetadata, "")
     // This code is mostly copied from UnivariateMeasureAdornmentModel.updateCategories.
     // TODO: Is there a way to share it somehow?
     const options = graphContentModel.getUpdateCategoriesOptions()
@@ -116,7 +128,6 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   computeFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata,
     childMostCases: ICase[]) {
     const { formula, dataSet } = formulaContext
-
     if (DEBUG_FORMULAS) {
       // eslint-disable-next-line no-console
       console.log(`[plotted value formula] recalculate "${formula.canonical}"`)
@@ -138,8 +149,8 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   }
 
   setFormulaError(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata, errorMsg: string) {
-    // TODO
-    console.error(errorMsg)
+    const adornment = this.getAdornment(extraMetadata)
+    adornment.setError(errorMsg)
   }
 
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: any) {

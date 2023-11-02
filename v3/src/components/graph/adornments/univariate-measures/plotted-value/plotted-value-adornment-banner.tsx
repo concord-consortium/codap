@@ -14,7 +14,7 @@ interface IProps {
 
 export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornmentBanner({ model }: IProps) {
   const graphModel = useGraphContentModelContext()
-  const expression = model.expression
+  const { expression, error } = model
   const formulaModal = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
@@ -44,12 +44,15 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
         data-testid="plotted-value-control"
         onClick={handleEditExpressionOpen}
       >
-        <div className="plotted-value-control-label" data-testid="plotted-value-control-label">
-          { t("DG.PlottedValue.formulaPrompt") }
+        <div className="plotted-value-control-row">
+          <div className="plotted-value-control-label" data-testid="plotted-value-control-label">
+            { t("DG.PlottedValue.formulaPrompt") }
+          </div>
+          <div className="plotted-value-control-value" data-testid="plotted-value-control-value">
+            {expression}
+          </div>
         </div>
-        <div className="plotted-value-control-value" data-testid="plotted-value-control-value">
-          {expression}
-        </div>
+        { error && <div className="plotted-value-error" data-testid="plotted-value-error">{error}</div> }
       </Button>
       { modalIsOpen &&
         <EditFormulaModal isOpen={formulaModal.isOpen} currentValue={expression} onClose={handleEditExpressionClose} />
