@@ -59,6 +59,7 @@ $deleteButton: #4B8ADD;
       &:disabled {
         opacity: 0.5;
         box-shadow: none;
+        cursor: not-allowed;
       }
       &:hover:not(:disabled) {
         box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.5) !important;
