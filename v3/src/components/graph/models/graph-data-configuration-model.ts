@@ -2,7 +2,6 @@ import {getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
-import {ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {typedId} from "../../../utilities/js-utils"
 import {graphPlaceToAttrRole} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
@@ -380,21 +379,25 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     }
   })
-  .actions(self => ({
-    setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
-      self._setDataset(dataset, metadata)
-      if (dataset && self.filteredCases) {
-        // make sure there are enough filteredCases to hold all the y attributes
-        while (self.filteredCases.length < self._yAttributeDescriptions.length) {
-          self._addNewFilteredCases()
-        }
-        // A y2 attribute is optional, so only add a new filteredCases if there is one.
-        if (self.hasY2Attribute) {
-          self._addNewFilteredCases()
+  .actions(self => {
+    const baseHandleDataSetChange = self.handleDataSetChange
+    return {
+      handleDataSetChange(data?: IDataSet) {
+        baseHandleDataSetChange(data)
+        if (data) {
+          // make sure there are enough filteredCases to hold all the y attributes
+          while (self.filteredCases.length < self._yAttributeDescriptions.length) {
+            self._addNewFilteredCases()
+          }
+          // A y2 attribute is optional, so only add a new filteredCases if there is one.
+          if (self.hasY2Attribute) {
+            self._addNewFilteredCases()
+          }
         }
       }
-      self.invalidateQuantileScale()
-    },
+    }
+  })
+  .actions(self => ({
     setPrimaryRole(role: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
         self.primaryRole = role

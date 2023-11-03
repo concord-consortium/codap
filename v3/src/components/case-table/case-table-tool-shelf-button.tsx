@@ -151,9 +151,10 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
     setModalOpen(false)
     onClose()
     if (dataSetId) {
-      manager?.removeSharedModel(dataSetId)
-      gDataBroker.removeDataSet(dataSetId)
-      getFormulaManager(document)?.removeDataSet(dataSetId)
+      document.applyUndoableAction(() => {
+        manager?.removeSharedModel(dataSetId)
+        getFormulaManager(document)?.removeDataSet(dataSetId)
+      }, "V3.Undo.caseTable.delete", "V3.Redo.caseTable.delete")
     }
   }
 

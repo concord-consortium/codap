@@ -98,6 +98,20 @@ export class GraphController {
     }
   }
 
+  clearGraph() {
+    const {graphModel} = this
+    graphModel?.setPlotType("casePlot")
+    AxisPlaces.forEach(place => {
+      if (["left", "bottom"].includes(place)) {
+        graphModel?.setAxis(place, EmptyAxisModel.create({ place }))
+      }
+      else {
+        graphModel?.removeAxis(place)
+      }
+    })
+    graphModel?.dataConfiguration.clearAttributes()
+  }
+
   handleAttributeAssignment(graphPlace: GraphPlace, dataSetID: string, attrID: string) {
     const {graphModel, layout} = this,
       dataConfig = graphModel?.dataConfiguration,
