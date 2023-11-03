@@ -353,6 +353,10 @@ describe("getDisplayNameMap", () => {
       }
     })
   })
+
+  // it("respects order of name sources", () => {
+  //   // TODO
+  // })
 })
 
 describe("getCanonicalNameMap", () => {

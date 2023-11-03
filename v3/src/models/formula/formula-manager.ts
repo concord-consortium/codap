@@ -2,7 +2,7 @@ import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { ICase } from "../data/data-set-types"
 import {
-  getFormulaDependencies, formulaError, getDisplayNameMap, getCanonicalNameMap
+  getFormulaDependencies, formulaError, getDisplayNameMap, getCanonicalNameMap, displayToCanonical
 } from "./formula-utils"
 import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
@@ -28,6 +28,7 @@ export interface IFormulaMetadata {
 export interface IFormulaExtraMetadata {
   dataSetId: string
   attributeId?: string
+  defaultArgument?: string
 }
 
 export interface IFormulaContext {
@@ -45,11 +46,10 @@ export interface IFormulaAdapterApi {
 export interface IFormulaManagerAdapter {
   type: string
   getAllFormulas: () => ({ formula: IFormula, extraMetadata?: any })[]
-  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any,
-    casesToRecalculateDesc?: CaseList) => void
-  setupFormulaObservers: (formulaContext: IFormulaContext, extraMetadata: any) => () => void
-  getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => undefined | string
+  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
   setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
+  getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => undefined | string
+  setupFormulaObservers?: (formulaContext: IFormulaContext, extraMetadata: any) => () => void
 }
 
 export class FormulaManager {
@@ -246,12 +246,13 @@ export class FormulaManager {
     const formulaContext = this.getFormulaContext(formulaId)
     const formulaMetadata = this.getFormulaMetadata(formulaId)
     const extraMetadata = this.getExtraMetadata(formulaId)
-    const { formula, adapter } = formulaMetadata
     const { dataSet } = formulaContext
+    const { formula, adapter } = formulaMetadata
+    const { defaultArgument } = extraMetadata
     if (formula.empty) {
       return
     }
-    const dependencies = getFormulaDependencies(formula.canonical, extraMetadata.attributeId)
+    const dependencies = getFormulaDependencies(formula.canonical, extraMetadata.attributeId, defaultArgument)
 
     const recalculate = (casesToRecalculate: CaseList) => {
       this.recalculateFormula(formulaId, casesToRecalculate)
@@ -274,7 +275,7 @@ export class FormulaManager {
     const disposeGlobalValueObservers = observeGlobalValues(dependencies, this.globalValueManager, recalculate)
     const disposeLookupObservers = observeLookupDependencies(dependencies, this.dataSets, recalculate)
     const disposeNameChangeObservers = observeSymbolNameChanges(this.dataSets, this.globalValueManager, updateDisplay)
-    const disposeAdapterSpecificObservers = adapter.setupFormulaObservers(formulaContext, extraMetadata)
+    const disposeAdapterSpecificObservers = adapter.setupFormulaObservers?.(formulaContext, extraMetadata)
 
     this.formulaMetadata.set(formulaId, {
       ...formulaMetadata,
@@ -283,7 +284,7 @@ export class FormulaManager {
         disposeGlobalValueObservers()
         disposeLookupObservers()
         disposeNameChangeObservers()
-        disposeAdapterSpecificObservers()
+        disposeAdapterSpecificObservers?.()
       },
     })
   }

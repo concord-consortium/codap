@@ -5,6 +5,7 @@ import { UNDEF_RESULT, evaluateNode, isValueTruthy } from "./function-utils"
 
 export const semiAggregateFunctions = {
   next: {
+    numOfRequiredArguments: 1,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
@@ -68,6 +69,7 @@ export const semiAggregateFunctions = {
 
   // prev(expression, defaultValue, filter)
   prev: {
+    numOfRequiredArguments: 1,
     // Circular reference might be used to define a formula that calculates the cumulative value, e.g.:
     // `CumulativeValue` attribute formula: `Value + prev(CumulativeValue, 0)`
     selfReferenceAllowed: true,
