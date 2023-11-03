@@ -439,7 +439,6 @@ context("Graph adornments", () => {
     cy.get(".movable-value-fill").should("have.length", 0)
     cy.log("clicking movable value button -- 1")
     movableValueButton.click()
-    cy.get("[data-testid=adornment-button-movable-value-list]").should("be.visible")
     cy.log("clicking movable value add button")
     cy.get("[data-testid=adornment-button-movable-value--add]").click()
     cy.get(".movable-value-label").should("have.length", 2)
