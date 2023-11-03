@@ -11,14 +11,14 @@ import { semiAggregateFunctions } from './semi-aggregate-functions'
 export const math = create(all)
 
 // Each aggregate function needs to be evaluated with `withAggregateContext` method.
-const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRawFunc => {
+export const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRawFunc => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     // withAggregateContext returns result of the callback function
     return scope.withAggregateContext(() => fn(args, mathjs, scope))
   }
 }
 
-const evaluateRawWithDefaultArgument = (fn: EvaluateRawFunc, numOfRequiredArguments: number): EvaluateRawFunc => {
+export const evaluateRawWithDefaultArg = (fn: EvaluateRawFunc, numOfRequiredArguments: number): EvaluateRawFunc => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     if (scope.defaultArgumentNode && args.length < numOfRequiredArguments) {
       return fn([...args, scope.defaultArgumentNode], mathjs, scope)
@@ -27,7 +27,7 @@ const evaluateRawWithDefaultArgument = (fn: EvaluateRawFunc, numOfRequiredArgume
   }
 }
 
-const evaluateToEvaluateRaw = (fn: EvaluateFunc): EvaluateRawFunc => {
+export const evaluateToEvaluateRaw = (fn: EvaluateFunc): EvaluateRawFunc => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     return fn(...(args.map(arg => evaluateNode(arg, scope))))
   }
@@ -75,7 +75,7 @@ Object.keys(typedFnRegistry).forEach((key) => {
     evaluateRaw = fn.cachedEvaluateFactory(key, evaluateRaw)
   }
   if (fn.numOfRequiredArguments > 0) {
-    evaluateRaw = evaluateRawWithDefaultArgument(evaluateRaw, fn.numOfRequiredArguments)
+    evaluateRaw = evaluateRawWithDefaultArg(evaluateRaw, fn.numOfRequiredArguments)
   }
 
   // MathJS expects rawArgs property to be set on the evaluate function

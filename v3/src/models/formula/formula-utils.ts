@@ -1,7 +1,7 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import {
   LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
-  isNonFunctionSymbolNode, isCanonicalName, rmCanonicalPrefix, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID
+  isNonFunctionSymbolNode, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, isCanonicalName, rmCanonicalPrefix
 } from "./formula-types"
 import { typedFnRegistry } from "./functions/math"
 import t from "../../utilities/translation/translate"
@@ -54,7 +54,6 @@ export const safeSymbolNameFromDisplayFormula = (name: string) =>
   // Replace escaped backslash and backticks in user-generated string with a single character, so they're not replaced
   // by two underscores by safeSymbolName.
   safeSymbolName(unescapeBacktickString(name))
-
 
 export const makeDisplayNamesSafe = (formula: string) => {
   // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,

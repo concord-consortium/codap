@@ -1,9 +1,7 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { ICase } from "../data/data-set-types"
-import {
-  getFormulaDependencies, formulaError, getDisplayNameMap, getCanonicalNameMap, displayToCanonical
-} from "./formula-utils"
+import { getFormulaDependencies, formulaError, getDisplayNameMap, getCanonicalNameMap } from "./formula-utils"
 import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"

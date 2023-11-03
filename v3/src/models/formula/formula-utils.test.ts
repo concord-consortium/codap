@@ -1,8 +1,13 @@
-import { CANONICAL_NAME, DisplayNameMap, GLOBAL_VALUE, LOCAL_ATTR } from "./formula-types"
+import { DataSet } from "../data/data-set"
+import { GlobalValueManager } from "../global/global-value-manager"
+import {
+  CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, DisplayNameMap, GLOBAL_VALUE, LOCAL_ATTR, isCanonicalName
+} from "./formula-types"
 import {
   safeSymbolName, customizeDisplayFormula, reverseDisplayNameMap, canonicalToDisplay, makeDisplayNamesSafe,
   displayToCanonical, unescapeBacktickString, escapeBacktickString, safeSymbolNameFromDisplayFormula,
-  parseBasicCanonicalName, formulaIndexOf, getDisplayNameMap, getCanonicalNameMap
+  parseBasicCanonicalName, formulaIndexOf, getDisplayNameMap, getCanonicalNameMap, localAttrIdToCanonical,
+  globalValueIdToCanonical, idToCanonical
 } from "./formula-utils"
 import { getFormulaTestEnv } from "./test-utils/formula-test-utils"
 
@@ -354,9 +359,53 @@ describe("getDisplayNameMap", () => {
     })
   })
 
-  // it("respects order of name sources", () => {
-  //   // TODO
-  // })
+  describe("when there are local attributes or globals with the name 'caseIndex'", () => {
+    it("resolves 'caseIndex' to a special value (special value take precedence over anything else)", () => {
+      const dataSet = DataSet.create({
+        id: "dataSet",
+        name: "dataSet",
+        attributes: [
+          { id: "DATA_SET_ATTR_ID", name: "caseIndex" },
+        ]
+      })
+      const nameMap = getDisplayNameMap({
+        localDataSet: dataSet,
+        dataSets: new Map([[dataSet.id, dataSet]]),
+        globalValueManager: GlobalValueManager.create({
+          globals: {
+            GLOBAL_VAL_ID: { id: "GLOBAL_VAL_ID", name: "caseIndex", _value: 1 },
+          }
+        })
+      })
+      expect(nameMap.localNames).toEqual({
+        caseIndex: localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
+      })
+    })
+  })
+
+  describe("when a local attribute and a global value have the same name", () => {
+    it("resolves this name to the local attribute (local attributes take precedence over global values)", () => {
+      const dataSet = DataSet.create({
+        id: "dataSet",
+        name: "dataSet",
+        attributes: [
+          { id: "DATA_SET_ATTR_ID", name: "fooBar" },
+        ]
+      })
+      const nameMap = getDisplayNameMap({
+        localDataSet: dataSet,
+        dataSets: new Map([[dataSet.id, dataSet]]),
+        globalValueManager: GlobalValueManager.create({
+          globals: {
+            GLOBAL_VAL_ID: { id: "GLOBAL_VAL_ID", name: "fooBar", _value: 1 },
+          }
+        })
+      })
+      expect(nameMap.localNames).toEqual(expect.objectContaining({
+        fooBar: localAttrIdToCanonical("DATA_SET_ATTR_ID")
+      }))
+    })
+  })
 })
 
 describe("getCanonicalNameMap", () => {
@@ -402,5 +451,23 @@ describe("getCanonicalNameMap", () => {
       __CANONICAL_NAME__ATTRz6jOChMIwbTW: 'PadColor',
       __CANONICAL_NAME__ATTRPDkNH9bz51th: 'Tail_Body_Ratio'
     })
+  })
+})
+
+describe("localAttrIdToCanonical", () => {
+  it("returns a string that is recognized parseBasicCanonicalName as a local attribute dependency", () => {
+    expect(parseBasicCanonicalName(localAttrIdToCanonical("foo"))).toEqual({ type: "localAttribute", attrId: "foo" })
+  })
+})
+
+describe("globalValueIdToCanonical", () => {
+  it("returns a string that is recognized parseBasicCanonicalName as a global value dependency", () => {
+    expect(parseBasicCanonicalName(globalValueIdToCanonical("foo"))).toEqual({ type: "globalValue", globalId: "foo" })
+  })
+})
+
+describe("idToCanonical", () => {
+  it("returns a string that is recognized as a canonical name", () => {
+    expect(isCanonicalName(idToCanonical("foo"))).toBe(true)
   })
 })
