@@ -360,7 +360,7 @@ describe("getDisplayNameMap", () => {
   })
 
   describe("when there are local attributes or globals with the name 'caseIndex'", () => {
-    it("resolves 'caseIndex' to a special value (special value take precedence over anything else)", () => {
+    it("resolves 'caseIndex' to a special value (special value takes precedence over anything else)", () => {
       const dataSet = DataSet.create({
         id: "dataSet",
         name: "dataSet",
