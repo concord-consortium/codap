@@ -138,11 +138,9 @@ export class FormulaManager {
   registerAllFormulas() {
     reaction(() => {
       // Observe all the formulas
-      const result: Record<string, string> = {}
-      this.getAllFormulas().forEach(({ formula }) => {
-        result[formula.id] = formula.display
-      })
-      return result
+      return this.getAllFormulas().map(({ formula, extraMetadata }) => (
+        { id: formula.id, formula: formula.display, extraMetadata }
+      ))
     }, () => {
       this.unregisterDeletedFormulas()
       // Register formulas. For simplicity, we unregister all formulas and register them again when canonical form is
@@ -152,7 +150,13 @@ export class FormulaManager {
       this.adapters.forEach(adapter => {
         adapter.getAllFormulas().forEach(({ formula, extraMetadata }) => {
           const metadata = this.formulaMetadata.get(formula.id)
-          if (!metadata || metadata.registeredDisplay !== formula.display) {
+          const prevExtraMetadata = this.extraMetadata.get(formula.id)
+          // Formula is considered to be updated by user when its display form changes, or when its extra metadata
+          // is updated (e.g. default argument might have changed and the formula needs to be re-registered and
+          // re-calculated).
+          const isFormulaUpdated = !metadata || metadata.registeredDisplay !== formula.display ||
+            !comparer.structural(prevExtraMetadata, extraMetadata)
+          if (isFormulaUpdated) {
             this.unregisterFormula(formula.id)
             this.registerFormula(formula, adapter, extraMetadata)
             formula.updateCanonicalFormula()
