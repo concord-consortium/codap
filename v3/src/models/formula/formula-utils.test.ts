@@ -455,7 +455,7 @@ describe("getCanonicalNameMap", () => {
 })
 
 describe("localAttrIdToCanonical", () => {
-  it("returns a string that is recognized parseBasicCanonicalName as a local attribute dependency", () => {
+  it("returns a string that is recognized by parseBasicCanonicalName as a local attribute dependency", () => {
     expect(parseBasicCanonicalName(localAttrIdToCanonical("foo"))).toEqual({ type: "localAttribute", attrId: "foo" })
   })
 })
