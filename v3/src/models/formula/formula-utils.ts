@@ -97,7 +97,7 @@ export const getDisplayNameMap = (options: IDisplayNameMapOptions, useSafeSymbol
     nonEmptyName(_useSafeSymbolNames ? safeSymbolName(name) : name)
 
   // When localNames are generated, the order of processing various sources of names is important.
-  // The last last source would provide the final canonical name for the symbol. So, currently the global values
+  // The last source would provide the final canonical name for the symbol. So, currently the global values
   // have the lowest priority, then local attributes, and finally the reserved symbols like `caseIndex`.
   globalValueManager?.globals.forEach(global => {
     displayNameMap.localNames[key(global.name)] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
