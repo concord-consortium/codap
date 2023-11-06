@@ -461,7 +461,7 @@ describe("localAttrIdToCanonical", () => {
 })
 
 describe("globalValueIdToCanonical", () => {
-  it("returns a string that is recognized parseBasicCanonicalName as a global value dependency", () => {
+  it("returns a string that is recognized by parseBasicCanonicalName as a global value dependency", () => {
     expect(parseBasicCanonicalName(globalValueIdToCanonical("foo"))).toEqual({ type: "globalValue", globalId: "foo" })
   })
 })
