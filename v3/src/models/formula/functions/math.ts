@@ -38,13 +38,15 @@ export const fnRegistry = {
   // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
   // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
   equal: {
+    isOperator: true,
     numOfRequiredArguments: 2,
-    evaluate: equal
+    evaluateOperator: equal
   },
 
   unequal: {
+    isOperator: true,
     numOfRequiredArguments: 2,
-    evaluate: (a: any, b: any) => !equal(a, b)
+    evaluateOperator: (a: any, b: any) => !equal(a, b)
   },
 
   ...arithmeticFunctions,
@@ -64,24 +66,25 @@ export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
 Object.keys(typedFnRegistry).forEach((key) => {
   const fn = typedFnRegistry[key]
   let evaluateRaw = fn.evaluateRaw || (fn.evaluate && evaluateToEvaluateRaw(fn.evaluate))
-  if (!evaluateRaw) {
-    throw new Error("evaluateRaw or evaluate function must be defined")
+  if (!fn.isOperator && !evaluateRaw) {
+    throw new Error("evaluateRaw or evaluate function must be defined for non-operator functions")
   }
-  if (fn.isAggregate) {
-    evaluateRaw = evaluateRawWithAggregateContext(evaluateRaw)
+  if (evaluateRaw) {
+    if (fn.isAggregate) {
+      evaluateRaw = evaluateRawWithAggregateContext(evaluateRaw)
+    }
+    if (fn.cachedEvaluateFactory) {
+      // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
+      evaluateRaw = fn.cachedEvaluateFactory(key, evaluateRaw)
+    }
+    if (fn.numOfRequiredArguments > 0) {
+      evaluateRaw = evaluateRawWithDefaultArg(evaluateRaw, fn.numOfRequiredArguments)
+    }
+    // MathJS expects rawArgs property to be set on the evaluate function
+    (evaluateRaw as any).rawArgs = true
   }
-  if (fn.cachedEvaluateFactory) {
-    // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
-    evaluateRaw = fn.cachedEvaluateFactory(key, evaluateRaw)
-  }
-  if (fn.numOfRequiredArguments > 0) {
-    evaluateRaw = evaluateRawWithDefaultArg(evaluateRaw, fn.numOfRequiredArguments)
-  }
-
-  // MathJS expects rawArgs property to be set on the evaluate function
-  (evaluateRaw as any).rawArgs = true
   math.import({
-    [key]: evaluateRaw
+    [key]: evaluateRaw || fn.evaluateOperator
   }, {
     override: true // override functions already defined by mathjs
   })
