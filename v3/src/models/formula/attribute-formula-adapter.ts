@@ -216,7 +216,8 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
   }
 
   setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {
-    return observeDatasetHierarchyChanges(this.api.getDatasets(), (casesToRecalculate?: CaseList) => {
+    const { dataSet } = formulaContext
+    return observeDatasetHierarchyChanges(dataSet, (casesToRecalculate?: CaseList) => {
       this.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
     })
   }
