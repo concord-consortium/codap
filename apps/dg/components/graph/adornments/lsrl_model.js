@@ -62,6 +62,18 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
         });
       },
 
+      computeSumSquaresResiduals: function() {
+        var tSumSquaresResiduals = 0,
+            tSlope = this.get('slope'),
+            tIntercept = this.get('intercept');
+        this.getCoordinates().forEach(function (iCoordinates) {
+          var tLineY = tIntercept + tSlope * iCoordinates.x,
+              tResid = iCoordinates.y - tLineY;
+          tSumSquaresResiduals += tResid * tResid;
+        });
+        this.setIfChanged('sumSquaresResiduals', tSumSquaresResiduals);
+      },
+
       /**
        We compute the slope and intercept of the lsrl for the displayed points
        */
@@ -87,6 +99,7 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
           this.setIfChanged('seSlope', tSeSlope);
           this.setIfChanged('isVertical', !isFinite(tSlopeIntercept.slope));
           this.setIfChanged('xIntercept', null);
+          this.computeSumSquaresResiduals();
         this.endPropertyChanges();
       },
 
