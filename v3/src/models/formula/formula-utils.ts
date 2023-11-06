@@ -335,7 +335,7 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
           result.push(dependency)
         }
       }
-      // When default argument is provided and the function has less arguments than required, we need to visit the
+      // When default argument is provided and the function has fewer arguments than required, we need to visit the
       // the default arg node so it can become a dependency.
       if (defaultArgNode && functionInfo.numOfRequiredArguments > node.args.length) {
         visitNode(defaultArgNode, "", node)
