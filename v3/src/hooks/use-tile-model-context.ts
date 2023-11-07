@@ -11,5 +11,9 @@ export const useTileModelContext = () => {
     return uiState.isFocusedTile(tile?.id)
   }, [tile])
 
-  return { tile, isTileSelected }
+  const selectTile = useCallback(function selectTile() {
+    uiState.setFocusedTile(tile?.id)
+  }, [tile])
+
+  return { tile, isTileSelected, selectTile }
 }
