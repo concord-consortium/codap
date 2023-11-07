@@ -55,42 +55,52 @@ export const numericFnFactory = (fn: (value: number) => number) => {
 
 export const arithmeticFunctions = {
   abs: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.abs)
   },
 
   ceil: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.ceil)
   },
 
   combinations: {
+    numOfRequiredArguments: 2,
     evaluate: numericMultiArgsFnFactory(combinations, { numOfRequiredArgs: 2 })
   },
 
   exp: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.exp)
   },
 
   floor: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.floor)
   },
 
   frac: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory((v: number) => v - Math.trunc(v))
   },
 
   ln: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.log)
   },
 
   log: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.log10)
   },
 
   pow: {
+    numOfRequiredArguments: 2,
     evaluate: numericMultiArgsFnFactory(Math.pow, { numOfRequiredArgs: 2 })
   },
 
   round: {
+    numOfRequiredArguments: 1,
     evaluate: numericMultiArgsFnFactory((num: number, digits = 0): number => {
       // It works correctly for negative digits value too.
       const factor = 10 ** digits
@@ -99,10 +109,12 @@ export const arithmeticFunctions = {
   },
 
   sqrt: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.sqrt)
   },
 
   trunc: {
+    numOfRequiredArguments: 1,
     evaluate: numericFnFactory(Math.trunc)
   },
 }

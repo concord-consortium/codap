@@ -1,7 +1,7 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import {
   LOCAL_ATTR, GLOBAL_VALUE, DisplayNameMap, CanonicalNameMap, IFormulaDependency, isConstantStringNode,
-  isNonFunctionSymbolNode, isCanonicalName, rmCanonicalPrefix, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID
+  isNonFunctionSymbolNode, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, isCanonicalName, rmCanonicalPrefix
 } from "./formula-types"
 import { typedFnRegistry } from "./functions/math"
 import t from "../../utilities/translation/translate"
@@ -55,7 +55,6 @@ export const safeSymbolNameFromDisplayFormula = (name: string) =>
   // by two underscores by safeSymbolName.
   safeSymbolName(unescapeBacktickString(name))
 
-
 export const makeDisplayNamesSafe = (formula: string) => {
   // Names between `` are symbols that require special processing, as otherwise they could not be parsed by Mathjs,
   // eg. names with spaces or names that start with a number. Also, it's necessary to ignore escaped backticks.
@@ -70,6 +69,12 @@ export const customizeDisplayFormula = (formula: string) => {
 }
 
 export const preprocessDisplayFormula = (formula: string) => customizeDisplayFormula(makeDisplayNamesSafe(formula))
+
+export const localAttrIdToCanonical = (attrId: string) => `${CANONICAL_NAME}${LOCAL_ATTR}${attrId}`
+
+export const globalValueIdToCanonical = (globalId: string) => `${CANONICAL_NAME}${GLOBAL_VALUE}${globalId}`
+
+export const idToCanonical = (id: string) => `${CANONICAL_NAME}${id}`
 
 export interface IDisplayNameMapOptions {
   localDataSet: IDataSet
@@ -88,36 +93,37 @@ export const getDisplayNameMap = (options: IDisplayNameMapOptions, useSafeSymbol
 
   const nonEmptyName = (name: string) => name || "_empty_symbol_name_"
 
-  const mapAttributeNames = (dataSet: IDataSet, localPrefix: string, _useSafeSymbolNames: boolean) => {
-    const result: Record<string, string> = {}
-    dataSet.attributes.forEach(attr => {
-      const key = nonEmptyName(_useSafeSymbolNames ? safeSymbolName(attr.name) : attr.name)
-      result[key] = `${CANONICAL_NAME}${localPrefix}${attr.id}`
-    })
-    return result
-  }
+  const key = (name: string, _useSafeSymbolNames = useSafeSymbolNames) =>
+    nonEmptyName(_useSafeSymbolNames ? safeSymbolName(name) : name)
 
-  displayNameMap.localNames = {
-    ...mapAttributeNames(localDataSet, LOCAL_ATTR, useSafeSymbolNames),
-    // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
-    // that returns the current, 1-based index of the case in its collection group.
-    caseIndex: `${CANONICAL_NAME}${LOCAL_ATTR}${CASE_INDEX_FAKE_ATTR_ID}`
-  }
-
+  // When localNames are generated, the order of processing various sources of names is important.
+  // The last source would provide the final canonical name for the symbol. So, currently the global values
+  // have the lowest priority, then local attributes, and finally the reserved symbols like `caseIndex`.
   globalValueManager?.globals.forEach(global => {
-    const key = nonEmptyName(useSafeSymbolNames ? safeSymbolName(global.name) : global.name)
-    displayNameMap.localNames[key] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
+    displayNameMap.localNames[key(global.name)] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
   })
+
+  localDataSet.attributes.forEach(attr => {
+    displayNameMap.localNames[key(attr.name)] = localAttrIdToCanonical(attr.id)
+  })
+
+  // caseIndex is a special name supported by formulas. It essentially behaves like a local data set attribute
+  // that returns the current, 1-based index of the case in its collection group.
+  displayNameMap.localNames.caseIndex = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
 
   dataSets.forEach(dataSet => {
     if (dataSet.name) {
-      displayNameMap.dataSet[nonEmptyName(dataSet.name)] = {
-        id: `${CANONICAL_NAME}${dataSet.id}`,
-        // No prefix is necessary for external attributes. They always need to be resolved manually by custom
-        // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
-        // are string constants, not a symbols, so MathJS will not care about special characters there.
-        attribute: mapAttributeNames(dataSet, "", false)
+      // No LOCAL_ATTR prefix is necessary for external attributes. They always need to be resolved manually by custom
+      // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
+      // are string constants, not a symbols, so MathJS will not care about special characters there.
+      const dataSetKey = key(dataSet.name, false)
+      displayNameMap.dataSet[dataSetKey] = {
+        id: idToCanonical(dataSet.id),
+        attribute: {}
       }
+      dataSet.attributes.forEach(attr => {
+        displayNameMap.dataSet[dataSetKey].attribute[key(attr.name, false)] = idToCanonical(attr.id)
+      })
     }
   })
 
@@ -277,13 +283,14 @@ export const isRandomFunctionPresent = (formulaCanonical: string) => {
 
 // When formulaAttributeId is provided, dependencies will not include self references for functions that allow that.
 // In practice, it's only prev() at the moment. Self-reference is sometimes used in V2 to calculate cumulative value.
-export const getFormulaDependencies = (formulaCanonical: string, formulaAttributeId?: string) => {
+// defaultArg should be in a canonical form too.
+export const getFormulaDependencies = (formulaCanonical: string, formulaAttributeId?: string, defaultArg?: string) => {
   const formulaTree = parse(formulaCanonical)
-
   interface IExtendedMathNode extends MathNode {
     isDescendantOfAggregateFunc?: boolean
     isSelfReferenceAllowed?: boolean
   }
+  const defaultArgNode = defaultArg ? parse(defaultArg) : undefined
   const result: IFormulaDependency[] = []
   const visitNode = (node: IExtendedMathNode, path: string, parent: IExtendedMathNode) => {
     if (isFunctionNode(node) && typedFnRegistry[node.fn.name]?.isAggregate || parent?.isDescendantOfAggregateFunc) {
@@ -317,12 +324,21 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
         result.push(dependency)
       }
     }
-    // Some functions have special kind of dependencies that need to be calculated in a custom way
-    // (eg. lookupByIndex, lookupByKey).
-    if (isFunctionNode(node) && typedFnRegistry[node.fn.name]) {
-      const dependency = typedFnRegistry[node.fn.name].getDependency?.(node.args)
-      if (dependency) {
-        result.push(dependency)
+
+    const functionInfo = isFunctionNode(node) && typedFnRegistry[node.fn.name]
+    if (functionInfo) {
+      // Some functions have special kind of dependencies that need to be calculated in a custom way
+      // (eg. lookupByIndex, lookupByKey).
+      if (functionInfo.getDependency) {
+        const dependency = functionInfo.getDependency(node.args)
+        if (dependency) {
+          result.push(dependency)
+        }
+      }
+      // When default argument is provided and the function has fewer arguments than required, we need to visit the
+      // the default arg node so it can become a dependency.
+      if (defaultArgNode && functionInfo.numOfRequiredArguments > node.args.length) {
+        visitNode(defaultArgNode, "", node)
       }
     }
   }

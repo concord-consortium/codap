@@ -10,6 +10,7 @@ type LookupStringConstantArg = ConstantNode<string> | undefined
 export const lookupFunctions = {
   // lookupByIndex("dataSetName", "attributeName", index)
   lookupByIndex: {
+    numOfRequiredArguments: 3,
     getDependency: (args: MathNode[]): ILookupDependency => {
       const [dataSetNameArg, attrNameArg] = args as LookupStringConstantArg[]
       return {
@@ -31,8 +32,9 @@ export const lookupFunctions = {
     },
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const functionName = "lookupByIndex"
-      if (args.length !== 3) {
-        throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, 3 ] }))
+      const numOfReqArgs = lookupFunctions.lookupByIndex.numOfRequiredArguments
+      if (args.length !== numOfReqArgs) {
+        throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, numOfReqArgs ] }))
       }
       [0, 1].forEach(i => {
         if (!isConstantStringNode(args[i])) {
@@ -54,6 +56,7 @@ export const lookupFunctions = {
 
   // lookupByKey("dataSetName", "attributeName", "keyAttributeName", "keyAttributeValue" | localKeyAttribute)
   lookupByKey: {
+    numOfRequiredArguments: 4,
     getDependency: (args: MathNode[]): Required<ILookupDependency> => {
       const [dataSetNameArg, attrNameArg, keyAttrNameArg] = args as LookupStringConstantArg[]
       return {
@@ -80,8 +83,9 @@ export const lookupFunctions = {
     },
     evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
       const functionName = "lookupByKey"
-      if (args.length !== 4) {
-        throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, 4 ] }))
+      const numOfReqArgs = lookupFunctions.lookupByKey.numOfRequiredArguments
+      if (args.length !== numOfReqArgs) {
+        throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, numOfReqArgs ] }))
       }
       [0, 1, 2].forEach(i => {
         if (!isConstantStringNode(args[i])) {

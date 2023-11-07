@@ -36,6 +36,7 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => FValue) => {
 export const aggregateFunctions = {
   // mean(expression, filterExpression)
   mean: {
+    numOfRequiredArguments: 1,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: aggregateFnWithFilterFactory(mean)
@@ -43,6 +44,7 @@ export const aggregateFunctions = {
 
   // median(expression, filterExpression)
   median: {
+    numOfRequiredArguments: 1,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: aggregateFnWithFilterFactory(median)
@@ -50,6 +52,7 @@ export const aggregateFunctions = {
 
   // mad(expression, filterExpression)
   mad: {
+    numOfRequiredArguments: 1,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: aggregateFnWithFilterFactory(mad)
@@ -57,6 +60,7 @@ export const aggregateFunctions = {
 
   // max(expression, filterExpression)
   max: {
+    numOfRequiredArguments: 1,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: aggregateFnWithFilterFactory(max)
@@ -64,6 +68,7 @@ export const aggregateFunctions = {
 
   // min(expression, filterExpression)
   min: {
+    numOfRequiredArguments: 1,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: aggregateFnWithFilterFactory(min)
@@ -71,6 +76,7 @@ export const aggregateFunctions = {
 
   // sum(expression, filterExpression)
   sum: {
+    numOfRequiredArguments: 1,
     isAggregate: true,
     cachedEvaluateFactory: cachedAggregateFnFactory,
     evaluateRaw: aggregateFnWithFilterFactory(sum)
@@ -78,6 +84,7 @@ export const aggregateFunctions = {
 
   // count(expression, filterExpression)
   count: {
+    numOfRequiredArguments: 0,
     isAggregate: true,
     // Note that count is untypical aggregate function that cannot use typical caching. When count() is called without
     // arguments, the default caching method would calculate incorrect cache key. Hence, caching is implemented directly

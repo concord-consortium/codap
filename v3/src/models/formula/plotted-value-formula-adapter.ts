@@ -1,13 +1,12 @@
 import { makeObservable, observable } from "mobx"
 import { ICase } from "../data/data-set-types"
-import { formulaError } from "./formula-utils"
+import { formulaError, localAttrIdToCanonical } from "./formula-utils"
 import { IFormula } from "./formula"
 import { math } from "./functions/math"
 import type {
   IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "./formula-manager"
 import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
-import { onAnyAction } from "../../utilities/mst-utils"
 import {
   isPlottedValueAdornment
 } from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-model"
@@ -65,19 +64,14 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
     return adornment
   }
 
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
-    const graphContentModel = this.getGraphContentModel(extraMetadata)
-    const dispose = onAnyAction(graphContentModel, mstAction => {
-      if (mstAction.name === "setAttributeID") {
-        this.recalculateFormula(formulaContext, extraMetadata)
-      }
-    })
-    return dispose
-  }
-
   getAllFormulas(): ({ formula: IFormula, extraMetadata?: IPlottedValueFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IPlottedValueFormulaExtraMetadata })[] = []
     this.graphContentModels.forEach(graphContentModel => {
+      const options = graphContentModel.getUpdateCategoriesOptions()
+      const { xAttrId, yAttrId, dataConfig } = options
+      const xAttrType = dataConfig?.attributeType("x")
+      const defaultArgumentId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      const defaultArgument = defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
       graphContentModel.adornments.forEach(adornment => {
         if (graphContentModel.dataset && isPlottedValueAdornment(adornment)) {
           result.push({
@@ -85,6 +79,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
             extraMetadata: {
               graphContentModelId: graphContentModel.id,
               dataSetId: graphContentModel.dataset.id,
+              defaultArgument
             }
           })
         }
@@ -96,6 +91,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
     const graphContentModel = this.getGraphContentModel(extraMetadata)
     const adornment = this.getAdornment(extraMetadata)
+    const { defaultArgument } = extraMetadata
     // Clear any previous error first.
     this.setFormulaError(formulaContext, extraMetadata, "")
     // This code is mostly copied from UnivariateMeasureAdornmentModel.updateCategories.
@@ -110,13 +106,11 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
     const columnCount = topCatCount * xCatCount
     const rowCount = rightCatCount * yCatCount
     const totalCount = rowCount * columnCount
-    // TODO: use it as a default argument while working on this feature?
-    // const attrId = dataConfig.primaryAttributeID
     for (let i = 0; i < totalCount; ++i) {
       const cellKey = adornment.cellKey(options, i)
       const instanceKey = adornment.instanceKey(cellKey)
       const cases = dataConfig.subPlotCases(cellKey)
-      const value = Number(this.computeFormula(formulaContext, extraMetadata, cases))
+      const value = Number(this.computeFormula(formulaContext, extraMetadata, cases, defaultArgument))
       if (!adornment.measures.get(instanceKey) || resetPoints) {
         adornment.addMeasure(value, instanceKey)
       } else {
@@ -126,7 +120,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   }
 
   computeFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata,
-    childMostCases: ICase[]) {
+    childMostCases: ICase[], defaultArgument?: string) {
     const { formula, dataSet } = formulaContext
     if (DEBUG_FORMULAS) {
       // eslint-disable-next-line no-console
@@ -138,6 +132,7 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
       dataSets: this.api.getDatasets(),
       globalValueManager: this.api.getGlobalValueManager(),
       childMostCollectionCaseIds: childMostCases.map(c => c.__id__),
+      defaultArgument
     })
 
     try {

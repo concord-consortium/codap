@@ -61,7 +61,11 @@ export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMath
 export type CaseList = ICase[] | "ALL_CASES"
 
 export interface IFormulaMathjsFunction {
+  // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
+  numOfRequiredArguments: number
   rawArgs?: boolean
+  // Value of isOperator is a boolean. When true, it means that the function is an operator.
+  isOperator?: boolean
   // Value of isAggregate is a boolean. When true, it means that all the arguments of the function should be resolved
   // to all cases of the attribute, not just the current case.
   isAggregate?: boolean
@@ -80,6 +84,9 @@ export interface IFormulaMathjsFunction {
   // `evaluateRaw` function accepts raw arguments following convention defined by mathjs.
   // This lets us enable custom processing of arguments, caching, etc.
   evaluateRaw?: EvaluateRawFunc
+  // Custom operator overrides need to use `evaluateOperator` function instead of `evaluate` or `evaluateRaw`.
+  // MathJS evaluates operators differently than functions, so we need to handle them separately.
+  evaluateOperator?: EvaluateFunc
   canonicalize?: (args: MathNode[], displayNameMap: DisplayNameMap) => void
   getDependency?: (args: MathNode[]) => IFormulaDependency
   cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateRawFunc) => EvaluateRawFunc

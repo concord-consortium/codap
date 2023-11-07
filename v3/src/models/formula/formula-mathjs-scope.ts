@@ -1,3 +1,4 @@
+import { MathNode, parse } from "mathjs"
 import {
   FValue, CASE_INDEX_FAKE_ATTR_ID, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY, CANONICAL_NAME
 } from "./formula-types"
@@ -22,6 +23,7 @@ export interface IFormulaMathjsScopeContext {
   childMostAggregateCollectionIndex?: number
   caseGroupId?: Record<string, string>
   caseChildrenCount?: Record<string, number>
+  defaultArgument?: string
 }
 
 // Official MathJS docs don't describe custom scopes in great detail, but there's a good example in their repo:
@@ -38,6 +40,7 @@ export class FormulaMathJsScope {
   // `previousResults` is used for calculating self-referencing, recursive functions like prev(), e.g.:
   // [CumulativeValue attribute formula]: "prev(CumulativeValue, 0) + Value"
   previousResults: FValue[] = []
+  defaultArgumentNode?: MathNode
 
   get caseId() {
     if (!this.context.caseIds) {
@@ -48,6 +51,7 @@ export class FormulaMathJsScope {
 
   constructor (context: IFormulaMathjsScopeContext) {
     this.context = context
+    this.defaultArgumentNode = context.defaultArgument ? parse(context.defaultArgument) : undefined
     this.initDataStorage(context)
   }
 
