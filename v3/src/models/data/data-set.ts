@@ -289,6 +289,77 @@ export const DataSet = types.model("DataSet", {
             (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
   }
 
+  // TODO: Cleanup. This is a copy of setCaseValues just to make it available in this scope.
+  function setCaseValues(caseValues: ICase) {
+    const index = self.caseIDMap[caseValues.__id__]
+    if (index == null) { return }
+    for (const key in caseValues) {
+      if (key !== "__id__") {
+        const attribute = self.attrIDMap[key]
+        if (attribute) {
+          const value = caseValues[key]
+          attribute.setValue(index, value != null ? value : undefined)
+        }
+      }
+    }
+  }
+
+  // TODO: Cleanup. This is a slightly modified version of getCasesForCollection:
+  // _collectionGroups used instead of self.collectionGroups
+  // _childCases used instead of self.childCases()
+  function getCasesForCollection(collectionId?: string) {
+    if (collectionId && getCollection(collectionId)) {
+      // TODO: self.collectionGroups (?)
+      for (let i = _collectionGroups.get().length - 1; i >= 0; --i) {
+        const collectionGroup = _collectionGroups.get()[i]
+        if (!isAlive(collectionGroup.collection)) {
+          console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
+        }
+        else if (collectionGroup.collection.id === collectionId) {
+          return collectionGroup.groups.map(group => group.pseudoCase)
+        }
+      }
+    }
+    // TODO: self.childCases() (?)
+    return _childCases
+  }
+
+  // TODO: Cleanup. This is a slightly modified version of setCaseValues.
+  // Cases are obtained within the function instead of passed in, and case values are set to "" empty string.
+  // No before, after, undo-redo support, and invalidation of the collection groups.
+  function resetCaseValues(attributeId?: string, collectionId?: string) {
+    const ungroupedCases: ICase[] = []
+    const cases = getCasesForCollection(collectionId).map(aCase => ({ ...aCase, [attributeId || ""]: "" }))
+    // convert each pseudo-case change to a change to each underlying case
+    cases.forEach(aCase => {
+      const caseGroup = self.pseudoCaseMap[aCase.__id__]
+      if (caseGroup) {
+        ungroupedCases.push(...caseGroup.childCaseIds.map(id => ({ ...aCase, __id__: id })))
+      }
+    })
+    const _cases = ungroupedCases.length > 0
+      ? ungroupedCases
+      : cases
+    if (self.isCaching) {
+      // update the cases in the cache
+      _cases.forEach(aCase => {
+        const cached = self.caseCache.get(aCase.__id__)
+        if (!cached) {
+          self.caseCache.set(aCase.__id__, { ...aCase })
+        }
+        else {
+          Object.assign(cached, aCase)
+        }
+      })
+    }
+    else {
+      _cases.forEach((caseValues) => {
+        setCaseValues(caseValues)
+      })
+    }
+    // TODO: No undo/redo support, no collectionGroup invalidation (?)
+  }
+
   return {
     views: {
       // get real collection from id (ungrouped collection is not considered to be a real collection)
@@ -464,6 +535,12 @@ export const DataSet = types.model("DataSet", {
         const newCollection = options?.collection ? getGroupedCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
+          if (!attribute.formula.empty) {
+            // If the attribute has a formula, we need to reset all the calculated values to blank values, so they
+            // are not taken into account while calculating case grouping. After the grouping is done, the formula will
+            // be re-evaluated and the values will be updated to the correct values again.
+            resetCaseValues(attributeId, oldCollection?.id)
+          }
           if (isCollectionModel(oldCollection)) {
             // remove it from previous collection (if any)
             if (oldCollection?.attributes.length > 1) {
