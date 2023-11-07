@@ -13,8 +13,6 @@
   To enable mutability, we move the values into `volatile` storage at creation time and then
   move it back to its `frozen` location for serialization. For this to work, clients must
   call the `preSerialize()` and `postSerialize()` functions before and after serialization.
-  Luckily, this sleight-of-hand is not necessary in production and the `preSerialize()` and
-  `postSerialize()` are no-ops in that case.
 
   Like Fathom and and CODAP 2, we need to be able to store heterogeneous values, e.g. strings,
   numbers, boolean values, eventually possibly things like image URLs, etc. Unlike those prior
