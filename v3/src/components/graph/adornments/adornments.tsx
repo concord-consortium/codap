@@ -11,6 +11,7 @@ import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { useGraphDataConfigurationContext } from "../hooks/use-data-configuration-context"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
+import { updateCellKey } from "./adornment-utils"
 
 import "./adornments.scss"
 
@@ -35,23 +36,6 @@ export const Adornments = observer(function Adornments() {
         <BannerComponent key={componentInfo.type} model={adornment} />
     )
   })
-
-  // The cellKey is an object that contains the attribute IDs and categorical values for the
-  // current graph cell. It's used to uniquely identify that cell. Since it's possible to have the
-  // same attribute on two axes or splits, we need to make sure the cellKey is unique. So if an
-  // attribute is on more than one axis or split, we set the value of that attribute's ID to 
-  // "__IMPOSSIBLE__" instead of overwriting the key's value because it's impossible for a single
-  // case to have two different values for the same attribute.
-  const updateCellKey = (cellKey: Record<string, string>, attrId: string, cat: string) => {
-    const newCellKey = { ...cellKey }
-    if (cat) {
-      const propertyAlreadyPresent = Object.keys(newCellKey).includes(attrId)
-      newCellKey[attrId] = propertyAlreadyPresent && newCellKey[attrId] !== cat
-        ? "__IMPOSSIBLE__"
-        : cat
-    }
-    return newCellKey
-  }
 
   const xAttrId = dataConfig?.attributeID("x"),
     xAttrType = dataConfig?.attributeType("x"),
@@ -96,6 +80,8 @@ export const Adornments = observer(function Adornments() {
       const adornmentNodes = []
       for (let yIndex = 0; yIndex < yCats.length; yIndex++) {
         for (let xIndex = 0; xIndex < xCats.length; xIndex++) {
+          // The cellKey is an object that contains the attribute IDs and categorical values for the
+          // current graph cell. It's used to uniquely identify that cell.
           let cellKey: Record<string, string> = {}
           if (topAttrId) {
             cellKey = updateCellKey(cellKey, topAttrId, topCats[topIndex])

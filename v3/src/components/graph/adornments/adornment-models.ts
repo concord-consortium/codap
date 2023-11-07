@@ -9,6 +9,7 @@ import {Point} from "../../data-display/data-display-types"
 import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
 import { IAxisLayout } from "../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
+import { updateCellKey } from "./adornment-utils"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -81,38 +82,23 @@ export const AdornmentModel = types.model("AdornmentModel", {
     },
     cellKey(options: IUpdateCategoriesOptions, index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
-      const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
       const yCatCount = yCats.length || 1
       const xCatCount = xCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const cellKey: Record<string, string> = {}
+      let cellKey: Record<string, string> = {}
 
       // Determine which categories are associated with the cell's axes using the provided index value and
-      // the attributes and categories present in the graph.      
-      const topIndex = xCatCount > 0
-        ? Math.floor(index / xCatCount) % topCatCount
-        : index % topCatCount
+      // the attributes and categories present in the graph.
+      const topIndex = Math.floor(index / (rightCatCount * yCatCount * xCatCount))
       const topCat = topCats[topIndex]
-      const rightIndex = topCatCount > 0 && yCatCount > 1
-        ? Math.floor(index / (topCatCount * yCatCount)) % rightCatCount
-        : yCatCount > 0
-          ? Math.floor(index / yCatCount) % rightCatCount
-          : index % rightCatCount
+      cellKey = updateCellKey(cellKey, topAttrId, topCat)
+      const rightIndex = Math.floor(index / (yCatCount * xCatCount)) % rightCatCount
       const rightCat = rightCats[rightIndex]
-      const yCat = topCats.length > 0
-        ? yCats[Math.floor(index / columnCount) % yCatCount]
-        : yCats[index % yCats.length]
-      const xCat = rightCats.length > 0
-        ? xCats[Math.floor(index / rowCount) % xCatCount]
-        : xCats[index % xCats.length]
-
-      // Assign the categories determined above to the associated properties of the cellKey object.
-      if (topAttrId) cellKey[topAttrId] = topCat
-      if (rightAttrId) cellKey[rightAttrId] = rightCat
-      if (yAttrId && yCats[0]) cellKey[yAttrId] = yCat
-      if (xAttrId && xCats[0]) cellKey[xAttrId] = xCat
+      cellKey = updateCellKey(cellKey, rightAttrId, rightCat)
+      const yCat = yCats[index % yCatCount]
+      cellKey = updateCellKey(cellKey, yAttrId, yCat)
+      const xCat = xCats[index % xCatCount]
+      cellKey = updateCellKey(cellKey, xAttrId, xCat)
 
       return cellKey
     }
