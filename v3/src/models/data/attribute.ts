@@ -100,6 +100,9 @@ export const Attribute = types.model("Attribute", {
   get numericCount() {
     self.changeCount  // eslint-disable-line no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
+  },
+  get shouldSerializeValues() {
+    return self.formula.empty
   }
 }))
 .actions(self => ({
@@ -125,16 +128,30 @@ export const Attribute = types.model("Attribute", {
   },
   // should be called before retrieving snapshot (i.e. before serialization)
   prepareSnapshot() {
-    if (isDevelopment()) {
+    if (isDevelopment() && self.shouldSerializeValues) {
+      // In development, values is undefined (see .afterCreate()). If the attribute values should be serialized
+      // (no formula), we need to temporarily update it to the current values.
       withoutUndo({ suppressWarning: true })
       self.values = [...self.strValues]
+    }
+    if (!isDevelopment() && !self.shouldSerializeValues) {
+      // In development, values is set to the volatile strValues (see .afterCreate()). If the attribute values should
+      // NOT be serialized (non-empty formula) we need to temporarily set it to undefined.
+      withoutUndo({ suppressWarning: true })
+      self.values = undefined
     }
   },
   // should be called after retrieving snapshot (i.e. after serialization)
   completeSnapshot() {
-    if (isDevelopment()) {
+    if (isDevelopment() && self.shouldSerializeValues) {
+      // values should be set back to undefined in development mode.
       withoutUndo({ suppressWarning: true })
       self.values = undefined
+    }
+    if (!isDevelopment() && !self.shouldSerializeValues) {
+      // values should be set back to the volatile strValues in production mode.
+      withoutUndo({ suppressWarning: true })
+      self.values = self.strValues
     }
   }
 }))
@@ -192,10 +209,11 @@ export const Attribute = types.model("Attribute", {
     self.editable = editable
   },
   clearFormula() {
-    self.formula.setDisplayFormula("")
+    this.setDisplayFormula("")
   },
   setDisplayFormula(displayFormula: string) {
     self.formula.setDisplayFormula(displayFormula)
+    this.setEditable(displayFormula === "")
   },
   addValue(value: IValueType = "", beforeIndex?: number) {
     const strValue = self.importValue(value)
