@@ -140,7 +140,7 @@ export const observeSymbolNameChanges = (dataSets: Map<string, IDataSet>,
   }
 }
 
-export const observeDatasetHierarchyChanges = (dataSet:IDataSet,
+export const observeDatasetHierarchyChanges = (dataSet: IDataSet,
   recalculateCallback: (casesToRecalculate?: CaseList) => void) => {
   // When any collection is added or removed, or attribute is moved between collections,
   // we need to recalculate the formula.
