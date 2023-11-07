@@ -1,5 +1,5 @@
 import { applySnapshot, getSnapshot, SnapshotIn, types } from "mobx-state-tree"
-import { GraphContentModel, IGraphContentModelSnapshot, createGraphContentModel } from "./graph-content-model"
+import { GraphContentModel, createGraphContentModel } from "./graph-content-model"
 import { GraphController } from "./graph-controller"
 import { GraphLayout } from "./graph-layout"
 import { DataSet } from "../../../models/data/data-set"
@@ -51,19 +51,19 @@ describe("GraphController", () => {
 
   function setup() {
     const _tree = Tree.create()
-    const { model: graphModel, data: dataSet, metadata: _metadata } = _tree
+    const { model: graphModel, data: dataSet, metadata } = _tree
     mockGetDataSet.mockRestore()
     mockGetDataSet.mockImplementation(() => dataSet)
     mockGetMetadata.mockRestore()
-    mockGetMetadata.mockImplementation(() => _metadata)
+    mockGetMetadata.mockImplementation(() => metadata)
     const layout = new GraphLayout()
     const graphController = new GraphController({ layout, enableAnimation, instanceId })
     const dotsRef = { current: {} } as any
     graphController.setProperties({ graphModel, dotsRef })
-    return { tree: _tree, model: graphModel, controller: graphController, data: dataSet, metadata: _metadata }
+    return { tree: _tree, model: graphModel, controller: graphController, data: dataSet }
   }
 
-  let { tree, model, controller, data, metadata } = setup()
+  let { tree, model, controller, data } = setup()
 
   function getScaleType(place: AxisPlace) {
     return controller.layout.getAxisMultiScale(place).scaleType
@@ -111,7 +111,7 @@ describe("GraphController", () => {
   })
 
   it("handles attribute assignments and deserialization correctly", () => {
-    ({ tree, model, controller, data, metadata } = setup())
+    ({ tree, model, controller, data } = setup())
 
     let matchCirclesCount = 1
 
