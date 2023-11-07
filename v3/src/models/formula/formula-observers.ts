@@ -140,13 +140,12 @@ export const observeSymbolNameChanges = (dataSets: Map<string, IDataSet>,
   }
 }
 
-export const observeDatasetHierarchyChanges = (dataSets: Map<string, IDataSet>,
+export const observeDatasetHierarchyChanges = (dataSet: IDataSet,
   recalculateCallback: (casesToRecalculate?: CaseList) => void) => {
-  const dataSetsArray = Array.from(dataSets.values())
   // When any collection is added or removed, or attribute is moved between collections,
-  // we need to recalculate all formulas.
+  // we need to recalculate the formula.
   const disposeAttrCollectionReaction = reaction(
-    () => dataSetsArray.map(ds => Object.fromEntries(ds.collections.map(c => [ c.id, c.attributes.map(a => a?.id) ]))),
+    () => Object.fromEntries(dataSet.collections.map(c => [ c.id, c.attributes.map(a => a?.id) ])),
     () => recalculateCallback("ALL_CASES"),
     {
       equals: comparer.structural,

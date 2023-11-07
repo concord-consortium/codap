@@ -82,7 +82,8 @@ export class FormulaMathJsScope {
                 cachedGroup[groupId].push(this.getLocalValue(cId, attrId))
               })
             }
-            return cachedGroup[this.getCaseAggregateGroupId()] ?? cachedGroup[NO_PARENT_KEY]
+            // If there are no cases in the group, return empty array.
+            return cachedGroup[this.getCaseAggregateGroupId()] ?? cachedGroup[NO_PARENT_KEY] ?? []
           }
         }
       })

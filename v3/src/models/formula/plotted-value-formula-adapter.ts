@@ -20,12 +20,53 @@ import {
 
 const PLOTTED_VALUE_FORMULA_ADAPTER = "PlottedValueFormulaAdapter"
 
+type GraphCellKey = Record<string, string>
 interface IPlottedValueFormulaExtraMetadata extends IFormulaExtraMetadata {
   graphContentModelId: string
+  graphCellKeys: GraphCellKey[]
 }
 
 export const getPlottedValueFormulaAdapter = (node?: IAnyStateTreeNode): PlottedValueFormulaAdapter | undefined =>
   getFormulaManager(node)?.adapters.find(a => a.type === PLOTTED_VALUE_FORMULA_ADAPTER) as PlottedValueFormulaAdapter
+
+export const getAdornment = (graphContentModel: IGraphContentModel) => {
+  const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)
+  if (!adornment || !isPlottedValueAdornment(adornment)) {
+    throw new Error(`Adornment of type "${kPlottedValueType}" not found`)
+  }
+  return adornment
+}
+
+export const getDefaultArgument = (graphContentModel: IGraphContentModel) => {
+  const options = graphContentModel.getUpdateCategoriesOptions()
+  const { xAttrId, yAttrId, dataConfig } = options
+  const xAttrType = dataConfig?.attributeType("x")
+  const defaultArgumentId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+  return defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
+}
+
+export const getGraphCellKeys = (graphContentModel: IGraphContentModel) => {
+  // This code is mostly copied from UnivariateMeasureAdornmentModel.updateCategories.
+  // TODO: Is there a way to share it somehow?
+  const options = graphContentModel.getUpdateCategoriesOptions()
+  const { xCats, yCats, topCats, rightCats, dataConfig } = options
+  if (!dataConfig) {
+    return []
+  }
+  const result: GraphCellKey[] = []
+  const adornment = getAdornment(graphContentModel)
+  const topCatCount = topCats.length || 1
+  const rightCatCount = rightCats.length || 1
+  const xCatCount = xCats.length || 1
+  const yCatCount = yCats.length || 1
+  const columnCount = topCatCount * xCatCount
+  const rowCount = rightCatCount * yCatCount
+  const totalCount = rowCount * columnCount
+  for (let i = 0; i < totalCount; ++i) {
+    result.push(adornment.cellKey(options, i))
+  }
+  return result
+}
 
 export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   type = PLOTTED_VALUE_FORMULA_ADAPTER
@@ -57,21 +98,12 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
 
   getAdornment(extraMetadata: IPlottedValueFormulaExtraMetadata) {
     const graphContentModel = this.getGraphContentModel(extraMetadata)
-    const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)
-    if (!adornment || !isPlottedValueAdornment(adornment)) {
-      throw new Error(`Adornment of type "${kPlottedValueType}" not found`)
-    }
-    return adornment
+    return getAdornment(graphContentModel)
   }
 
   getAllFormulas(): ({ formula: IFormula, extraMetadata?: IPlottedValueFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IPlottedValueFormulaExtraMetadata })[] = []
     this.graphContentModels.forEach(graphContentModel => {
-      const options = graphContentModel.getUpdateCategoriesOptions()
-      const { xAttrId, yAttrId, dataConfig } = options
-      const xAttrType = dataConfig?.attributeType("x")
-      const defaultArgumentId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
-      const defaultArgument = defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
       graphContentModel.adornments.forEach(adornment => {
         if (graphContentModel.dataset && isPlottedValueAdornment(adornment)) {
           result.push({
@@ -79,7 +111,8 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
             extraMetadata: {
               graphContentModelId: graphContentModel.id,
               dataSetId: graphContentModel.dataset.id,
-              defaultArgument
+              defaultArgument: getDefaultArgument(graphContentModel),
+              graphCellKeys: getGraphCellKeys(graphContentModel),
             }
           })
         }
@@ -89,34 +122,24 @@ export class PlottedValueFormulaAdapter implements IFormulaManagerAdapter {
   }
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata) {
-    const graphContentModel = this.getGraphContentModel(extraMetadata)
-    const adornment = this.getAdornment(extraMetadata)
-    const { defaultArgument } = extraMetadata
+    const { defaultArgument, graphCellKeys } = extraMetadata
+    const { dataConfig } = this.getGraphContentModel(extraMetadata).getUpdateCategoriesOptions()
+    if (!dataConfig) {
+      return
+    }
     // Clear any previous error first.
     this.setFormulaError(formulaContext, extraMetadata, "")
-    // This code is mostly copied from UnivariateMeasureAdornmentModel.updateCategories.
-    // TODO: Is there a way to share it somehow?
-    const options = graphContentModel.getUpdateCategoriesOptions()
-    const { xCats, yCats, topCats, rightCats, resetPoints, dataConfig } = options
-    if (!dataConfig) return
-    const topCatCount = topCats.length || 1
-    const rightCatCount = rightCats.length || 1
-    const xCatCount = xCats.length || 1
-    const yCatCount = yCats.length || 1
-    const columnCount = topCatCount * xCatCount
-    const rowCount = rightCatCount * yCatCount
-    const totalCount = rowCount * columnCount
-    for (let i = 0; i < totalCount; ++i) {
-      const cellKey = adornment.cellKey(options, i)
+    const adornment = this.getAdornment(extraMetadata)
+    graphCellKeys.forEach(cellKey => {
       const instanceKey = adornment.instanceKey(cellKey)
       const cases = dataConfig.subPlotCases(cellKey)
       const value = Number(this.computeFormula(formulaContext, extraMetadata, cases, defaultArgument))
-      if (!adornment.measures.get(instanceKey) || resetPoints) {
+      if (!adornment.measures.get(instanceKey)) {
         adornment.addMeasure(value, instanceKey)
       } else {
         adornment.updateMeasureValue(value, instanceKey)
       }
-    }
+    })
   }
 
   computeFormula(formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata,

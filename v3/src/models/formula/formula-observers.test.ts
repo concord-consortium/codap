@@ -220,7 +220,7 @@ describe("observeDatasetHierarchyChanges", () => {
     dataSet.addAttribute({ id: "cId", name: "c" })
 
     const hierarchyChangedCallback = jest.fn()
-    const dispose = observeDatasetHierarchyChanges(new Map([["ds1", dataSet]]), hierarchyChangedCallback)
+    const dispose = observeDatasetHierarchyChanges(dataSet, hierarchyChangedCallback)
     dataSet.moveAttributeToNewCollection("aId")
     expect(attributesByCollection(dataSet)).toEqual([["aId"], ["bId", "cId"]])
     expect(hierarchyChangedCallback).toHaveBeenCalledTimes(1)
