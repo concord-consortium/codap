@@ -178,6 +178,7 @@ describe("Attribute", () => {
     expect(attribute.editable).toBe(true)
     attribute.setEditable(false)
     expect(attribute.editable).toBe(false)
+    expect(attribute.isEditable).toBe(false)
   })
 
   test("caching/invalidation of views based on data values works as expected", () => {
@@ -329,14 +330,14 @@ describe("Attribute", () => {
     const attr = Attribute.create({ name: "foo" })
     expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
-    expect(attr.editable).toBe(true)
+    expect(attr.isEditable).toBe(true)
     attr.setDisplayFormula("2 * x")
     expect(attr.formula.display).toBe("2 * x")
-    expect(attr.editable).toBe(false)
+    expect(attr.isEditable).toBe(false)
     attr.clearFormula()
     expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
-    expect(attr.editable).toBe(true)
+    expect(attr.isEditable).toBe(true)
   })
 
   test("Attribute derivation", () => {

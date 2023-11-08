@@ -167,6 +167,9 @@ export const Attribute = types.model("Attribute", {
   get format() {
     return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
   },
+  get isEditable() {
+    return self.editable && self.formula.empty
+  },
   value(index: number) {
     return self.strValues[index]
   },
@@ -211,7 +214,6 @@ export const Attribute = types.model("Attribute", {
   },
   setDisplayFormula(displayFormula: string) {
     self.formula.setDisplayFormula(displayFormula)
-    this.setEditable(displayFormula === "")
   },
   addValue(value: IValueType = "", beforeIndex?: number) {
     const strValue = self.importValue(value)
