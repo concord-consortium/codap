@@ -4,6 +4,7 @@ import {
 } from "@dnd-kit/core"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
+import { useTileModelContext } from "./use-tile-model-context"
 
 // list of draggable types
 const DragTypes = ["attribute", "tile"] as const
@@ -65,9 +66,13 @@ export const useTileDroppable = (
 }
 
 export const useDropHandler = (dropId: string, onDrop: (active: Active) => void) => {
+  const { selectTile } = useTileModelContext()
   useDndMonitor({ onDragEnd: ({ active, over }) => {
     // only call onDrop for the handler that registered it
-    (over?.id === dropId) && onDrop(active)
+    if (over?.id === dropId) {
+      onDrop(active)
+      selectTile()
+    }
   }})
 }
 
