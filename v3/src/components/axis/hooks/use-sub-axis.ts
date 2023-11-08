@@ -57,7 +57,7 @@ export const useSubAxis = ({
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
       if (!isAliveSafe(_axisModel)) {
-        console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model")
+        console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model:", axisPlace)
         return
       }
       const

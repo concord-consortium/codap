@@ -8,8 +8,10 @@
     "V3.summary.startProfiling": "Start Profiling",
     "V3.summary.stopProfiling": "Stop Profiling",
 
-    "V3.Undo.caseTable.create": "Undo adding a table",
-    "V3.Redo.caseTable.create": "Redo adding a table",
+    "V3.Undo.caseTable.create": "Undo adding case table",
+    "V3.Redo.caseTable.create": "Redo adding case table",
+    "V3.Undo.caseTable.delete": "Undo deleting case table",
+    "V3.Redo.caseTable.delete": "Redo deleting case table",
     "V3.Undo.import.data": "Undo import of data",
     "V3.Redo.import.data": "Redo import of data",
 

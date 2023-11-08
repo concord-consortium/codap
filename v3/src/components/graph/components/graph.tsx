@@ -31,6 +31,7 @@ import {Legend} from "./legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
+import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -58,6 +59,21 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     backgroundSvgRef = useRef<SVGGElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
+
+  useEffect(function handleFilteredCasesLengthChange() {
+    return mstReaction(
+      () => graphModel.dataConfiguration.filteredCases.length,
+      length => {
+        // filtered cases become empty when DataSet is deleted, for instance
+        if ((length === 0) && !isUndoingOrRedoing()) {
+          graphController.clearGraph()
+        }
+        else {
+          graphController.callMatchCirclesToData()
+        }
+      }, { name: "Graph.useEffect.handleFilteredCasesLengthChange" }, graphModel
+    )
+  }, [graphController, graphModel])
 
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
@@ -93,7 +109,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         })
       }
     }))
-  })
+  }, [dataset, graphModel])
 
   const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
@@ -128,7 +144,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
       }
     })
     return () => disposer?.()
-  }, [graphController, dataset, layout, enableAnimation, graphModel])
+  }, [graphController, layout, enableAnimation, graphModel])
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
     dataset && graphModel.applyUndoableAction(() => {

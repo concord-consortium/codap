@@ -75,7 +75,7 @@ export class GraphController {
     const {graphModel, dotsRef, layout} = this,
       dataConfig = graphModel?.dataConfiguration
     if (dataConfig && layout && dotsRef?.current &&
-        this.attrConfigForInitGraph !== dataConfig?.attributeDescriptionsStr) {
+        this.attrConfigForInitGraph !== dataConfig.attributeDescriptionsStr) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
         const axisModel = graphModel.getAxis(axisPlace),
           attrRole = axisPlaceToAttrRole[axisPlace]
@@ -94,8 +94,22 @@ export class GraphController {
         }
       })
       this.callMatchCirclesToData()
-      this.attrConfigForInitGraph = dataConfig?.attributeDescriptionsStr
+      this.attrConfigForInitGraph = dataConfig.attributeDescriptionsStr
     }
+  }
+
+  clearGraph() {
+    const {graphModel} = this
+    graphModel?.setPlotType("casePlot")
+    AxisPlaces.forEach(place => {
+      if (["left", "bottom"].includes(place)) {
+        graphModel?.setAxis(place, EmptyAxisModel.create({ place }))
+      }
+      else {
+        graphModel?.removeAxis(place)
+      }
+    })
+    graphModel?.dataConfiguration.clearAttributes()
   }
 
   handleAttributeAssignment(graphPlace: GraphPlace, dataSetID: string, attrID: string) {
@@ -106,7 +120,7 @@ export class GraphController {
       return
     }
     this.callMatchCirclesToData()
-    this.attrConfigForInitGraph = dataConfig?.attributeDescriptionsStr
+    this.attrConfigForInitGraph = dataConfig.attributeDescriptionsStr
 
     if (['plot', 'legend'].includes(graphPlace)) {
       // Since there is no axis associated with the legend and the plotType will not change, we bail
@@ -187,6 +201,6 @@ export class GraphController {
 
     setPrimaryRoleAndPlotType()
     AxisPlaces.forEach(setupAxis)
-    this.attrConfigForInitGraph = dataConfig?.attributeDescriptionsStr
+    this.attrConfigForInitGraph = dataConfig.attributeDescriptionsStr
   }
 }

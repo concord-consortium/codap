@@ -187,7 +187,7 @@ export const DataConfigurationModel = types
     get allCaseIDs() {
       const allCaseIds = new Set<string>()
       // todo: We're bypassing get caseDataArray to avoid infinite recursion. Is it necessary?
-      self.filteredCases?.forEach(aFilteredCases => {
+      self.filteredCases.forEach(aFilteredCases => {
         if (aFilteredCases) {
           aFilteredCases.caseIds.forEach(id => allCaseIds.add(id))
         }
@@ -250,11 +250,9 @@ export const DataConfigurationModel = types
     }))
   .views(self => ({
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
-      return self.filteredCases
-        ? (self.filteredCases[caseArrayNumber]?.caseIds || []).map(id => {
-          return {plotNum: caseArrayNumber, caseID: id}
-        })
-        : []
+      return (self.filteredCases[caseArrayNumber]?.caseIds || []).map(id => {
+        return {plotNum: caseArrayNumber, caseID: id}
+      })
     },
     getCaseDataArray(caseArrayNumber: number) {
       const caseDataArray = this.getUnsortedCaseDataArray(caseArrayNumber),
@@ -383,12 +381,19 @@ export const DataConfigurationModel = types
       },
     }))
   .actions(self => ({
-    afterCreate() {
-      addDisposer(self, reaction(
-        () => JSON.stringify(self.attributeDescriptionForRole("legend")),
-        () => self.invalidateQuantileScale(),
-        { name: "DataConfigurationModel.afterCreate.reaction [legend attribute]" }
-      ))
+    handleDataSetChange(data?: IDataSet) {
+      self.actionHandlerDisposer?.()
+      self.actionHandlerDisposer = undefined
+      self.clearFilteredCases()
+      if (data) {
+        self.actionHandlerDisposer = onAnyAction(data, this.handleAction)
+        self.filteredCases[0] = new FilteredCases({
+          source: data,
+          filter: self.filterCase,
+          collectionID: idOfChildmostCollectionForAttributes(self.attributes, data),
+          onSetCaseValues: this.handleSetCaseValues
+        })
+      }
     },
     /**
      * This is called when the user swaps categories in the legend, but not when the user swaps categories
@@ -485,22 +490,6 @@ export const DataConfigurationModel = types
         self.setPointsNeedUpdating(true)
       }
     },
-    _setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
-      self.actionHandlerDisposer?.()
-      self.actionHandlerDisposer = undefined
-      self.dataset = dataset
-      self.metadata = metadata
-      self.clearFilteredCases()
-      if (dataset) {
-        self.actionHandlerDisposer = onAnyAction(dataset, this.handleAction)
-        self.filteredCases[0] = new FilteredCases({
-          source: dataset,
-          filter: self.filterCase,
-          collectionID: idOfChildmostCollectionForAttributes(self.attributes, dataset),
-          onSetCaseValues: this.handleSetCaseValues
-        })
-      }
-    },
     _setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       this._updateFilteredCasesCollectionID()
     },
@@ -511,8 +500,23 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
+    afterCreate() {
+      // respond to change of dataset
+      addDisposer(self, reaction(
+        () => self.dataset,
+        data => self.handleDataSetChange(data),
+        { name: "DataConfigurationModel.afterCreate.reaction [dataset]" }
+      ))
+      // respond to change of legend attribute
+      addDisposer(self, reaction(
+        () => JSON.stringify(self.attributeDescriptionForRole("legend")),
+        () => self.invalidateQuantileScale(),
+        { name: "DataConfigurationModel.afterCreate.reaction [legend attribute]" }
+      ))
+    },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
-      self._setDataset(dataset, metadata)
+      self.dataset = dataset
+      self.metadata = metadata
     },
     clearAttributes() {
       self._attributeDescriptions.clear()

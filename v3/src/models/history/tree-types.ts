@@ -42,6 +42,7 @@ export function getRunningActionCall() {
 
 // returns true if the specified action is a child of an "undo" or "redo" action
 export function isChildOfUndoRedo(actionCall?: IActionContext) {
+  if (actionCall && ["undo", "redo"].includes(actionCall.name)) return true
   let parentEvent = actionCall?.parentActionEvent
   while (parentEvent) {
     if (["undo", "redo"].includes(parentEvent.name)) return true
