@@ -514,7 +514,7 @@ export const DataConfigurationModel = types
       addDisposer(self, reaction(
         () => self.dataset,
         data => self.handleDataSetChange(data),
-        { name: "DataConfigurationModel.afterCreate.reaction [dataset]" }
+        { name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
       // respond to change of legend attribute
       addDisposer(self, reaction(
