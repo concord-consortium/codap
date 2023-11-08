@@ -256,7 +256,7 @@ export const DataSet = types.model("DataSet", {
   get ungroupedAttributes(): IAttribute[] {
     const grouped = new Set(self.groupedAttributes.map(attr => attr.id))
     return self.attributes.filter(attr => attr && !grouped.has(attr.id))
-  },
+  }
 }))
 .extend(self => {
   // we do our own caching because MST's auto-caching wasn't working as expected
@@ -265,41 +265,8 @@ export const DataSet = types.model("DataSet", {
   let _childCases: IGroupedCase[] = []
   const isValidCollectionGroups = observable.box(false)
 
-  function getGroupedCollection(collectionId: string): ICollectionModel | undefined {
-    return self.collections.find(coll => coll.id === collectionId)
-  }
-
-  function getCollection(collectionId: string): ICollectionPropsModel | undefined {
-    if (!isAlive(self)) {
-      console.warn("DataSet.getCollection called on a defunct DataSet")
-      return
-    }
-    return collectionId === self.ungrouped.id ? self.ungrouped : getGroupedCollection(collectionId)
-  }
-
-  function getCollectionIndex(collectionId: string) {
-    // For consistency, treat ungrouped as the last / child-most collection
-    return collectionId === self.ungrouped.id
-      ? self.collections.length
-      : self.collections.findIndex(coll => coll.id === collectionId)
-  }
-
-  function getCollectionForAttribute(attributeId: string): ICollectionPropsModel | undefined {
-    return self.collections.find(coll => coll.getAttribute(attributeId)) ??
-            (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
-  }
-
   return {
     views: {
-      // get real collection from id (ungrouped collection is not considered to be a real collection)
-      getGroupedCollection,
-      // get collection from id (including ungrouped collection)
-      getCollection,
-      // get index from collection (including ungrouped collection)
-      getCollectionIndex,
-      // get collection from attribute. Ungrouped collection is returned for ungrouped attributes.
-      // undefined => attribute not present in dataset
-      getCollectionForAttribute,
       // leaf-most child cases (i.e. those not grouped in a collection)
       childCases() {
         if (!isValidCollectionGroups.get()) {
@@ -409,13 +376,13 @@ export const DataSet = types.model("DataSet", {
 
         _childCases = []
         const lastCollectionGroup = newCollectionGroups.length
-                                      ? newCollectionGroups[newCollectionGroups.length - 1]
-                                      : undefined
+          ? newCollectionGroups[newCollectionGroups.length - 1]
+          : undefined
         if (lastCollectionGroup) {
           // if there are collections, then child cases are determined by the parents
           lastCollectionGroup?.groups.forEach(group => {
             _childCases.push(...group.childCaseIds.map((caseId, index) =>
-              ({__id__: caseId, [symParent]: group.pseudoCase.__id__, [symIndex]: index })))
+              ({ __id__: caseId, [symParent]: group.pseudoCase.__id__, [symIndex]: index })))
           })
         }
         else {
@@ -445,7 +412,168 @@ export const DataSet = types.model("DataSet", {
     actions: {
       invalidateCollectionGroups() {
         isValidCollectionGroups.set(false)
+      }
+    }
+  }
+})
+.extend(self => {
+  function getGroupedCollection(collectionId: string): ICollectionModel | undefined {
+    return self.collections.find(coll => coll.id === collectionId)
+  }
+
+  function getCollection(collectionId: string): ICollectionPropsModel | undefined {
+    if (!isAlive(self)) {
+      console.warn("DataSet.getCollection called on a defunct DataSet")
+      return
+    }
+    return collectionId === self.ungrouped.id ? self.ungrouped : getGroupedCollection(collectionId)
+  }
+
+  function getCollectionIndex(collectionId: string) {
+    // For consistency, treat ungrouped as the last / child-most collection
+    return collectionId === self.ungrouped.id
+      ? self.collections.length
+      : self.collections.findIndex(coll => coll.id === collectionId)
+  }
+
+  function getCollectionForAttribute(attributeId: string): ICollectionPropsModel | undefined {
+    return self.collections.find(coll => coll.getAttribute(attributeId)) ??
+            (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
+  }
+
+  function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
+    const index = self.caseIDMap[caseID]
+    if (index == null) { return undefined }
+
+    const { canonical = true, numeric = true } = options || {}
+    const aCase: ICase = { __id__: caseID }
+    self.attributes.forEach((attr) => {
+      const key = canonical ? attr.id : attr.name
+      aCase[key] = numeric && attr.isNumeric(index) ? attr.numeric(index) : attr.value(index)
+    })
+    return aCase
+  }
+
+  function getCases(caseIDs: string[], options?: IGetCaseOptions): ICase[] {
+    const cases: ICase[] = []
+    caseIDs.forEach((caseID) => {
+      const aCase = getCase(caseID, options)
+      if (aCase) {
+        cases.push(aCase)
+      }
+    })
+    return cases
+  }
+
+  function setCaseValues(caseValues: ICase) {
+    const index = self.caseIDMap[caseValues.__id__]
+    if (index == null) { return }
+    for (const key in caseValues) {
+      if (key !== "__id__") {
+        const attribute = self.attrIDMap[key]
+        if (attribute) {
+          const value = caseValues[key]
+          attribute.setValue(index, value != null ? value : undefined)
+        }
+      }
+    }
+  }
+
+  function getCaseAtIndex(index: number, options?: IGetCaseOptions) {
+    const aCase = self.cases[index],
+          id = aCase?.__id__
+    return id ? getCase(id, options) : undefined
+  }
+
+  function getCasesForCollection(collectionId?: string) {
+    if (collectionId && getCollection(collectionId)) {
+      for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
+        const collectionGroup = self.collectionGroups[i]
+        if (!isAlive(collectionGroup.collection)) {
+          console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
+        }
+        else if (collectionGroup.collection.id === collectionId) {
+          return collectionGroup.groups.map(group => group.pseudoCase)
+        }
+      }
+    }
+    return self.childCases()
+  }
+
+  return {
+    views: {
+      getCase,
+      getCases,
+      getCaseAtIndex,
+      getCasesAtIndex(start = 0, options?: IGetCasesOptions) {
+        const { count = self.cases.length } = options || {}
+        const endIndex = Math.min(start + count, self.cases.length),
+              cases = []
+        for (let i = start; i < endIndex; ++i) {
+          cases.push(getCaseAtIndex(i, options))
+        }
+        return cases
       },
+      // get real collection from id (ungrouped collection is not considered to be a real collection)
+      getGroupedCollection,
+      // get collection from id (including ungrouped collection)
+      getCollection,
+      // get index from collection (including ungrouped collection)
+      getCollectionIndex,
+      // get collection from attribute. Ungrouped collection is returned for ungrouped attributes.
+      // undefined => attribute not present in dataset
+      getCollectionForAttribute,
+      getCasesForCollection
+    },
+    actions: {
+      // Supports regular cases or pseudo-cases, but not mixing the two.
+      // For pseudo-cases, will set the values of all cases in the group
+      // regardless of whether the attribute is grouped or not.
+      // `affectedAttributes` are not used in the function, but are present as a potential
+      // optimization for responders, as all arguments are available to `onAction` listeners.
+      // For instance, a scatter plot that is dragging many points but affecting only two
+      // attributes can indicate that, which can enable more efficient responses.
+      setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
+        const ungroupedCases: ICase[] = []
+        // convert each pseudo-case change to a change to each underlying case
+        cases.forEach(aCase => {
+          const caseGroup = self.pseudoCaseMap[aCase.__id__]
+          if (caseGroup) {
+            ungroupedCases.push(...caseGroup.childCaseIds.map(id => ({ ...aCase, __id__: id })))
+          }
+        })
+        const _cases = ungroupedCases.length > 0
+                        ? ungroupedCases
+                        : cases
+        const before = getCases(_cases.map(({ __id__ }) => __id__))
+        if (self.isCaching) {
+          // update the cases in the cache
+          _cases.forEach(aCase => {
+            const cached = self.caseCache.get(aCase.__id__)
+            if (!cached) {
+              self.caseCache.set(aCase.__id__, { ...aCase })
+            }
+            else {
+              Object.assign(cached, aCase)
+            }
+          })
+        }
+        else {
+          _cases.forEach((caseValues) => {
+            setCaseValues(caseValues)
+          })
+        }
+        // custom undo/redo since values aren't observed all the way down
+        const after = getCases(_cases.map(({ __id__ }) => __id__))
+        withCustomUndoRedo<ISetCaseValuesCustomPatch>({
+          type: "DataSet.setCaseValues",
+          data: { dataId: self.id, before, after }
+        }, setCaseValuesCustomUndoRedo)
+
+        // only changes to parent collection attributes invalidate grouping
+        ungroupedCases.length && self.invalidateCollectionGroups()
+      },
+
       addCollection(collection: ICollectionModel, beforeCollectionId?: string) {
         const beforeIndex = beforeCollectionId ? getCollectionIndex(beforeCollectionId) : -1
         if (beforeIndex >= 0) {
@@ -454,7 +582,7 @@ export const DataSet = types.model("DataSet", {
         else {
           self.collections.push(collection)
         }
-        this.invalidateCollectionGroups()
+        self.invalidateCollectionGroups()
       },
       removeCollection(collection: ICollectionModel) {
         self.collections.remove(collection)
@@ -464,6 +592,13 @@ export const DataSet = types.model("DataSet", {
         const newCollection = options?.collection ? getGroupedCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
+          if (!attribute.formula.empty) {
+            // If the attribute has a formula, we need to reset all the calculated values to blank values so that they
+            // are not taken into account while calculating case grouping. After the grouping is done, the formula will
+            // be re-evaluated, and the values will be updated to the correct values again.
+            const cases = getCasesForCollection(oldCollection?.id).map(aCase => ({ ...aCase, [attributeId]: "" }))
+            this.setCaseValues(cases)
+          }
           if (isCollectionModel(oldCollection)) {
             // remove it from previous collection (if any)
             if (oldCollection?.attributes.length > 1) {
@@ -492,7 +627,7 @@ export const DataSet = types.model("DataSet", {
               self.collections.splice(self.collections.length - 1, 1)
             }
           }
-          this.invalidateCollectionGroups()
+          self.invalidateCollectionGroups()
         }
       },
       // if beforeCollectionId is not specified, new collection is last (child-most)
@@ -506,20 +641,6 @@ export const DataSet = types.model("DataSet", {
   }
 })
 .views(self => ({
-  getCasesForCollection(collectionId?: string) {
-    if (collectionId && self.getCollection(collectionId)) {
-      for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
-        const collectionGroup = self.collectionGroups[i]
-        if (!isAlive(collectionGroup.collection)) {
-          console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
-        }
-        else if (collectionGroup.collection.id === collectionId) {
-          return collectionGroup.groups.map(group => group.pseudoCase)
-        }
-      }
-    }
-    return self.childCases()
-  },
   getCollectionGroupForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes
     let collectionIndex = -1
@@ -556,36 +677,6 @@ export const DataSet = types.model("DataSet", {
    */
   const attrIDFromName = (name: string) => self.attrNameMap[name]
 
-  function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
-    const index = self.caseIDMap[caseID]
-    if (index == null) { return undefined }
-
-    const { canonical = true, numeric = true } = options || {}
-    const aCase: ICase = { __id__: caseID }
-    self.attributes.forEach((attr) => {
-      const key = canonical ? attr.id : attr.name
-      aCase[key] = numeric && attr.isNumeric(index) ? attr.numeric(index) : attr.value(index)
-    })
-    return aCase
-  }
-
-  function getCases(caseIDs: string[], options?: IGetCaseOptions): ICase[] {
-    const cases: ICase[] = []
-    caseIDs.forEach((caseID) => {
-      const aCase = getCase(caseID, options)
-      if (aCase) {
-        cases.push(aCase)
-      }
-    })
-    return cases
-  }
-
-  function getCaseAtIndex(index: number, options?: IGetCaseOptions) {
-    const aCase = self.cases[index],
-          id = aCase?.__id__
-    return id ? getCase(id, options) : undefined
-  }
-
   function beforeIndexForInsert(index: number, beforeID?: string | string[]) {
     if (!beforeID) { return self.cases.length }
     return Array.isArray(beforeID)
@@ -617,20 +708,6 @@ export const DataSet = types.model("DataSet", {
     self.caseIDMap[self.cases[beforeIndex].__id__] = beforeIndex
   }
 
-  function setCaseValues(caseValues: ICase) {
-    const index = self.caseIDMap[caseValues.__id__]
-    if (index == null) { return }
-    for (const key in caseValues) {
-      if (key !== "__id__") {
-        const attribute = self.attrIDMap[key]
-        if (attribute) {
-          const value = caseValues[key]
-          attribute.setValue(index, value != null ? value : undefined)
-        }
-      }
-    }
-  }
-
   return {
     /*
      * public views
@@ -648,7 +725,7 @@ export const DataSet = types.model("DataSet", {
         return self.caseIDMap[id]
       },
       caseIDFromIndex(index: number) {
-        return getCaseAtIndex(index)?.__id__
+        return self.getCaseAtIndex(index)?.__id__
       },
       nextCaseID(id: string) {
         const index = self.caseIDMap[id],
@@ -715,18 +792,6 @@ export const DataSet = types.model("DataSet", {
         return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
                 ? Number(cachedCase[attributeID])
                 : attr && (index != null) ? attr.numeric(index) : undefined
-      },
-      getCase,
-      getCases,
-      getCaseAtIndex,
-      getCasesAtIndex(start = 0, options?: IGetCasesOptions) {
-        const { count = self.cases.length } = options || {}
-        const endIndex = Math.min(start + count, self.cases.length),
-              cases = []
-        for (let i = start; i < endIndex; ++i) {
-          cases.push(getCaseAtIndex(i, options))
-        }
-        return cases
       },
       isCaseSelected(caseId: string) {
         // a pseudo-case is selected if all of its individual cases are selected
@@ -886,54 +951,6 @@ export const DataSet = types.model("DataSet", {
         })
         // invalidate collectionGroups (including childCases)
         self.invalidateCollectionGroups()
-      },
-
-      // Supports regular cases or pseudo-cases, but not mixing the two.
-      // For pseudo-cases, will set the values of all cases in the group
-      // regardless of whether the attribute is grouped or not.
-      // `affectedAttributes` are not used in the function, but are present as a potential
-      // optimization for responders, as all arguments are available to `onAction` listeners.
-      // For instance, a scatter plot that is dragging many points but affecting only two
-      // attributes can indicate that, which can enable more efficient responses.
-      setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
-        const ungroupedCases: ICase[] = []
-        // convert each pseudo-case change to a change to each underlying case
-        cases.forEach(aCase => {
-          const caseGroup = self.pseudoCaseMap[aCase.__id__]
-          if (caseGroup) {
-            ungroupedCases.push(...caseGroup.childCaseIds.map(id => ({ ...aCase, __id__: id })))
-          }
-        })
-        const _cases = ungroupedCases.length > 0
-                        ? ungroupedCases
-                        : cases
-        const before = getCases(_cases.map(({ __id__ }) => __id__))
-        if (self.isCaching) {
-          // update the cases in the cache
-          _cases.forEach(aCase => {
-            const cached = self.caseCache.get(aCase.__id__)
-            if (!cached) {
-              self.caseCache.set(aCase.__id__, { ...aCase })
-            }
-            else {
-              Object.assign(cached, aCase)
-            }
-          })
-        }
-        else {
-          _cases.forEach((caseValues) => {
-            setCaseValues(caseValues)
-          })
-        }
-        // custom undo/redo since values aren't observed all the way down
-        const after = getCases(_cases.map(({ __id__ }) => __id__))
-        withCustomUndoRedo<ISetCaseValuesCustomPatch>({
-          type: "DataSet.setCaseValues",
-          data: { dataId: self.id, before, after }
-        }, setCaseValuesCustomUndoRedo)
-
-        // only changes to parent collection attributes invalidate grouping
-        ungroupedCases.length && self.invalidateCollectionGroups()
       },
 
       removeCases(caseIDs: string[]) {
