@@ -202,6 +202,43 @@ describe("observeSymbolNameChanges", () => {
     dataSet.attrFromID("attr1").setName("newName2")
     expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
   })
+
+  it("should call nameUpdateCallback when a new symbol becomes available", () => {
+    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const globalValueManager = GlobalValueManager.create()
+    const nameUpdateCallback = jest.fn()
+    const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
+    globalValueManager.addValue(GlobalValue.create({ name: "global2", _value: 0 }))
+    expect(nameUpdateCallback).toHaveBeenCalledTimes(1)
+
+    dataSet.addAttribute({ id: "attr1_id", name: "attr1" })
+    expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
+
+    dispose()
+    globalValueManager.addValue(GlobalValue.create({ name: "global3", _value: 0 }))
+    expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
+  })
+
+  it("should call nameUpdateCallback when a symbol becomes unavailable", () => {
+    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const globalValueManager = GlobalValueManager.create()
+    const globalValue = GlobalValue.create({ name: "global2", _value: 0 })
+    globalValueManager.addValue(globalValue)
+    dataSet.addAttribute({ id: "attr1_id", name: "attr1" })
+    dataSet.addAttribute({ id: "attr2_id", name: "attr2" })
+    const nameUpdateCallback = jest.fn()
+    const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
+    globalValueManager.removeValue(globalValue)
+    expect(nameUpdateCallback).toHaveBeenCalledTimes(1)
+
+    dataSet.removeAttribute("attr1_id")
+    expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
+
+    dispose()
+    dataSet.removeAttribute("attr2_id")
+    expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
+
+  })
 })
 
 describe("observeDatasetHierarchyChanges", () => {
