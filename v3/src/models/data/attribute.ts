@@ -13,8 +13,6 @@
   To enable mutability, we move the values into `volatile` storage at creation time and then
   move it back to its `frozen` location for serialization. For this to work, clients must
   call the `preSerialize()` and `postSerialize()` functions before and after serialization.
-  Luckily, this sleight-of-hand is not necessary in production and the `preSerialize()` and
-  `postSerialize()` are no-ops in that case.
 
   Like Fathom and and CODAP 2, we need to be able to store heterogeneous values, e.g. strings,
   numbers, boolean values, eventually possibly things like image URLs, etc. Unlike those prior
@@ -100,6 +98,9 @@ export const Attribute = types.model("Attribute", {
   get numericCount() {
     self.changeCount  // eslint-disable-line no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
+  },
+  get shouldSerializeValues() {
+    return self.formula.empty
   }
 }))
 .actions(self => ({
@@ -125,16 +126,30 @@ export const Attribute = types.model("Attribute", {
   },
   // should be called before retrieving snapshot (i.e. before serialization)
   prepareSnapshot() {
-    if (isDevelopment()) {
+    if (isDevelopment() && self.shouldSerializeValues) {
+      // In development, values is undefined (see .afterCreate()). If the attribute values should be serialized
+      // (no formula), we need to temporarily update it to the current values.
       withoutUndo({ suppressWarning: true })
       self.values = [...self.strValues]
+    }
+    if (!isDevelopment() && !self.shouldSerializeValues) {
+      // In development, values is set to the volatile strValues (see .afterCreate()). If the attribute values should
+      // NOT be serialized (non-empty formula) we need to temporarily set it to undefined.
+      withoutUndo({ suppressWarning: true })
+      self.values = undefined
     }
   },
   // should be called after retrieving snapshot (i.e. after serialization)
   completeSnapshot() {
-    if (isDevelopment()) {
+    if (isDevelopment() && self.shouldSerializeValues) {
+      // values should be set back to undefined in development mode.
       withoutUndo({ suppressWarning: true })
       self.values = undefined
+    }
+    if (!isDevelopment() && !self.shouldSerializeValues) {
+      // values should be set back to the volatile strValues in production mode.
+      withoutUndo({ suppressWarning: true })
+      self.values = self.strValues
     }
   }
 }))
@@ -151,6 +166,9 @@ export const Attribute = types.model("Attribute", {
   },
   get format() {
     return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
+  },
+  get isEditable() {
+    return self.editable && self.formula.empty
   },
   value(index: number) {
     return self.strValues[index]
@@ -192,7 +210,7 @@ export const Attribute = types.model("Attribute", {
     self.editable = editable
   },
   clearFormula() {
-    self.formula.setDisplayFormula("")
+    this.setDisplayFormula("")
   },
   setDisplayFormula(displayFormula: string) {
     self.formula.setDisplayFormula(displayFormula)
