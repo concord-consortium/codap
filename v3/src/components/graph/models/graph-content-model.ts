@@ -10,6 +10,7 @@ import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
   from "../../../models/shared/shared-data-set"
+import {typedId} from "../../../utilities/js-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
   from "../../../models/shared/shared-data-utils"
@@ -18,15 +19,15 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphAttrRole} from "../../data-display/data-display-types"
-import {AxisPlace, ScaleNumericBaseType} from "../../axis/axis-types"
+import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {PlotType, PlotTypes} from "../graphing-types"
+import {axisPlaceToAttrRole, PlotType, PlotTypes} from "../graphing-types"
+import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
-import { AdornmentsStore } from "../adornments/adornments-store"
-import { typedId } from "../../../utilities/js-utils"
-import { getPlottedValueFormulaAdapter } from "../../../models/formula/plotted-value-formula-adapter"
+import {AdornmentsStore} from "../adornments/adornments-store"
+import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import { getPlottedFunctionFormulaAdapter } from "../../../models/formula/plotted-function-formula-adapter"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
@@ -70,6 +71,7 @@ export const GraphContentModel = DataDisplayContentModel
     showMeasuresForSelection: false
   })
   .volatile(() => ({
+    changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
     prevDataSetId: "",
     disposeDataSetListener: undefined as (() => void) | undefined
   }))
@@ -112,7 +114,7 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     getUpdateCategoriesOptions(
-      resetPoints=false, xScale?: ScaleNumericBaseType, yScale?: ScaleNumericBaseType
+      resetPoints = false, xScale?: ScaleNumericBaseType, yScale?: ScaleNumericBaseType
     ): IUpdateCategoriesOptions {
       const xAttrId = self.getAttributeID("x"),
         dataConfig = self.dataConfiguration,
@@ -158,12 +160,12 @@ export const GraphContentModel = DataDisplayContentModel
       self.disposeDataSetListener?.()
       self.disposeDataSetListener = self.dataset
         ? onAnyAction(self.dataset, action => {
-            // TODO: check whether categories have actually changed before updating
-            if (actionsAffectingCategories.includes(action.name)) {
-              const updateCategoriesOptions = self.getUpdateCategoriesOptions()
-              self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-            }
-          })
+          // TODO: check whether categories have actually changed before updating
+          if (actionsAffectingCategories.includes(action.name)) {
+            const updateCategoriesOptions = self.getUpdateCategoriesOptions()
+            self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+          }
+        })
         : undefined
     },
     afterAttachToDocument() {
@@ -187,8 +189,7 @@ export const GraphContentModel = DataDisplayContentModel
           const tileDataSet = getTileDataSet(self)
           if (self.dataset || self.metadata) {
             self.dataConfiguration.setDataset(self.dataset, self.metadata)
-          }
-          else if (!tileDataSet && sharedDataSets.length === 1) {
+          } else if (!tileDataSet && sharedDataSets.length === 1) {
             linkTileToDataSet(self, sharedDataSets[0].dataSet)
           }
 
@@ -226,6 +227,24 @@ export const GraphContentModel = DataDisplayContentModel
     },
   }))
   .actions(self => ({
+    incrementChangeCount() {
+      ++self.changeCount
+    },
+    rescale() {
+      if (self.plotType === 'casePlot') {
+        this.incrementChangeCount()
+      } else {
+        const {dataConfiguration} = self
+        AxisPlaces.forEach((axisPlace: AxisPlace) => {
+          const axis = self.getAxis(axisPlace),
+            role = axisPlaceToAttrRole[axisPlace]
+          if (isNumericAxisModel(axis)) {
+            const numericValues = dataConfiguration.numericValuesForAttrRole(role)
+            setNiceDomain(numericValues, axis)
+          }
+        })
+      }
+    },
     setAxis(place: AxisPlace, axis: IAxisModelUnion) {
       self.axes.set(place, axis)
     },
@@ -270,6 +289,13 @@ export const GraphContentModel = DataDisplayContentModel
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show
     }
+  }))
+  .views(self => ({
+    get noPossibleRescales() {
+      return self.plotType !== 'casePlot' &&
+        !AxisPlaces.find((axisPlace: AxisPlace) => {
+          return isNumericAxisModel(self.getAxis(axisPlace))
+        })}
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyUndoableAction)

@@ -15,6 +15,9 @@
     "V3.Undo.import.data": "Undo import of data",
     "V3.Redo.import.data": "Redo import of data",
 
+    "V3.Inspector.rescale.noRescale.toolTip": "All the data are already visible",
+    "V3.Inspector.rescale.casePlot.toolTip": "Move the points to new random positions",
+
     // V3 formula strings that are not present in V2 and will eventually require translation.
     "V3.formula.error.invalidParentAttrRef": "invalid reference to parent attribute '%@' within aggregate function",
     "V3.formula.error.cycle": "Circular reference: formula refers to its own attribute either directly or indirectly",

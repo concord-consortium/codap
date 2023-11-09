@@ -12,9 +12,11 @@ import { GraphMeasurePalette } from "./inspector-panel/graph-measure-panel"
 import t from "../../../utilities/translation/translate"
 import { useDndContext } from "@dnd-kit/core"
 import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
+import {isGraphContentModel} from "../models/graph-content-model"
 
 
 export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
@@ -30,6 +32,13 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     setShowPalette(undefined)
   }
 
+  const handleGraphRescale = () => {
+    graphModel?.applyUndoableAction(
+      () => graphModel.rescale(),
+      "DG.Undo.axisDilate",
+      "DG.Redo.axisDilate")
+  }
+
   const handleRulerButton = () => {
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
@@ -42,10 +51,20 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     buttonRef.current = ref.current
   }
 
+  const getRescaleTooltip = () => {
+    if (graphModel?.noPossibleRescales) {
+      return "V3.Inspector.rescale.noRescale.toolTip"
+    }
+    else if (graphModel?.plotType === 'casePlot') {
+      return "V3.Inspector.rescale.casePlot.toolTip"
+    }
+    return "DG.Inspector.rescale.toolTip"
+  }
+
   return (
     <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
-      <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-        testId={"graph-resize-button"} onButtonClick={handleClosePalette}>
+      <InspectorButton tooltip={t(getRescaleTooltip())} isDisabled={graphModel?.noPossibleRescales}
+                       showMoreOptions={false} testId={"graph-resize-button"} onButtonClick={handleGraphRescale}>
         <ScaleDataIcon />
       </InspectorButton>
       <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
