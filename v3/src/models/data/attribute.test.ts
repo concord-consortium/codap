@@ -167,6 +167,12 @@ describe("Attribute", () => {
     expect(attribute.isNumeric(5)).toBe(false)
     expect(attribute.numeric(5)).toBeNaN()
 
+    attribute.clearValues()
+    expect(attribute.strValues.length).toBe(6)
+    expect(attribute.numValues.length).toBe(6)
+    expect(attribute.strValues).toEqual(["", "", "", "", "", ""])
+    expect(attribute.numValues).toEqual([NaN, NaN, NaN, NaN, NaN, NaN])
+
     expect(attribute.format).toBe(kDefaultFormatStr)
     attribute.setPrecision(2)
     expect(attribute.format).toBe(".2~f")
