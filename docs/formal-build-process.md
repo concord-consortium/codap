@@ -88,7 +88,7 @@ to describe how to create a runnable local instance of CODAP for development.
       That is to say assess whether there have been changes since the plugin
       build number was last changed.
       * If there have been, in the codap-data-interactives codeline run
-        `npm run std:update-build-number`.
+        `npm run std:increment-build-number`.
     * Check on extension changes
         * in codap directory: `npm run record:extn`
             * this step records the git hashes for dependent directories in codap files.
