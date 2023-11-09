@@ -1,18 +1,16 @@
 import { Instance, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
-import { ICase } from "../../../../models/data/data-set-types"
-import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 
 export const MeasureInstance = types.model("MeasureInstance", {})
-.volatile(self => ({
-  formulaFunction: (x: number) => NaN,
-}))
-.actions(self => ({
-  setValue(formulaFunction: FormulaFn) {
-    self.formulaFunction = formulaFunction
-  }
-}))
+  .volatile(self => ({
+    formulaFunction: (x: number) => NaN,
+  }))
+  .actions(self => ({
+    setValue(formulaFunction: FormulaFn) {
+      self.formulaFunction = formulaFunction
+    }
+  }))
 
 export const PlottedFunctionAdornmentModel = AdornmentModel
   .named("PlottedFunctionAdornmentModel")
@@ -22,20 +20,6 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     labelTitle: types.optional(types.literal(kPlottedFunctionValueTitleKey), kPlottedFunctionValueTitleKey),
     measures: types.map(MeasureInstance)
   })
-  .views(self => ({
-    getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const dataset = dataConfig?.dataset
-      const casesInPlot = dataConfig.subPlotCases(cellKey)
-      const caseValues: number[] = []
-      casesInPlot.forEach((c: ICase) => {
-        const caseValue = Number(dataset?.getValue(c.__id__, attrId))
-        if (Number.isFinite(caseValue)) {
-          caseValues.push(caseValue)
-        }
-      })
-      return caseValues
-    }
-  }))
   .actions(self => ({
     setExpression(expression: string) {
       self.expression = expression
