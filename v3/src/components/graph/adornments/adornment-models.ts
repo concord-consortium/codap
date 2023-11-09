@@ -103,6 +103,23 @@ export const AdornmentModel = types.model("AdornmentModel", {
       return cellKey
     }
   }))
+  .views(self => ({
+    getAllCellKeys(options: IUpdateCategoriesOptions) {
+      const { xCats, yCats, topCats, rightCats } = options
+      const topCatCount = topCats.length || 1
+      const rightCatCount = rightCats.length || 1
+      const xCatCount = xCats.length || 1
+      const yCatCount = yCats.length || 1
+      const columnCount = topCatCount * xCatCount
+      const rowCount = rightCatCount * yCatCount
+      const totalCount = rowCount * columnCount
+      const cellKeys: Record<string, string>[] = []
+      for (let i = 0; i < totalCount; ++i) {
+        cellKeys.push(self.cellKey(options, i))
+      }
+      return cellKeys
+    }
+  }))
   .actions(self => ({
     setVisibility(isVisible: boolean) {
       self.isVisible = isVisible

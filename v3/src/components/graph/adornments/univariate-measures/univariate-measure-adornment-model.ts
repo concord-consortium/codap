@@ -97,19 +97,11 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAttrId, xCats, yAttrId, yCats, topCats, rightCats, resetPoints, dataConfig } = options
+      const { xAttrId, yAttrId, resetPoints, dataConfig } = options
       if (!dataConfig) return
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const totalCount = rowCount * columnCount
       const xAttrType = dataConfig.attributeType("x")
       const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
-      for (let i = 0; i < totalCount; ++i) {
-        const cellKey = self.cellKey(options, i)
+      self.getAllCellKeys(options).forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {
@@ -117,7 +109,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
         } else {
           self.updateMeasureValue(value, instanceKey)
         }
-      }
+      })
     }
   }))
 

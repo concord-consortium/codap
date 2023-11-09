@@ -115,29 +115,21 @@ export const MovableValueAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAxis, xCats, yAxis, yCats, topCats, rightCats, resetPoints } = options
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const totalCount = rowCount * columnCount
+      const { xAxis, yAxis, resetPoints } = options
       const axisMin = xAxis?.isNumeric ? (xAxis as INumericAxisModel).min : (yAxis as INumericAxisModel).min
       const axisMax = xAxis?.isNumeric ? (xAxis as INumericAxisModel).max : (yAxis as INumericAxisModel).max
 
       self.setAxisMin(axisMin)
       self.setAxisMax(axisMax)
 
-      for (let i = 0; i < totalCount; ++i) {
-        const subPlotKey = self.cellKey(options, i)
-        const instanceKey = self.instanceKey(subPlotKey)
+      self.getAllCellKeys(options).forEach(cellKey => {
+        const instanceKey = self.instanceKey(cellKey)
         // Each array in the model's values map should have the same length as all the others. If there are no existing
         // values for the current instance key, check if there is at least one array in the map. If there is, copy those
         // values. Otherwise, set the array to []. We will add any new values to the array after the loop.
         const existingValues = self.values.get(instanceKey) || self.firstValueArray || []
         self.values.set(instanceKey, [...existingValues])
-      }
+      })
 
       // If this action was triggered by the attributes changing (i.e., resetPoints is true), do not add a new value.
       if (resetPoints) return
