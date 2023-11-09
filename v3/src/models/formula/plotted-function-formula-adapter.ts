@@ -16,6 +16,8 @@ import type { IGraphContentModel } from "../../components/graph/models/graph-con
 
 const PLOTTED_FUNCTION_FORMULA_ADAPTER = "PlottedFunctionFormulaAdapter"
 
+const X_ARG_SYMBOL = "x"
+
 export interface IPlottedFunctionFormulaExtraMetadata extends IBaseGraphFormulaExtraMetadata {}
 
 export const getPlottedFunctionFormulaAdapter = (node?: IAnyStateTreeNode): PlottedFunctionFormulaAdapter | undefined =>
@@ -71,10 +73,18 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       // Plotted function lets users use special "x" symbol that is resolved to the currently plotted graph X-axis
       // value. The graph will do the rendering itself, so it expects a function that takes a single argument ("x").
       return (x: number) => {
-        extraScope.set("x", x)
-        return compiledFormula.evaluate(formulaScope)
+        extraScope.set(X_ARG_SYMBOL, x)
+        try {
+          return compiledFormula.evaluate(formulaScope)
+        } catch (e: any) {
+          // This will catch any runtime error (e.g. using case-dependant attribute or undefined symbol).
+          this.setFormulaError(formulaContext, extraMetadata, formulaError(e.message))
+          return NaN
+        }
       }
     } catch (e: any) {
+      // This will catch any errors thrown by math.compile(). It's very unlikely it ever happens, as syntax error
+      // should be caught by the parsers way before we get here, but just in case...
       this.setFormulaError(formulaContext, extraMetadata, formulaError(e.message))
     }
     return () => NaN
