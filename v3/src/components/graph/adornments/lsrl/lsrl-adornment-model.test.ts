@@ -2,12 +2,14 @@ import { LSRLAdornmentModel, LSRLInstance } from "./lsrl-adornment-model"
 
 const mockLSRLInstanceProps1 = {
   intercept: 1,
+  interceptLocked: false,
   rSquared: 1,
   sdResiduals: 1,
   slope: 1
 }
 const mockLSRLInstanceProps2 = {
   intercept: 2,
+  interceptLocked: false,
   rSquared: 2,
   sdResiduals: 2,
   slope: 2

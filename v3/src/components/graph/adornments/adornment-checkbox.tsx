@@ -1,5 +1,6 @@
 import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import t from "../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { getAdornmentContentInfo } from "./adornment-content-info"
@@ -10,7 +11,7 @@ interface IProps {
   type: string
 }
 
-export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
+export const AdornmentCheckbox = observer(({classNameValue, labelKey, type}: IProps) => {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel?.adornmentsStore
   const existingAdornment = adornmentsStore.adornments.find(a => a.type === type)
@@ -50,4 +51,4 @@ export const AdornmentCheckbox = ({classNameValue, labelKey, type}: IProps) => {
       </Checkbox>
     </FormControl>
   )
-}
+})

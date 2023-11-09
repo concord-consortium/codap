@@ -115,8 +115,7 @@ export const LSRLAdornmentModel = AdornmentModel
 .actions(self => ({
   updateLines(
     line: {category?: string, intercept?: number, rSquared?: number, slope?: number, sdResiduals?: number},
-    key="",
-    index?: number
+    key="", index?: number
   ) {
     const existingLines = self.lines.get(key)
     const newLines = existingLines ? [...existingLines] : []
@@ -136,7 +135,7 @@ export const LSRLAdornmentModel = AdornmentModel
   },
   computeValues(
     xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel,
-    key="", isInterceptLocked=false, cat?: string
+    isInterceptLocked=false, cat?: string
   ) {
     const caseValues = self.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, cat)
     const { intercept, rSquared, slope, sdResiduals } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
@@ -145,7 +144,7 @@ export const LSRLAdornmentModel = AdornmentModel
 }))
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
-    const { dataConfig } = options
+    const { dataConfig, interceptLocked } = options
     const { xAttrId, yAttrId } = dataConfig.getCategoriesOptions()
     const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
     self.lines.clear()
@@ -153,12 +152,9 @@ export const LSRLAdornmentModel = AdornmentModel
       const instanceKey = self.instanceKey(cellKey)
       for (let j = 0; j < legendCats.length; ++j) {
         const category = legendCats[j]
-        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like
-        // isInterceptLocked instead of false in the call to self.computeValues.
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
-          xAttrId, yAttrId, cellKey, dataConfig, instanceKey, false, category
+          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, category
         )
-        if (intercept == null || rSquared == null || slope == null || sdResiduals == null) continue
         self.updateLines({category, intercept, rSquared, slope, sdResiduals}, instanceKey, j)
       }
     })
@@ -169,18 +165,16 @@ export const LSRLAdornmentModel = AdornmentModel
   // values for lines in cases where their volatile properties may have been reset to the defaults. This can happen, for
   // example, when the adornment is added to the graph, then removed and added back again using the undo/redo feature.
   getLines(
-    xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel
+    xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel,
+    interceptLocked=false
   ) {
     const key = self.instanceKey(cellKey)
     const lines = self.lines.get(key)
     const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
     lines?.forEach((line, i) => {
       if (!line?.isValid) {
-
-        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like
-        // isInterceptLocked instead of false in the call to self.computeValues.
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
-          xAttrId, yAttrId, cellKey, dataConfig, key, false, legendCats[i]
+          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCats[i]
         )
         if (
           !Number.isFinite(intercept) ||

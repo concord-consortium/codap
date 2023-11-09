@@ -5,7 +5,7 @@ import {scaleLinear} from "d3"
 
 describe("equationString", () => {
   it("should return a valid equation for a given slope and intercept", () => {
-    expect(equationString(1, 0, {x: "Lifespan", y: "Speed"})).toBe('<em>Speed</em> = 1 <em>Lifespan</em> + 0')
+    expect(equationString(1, 0, {x: "Lifespan", y: "Speed"})).toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
   })
   it("should return an equation containing only the y attribute when the slope is 0", () => {
     expect(equationString(0, 1, {x: "Lifespan", y: "Speed"})).toBe('<em>Speed</em> = 1')

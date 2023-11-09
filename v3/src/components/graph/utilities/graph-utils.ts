@@ -97,7 +97,7 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
     tY1 = tLogicalBounds.bottom
     tY2 = tLogicalBounds.top
   }
-    // Things can get hairy for nearly horizontal or nearly vertical lines.
+  // Things can get hairy for nearly horizontal or nearly vertical lines.
   // This conditional takes care of that.
   else if (Math.abs(iSlope) > 1) {
     tY1 = tLogicalBounds.bottom
@@ -160,7 +160,13 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
 export function equationString(slope: number, intercept: number, attrNames: {x: string, y: string}) {
   const float = format('.4~r')
   if (isFinite(slope) && slope !== 0) {
-    return `<em>${attrNames.y}</em> = ${float(slope)} <em>${attrNames.x}</em> + ${float(intercept)}`
+    const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
+    const interceptString = intercept === 0
+      ? ""
+      : intercept > 0
+        ? ` + ${float(intercept)}`
+        : ` ${float(intercept)}`
+    return `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString}${interceptString}`
   } else {
     return `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${float(intercept)}`
   }
@@ -181,22 +187,29 @@ export function percentString(value: number) {
 
 export const lsrlEquationString = (
   slope: number, intercept: number, rSquared: number, attrNames: {x: string, y: string}, caseValues: Point[],
-  confidenceBandsEnabled?: boolean, color?: string
+  confidenceBandsEnabled?: boolean, color?: string, interceptLocked=false
 ) => {
   const float = format(".3~r")
   const floatIntercept = format(".1~f")
   const floatSeSlope = format(".3~f")
-  const linearRegression = leastSquaresLinearRegression(caseValues, false)
+  const linearRegression = leastSquaresLinearRegression(caseValues, interceptLocked)
   const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
   const seSlope = Math.sqrt((sse / count - 2) / xSumSquaredDeviations)
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
-  const interceptString = intercept >= 0 ? `+ ${floatIntercept(intercept)}` : ` ${floatIntercept(intercept)}`
+  const interceptString = intercept === 0
+    ? ""
+    : intercept >= 0
+      ? `+ ${floatIntercept(intercept)}`
+      : ` ${floatIntercept(intercept)}`
   const equationPart = isFinite(slope) && slope !== 0
     ? `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString} ${interceptString}`
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${floatIntercept(intercept)}`
-  const seSlopePart = confidenceBandsEnabled ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}` : ""
+  const seSlopePart = confidenceBandsEnabled && !interceptLocked
+    ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}`
+    : ""
+  const rSquaredPart = intercept === 0 ? "" : `<br />r<sup>2</sup> = ${float(rSquared)}`
   const style = color ? `style="color: ${color}"` : ""
-  return `<span ${style}>${equationPart}<br />r<sup>2</sup> = ${float(rSquared)}${seSlopePart}</span>`
+  return `<span ${style}>${equationPart}${rSquaredPart}${seSlopePart}</span>`
 }
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
@@ -280,7 +293,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
 /**
  Use the bounds of the given axes to compute slope and intercept.
 */
-export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel) {
+export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel, interceptLocked=false) {
   const xLower = xAxis && isNumericAxisModel(xAxis) ? xAxis.min : 0,
     xUpper = xAxis && isNumericAxisModel(xAxis) ? xAxis.max : 0,
     yLower = yAxis && isNumericAxisModel(yAxis) ? yAxis.min : 0,
@@ -290,7 +303,7 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
   // it fits a typical set of points
   const adjustedXUpper = xLower + (xUpper - xLower) / 2,
     slope = (yUpper - yLower) / (adjustedXUpper - xLower),
-    intercept = yLower - slope * xLower
+    intercept = interceptLocked ? 0 : yLower - slope * xLower
 
   return {slope, intercept}
 }

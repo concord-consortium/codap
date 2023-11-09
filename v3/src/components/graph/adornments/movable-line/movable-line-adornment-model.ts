@@ -44,18 +44,18 @@ export const MovableLineAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  setInitialLine(xAxis?: IAxisModel, yAxis?: IAxisModel, key='') {
-    const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis)
+  setInitialLine(xAxis?: IAxisModel, yAxis?: IAxisModel, key="", interceptLocked=false) {
+    const { intercept, slope } = computeSlopeAndIntercept(xAxis, yAxis, interceptLocked)
     self.setLine({ intercept, slope }, key)
   }
 }))
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
-    const { resetPoints, dataConfig, xAxis, yAxis } = options
+    const { resetPoints, dataConfig, interceptLocked, xAxis, yAxis } = options
     dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
       if (!self.lines.get(instanceKey) || resetPoints) {
-        self.setInitialLine(xAxis, yAxis, instanceKey)
+        self.setInitialLine(xAxis, yAxis, instanceKey, interceptLocked)
       }
     })
   }

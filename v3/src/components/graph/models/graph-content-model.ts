@@ -118,6 +118,7 @@ export const GraphContentModel = DataDisplayContentModel
     ): IUpdateCategoriesOptions {
       return {
         dataConfig: self.dataConfiguration,
+        interceptLocked: self.adornmentsStore.interceptLocked,
         resetPoints,
         xAxis: self.getAxis("bottom"),
         yAxis: self.getAxis("left"),

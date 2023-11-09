@@ -8,6 +8,7 @@ interface IMeasureMenuItem {
   checked: boolean
   componentContentInfo?: IAdornmentContentInfo
   componentInfo?: IAdornmentComponentInfo
+  disabled?: boolean
   title: string
   type: string
   clickHandler?: () => void
@@ -16,9 +17,13 @@ interface IMeasureMenuItem {
 export const AdornmentsStore = types.model("AdornmentsStore", {
     type: "Adornments Store",
     adornments: types.array(AdornmentModelUnion),
+    interceptLocked: false,
     showMeasureLabels: false
   })
   .actions(self => ({
+    toggleInterceptLocked() {
+      self.interceptLocked = !self.interceptLocked
+    },
     toggleShowLabels() {
       self.showMeasureLabels = !self.showMeasureLabels
     },
@@ -39,6 +44,7 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     getAdornmentsMenuItems(plotType: PlotTypes) {
       const registeredAdornments = getAdornmentTypes()
       const measureMenuItems: IMeasureMenuItem[] = []
+      let addedInterceptLocked = false
       let addedShowMeasureLabels = false
       measures[plotType].map((measure: IMeasure) => {
         const { title, type } = measure
@@ -63,6 +69,22 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
           title,
           type
         })
+        if (
+          registeredAdornment?.type === "LSRL" &&
+          plotType === "scatterPlot" && !addedInterceptLocked
+        ) {
+          const movableLineVisible = !!self.adornments.find(a => a.type === "Movable Line")?.isVisible
+          const lsrlVisible = !!self.adornments.find(a => a.type === "LSRL")?.isVisible
+          const disabled = !movableLineVisible && !lsrlVisible
+          measureMenuItems.push({
+            checked: self.interceptLocked,
+            disabled,
+            title: "DG.Inspector.graphInterceptLocked",
+            type: "control",
+            clickHandler: self.toggleInterceptLocked
+          })
+          addedInterceptLocked = true
+        }
       })
 
       return measureMenuItems

@@ -1,5 +1,6 @@
 import React from "react"
 import { Box, Checkbox, Flex, FormControl, useToast} from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import t from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
@@ -17,7 +18,7 @@ interface IProps {
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}: IProps) => {
+export const GraphMeasurePalette = observer(({tile, panelRect, buttonRect, setShowPalette}: IProps) => {
   const toast = useToast()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const measures = graphModel ? graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType) : undefined
@@ -46,7 +47,7 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
         {graphModel && measures?.map((measure: Record<string, any>) => {
-          const { checked, clickHandler, componentInfo, componentContentInfo, title } = measure
+          const { checked, clickHandler, componentInfo, componentContentInfo, disabled, title } = measure
           const titleSlug = t(title).replace(/ /g, "-").toLowerCase()
           if (componentInfo && componentContentInfo) {
             return (
@@ -55,7 +56,10 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
                   key={`${titleSlug}-data-configuration-context`}
                   value={graphModel.dataConfiguration}
                 >
-                  <componentInfo.Controls key={titleSlug} adornmentModel={componentContentInfo.modelClass} />
+                  <componentInfo.Controls
+                    key={titleSlug}
+                    adornmentModel={componentContentInfo.modelClass}
+                  />
                 </GraphDataConfigurationContext.Provider>
               </GraphContentModelContext.Provider>
             )
@@ -65,6 +69,7 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
                 <Checkbox
                   data-testid={`adornment-checkbox-${titleSlug}`}
                   defaultChecked={checked}
+                  isDisabled={!!disabled}
                   onChange={clickHandler ? clickHandler : e => handleSetting(t(title), e.target.checked)}
                 >
                   {t(title)}
@@ -76,4 +81,4 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
       </Flex>
     </InspectorPalette>
   )
-}
+})
