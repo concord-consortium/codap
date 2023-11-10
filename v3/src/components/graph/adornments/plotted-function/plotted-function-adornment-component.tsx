@@ -1,16 +1,43 @@
 import React, { useCallback, useEffect, useRef } from "react"
-import { select, Selection } from "d3"
+import { select } from "d3"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { Point } from "../../../data-display/data-display-types"
 import { IPlottedFunctionAdornmentModel, isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { curveBasis } from "../../utilities/graph-utils"
+import { FormulaFn } from "./plotted-function-adornment-types"
 
 import "./plotted-function-adornment-component.scss"
+
+interface IComputePointsOptions {
+  formulaFunction: FormulaFn,
+  min: number,
+  max: number,
+  xCellCount: number,
+  yCellCount: number,
+  gap: number,
+  xScale: ScaleNumericBaseType,
+  yScale: ScaleNumericBaseType
+}
+
+const computePoints = (options: IComputePointsOptions) => {
+  const { min, max, xCellCount, yCellCount, gap, xScale, yScale, formulaFunction } = options
+  const tPoints: Point[] = []
+  for (let pixelX = min; pixelX <= max; pixelX += gap) {
+    const tX = xScale.invert(pixelX * xCellCount)
+    const tY = formulaFunction(tX)
+    if (Number.isFinite(tY)) {
+      const pixelY = yScale(tY) / yCellCount
+      tPoints.push({ x: pixelX, y: pixelY })
+    }
+  }
+  return tPoints
+}
 
 interface IProps {
   containerId?: string
@@ -20,10 +47,6 @@ interface IProps {
   cellKey: Record<string, string>
   xAxis?: INumericAxisModel
   yAxis?: INumericAxisModel
-}
-
-interface IValue {
-  path?: Selection<SVGPathElement, unknown, null, undefined>
 }
 
 export const PlottedFunctionAdornmentComponent = observer(function PlottedFunctionAdornment(props: IProps) {
@@ -48,18 +71,21 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
   const path = useRef("")
   const plottedFunctionRef = useRef<SVGGElement>(null)
 
-  const addPath = useCallback((newPathObject: IValue) => {
+  const addPath = useCallback((formulaFunction: FormulaFn) => {
     if (!model.expression) return
     const xMin = xScale.domain()[0]
     const xMax = xScale.domain()[1]
     const tPixelMin = xScale(xMin)
     const tPixelMax = xScale(xMax)
     const kPixelGap = 1
-    const tPoints = model.computePoints(tPixelMin, tPixelMax, xCellCount, yCellCount, kPixelGap, xScale, yScale)
+    const tPoints = computePoints({
+      formulaFunction, min: tPixelMin, max: tPixelMax, xCellCount, yCellCount, gap: kPixelGap, xScale, yScale
+    })
+    if (tPoints.length === 0) return
     path.current = `M${tPoints[0].x},${tPoints[0].y},${curveBasis(tPoints)}`
 
     const selection = select(plottedFunctionRef.current)
-    newPathObject.path = selection.append("path")
+    selection.append("path")
       .attr("class", `plotted-function plotted-function-${classFromKey}`)
       .attr("data-testid", `plotted-function-path${classFromKey ? `-${classFromKey}` : ""}`)
       .attr("d", path.current)
@@ -71,14 +97,13 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
     if (!model.isVisible) return
 
     const measure = model?.measures.get(instanceKey)
-    const newValueObject: IValue = {}
     const selection = select(plottedFunctionRef.current)
 
     // Remove the previous value's elements
     selection.html(null)
 
     if (measure) {
-      addPath(newValueObject)
+      addPath(measure.formulaFunction)
     }
   }, [model, instanceKey, addPath])
 

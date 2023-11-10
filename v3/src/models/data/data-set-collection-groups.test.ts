@@ -216,4 +216,19 @@ describe("CollectionGroups", () => {
     data.removeAttribute("bId")
     expect(data.collections.length).toBe(0)
   })
+
+  it("doesn't take formula evaluated values into account when grouping", () => {
+    const aAttr = data.attrFromID("aId")
+    aAttr.setDisplayFormula("foo * bar")
+    data.moveAttributeToNewCollection("aId")
+    expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId"])
+    expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["bId", "cId"])
+    expect(data.collectionGroups.length).toBe(1)
+    expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
+    const aCases = data.getCasesForAttributes(["aId"])
+    expect(aCases.length).toBe(1) // (!) without formula it'd be equal to 3
+    expect(aCases.map((c: any) => c.aId)).toEqual([""]) // formula needs to be re-evaluated
+    const abCases = data.getCasesForAttributes(["aId", "bId"])
+    expect(abCases.length).toBe(27)
+  })
 })

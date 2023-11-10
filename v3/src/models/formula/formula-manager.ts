@@ -8,6 +8,7 @@ import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
+import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
 import {
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
@@ -59,7 +60,8 @@ export class FormulaManager {
 
   adapters: IFormulaManagerAdapter[] = [
     new AttributeFormulaAdapter(this.getAdapterApi()),
-    new PlottedValueFormulaAdapter(this.getAdapterApi())
+    new PlottedValueFormulaAdapter(this.getAdapterApi()),
+    new PlottedFunctionFormulaAdapter(this.getAdapterApi())
   ]
 
   constructor() {

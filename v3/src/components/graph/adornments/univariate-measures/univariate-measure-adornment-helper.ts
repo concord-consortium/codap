@@ -123,8 +123,8 @@ export class UnivariateMeasureAdornmentHelper {
     const rangeMaxCoords = this.calculateRangeCoords(rangeMax, coords, isVertical, cellCounts)
     const x = !isVertical ? secondaryAxisX : rangeMinCoords.x1
     const y = isVertical ? secondaryAxisY : rangeMaxCoords.y1
-    const width = isVertical ? this.xScale(rangeMax) - this.xScale(rangeMin) : extentForSecondaryAxis
-    const height = !isVertical ? this.yScale(rangeMin) - this.yScale(rangeMax) : extentForSecondaryAxis
+    const width = isVertical ? (this.xScale(rangeMax) - this.xScale(rangeMin)) / cellCounts.x : extentForSecondaryAxis
+    const height = !isVertical ? (this.yScale(rangeMin) - this.yScale(rangeMax)) / cellCounts.y : extentForSecondaryAxis
     const rangeMinSpecs = {
       isVertical,
       lineClass: `${lineClass} range-line`,

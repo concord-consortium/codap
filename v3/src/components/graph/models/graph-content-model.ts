@@ -3,7 +3,7 @@
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {reaction} from "mobx"
-import {addDisposer, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
+import {addDisposer, IAnyStateTreeNode, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {ISharedModel} from "../../../models/shared/shared-model"
@@ -27,6 +27,12 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} fro
 import { AdornmentsStore } from "../adornments/adornments-store"
 import { typedId } from "../../../utilities/js-utils"
 import { getPlottedValueFormulaAdapter } from "../../../models/formula/plotted-value-formula-adapter"
+import { getPlottedFunctionFormulaAdapter } from "../../../models/formula/plotted-function-formula-adapter"
+
+const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
+  getPlottedValueFormulaAdapter(node),
+  getPlottedFunctionFormulaAdapter(node)
+]
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -169,12 +175,10 @@ export const GraphContentModel = DataDisplayContentModel
             ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
             : []
 
-          const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
-
-          return {sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}
+          return {sharedModelManager, sharedDataSets, formulaAdapters: getFormulaAdapters(self)}
         },
         // reaction/effect
-        ({sharedModelManager, sharedDataSets, plottedValueFormulaAdapter}) => {
+        ({sharedModelManager, sharedDataSets, formulaAdapters}) => {
           if (!sharedModelManager?.isReady) {
             // We aren't added to a document yet, so we can't do anything yet
             return
@@ -188,17 +192,16 @@ export const GraphContentModel = DataDisplayContentModel
             linkTileToDataSet(self, sharedDataSets[0].dataSet)
           }
 
-          if (plottedValueFormulaAdapter) {
-            plottedValueFormulaAdapter.addGraphContentModel(self as IGraphContentModel)
-          }
+          formulaAdapters.forEach(adapter => {
+            adapter?.addGraphContentModel(self as IGraphContentModel)
+          })
         },
         {name: "sharedModelSetup", fireImmediately: true}))
     },
     beforeDestroy() {
-      const plottedValueFormulaAdapter = getPlottedValueFormulaAdapter(self)
-      if (plottedValueFormulaAdapter) {
-        plottedValueFormulaAdapter.removeGraphContentModel(self.id)
-      }
+      getFormulaAdapters(self).forEach(adapter => {
+        adapter?.removeGraphContentModel(self.id)
+      })
       self.disposeDataSetListener?.()
     }
   }))

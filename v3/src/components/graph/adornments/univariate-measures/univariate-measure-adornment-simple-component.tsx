@@ -60,8 +60,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     }, [highlightCovers])
 
     const toggleTextTip = useCallback((tipId: string, visible: boolean) => {
-      const label = select(`#${tipId}`)
-      label.classed("visible", visible)
+      const tip = select(`#${tipId}`)
+      tip.classed("visible", visible)
       highlightCovers(visible)
     }, [highlightCovers])
 
@@ -146,6 +146,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const selection = select(valueRef.current)
       const textId = helper.generateIdString("tip")
       const textClass = clsx("measure-tip", `${helper.measureSlug}-tip`)
+      const textTipWidth = measureText(textContent, "10px Lato, sans-serif")
       const lineOffset = 5
       const topOffset = plotHeight / cellCounts.y * .25 // 25% of the height of the subplot
       const rangeOffset = range && range !== plotValue
@@ -155,19 +156,18 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
         : 0
       let x = isVertical.current
           ? helper.xScale(plotValue) / cellCounts.x + lineOffset
-          : (plotWidth - plotWidth/2) / cellCounts.x
+          : plotWidth - plotWidth/2 - textTipWidth/2
       if ((range || range === 0) && isVertical.current) {
-        x = helper.xScale(plotValue + rangeOffset) / cellCounts.x + lineOffset
+        x = (helper.xScale(plotValue) + rangeOffset) / cellCounts.x + lineOffset
       }
       let y = isVertical.current ? topOffset : helper.yScale(plotValue) / cellCounts.y - lineOffset
       if ((range || range === 0) && !isVertical.current) {
-        y = helper.yScale(plotValue - rangeOffset) / cellCounts.y - lineOffset
+        y = (helper.yScale(plotValue) + rangeOffset) / cellCounts.y - lineOffset
       }
 
       // If x plus the approximate width of the text tip would extend beyond the right boundary of the subplot, set x to
       // plotWidth minus the text tip width or zero, whichever is greater.
-      const textTipWidth = measureText(textContent)
-      if (x + textTipWidth > plotWidth / cellCounts.x) x = Math.max(plotWidth / cellCounts.x - textTipWidth, 0)
+      if (x + textTipWidth > plotWidth) x = Math.max(plotWidth - textTipWidth, 0)
 
       valueObj.text = selection.append("text")
         .text(textContent)

@@ -65,7 +65,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, editable }) => ({ id, name, editable }))
+        return visible.map(({ id, name, isEditable }) => ({ id, name, isEditable }))
       },
       entries => {
         // column definitions
@@ -73,7 +73,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
           ? [
               ...(indexColumn ? [indexColumn] : []),
               // attribute column definitions
-              ...entries.map(({ id, name, editable }): TColumn => ({
+              ...entries.map(({ id, name, isEditable }): TColumn => ({
                 key: id,
                 name,
                 // If a default column width isn't supplied, RDG defaults to "auto",
@@ -84,7 +84,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderHeaderCell: ColumnHeader,
                 cellClass: "codap-data-cell",
                 renderCell: RenderCell,
-                renderEditCell: editable ? CellTextEditor : undefined
+                renderEditCell: isEditable ? CellTextEditor : undefined
               }))
           ]
           : []

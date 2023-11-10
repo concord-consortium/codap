@@ -167,6 +167,12 @@ describe("Attribute", () => {
     expect(attribute.isNumeric(5)).toBe(false)
     expect(attribute.numeric(5)).toBeNaN()
 
+    attribute.clearValues()
+    expect(attribute.strValues.length).toBe(6)
+    expect(attribute.numValues.length).toBe(6)
+    expect(attribute.strValues).toEqual(["", "", "", "", "", ""])
+    expect(attribute.numValues).toEqual([NaN, NaN, NaN, NaN, NaN, NaN])
+
     expect(attribute.format).toBe(kDefaultFormatStr)
     attribute.setPrecision(2)
     expect(attribute.format).toBe(".2~f")
@@ -178,6 +184,7 @@ describe("Attribute", () => {
     expect(attribute.editable).toBe(true)
     attribute.setEditable(false)
     expect(attribute.editable).toBe(false)
+    expect(attribute.isEditable).toBe(false)
   })
 
   test("caching/invalidation of views based on data values works as expected", () => {
@@ -281,29 +288,62 @@ describe("Attribute", () => {
     expect(getSnapshot(y).values).toEqual([])
   })
 
+  test("Serialization of an attribute with formula (development)", () => {
+    process.env.NODE_ENV = "development"
+    const x = Attribute.create({ name: "x", values: ["2", "4", "6"] })
+    x.setDisplayFormula("caseIndex * 2")
+    expect(x.values).toBeUndefined()
+    expect(x.strValues).toEqual(["2", "4", "6"])
+    expect(x.numValues).toEqual([2, 4, 6])
+    expect(getSnapshot(x).values).toBeUndefined()
+    x.prepareSnapshot()
+    const xSnapshot = getSnapshot(x)
+    expect(Object.isFrozen(x.values)).toBe(true)
+    expect(xSnapshot.values).toEqual(undefined)
+    x.completeSnapshot()
+    expect(getSnapshot(x).values).toBeUndefined()
+
+    const x2 = Attribute.create(xSnapshot)
+    expect(x2.formula.display).toBe("caseIndex * 2")
+    expect(x2.values).toBeUndefined()
+    expect(x2.strValues).toEqual([])
+    expect(x2.numValues).toEqual([])
+  })
+
+  test("Serialization of an attribute with formula (production)", () => {
+    process.env.NODE_ENV = "production"
+    const x = Attribute.create({ name: "x", values: ["2", "4", "6"] })
+    x.setDisplayFormula("caseIndex * 2")
+    expect(x.values).toBe(x.strValues)
+    expect(x.strValues).toEqual(["2", "4", "6"])
+    expect(x.numValues).toEqual([2, 4, 6])
+    expect(Object.isFrozen(x.values)).toBe(false)
+    expect(getSnapshot(x).values).toEqual(["2", "4", "6"])
+    x.prepareSnapshot()
+    const xSnapshot = getSnapshot(x)
+    expect(xSnapshot.values).toEqual(undefined)
+    x.completeSnapshot()
+    expect(getSnapshot(x).values).toEqual(["2", "4", "6"])
+
+    const x2 = Attribute.create(xSnapshot)
+    expect(x2.formula.display).toBe("caseIndex * 2")
+    expect(x2.values).toEqual([])
+    expect(x2.strValues).toEqual([])
+    expect(x2.numValues).toEqual([])
+  })
+
   test("Attribute formulas", () => {
-    // current behavior of formulas is based on CLUE's limited needs
-    // CODAP will need something more sophisticated
     const attr = Attribute.create({ name: "foo" })
     expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
-    // attr.formula.canonicalize("x")
-    expect(attr.formula.canonical).toBe("")
+    expect(attr.isEditable).toBe(true)
     attr.setDisplayFormula("2 * x")
     expect(attr.formula.display).toBe("2 * x")
-    // expect(attr.formula.canonical).toBe(`(2 * ${kSerializedXKey})`)
-    // attr.formula.setDisplay()
-    // attr.formula.synchronize("x")
-    // expect(attr.formula.display).toBe("(2 * x)")
-    // attr.setDisplayFormula("2 * y", "x")
-    // expect(attr.formula.display).toBe("2 * y")
-    // expect(attr.formula.canonical).toBe(`(2 * y)`)
-    // attr.formula.setCanonical()
-    // attr.formula.synchronize("x")
-    // expect(attr.formula.display).toBe("2 * y")
+    expect(attr.isEditable).toBe(false)
     attr.clearFormula()
     expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
+    expect(attr.isEditable).toBe(true)
   })
 
   test("Attribute derivation", () => {
