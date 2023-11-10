@@ -1,6 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
+import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
+import { Formula } from "../../../../models/formula/formula"
 
 export const MeasureInstance = types.model("MeasureInstance", {})
   .volatile(self => ({
@@ -16,13 +17,22 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
   .named("PlottedFunctionAdornmentModel")
   .props({
     type: types.optional(types.literal(kPlottedFunctionType), kPlottedFunctionType),
-    expression: types.maybe(types.string),
+    formula: types.optional(Formula, () => Formula.create()),
     labelTitle: types.optional(types.literal(kPlottedFunctionValueTitleKey), kPlottedFunctionValueTitleKey),
-    measures: types.map(MeasureInstance)
+    measures: types.map(MeasureInstance),
+    error: ""
   })
+  .views(self => ({
+    get expression() {
+      return self.formula.display
+    }
+  }))
   .actions(self => ({
     setExpression(expression: string) {
-      self.expression = expression
+      self.formula.setDisplayFormula(expression)
+    },
+    setError(error: string) {
+      self.error = error
     },
     addMeasure(formulaFunction: FormulaFn, key="{}") {
       const newMeasure = MeasureInstance.create()
@@ -37,38 +47,6 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     },
     removeMeasure(key: string) {
       self.measures.delete(key)
-    }
-  }))
-  .actions(self => ({
-    updateCategories(options: IUpdateCategoriesOptions) {
-      // TODO: If the comment below will be true of the Plotted Function, like it's true for the Plotted Value,
-      // remove everything from this action but the comment. We could also then remove xScale and yScale as
-      // optional items in IUpdateCategoriesOptions and getUpdateCategoriesOptions.
-
-      // Overwrite the super method to do... nothing. GraphContentModel and adornments have their own way of observing
-      // actions that should trigger recalculation of basic adornments. However, formulas have more complex dependencies
-      // that are not tracked by the graph content model. Rather than splitting observing between GraphContentModel and
-      // FormulaManager, we just do nothing here and let the formula manager handle all the scenarios.
-
-      const { xCats, xScale, yCats, yScale, topCats, rightCats, resetPoints, dataConfig } = options
-      if (!dataConfig || !xScale || !yScale) return
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const totalCount = rowCount * columnCount
-      for (let i = 0; i < totalCount; ++i) {
-        const cellKey = self.cellKey(options, i)
-        const instanceKey = self.instanceKey(cellKey)
-        const formulaFunction = (x: number) => x * x
-        if (!self.measures.get(instanceKey) || resetPoints) {
-          self.addMeasure(formulaFunction, instanceKey)
-        } else {
-          self.updateMeasureValue(formulaFunction, instanceKey)
-        }
-      }
     }
   }))
 

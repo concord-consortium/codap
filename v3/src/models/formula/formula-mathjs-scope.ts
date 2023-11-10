@@ -41,6 +41,9 @@ export class FormulaMathJsScope {
   // [CumulativeValue attribute formula]: "prev(CumulativeValue, 0) + Value"
   previousResults: FValue[] = []
   defaultArgumentNode?: MathNode
+  // Extra scope is used to pass additional values to the formula scope, e.g. when evaluating plotted function
+  // with `x` argument.
+  extraScope?: Map<string, FValue>
 
   get caseId() {
     if (!this.context.caseIds) {
@@ -101,8 +104,8 @@ export class FormulaMathJsScope {
   // --- Functions required by MathJS scope "interface". It doesn't seem to be defined/typed anywhere, so it's all
   //     based on: // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js ---
 
-  get(key: string): any {
-    return this.dataStorage[key]
+  get(key: string): FValue {
+    return this.extraScope?.has(key) ? this.extraScope.get(key) : this.dataStorage[key]
   }
 
   set() {
@@ -110,11 +113,11 @@ export class FormulaMathJsScope {
   }
 
   has(key: string) {
-    return Object.prototype.hasOwnProperty.call(this.dataStorage, key)
+    return this.extraScope?.has(key) || Object.prototype.hasOwnProperty.call(this.dataStorage, key)
   }
 
   keys(): any {
-    return new Set(Object.keys(this.dataStorage))
+    return new Set([...Object.keys(this.dataStorage), ...this.extraScope?.keys() ?? []])
   }
 
   delete() {
@@ -134,6 +137,10 @@ export class FormulaMathJsScope {
   }
 
   // --- Custom functions used by our formulas or formula manager --
+
+  setExtraScope(extraScope?: Map<string, FValue>) {
+    this.extraScope = extraScope
+  }
 
   getLocalValue(caseId: string, attrId: string) {
     if (attrId === this.context.formulaAttrId) {

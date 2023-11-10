@@ -134,6 +134,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
     const tPoints = computePoints({
       formulaFunction, min: tPixelMin, max: tPixelMax, xCellCount, yCellCount, gap: kPixelGap, xScale, yScale
     })
+    if (tPoints.length === 0) return
     path.current = `M${tPoints[0].x},${tPoints[0].y},${curveBasis(tPoints)}`
 
     const selection = select(plottedFunctionRef.current)
