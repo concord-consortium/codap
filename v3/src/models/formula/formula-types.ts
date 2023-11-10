@@ -2,13 +2,6 @@ import { ConstantNode, MathNode, SymbolNode, isConstantNode, isFunctionNode, isS
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
 import type { ICase } from "../data/data-set-types"
 
-export const CANONICAL_NAME = "__CANONICAL_NAME__"
-export const GLOBAL_VALUE = "GLOBAL_VALUE_"
-export const LOCAL_ATTR = "LOCAL_ATTR_"
-export const CASE_INDEX_FAKE_ATTR_ID = "CASE_INDEX"
-
-export const NO_PARENT_KEY = "__NO_PARENT__"
-
 export const isConstantStringNode = (node: MathNode): node is ConstantNode<string> =>
   isConstantNode(node) && typeof node.value === "string"
 
@@ -16,10 +9,6 @@ export const isConstantStringNode = (node: MathNode): node is ConstantNode<strin
 // name. In most cases, it's more useful to handle function node explicitly and skip the function name symbol node.
 export const isNonFunctionSymbolNode = (node: MathNode, parent: MathNode): node is SymbolNode =>
   isSymbolNode(node) && (!isFunctionNode(parent) || parent.fn !== node)
-
-export const isCanonicalName = (name: any): name is string => !!name?.startsWith?.(CANONICAL_NAME)
-
-export const rmCanonicalPrefix = (name: any) => isCanonicalName(name) ? name.substring(CANONICAL_NAME.length) : name
 
 export type DisplayNameMap = {
   localNames: Record<string, string>

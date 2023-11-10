@@ -1,13 +1,13 @@
 import { EvalFunction } from "mathjs"
 import { math } from "./functions/math"
-import { FormulaMathJsScope } from "./formula-mathjs-scope"
+import { FormulaMathJsScope, NO_PARENT_KEY } from "./formula-mathjs-scope"
 import { formulaError } from "./utils/misc"
 import { getFormulaDependencies } from "./utils/formula-dependency-utils"
 import {
   getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
 } from "./utils/collection-utils"
 import { CaseGroup, ICase, IGroupedCase, symParent } from "../data/data-set-types"
-import { NO_PARENT_KEY, FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
+import { FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
 import { IFormula } from "./formula"
 import { observeDatasetHierarchyChanges } from "./formula-observers"
 import type {

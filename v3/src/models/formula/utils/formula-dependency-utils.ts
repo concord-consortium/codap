@@ -1,8 +1,7 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
-import {
-  GLOBAL_VALUE, LOCAL_ATTR, IFormulaDependency, isCanonicalName, isNonFunctionSymbolNode, rmCanonicalPrefix
-} from "../formula-types"
+import { IFormulaDependency, isNonFunctionSymbolNode } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
+import { GLOBAL_VALUE, LOCAL_ATTR, isCanonicalName, rmCanonicalPrefix } from "./name-mapping-utils"
 
 // Currently, canonical names can be "basic": they can refer to local attributes or global values.
 // Or they can be custom, like ones used by lookup functions. This helper parses basic canonical names.

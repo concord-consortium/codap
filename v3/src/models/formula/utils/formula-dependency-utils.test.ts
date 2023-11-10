@@ -1,5 +1,5 @@
-import { CANONICAL_NAME, GLOBAL_VALUE, LOCAL_ATTR } from "../formula-types"
 import { basicCanonicalNameToDependency } from "./formula-dependency-utils"
+import { CANONICAL_NAME, GLOBAL_VALUE, LOCAL_ATTR } from "./name-mapping-utils"
 
 describe("basicCanonicalNameToDependency", () => {
   it("returns undefined if the name is not a canonical name", () => {

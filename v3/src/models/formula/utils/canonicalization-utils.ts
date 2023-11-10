@@ -1,9 +1,7 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
-import {
-  DisplayNameMap, CanonicalNameMap, isConstantStringNode, isNonFunctionSymbolNode, isCanonicalName
-} from "../formula-types"
+import { DisplayNameMap, CanonicalNameMap, isConstantStringNode, isNonFunctionSymbolNode } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
-import { safeSymbolName } from "./name-mapping-utils"
+import { isCanonicalName, safeSymbolName } from "./name-mapping-utils"
 
 export const unescapeBacktickString = (name: string) =>
   name.replace(/\\`/g, "`").replace(/\\\\/g, "\\")

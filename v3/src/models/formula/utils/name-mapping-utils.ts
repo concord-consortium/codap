@@ -1,8 +1,11 @@
-import {
-  LOCAL_ATTR, GLOBAL_VALUE, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, DisplayNameMap, CanonicalNameMap,
-} from "../formula-types"
+import { DisplayNameMap, CanonicalNameMap } from "../formula-types"
 import type { IDataSet } from "../../data/data-set"
 import type { IGlobalValueManager } from "../../global/global-value-manager"
+
+export const CANONICAL_NAME = "__CANONICAL_NAME__"
+export const GLOBAL_VALUE = "GLOBAL_VALUE_"
+export const LOCAL_ATTR = "LOCAL_ATTR_"
+export const CASE_INDEX_FAKE_ATTR_ID = "CASE_INDEX"
 
 export const safeSymbolName = (name: string) =>
   name
@@ -16,6 +19,10 @@ export const localAttrIdToCanonical = (attrId: string) => `${CANONICAL_NAME}${LO
 export const globalValueIdToCanonical = (globalId: string) => `${CANONICAL_NAME}${GLOBAL_VALUE}${globalId}`
 
 export const idToCanonical = (id: string) => `${CANONICAL_NAME}${id}`
+
+export const isCanonicalName = (name: any): name is string => !!name?.startsWith?.(CANONICAL_NAME)
+
+export const rmCanonicalPrefix = (name: any) => isCanonicalName(name) ? name.substring(CANONICAL_NAME.length) : name
 
 export interface IDisplayNameMapOptions {
   localDataSet: IDataSet
