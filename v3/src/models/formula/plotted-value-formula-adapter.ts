@@ -1,6 +1,6 @@
 import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
 import { ICase } from "../data/data-set-types"
-import { formulaError } from "./formula-utils"
+import { formulaError } from "./utils/misc"
 import { math } from "./functions/math"
 import type { IFormulaContext } from "./formula-manager"
 import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"

@@ -1,7 +1,7 @@
 import { makeObservable, observable } from "mobx"
 import { ICase } from "../data/data-set-types"
-import { localAttrIdToCanonical } from "./formula-utils"
 import { IFormula } from "./formula"
+import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 import type {
   IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "./formula-manager"

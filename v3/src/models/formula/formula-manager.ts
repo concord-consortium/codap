@@ -1,7 +1,6 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { ICase } from "../data/data-set-types"
-import { getFormulaDependencies, formulaError, getDisplayNameMap, getCanonicalNameMap } from "./formula-utils"
 import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
@@ -12,6 +11,9 @@ import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapte
 import {
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
+import { formulaError } from "./utils/misc"
+import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
+import { getFormulaDependencies } from "./utils/formula-dependency-utils"
 
 export interface IFormulaMetadata {
   formula: IFormula

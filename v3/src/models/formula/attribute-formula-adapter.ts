@@ -1,17 +1,19 @@
 import { EvalFunction } from "mathjs"
 import { math } from "./functions/math"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { CaseGroup, ICase, IGroupedCase, symParent } from "../data/data-set-types"
+import { formulaError } from "./utils/misc"
+import { getFormulaDependencies } from "./utils/formula-dependency-utils"
 import {
-  formulaError, getFormulaChildMostAggregateCollectionIndex, getFormulaDependencies, getIncorrectChildAttrReference,
-  getIncorrectParentAttrReference
-} from "./formula-utils"
+  getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
+} from "./utils/collection-utils"
+import { CaseGroup, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { NO_PARENT_KEY, FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
 import { IFormula } from "./formula"
-import { DEBUG_FORMULAS } from "../../lib/debug"
-import type {
-  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter } from "./formula-manager"
 import { observeDatasetHierarchyChanges } from "./formula-observers"
+import type {
+  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
+} from "./formula-manager"
+import { DEBUG_FORMULAS } from "../../lib/debug"
 
 const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"
 
