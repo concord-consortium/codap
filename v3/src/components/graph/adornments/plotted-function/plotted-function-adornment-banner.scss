@@ -14,7 +14,7 @@
   top: 0;
   width: 100%;
   z-index: 5;
-  overflow: clip;
+  overflow: hidden;
 
   .plotted-function-control-row {
     display: flex;
