@@ -30,8 +30,8 @@ interface IFormulaSupportingAdornment extends IAdornmentModel {
 }
 
 export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
-  // --- METHODS AND PROPS TO OVERWRITE/IMPLEMENT ---
-  type = "OVERWRITE"
+  // --- METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
+  type = "OVERRIDE"
 
   getAdornment(graphContentModel: IGraphContentModel): IFormulaSupportingAdornment | undefined {
     throw new Error("Method not implemented.")
@@ -40,7 +40,7 @@ export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IBaseGraphFormulaExtraMetadata) {
     throw new Error("Method not implemented.")
   }
-  // --- END OF METHODS AND PROPS TO OVERWRITE/IMPLEMENT ---
+  // --- END OF METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
 
   api: IFormulaAdapterApi
   @observable.shallow graphContentModels = new Map<string, IGraphContentModel>()
