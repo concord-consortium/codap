@@ -265,6 +265,12 @@ export const Attribute = types.model("Attribute", {
       self.numValues.splice(index, count)
       self.incChangeCount()
     }
+  },
+  clearValues() {
+    for (let i = self.strValues.length - 1; i >= 0; --i) {
+      self.strValues[i] = ""
+      self.numValues[i] = self.toNumeric(self.strValues[i])
+    }
   }
 }))
 export interface IAttribute extends Instance<typeof Attribute> {}
