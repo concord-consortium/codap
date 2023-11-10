@@ -61,7 +61,7 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
     formulaContext: IFormulaContext, extraMetadata: IPlottedFunctionFormulaExtraMetadata, childMostCases: ICase[]
   ): FormulaFn {
     const { formula } = formulaContext
-      if (DEBUG_FORMULAS) {
+    if (DEBUG_FORMULAS) {
       // eslint-disable-next-line no-console
       console.log(`[plotted function formula] recalculate "${formula.canonical}"`)
     }
