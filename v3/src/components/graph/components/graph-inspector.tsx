@@ -32,13 +32,6 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     setShowPalette(undefined)
   }
 
-  const handleGraphRescale = () => {
-    graphModel?.applyUndoableAction(
-      () => graphModel.rescale(),
-      "DG.Undo.axisDilate",
-      "DG.Redo.axisDilate")
-  }
-
   const handleRulerButton = () => {
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
@@ -51,22 +44,36 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     buttonRef.current = ref.current
   }
 
-  const getRescaleTooltip = () => {
-    if (graphModel?.noPossibleRescales) {
-      return "V3.Inspector.rescale.noRescale.toolTip"
-    }
-    else if (graphModel?.plotType === 'casePlot') {
-      return "V3.Inspector.rescale.casePlot.toolTip"
-    }
-    return "DG.Inspector.rescale.toolTip"
-  }
+  const renderRescaleButton = () => {
 
-  return (
-    <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
+    const getRescaleTooltip = () => {
+      if (graphModel?.noPossibleRescales) {
+        return "V3.Inspector.rescale.noRescale.toolTip"
+      }
+      else if (graphModel?.plotType === 'casePlot') {
+        return "V3.Inspector.rescale.casePlot.toolTip"
+      }
+      return "DG.Inspector.rescale.toolTip"
+    }
+
+    const handleGraphRescale = () => {
+      graphModel?.applyUndoableAction(
+        () => graphModel.rescale(),
+        "DG.Undo.axisDilate",
+        "DG.Redo.axisDilate")
+    }
+
+    return (
       <InspectorButton tooltip={t(getRescaleTooltip())} isDisabled={graphModel?.noPossibleRescales}
                        showMoreOptions={false} testId={"graph-resize-button"} onButtonClick={handleGraphRescale}>
         <ScaleDataIcon />
       </InspectorButton>
+    )
+  }
+
+  return (
+    <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
+      {renderRescaleButton()}
       <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
         icon={<HideShowIcon />} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
         <HideShowMenuList tile={tile} />
