@@ -5,6 +5,7 @@ import MapIcon from "../../assets/icons/icon-map.svg"
 import {createMapContentModel, MapContentModel} from "./models/map-content-model"
 import {MapComponentTitleBar} from "./components/map-component-title-bar"
 import {MapComponent} from "./components/map-component"
+import {MapInspector} from "./components/map-inspector"
 
 export const kMapIdPrefix = "MAP_"
 
@@ -19,6 +20,7 @@ registerTileComponentInfo({
   type: kMapTileType,
   TitleBar: MapComponentTitleBar,
   Component: MapComponent,
+  InspectorPanel: MapInspector,
   tileEltClass: kMapTileClass,
   Icon: MapIcon,
   shelf: {
