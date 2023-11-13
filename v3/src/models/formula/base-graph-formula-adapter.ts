@@ -89,11 +89,12 @@ export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
     return result
   }
 
-  getAllFormulas(): ({ formula: IFormula, extraMetadata?: IBaseGraphFormulaExtraMetadata })[] {
+  getActiveFormulas(): ({ formula: IFormula, extraMetadata?: IBaseGraphFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] = []
     this.graphContentModels.forEach(graphContentModel => {
       const adornment = this.getAdornment(graphContentModel)
-      if (adornment && graphContentModel.dataset) {
+      // Only visible adornment formulas are considered active.
+      if (adornment?.isVisible && graphContentModel.dataset) {
         result.push({
           formula: adornment.formula,
           extraMetadata: {

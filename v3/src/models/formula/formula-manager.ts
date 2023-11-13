@@ -44,7 +44,10 @@ export interface IFormulaAdapterApi {
 
 export interface IFormulaManagerAdapter {
   type: string
-  getAllFormulas: () => ({ formula: IFormula, extraMetadata?: any })[]
+  // This method returns all the formulas supported by this adapter. It should exclusively return formulas that need
+  // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
+  // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
+  getActiveFormulas: () => ({ formula: IFormula, extraMetadata?: any })[]
   recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
   setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
   getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => undefined | string
@@ -66,7 +69,7 @@ export class FormulaManager {
 
   constructor() {
     makeObservable(this)
-    this.registerAllFormulas()
+    this.registerActiveFormulas()
   }
 
   getAdapterApi() {
@@ -133,24 +136,25 @@ export class FormulaManager {
     adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
   }
 
-  getAllFormulas() {
-    return this.adapters.flatMap(a => a.getAllFormulas())
+  getActiveFormulas() {
+    return this.adapters.flatMap(a => a.getActiveFormulas())
   }
 
-  registerAllFormulas() {
+  registerActiveFormulas() {
     reaction(() => {
       // Observe all the formulas
-      return this.getAllFormulas().map(({ formula, extraMetadata }) => (
+      return this.getActiveFormulas().map(({ formula, extraMetadata }) => (
         { id: formula.id, formula: formula.display, extraMetadata }
       ))
     }, () => {
-      this.unregisterDeletedFormulas()
+      const activeFormulas = new Set<string>()
       // Register formulas. For simplicity, we unregister all formulas and register them again when canonical form is
       // updated. Note that even empty formulas are registered, so the metadata is always available when cycle detection
       // is executed.
       const updatedFormulas: string[] = []
       this.adapters.forEach(adapter => {
-        adapter.getAllFormulas().forEach(({ formula, extraMetadata }) => {
+        adapter.getActiveFormulas().forEach(({ formula, extraMetadata }) => {
+          activeFormulas.add(formula.id)
           const metadata = this.formulaMetadata.get(formula.id)
           const prevExtraMetadata = this.extraMetadata.get(formula.id)
           // Formula is considered to be updated by user when its display form changes, or when its extra metadata
@@ -174,16 +178,24 @@ export class FormulaManager {
           this.recalculateFormula(formulaId)
         }
       })
+      // Note that formula doesn't need to be deleted from MST tree to be considered deleted or "unregistered".
+      // It's enough for the adapter not to return given formula from getActiveFormulas() method to consider it deleted.
+      // Graph formulas do that when the adornment is hidden by user.
+      this.unregisterInactiveFormulas(activeFormulas)
     }, {
       equals: comparer.structural,
       fireImmediately: true,
-      name: "FormulaManager.registerAllFormulas.reaction"
+      name: "FormulaManager.registerActiveFormulas.reaction"
     })
   }
 
-  unregisterDeletedFormulas() {
+  unregisterInactiveFormulas(activeFormulas: Set<string>) {
     this.formulaMetadata.forEach((metadata, formulaId) => {
+      if (!activeFormulas.has(formulaId)) {
+        this.unregisterFormula(formulaId)
+      }
       if (!isAlive(metadata.formula)) {
+        console.warn(`Formula ${metadata.formula.display} unregistered in an unexpected way`)
         this.unregisterFormula(formulaId)
       }
     })
