@@ -18,13 +18,16 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
     },
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      if (caseValues.length === 0) return NaN
+      // If there are less than two values, the adornment should not render.
+      if (caseValues.length < 2) return
       return mean(caseValues)
     }
   }))
   .views(self => ({
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      // If there are less than two values, the adornment should not render.
+      if (caseValues.length < 2) return
       const standardDeviation = Number(std(caseValues))
       const meanValue = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
       const min = meanValue - standardDeviation

@@ -163,12 +163,12 @@ export class UnivariateMeasureAdornmentHelper {
       ? this.layout.getAxisMultiScale("bottom")
       : this.layout.getAxisMultiScale("left")
     const displayValue = multiScale?.formatValueForScale(value) || valueLabelString(value)
-    const plotValue = Number(displayValue) // Is this really just `value`?
+    const plotValue = Number(displayValue)
     const measureRange: IRange | undefined = attrId && this.model.hasRange
       ? this.model.computeMeasureRange(attrId, this.cellKey, dataConfig)
       : {}
     const displayRange = measureRange.min || measureRange.min === 0
-      ? multiScale?.formatValueForScale(measureRange.min) || valueLabelString(measureRange.min)
+      ? multiScale?.formatValueForScale(value - measureRange.min) || valueLabelString(value - measureRange.min)
       : undefined
     const {x: x1, y: y1} =
       this.calculateLineCoords(plotValue, 1, isVertical, cellCounts, secondaryAxisX, secondaryAxisY)
