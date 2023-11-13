@@ -12,7 +12,7 @@ export const ComponentElements = {
     graphDisplayValuesButton: "Change what is shown along with the points",
     graphDisplayConfigButton: "Configure the display differently",
     graphDisplayStylesButton: "Change the appearance of the display",
-    graphCameraButton: "Save the image as a PNG file",
+    graphCameraButton: "Save the image",
     tableSwitchCaseCard: "Switch to case card view of the data",
     tableDatasetInfoButton: "Display information about dataset",
     tableResizeButton: "Resize all columns to fit data",
