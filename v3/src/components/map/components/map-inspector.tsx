@@ -48,7 +48,7 @@ export const MapInspector = ({tile, show}: ITileInspectorPanelProps) => {
   }
 
   const renderRulerButton = () => {
-    if (mapModel && mapModel?.layers.filter(layer => isMapPointLayerModel(layer)).length > 0) {
+    if (mapModel && mapModel.layers.filter(layer => isMapPointLayerModel(layer)).length > 0) {
       return (
         <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
                          onButtonClick={handleRulerButton} setButtonRef={setButtonRef}
