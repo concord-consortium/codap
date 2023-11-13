@@ -29,8 +29,8 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     this.api = api
   }
 
-  getActiveFormulas(): ({ formula: IFormula, extraMetadata?: IAttrFormulaExtraMetadata })[] {
-    const result: ({ formula: IFormula, extraMetadata?: IAttrFormulaExtraMetadata })[] = []
+  getActiveFormulas(): ({ formula: IFormula, extraMetadata: IAttrFormulaExtraMetadata })[] {
+    const result: ({ formula: IFormula, extraMetadata: IAttrFormulaExtraMetadata })[] = []
     this.api.getDatasets().forEach(dataSet => {
       dataSet.attributes.forEach(attr => {
         result.push({

@@ -5,15 +5,13 @@ import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
-import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
-import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
-import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
 import {
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
 import { formulaError } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
 import { getFormulaDependencies } from "./utils/formula-dependency-utils"
+import { canonicalToDisplay, displayToCanonical } from "./utils/canonicalization-utils"
 
 export interface IFormulaMetadata {
   formula: IFormula
@@ -49,7 +47,7 @@ export interface IFormulaManagerAdapter {
   // This method returns all the formulas supported by this adapter. It should exclusively return formulas that need
   // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
   // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
-  getActiveFormulas: () => ({ formula: IFormula, extraMetadata?: any })[]
+  getActiveFormulas: () => ({ formula: IFormula, extraMetadata: any })[]
   recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
   setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
   getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => undefined | string
@@ -63,15 +61,10 @@ export class FormulaManager {
   @observable.shallow dataSets = new Map<string, IDataSet>()
   globalValueManager?: IGlobalValueManager
 
-  adapters: IFormulaManagerAdapter[] = [
-    new AttributeFormulaAdapter(this.getAdapterApi()),
-    new PlottedValueFormulaAdapter(this.getAdapterApi()),
-    new PlottedFunctionFormulaAdapter(this.getAdapterApi())
-  ]
+  adapters: IFormulaManagerAdapter[] = []
 
   constructor() {
     makeObservable(this)
-    this.registerActiveFormulas()
   }
 
   getAdapterApi() {
@@ -81,6 +74,11 @@ export class FormulaManager {
       getFormulaContext: (formulaId: string) => this.getFormulaContext(formulaId),
       getFormulaExtraMetadata: (formulaId: string) => this.getExtraMetadata(formulaId)
     }
+  }
+
+  addAdapters(adapters: IFormulaManagerAdapter[]) {
+    this.adapters.push(...adapters)
+    this.registerActiveFormulas()
   }
 
   @action addDataSet(dataSet: IDataSet) {
@@ -138,6 +136,35 @@ export class FormulaManager {
     adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
   }
 
+  updateFormulaCanonicalExpression(formulaId: string) {
+    const { formula } = this.getFormulaContext(formulaId)
+    // This action will be called by formula manager when it detects that the display formula has changed.
+    // It can happen either as a result of user editing the formula, or when a document with display formulas is loaded.
+    formula.setCanonicalExpression("") // reset canonical formula immediately, in case of errors that are handled below
+    if (formula.empty || !formula.valid) {
+      return
+    }
+    const displayNameMap = this.getDisplayNameMap(formulaId)
+    formula.setCanonicalExpression(displayToCanonical(formula.display, displayNameMap))
+  }
+
+  updateFormulaDisplayExpression(formulaId: string) {
+    const { formula } = this.getFormulaContext(formulaId)
+    // This action should be called when one of the attributes is renamed. The canonical form is still valid, while
+    // display form needs to be updated. The old display form is used to preserve the user's whitespace / formatting.
+    if (formula.empty || !formula.valid) {
+      return
+    }
+    const canonicalNameMap = this.getCanonicalNameMap(formulaId)
+    try {
+      formula.setDisplayExpression(canonicalToDisplay(formula.canonical, formula.display, canonicalNameMap))
+    } catch {
+      // If the canonical formula can't be converted to display formula, it usually means there are some unresolved
+      // canonical names. It usually happens when an attribute is removed. Nothing to do here, just keep the original
+      // display form.
+    }
+  }
+
   getActiveFormulas() {
     return this.adapters.flatMap(a => a.getActiveFormulas())
   }
@@ -167,7 +194,9 @@ export class FormulaManager {
           if (isFormulaUpdated) {
             this.unregisterFormula(formula.id)
             this.registerFormula(formula, adapter, extraMetadata)
-            formula.updateCanonicalFormula()
+            this.updateFormulaCanonicalExpression(formula.id)
+            // Note that we need to delay processing of updated formulas until all the formulas are registered.
+            // This is necessary for the dependency cycle detection to work correctly.
             updatedFormulas.push(formula.id)
           }
         })
@@ -276,14 +305,14 @@ export class FormulaManager {
       this.recalculateFormula(formulaId, casesToRecalculate)
     }
     const updateDisplay = () => {
-      formula.updateDisplayFormula()
+      this.updateFormulaDisplayExpression(formulaId)
       // Note that when attribute is removed or renamed, this can also affect the formula's canonical form.
       // 1. Attribute is removed - its ID needs to be removed from the canonical form and the formula should be
       //    recalculated (usually to show the error about undefined symbol).
       // 2. Attribute is renamed - if the previous display form had undefined symbols, they might now be resolved
       //    to the renamed attribute. This means that the canonical form needs to be updated.
       const oldCanonical = formula.canonical
-      formula.updateCanonicalFormula()
+      this.updateFormulaCanonicalExpression(formulaId)
       if (oldCanonical !== formula.canonical) {
         this.recalculateFormula(formula.id)
       }

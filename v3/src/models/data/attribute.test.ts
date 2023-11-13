@@ -291,7 +291,7 @@ describe("Attribute", () => {
   test("Serialization of an attribute with formula (development)", () => {
     process.env.NODE_ENV = "development"
     const x = Attribute.create({ name: "x", values: ["2", "4", "6"] })
-    x.setDisplayFormula("caseIndex * 2")
+    x.setDisplayExpression("caseIndex * 2")
     expect(x.values).toBeUndefined()
     expect(x.strValues).toEqual(["2", "4", "6"])
     expect(x.numValues).toEqual([2, 4, 6])
@@ -313,7 +313,7 @@ describe("Attribute", () => {
   test("Serialization of an attribute with formula (production)", () => {
     process.env.NODE_ENV = "production"
     const x = Attribute.create({ name: "x", values: ["2", "4", "6"] })
-    x.setDisplayFormula("caseIndex * 2")
+    x.setDisplayExpression("caseIndex * 2")
     expect(x.values).toBe(x.strValues)
     expect(x.strValues).toEqual(["2", "4", "6"])
     expect(x.numValues).toEqual([2, 4, 6])
@@ -337,7 +337,7 @@ describe("Attribute", () => {
     expect(attr.formula.display).toBe("")
     expect(attr.formula.canonical).toBe("")
     expect(attr.isEditable).toBe(true)
-    attr.setDisplayFormula("2 * x")
+    attr.setDisplayExpression("2 * x")
     expect(attr.formula.display).toBe("2 * x")
     expect(attr.isEditable).toBe(false)
     attr.clearFormula()

@@ -24,7 +24,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   }, [attribute?.formula.display])
 
   const applyFormula = () => {
-    attribute?.setDisplayFormula(formula)
+    attribute?.setDisplayExpression(formula)
     closeModal()
   }
 
