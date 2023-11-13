@@ -54,7 +54,7 @@ export const UnivariateMeasureAdornmentBaseComponent = observer(
         </g>
         </svg>
         {
-          (showLabel) &&
+          showLabel &&
             <div className="measure-labels" id={`measure-labels-${containerId}`} ref={labelRef} />
         }
       </div>

@@ -9,6 +9,7 @@ import { Point } from "../../../data-display/data-display-types"
 import { IPlottedFunctionAdornmentModel, isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { curveBasis } from "../../utilities/graph-utils"
 import { FormulaFn } from "./plotted-function-adornment-types"
 
 import "./plotted-function-adornment-component.scss"
@@ -36,60 +37,6 @@ const computePoints = (options: IComputePointsOptions) => {
     }
   }
   return tPoints
-}
-
-// This is a modified version of CODAP V2's SvgScene.pathBasis which was extracted from protovis
-const pathBasis = (p0: Point, p1: Point, p2: Point, p3: Point) => {
-  /**
-   * Matrix to transform basis (b-spline) control points to bezier control
-   * points. Derived from FvD 11.2.8.
-   */
-  const basis = [
-    [ 1/6, 2/3, 1/6,   0 ],
-    [   0, 2/3, 1/3,   0 ],
-    [   0, 1/3, 2/3,   0 ],
-    [   0, 1/6, 2/3, 1/6 ]
-  ]
-
-  /**
-   * Returns the point that is the weighted sum of the specified control points,
-   * using the specified weights. This method requires that there are four
-   * weights and four control points.
-   */
-  const weight = (w: number[]) => {
-    return {
-      x: w[0] * p0.x + w[1] * p1.x + w[2] * p2.x + w[3] * p3.x,
-      y: w[0] * p0.y  + w[1] * p1.y  + w[2] * p2.y  + w[3] * p3.y
-    }
-  }
-
-  const b1 = weight(basis[1])
-  const b2 = weight(basis[2])
-  const b3 = weight(basis[3])
-
-  return `C${b1.x},${b1.y},${b2.x},${b2.y},${b3.x},${b3.y}`
-}
-
- // This is a modified version of CODAP V2's SvgScene.curveBasis which was extracted from protovis
- const curveBasis = (points: Point[]) => {
-  if (points.length <= 2) return ""
-  let path = "",
-      p0 = points[0],
-      p1 = p0,
-      p2 = p0,
-      p3 = points[1]
-  path += pathBasis(p0, p1, p2, p3)
-  for (let i = 2; i < points.length; i++) {
-    p0 = p1
-    p1 = p2
-    p2 = p3
-    p3 = points[i]
-    path += pathBasis(p0, p1, p2, p3)
-  }
-  /* Cycle through to get the last point. */
-  path += pathBasis(p1, p2, p3, p3)
-  path += pathBasis(p2, p3, p3, p3)
-  return path
 }
 
 interface IProps {

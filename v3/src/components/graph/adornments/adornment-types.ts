@@ -15,6 +15,7 @@ import { IMeanAbsoluteDeviationAdornmentModel, MeanAbsoluteDeviationAdornmentMod
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
 import { PlottedFunctionAdornmentModel, IPlottedFunctionAdornmentModel }
   from "./plotted-function/plotted-function-adornment-model"
+import { ILSRLAdornmentModel, LSRLAdornmentModel } from "./lsrl/lsrl-adornment-model"
 
 export const kGraphAdornmentsClass = "graph-adornments-grid"
 export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
@@ -23,6 +24,7 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
   switch (adornmentSnap.type) {
     case "Box Plot": return BoxPlotAdornmentModel
     case "Count": return CountAdornmentModel
+    case "LSRL": return LSRLAdornmentModel
     case "Mean": return MeanAdornmentModel
     case "Mean Absolute Deviation": return MeanAbsoluteDeviationAdornmentModel
     case "Median": return MedianAdornmentModel
@@ -37,11 +39,12 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
 }
 
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
-  BoxPlotAdornmentModel, CountAdornmentModel, MeanAdornmentModel, MeanAbsoluteDeviationAdornmentModel,
-  MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel, MovablePointAdornmentModel,
-  PlottedFunctionAdornmentModel, PlottedValueAdornmentModel, StandardDeviationAdornmentModel, UnknownAdornmentModel)
-export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | IMeanAdornmentModel |
-  IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
+  BoxPlotAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
+  MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
+  MovablePointAdornmentModel, PlottedFunctionAdornmentModel, PlottedValueAdornmentModel,
+  StandardDeviationAdornmentModel, UnknownAdornmentModel)
+export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | ILSRLAdornmentModel |
+  IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
   IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedFunctionAdornmentModel |
   IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
 

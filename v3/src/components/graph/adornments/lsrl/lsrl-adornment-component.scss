@@ -1,0 +1,75 @@
+svg[class^="line-"] {
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+}
+
+.lsrl {
+  stroke: #008000;
+  stroke-width: 1px;
+
+  &.highlight {
+    stroke-width: 2px;
+  }
+}
+
+.lsrl-cover {
+  fill: transparent;
+  pointer-events: all;
+  stroke: transparent;
+  stroke-width: 5px;
+}
+
+.lsrl-confidence-band-shading {
+  fill: #008000;
+  fill-opacity: 0.05;
+  pointer-events: all;
+  stroke: transparent;
+}
+
+.lsrl-confidence-band {
+  fill: transparent;
+  stroke: #008000;
+}
+
+.lsrl-confidence-band-cover {
+  fill: transparent;
+  stroke: transparent;
+}
+
+.confidence-bands-tip {
+  font-size: 11px;
+  max-width: 200px;
+  position: absolute;
+}
+
+.lsrl-equation-container {
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+
+  p {
+    background-color: rgba(255, 255, 0, 0.6);
+    color: #4782b4;
+    cursor: grab;
+    font-family: "Montserrat-Bold", sans-serif;
+    font-size: 12px;
+    padding: 2px 5px;
+    pointer-events: all;
+    position: absolute;
+
+    &:active {
+      cursor: grabbing;
+    }
+    &.highlight {
+      background-color: rgba(255, 255, 0, 1)
+    }
+
+    em {
+      font-weight: bold;
+    }
+  }
+}

@@ -782,6 +782,7 @@
     "DG.ScatterPlotModel.hoursLabel": "per hour", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.minutesLabel": "per minute", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.secondsLabel": "per seconds", // used in equation for line when x is a datetime axis
+    "DG.ScatterPlotModel.LSRLCIBandInfo": "Shaded regions shows the range\n in which the true regression line\n lies at 95% confidence level.",
 
     // DG.BarChartModel
     "DG.BarChartModel.cellTipPlural": "%@ of %@ %@ (%@%) are %@",  // "<n> of <m> <X>s (<p>%) are <Y>"
@@ -986,6 +987,7 @@
     "DG.Inspector.graphPlottedFunction": "Plotted Function",
     "DG.Inspector.graphSquares": "Squares of Residuals",
     "DG.Inspector.graphLSRL": "Least Squares Line",
+    "DG.Inspector.graphLSRLShowConfidenceBands": "Show Confidence Bands",
     "DG.Inspector.graphMovableValue": "Movable Value",
     "DG.Inspector.graphAdd": "Add",
     "DG.Inspector.graphRemove": "Remove",
