@@ -147,7 +147,7 @@ export class FormulaManager {
         { id: formula.id, formula: formula.display, extraMetadata }
       ))
     }, () => {
-      const activeFormulas: Set<string> = new Set()
+      const activeFormulas = new Set<string>()
       // Register formulas. For simplicity, we unregister all formulas and register them again when canonical form is
       // updated. Note that even empty formulas are registered, so the metadata is always available when cycle detection
       // is executed.
