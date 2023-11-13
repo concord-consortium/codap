@@ -29,7 +29,7 @@ export const CaseDots = function CaseDots(props: {
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>()
 
-  const randomlyDistributePoints = useCallback((cases?: CaseData[] | undefined) => {
+  const randomlyDistributePoints = useCallback((cases?: CaseData[]) => {
     const uniform = randomUniform()
       const points = randomPointsRef.current
       cases?.forEach(({caseID}) => {

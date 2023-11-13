@@ -46,6 +46,7 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
 
   const renderRescaleButton = () => {
 
+/*
     const getRescaleTooltip = () => {
       if (graphModel?.noPossibleRescales) {
         return "V3.Inspector.rescale.noRescale.toolTip"
@@ -55,6 +56,10 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
       }
       return "DG.Inspector.rescale.toolTip"
     }
+*/
+    const rescaleTooltip = graphModel?.noPossibleRescales 
+      ? "V3.Inspector.rescale.noRescale.toolTip" 
+      : graphModel?.plotType === "casePlot" ? "V3.Inspector.rescale.casePlot.toolTip" : "DG.Inspector.rescale.toolTip"
 
     const handleGraphRescale = () => {
       graphModel?.applyUndoableAction(
@@ -64,7 +69,7 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     }
 
     return (
-      <InspectorButton tooltip={t(getRescaleTooltip())} isDisabled={graphModel?.noPossibleRescales}
+      <InspectorButton tooltip={t(rescaleTooltip)} isDisabled={graphModel?.noPossibleRescales}
                        showMoreOptions={false} testId={"graph-resize-button"} onButtonClick={handleGraphRescale}>
         <ScaleDataIcon />
       </InspectorButton>

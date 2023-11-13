@@ -7,7 +7,7 @@ export const ComponentElements = {
     minimizeComponent: "Minimize or expand this Component",
     closeComponent: "Close this Component",
     inspectorPanel: "Change what is shown along with the points",
-    graphResizeButton: "Resize all columns to fit data",
+    graphResizeButton: "Move the points to new random positions",
     graphHideShowButton: "Show all cases or hide selected/unselected cases",
     graphDisplayValuesButton: "Change what is shown along with the points",
     graphDisplayConfigButton: "Configure the display differently",
