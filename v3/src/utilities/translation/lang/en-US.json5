@@ -21,6 +21,9 @@
     "V3.formula.error.stringConstantArg": "The '%@()' function expects %@ argument to be a string constant",
     "V3.formula.error.caseDependentNotSupported": "This formula scope does not support case-dependent formulas",
 
+    // V3 map inspector strings
+//    "V3.Inspector.map.displayValues.toolTip": "Change what is shown along with the points",
+
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
@@ -855,6 +858,8 @@
     "DG.DataDisplayMenu.displayingOnlySelected": "Displaying Only Selected Cases",
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
     "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
+    "DG.DataDisplayMenu.exportPngImage": "Export PNG Image...",
+    "DG.DataDisplayMenu.exportSvgImage": "Export SVG Image...",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
     "DG.DataDisplayMenu.addBackgroundImage": "Add Background Image",
@@ -954,7 +959,7 @@
     "DG.Inspector.displayStyles.toolTip": "Change the appearance of the display",
     "DG.Inspector.displayLayers.toolTip": "Change the appearance of the map layers",
     "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
-    "DG.Inspector.makeImage.toolTip": "Save the image as a PNG file",
+    "DG.Inspector.makeImage.toolTip": "Save the image",
     "DG.Inspector.displayShow": "Show …",
     "DG.Inspector.displayScale": "Scale …",
 

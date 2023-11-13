@@ -3,6 +3,7 @@ import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
+import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {kMapModelName, kMapTileType} from "../map-defs"
@@ -106,8 +107,13 @@ export const MapContentModel = DataDisplayContentModel
     },
     incrementDisplayChangeCount() {
       self.displayChangeCount++
+    },
+    rescale() {
+      console.log("rescale")
     }
   }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
 
 export interface IMapContentModel extends Instance<typeof MapContentModel> {
 }
