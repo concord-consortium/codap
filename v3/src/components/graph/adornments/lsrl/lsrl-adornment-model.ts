@@ -8,26 +8,37 @@ import { IGraphDataConfigurationModel } from "../../models/graph-data-configurat
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 
 export const LSRLInstance = types.model("LSRLInstance", {
-  equationCoords: types.maybe(PointModel),
-  intercept: types.number,
-  rSquared: types.number,
-  slope: types.number,
-  sdResiduals: types.number
+  equationCoords: types.maybe(PointModel)
 })
+.volatile(() => ({
+  category: undefined as string | undefined,
+  intercept: undefined as number | undefined,
+  rSquared: undefined as number | undefined,
+  slope: undefined as number | undefined,
+  sdResiduals: undefined as number | undefined
+}))
+.views(self => ({
+  get isValid() {
+    return self.intercept && self.rSquared && self.slope && self.sdResiduals
+  }
+}))
 .actions(self => ({
+  setCategory(category?: string) {
+    self.category = category
+  },
   setEquationCoords(coords: Point) {
     self.equationCoords = PointModel.create(coords)
   },
-  setIntercept(intercept: number) {
+  setIntercept(intercept?: number) {
     self.intercept = intercept
   },
-  setRSquared(rSquared: number) {
+  setRSquared(rSquared?: number) {
     self.rSquared = rSquared
   },
-  setSlope(slope: number) {
+  setSlope(slope?: number) {
     self.slope = slope
   },
-  setSdResiduals(sdResiduals: number) {
+  setSdResiduals(sdResiduals?: number) {
     self.sdResiduals = sdResiduals
   }
 }))
@@ -50,11 +61,13 @@ export const LSRLAdornmentModel = AdornmentModel
     const casesInPlot = dataConfig.subPlotCases(cellKey)
     const caseValues: Point[] = []
     casesInPlot.forEach((c: ICase) => {
-      const caseValueX = Number(dataset?.getValue(c.__id__, xAttrId))
-      const caseValueY = Number(dataset?.getValue(c.__id__, yAttrId))
+      const caseValueX = dataset?.getNumeric(c.__id__, xAttrId)
+      const caseValueY = dataset?.getNumeric(c.__id__, yAttrId)
       const caseValueLegend = dataset?.getValue(c.__id__, legendAttrId)
-      if (Number.isFinite(caseValueX)) {
-        if (cat && cat !== "__main__" && caseValueLegend !== cat) return
+      const isValidX = caseValueX && Number.isFinite(caseValueX)
+      const isValidY = caseValueY && Number.isFinite(caseValueY)
+      const categoryMatch = cat === "__main__" || caseValueLegend === cat
+      if (isValidX && isValidY && categoryMatch) {
         caseValues.push({x: caseValueX, y: caseValueY})
       }
     })
@@ -62,18 +75,15 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .views(self => ({
-  confidenceValues(iX: number, caseValues: Point[], cellKey: Record<string, string>, lineIndex: number) {
+  confidenceValues(
+    iX: number, caseValues: Point[], cellKey: Record<string, string>, lineIndex: number, isInterceptLocked=false
+  ) {
     const lines = self.lines.get(self.instanceKey(cellKey))
     const line = lines?.[lineIndex]
-    const interceptIsLocked = false
-    const slopeIntercept = leastSquaresLinearRegression(caseValues, interceptIsLocked)
-    const { count, mse, xSumSquaredDeviations, xMean } = slopeIntercept
+    const { count, mse, xSumSquaredDeviations, xMean } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
     if (
-      !line ||
-      (!count && count !== 0) ||
-      (!mse && mse !== 0) ||
-      (!xMean && xMean !== 0) ||
-      (!xSumSquaredDeviations && xSumSquaredDeviations !== 0)
+      !line || !line.intercept || !line.slope || count == null || mse == null || xMean == null ||
+      xSumSquaredDeviations == null
     ) return
     const tAt0975ForD = tAt0975ForDf(count - 2)
     const tYHat = line.intercept + line.slope * iX
@@ -87,8 +97,8 @@ export const LSRLAdornmentModel = AdornmentModel
     min: number, max: number, xCellCount: number, yCellCount: number, gap: number, caseValues: Point[],
     xScale: ScaleNumericBaseType, yScale: ScaleNumericBaseType, cellKey: Record<string, string>, lineIndex: number
   ) {
-    const upperPoints: any = []
-    const lowerPoints: any = []
+    const upperPoints: Point[] = []
+    const lowerPoints: Point[] = []
     for (let pixelX = min; pixelX <= max; pixelX += gap) {
       const tX = xScale.invert(pixelX * xCellCount)
       const tYValues = self.confidenceValues(tX, caseValues, cellKey, lineIndex)
@@ -100,23 +110,33 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  updateLines(line: {intercept: number, rSquared: number, slope: number, sdResiduals: number}, key="") {
+  updateLines(
+    line: {category?: string, intercept?: number, rSquared?: number, slope?: number, sdResiduals?: number},
+    key="",
+    index?: number
+  ) {
     const existingLines = self.lines.get(key)
     const newLines = existingLines ? [...existingLines] : []
-    newLines.push(LSRLInstance.create(line))
+    // Remove any pre-existing line in newLines at specified index, otherwise we can end up with duplicates.
+    index && newLines.splice(index, 1)
+    const newLine = LSRLInstance.create(line)
+    newLine.setCategory(line.category)
+    newLine.setIntercept(line.intercept)
+    newLine.setRSquared(line.rSquared)
+    newLine.setSlope(line.slope)
+    newLine.setSdResiduals(line.sdResiduals)
+    newLines.push(newLine)
     self.lines.set(key, newLines)
   },
   setShowConfidenceBands(showConfidenceBands: boolean) {
     self.showConfidenceBands = showConfidenceBands
   },
   computeValues(
-    xAttrId: string, yAttrId: string, cellKey: Record<string, string>,
-    dataConfig: IGraphDataConfigurationModel, key="", isInterceptLocked=false,
-    cat?: string
+    xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel,
+    key="", isInterceptLocked=false, cat?: string
   ) {
     const caseValues = self.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, cat)
-    const { intercept, rSquared, slope, sdResiduals } =
-      leastSquaresLinearRegression(caseValues, isInterceptLocked)
+    const { intercept, rSquared, slope, sdResiduals } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
     return { intercept, rSquared, slope, sdResiduals }  
   }
 }))
@@ -133,20 +153,41 @@ export const LSRLAdornmentModel = AdornmentModel
       const cellKey = self.cellKey(options, i)
       const instanceKey = self.instanceKey(cellKey)
       for (let j = 0; j < legendCats.length; ++j) {
+        const category = legendCats[j]
         // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like 
         // isInterceptLocked instead of false in the call to self.computeValues.
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
-          xAttrId, yAttrId, cellKey, dataConfig, instanceKey, false, legendCats[j]
+          xAttrId, yAttrId, cellKey, dataConfig, instanceKey, false, category
         )
-        if (
-          (intercept === null && intercept !== 0) ||
-          (rSquared === null && rSquared !== 0) ||
-          (slope === null && slope !== 0) ||
-          (sdResiduals === null && sdResiduals !== 0)
-        ) continue
-        self.updateLines({intercept, rSquared, slope, sdResiduals}, instanceKey)
+        if (intercept == null || rSquared == null || slope == null || sdResiduals == null) continue
+        self.updateLines({category, intercept, rSquared, slope, sdResiduals}, instanceKey, j)
       }
     }
+  }
+}))
+.views(self => ({
+  // Clients should call getLines instead of accessing the lines property directly. getLines will compute and set the
+  // values for lines in cases where their volatile properties may have been reset to the defaults. This can happen, for
+  // example, when the adornment is added to the graph, then removed and added back again using the undo/redo feature.
+  getLines(
+    xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel
+  ) {
+    const key = self.instanceKey(cellKey)
+    const lines = self.lines.get(key)
+    const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
+    lines?.forEach((line, i) => {
+      if (!line?.isValid) {
+
+        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like 
+        // isInterceptLocked instead of false in the call to self.computeValues.
+        const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
+          xAttrId, yAttrId, cellKey, dataConfig, key, false, legendCats[i]
+        )
+        if (intercept == null || rSquared == null || slope == null || sdResiduals == null) return
+        self.updateLines({category: legendCats[i], intercept, rSquared, slope, sdResiduals}, key, i)
+      }
+    })
+    return lines
   }
 }))
 

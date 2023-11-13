@@ -182,20 +182,22 @@ export function percentString(value: number) {
 
 export const lsrlEquationString = (
   slope: number, intercept: number, rSquared: number, attrNames: {x: string, y: string}, caseValues: Point[],
-  confidenceBandsEnabled?: boolean
+  confidenceBandsEnabled?: boolean, color?: string
 ) => {
   const float = format(".3~r")
   const floatIntercept = format(".1~f")
   const floatSeSlope = format(".3~f")
   const linearRegression = leastSquaresLinearRegression(caseValues, false)
-  const seSlope = Math.sqrt(
-    (linearRegression.sse / Number(linearRegression.count) - 2) / Number(linearRegression.xSumSquaredDeviations)
-  )
+  const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
+  const seSlope = Math.sqrt((sse / count - 2) / xSumSquaredDeviations)
+  const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
+  const interceptString = intercept >= 0 ? `+ ${floatIntercept(intercept)}` : ` ${floatIntercept(intercept)}`
   const equationPart = isFinite(slope) && slope !== 0
-    ? `<em>${attrNames.y}</em> = (${float(slope)}) (<em>${attrNames.x}</em>) + ${floatIntercept(intercept)}`
+    ? `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString} ${interceptString}`
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${floatIntercept(intercept)}`
   const seSlopePart = confidenceBandsEnabled ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}` : ""
-  return `${equationPart}<br />r<sup>2</sup> = ${float(rSquared)}${seSlopePart}`
+  const style = color ? `style="color: ${color}"` : ""
+  return `<span ${style}>${equationPart}<br />r<sup>2</sup> = ${float(rSquared)}${seSlopePart}</span>`
 }
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
@@ -297,28 +299,30 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
   /**
    * Returns an object that has the slope and intercept
    * @param iCoordPairs [{x: {Number}, y: {Number}}]
-   * @returns {{count: {Number}, xSum: {Number}, xSumOfSquares: {Number}, xSumSquaredDeviations: { Number},
+   * @returns {count: {Number}, xSum: {Number}, xSumOfSquares: {Number}, xSumSquaredDeviations: { Number},
   *          ySum: {Number}, ySumOfSquares: {Number}, ySumSquaredDeviations: {Number}, sumOfProductDiffs: {Number} }
   */
- const computeBivariateStats = (iCoordPairs: any) => {
-    const tResult: any = {
-      count: 0,
-      xSum: 0,
-      xSumOfSquares: 0,
-      xSumSquaredDeviations: 0,
-      ySum: 0,
-      ySumOfSquares: 0,
-      ySumSquaredDeviations: 0,
-      sumOfProductDiffs: 0
-    }
-    let tSumDiffsX = 0
-    let tSumDiffsY = 0
+ const computeBivariateStats = (iCoordPairs: Point[]) => {
+   const tResult = {
+     count: 0,
+     xMean: 0,
+     xSum: 0,
+     xSumOfSquares: 0,
+     xSumSquaredDeviations: 0,
+     yMean: 0,
+     ySum: 0,
+     ySumOfSquares: 0,
+     ySumSquaredDeviations: 0,
+     sumOfProductDiffs: 0
+   }
+   let tSumDiffsX = 0
+   let tSumDiffsY = 0
 
-    // Under certain circumstances (adding new case) an empty value can sneak in here. Filter out.
-    iCoordPairs = iCoordPairs.filter((iPair: any) => {
-      return !(!iPair.x || !iPair.y)
-    })
-   iCoordPairs.forEach(function (iPair: any) {
+   // Under certain circumstances (adding new case) an empty value can sneak in here. Filter out.
+   iCoordPairs = iCoordPairs.filter((iPair: Point) => {
+     return !(!iPair.x || !iPair.y)
+   })
+   iCoordPairs.forEach(function (iPair: Point) {
      if (isFinite(iPair.x) && isFinite(iPair.y)) {
        tResult.count += 1
        tResult.xSum += iPair.x
@@ -330,7 +334,7 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
    if (tResult.count > 0) {
      tResult.xMean = tResult.xSum / tResult.count
      tResult.yMean = tResult.ySum / tResult.count
-     iCoordPairs.forEach((iPair: any) => {
+     iCoordPairs.forEach((iPair: Point) => {
        let tDiffX = 0
        let tDiffY = 0
        if (isFinite(iPair.x) && isFinite(iPair.y)) {
@@ -398,63 +402,55 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
 ]
 
  export const tAt0975ForDf = (iDf: number) => {
-  const foundIndex = t_quantile_at_0975_for_df.findIndex((iPair: any) => iPair[0] > iDf)
+  const foundIndex = t_quantile_at_0975_for_df.findIndex((iPair: number[]) => iPair[0] > iDf)
   return foundIndex <= 0 ? 1.96 : t_quantile_at_0975_for_df[foundIndex - 1][1]
 }
-export interface ISlopeIntercept {
-  count: number | null
-  intercept: number | null
-  mse: number | null // mean squared error
-  rSquared: number | null
-  sdResiduals: number | null
-  slope: number | null
-  sse: number // sum of squared errors
-  sumSquaresResiduals?: number | null
-  xMean: number | null
-  xSumSquaredDeviations: number | null
-  yMean?: number | null
+export interface IRegression {
+  count?: number
+  intercept?: number
+  mse?: number // mean squared error
+  rSquared?: number
+  sdResiduals?: number
+  slope?: number
+  sse?: number // sum of squared errors
+  sumSquaresResiduals?: number
+  xMean?: number
+  xSumSquaredDeviations?: number
+  yMean?: number
 }
 
-export const leastSquaresLinearRegression = (iValues: any, iInterceptLocked: boolean) => {
-  const tSlopeIntercept: ISlopeIntercept = {
-    count: null,
-    intercept: null,
-    mse: null, // mean squared error
-    rSquared: null,
-    sdResiduals: null,
-    slope: null,
-    sse: 0,  // sum of squared errors
-    xMean: null,
-    xSumSquaredDeviations: null
-  }
+export const leastSquaresLinearRegression = (iValues: Point[], iInterceptLocked: boolean) => {
+  const tRegression: IRegression = {}
   const tBiStats = computeBivariateStats(iValues)
   if (tBiStats.count > 1) {
     if (iInterceptLocked) {
-      tSlopeIntercept.slope = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /
+      tRegression.slope = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /
           (tBiStats.xSumSquaredDeviations + tBiStats.xMean * tBiStats.xSum)
-      tSlopeIntercept.intercept = 0
+      tRegression.intercept = 0
     } else {
-      tSlopeIntercept.count = tBiStats.count
-      tSlopeIntercept.xMean = tBiStats.xMean
-      tSlopeIntercept.yMean = tBiStats.yMean
-      tSlopeIntercept.xSumSquaredDeviations = tBiStats.xSumSquaredDeviations
-      tSlopeIntercept.slope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations
-      tSlopeIntercept.intercept = tBiStats.yMean - tSlopeIntercept.slope * tBiStats.xMean
-      tSlopeIntercept.rSquared = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
+      tRegression.count = tBiStats.count
+      tRegression.xMean = tBiStats.xMean
+      tRegression.yMean = tBiStats.yMean
+      tRegression.xSumSquaredDeviations = tBiStats.xSumSquaredDeviations
+      tRegression.slope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations
+      tRegression.intercept = tBiStats.yMean - tRegression.slope * tBiStats.xMean
+      tRegression.rSquared = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
           (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations)
 
       // Now that we have the slope and intercept, we can compute the sum of squared errors
-      iValues.forEach(function (iPair: any) {
+      iValues.forEach(function (iPair: Point) {
         if (isFinite(iPair.x) && isFinite(iPair.y)) {
-          const tResidual = iPair.y - (Number(tSlopeIntercept.intercept) + Number(tSlopeIntercept.slope) * iPair.x)
-          tSlopeIntercept.sse += tResidual * tResidual
+          const tResidual = iPair.y - (Number(tRegression.intercept) + Number(tRegression.slope) * iPair.x)
+          tRegression.sse = tRegression.sse
+            ? tRegression.sse += tResidual * tResidual
+            : tResidual * tResidual
         }
       })
-      tSlopeIntercept.sdResiduals = Math.sqrt(tSlopeIntercept.sse / (tBiStats.count - 2))
-      tSlopeIntercept.mse = tSlopeIntercept.sse / (Number(tSlopeIntercept.count) - 2)
+      tRegression.sdResiduals = Math.sqrt(Number(tRegression.sse) / (tBiStats.count - 2))
+      tRegression.mse = Number(tRegression.sse) / (Number(tRegression.count) - 2)
     }
   }
-  return tSlopeIntercept
+  return tRegression
 }
 
 // This is a modified version of CODAP V2's SvgScene.pathBasis which was extracted from protovis

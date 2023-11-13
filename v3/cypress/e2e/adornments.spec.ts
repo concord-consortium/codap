@@ -215,7 +215,10 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-cover]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
-      .should("contain.html", "<em>Speed</em> = (−0.00142) (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933")
+      .should(
+        "contain.html",
+        "<span><em>Speed</em> = −0.00142 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933</span>"
+      )
     cy.get("*[data-testid=lsrl-confidence-band]").should("exist").should("not.have.attr", "d")
     cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("not.have.attr", "d")
     cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("not.have.attr", "d")
@@ -227,7 +230,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
       .should(
         "contain.html",
-        "<em>Speed</em> = (−0.00142) (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933<br>SE<sub>slope</sub> = 0.003"
+        "<span><em>Speed</em> = −0.00142 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933<br>SE<sub>slope</sub> = 0.003</span>"
       )
     // TODO: Test that mousing over equation highlights the line and vice versa
     // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are

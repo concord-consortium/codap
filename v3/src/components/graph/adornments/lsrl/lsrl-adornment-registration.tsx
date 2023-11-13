@@ -16,10 +16,10 @@ const Controls = observer(() => {
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
 
-  const handleBoxPlotSetting = (checked: boolean) => {
-    const existingBoxPlotAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
+  const handleLSRLSetting = (checked: boolean) => {
+    const existingLSRLAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
     const componentContentInfo = getAdornmentContentInfo(kLSRLType)
-    const adornment = existingBoxPlotAdornment ?? componentContentInfo.modelClass.create() as ILSRLAdornmentModel
+    const adornment = existingLSRLAdornment ?? componentContentInfo.modelClass.create() as ILSRLAdornmentModel
     const undoRedoKeys = {
       undoAdd: componentContentInfo.undoRedoKeys?.undoAdd,
       redoAdd: componentContentInfo.undoRedoKeys?.redoAdd,
@@ -50,7 +50,7 @@ const Controls = observer(() => {
         <Checkbox
           data-testid={`adornment-checkbox-${kLSRLClass}`}
           defaultChecked={existingAdornment?.isVisible}
-          onChange={e => handleBoxPlotSetting(e.target.checked)}
+          onChange={e => handleLSRLSetting(e.target.checked)}
         >
           {t(kLSRLLabelKey)}
         </Checkbox>

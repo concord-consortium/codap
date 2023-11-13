@@ -14,43 +14,44 @@ const mockLSRLInstanceProps2 = {
 }
 
 describe("LSRLInstance", () => {
-  it("is created with intercept, rSquared, sdResiduals, and slope properties", () => {
-    const lsrlInstance = LSRLInstance.create(mockLSRLInstanceProps1)
-    expect(lsrlInstance.intercept).toEqual(1)
-    expect(lsrlInstance.rSquared).toEqual(1)
-    expect(lsrlInstance.sdResiduals).toEqual(1)
-    expect(lsrlInstance.slope).toEqual(1)
+  it("is created with undefined equationCoords, intercept, rSquared, sdResiduals, and slope properties", () => {
+    const lsrlInstance = LSRLInstance.create()
+    expect(lsrlInstance.equationCoords).toBeUndefined()
+    expect(lsrlInstance.intercept).toBeUndefined()
+    expect(lsrlInstance.rSquared).toBeUndefined()
+    expect(lsrlInstance.sdResiduals).toBeUndefined()
+    expect(lsrlInstance.slope).toBeUndefined()
   })
   it("can have equationCoords properties set", () => {
-    const lsrlInstance = LSRLInstance.create(mockLSRLInstanceProps1)
+    const lsrlInstance = LSRLInstance.create()
     expect(lsrlInstance.equationCoords).toBeUndefined()
     lsrlInstance.setEquationCoords({x: 50, y: 50})
     expect(lsrlInstance.equationCoords?.x).toEqual(50)
     expect(lsrlInstance.equationCoords?.y).toEqual(50)
   })
   it("can have intercept properties set", () => {
-    const lsrlInstance = LSRLInstance.create(mockLSRLInstanceProps1)
+    const lsrlInstance = LSRLInstance.create()
+    expect(lsrlInstance.intercept).toBeUndefined()
+    lsrlInstance.setIntercept(1)
     expect(lsrlInstance.intercept).toEqual(1)
-    lsrlInstance.setIntercept(2)
-    expect(lsrlInstance.intercept).toEqual(2)
   })
   it("can have rSquared properties set", () => {
-    const lsrlInstance = LSRLInstance.create(mockLSRLInstanceProps1)
+    const lsrlInstance = LSRLInstance.create()
+    expect(lsrlInstance.rSquared).toBeUndefined()
+    lsrlInstance.setRSquared(1)
     expect(lsrlInstance.rSquared).toEqual(1)
-    lsrlInstance.setRSquared(2)
-    expect(lsrlInstance.rSquared).toEqual(2)
   })
   it("can have slope properties set", () => {
     const lsrlInstance = LSRLInstance.create(mockLSRLInstanceProps1)
+    expect(lsrlInstance.slope).toBeUndefined()
+    lsrlInstance.setSlope(1)
     expect(lsrlInstance.slope).toEqual(1)
-    lsrlInstance.setSlope(2)
-    expect(lsrlInstance.slope).toEqual(2)
   })
   it("can have sdResiduals properties set", () => {
     const lsrlInstance = LSRLInstance.create(mockLSRLInstanceProps1)
+    expect(lsrlInstance.sdResiduals).toBeUndefined()
+    lsrlInstance.setSdResiduals(1)
     expect(lsrlInstance.sdResiduals).toEqual(1)
-    lsrlInstance.setSdResiduals(2)
-    expect(lsrlInstance.sdResiduals).toEqual(2)
   })
 })
 
