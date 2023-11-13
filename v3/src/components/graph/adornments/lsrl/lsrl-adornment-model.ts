@@ -19,7 +19,10 @@ export const LSRLInstance = types.model("LSRLInstance", {
 }))
 .views(self => ({
   get isValid() {
-    return self.intercept && self.rSquared && self.slope && self.sdResiduals
+    return isFinite(Number(self.intercept)) &&
+           isFinite(Number(self.rSquared)) &&
+           isFinite(Number(self.slope)) &&
+           isFinite(Number(self.sdResiduals))
   }
 }))
 .actions(self => ({
@@ -82,7 +85,7 @@ export const LSRLAdornmentModel = AdornmentModel
     const line = lines?.[lineIndex]
     const { count, mse, xSumSquaredDeviations, xMean } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
     if (
-      !line || !line.intercept || !line.slope || count == null || mse == null || xMean == null ||
+      !line || line.intercept == null || line.slope == null || count == null || mse == null || xMean == null ||
       xSumSquaredDeviations == null
     ) return
     const tAt0975ForD = tAt0975ForDf(count - 2)

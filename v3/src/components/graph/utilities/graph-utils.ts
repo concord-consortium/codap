@@ -320,7 +320,7 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
 
    // Under certain circumstances (adding new case) an empty value can sneak in here. Filter out.
    iCoordPairs = iCoordPairs.filter((iPair: Point) => {
-     return !(!iPair.x || !iPair.y)
+     return isFinite(iPair.x) && isFinite(iPair.y)
    })
    iCoordPairs.forEach(function (iPair: Point) {
      if (isFinite(iPair.x) && isFinite(iPair.y)) {

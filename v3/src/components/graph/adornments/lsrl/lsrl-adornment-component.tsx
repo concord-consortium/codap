@@ -73,6 +73,10 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
   const lineObjectsRef = useRef<ILineObject[]>([])
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
 
+  const getLines = useCallback(() => {
+    return dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig)
+  }, [cellKey, dataConfig, model, xAttrId, yAttrId])
+
   const fixEndPoints = useCallback((iLine: Selection<SVGLineElement, unknown, null, undefined>) => {
     if (
       !Number.isFinite(pointsOnAxes.current.pt1.x) || !Number.isFinite(pointsOnAxes.current.pt2.x) ||
@@ -122,7 +126,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
         .style("top", `${top}px`)
 
       if (isFinished) {
-        const lines = dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig)
+        const lines = getLines()
         if (!lines) return
         // Get the percentage of plot width and height of the equation box's coordinates
         // for a more accurate placement of the equation box.
@@ -134,10 +138,10 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
         )
       }
     }
-  }, [cellKey, dataConfig, equationContainerSelector, graphModel, model, plotHeight, plotWidth, xAttrId, yAttrId])
+  }, [equationContainerSelector, getLines, graphModel, plotHeight, plotWidth])
 
   const updateEquations = useCallback(() => {
-    const lines = dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig)
+    const lines = getLines()
     if (!lines) return
     const equationDiv = select(equationContainerSelector)
     equationDiv.style("width", `${plotWidth}px`)
@@ -170,7 +174,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
           .style("top", `${top}%`)
       }
     }
-  }, [cellKey, dataConfig, equationContainerSelector, model, plotHeight, plotWidth, showConfidenceBands,
+  }, [cellKey, dataConfig, equationContainerSelector, getLines, model, plotHeight, plotWidth, showConfidenceBands,
       xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId, yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], lineIndex: number) => {
@@ -211,7 +215,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
   }, [cellKey, confidenceBandPaths, dataConfig, model, showConfidenceBands, toggleConfidenceBandTip, xAttrId, yAttrId])
 
   const updateLines = useCallback(() => {
-    const lines = dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig)
+    const lines = getLines()
     if (!lines) return
 
     for (let lineIndex = 0; lineIndex < lineObjectsRef.current.length; lineIndex++) {
@@ -227,7 +231,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       lineObj.cover && fixEndPoints(lineObj.cover)
       updateConfidenceBands(lineIndex, line)
     }
-  }, [dataConfig, model, xAttrId, yAttrId, cellKey, xAxis, yAxis, fixEndPoints, updateConfidenceBands])
+  }, [getLines, xAxis, yAxis, fixEndPoints, updateConfidenceBands])
 
   const updateLSRL = useCallback(() => {
     updateLines()
@@ -235,7 +239,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
   }, [updateEquations, updateLines])
 
   useEffect(function createElements() {
-    const lines = dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig)
+    const lines = getLines()
     if (!lines) return
 
     // Clear any previously added elements
@@ -324,9 +328,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     }
 
   }, [cellKey, classFromKey, confidenceBandPaths, containerId, dataConfig, equationContainerClass, fixEndPoints,
-      handleHighlightLineAndEquation, handleMoveEquation, instanceKey, model, plotHeight, plotWidth,
-      showConfidenceBands, xAttrId, xAxis, xCellCount, xScale, xSubAxesCount, yAttrId, yAxis, yCellCount, yScale,
-      ySubAxesCount])
+      getLines, handleHighlightLineAndEquation, handleMoveEquation, instanceKey, model, plotHeight, plotWidth,
+      showConfidenceBands, xAxis, xCellCount, xScale, xSubAxesCount, yAxis, yCellCount, yScale, ySubAxesCount])
 
   // Refresh values on axis changes
   useEffect(function refreshAxisChange() {
