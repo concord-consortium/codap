@@ -2,7 +2,6 @@ import {autorun} from "mobx"
 import React, {useEffect, useRef} from "react"
 import {select} from "d3"
 import {Active} from "@dnd-kit/core"
-import {useGraphLayoutContext} from "../../../graph/models/graph-layout"
 import {AttributeLabel} from "../../../graph/components/attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
@@ -14,6 +13,7 @@ import {AttributeType} from "../../../../models/data/attribute"
 import {IDataSet} from "../../../../models/data/data-set"
 import {GraphAttrRole} from "../../data-display-types"
 import {GraphPlace} from "../../../axis-graph-shared"
+import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {IDataConfigurationModel} from "../../models/data-configuration-model"
 
 interface ILegendProps {
@@ -30,7 +30,7 @@ export const Legend = function Legend({ dataConfiguration,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
   const isDropAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop ?? (() => true),
-    layout = useGraphLayoutContext(),
+    layout = useDataDisplayLayout(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendRef = useRef() as React.RefObject<SVGSVGElement>,
     instanceId = useInstanceIdContext(),
@@ -53,8 +53,8 @@ export const Legend = function Legend({ dataConfiguration,
     onDropAttribute('legend', dataSet, dragAttributeID)
   })
 
-  const legendBounds = layout.computedBounds.legend,
-    transform = `translate(${legendBounds.left}, ${legendBounds.top})`
+  const { contentHeight, computedBounds: { legend: legendBounds } } = layout,
+    transform = `translate(${legendBounds?.left ?? 0}, ${contentHeight})`
 
   /**
    * Because the interior of the graph (the plot) can be transparent, we have to put a background behind
@@ -62,15 +62,18 @@ export const Legend = function Legend({ dataConfiguration,
    */
   useEffect(function installBackground() {
     return autorun(() => {
+      const { tileWidth, tileHeight } = layout
+      const legendHeight = layout.getDesiredExtent('legend')
+      const legendTop = tileHeight - legendHeight
       if (legendRef) {
         select(legendRef.current)
           .selectAll<SVGRectElement, number>('.legend-background')
-          .attr('transform', `translate(0, ${legendBounds.top})`)
-          .attr('width', layout.graphWidth)
-          .attr('height', legendBounds.height)
+          .attr('transform', `translate(0, ${legendTop})`)
+          .attr('width', tileWidth)
+          .attr('height', legendHeight)
       }
     })
-  }, [layout.graphWidth, legendBounds, legendRef, transform])
+  }, [layout, legendRef])
 
   return legendAttrID ? (
     <>

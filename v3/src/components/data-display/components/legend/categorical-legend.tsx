@@ -3,13 +3,13 @@ import {reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import {useGraphDataConfigurationContext} from "../../../graph/hooks/use-data-configuration-context"
-import {useGraphLayoutContext} from "../../../graph/models/graph-layout"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'
@@ -71,9 +71,9 @@ const coordinatesToCatIndex = (lod: LayoutData, numCategories: number, localPoin
 export const CategoricalLegend = observer(function CategoricalLegend(
   {transform}: ICategoricalLegendProps) {
   const transformRef = useRef(transform),
-    dataConfiguration = useGraphDataConfigurationContext(),
+    dataConfiguration = useDataConfigurationContext(),
     dataset = dataConfiguration?.dataset,
-    layout = useGraphLayoutContext(),
+    layout = useDataDisplayLayout(),
     categoriesRef = useRef<string[] | undefined>(),
     categoryData = useRef<Key[]>([]),
     layoutData = useRef<Layout>({
@@ -98,7 +98,7 @@ export const CategoricalLegend = observer(function CategoricalLegend(
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
         lod: Layout = layoutData.current
-      lod.fullWidth = layout.getAxisLength('bottom')
+      lod.fullWidth = layout.contentWidth
       lod.maxWidth = 0
       categoriesRef.current?.forEach(cat => {
         lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
@@ -195,8 +195,8 @@ export const CategoricalLegend = observer(function CategoricalLegend(
         numCategories = categoriesRef.current?.length ?? 0,
         legendBounds = layout?.getComputedBounds('legend'),
         localPt = {
-          x: event.x - legendBounds?.left ?? 0,
-          y: event.y - labelHeight - legendBounds?.top ?? 0
+          x: event.x - (legendBounds?.left ?? 0),
+          y: event.y - labelHeight - (legendBounds?.top ?? 0)
         },
         catIndex = coordinatesToCatIndex(lod, numCategories, localPt),
         keyLocation = catLocation(lod, categoryData.current, catIndex)
@@ -294,9 +294,9 @@ export const CategoricalLegend = observer(function CategoricalLegend(
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
       () => {
-        const {graphHeight, graphWidth} = layout,
+        const {tileHeight, tileWidth} = layout,
           legendAttrID = dataConfiguration?.attributeID('legend')
-        return [graphHeight, graphWidth, legendAttrID]
+        return [tileHeight, tileWidth, legendAttrID]
       },
       () => {
         layout.setDesiredExtent('legend', computeDesiredExtent())

@@ -7,7 +7,7 @@ import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
 import { IMovableValueAdornmentModel } from "./movable-value-adornment-model"
-import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
 import "./movable-value-adornment-component.scss"

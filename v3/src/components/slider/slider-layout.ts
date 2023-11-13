@@ -17,7 +17,7 @@ export class SliderAxisLayout implements IAxisLayout {
     makeObservable(this)
   }
 
-  @action setParentExtent(width: number, height: number) {
+  @action setTileExtent(width: number, height: number) {
     this.sliderWidth = width - kSliderWidthLayoutAdj
     this.sliderHeight = height
     this.axisMultiScale.setLength(this.sliderWidth)

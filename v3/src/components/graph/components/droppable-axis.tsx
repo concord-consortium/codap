@@ -1,11 +1,11 @@
 import { Active, useDroppable } from "@dnd-kit/core"
+import {clsx} from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
-import {clsx} from "clsx"
 import { AxisPlace } from "../../axis/axis-types"
+import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 import { DropHint } from "./drop-hint"
-import {useGraphLayoutContext} from "../models/graph-layout"
 
 interface IProps {
   place: AxisPlace

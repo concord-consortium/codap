@@ -8,7 +8,7 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
 import { IPlottedFunctionAdornmentModel, isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { curveBasis } from "../../utilities/graph-utils"
 import { FormulaFn } from "./plotted-function-adornment-types"
 

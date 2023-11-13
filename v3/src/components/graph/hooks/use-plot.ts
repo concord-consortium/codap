@@ -9,8 +9,8 @@ import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/dat
 import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
 import {matchCirclesToData, startAnimation} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
+import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IDragHandlers {

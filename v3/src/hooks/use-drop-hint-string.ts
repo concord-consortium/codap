@@ -1,10 +1,9 @@
 import {useDndContext} from "@dnd-kit/core"
-import { AttributeType } from "../models/data/attribute"
+import {AttributeType} from "../models/data/attribute"
 import {getDragAttributeInfo} from "./use-drag-drop"
-import {useGraphDataConfigurationContext} from "../components/graph/hooks/use-data-configuration-context"
-import {GraphAttrRole} from "../components/data-display/data-display-types"
-import {attrRoleToGraphPlace} from "../components/graph/graphing-types"
 import {GraphPlace} from "../components/axis-graph-shared"
+import {GraphAttrRole, attrRoleToGraphPlace} from "../components/data-display/data-display-types"
+import {useDataConfigurationContext} from "../components/data-display/hooks/use-data-configuration-context"
 import t from "../utilities/translation/translate"
 
 export interface IUseDropHintStringProps {
@@ -80,7 +79,7 @@ export function determineBaseString(role: GraphAttrRole, dropType?: AttributeTyp
 }
 
 export const useDropHintString = ({role} : IUseDropHintStringProps) => {
-  const dataConfig = useGraphDataConfigurationContext(),
+  const dataConfig = useDataConfigurationContext(),
     { active } = useDndContext(),
     { attributeId: dragAttrId = "", dataSet } = getDragAttributeInfo(active) || {},
     place = attrRoleToGraphPlace[role] as GraphPlace,

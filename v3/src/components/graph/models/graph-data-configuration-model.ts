@@ -3,12 +3,11 @@ import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {typedId} from "../../../utilities/js-utils"
-import {graphPlaceToAttrRole} from "../graphing-types"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
-import {GraphAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
+import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -482,6 +481,6 @@ export interface IGraphDataConfigurationModel extends Instance<typeof GraphDataC
 export interface IGraphDataConfigurationModelSnapshot extends SnapshotIn<typeof GraphDataConfigurationModel> {
 }
 
-export function isGraphDataConfigurationModel(model: IDataConfigurationModel): model is IGraphDataConfigurationModel {
-  return model.type === kGraphDataConfigurationType
+export function isGraphDataConfigurationModel(model?: IDataConfigurationModel): model is IGraphDataConfigurationModel {
+  return model?.type === kGraphDataConfigurationType
 }

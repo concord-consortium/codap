@@ -1,13 +1,14 @@
 import {ScaleBand} from "d3"
 import React, {useCallback} from "react"
 import {CaseData, selectDots} from "../../data-display/d3-types"
-import {attrRoleToAxisPlace, PlotProps} from "../graphing-types"
+import {PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {attrRoleToAxisPlace} from "../../data-display/data-display-types"
 import {setPointSelection} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>

@@ -1,0 +1,62 @@
+import {action, computed, makeObservable, observable} from "mobx"
+import {GraphPlace} from "../../axis-graph-shared"
+
+export const kDefaultTileWidth = 480
+export const kDefaultTileHeight = 300
+
+export interface Bounds {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+export class DataDisplayLayout {
+  @observable tileWidth = kDefaultTileWidth
+  @observable tileHeight = kDefaultTileHeight
+  // desired/required size of child elements
+  @observable desiredExtents: Map<GraphPlace, number> = new Map()
+
+  constructor() {
+    makeObservable(this)
+  }
+
+  @computed get contentWidth() {
+    return this.tileWidth
+  }
+
+  @computed get contentHeight() {
+    return this.tileHeight - this.getDesiredExtent('legend')
+  }
+
+  getDesiredExtent(place: GraphPlace) {
+    return this.desiredExtents.get(place) ?? 0
+  }
+
+  @action setDesiredExtent(place: GraphPlace, extent: number) {
+    this.desiredExtents.set(place, extent)
+  }
+
+  @action setTileExtent(width: number, height: number) {
+    this.tileWidth = width
+    this.tileHeight = height
+  }
+
+  /**
+   * We assume that all the desired extents have been set so that we can compute new bounds.
+   * We set the computedBounds only once at the end so there should be only one notification to respond to.
+   * Todo: Eventually there will be additional room set aside at the top for formulas
+   */
+  @computed get computedBounds() {
+    const {desiredExtents, tileWidth, tileHeight} = this,
+      legendHeight = desiredExtents.get('legend') ?? 0,
+      newBounds: Partial<Record<GraphPlace, Bounds>> = {
+        legend: {left: 6, top: tileHeight - legendHeight, width: tileWidth - 6, height: legendHeight},
+      }
+    return newBounds
+  }
+
+  getComputedBounds(place: GraphPlace) {
+    return this.computedBounds[place]
+  }
+}

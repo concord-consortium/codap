@@ -7,7 +7,7 @@ import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
-import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -201,7 +201,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       // lineParams.pivot1 is the pivot point on the lower section, lineParams.pivot2 is the
       // pivot point on the upper section
       const currentPivot = lineSection === "lower" ? lineParams?.pivot2 : lineParams?.pivot1
-    
+
       let isVertical = false
       // The new pivot will be the point on the line section where it is being dragged.
       const newPivot = { x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y) }
@@ -236,7 +236,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
 
       lineObject.lower.classed("negative-slope", newSlope < 0)
       lineObject.upper.classed("negative-slope", newSlope < 0)
-  
+
       const {domain: xDomain} = xAxis
       const {domain: yDomain} = yAxis
       pointsOnAxes.current = lineToAxisIntercepts(newSlope, newIntercept, xDomain, yDomain)
@@ -357,7 +357,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       .attr("data-testid", `${equationContainerClass}`)
       .style("width", `${plotWidth}px`)
       .style("height", `${plotHeight}px`)
-  
+
     const equationP = equationDiv
       .append("p")
       .attr("class", "movable-line-equation")
@@ -381,7 +381,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     return () => {
       equationDiv.remove()
     }
-  // This effect should only run once on mount, otherwise it would create multiple 
+  // This effect should only run once on mount, otherwise it would create multiple
   // instances of the line elements
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

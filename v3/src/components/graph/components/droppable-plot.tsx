@@ -4,7 +4,7 @@ import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {DroppableSvg} from "../../data-display/components/droppable-svg"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataSet} from "../../../models/data/data-set"
 

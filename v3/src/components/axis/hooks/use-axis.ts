@@ -3,12 +3,12 @@ import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {useCallback, useEffect, useRef} from "react"
 import {mstAutorun} from "../../../utilities/mst-autorun"
+import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {maxWidthOfStringsD3} from "../../data-display/data-display-utils"
-import {graphPlaceToAttrRole} from "../../graph/graphing-types"
+import {useDataConfigurationContext} from "../../data-display/hooks/use-data-configuration-context"
 import {AxisPlace, axisGap} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
-import {useGraphDataConfigurationContext} from "../../graph/hooks/use-data-configuration-context"
 import {collisionExists, getStringBounds} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
@@ -35,7 +35,7 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
     // Todo: Revisit and figure out whether we can remove the workaround.
     previousAxisModel = useRef<IAxisModel>(),
     axisModelChanged = previousAxisModel.current !== axisModel,
-    dataConfiguration = useGraphDataConfigurationContext(),
+    dataConfiguration = useDataConfigurationContext(),
     attrRole = graphPlaceToAttrRole[axisPlace],
     type = axisModel?.type ?? 'empty',
     attributeID = dataConfiguration?.attributeID(attrRole)

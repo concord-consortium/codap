@@ -90,7 +90,7 @@ describe("useAxis", () => {
         </AxisProviderContext.Provider>
       )
     })
-    layout.setParentExtent(100, 100)
+    layout.setTileExtent(100, 100)
     expect(layout.getAxisMultiScale("bottom")?.cellLength).toEqual(96)
   })
 

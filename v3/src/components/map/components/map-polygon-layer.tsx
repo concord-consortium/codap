@@ -22,7 +22,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
   enableAnimation: React.MutableRefObject<boolean>
 }) {
-  const {mapLayerModel, enableAnimation} = props,
+  const {mapLayerModel} = props,
     {dataConfiguration} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
@@ -110,10 +110,8 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
                 smoothFactor: 2
               }
             },
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            caseID // Stashes reference in features[iIndex].options.case
-          })
+            caseID // Stashes reference in features[iIndex].options.caseID
+          } as PolygonLayerOptions)
             .on('click', handleClick) // unable to use 'mousedown' for unknown reason
             .on('mouseover', handleMouseover)
             .on('mouseout', handleMouseout)

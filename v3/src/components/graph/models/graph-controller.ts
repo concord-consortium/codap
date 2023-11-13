@@ -1,15 +1,15 @@
 import React from "react"
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
-import {IDotsRef} from "../../data-display/data-display-types"
+import {IDotsRef, axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
+import {PlotType} from "../graphing-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {axisPlaceToAttrRole, graphPlaceToAttrRole, PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
 
 // keys are [primaryAxisType][secondaryAxisType]

@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { observer } from "mobx-react-lite"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 
 import "./univariate-measure-adornment-base-component.scss"

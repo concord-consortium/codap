@@ -3,7 +3,7 @@ import { AxisBounds, AxisPlace, AxisScaleType, IScaleType } from "../axis-types"
 import {MultiScale} from "./multi-scale"
 
 export interface IAxisLayout {
-  setParentExtent: (width: number, height: number) => void
+  setTileExtent: (width: number, height: number) => void
   getAxisLength: (place: AxisPlace) => number
 
   // actual bounds of DOM element
@@ -20,7 +20,7 @@ export interface IAxisLayout {
 }
 
 const nullAxisLayout: IAxisLayout = {
-  setParentExtent: () => undefined,
+  setTileExtent: () => undefined,
   getAxisLength: () => 0,
   getAxisBounds: () => undefined,
   setAxisBounds: () => undefined,
