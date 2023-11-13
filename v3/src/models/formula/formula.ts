@@ -2,9 +2,8 @@ import { Instance, types } from "mobx-state-tree"
 import { parse } from "mathjs"
 import { typedId } from "../../utilities/js-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
-import {
-  canonicalToDisplay, displayToCanonical, isRandomFunctionPresent, preprocessDisplayFormula
-} from "./formula-utils"
+import { canonicalToDisplay, displayToCanonical, preprocessDisplayFormula } from "./utils/canonicalization-utils"
+import { isRandomFunctionPresent } from "./utils/misc"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORM")),

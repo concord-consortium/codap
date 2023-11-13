@@ -1,13 +1,14 @@
 import { MathNode, parse } from "mathjs"
-import {
-  FValue, CASE_INDEX_FAKE_ATTR_ID, GLOBAL_VALUE, LOCAL_ATTR, NO_PARENT_KEY, CANONICAL_NAME
-} from "./formula-types"
+import { FValue } from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "../data/data-set"
 import type { IValueType } from "../data/attribute"
 import t from "../../utilities/translation/translate"
+import { CASE_INDEX_FAKE_ATTR_ID, globalValueIdToCanonical, localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const CACHE_ENABLED = true
+
+export const NO_PARENT_KEY = "__NO_PARENT__"
 
 export interface IFormulaMathjsScopeContext {
   localDataSet: IDataSet
@@ -68,7 +69,7 @@ export class FormulaMathJsScope {
       // Make sure that all the caching and case processing is done lazily, only for attributes that are actually
       // referenced by the formula.
       let cachedGroup: Record<string, IValueType[]>
-      Object.defineProperty(this.dataStorage, `${CANONICAL_NAME}${LOCAL_ATTR}${attrId}`, {
+      Object.defineProperty(this.dataStorage, localAttrIdToCanonical(attrId), {
         get: () => {
           if (!this.isAggregate) {
             return this.getLocalValue(this.caseId, attrId)
@@ -93,7 +94,7 @@ export class FormulaMathJsScope {
     })
     // Global value symbols.
     context.globalValueManager?.globals.forEach(global => {
-      Object.defineProperty(this.dataStorage, `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`, {
+      Object.defineProperty(this.dataStorage, globalValueIdToCanonical(global.id), {
         get: () => {
           return global.value
         }

@@ -4,7 +4,8 @@ import { createCodapDocument } from "../../codap/create-codap-document"
 import { getSharedModelManager, getGlobalValueManager } from "../../tiles/tile-environment"
 import { math } from "../functions/math"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { displayToCanonical, getDisplayNameMap } from "../formula-utils"
+import { getDisplayNameMap } from "../utils/name-mapping-utils"
+import { displayToCanonical } from "../utils/canonicalization-utils"
 
 // Because formulas largely depend on the document context and data structures, it's not trivial to mock them in each
 // unit test. Therefore, these helpers are provided to make it easier to write tests for formulas.
