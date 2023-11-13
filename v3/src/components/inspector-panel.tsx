@@ -26,13 +26,14 @@ export const InspectorPanel = forwardRef(({ component, show, setShowPalette, chi
 interface IInspectorButtonProps {
   children: ReactNode
   tooltip: string
+  isDisabled?: boolean
   testId: string
   showMoreOptions: boolean
   onButtonClick?: () => void
   setButtonRef?: (ref: any) => void
 }
 
-export const InspectorButton = ({children, tooltip, testId, showMoreOptions, setButtonRef,
+export const InspectorButton = ({children, tooltip, isDisabled, testId, showMoreOptions, setButtonRef,
     onButtonClick}:IInspectorButtonProps) => {
   const buttonRef = useRef<any>()
   const _onClick = () => {
@@ -40,8 +41,8 @@ export const InspectorButton = ({children, tooltip, testId, showMoreOptions, set
     onButtonClick?.()
   }
   return (
-    <Button ref={buttonRef} className="inspector-tool-button" title={tooltip} data-testid={testId}
-      onClick={_onClick}>
+    <Button ref={buttonRef} className="inspector-tool-button" title={tooltip} isDisabled={isDisabled}
+            data-testid={testId} onClick={_onClick}>
       {children}
       {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
     </Button>

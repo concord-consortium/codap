@@ -1,8 +1,9 @@
 import {randomUniform, select} from "d3"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {IDotsRef} from "../../data-display/data-display-types"
-import {handleClickOnDot, setPointSelection} from "../../data-display/data-display-utils"
+import {handleClickOnDot, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -28,18 +29,28 @@ export const CaseDots = function CaseDots(props: {
     currPos = useRef({x: 0, y: 0}),
     target = useRef<any>()
 
-  const onDragStart = useCallback((event: MouseEvent) => {
-      enableAnimation.current = false // We don't want to animate points until end of drag
-      target.current = select(event.target as SVGSVGElement)
-      const aCaseData: CaseData = target.current.node().__data__
-      if (aCaseData && target.current.node()?.nodeName === 'circle') {
-        target.current.transition()
-          .attr('r', dragPointRadius)
-        setDragID(aCaseData.caseID)
-        currPos.current = {x: event.clientX, y: event.clientY}
-        handleClickOnDot(event, aCaseData.caseID, dataset)
-      }
-    }, [dragPointRadius, dataset, enableAnimation]),
+  const randomlyDistributePoints = useCallback((cases?: CaseData[]) => {
+    const uniform = randomUniform()
+      const points = randomPointsRef.current
+      cases?.forEach(({caseID}) => {
+        if (!points[caseID]) {
+          points[caseID] = {x: uniform(), y: uniform()}
+        }
+      })
+  }, []),
+
+  onDragStart = useCallback((event: MouseEvent) => {
+    enableAnimation.current = false // We don't want to animate points until end of drag
+    target.current = select(event.target as SVGSVGElement)
+    const aCaseData: CaseData = target.current.node().__data__
+    if (aCaseData && target.current.node()?.nodeName === 'circle') {
+      target.current.transition()
+        .attr('r', dragPointRadius)
+      setDragID(aCaseData.caseID)
+      currPos.current = {x: event.clientX, y: event.clientY}
+      handleClickOnDot(event, aCaseData.caseID, dataset)
+    }
+  }, [dragPointRadius, dataset, enableAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dotsRef.current && dragID !== '') {
@@ -106,26 +117,28 @@ export const CaseDots = function CaseDots(props: {
   }, [dataset, dataConfiguration, graphModel, layout, dotsRef, enableAnimation])
 
   useEffect(function initDistribution() {
-    const uniform = randomUniform(),
-      cases = dataConfiguration?.caseDataArray
-
-    const initCases = (_cases?: CaseData[] | undefined) => {
-      const points = randomPointsRef.current
-      _cases?.forEach(({caseID}) => {
-        if (!points[caseID]) {
-          points[caseID] = {x: uniform(), y: uniform()}
-        }
-      })
-    }
-
-    initCases(cases)
+    const cases = dataConfiguration?.caseDataArray
+    randomlyDistributePoints(cases)
     const disposer = dataConfiguration?.onAction(action => {
       if (['addCases', 'removeCases'].includes(action.name)) {
-        initCases(dataConfiguration?.caseDataArray)
+        randomlyDistributePoints(dataConfiguration?.caseDataArray)
       }
     }) || (() => true)
     return () => disposer?.()
-  }, [dataConfiguration, dataset])
+  }, [dataConfiguration, dataset, randomlyDistributePoints])
+
+  useEffect(function respondToModelChangeCount() {
+    return mstReaction(
+      () => graphModel.changeCount,
+      () => {
+        randomPointsRef.current = {}
+        randomlyDistributePoints(dataConfiguration?.caseDataArray)
+        startAnimation(enableAnimation)
+        refreshPointPositions(false)
+      },
+      { name: "CaseDots.respondToModelChangeCount" }, graphModel)
+  }, [dataConfiguration?.caseDataArray, enableAnimation, graphModel,
+    randomlyDistributePoints, refreshPointPositions])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
 
