@@ -2,7 +2,6 @@ import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../../hooks/use-data-set-context"
 import { ITileModel } from "../../../../models/tiles/tile-model"
-import {isMapContentModel} from "../../models/map-content-model"
 import t from "../../../../utilities/translation/translate"
 
 interface IProps {

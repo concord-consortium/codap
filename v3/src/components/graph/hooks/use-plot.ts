@@ -148,7 +148,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       }, { name: "respondToHiddenCasesChange" }, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, enableAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, dotsRef, enableAnimation, graphModel, instanceId])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {

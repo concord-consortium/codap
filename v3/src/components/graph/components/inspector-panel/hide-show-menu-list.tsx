@@ -1,6 +1,6 @@
+import React from "react"
+import {observer} from "mobx-react-lite"
 import {MenuItem, MenuList, useToast} from "@chakra-ui/react"
-import React, {useEffect, useState} from "react"
-import {mstAutorun} from "../../../../utilities/mst-autorun"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
 import t from "../../../../utilities/translation/translate"
@@ -9,11 +9,10 @@ interface IProps {
   tile?: ITileModel
 }
 
-export const HideShowMenuList = ({tile}: IProps) => {
+export const HideShowMenuList = observer(({tile}: IProps) => {
   const toast = useToast()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfiguration = graphModel?.dataConfiguration
-  const [, setNumSelected] = useState(0)
   const handleMenuItemClick = (menuItem: string) => {
     toast({
       title: 'Menu item clicked',
@@ -64,12 +63,6 @@ export const HideShowMenuList = ({tile}: IProps) => {
       ? t("DG.DataDisplayMenu.disableMeasuresForSelection")
       : t("DG.DataDisplayMenu.enableMeasuresForSelection")
 
-  useEffect(function respondToChangeInSelection() {
-    return mstAutorun(() => {
-      setNumSelected(dataConfiguration?.selection.length ?? 0)
-    }, {name: "respondToChangeInSelection"}, dataConfiguration)
-  }, [graphModel])
-
   return (
     <MenuList data-testid="trash-menu-list">
       <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled}>
@@ -92,4 +85,4 @@ export const HideShowMenuList = ({tile}: IProps) => {
       </MenuItem>
     </MenuList>
   )
-}
+})
