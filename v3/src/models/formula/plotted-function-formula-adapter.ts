@@ -49,10 +49,10 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       const instanceKey = adornment.instanceKey(cellKey)
       const cases = dataConfig.subPlotCases(cellKey)
       const formulaFunction = this.computeFormula(formulaContext, extraMetadata, cases)
-      if (!adornment.measures.get(instanceKey)) {
-        adornment.addMeasure(formulaFunction, instanceKey)
+      if (!adornment.plottedFunctions.get(instanceKey)) {
+        adornment.addPlottedFunction(formulaFunction, instanceKey)
       } else {
-        adornment.updateMeasureValue(formulaFunction, instanceKey)
+        adornment.updatePlottedFunctionValue(formulaFunction, instanceKey)
       }
     })
   }

@@ -3,7 +3,7 @@ import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
 import { Formula } from "../../../../models/formula/formula"
 
-export const MeasureInstance = types.model("MeasureInstance", {})
+export const PlottedFunctionInstance = types.model("PlottedFunctionInstance", {})
   .volatile(self => ({
     formulaFunction: (x: number) => NaN,
   }))
@@ -19,7 +19,7 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     type: types.optional(types.literal(kPlottedFunctionType), kPlottedFunctionType),
     formula: types.optional(Formula, () => Formula.create()),
     labelTitle: types.optional(types.literal(kPlottedFunctionValueTitleKey), kPlottedFunctionValueTitleKey),
-    measures: types.map(MeasureInstance),
+    plottedFunctions: types.map(PlottedFunctionInstance),
     error: ""
   })
   .views(self => ({
@@ -34,19 +34,19 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     setError(error: string) {
       self.error = error
     },
-    addMeasure(formulaFunction: FormulaFn, key="{}") {
-      const newMeasure = MeasureInstance.create()
-      newMeasure.setValue(formulaFunction)
-      self.measures.set(key, newMeasure)
+    addPlottedFunction(formulaFunction: FormulaFn, key="{}") {
+      const newPlottedFunction = PlottedFunctionInstance.create()
+      newPlottedFunction.setValue(formulaFunction)
+      self.plottedFunctions.set(key, newPlottedFunction)
     },
-    updateMeasureValue(formulaFunction: FormulaFn, key="{}") {
-      const measure = self.measures.get(key)
-      if (measure) {
-        measure.setValue(formulaFunction)
+    updatePlottedFunctionValue(formulaFunction: FormulaFn, key="{}") {
+      const plottedFunction = self.plottedFunctions.get(key)
+      if (plottedFunction) {
+        plottedFunction.setValue(formulaFunction)
       }
     },
-    removeMeasure(key: string) {
-      self.measures.delete(key)
+    removePlottedFunction(key: string) {
+      self.plottedFunctions.delete(key)
     }
   }))
 

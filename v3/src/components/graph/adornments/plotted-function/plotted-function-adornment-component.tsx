@@ -96,7 +96,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
   const refreshValues = useCallback(() => {
     if (!model.isVisible) return
 
-    const measure = model?.measures.get(instanceKey)
+    const measure = model?.plottedFunctions.get(instanceKey)
     const selection = select(plottedFunctionRef.current)
 
     // Remove the previous value's elements
