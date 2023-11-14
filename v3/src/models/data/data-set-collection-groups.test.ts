@@ -219,7 +219,7 @@ describe("CollectionGroups", () => {
 
   it("doesn't take formula evaluated values into account when grouping", () => {
     const aAttr = data.attrFromID("aId")
-    aAttr.setDisplayFormula("foo * bar")
+    aAttr.setDisplayExpression("foo * bar")
     data.moveAttributeToNewCollection("aId")
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["bId", "cId"])

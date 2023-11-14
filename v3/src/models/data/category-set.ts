@@ -199,7 +199,7 @@ export const CategorySet = types.model("CategorySet", {
     if (isValidReference(() => self.attribute)) {
       addDisposer(self, onAnyAction(self.attribute, action => {
         const actionsInvalidatingCategories = [
-          "clearFormula", "setDisplayFormula", "addValue", "addValues", "setValue", "setValues", "removeValues"
+          "clearFormula", "setDisplayExpression", "addValue", "addValues", "setValue", "setValues", "removeValues"
         ]
         if (actionsInvalidatingCategories.includes(action.name)) {
           self.invalidate()

@@ -210,10 +210,10 @@ export const Attribute = types.model("Attribute", {
     self.editable = editable
   },
   clearFormula() {
-    this.setDisplayFormula("")
+    this.setDisplayExpression("")
   },
-  setDisplayFormula(displayFormula: string) {
-    self.formula.setDisplayFormula(displayFormula)
+  setDisplayExpression(displayFormula: string) {
+    self.formula.setDisplayExpression(displayFormula)
   },
   addValue(value: IValueType = "", beforeIndex?: number) {
     const strValue = self.importValue(value)

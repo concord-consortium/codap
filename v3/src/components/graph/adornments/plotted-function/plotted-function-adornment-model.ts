@@ -29,7 +29,7 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     setExpression(expression: string) {
-      self.formula.setDisplayFormula(expression)
+      self.formula.setDisplayExpression(expression)
     },
     setError(error: string) {
       self.error = error

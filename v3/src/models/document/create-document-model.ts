@@ -4,6 +4,9 @@ import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
 import { FormulaManager } from "../formula/formula-manager"
+import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
+import { PlottedValueFormulaAdapter } from "../formula/plotted-value-formula-adapter"
+import { PlottedFunctionFormulaAdapter } from "../formula/plotted-function-formula-adapter"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 
 /**
@@ -15,6 +18,12 @@ import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/sha
 export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   const sharedModelManager = new SharedModelDocumentManager()
   const formulaManager = new FormulaManager()
+  const adapterApi = formulaManager.getAdapterApi()
+  formulaManager.addAdapters([
+    new AttributeFormulaAdapter(adapterApi),
+    new PlottedValueFormulaAdapter(adapterApi),
+    new PlottedFunctionFormulaAdapter(adapterApi)
+  ])
   const fullEnvironment: ITileEnvironment & {documentEnv: IDocumentEnvironment} = {
     sharedModelManager,
     formulaManager,
