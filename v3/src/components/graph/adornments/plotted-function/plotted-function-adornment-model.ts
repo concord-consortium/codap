@@ -3,7 +3,7 @@ import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
 import { Formula } from "../../../../models/formula/formula"
 
-export const MeasureInstance = types.model("MeasureInstance", {})
+export const PlottedFunctionMeasureInstance = types.model("MeasureInstance", {})
   .volatile(self => ({
     formulaFunction: (x: number) => NaN,
   }))
@@ -19,7 +19,7 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     type: types.optional(types.literal(kPlottedFunctionType), kPlottedFunctionType),
     formula: types.optional(Formula, () => Formula.create()),
     labelTitle: types.optional(types.literal(kPlottedFunctionValueTitleKey), kPlottedFunctionValueTitleKey),
-    measures: types.map(MeasureInstance),
+    measures: types.map(PlottedFunctionMeasureInstance),
     error: ""
   })
   .views(self => ({
@@ -35,7 +35,7 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
       self.error = error
     },
     addMeasure(formulaFunction: FormulaFn, key="{}") {
-      const newMeasure = MeasureInstance.create()
+      const newMeasure = PlottedFunctionMeasureInstance.create()
       newMeasure.setValue(formulaFunction)
       self.measures.set(key, newMeasure)
     },
