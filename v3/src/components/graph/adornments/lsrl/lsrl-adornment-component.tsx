@@ -8,9 +8,9 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { IAxisIntercepts, curveBasis, lineToAxisIntercepts, lsrlEquationString } from "../../utilities/graph-utils"
-import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 import { ILSRLAdornmentModel, ILSRLInstance } from "./lsrl-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 
 import "./lsrl-adornment-component.scss"
 

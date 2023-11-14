@@ -12,7 +12,6 @@ import {DataDisplayContentModel} from "../../data-display/models/data-display-co
 import {MapPointLayerModel} from "./map-point-layer-model"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 
 export interface MapProperties {
 }

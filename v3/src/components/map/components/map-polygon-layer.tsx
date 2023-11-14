@@ -126,7 +126,6 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         featuresToRemove = mapLayerModel.features.map((feature) => {
           return (feature.options as PolygonLayerOptions).caseID
         })
-      console.log(`refreshPolygons with ${featuresToRemove.length} features`)
       dataConfiguration.caseDataArray.forEach((aCaseData, caseIndex) => {
         const notAlreadyStashed = mapLayerModel.features.findIndex((feature) => {
           return (feature.options as PolygonLayerOptions).caseID === aCaseData.caseID
