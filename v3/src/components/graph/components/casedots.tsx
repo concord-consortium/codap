@@ -82,7 +82,7 @@ export const CaseDots = function CaseDots(props: {
       }
     }, [dragID, graphModel])
 
-  useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription,
