@@ -114,7 +114,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       }
     }, [graphModel, dataConfiguration, primaryAttrRole, dataset, dragID, enableAnimation])
 
-  useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({

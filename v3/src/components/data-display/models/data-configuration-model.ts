@@ -1,5 +1,6 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {reaction} from "mobx"
+import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
@@ -12,7 +13,7 @@ import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtere
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
-import {AttrRole, graphPlaceToAttrRole, TipAttrRoles} from "../data-display-types"
+import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 import {GraphPlace} from "../../axis-graph-shared"
 
 export const AttributeDescription = types
@@ -43,6 +44,7 @@ export const DataConfigurationModel = types
     _attributeDescriptions: types.map(AttributeDescription),
     dataset: types.safeReference(DataSet),
     metadata: types.safeReference(SharedCaseMetadata),
+    hiddenCases: types.array(types.string),
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -135,6 +137,8 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
+      // If the case is hidden we don't plot it
+      if (self.hiddenCases.includes(caseID)) return false
       const descriptions = {...self.attributeDescriptions}
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
@@ -200,6 +204,16 @@ export const DataConfigurationModel = types
       const selection = Array.from(self.dataset.selection),
         allGraphCaseIds = this.allCaseIDs
       return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))
+    },
+    /**
+     * Note that in order to eliminate a selected case from the graph's selection, we have to check that it is not
+     * present in any of the case sets, not just the 0th one.
+     */
+    get unselectedCases() {
+      if (!self.dataset || !self.filteredCases[0]) return []
+      const selection = self.dataset.selection,
+        allGraphCaseIds = Array.from(this.allCaseIDs)
+      return allGraphCaseIds.filter((caseId: string) => !selection.has(caseId))
     }
   }))
   .views(self => (
@@ -514,13 +528,13 @@ export const DataConfigurationModel = types
       addDisposer(self, reaction(
         () => self.dataset,
         data => self.handleDataSetChange(data),
-        { name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
+        {name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
       // respond to change of legend attribute
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
         () => self.invalidateQuantileScale(),
-        { name: "DataConfigurationModel.afterCreate.reaction [legend attribute]" }
+        {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
       ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
@@ -538,6 +552,14 @@ export const DataConfigurationModel = types
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)
       self._setAttributeType(role, type, plotNumber)
+    },
+    addNewHiddenCases(hiddenCases: string[]) {
+      self.hiddenCases.replace(self.hiddenCases.concat(hiddenCases))
+      self._invalidateCases()
+    },
+    clearHiddenCases() {
+      self.hiddenCases.replace([])
+      self._invalidateCases()
     }
   }))
   .actions(self => ({
@@ -554,7 +576,11 @@ export const DataConfigurationModel = types
       }
     }
   }))
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyUndoableAction)
 
-export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {}
+export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {
+}
 
-export interface IDataConfigurationModelSnapshot extends SnapshotIn<typeof DataConfigurationModel> {}
+export interface IDataConfigurationModelSnapshot extends SnapshotIn<typeof DataConfigurationModel> {
+}

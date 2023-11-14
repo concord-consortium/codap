@@ -132,6 +132,24 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, enableAnimation])
 
+  useEffect(function respondToHiddenCasesChange() {
+    const disposer = mstReaction(
+      () => dataConfiguration?.hiddenCases.length,
+      () => {
+        matchCirclesToData({
+          dataConfiguration,
+          pointRadius: graphModel.getPointRadius(),
+          pointColor: graphModel.pointDescription.pointColor,
+          pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+          dotsElement: dotsRef.current,
+          enableAnimation, instanceId
+        })
+        callRefreshPointPositions(false)
+      }, { name: "respondToHiddenCasesChange" }, dataConfiguration
+    )
+    return () => disposer()
+  }, [callRefreshPointPositions, dataConfiguration, enableAnimation])
+
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
     const disposer = reaction(

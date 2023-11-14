@@ -137,7 +137,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       }
     }, [dataConfiguration, dataset, dragID, enableAnimation,])
 
-  useDragHandlers(window, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
