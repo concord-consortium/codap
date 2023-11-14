@@ -53,8 +53,8 @@ export const Legend = function Legend({ dataConfiguration,
     onDropAttribute('legend', dataSet, dragAttributeID)
   })
 
-  const { contentHeight, computedBounds: { legend: legendBounds } } = layout,
-    transform = `translate(${legendBounds?.left ?? 0}, ${contentHeight})`
+  const { tileHeight, computedBounds: { legend: legendBounds } } = layout,
+    transform = `translate(${legendBounds?.left ?? 0}, ${tileHeight - (legendBounds?.height ?? 0)})`
 
   /**
    * Because the interior of the graph (the plot) can be transparent, we have to put a background behind
@@ -62,9 +62,9 @@ export const Legend = function Legend({ dataConfiguration,
    */
   useEffect(function installBackground() {
     return autorun(() => {
-      const { tileWidth, tileHeight } = layout
+      const { tileWidth, tileHeight: _tileHeight } = layout
       const legendHeight = layout.getDesiredExtent('legend')
-      const legendTop = tileHeight - legendHeight
+      const legendTop = _tileHeight - legendHeight
       if (legendRef) {
         select(legendRef.current)
           .selectAll<SVGRectElement, number>('.legend-background')

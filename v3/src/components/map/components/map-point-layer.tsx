@@ -129,7 +129,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     const disposer = mstReaction(
       () => mapModel.displayChangeCount,
       () => refreshPointPositions(false),
-      { name: "MapModel displayChangeCount" }, mapModel
+      { name: "MapModel.setupReactionToDisplayChangeCount" }, mapModel
     )
     return () => disposer()
   }, [layout, mapModel, refreshPointPositions])

@@ -63,6 +63,7 @@ export function useMapModel(props: IProps) {
       }
     } else {
       // Wait for leaflet to render the map before fitting the bounds
+      // Todo: See if we can instead wait for the map to be ready
       setTimeout(() => {
         fitMapBoundsToData(mapModel.layers, leafletMap)
       }, 100)
