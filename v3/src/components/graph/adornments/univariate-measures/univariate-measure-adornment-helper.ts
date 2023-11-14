@@ -46,6 +46,17 @@ export class UnivariateMeasureAdornmentHelper {
     return `${this.measureSlug}-${elementType}-${this.containerId}${this.classFromKey ? `-${this.classFromKey}` : ""}`
   }
 
+  formatValueForScale(isVertical: boolean, value: number | undefined) {
+    const multiScale = isVertical
+      ? this.layout.getAxisMultiScale("bottom")
+      : this.layout.getAxisMultiScale("left")
+    return value != null
+      ? multiScale
+        ? multiScale.formatValueForScale(value)
+        : valueLabelString(value)
+      : ""
+  }
+
   calculateLineCoords = (
     value: number, index: number, isVertical: boolean, cellCounts: Record<string, number>,
     secondaryAxisX=0, secondaryAxisY=0
@@ -159,17 +170,13 @@ export class UnivariateMeasureAdornmentHelper {
     attrId: string, dataConfig: IDataConfigurationModel, value: number, isVertical: boolean,
     cellCounts: Record<string, number>, secondaryAxisX=0, secondaryAxisY=0
   ) => {
-    const multiScale = isVertical
-      ? this.layout.getAxisMultiScale("bottom")
-      : this.layout.getAxisMultiScale("left")
-    const displayValue = multiScale?.formatValueForScale(value) || valueLabelString(value)
-    const plotValue = Number(displayValue) // Is this really just `value`?
-    const measureRange: IRange | undefined = attrId && this.model.hasRange
+    const displayValue = this.formatValueForScale(isVertical, value)
+    const plotValue = Number(displayValue)
+    const measureRange: IRange = attrId && this.model.hasRange
       ? this.model.computeMeasureRange(attrId, this.cellKey, dataConfig)
       : {}
-    const displayRange = measureRange.min || measureRange.min === 0
-      ? multiScale?.formatValueForScale(measureRange.min) || valueLabelString(measureRange.min)
-      : undefined
+      const rangeValue = measureRange.min != null ? plotValue - measureRange.min : undefined
+    const displayRange = this.formatValueForScale(isVertical, rangeValue)
     const {x: x1, y: y1} =
       this.calculateLineCoords(plotValue, 1, isVertical, cellCounts, secondaryAxisX, secondaryAxisY)
     const {x: x2, y: y2} =
