@@ -1,21 +1,22 @@
-import React, { useRef, useEffect, useState } from "react"
-import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
+import React, {useRef, useEffect, useState} from "react"
+import {observer} from "mobx-react-lite"
+import {InspectorButton, InspectorMenu, InspectorPanel} from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
 import BarChartIcon from "../../../assets/icons/icon-segmented-bar-chart.svg"
 import StylesIcon from "../../../assets/icons/icon-styles.svg"
 import CameraIcon from "../../../assets/icons/icon-camera.svg"
-import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
-import { PointFormatPalette } from "./inspector-panel/point-format-panel"
-import { GraphMeasurePalette } from "./inspector-panel/graph-measure-panel"
+import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
+import {PointFormatPalette} from "./inspector-panel/point-format-panel"
+import {GraphMeasurePalette} from "./inspector-panel/graph-measure-panel"
 import t from "../../../utilities/translation/translate"
-import { useDndContext } from "@dnd-kit/core"
-import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
+import {useDndContext} from "@dnd-kit/core"
+import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
 
 
-export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
+export const GraphInspector = observer(({tile, show}: ITileInspectorPanelProps) => {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
@@ -24,7 +25,7 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
 
-  useEffect(()=>{
+  useEffect(() => {
     !show && setShowPalette(undefined)
   }, [active, show])
 
@@ -46,19 +47,8 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
 
   const renderRescaleButton = () => {
 
-/*
-    const getRescaleTooltip = () => {
-      if (graphModel?.noPossibleRescales) {
-        return "V3.Inspector.rescale.noRescale.toolTip"
-      }
-      else if (graphModel?.plotType === 'casePlot') {
-        return "V3.Inspector.rescale.casePlot.toolTip"
-      }
-      return "DG.Inspector.rescale.toolTip"
-    }
-*/
-    const rescaleTooltip = graphModel?.noPossibleRescales 
-      ? "V3.Inspector.rescale.noRescale.toolTip" 
+    const rescaleTooltip = graphModel?.noPossibleRescales
+      ? "V3.Inspector.rescale.noRescale.toolTip"
       : graphModel?.plotType === "casePlot" ? "V3.Inspector.rescale.casePlot.toolTip" : "DG.Inspector.rescale.toolTip"
 
     const handleGraphRescale = () => {
@@ -71,7 +61,7 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     return (
       <InspectorButton tooltip={t(rescaleTooltip)} isDisabled={graphModel?.noPossibleRescales}
                        showMoreOptions={false} testId={"graph-resize-button"} onButtonClick={handleGraphRescale}>
-        <ScaleDataIcon />
+        <ScaleDataIcon/>
       </InspectorButton>
     )
   }
@@ -80,31 +70,33 @@ export const GraphInspector = ({ tile, show }: ITileInspectorPanelProps) => {
     <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
       {renderRescaleButton()}
       <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
-        icon={<HideShowIcon />} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
-        <HideShowMenuList tile={tile} />
+                     icon={<HideShowIcon/>} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
+        <HideShowMenuList tile={tile}/>
       </InspectorMenu>
       <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
-        onButtonClick={handleRulerButton} setButtonRef={setButtonRef} testId={"graph-display-values-button"}>
-        <ValuesIcon />
+                       onButtonClick={handleRulerButton} setButtonRef={setButtonRef}
+                       testId={"graph-display-values-button"}>
+        <ValuesIcon/>
       </InspectorButton>
       <InspectorButton tooltip={t("DG.Inspector.displayConfiguration.toolTip")} showMoreOptions={true}
-        testId={"graph-display-config-button"}>
-        <BarChartIcon />
+                       testId={"graph-display-config-button"}>
+        <BarChartIcon/>
       </InspectorButton>
       <InspectorButton tooltip={t("DG.Inspector.displayStyles.toolTip")} showMoreOptions={true}
-        onButtonClick={handleBrushButton} setButtonRef={setButtonRef} testId={"graph-display-styles-button"}>
-        <StylesIcon />
+                       onButtonClick={handleBrushButton} setButtonRef={setButtonRef}
+                       testId={"graph-display-styles-button"}>
+        <StylesIcon/>
       </InspectorButton>
       <InspectorButton tooltip={t("DG.Inspector.makeImage.toolTip")} showMoreOptions={true}
-        testId={"graph-camera-button"}>
-      <CameraIcon />
+                       testId={"graph-camera-button"}>
+        <CameraIcon/>
       </InspectorButton>
       {showPalette === "format" &&
-        <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
-          panelRect={panelRect} buttonRect={buttonRect}/>}
+         <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
+                             panelRect={panelRect} buttonRect={buttonRect}/>}
       {showPalette === "measure" &&
-        <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
-          panelRect={panelRect} buttonRect={buttonRect}/>}
+         <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
+                              panelRect={panelRect} buttonRect={buttonRect}/>}
     </InspectorPanel>
   )
-}
+})
