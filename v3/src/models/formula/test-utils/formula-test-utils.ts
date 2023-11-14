@@ -69,3 +69,33 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
   const formula = displayToCanonical(displayFormula, displayNameMap)
   return math.evaluate(formula, scope)
 }
+
+export const evaluateForAllCases = (displayFormula: string, formulaAttrName?: string) => {
+  const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
+  const localDataSet = dataSetsByName.Mammals
+  const caseIds = localDataSet.cases.map(c => c.__id__)
+  const formulaAttrId = formulaAttrName ? localDataSet.attrIDFromName(formulaAttrName) : undefined
+  const scope = new FormulaMathJsScope({
+    localDataSet,
+    dataSets,
+    globalValueManager,
+    caseIds,
+    childMostCollectionCaseIds: caseIds,
+    formulaAttrId
+  })
+
+  const displayNameMap = getDisplayNameMap({
+    localDataSet,
+    dataSets,
+    globalValueManager,
+  })
+  const formula = displayToCanonical(displayFormula, displayNameMap)
+  const compiledFormula = math.compile(formula)
+
+  return caseIds.map((caseId, idx) => {
+    scope.setCasePointer(idx)
+    const formulaValue = compiledFormula.evaluate(scope)
+    scope.savePreviousResult(formulaValue)
+    return formulaValue
+  })
+}

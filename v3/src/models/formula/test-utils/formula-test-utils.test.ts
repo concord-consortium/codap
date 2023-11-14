@@ -1,4 +1,4 @@
-import { evaluate, getFormulaTestEnv } from "./formula-test-utils"
+import { evaluate, evaluateForAllCases, getFormulaTestEnv } from "./formula-test-utils"
 
 describe("getFormulaTestEnv", () => {
   it("returns default environment with datasets and global values", () => {
@@ -38,5 +38,19 @@ describe("evaluate", () => {
 
   it("throws an error when user is trying to evaluate case-dependant formula without providing casePointer", () => {
     expect(() => evaluate("LifeSpan")).toThrow()
+  })
+})
+
+describe("evaluateForAllCases", () => {
+  it("evaluates basic formulas correctly", () => {
+    const result = new Array(27).fill(3)
+    expect(evaluateForAllCases("1 + 2")).toEqual(result)
+  })
+
+  it("can evaluate case-dependant formulas", () => {
+    expect(evaluateForAllCases("LifeSpan")).toEqual([
+      "70", "70", "19", "25", "14", "40", "16", "40", "25", "16", "30", "9", "25", "3", "80", "20", "50", "15", "5",
+      "10", "12", "20", "10", "10", "5", "7", "25"
+    ])
   })
 })
