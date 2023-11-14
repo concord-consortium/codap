@@ -4,9 +4,9 @@ import t from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { GraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { GraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { InspectorPalette } from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
-import { GraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
 
 import "./point-format-panel.scss"
 
@@ -58,7 +58,7 @@ export const GraphMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette
                   <componentInfo.Controls key={titleSlug} adornmentModel={componentContentInfo.modelClass} />
                 </GraphDataConfigurationContext.Provider>
               </GraphContentModelContext.Provider>
-            )           
+            )
           } else {
             return (
               <FormControl key={titleSlug}>

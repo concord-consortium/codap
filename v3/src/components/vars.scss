@@ -34,3 +34,12 @@ $codap-teal-lighter: #bddfdf;
 $codap-tool-shelf-gray: #ececec;
 
 $minimize-transition: height 0.4s ease-in-out 0s;
+
+$label-font: 400 14px Montserrat-Regular, sans-serif;
+$empty-label-font: 12px Montserrat-Regular, sans-serif;
+$background-fill: #f9f9f9;
+
+:export {
+  labelFont: $label-font;
+  emptyLabelFont: $empty-label-font;
+}

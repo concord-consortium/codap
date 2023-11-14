@@ -7,7 +7,7 @@ import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey
 import { CountAdornment } from "./count-adornment-component"
 import t from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()

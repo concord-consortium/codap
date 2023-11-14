@@ -1,7 +1,7 @@
-import {LatLngBounds, latLngBounds} from 'leaflet'
+import {LatLngBounds, latLngBounds, Polygon} from 'leaflet'
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {IDataSet} from "../../../models/data/data-set"
-import {kLatNames, kLongNames} from "../map-types"
+import {kLatNames, kLongNames, kPolygonNames} from "../map-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 
@@ -25,6 +25,20 @@ export const datasetHasLatLongData = (dataset: IDataSet) => {
   return hasLatAttribute && hasLngAttribute
 }
 
+export const datasetHasBoundaryData = (dataset: IDataSet) => {
+  const attrNames = dataset.attributes.map(attr => attr.name.toLowerCase())
+  let hasBoundaryAttribute = false
+  while (attrNames.length > 0 && !hasBoundaryAttribute) {
+    const attrName = attrNames.pop()
+    if (attrName) {
+      if (kPolygonNames.includes(attrName)) {
+        hasBoundaryAttribute = true
+      }
+    }
+  }
+  return hasBoundaryAttribute
+}
+
 // Returns the attribute IDs for the latitude and longitude attributes in the given dataset
 // Throws an error if the dataset does not have both latitude and longitude attributes
 export const latLongAttributesFromDataSet = (dataSet: IDataSet) => {
@@ -38,6 +52,15 @@ export const latLongAttributesFromDataSet = (dataSet: IDataSet) => {
     latId: latAttr.id,
     longId: longAttr.id,
   }
+}
+
+export const boundaryAttributeFromDataSet = (dataSet: IDataSet) => {
+  const attributes = dataSet.attributes,
+    polygonAttr = attributes.find(attr => kPolygonNames.includes(attr.name.toLowerCase()))
+  if (!polygonAttr) {
+    throw new Error(`Unable to find boundary attribute in dataset ${dataSet.name}`)
+  }
+  return polygonAttr.id
 }
 
 /**
@@ -105,7 +128,7 @@ export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => 
   return latLngBounds([tSouthWest, tNorthEast])
 }
 
-export const expandLatLngBounds = (bounds: LatLngBounds, fraction:number) => {
+export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
   const center = bounds.getCenter(),
     latDelta = bounds.getNorth() - bounds.getSouth(),
     lngDelta = bounds.getEast() - bounds.getWest(),
@@ -124,15 +147,22 @@ export const expandLatLngBounds = (bounds: LatLngBounds, fraction:number) => {
  */
 export const fitMapBoundsToData = (layers: IDataDisplayLayerModel[], leafletMap: any) => {
   let overallBounds: LatLngBounds | undefined = undefined
-  layers.forEach((layer: any) => {
-    const bounds = getLatLongBounds(layer.dataConfiguration)
+
+  const applyBounds = (bounds: LatLngBounds | undefined) => {
     if (bounds) {
-      if (!overallBounds) {
-        overallBounds = bounds
-      } else {
+      if (overallBounds) {
         overallBounds.extend(bounds)
+      } else {
+        overallBounds = bounds
       }
     }
+  }
+
+  layers.forEach((layer: any) => {
+    applyBounds(getLatLongBounds(layer.dataConfiguration))
+  })
+  leafletMap.eachLayer(function (iLayer: Polygon) {
+    iLayer.getBounds && applyBounds(iLayer.getBounds())
   })
   if (overallBounds) {
     leafletMap.fitBounds(expandLatLngBounds(overallBounds, 1.1), {animate: true})

@@ -49,7 +49,7 @@ export const computePointRadius = (numPoints:number, pointSizeMultiplier: number
   }
 }
 
-export function getPointTipText(caseID: string, attributeIDs: string[], dataset?: IDataSet) {
+export function getCaseTipText(caseID: string, attributeIDs: string[], dataset?: IDataSet) {
   const float = format('.3~f'),
     attrArray = (attributeIDs.map(attrID => {
       const attribute = dataset?.attrFromID(attrID),
@@ -63,7 +63,7 @@ export function getPointTipText(caseID: string, attributeIDs: string[], dataset?
   return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
 }
 
-export function handleClickOnDot(event: MouseEvent, caseID: string, dataset?: IDataSet) {
+export function handleClickOnCase(event: MouseEvent, caseID: string, dataset?: IDataSet) {
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
   if (!caseIsSelected) {
@@ -113,7 +113,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     (event: MouseEvent) => {
       const target = select(event.target as SVGSVGElement)
       if (target.node()?.nodeName === 'circle') {
-        handleClickOnDot(event, (target.datum() as CaseData).caseID, dataConfiguration.dataset)
+        handleClickOnCase(event, (target.datum() as CaseData).caseID, dataConfiguration.dataset)
         event.stopPropagation()
       }
     })

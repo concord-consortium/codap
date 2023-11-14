@@ -5,19 +5,20 @@ import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
-import {graphPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
+import {kGraphClassSelector} from "../graphing-types"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
 import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
-import graphVars from "./graph.scss"
+import vars from "../../vars.scss"
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -59,7 +60,7 @@ export const AttributeLabel = observer(
     }, [dataset, getAttributeIDs, useClickHereCue])
 
     const refreshAxisTitle = useCallback(() => {
-      const labelFont = useClickHereCue ? graphVars.graphEmptyLabelFont : graphVars.graphLabelFont,
+      const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont,
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,

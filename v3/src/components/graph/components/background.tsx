@@ -5,13 +5,13 @@ import RTreeLib from 'rtree'
 import {CaseData} from "../../data-display/d3-types"
 import {rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
-import {useGraphLayoutContext} from "../models/graph-layout"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {InternalizedData} from "../graphing-types"
 
 interface IProps {

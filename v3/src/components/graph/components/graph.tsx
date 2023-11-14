@@ -2,11 +2,13 @@ import {observer} from "mobx-react-lite"
 import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
-import {GraphAttrRole, IDotsRef} from "../../data-display/data-display-types"
+import {
+  GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole
+} from "../../data-display/data-display-types"
 import {startAnimation} from "../../data-display/data-display-utils"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
-import {attrRoleToGraphPlace, graphPlaceToAttrRole, kGraphClass} from "../graphing-types"
+import {kGraphClass} from "../graphing-types"
 import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
@@ -16,18 +18,18 @@ import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
-import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {GraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
+import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
+import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {isSetAttributeIDAction} from "../models/graph-content-model"
-import {useGraphLayoutContext} from "../models/graph-layout"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
-import {Legend} from "./legend/legend"
+import {Legend} from "../../data-display/components/legend/legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
@@ -234,8 +236,9 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           />
 
           <Legend
+            dataConfiguration={graphModel.dataConfiguration}
             legendAttrID={graphModel.getAttributeID('legend')}
-            graphElt={graphRef.current}
+            divElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
             onRemoveAttribute={handleRemoveAttribute}
             onTreatAttributeAs={handleTreatAttrAs}

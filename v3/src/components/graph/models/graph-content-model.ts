@@ -18,10 +18,10 @@ import {computePointRadius} from "../../data-display/data-display-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
-import {GraphAttrRole} from "../../data-display/data-display-types"
+import {axisPlaceToAttrRole, GraphAttrRole} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {axisPlaceToAttrRole, PlotType, PlotTypes} from "../graphing-types"
+import {PlotType, PlotTypes} from "../graphing-types"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
@@ -295,7 +295,7 @@ export const GraphContentModel = DataDisplayContentModel
       return self.plotType !== 'casePlot' &&
         !AxisPlaces.find((axisPlace: AxisPlace) => {
           return isNumericAxisModel(self.getAxis(axisPlace))
-        })}
+        }) }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyUndoableAction)

@@ -2,8 +2,8 @@ import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/re
 import React, {CSSProperties, useRef, memo} from "react"
 import t from "../../../utilities/translation/translate"
 import {GraphPlace} from "../../axis-graph-shared"
-import { graphPlaceToAttrRole } from "../../graph/graphing-types"
-import { useGraphDataConfigurationContext } from "../../graph/hooks/use-data-configuration-context"
+import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
@@ -33,7 +33,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 const _AxisOrLegendAttributeMenu = ({ place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
-  const dataConfig = useGraphDataConfigurationContext()
+  const dataConfig = useDataConfigurationContext()
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfig?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()

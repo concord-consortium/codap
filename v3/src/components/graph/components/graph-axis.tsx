@@ -7,15 +7,16 @@ import {Active} from "@dnd-kit/core"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {useGraphLayoutContext} from "../models/graph-layout"
 import {AxisPlace} from "../../axis/axis-types"
 import {Axis} from "../../axis/components/axis"
 import {GraphPlace} from "../../axis-graph-shared"
-import {axisPlaceToAttrRole, kGraphClassSelector} from "../graphing-types"
+import {axisPlaceToAttrRole} from "../../data-display/data-display-types"
+import {kGraphClassSelector} from "../graphing-types"
 import {DroppableAxis} from "./droppable-axis"
 import {AttributeLabel} from "./attribute-label"
 
@@ -30,7 +31,7 @@ interface IProps {
 export const GraphAxis = observer(function GraphAxis(
   {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
+    isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true),
     graphModel = useGraphContentModelContext(),
     axisModel = graphModel.getAxis?.(place),
     instanceId = useInstanceIdContext(),
@@ -66,7 +67,7 @@ export const GraphAxis = observer(function GraphAxis(
     return autorun(() => {
       if (wrapperElt) {
         const bounds = layout.getComputedBounds(place),
-          graphWidth = layout.graphWidth,
+          graphWidth = layout.tileWidth,
           left = ['bottom', 'top'].includes(place) ? 0 : bounds.left,
           width = ['bottom', 'top'].includes(place) ? graphWidth : bounds.width,
           transform = `translate(${left}, ${bounds.top})`

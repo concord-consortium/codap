@@ -12,7 +12,7 @@ interface IProps {
 export const HideShowMenuList = ({tile}: IProps) => {
   const data = useDataSetContext()
   const toast = useToast()
-  const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
+  // const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   const handleMenuItemClick = (menuItem: string) => {
     toast({
       title: 'Menu item clicked',

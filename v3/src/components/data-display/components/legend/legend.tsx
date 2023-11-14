@@ -2,9 +2,7 @@ import {autorun} from "mobx"
 import React, {useEffect, useRef} from "react"
 import {select} from "d3"
 import {Active} from "@dnd-kit/core"
-import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {useGraphLayoutContext} from "../../models/graph-layout"
-import {AttributeLabel} from "../attribute-label"
+import {AttributeLabel} from "../../../graph/components/attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
 import {DroppableSvg} from "../droppable-svg"
@@ -13,24 +11,26 @@ import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-d
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
 import {IDataSet} from "../../../../models/data/data-set"
-import {GraphAttrRole} from "../../../data-display/data-display-types"
+import {GraphAttrRole} from "../../data-display-types"
 import {GraphPlace} from "../../../axis-graph-shared"
+import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
+import {IDataConfigurationModel} from "../../models/data-configuration-model"
 
 interface ILegendProps {
+  dataConfiguration: IDataConfigurationModel
   legendAttrID: string
-  graphElt: HTMLDivElement | null
+  divElt: HTMLDivElement | null
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
-export const Legend = function Legend({
-                                        legendAttrID, graphElt,
+export const Legend = function Legend({ dataConfiguration,
+                                        legendAttrID, divElt,
                                         onDropAttribute, onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
-  const dataConfiguration = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true),
-    layout = useGraphLayoutContext(),
+  const isDropAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop ?? (() => true),
+    layout = useDataDisplayLayout(),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendRef = useRef() as React.RefObject<SVGSVGElement>,
     instanceId = useInstanceIdContext(),
@@ -53,8 +53,8 @@ export const Legend = function Legend({
     onDropAttribute('legend', dataSet, dragAttributeID)
   })
 
-  const legendBounds = layout.computedBounds.legend,
-    transform = `translate(${legendBounds.left}, ${legendBounds.top})`
+  const { tileHeight, computedBounds: { legend: legendBounds } } = layout,
+    transform = `translate(${legendBounds?.left ?? 0}, ${tileHeight - (legendBounds?.height ?? 0)})`
 
   /**
    * Because the interior of the graph (the plot) can be transparent, we have to put a background behind
@@ -62,15 +62,18 @@ export const Legend = function Legend({
    */
   useEffect(function installBackground() {
     return autorun(() => {
+      const { tileWidth, tileHeight: _tileHeight } = layout
+      const legendHeight = layout.getDesiredExtent('legend')
+      const legendTop = _tileHeight - legendHeight
       if (legendRef) {
         select(legendRef.current)
           .selectAll<SVGRectElement, number>('.legend-background')
-          .attr('transform', `translate(0, ${legendBounds.top})`)
-          .attr('width', layout.graphWidth)
-          .attr('height', legendBounds.height)
+          .attr('transform', `translate(0, ${legendTop})`)
+          .attr('width', tileWidth)
+          .attr('height', legendHeight)
       }
     })
-  }, [layout.graphWidth, legendBounds, legendRef, transform])
+  }, [layout, legendRef])
 
   return legendAttrID ? (
     <>
@@ -89,7 +92,7 @@ export const Legend = function Legend({
       </svg>
       <DroppableSvg
         className="droppable-legend"
-        portal={graphElt}
+        portal={divElt}
         target={legendRef.current}
         dropId={droppableId}
         onIsActive={handleIsActive}

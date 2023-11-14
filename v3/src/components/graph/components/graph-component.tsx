@@ -7,13 +7,13 @@ import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
 import {GraphContentModelContext} from '../hooks/use-graph-content-model-context'
 import {useGraphController} from "../hooks/use-graph-controller"
+import {GraphLayoutContext} from '../hooks/use-graph-layout-context'
 import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {AxisProviderContext} from '../../axis/hooks/use-axis-provider-context'
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
-import {GraphLayoutContext} from "../models/graph-layout"
 import {Graph} from "./graph"
 import {DotsElt} from '../../data-display/d3-types'
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
@@ -38,7 +38,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   useGraphController({graphController, graphModel, dotsRef})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setParentExtent(width, height)
+    (width != null) && (height != null) && layout.setTileExtent(width, height)
   }, [width, height, layout])
 
   useEffect(function cleanup() {

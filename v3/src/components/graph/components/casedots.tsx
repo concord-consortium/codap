@@ -3,12 +3,12 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {IDotsRef} from "../../data-display/data-display-types"
-import {handleClickOnDot, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {useGraphLayoutContext} from "../models/graph-layout"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
 
 export const CaseDots = function CaseDots(props: {
@@ -48,7 +48,7 @@ export const CaseDots = function CaseDots(props: {
         .attr('r', dragPointRadius)
       setDragID(aCaseData.caseID)
       currPos.current = {x: event.clientX, y: event.clientY}
-      handleClickOnDot(event, aCaseData.caseID, dataset)
+      handleClickOnCase(event, aCaseData.caseID, dataset)
     }
   }, [dragPointRadius, dataset, enableAnimation]),
 

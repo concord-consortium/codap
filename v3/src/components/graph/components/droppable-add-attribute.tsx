@@ -3,10 +3,11 @@ import {clsx} from "clsx"
 import {Active, useDroppable} from "@dnd-kit/core"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
-import {DropHint} from "./drop-hint"
-import {graphPlaceToAttrRole, PlotType} from "../graphing-types"
+import {PlotType} from "../graphing-types"
 import {GraphPlace} from "../../axis-graph-shared"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {DropHint} from "../../data-display/components/drop-hint"
+import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {IDataSet} from "../../../models/data/data-set"
 
@@ -19,7 +20,7 @@ interface IAddAttributeProps {
 export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   const graphID = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfiguration?.graphPlaceCanAcceptAttributeIDDrop,
+    isDropAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop,
     droppableId = `${graphID}-add-attribute-${place}-drop`,
     role = graphPlaceToAttrRole[place],
     {active, isOver, setNodeRef} = useDroppable({id: droppableId}),

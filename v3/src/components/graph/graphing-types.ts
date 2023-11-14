@@ -1,35 +1,5 @@
 import React from "react"
-import {AxisPlace} from "../axis/axis-types"
-import {GraphPlace} from "../axis-graph-shared"
-import {GraphAttrRole, IDotsRef} from "../data-display/data-display-types"
-
-export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
-  x: "bottom",
-  y: "left",
-  rightNumeric: "rightNumeric",
-  rightSplit: "rightCat",
-  topSplit: "top"
-}
-export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
-  ...attrRoleToAxisPlace,
-  yPlus: "yPlus",
-  legend: "legend"
-}
-
-export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
-  bottom: "x",
-  left: "y",
-  top: "topSplit",
-  rightCat: "rightSplit",
-  rightNumeric: "rightNumeric"
-}
-
-export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
-  ...axisPlaceToAttrRole,
-  legend: "legend",
-  plot: "legend",
-  yPlus: "yPlus"
-}
+import {IDotsRef} from "../data-display/data-display-types"
 
 export interface PlotProps {
   dotsRef: IDotsRef

@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { ICountAdornmentModel } from "./count-adornment-model"
-import { useGraphDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { percentString } from "../../utilities/graph-utils"
 
 import "./count-adornment-component.scss"

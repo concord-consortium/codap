@@ -4,14 +4,14 @@ import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
-import {handleClickOnDot, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
+import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {useGraphLayoutContext} from "../models/graph-layout"
 import {ICase} from "../../../models/data/data-set-types"
 
 export const ScatterDots = function ScatterDots(props: PlotProps) {
@@ -60,7 +60,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
         setDragID(tItsID)
         currPos.current = {x: event.clientX, y: event.clientY}
 
-        handleClickOnDot(event, tItsID, dataset)
+        handleClickOnCase(event, tItsID, dataset)
         // Record the current values, so we can change them during the drag and restore them when done
         const {selection} = dataConfiguration || {},
           xAttrID = dataConfiguration?.attributeID('x') ?? ''

@@ -1,14 +1,5 @@
 @import "../../vars.scss";
 
-$graph-label-font: 400 14px Montserrat-Regular, sans-serif;
-$graph-empty-label-font: 12px Montserrat-Regular, sans-serif;
-$graph-background-fill: #f9f9f9;
-
-:export {
-  graphLabelFont: $graph-label-font;
-  graphEmptyLabelFont: $graph-empty-label-font;
-}
-
 .codap-component.codap-graph.minimized {
   .graph-plot {
     visibility: hidden;
@@ -23,12 +14,12 @@ $graph-background-fill: #f9f9f9;
   .attribute-label {
     fill: blue;
     text-decoration: underline;
-    font: $graph-label-font;
+    font: $label-font;
   }
 
   .empty-label {
     fill: #999;
-    font: $graph-empty-label-font;
+    font: $empty-label-font;
   }
 
   .category-label {
@@ -49,7 +40,7 @@ $graph-background-fill: #f9f9f9;
   .axis-wrapper {
 
     .axis-background {
-      fill: $graph-background-fill;
+      fill: $background-fill;
     }
 
     .axis {
@@ -94,6 +85,7 @@ $graph-background-fill: #f9f9f9;
 }
 
 .graph-dot {
+  pointer-events: auto;
   fill: rgba(230, 128, 91);
   stroke: white;
   cursor: pointer;

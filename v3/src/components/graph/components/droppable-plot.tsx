@@ -3,8 +3,8 @@ import React, {memo} from "react"
 import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../hooks/use-drop-hint-string"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {DroppableSvg} from "./droppable-svg"
-import {useGraphDataConfigurationContext} from "../hooks/use-data-configuration-context"
+import {DroppableSvg} from "../../data-display/components/droppable-svg"
+import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataSet} from "../../../models/data/data-set"
 
@@ -17,7 +17,7 @@ interface IProps {
 const _DroppablePlot = ({graphElt, plotElt, onDropAttribute}: IProps) => {
   const instanceId = useInstanceIdContext()
   const dataConfig = useGraphDataConfigurationContext()
-  const isDropAllowed = dataConfig?.graphPlaceCanAcceptAttributeIDDrop ?? (() => true)
+  const isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true)
   const droppableId = `${instanceId}-plot-area-drop`
   const place: GraphPlace = dataConfig?.noAttributesAssigned ? 'bottom' : 'legend'
   const role = dataConfig?.noAttributesAssigned ? 'x' : 'legend'

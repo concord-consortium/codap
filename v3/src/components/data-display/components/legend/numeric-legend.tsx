@@ -1,40 +1,44 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from "react"
 import {reaction} from "mobx"
+import {observer} from "mobx-react-lite"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
-import {useGraphDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import {kChoroplethHeight} from "../../../data-display/data-display-types"
-import {useGraphLayoutContext} from "../../models/graph-layout"
+import {kChoroplethHeight} from "../../data-display-types"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 
-import graphVars from "../graph.scss"
+import vars from "../../../vars.scss"
 
 
 interface INumericLegendProps {
   legendAttrID: string
 }
 
-export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumericLegendProps) {
-  const dataConfiguration = useGraphDataConfigurationContext(),
-    layout = useGraphLayoutContext(),
+export const NumericLegend = observer(function NumericLegend({legendAttrID}: INumericLegendProps) {
+  const dataConfiguration = useDataConfigurationContext(),
+    layout = useDataDisplayLayout(),
     dataset = useDataSetContext(),
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
-    labelFont = graphVars.graphLabelFont,
-    labelHeight = getStringBounds(dataset?.attrFromID(legendAttrID).name ?? '', labelFont).height,
-    numberHeight = getStringBounds('0').height,
+
+    getLabelHeight = useCallback(() => {
+      const labelFont = vars.labelFont
+      return getStringBounds(dataset?.attrFromID(legendAttrID).name ?? '', labelFont).height
+    }, [dataset, legendAttrID]),
 
     refreshScale = useCallback(() => {
-
+      const numberHeight = getStringBounds('0').height
+      const labelHeight = getLabelHeight()
       const computeDesiredExtent = () => {
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
-          return labelHeight + kChoroplethHeight + numberHeight + 2 * axisGap
+        return labelHeight + kChoroplethHeight + numberHeight + 2 * axisGap
       }
 
       if (choroplethElt) {
@@ -55,7 +59,7 @@ export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumeri
             }
           })
       }
-    }, [choroplethElt, dataConfiguration, layout, labelHeight, numberHeight])
+    }, [choroplethElt, dataConfiguration, getLabelHeight, layout])
 
   useEffect(function refresh() {
     refreshScale()
@@ -64,9 +68,9 @@ export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumeri
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
       () => {
-        const {graphHeight, graphWidth} = layout,
+        const {tileHeight, tileWidth} = layout,
           legendID = dataConfiguration?.attributeID('legend')
-        return [graphHeight, graphWidth, legendID]
+        return {tileHeight, tileWidth, legendID}
       },
       () => {
         refreshScale()
@@ -102,4 +106,3 @@ export const NumericLegend = memo(function NumericLegend({legendAttrID}: INumeri
   return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)} data-testid='legend-categories'>
          </svg>
 })
-NumericLegend.displayName = "NumericLegend"

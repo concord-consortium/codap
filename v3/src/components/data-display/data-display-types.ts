@@ -1,12 +1,9 @@
 import React from "react"
 import {DotsElt} from "./d3-types"
+import {AxisPlace} from "../axis/axis-types"
+import {GraphPlace} from "../axis-graph-shared"
 
 export type IDotsRef = React.MutableRefObject<DotsElt>
-
-export interface PlotProps {
-  dotsRef: IDotsRef
-  enableAnimation: React.MutableRefObject<boolean>
-}
 
 export type Point = { x: number, y: number }
 export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
@@ -49,3 +46,30 @@ export type AttrRole = typeof AttrRoles[number]
 // We leave open the possibility that TipAttrRoles may include some that are not GraphTipAttrRoles
 export const TipAttrRoles = [...GraphTipAttrRoles] as const
 
+export const attrRoleToAxisPlace: Partial<Record<GraphAttrRole, AxisPlace>> = {
+  x: "bottom",
+  y: "left",
+  rightNumeric: "rightNumeric",
+  rightSplit: "rightCat",
+  topSplit: "top"
+}
+export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = {
+  ...attrRoleToAxisPlace,
+  yPlus: "yPlus",
+  legend: "legend"
+}
+
+export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
+  bottom: "x",
+  left: "y",
+  top: "topSplit",
+  rightCat: "rightSplit",
+  rightNumeric: "rightNumeric"
+}
+
+export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
+  ...axisPlaceToAttrRole,
+  legend: "legend",
+  plot: "legend",
+  yPlus: "yPlus"
+}

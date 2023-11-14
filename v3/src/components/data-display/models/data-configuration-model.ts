@@ -12,7 +12,8 @@ import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtere
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
-import {AttrRole, TipAttrRoles} from "../data-display-types"
+import {AttrRole, graphPlaceToAttrRole, TipAttrRoles} from "../data-display-types"
+import {GraphPlace} from "../../axis-graph-shared"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -59,10 +60,6 @@ export const DataConfigurationModel = types
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
     },
-    /**
-     * For the 'y' role we return the first y-attribute, for 'rightNumeric' we return the last y-attribute.
-     * For all other roles we return the attribute description for the role.
-     */
     attributeDescriptionForRole(role: AttrRole) {
       return this.attributeDescriptions[role]
     },
@@ -370,6 +367,18 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
+      placeCanHaveZeroExtent(place: GraphPlace) {
+        return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
+          self.attributeID(graphPlaceToAttrRole[place]) === ''
+      },
+      // GraphDataConfigurationModel overrides this. Here we only have to worry about the 'legend' role.
+      placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
+        if (idToDrop) {
+          const desc = self.attributeDescriptionForRole('legend')
+          return !desc || desc.attributeID !== idToDrop
+        }
+        return false
+      },
       getLegendColorForCase(id: string): string {
         const legendID = self.attributeID('legend'),
           legendType = self.attributeType('legend'),
@@ -505,7 +514,7 @@ export const DataConfigurationModel = types
       addDisposer(self, reaction(
         () => self.dataset,
         data => self.handleDataSetChange(data),
-        { name: "DataConfigurationModel.afterCreate.reaction [dataset]" }
+        { name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
       // respond to change of legend attribute
       addDisposer(self, reaction(
