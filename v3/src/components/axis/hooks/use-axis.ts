@@ -12,7 +12,7 @@ import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {collisionExists, getStringBounds} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
-import graphVars from "../../graph/components/graph.scss"
+import vars from "../../vars.scss"
 
 export interface IUseAxis {
   axisPlace: AxisPlace
@@ -56,7 +56,7 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0
     }
-    const labelFont = graphVars.graphLabelFont,
+    const labelFont = vars.labelFont,
       axisTitleHeight = getStringBounds(axisTitle, labelFont).height,
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,

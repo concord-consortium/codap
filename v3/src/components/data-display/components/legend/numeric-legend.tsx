@@ -11,7 +11,7 @@ import {getStringBounds} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 
-import graphVars from "../../../graph/components/graph.scss"
+import vars from "../../../vars.scss"
 
 
 interface INumericLegendProps {
@@ -27,7 +27,7 @@ export const NumericLegend = observer(function NumericLegend({legendAttrID}: INu
     valuesRef = useRef<number[]>([]),
 
     getLabelHeight = useCallback(() => {
-      const labelFont = graphVars.graphLabelFont
+      const labelFont = vars.labelFont
       return getStringBounds(dataset?.attrFromID(legendAttrID).name ?? '', labelFont).height
     }, [dataset, legendAttrID]),
 

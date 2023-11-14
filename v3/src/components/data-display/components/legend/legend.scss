@@ -1,4 +1,4 @@
-@import "../../../graph/components/graph";
+@import "../../../vars";
 
 .legend-component {
   position: relative;
@@ -6,7 +6,7 @@
   height: 100%;
 
   .legend-background {
-    fill: $graph-background-fill;
+    fill: $background-fill;
     opacity: 1;
     stroke: none;
   }

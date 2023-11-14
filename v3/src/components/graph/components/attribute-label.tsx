@@ -18,7 +18,7 @@ import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
 import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
-import graphVars from "./graph.scss"
+import vars from "../../vars.scss"
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -60,7 +60,7 @@ export const AttributeLabel = observer(
     }, [dataset, getAttributeIDs, useClickHereCue])
 
     const refreshAxisTitle = useCallback(() => {
-      const labelFont = useClickHereCue ? graphVars.graphEmptyLabelFont : graphVars.graphLabelFont,
+      const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont,
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,

@@ -13,7 +13,7 @@ import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'
-import graphVars from "../../../graph/components/graph.scss"
+import vars from "../../../vars.scss"
 
 interface ICategoricalLegendProps {
   transform: string,
@@ -52,7 +52,7 @@ interface LayoutData {
   columnWidth: number
 }
 
-const labelHeight = getStringBounds('Wy', graphVars.graphLabelFont).height
+const labelHeight = getStringBounds('Wy', vars.labelFont).height
 
 const coordinatesToCatIndex = (lod: LayoutData, numCategories: number, localPoint: { x: number, y: number }) => {
     const {x, y} = localPoint,
