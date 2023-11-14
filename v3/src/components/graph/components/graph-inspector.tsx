@@ -1,5 +1,5 @@
 import React, {useRef, useEffect, useState} from "react"
-import {mstAutorun} from "../../../utilities/mst-autorun"
+import {observer} from "mobx-react-lite"
 import {InspectorButton, InspectorMenu, InspectorPanel} from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
@@ -16,10 +16,9 @@ import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
 
 
-export const GraphInspector = ({tile, show}: ITileInspectorPanelProps) => {
+export const GraphInspector = observer(({tile, show}: ITileInspectorPanelProps) => {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
-  const [, setPlotType] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
   const buttonRef = useRef<HTMLDivElement>()
@@ -29,12 +28,6 @@ export const GraphInspector = ({tile, show}: ITileInspectorPanelProps) => {
   useEffect(() => {
     !show && setShowPalette(undefined)
   }, [active, show])
-
-  useEffect(function respondToChangeInPlotType() {
-    return mstAutorun(() => {
-      setPlotType(graphModel?.plotType)
-    }, { name: "respondToChangeInPlotType" }, graphModel)
-  }, [graphModel])
 
   const handleClosePalette = () => {
     setShowPalette(undefined)
@@ -106,4 +99,4 @@ export const GraphInspector = ({tile, show}: ITileInspectorPanelProps) => {
                               panelRect={panelRect} buttonRect={buttonRect}/>}
     </InspectorPanel>
   )
-}
+})
