@@ -16,9 +16,9 @@ interface IProps {
 const computeDropHint = (active: Active) => {
     const {dataSet: draggedDataset, attributeId: dragAttrId = ""} = getDragAttributeInfo(active) || {}
     return t("V3.map.legendDrop", {vars: [draggedDataset?.attrFromID(dragAttrId)?.name]})
-  }
+}
 
-  export const DroppableMapArea = ({mapElt, targetElt, onDropAttribute}: IProps) => {
+export const DroppableMapArea = ({mapElt, targetElt, onDropAttribute}: IProps) => {
   const instanceId = useInstanceIdContext(),
     mapModel = useMapModelContext(),
     isDropAllowed = mapModel.canAcceptAttributeIDDrop ?? (() => true),

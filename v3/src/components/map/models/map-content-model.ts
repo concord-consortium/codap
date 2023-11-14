@@ -98,7 +98,9 @@ export const MapContentModel = DataDisplayContentModel
                 // Add a new layer for this dataset
                 this.addPointLayer(sharedDataSet.dataSet)
               }
-            } else if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
+            }
+            // Todo: We should allow both points and polygons from the same dataset
+            else if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
               const layer = layersToCheck.find(aLayer => aLayer.data === sharedDataSet.dataSet)
               if (isMapPolygonLayerModel(layer)) {
                 layer.setDataset(sharedDataSet.dataSet)

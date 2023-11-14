@@ -7,6 +7,7 @@ import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/dat
 import {transitionDuration} from "../../data-display/data-display-types"
 import {getCaseTipText, handleClickOnCase} from "../../data-display/data-display-utils"
 import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
+import {safeJsonParse} from "../../../utilities/js-utils"
 import {
   GeoJsonObject, kDefaultMapStrokeColor, kDefaultMapStrokeOpacity, kMapAreaNoLegendColor,
   kMapAreaNoLegendSelectedBorderColor, kMapAreaNoLegendSelectedColor, kMapAreaNoLegendSelectedOpacity,
@@ -103,7 +104,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
             return
           }
           mapLayerModel.features[caseIndex] = geoJSON(jsonObject, {
-            style(feature) {
+            style() {
               return {
                 fillColor: kMapAreaNoLegendColor,
                 fillOpacity: kMapAreaNoLegendUnselectedOpacity,
@@ -132,9 +133,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         }) === -1
         if (notAlreadyStashed) {
           const
-            polygon = dataset.getStrValue(aCaseData.caseID, polygonId)
+            polygon = safeJsonParse(dataset.getStrValue(aCaseData.caseID, polygonId))
           if (polygon) {
-            stashFeature(aCaseData.caseID, JSON.parse(polygon), caseIndex, '')
+            stashFeature(aCaseData.caseID, polygon, caseIndex, '')
           }
         } else {  // This case has an already stashed feature. Remove it from the list of current features
           // so that its corresponding feature won't be deleted below
@@ -148,7 +149,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         const featureIndex = mapLayerModel.features.findIndex((feature) => {
           return (feature.options as PolygonLayerOptions).caseID === featureID
         })
-        if (featureIndex !== -1) {
+        if (featureIndex >= 0) {
           leafletMap.removeLayer(mapLayerModel.features[featureIndex])
           mapLayerModel.features.splice(featureIndex, 1)
         }
