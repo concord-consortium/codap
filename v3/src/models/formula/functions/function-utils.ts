@@ -28,17 +28,17 @@ export const equal = (a: any, b: any): boolean | boolean[] => {
   // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
   // values when possible, so that the comparison can be performed without forcing users to think about types.
   // Also, there's more ifs than needed, but it lets us avoid unnecessary casts.
-  if (typeof a === "number" && typeof b !== "number") {
-    return a === Number(b)
-  }
-  if (typeof a !== "number" && typeof b === "number") {
-    return Number(a) === b
-  }
   if (typeof a === "boolean" && typeof b !== "boolean") {
     return a === (b === "true")
   }
   if (typeof a !== "boolean" && typeof b === "boolean") {
     return (a === "true") === b
+  }
+  if (typeof a === "number" && typeof b !== "number") {
+    return a === Number(b)
+  }
+  if (typeof a !== "number" && typeof b === "number") {
+    return Number(a) === b
   }
   return a === b
 }
