@@ -5,7 +5,6 @@ import {select} from "d3"
 import {
   GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole
 } from "../../data-display/data-display-types"
-import {startAnimation} from "../../data-display/data-display-utils"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
 import {kGraphClass} from "../graphing-types"
@@ -49,8 +48,7 @@ interface IProps {
 
 export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
-    {enableAnimation} = graphController,
-    {plotType} = graphModel,
+    {startAnimation, plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
@@ -141,12 +139,12 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
       if (isSetAttributeIDAction(action)) {
         const [role, dataSetId, attrID] = action.args,
           graphPlace = attrRoleToGraphPlace[role]
-        startAnimation(enableAnimation)
+        startAnimation()
         graphPlace && graphController?.handleAttributeAssignment(graphPlace, dataSetId, attrID)
       }
     })
     return () => disposer?.()
-  }, [graphController, layout, enableAnimation, graphModel])
+  }, [graphController, layout, graphModel, startAnimation])
 
   const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
     dataset && graphModel.applyUndoableAction(() => {
@@ -155,12 +153,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
   }
 
-  useDataTips({dotsRef, dataset, displayModel: graphModel, enableAnimation})
+  useDataTips({dotsRef, dataset, displayModel: graphModel})
 
   const renderPlotComponent = () => {
-    const props = {
-        xAttrID, yAttrID, dotsRef, enableAnimation
-      },
+    const props = { xAttrID, yAttrID, dotsRef },
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,

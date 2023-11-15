@@ -13,4 +13,19 @@ export const DataDisplayContentModel = TileContentModel
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(PointDescriptionModel, () => PointDescriptionModel.create()),
   })
+  .volatile(() => ({
+    animationEnabled: false,
+  }))
+  .actions(self => ({
+    startAnimation() {
+      self.animationEnabled = true
+      setTimeout(() => self.animationEnabled = false, 2000)
+    },
+    stopAnimation() {
+      self.animationEnabled = false
+    },
+    getAnimationEnabled() {
+      return self.animationEnabled
+    }
+  }))
 

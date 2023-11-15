@@ -3,7 +3,6 @@ import {IDotsRef} from "../data-display/data-display-types"
 
 export interface PlotProps {
   dotsRef: IDotsRef
-  enableAnimation: React.MutableRefObject<boolean>
 }
 
 // One element of the data array assigned to the points

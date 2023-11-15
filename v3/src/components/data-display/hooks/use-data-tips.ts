@@ -1,5 +1,5 @@
 import {select} from "d3"
-import React, {useEffect} from "react"
+import {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IDataSet} from "../../../models/data/data-set"
 import {IDotsRef, transitionDuration} from "../data-display-types"
@@ -21,10 +21,9 @@ interface IUseDataTips {
   dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
   displayModel: IGraphContentModel | IMapPointLayerModel,
-  enableAnimation: React.MutableRefObject<boolean>
 }
 
-export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: IUseDataTips) => {
+export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
   const hoverPointRadius = displayModel.getPointRadius('hover-drag'),
     pointRadius = displayModel.getPointRadius(),
     selectedPointRadius = displayModel.getPointRadius('select'),
@@ -35,7 +34,7 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
   useEffect(() => {
 
     function okToTransition(target: any) {
-      return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
+      return !displayModel.animationEnabled && target.node()?.nodeName === 'circle' && dataset &&
         !target.property('isDragging')
     }
 
@@ -77,6 +76,6 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
         .on('mouseout', hideDataTip)
         .call(dataTip)
     }
-  }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
-    displayModel.dataConfiguration.uniqueTipAttributes])
+  }, [dotsRef, dataset, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
+    displayModel.dataConfiguration.uniqueTipAttributes, displayModel.animationEnabled])
 }

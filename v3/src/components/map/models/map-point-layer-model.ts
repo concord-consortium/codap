@@ -19,6 +19,9 @@ export const MapPointLayerModel = MapLayerModel
     dataConfiguration: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
     pointDescription: types.optional(PointDescriptionModel, () => PointDescriptionModel.create()),
   })
+  .volatile(() => ({
+    animationEnabled: false,
+  }))
   .actions(self => ({
     setDataset(dataSet:IDataSet) {
       const {latId, longId} = latLongAttributesFromDataSet(dataSet)
