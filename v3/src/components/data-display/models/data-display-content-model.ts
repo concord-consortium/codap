@@ -17,12 +17,12 @@ export const DataDisplayContentModel = TileContentModel
     animationEnabled: false,
   }))
   .actions(self => ({
-    startAnimation() {
-      self.animationEnabled = true
-      setTimeout(() => self.animationEnabled = false, 2000)
-    },
     stopAnimation() {
       self.animationEnabled = false
+    },
+    startAnimation() {
+      self.animationEnabled = true
+      setTimeout(() => this.stopAnimation(), 2000)
     },
     getAnimationEnabled() {
       return self.animationEnabled

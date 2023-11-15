@@ -1,4 +1,3 @@
-import React from "react"
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {IDotsRef, axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
@@ -21,7 +20,6 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
 
 interface IGraphControllerConstructorProps {
   layout: GraphLayout
-  enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
 }
 
@@ -34,16 +32,14 @@ export class GraphController {
   graphModel?: IGraphContentModel
   dotsRef?: IDotsRef
   layout: GraphLayout
-  enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
   // tracks the currently configured attribute descriptions so that we know whether
   // initializeGraph needs to do anything or not, e.g. when handling undo/redo.
   attrConfigForInitGraph = ""
 
-  constructor({layout, enableAnimation, instanceId}: IGraphControllerConstructorProps) {
+  constructor({layout, instanceId}: IGraphControllerConstructorProps) {
     this.layout = layout
     this.instanceId = instanceId
-    this.enableAnimation = enableAnimation
   }
 
   setProperties(props: IGraphControllerProps) {
@@ -57,14 +53,14 @@ export class GraphController {
   }
 
   callMatchCirclesToData() {
-    const {graphModel, dotsRef, enableAnimation, instanceId} = this
+    const {graphModel, dotsRef, instanceId} = this
     if (graphModel && dotsRef?.current) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius()
       dataConfiguration && matchCirclesToData({
         dataConfiguration, dotsElement: dotsRef.current,
-        pointRadius, enableAnimation, instanceId, pointColor, pointStrokeColor
+        pointRadius, startAnimation: graphModel.startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }
   }

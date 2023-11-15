@@ -5,11 +5,11 @@ import {IDataSet} from "../../../models/data/data-set"
 import {IDotsRef, transitionDuration} from "../data-display-types"
 import {CaseData} from "../d3-types"
 import {getCaseTipText} from "../data-display-utils"
-import {IGraphContentModel} from "../../graph/models/graph-content-model"
 import {RoleAttrIDPair} from "../models/data-configuration-model"
 import {urlParams} from "../../../utilities/url-params"
-import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
 import {isGraphDataConfigurationModel} from "../../graph/models/graph-data-configuration-model"
+import {IGraphContentModel} from "../../graph/models/graph-content-model"
+import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -20,10 +20,11 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
 interface IUseDataTips {
   dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
+  getAnimationEnabled: () => boolean,
   displayModel: IGraphContentModel | IMapPointLayerModel,
 }
 
-export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
+export const useDataTips = ({dotsRef, dataset, getAnimationEnabled, displayModel}: IUseDataTips) => {
   const hoverPointRadius = displayModel.getPointRadius('hover-drag'),
     pointRadius = displayModel.getPointRadius(),
     selectedPointRadius = displayModel.getPointRadius('select'),
@@ -34,7 +35,7 @@ export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
   useEffect(() => {
 
     function okToTransition(target: any) {
-      return !displayModel.animationEnabled && target.node()?.nodeName === 'circle' && dataset &&
+      return !getAnimationEnabled() && target.node()?.nodeName === 'circle' && dataset &&
         !target.property('isDragging')
     }
 
@@ -77,5 +78,5 @@ export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
         .call(dataTip)
     }
   }, [dotsRef, dataset, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
-    displayModel.dataConfiguration.uniqueTipAttributes, displayModel.animationEnabled])
+    displayModel.dataConfiguration.uniqueTipAttributes, getAnimationEnabled])
 }

@@ -26,7 +26,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const [running, setRunning] = useState(false)
-  const animationRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
 
   // width and positioning
@@ -84,7 +83,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 <svg className="slider-axis" data-testid="slider-axis">
                   <Axis
                     axisPlace={"bottom"}
-                    enableAnimation={animationRef}
+                    getAnimationEnabled = {() => false}
+                    stopAnimation={() => {}}
                   />
                 </svg>
                 <div className="axis-end max" />

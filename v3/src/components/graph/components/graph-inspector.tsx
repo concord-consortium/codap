@@ -52,6 +52,7 @@ export const GraphInspector = observer(({tile, show}: ITileInspectorPanelProps) 
       : graphModel?.plotType === "casePlot" ? "V3.Inspector.rescale.casePlot.toolTip" : "DG.Inspector.rescale.toolTip"
 
     const handleGraphRescale = () => {
+      graphModel?.startAnimation()
       graphModel?.applyUndoableAction(
         () => graphModel.rescale(),
         "DG.Undo.axisDilate",

@@ -40,7 +40,6 @@ describe("GraphController", () => {
     metadata: types.optional(SharedCaseMetadata, () => SharedCaseMetadata.create())
   })
 
-  const enableAnimation = { current: false } as any
   const instanceId = "Graph1"
 
   let emptyPlotSnap: SnapshotIn<typeof Tree> | undefined
@@ -56,7 +55,7 @@ describe("GraphController", () => {
     mockGetMetadata.mockRestore()
     mockGetMetadata.mockImplementation(() => metadata)
     const layout = new GraphLayout()
-    const graphController = new GraphController({ layout, enableAnimation, instanceId })
+    const graphController = new GraphController({ layout, instanceId })
     const dotsRef = { current: {} } as any
     graphController.setProperties({ graphModel, dotsRef })
     return { tree: _tree, model: graphModel, controller: graphController, data: dataSet }
@@ -81,7 +80,6 @@ describe("GraphController", () => {
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     const _controller = new GraphController({
       layout: undefined as any,
-      enableAnimation,
       instanceId
     })
     _controller.initializeGraph()

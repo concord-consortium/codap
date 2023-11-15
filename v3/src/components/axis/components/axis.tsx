@@ -1,4 +1,4 @@
-import React, {MutableRefObject} from "react"
+import React from "react"
 import {range} from "d3"
 import {AxisPlace} from "../axis-types"
 import {useAxis} from "../hooks/use-axis"
@@ -9,14 +9,15 @@ import "./axis.scss"
 
 interface IProps {
   axisPlace: AxisPlace
-  enableAnimation: MutableRefObject<boolean>
+  getAnimationEnabled: () => boolean
+  stopAnimation: () => void
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
 }
 
 export const Axis = ({
                        axisPlace, showScatterPlotGridLines = false,
-                       enableAnimation,
+                       getAnimationEnabled, stopAnimation,
                        centerCategoryLabels = true,
                      }: IProps) => {
   const
@@ -33,7 +34,8 @@ export const Axis = ({
                       numSubAxes={numRepetitions}
                       subAxisIndex={i}
                       axisPlace={axisPlace}
-                      enableAnimation={enableAnimation}
+                      getAnimationEnabled={getAnimationEnabled}
+                      stopAnimation={stopAnimation}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       centerCategoryLabels={centerCategoryLabels}
       />

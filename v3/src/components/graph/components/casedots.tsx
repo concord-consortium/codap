@@ -139,7 +139,7 @@ export const CaseDots = function CaseDots(props: {
   }, [dataConfiguration?.caseDataArray, graphModel,
     randomlyDistributePoints, refreshPointPositions])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, getAnimationEnabled})
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <></>

@@ -28,10 +28,9 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
-  const enableAnimation = useRef(true)
   const dotsRef = useRef<DotsElt>(null)
   const graphController = useMemo(
-    () => new GraphController({layout, enableAnimation, instanceId}),
+    () => new GraphController({layout, instanceId}),
     [layout, instanceId]
   )
 

@@ -21,19 +21,19 @@ import {IMapPointLayerModel} from "../models/map-point-layer-model"
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel
   dotsElement: DotsElt
-  enableAnimation: React.MutableRefObject<boolean>
 }) {
-  const {mapLayerModel, dotsElement, enableAnimation} = props,
+  const {mapLayerModel, dotsElement} = props,
     {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
+    {getAnimationEnabled} = mapModel,
     leafletMap = useMap(),
     layout = useMapLayoutContext(),
     dotsRef = useRef(dotsElement)
 
   dotsRef.current = dotsElement
 
-  useDataTips({dotsRef, dataset, displayModel: mapLayerModel, enableAnimation})
+  useDataTips({dotsRef, dataset, getAnimationEnabled, displayModel: mapLayerModel})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
@@ -68,7 +68,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     if (!dotsElement || !dataset) return
     const
       theSelection = selectDots(dotsElement, selectedOnly),
-      duration = enableAnimation.current ? transitionDuration : 0,
+      duration = getAnimationEnabled() ? transitionDuration : 0,
       pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
         pointDescription.pointSizeMultiplier),
       selectedPointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
@@ -94,7 +94,7 @@ export const MapPointLayer = function MapPointLayer(props: {
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
     }
 
-  }, [dotsElement, dataset, enableAnimation, dataConfiguration, pointDescription, leafletMap])
+  }, [dotsElement, dataset, mapModel, dataConfiguration, pointDescription, leafletMap])
 
   // Actions in the dataset can trigger need for point updates
   useEffect(function setupResponsesToDatasetActions() {

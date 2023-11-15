@@ -2,9 +2,8 @@ import {observer} from "mobx-react-lite"
 import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
-import {
-  GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole
-} from "../../data-display/data-display-types"
+import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole}
+  from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
 import {kGraphClass} from "../graphing-types"
@@ -48,7 +47,7 @@ interface IProps {
 
 export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
-    {startAnimation, plotType} = graphModel,
+    {startAnimation, getAnimationEnabled, plotType} = graphModel,
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
@@ -153,7 +152,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
   }
 
-  useDataTips({dotsRef, dataset, displayModel: graphModel})
+  useDataTips({dotsRef, dataset, getAnimationEnabled, displayModel: graphModel})
 
   const renderPlotComponent = () => {
     const props = { xAttrID, yAttrID, dotsRef },
@@ -173,7 +172,8 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return places.map((place: AxisPlace) => {
       return <GraphAxis key={place}
                         place={place}
-                        enableAnimation={enableAnimation}
+                        getAnimationEnabled={graphModel.getAnimationEnabled}
+                        stopAnimation={graphModel.stopAnimation}
                         onDropAttribute={handleChangeAttribute}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}
@@ -182,7 +182,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   }
 
   const renderDroppableAddAttributes = () => {
-    const droppables: JSX.Element[] = []
+    const droppables: React.ReactElement[] = []
     if (plotType !== 'casePlot') {
       const plotPlaces: GraphPlace[] = plotType === 'scatterPlot' ? ['yPlus', 'rightNumeric'] : []
       const places: GraphPlace[] = ['top', 'rightCat', ...plotPlaces]
@@ -203,7 +203,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return droppables
   }
 
-  useGraphModel({dotsRef, graphModel, enableAnimation, instanceId})
+  useGraphModel({dotsRef, graphModel, instanceId})
 
   if (!isAlive(graphModel)) return null
 

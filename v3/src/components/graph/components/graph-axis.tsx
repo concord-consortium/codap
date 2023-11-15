@@ -1,4 +1,4 @@
-import React, {MutableRefObject, useCallback, useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
@@ -22,14 +22,15 @@ import {AttributeLabel} from "./attribute-label"
 
 interface IProps {
   place: AxisPlace
-  enableAnimation: MutableRefObject<boolean>
+  getAnimationEnabled: () => boolean
+  stopAnimation: () => void
   onDropAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const GraphAxis = observer(function GraphAxis(
-  {place, enableAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
+  {place, getAnimationEnabled, stopAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
     isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true),
     graphModel = useGraphContentModelContext(),
@@ -95,7 +96,8 @@ export const GraphAxis = observer(function GraphAxis(
       <rect className='axis-background'/>
       {axisModel &&
         <Axis axisPlace={place}
-              enableAnimation={enableAnimation}
+              getAnimationEnabled={getAnimationEnabled}
+              stopAnimation={stopAnimation}
               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
               centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
         />}

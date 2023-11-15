@@ -1,4 +1,3 @@
-import React from "react"
 import {IDotsRef} from "../data-display/data-display-types"
 
 export interface PlotProps {

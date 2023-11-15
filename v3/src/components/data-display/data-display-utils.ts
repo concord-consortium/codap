@@ -1,5 +1,4 @@
-import React from "react"
-import {format, select, timeout} from "d3"
+import {format, select} from "d3"
 import {measureText} from "../../hooks/use-measure-text"
 import {between} from "../../utilities/math-utils"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
