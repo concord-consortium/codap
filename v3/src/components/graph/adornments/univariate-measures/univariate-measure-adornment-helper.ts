@@ -175,7 +175,7 @@ export class UnivariateMeasureAdornmentHelper {
     const measureRange: IRange = attrId && this.model.hasRange
       ? this.model.computeMeasureRange(attrId, this.cellKey, dataConfig)
       : {}
-      const rangeValue = measureRange.min != null ? plotValue - measureRange.min : undefined
+    const rangeValue = measureRange.min != null ? value - measureRange.min : undefined
     const displayRange = this.formatValueForScale(isVertical, rangeValue)
     const {x: x1, y: y1} =
       this.calculateLineCoords(plotValue, 1, isVertical, cellCounts, secondaryAxisX, secondaryAxisY)
