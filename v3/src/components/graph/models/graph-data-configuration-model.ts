@@ -258,12 +258,14 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .views(self => ({
     subPlotCases(cellKey: Record<string, string>) {
       const casesInPlot: ICase[] = []
+      const casesInPlotSet = new Set<string>()
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
-          const caseAlreadyMatched = casesInPlot.find(aCase => aCase.__id__ === id)
-          if (caseData && !caseAlreadyMatched) {
-            self.isCaseInCell(cellKey, caseData) && casesInPlot.push(caseData)
+          const caseAlreadyMatched = casesInPlotSet.has(id)
+          if (caseData && !caseAlreadyMatched && self.isCaseInCell(cellKey, caseData)) {
+            casesInPlot.push(caseData)
+            casesInPlotSet.add(caseData.__id__)
           }
         })
       })
