@@ -112,7 +112,10 @@ export const DataConfigurationModel = types
         }
       })
       return roles
-    }
+    },
+    get hiddenCasesSet() {
+      return new Set(self.hiddenCases)
+    },
   }))
   .actions(self => ({
     clearFilteredCases() {
@@ -138,7 +141,7 @@ export const DataConfigurationModel = types
   .views(self => ({
     filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
       // If the case is hidden we don't plot it
-      if (self.hiddenCases.includes(caseID)) return false
+      if (self.hiddenCasesSet.has(caseID)) return false
       const descriptions = {...self.attributeDescriptions}
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
