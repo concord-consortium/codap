@@ -70,7 +70,7 @@ describe("PlottedFunctionFormulaAdapter", () => {
       adapter.recalculateFormula(context, extraMetadata)
       extraMetadata.graphCellKeys.forEach(cellKey => {
         const instanceKey = adornment.instanceKey(cellKey)
-        expect(adornment.measures.get(instanceKey)?.formulaFunction(3)).toBe(6) // = 1 + 2 + x=3
+        expect(adornment.plottedFunctions.get(instanceKey)?.formulaFunction(3)).toBe(6) // = 1 + 2 + x=3
       })
     })
   })
