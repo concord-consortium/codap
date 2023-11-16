@@ -182,11 +182,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
             if (!bins[category][extraCategory][extraPrimaryCategory]) {
               bins[category][extraCategory][extraPrimaryCategory] = range(numBins + 1).map(() => [])
             }
+            binMap[anID] = {
+              category, extraCategory, extraPrimaryCategory,
+              indexInBin: (bin >= 0 && bin <= numBins)
+                ? bins[category][extraCategory][extraPrimaryCategory][bin].length : 0
+            }
             if (bin >= 0 && bin <= numBins) {
-              binMap[anID] = {
-                category, extraCategory, extraPrimaryCategory,
-                indexInBin: bins[category][extraCategory][extraPrimaryCategory][bin].length
-              }
               bins[category][extraCategory][extraPrimaryCategory][bin].push(anID)
             }
           })
@@ -238,9 +239,6 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           return primaryCoord + extraPrimaryCoord
         },
         getSecondaryScreenCoord = (anID: string) => {
-          if (!binMap[anID]) {
-            return null // Not NaN because NaN causes errors during transitions
-          }
           const secondaryCat = binMap[anID].category,
             extraSecondaryCat = binMap[anID].extraCategory,
             indexInBin = binMap[anID].indexInBin,
