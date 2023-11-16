@@ -257,17 +257,17 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .views(self => ({
     subPlotCases(cellKey: Record<string, string>) {
-      const casesInPlot: ICase[] = []
+      const casesInPlot = new Map<string, ICase>()
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
-          const caseAlreadyMatched = casesInPlot.find(aCase => aCase.__id__ === id)
-          if (caseData && !caseAlreadyMatched) {
-            self.isCaseInCell(cellKey, caseData) && casesInPlot.push(caseData)
+          const caseAlreadyMatched = casesInPlot.has(id)
+          if (caseData && !caseAlreadyMatched && self.isCaseInCell(cellKey, caseData)) {
+            casesInPlot.set(caseData.__id__, caseData)
           }
         })
       })
-      return casesInPlot
+      return Array.from(casesInPlot.values())
     },
     rowCases(cellKey: Record<string, string>) {
       const casesInRow: ICase[] = []
