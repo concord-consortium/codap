@@ -10,8 +10,7 @@ import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-da
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
-import {IMapLayerModel} from "./map-layer-model"
-import {IMapPolygonLayerModel, isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
+import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
 
 export interface MapProperties {

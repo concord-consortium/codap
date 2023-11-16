@@ -94,7 +94,7 @@ export const MapPointLayer = function MapPointLayer(props: {
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
     }
 
-  }, [dotsElement, dataset, mapModel, dataConfiguration, pointDescription, leafletMap])
+  }, [dotsElement, dataset, getAnimationEnabled, dataConfiguration, pointDescription, leafletMap])
 
   // Actions in the dataset can trigger need for point updates
   useEffect(function setupResponsesToDatasetActions() {
