@@ -12,6 +12,7 @@ import {
 import {CaseData, DotsElt, selectDots} from "../../data-display/d3-types"
 import {computePointRadius, setPointSelection} from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -26,14 +27,14 @@ export const MapPointLayer = function MapPointLayer(props: {
     {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
-    {getAnimationEnabled} = mapModel,
+    {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
     layout = useMapLayoutContext(),
     dotsRef = useRef(dotsElement)
 
   dotsRef.current = dotsElement
 
-  useDataTips({dotsRef, dataset, getAnimationEnabled, displayModel: mapLayerModel})
+  useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
@@ -68,7 +69,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     if (!dotsElement || !dataset) return
     const
       theSelection = selectDots(dotsElement, selectedOnly),
-      duration = getAnimationEnabled() ? transitionDuration : 0,
+      duration = isAnimating() ? transitionDuration : 0,
       pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
         pointDescription.pointSizeMultiplier),
       selectedPointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
@@ -94,7 +95,7 @@ export const MapPointLayer = function MapPointLayer(props: {
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
     }
 
-  }, [dotsElement, dataset, getAnimationEnabled, dataConfiguration, pointDescription, leafletMap])
+  }, [dotsElement, dataset, isAnimating, dataConfiguration, pointDescription, leafletMap])
 
   // Actions in the dataset can trigger need for point updates
   useEffect(function setupResponsesToDatasetActions() {

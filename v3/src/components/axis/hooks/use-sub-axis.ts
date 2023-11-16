@@ -2,6 +2,7 @@ import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
 import {reaction} from "mobx"
 import {useCallback, useEffect, useMemo, useRef} from "react"
 import {transitionDuration} from "../../data-display/data-display-types"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {AxisBounds, AxisPlace, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
@@ -18,8 +19,6 @@ export interface IUseSubAxis {
   subAxisIndex: number
   axisPlace: AxisPlace
   subAxisElt: SVGGElement | null
-  getAnimationEnabled: () => boolean
-  stopAnimation: () => void
   showScatterPlotGridLines: boolean
   centerCategoryLabels: boolean
 }
@@ -30,10 +29,10 @@ interface CatObject {
 }
 
 export const useSubAxis = ({
-                             subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels,
-                             getAnimationEnabled, stopAnimation
+                             subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
+    {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
     isNumeric = isNumericAxisModel(axisModel),
@@ -96,7 +95,7 @@ export const useSubAxis = ({
           select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
             axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9')),
-            duration = getAnimationEnabled() ? transitionDuration : 0
+            duration = isAnimating() ? transitionDuration : 0
           if (!axisIsVertical && numericScale.ticks) {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
           }
@@ -141,7 +140,7 @@ export const useSubAxis = ({
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
               collision),
-            duration = (getAnimationEnabled() && !swapInProgress.current &&
+            duration = (isAnimating() && !swapInProgress.current &&
               dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
 
           // Fill out dragInfo for use in drag callbacks
@@ -217,7 +216,7 @@ export const useSubAxis = ({
           renderCategoricalSubAxis()
           break
       }
-    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, getAnimationEnabled,
+    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, isAnimating,
       centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {

@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {IDotsRef} from "../../data-display/data-display-types"
 import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -18,7 +19,7 @@ export const CaseDots = function CaseDots(props: {
       dotsRef
     } = props,
     graphModel = useGraphContentModelContext(),
-    getAnimationEnabled = graphModel.getAnimationEnabled,
+    {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
     layout = useGraphLayoutContext(),
@@ -39,7 +40,7 @@ export const CaseDots = function CaseDots(props: {
   }, []),
 
   onDragStart = useCallback((event: MouseEvent) => {
-    graphModel.stopAnimation() // We don't want to animate points until end of drag
+    stopAnimation() // We don't want to animate points until end of drag
     target.current = select(event.target as SVGSVGElement)
     const aCaseData: CaseData = target.current.node().__data__
     if (aCaseData && target.current.node()?.nodeName === 'circle') {
@@ -49,7 +50,7 @@ export const CaseDots = function CaseDots(props: {
       currPos.current = {x: event.clientX, y: event.clientY}
       handleClickOnCase(event, aCaseData.caseID, dataset)
     }
-  }, [graphModel, dragPointRadius, dataset]),
+  }, [stopAnimation, dragPointRadius, dataset]),
 
     onDrag = useCallback((event: MouseEvent) => {
       if (dotsRef.current && dragID !== '') {
@@ -111,9 +112,9 @@ export const CaseDots = function CaseDots(props: {
 
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius, dotsRef, selectedOnly,
-      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled
+      pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [dotsRef, graphModel, layout, dataConfiguration, dataset, getAnimationEnabled])
+  }, [dotsRef, graphModel, layout, dataConfiguration, dataset, isAnimating])
 
   useEffect(function initDistribution() {
     const cases = dataConfiguration?.caseDataArray
@@ -132,12 +133,12 @@ export const CaseDots = function CaseDots(props: {
       () => {
         randomPointsRef.current = {}
         randomlyDistributePoints(dataConfiguration?.caseDataArray)
-        graphModel.startAnimation()
+        startAnimation()
         refreshPointPositions(false)
       },
       { name: "CaseDots.respondToModelChangeCount" }, graphModel)
   }, [dataConfiguration?.caseDataArray, graphModel,
-    randomlyDistributePoints, refreshPointPositions])
+      randomlyDistributePoints, refreshPointPositions, startAnimation])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 

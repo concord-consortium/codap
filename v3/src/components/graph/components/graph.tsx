@@ -32,6 +32,7 @@ import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -47,7 +48,8 @@ interface IProps {
 
 export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
-    {startAnimation, getAnimationEnabled, plotType} = graphModel,
+    {plotType} = graphModel,
+    {startAnimation} = useDataDisplayAnimation(),
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
@@ -152,7 +154,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
   }
 
-  useDataTips({dotsRef, dataset, getAnimationEnabled, displayModel: graphModel})
+  useDataTips({dotsRef, dataset, displayModel: graphModel})
 
   const renderPlotComponent = () => {
     const props = { xAttrID, yAttrID, dotsRef },
@@ -172,8 +174,6 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return places.map((place: AxisPlace) => {
       return <GraphAxis key={place}
                         place={place}
-                        getAnimationEnabled={graphModel.getAnimationEnabled}
-                        stopAnimation={graphModel.stopAnimation}
                         onDropAttribute={handleChangeAttribute}
                         onRemoveAttribute={handleRemoveAttribute}
                         onTreatAttributeAs={handleTreatAttrAs}

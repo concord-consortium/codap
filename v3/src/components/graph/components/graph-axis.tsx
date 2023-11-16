@@ -22,15 +22,13 @@ import {AttributeLabel} from "./attribute-label"
 
 interface IProps {
   place: AxisPlace
-  getAnimationEnabled: () => boolean
-  stopAnimation: () => void
   onDropAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const GraphAxis = observer(function GraphAxis(
-  {place, getAnimationEnabled, stopAnimation, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
+  {place, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
     isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true),
     graphModel = useGraphContentModelContext(),
@@ -96,8 +94,6 @@ export const GraphAxis = observer(function GraphAxis(
       <rect className='axis-background'/>
       {axisModel &&
         <Axis axisPlace={place}
-              getAnimationEnabled={getAnimationEnabled}
-              stopAnimation={stopAnimation}
               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
               centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
         />}

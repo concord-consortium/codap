@@ -4,6 +4,7 @@ import React, {useCallback, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
@@ -16,6 +17,7 @@ import {setPointCoordinates} from "../utilities/graph-utils"
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {dotsRef} = props,
     graphModel = useGraphContentModelContext(),
+    {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataConfiguration = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -38,7 +40,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       didDrag.current = false
       const tItsID: string = aCaseData.caseID
       if (target.current.node()?.nodeName === 'circle') {
-        graphModel.stopAnimation() // We don't want to animate points until end of drag
+        stopAnimation() // We don't want to animate points until end of drag
         appState.beginPerformance()
         target.current
           .property('isDragging', true)
@@ -58,7 +60,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           }
         })
       }
-    }, [graphModel, dataConfiguration, dataset, primaryIsBottom]),
+    }, [dataset, stopAnimation, graphModel, primaryIsBottom, dataConfiguration]),
 
     onDrag = useCallback((event: MouseEvent) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -107,12 +109,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
               [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
             })
           })
-          graphModel.startAnimation() // So points will animate back to original positions
+          startAnimation() // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues)
           didDrag.current = false
         }
       }
-    }, [graphModel, dataConfiguration, primaryAttrRole, dataset, dragID])
+    }, [dataset, dragID, graphModel, dataConfiguration, startAnimation, primaryAttrRole])
 
   useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -256,11 +258,11 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         dataset, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         dotsRef, selectedOnly, pointColor, pointStrokeColor,
-        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: graphModel.getAnimationEnabled
+        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
       })
     },
     [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef,
-      primaryIsBottom, pointColor, pointStrokeColor])
+      primaryIsBottom, pointColor, pointStrokeColor, isAnimating])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 

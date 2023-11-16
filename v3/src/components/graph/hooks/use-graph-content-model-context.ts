@@ -1,11 +1,7 @@
-import { createContext, useContext } from "react"
+import { useContext } from "react"
 import { IGraphContentModel } from "../models/graph-content-model"
+import { DataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 
-const kDefaultGraphContentModel = {
-  getAxis: () => undefined,
-  getNumericAxis: () => undefined
-} as unknown as IGraphContentModel
+export const GraphContentModelContext = DataDisplayModelContext
 
-export const GraphContentModelContext = createContext<IGraphContentModel>(kDefaultGraphContentModel)
-
-export const useGraphContentModelContext = () => useContext(GraphContentModelContext)
+export const useGraphContentModelContext = () => useContext(GraphContentModelContext) as IGraphContentModel

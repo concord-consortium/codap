@@ -10,6 +10,7 @@ import {urlParams} from "../../../utilities/url-params"
 import {isGraphDataConfigurationModel} from "../../graph/models/graph-data-configuration-model"
 import {IGraphContentModel} from "../../graph/models/graph-content-model"
 import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
+import {useDataDisplayAnimation} from "./use-data-display-animation"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -20,12 +21,12 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
 interface IUseDataTips {
   dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
-  getAnimationEnabled: () => boolean,
   displayModel: IGraphContentModel | IMapPointLayerModel,
 }
 
-export const useDataTips = ({dotsRef, dataset, getAnimationEnabled, displayModel}: IUseDataTips) => {
-  const hoverPointRadius = displayModel.getPointRadius('hover-drag'),
+export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
+  const { isAnimating } = useDataDisplayAnimation(),
+    hoverPointRadius = displayModel.getPointRadius('hover-drag'),
     pointRadius = displayModel.getPointRadius(),
     selectedPointRadius = displayModel.getPointRadius('select'),
     dataConfiguration = displayModel.dataConfiguration,
@@ -35,7 +36,7 @@ export const useDataTips = ({dotsRef, dataset, getAnimationEnabled, displayModel
   useEffect(() => {
 
     function okToTransition(target: any) {
-      return !getAnimationEnabled() && target.node()?.nodeName === 'circle' && dataset &&
+      return !isAnimating() && target.node()?.nodeName === 'circle' && dataset &&
         !target.property('isDragging')
     }
 
@@ -78,5 +79,5 @@ export const useDataTips = ({dotsRef, dataset, getAnimationEnabled, displayModel
         .call(dataTip)
     }
   }, [dotsRef, dataset, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
-    displayModel.dataConfiguration.uniqueTipAttributes, getAnimationEnabled])
+    displayModel.dataConfiguration.uniqueTipAttributes, isAnimating])
 }

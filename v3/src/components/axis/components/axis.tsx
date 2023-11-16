@@ -9,15 +9,12 @@ import "./axis.scss"
 
 interface IProps {
   axisPlace: AxisPlace
-  getAnimationEnabled: () => boolean
-  stopAnimation: () => void
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
 }
 
 export const Axis = ({
                        axisPlace, showScatterPlotGridLines = false,
-                       getAnimationEnabled, stopAnimation,
                        centerCategoryLabels = true,
                      }: IProps) => {
   const
@@ -34,8 +31,6 @@ export const Axis = ({
                       numSubAxes={numRepetitions}
                       subAxisIndex={i}
                       axisPlace={axisPlace}
-                      getAnimationEnabled={getAnimationEnabled}
-                      stopAnimation={stopAnimation}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       centerCategoryLabels={centerCategoryLabels}
       />

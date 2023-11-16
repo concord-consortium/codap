@@ -7,6 +7,7 @@ import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configur
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {attrRoleToAxisPlace} from "../../data-display/data-display-types"
 import {setPointSelection} from "../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
@@ -16,6 +17,7 @@ type BinMap = Record<string, Record<string, Record<string, Record<string, number
 export const ChartDots = function ChartDots(props: PlotProps) {
   const {dotsRef} = props,
     graphModel = useGraphContentModelContext(),
+    {isAnimating} = useDataDisplayAnimation(),
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
     dataConfiguration = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
@@ -210,10 +212,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
       dotsRef, selectedOnly, pointColor, pointStrokeColor,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: graphModel.getAnimationEnabled
+      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
   }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
-    extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor,
+    extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor, isAnimating,
     primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})

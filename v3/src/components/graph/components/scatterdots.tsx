@@ -5,6 +5,7 @@ import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
@@ -19,6 +20,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
+    {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
@@ -47,7 +49,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       if (!aCaseData) return
       dataset?.beginCaching()
       secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
-      graphModel.stopAnimation() // We don't want to animate points until end of drag
+      stopAnimation() // We don't want to animate points until end of drag
       didDrag.current = false
       const tItsID = aCaseData.caseID
       plotNumRef.current = target.current.datum()?.plotNum ?? 0
@@ -71,7 +73,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
           }
         })
       }
-    }, [dataConfiguration, dataset, graphModel]),
+    }, [dataConfiguration, dataset, stopAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       const xAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
@@ -129,13 +131,13 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
               [secondaryAttrIDsRef.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
             })
           })
-          graphModel.startAnimation() // So points will animate back to original positions
+          startAnimation() // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues,
             [xAttrID, secondaryAttrIDsRef.current[plotNumRef.current]])
           didDrag.current = false
         }
       }
-    }, [dataConfiguration, dataset, dragID, graphModel])
+    }, [dataConfiguration, dataset, dragID, startAnimation])
 
   useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -186,9 +188,10 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
-      pointColor, pointStrokeColor, getAnimationEnabled: graphModel.getAnimationEnabled
+      pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID, graphModel, yScaleRef])
+  }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID,
+    isAnimating, graphModel, yScaleRef])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',

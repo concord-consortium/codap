@@ -83,8 +83,6 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 <svg className="slider-axis" data-testid="slider-axis">
                   <Axis
                     axisPlace={"bottom"}
-                    getAnimationEnabled = {() => false}
-                    stopAnimation={() => {}}
                   />
                 </svg>
                 <div className="axis-end max" />
