@@ -21,7 +21,6 @@ import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
-  enableAnimation: React.MutableRefObject<boolean>
 }) {
   const {mapLayerModel} = props,
     {dataConfiguration} = mapLayerModel,
@@ -30,7 +29,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     leafletMap = useMap(),
     layout = useMapLayoutContext()
 
-  // useDataTips({dotsRef, dataset, displayModel: mapLayerModel, enableAnimation})
+  // useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
   const refreshPolygonStyles = useCallback(() => {
     if (!dataset) return

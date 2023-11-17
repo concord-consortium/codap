@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, {MutableRefObject, useRef, useState} from "react"
+import React, {useRef, useState} from "react"
 import {AxisPlace} from "../axis-types"
 import {useAxisProviderContext} from "../hooks/use-axis-provider-context"
 import {useSubAxis} from "../hooks/use-sub-axis"
@@ -12,14 +12,13 @@ interface ISubAxisProps {
   numSubAxes: number
   subAxisIndex: number
   axisPlace: AxisPlace
-  enableAnimation: MutableRefObject<boolean>
   showScatterPlotGridLines?: boolean
   centerCategoryLabels?: boolean
 }
 
 export const SubAxis = observer(function SubAxis({
                                                numSubAxes, subAxisIndex, axisPlace, showScatterPlotGridLines = false,
-                                               centerCategoryLabels = true, enableAnimation/*, getCategorySet*/
+                                               centerCategoryLabels = true /*, getCategorySet*/
                                              }: ISubAxisProps) {
   const
     axisProvider = useAxisProviderContext(),
@@ -28,7 +27,7 @@ export const SubAxis = observer(function SubAxis({
     [subAxisElt, setSubAxisElt] = useState<SVGGElement | null>(null)
 
   useSubAxis({
-    subAxisIndex, axisPlace, subAxisElt, enableAnimation, showScatterPlotGridLines, centerCategoryLabels
+    subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels
   })
 
   return (

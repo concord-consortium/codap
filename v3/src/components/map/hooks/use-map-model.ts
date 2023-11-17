@@ -1,4 +1,4 @@
-import {MutableRefObject, useEffect} from "react"
+import {useEffect} from "react"
 import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
 import {DotsElt} from "../../data-display/d3-types"
@@ -8,7 +8,6 @@ import {fitMapBoundsToData} from "../utilities/map-utils"
 
 interface IProps {
   mapModel: IMapContentModel
-  enableAnimation: MutableRefObject<boolean>
   dotsElement: DotsElt
   instanceId: string | undefined
 }

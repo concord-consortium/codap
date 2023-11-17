@@ -4,7 +4,8 @@ import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
-import {handleClickOnCase, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
@@ -15,10 +16,11 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 
 export const ScatterDots = function ScatterDots(props: PlotProps) {
-  const {dotsRef, enableAnimation} = props,
+  const {dotsRef} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
+    {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
@@ -47,7 +49,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       if (!aCaseData) return
       dataset?.beginCaching()
       secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
-      enableAnimation.current = false // We don't want to animate points until end of drag
+      stopAnimation() // We don't want to animate points until end of drag
       didDrag.current = false
       const tItsID = aCaseData.caseID
       plotNumRef.current = target.current.datum()?.plotNum ?? 0
@@ -71,7 +73,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
           }
         })
       }
-    }, [dataConfiguration, dataset, enableAnimation]),
+    }, [dataConfiguration, dataset, stopAnimation]),
 
     onDrag = useCallback((event: MouseEvent) => {
       const xAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
@@ -129,13 +131,13 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
               [secondaryAttrIDsRef.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
             })
           })
-          startAnimation(enableAnimation) // So points will animate back to original positions
+          startAnimation() // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues,
             [xAttrID, secondaryAttrIDsRef.current[plotNumRef.current]])
           didDrag.current = false
         }
       }
-    }, [dataConfiguration, dataset, dragID, enableAnimation,])
+    }, [dataConfiguration, dataset, dragID, startAnimation])
 
   useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -186,10 +188,10 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
-      enableAnimation, pointColor, pointStrokeColor
+      pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
   }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID,
-    enableAnimation, graphModel, yScaleRef])
+    isAnimating, graphModel, yScaleRef])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',
@@ -224,7 +226,7 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     }
   }, [refreshPointPositionsD3, refreshPointPositionsSVG])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <svg/>

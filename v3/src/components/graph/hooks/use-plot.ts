@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -7,7 +7,7 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import {useCurrent} from "../../../hooks/use-current"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
-import {matchCirclesToData, startAnimation} from "../../data-display/data-display-utils"
+import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
@@ -39,7 +39,6 @@ export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
   dotsRef: IDotsRef
-  enableAnimation: React.MutableRefObject<boolean>
 }
 
 function isDefunctAxisModel(axisModel?: IAxisModel) {
@@ -47,8 +46,9 @@ function isDefunctAxisModel(axisModel?: IAxisModel) {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const {enableAnimation, refreshPointPositions, refreshPointSelection, dotsRef} = props,
+  const { refreshPointPositions, refreshPointSelection, dotsRef} = props,
     graphModel = useGraphContentModelContext(),
+    startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
     dataset = dataConfiguration?.dataset,
@@ -114,23 +114,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       return layout.categorySetArrays
     }, (categorySetsArrays) => {
       if (categorySetsArrays.length) {
-        startAnimation(enableAnimation)
+        startAnimation()
         callRefreshPointPositions(false)
       }
     }, { name: "usePlot.respondToCategorySetChanges" })
-  }, [callRefreshPointPositions, enableAnimation, layout.categorySetArrays])
+  }, [callRefreshPointPositions, layout.categorySetArrays, startAnimation])
 
   // respond to attribute assignment changes
   useEffect(() => {
     const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
-        startAnimation(enableAnimation)
+        startAnimation()
         callRefreshPointPositions(false)
       }, { name: "usePlot [attribute assignment]" }, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, enableAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, startAnimation])
 
   useEffect(function respondToHiddenCasesChange() {
     const disposer = mstReaction(
@@ -142,13 +142,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           pointColor: graphModel.pointDescription.pointColor,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
           dotsElement: dotsRef.current,
-          enableAnimation, instanceId
+          startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }, { name: "respondToHiddenCasesChange" }, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, dotsRef, enableAnimation, graphModel, instanceId])
+  }, [callRefreshPointPositions, dataConfiguration, dotsRef, graphModel, instanceId, startAnimation])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
@@ -192,13 +192,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           pointColor: graphModel.pointDescription.pointColor,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
           dotsElement: dotsRef.current,
-          enableAnimation, instanceId
+          startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }
     }) || (() => true)
     return () => disposer()
-  }, [dataset, dataConfiguration, enableAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.

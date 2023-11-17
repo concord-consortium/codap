@@ -1,25 +1,25 @@
-import {MutableRefObject, useCallback, useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {IDotsRef} from "../../data-display/data-display-types"
-import {matchCirclesToData, startAnimation} from "../../data-display/data-display-utils"
+import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel, isGraphVisualPropsAction} from "../models/graph-content-model"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 
 interface IProps {
   graphModel: IGraphContentModel
-  enableAnimation: MutableRefObject<boolean>
   dotsRef: IDotsRef
   instanceId: string | undefined
 }
 
 export function useGraphModel(props: IProps) {
-  const {graphModel, enableAnimation, dotsRef, instanceId} = props,
+  const {graphModel, dotsRef, instanceId} = props,
     dataConfig = graphModel.dataConfiguration,
     yAxisModel = graphModel.getAxis('left'),
     yAttrID = graphModel.getAttributeID('y'),
-    dataset = useDataSetContext()
+    dataset = useDataSetContext(),
+    startAnimation = graphModel.startAnimation
 
   const callMatchCirclesToData = useCallback(() => {
     dataConfig && matchCirclesToData({
@@ -28,9 +28,9 @@ export function useGraphModel(props: IProps) {
       pointColor: graphModel.pointDescription.pointColor,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
       dotsElement: dotsRef.current,
-      enableAnimation, instanceId
+      startAnimation, instanceId
     })
-  }, [dataConfig, graphModel, dotsRef, enableAnimation, instanceId])
+  }, [dataConfig, graphModel, dotsRef, startAnimation, instanceId])
 
   // respond to change in plotType
   useEffect(function installPlotTypeAction() {
@@ -39,7 +39,7 @@ export function useGraphModel(props: IProps) {
         const { caseDataArray } = dataConfig || {}
         const newPlotType = action.args?.[0]/*,
           attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
-        startAnimation(enableAnimation)
+        startAnimation()
         // In case the y-values have changed we rescale
         if (newPlotType === 'scatterPlot') {
           const values = caseDataArray?.map(({ caseID }) => dataset?.getNumeric(caseID, yAttrID)) as number[]
@@ -48,7 +48,7 @@ export function useGraphModel(props: IProps) {
       }
     })
     return () => disposer()
-  }, [dataConfig, dataset, enableAnimation, graphModel, yAttrID, yAxisModel])
+  }, [dataConfig, dataset, startAnimation, graphModel, yAttrID, yAxisModel])
 
   // respond to point properties change
   useEffect(function respondToGraphPointVisualAction() {

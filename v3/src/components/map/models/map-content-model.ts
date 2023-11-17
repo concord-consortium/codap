@@ -6,12 +6,12 @@ import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
+import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
-import {MapPointLayerModel} from "./map-point-layer-model"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
+import {MapPointLayerModel} from "./map-point-layer-model"
 
 export interface MapProperties {
 }
@@ -101,7 +101,7 @@ export const MapContentModel = DataDisplayContentModel
             // Todo: We should allow both points and polygons from the same dataset
             else if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
               const layer = layersToCheck.find(aLayer => aLayer.data === sharedDataSet.dataSet)
-              if (isMapPolygonLayerModel(layer)) {
+              if (layer && isMapPolygonLayerModel(layer)) {
                 layer.setDataset(sharedDataSet.dataSet)
                 layersToCheck.splice(layersToCheck.indexOf(layer), 1)
               } else {

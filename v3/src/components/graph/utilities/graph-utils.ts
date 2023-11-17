@@ -1,5 +1,4 @@
 import {extent, format} from "d3"
-import React from "react"
 import {isInteger} from "lodash"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData, selectDots} from "../../data-display/d3-types"
@@ -228,7 +227,7 @@ export interface ISetPointCoordinates {
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string, plotNum?:number) => number | null)
   getLegendColor?: ((anID: string) => string)
-  enableAnimation: React.MutableRefObject<boolean>
+  getAnimationEnabled: () => boolean
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
@@ -269,9 +268,9 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     {
       dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius,
       pointStrokeColor, pointColor, getPointColorAtIndex,
-      getScreenX, getScreenY, getLegendColor, enableAnimation
+      getScreenX, getScreenY, getLegendColor, getAnimationEnabled
     } = props,
-    duration = enableAnimation.current ? transitionDuration : 0,
+    duration = getAnimationEnabled() ? transitionDuration : 0,
 
     theSelection = selectDots(dotsRef.current, selectedOnly)
   setPoints()
@@ -298,10 +297,10 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel)
 
   /**
    * Returns an object that has the slope and intercept
-   * @param iCoordPairs [{x: {Number}, y: {Number}}]
    * @returns {count: {Number}, xSum: {Number}, xSumOfSquares: {Number}, xSumSquaredDeviations: { Number},
-  *          ySum: {Number}, ySumOfSquares: {Number}, ySumSquaredDeviations: {Number}, sumOfProductDiffs: {Number} }
-  */
+   *          ySum: {Number}, ySumOfSquares: {Number}, ySumSquaredDeviations: {Number}, sumOfProductDiffs: {Number} }
+   * @param iCoordPairs
+   */
  const computeBivariateStats = (iCoordPairs: Point[]) => {
    const tResult = {
      count: 0,

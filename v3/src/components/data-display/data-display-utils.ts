@@ -1,5 +1,4 @@
-import React from "react"
-import {format, select, timeout} from "d3"
+import {format, select} from "d3"
 import {measureText} from "../../hooks/use-measure-text"
 import {between} from "../../utilities/math-utils"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
@@ -10,11 +9,6 @@ import {CaseData, DotsElt, selectCircles, selectDots} from "./d3-types"
 import {hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
   pointRadiusSelectionAddend, Rect, rTreeRect} from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
-
-export const startAnimation = (enableAnimation: React.MutableRefObject<boolean>) => {
-  enableAnimation.current = true
-  timeout(() => enableAnimation.current = false, 2000)
-}
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -83,19 +77,19 @@ export interface IMatchCirclesProps {
   pointRadius: number
   pointColor: string
   pointStrokeColor: string
-  enableAnimation: React.MutableRefObject<boolean>
+  startAnimation: () => void
   instanceId: string | undefined
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const {dataConfiguration, enableAnimation, instanceId,
+  const {dataConfiguration, startAnimation, instanceId,
       dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
     id = dataConfiguration.id,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
     caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
     circles = selectCircles(dotsElement, id)
   if (!circles) return
-  startAnimation(enableAnimation)
+  startAnimation()
   circles
     .data(allCaseData, caseDataKeyFunc)
     .join(

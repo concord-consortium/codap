@@ -21,10 +21,9 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const layout = useInitMapLayout(mapModel)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: mapRef})
-  const enableAnimation = useRef(true)
   const dotsRef = useRef<DotsElt>(null)
   const mapController = useMemo(
-    () => new MapController({layout, enableAnimation, instanceId}),
+    () => new MapController({layout, instanceId}),
     [layout, instanceId]
   )
 

@@ -1,4 +1,3 @@
-import React from "react"
 import {DotsElt} from "../../data-display/d3-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {IMapContentModel} from "./map-content-model"
@@ -7,7 +6,6 @@ import {isMapPointLayerModel} from "./map-point-layer-model"
 
 interface IMapControllerConstructorProps {
   layout: MapLayout
-  enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
 }
 
@@ -20,13 +18,11 @@ export class MapController {
   mapModel?: IMapContentModel
   dotsElement?: DotsElt
   layout: MapLayout
-  enableAnimation: React.MutableRefObject<boolean>
   instanceId: string
 
-  constructor({layout, enableAnimation, instanceId}: IMapControllerConstructorProps) {
+  constructor({layout, instanceId}: IMapControllerConstructorProps) {
     this.layout = layout
     this.instanceId = instanceId
-    this.enableAnimation = enableAnimation
   }
 
   setProperties(props: IMapControllerProps) {
@@ -48,7 +44,7 @@ export class MapController {
           dataConfiguration: aLayerModel.dataConfiguration,
           dotsElement,
           pointRadius: aLayerModel.getPointRadius(),
-          enableAnimation: this.enableAnimation,
+          startAnimation: this.mapModel?.startAnimation || (() => {}),
           instanceId: this.instanceId,
           pointColor: pointDescription?.pointColor,
           pointStrokeColor: pointDescription?.pointStrokeColor

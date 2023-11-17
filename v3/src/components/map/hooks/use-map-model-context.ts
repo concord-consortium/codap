@@ -1,6 +1,7 @@
-import { createContext, useContext } from "react"
+import { useContext } from "react"
 import { IMapContentModel } from "../models/map-content-model"
+import { DataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 
-export const MapModelContext = createContext<IMapContentModel>({} as IMapContentModel)
+export const MapModelContext = DataDisplayModelContext
 
-export const useMapModelContext = () => useContext(MapModelContext)
+export const useMapModelContext = () => useContext(MapModelContext) as IMapContentModel

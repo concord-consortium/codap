@@ -1,15 +1,16 @@
 import {select} from "d3"
-import React, {useEffect} from "react"
+import {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IDataSet} from "../../../models/data/data-set"
 import {IDotsRef, transitionDuration} from "../data-display-types"
 import {CaseData} from "../d3-types"
 import {getCaseTipText} from "../data-display-utils"
-import {IGraphContentModel} from "../../graph/models/graph-content-model"
 import {RoleAttrIDPair} from "../models/data-configuration-model"
 import {urlParams} from "../../../utilities/url-params"
-import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
 import {isGraphDataConfigurationModel} from "../../graph/models/graph-data-configuration-model"
+import {IGraphContentModel} from "../../graph/models/graph-content-model"
+import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
+import {useDataDisplayAnimation} from "./use-data-display-animation"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -21,11 +22,11 @@ interface IUseDataTips {
   dotsRef: IDotsRef,
   dataset: IDataSet | undefined,
   displayModel: IGraphContentModel | IMapPointLayerModel,
-  enableAnimation: React.MutableRefObject<boolean>
 }
 
-export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: IUseDataTips) => {
-  const hoverPointRadius = displayModel.getPointRadius('hover-drag'),
+export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
+  const { isAnimating } = useDataDisplayAnimation(),
+    hoverPointRadius = displayModel.getPointRadius('hover-drag'),
     pointRadius = displayModel.getPointRadius(),
     selectedPointRadius = displayModel.getPointRadius('select'),
     dataConfiguration = displayModel.dataConfiguration,
@@ -35,7 +36,7 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
   useEffect(() => {
 
     function okToTransition(target: any) {
-      return !enableAnimation.current && target.node()?.nodeName === 'circle' && dataset &&
+      return !isAnimating() && target.node()?.nodeName === 'circle' && dataset &&
         !target.property('isDragging')
     }
 
@@ -77,6 +78,6 @@ export const useDataTips = ({dotsRef, dataset, displayModel, enableAnimation}: I
         .on('mouseout', hideDataTip)
         .call(dataTip)
     }
-  }, [dotsRef, dataset, enableAnimation, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
-    displayModel.dataConfiguration.uniqueTipAttributes])
+  }, [dotsRef, dataset, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
+    displayModel.dataConfiguration.uniqueTipAttributes, isAnimating])
 }

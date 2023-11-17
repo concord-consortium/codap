@@ -3,7 +3,8 @@ import {observer} from "mobx-react-lite"
 import React, {useCallback, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
-import {handleClickOnCase, setPointSelection, startAnimation} from "../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
@@ -14,8 +15,9 @@ import {ICase} from "../../../models/data/data-set-types"
 import {setPointCoordinates} from "../utilities/graph-utils"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
-  const {dotsRef, enableAnimation} = props,
+  const {dotsRef} = props,
     graphModel = useGraphContentModelContext(),
+    {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataConfiguration = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -38,7 +40,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       didDrag.current = false
       const tItsID: string = aCaseData.caseID
       if (target.current.node()?.nodeName === 'circle') {
-        enableAnimation.current = false // We don't want to animate points until end of drag
+        stopAnimation() // We don't want to animate points until end of drag
         appState.beginPerformance()
         target.current
           .property('isDragging', true)
@@ -58,7 +60,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           }
         })
       }
-    }, [graphModel, dataConfiguration, dataset, primaryIsBottom, enableAnimation]),
+    }, [dataset, stopAnimation, graphModel, primaryIsBottom, dataConfiguration]),
 
     onDrag = useCallback((event: MouseEvent) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -107,12 +109,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
               [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
             })
           })
-          startAnimation(enableAnimation) // So points will animate back to original positions
+          startAnimation() // So points will animate back to original positions
           caseValues.length && dataset?.setCaseValues(caseValues)
           didDrag.current = false
         }
       }
-    }, [graphModel, dataConfiguration, primaryAttrRole, dataset, dragID, enableAnimation])
+    }, [dataset, dragID, graphModel, dataConfiguration, startAnimation, primaryAttrRole])
 
   useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
@@ -182,11 +184,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
             if (!bins[category][extraCategory][extraPrimaryCategory]) {
               bins[category][extraCategory][extraPrimaryCategory] = range(numBins + 1).map(() => [])
             }
+            binMap[anID] = {
+              category, extraCategory, extraPrimaryCategory,
+              indexInBin: (bin >= 0 && bin <= numBins)
+                ? bins[category][extraCategory][extraPrimaryCategory][bin].length : 0
+            }
             if (bin >= 0 && bin <= numBins) {
-              binMap[anID] = {
-                category, extraCategory, extraPrimaryCategory,
-                indexInBin: bins[category][extraCategory][extraPrimaryCategory][bin].length
-              }
               bins[category][extraCategory][extraPrimaryCategory][bin].push(anID)
             }
           })
@@ -238,9 +241,6 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           return primaryCoord + extraPrimaryCoord
         },
         getSecondaryScreenCoord = (anID: string) => {
-          if (!binMap[anID]) {
-            return null // Not NaN because NaN causes errors during transitions
-          }
           const secondaryCat = binMap[anID].category,
             extraSecondaryCat = binMap[anID].extraCategory,
             indexInBin = binMap[anID].indexInBin,
@@ -258,13 +258,13 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         dataset, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         dotsRef, selectedOnly, pointColor, pointStrokeColor,
-        getScreenX, getScreenY, getLegendColor, enableAnimation
+        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
       })
     },
     [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef,
-      enableAnimation, primaryIsBottom, pointColor, pointStrokeColor])
+      primaryIsBottom, pointColor, pointStrokeColor, isAnimating])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection, enableAnimation})
+  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <></>
