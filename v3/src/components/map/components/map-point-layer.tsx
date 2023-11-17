@@ -4,13 +4,9 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import React, {useCallback, useEffect, useRef} from "react"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {
-  defaultSelectedStroke,
-  defaultSelectedStrokeWidth,
-  defaultStrokeWidth
-} from "../../../utilities/color-utils"
+import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
 import {CaseData, DotsElt, selectDots} from "../../data-display/d3-types"
-import {computePointRadius, setPointSelection} from "../../data-display/data-display-utils"
+import {computePointRadius, matchCirclesToData, setPointSelection} from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
@@ -21,18 +17,15 @@ import {IMapPointLayerModel} from "../models/map-point-layer-model"
 
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel
-  dotsElement: DotsElt
 }) {
-  const {mapLayerModel, dotsElement} = props,
+  const {mapLayerModel} = props,
     {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
     layout = useMapLayoutContext(),
-    dotsRef = useRef(dotsElement)
-
-  dotsRef.current = dotsElement
+    dotsRef = useRef<DotsElt>(null)
 
   useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
@@ -66,9 +59,9 @@ export const MapPointLayer = function MapPointLayer(props: {
         return coords.y
       }
 
-    if (!dotsElement || !dataset) return
+    if (!dotsRef.current || !dataset) return
     const
-      theSelection = selectDots(dotsElement, selectedOnly),
+      theSelection = selectDots(dotsRef.current, selectedOnly),
       duration = isAnimating() ? transitionDuration : 0,
       pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
         pointDescription.pointSizeMultiplier),
@@ -95,7 +88,7 @@ export const MapPointLayer = function MapPointLayer(props: {
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
     }
 
-  }, [dotsElement, dataset, isAnimating, dataConfiguration, pointDescription, leafletMap])
+  }, [dataset, isAnimating, dataConfiguration, pointDescription, leafletMap])
 
   // Actions in the dataset can trigger need for point updates
   useEffect(function setupResponsesToDatasetActions() {
@@ -146,7 +139,22 @@ export const MapPointLayer = function MapPointLayer(props: {
     return () => disposer()
   }, [refreshPointPositions, dataConfiguration])
 
+  useEffect(() => {
+    const startAnimation = mapModel.startAnimation
+    if (mapLayerModel && dataConfiguration && layout && dotsRef.current) {
+      matchCirclesToData({
+        dataConfiguration,
+        dotsElement: dotsRef.current,
+        pointRadius: mapLayerModel.getPointRadius(),
+        instanceId: dataConfiguration.id,
+        pointColor: pointDescription?.pointColor,
+        pointStrokeColor: pointDescription?.pointStrokeColor,
+        startAnimation
+      })
+    }
+  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription])
+
   return (
-    <></>
+    <svg ref={dotsRef} ></svg>
   )
 }

@@ -5,14 +5,12 @@ import {useResizeDetector} from "react-resize-detector"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
-import {DotsElt} from "../../data-display/d3-types"
 import {CodapMap} from "./codap-map"
 import {isMapContentModel} from "../models/map-content-model"
 import {MapController} from "../models/map-controller"
 import {MapLayoutContext} from "../models/map-layout"
 import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
-import {useMapController} from "../hooks/use-map-controller"
 
 export const MapComponent = observer(function MapComponent({tile}: ITileBaseProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
@@ -21,13 +19,10 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const layout = useInitMapLayout(mapModel)
   const mapRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: mapRef})
-  const dotsRef = useRef<DotsElt>(null)
   const mapController = useMemo(
-    () => new MapController({layout, instanceId}),
-    [layout, instanceId]
+    () => new MapController({mapModel, layout, instanceId}),
+    [mapModel, layout, instanceId]
   )
-
-  useMapController({mapController, mapModel, dotsElement: dotsRef.current})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setParentExtent(width, height)
@@ -58,8 +53,6 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
         <MapModelContext.Provider value={mapModel}>
           <CodapMap mapController={mapController}
                     mapRef={mapRef}
-                    dotsRef={dotsRef}
-                    dotsElement={dotsRef.current}
           />
           <AttributeDragOverlay activeDragId={overlayDragId}/>
         </MapModelContext.Provider>

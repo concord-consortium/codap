@@ -53,7 +53,7 @@ export const MapContentModel = DataDisplayContentModel
       self.zoom = self.leafletMap.getZoom()
     },
     addPointLayer(dataSet: IDataSet) {
-      const newPointLayer = MapPointLayerModel.create()
+      const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPointLayer.dataConfiguration,
         {latId, longId} = latLongAttributesFromDataSet(dataSet)

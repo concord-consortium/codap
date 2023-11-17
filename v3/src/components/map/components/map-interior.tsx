@@ -11,14 +11,13 @@ import {MapPolygonLayer} from "./map-polygon-layer"
 
 interface IProps {
   mapController: MapController
-  dotsElement: SVGSVGElement | null
 }
 
-export const MapInterior = observer(function MapInterior({mapController, dotsElement}: IProps) {
+export const MapInterior = observer(function MapInterior({mapController}: IProps) {
   const mapModel = useMapModelContext(),
     instanceId = useInstanceIdContext()
 
-  useMapModel({dotsElement, mapModel, instanceId})
+  useMapModel({mapModel, instanceId})
 
   /**
    * Note that we don't have to worry about layer order because polygons will be sent to the back
@@ -29,7 +28,6 @@ export const MapInterior = observer(function MapInterior({mapController, dotsEle
         return <MapPointLayer
           key={`${kMapPointLayerType}-${index}`}
           mapLayerModel={layerModel}
-          dotsElement={dotsElement}
         />
       }
       else if (isMapPolygonLayerModel(layerModel)) {
