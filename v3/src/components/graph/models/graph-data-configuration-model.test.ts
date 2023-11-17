@@ -291,4 +291,111 @@ describe("DataConfigurationModel", () => {
     ])
   })
 
+  it("can create cell key", () => {
+    const config = tree.config
+    const mockData: Record<string, Record<string, any>> = {
+      id: {
+        x: "abc123",
+        y: "def456",
+        topSplit: "ghi789",
+        rightSplit: "jkl012"
+      },
+      type: {
+        x: "categorical",
+        y: "categorical",
+      },
+      categoryArrayForAttrRole: {
+        x: ["pizza", "pasta", "salad"],
+        y: ["red", "green", "blue"],
+        topSplit: ["small", "medium", "large"],
+        rightSplit: ["new", "used"]
+      }
+    }
+    config.attributeID = (role: string) => mockData.id[role]
+    config.attributeType = (role: string) => mockData.type[role]
+    config.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+
+    const cellKey = config.cellKey(0)
+    expect(cellKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
+  })
+
+  it("generates a list of all cell keys for a graph", () => {
+    const config = tree.config
+    let mockData: Record<string, Record<string, any>>
+    config.attributeID = (role: string) => mockData.id[role]
+    config.attributeType = (role: string) => mockData.type[role]
+    config.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+
+    // For a graph with no categorical attributes
+    mockData = {
+      id: {
+        x: "abc123",
+        y: "def456",
+        topSplit: "ghi789",
+        rightSplit: "jkl012"
+      },
+      type: {
+        x: "categorical",
+        y: "categorical",
+      },
+      categoryArrayForAttrRole: {
+        x: [],
+        y: [],
+        topSplit: [],
+        rightSplit: []
+      }
+    }
+    const noCategoricalCellKeys = config.getAllCellKeys()
+    expect(noCategoricalCellKeys.length).toEqual(1)
+    expect(noCategoricalCellKeys[0]).toEqual({})
+
+    // For a graph with one categorical attribute
+    mockData = {
+      id: {
+        x: "abc123",
+        y: "def456",
+        topSplit: "ghi789",
+        rightSplit: "jkl012"
+      },
+      type: {
+        x: "categorical",
+        y: "categorical",
+      },
+      categoryArrayForAttrRole: {
+        x: [],
+        y: ["small", "large"],
+        topSplit: [],
+        rightSplit: []
+      }
+    }
+
+    const oneCategoricalCellKeys = config.getAllCellKeys()
+    expect(oneCategoricalCellKeys.length).toEqual(2)
+    expect(oneCategoricalCellKeys[0]).toEqual({"def456": "small"})
+    expect(oneCategoricalCellKeys[1]).toEqual({"def456": "large"})
+
+    // For a graph with multiple categorical attributes
+    mockData = {
+      id: {
+        x: "abc123",
+        y: "def456",
+        topSplit: "ghi789",
+        rightSplit: "jkl012"
+      },
+      type: {
+        x: "categorical",
+        y: "categorical",
+      },
+      categoryArrayForAttrRole: {
+        x: ["pizza", "salad"],
+        y: ["red", "green"],
+        topSplit: ["medium", "large"],
+        rightSplit: ["hot", "cold"]
+      }
+    }
+    const cellKeys = config.getAllCellKeys()
+    expect(cellKeys.length).toEqual(16)
+    expect(cellKeys[0]).toEqual({abc123: "pizza", def456: "red", ghi789: "medium", jkl012: "hot"})
+    expect(cellKeys[15]).toEqual({abc123: "salad", def456: "green", ghi789: "large", jkl012: "cold"})
+  })
 })

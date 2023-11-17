@@ -116,34 +116,11 @@ export const GraphContentModel = DataDisplayContentModel
     getUpdateCategoriesOptions(
       resetPoints = false, xScale?: ScaleNumericBaseType, yScale?: ScaleNumericBaseType
     ): IUpdateCategoriesOptions {
-      const xAttrId = self.getAttributeID("x"),
-        dataConfig = self.dataConfiguration,
-        xAttrType = dataConfig.attributeType("x"),
-        xCats = xAttrType === "categorical"
-          ? dataConfig.categoryArrayForAttrRole("x", [])
-          : [""],
-        yAttrId = self.getAttributeID("y"),
-        yAttrType = dataConfig.attributeType("y"),
-        yCats = yAttrType === "categorical"
-          ? dataConfig.categoryArrayForAttrRole("y", [])
-          : [""],
-        topAttrId = self.getAttributeID("topSplit"),
-        topCats = dataConfig.categoryArrayForAttrRole("topSplit", []) ?? [""],
-        rightAttrId = self.getAttributeID("rightSplit"),
-        rightCats = dataConfig.categoryArrayForAttrRole("rightSplit", []) ?? [""]
       return {
-        xAxis: self.getAxis("bottom"),
-        xAttrId,
-        xCats,
-        yAxis: self.getAxis("left"),
-        yAttrId,
-        yCats,
-        topAttrId,
-        topCats,
-        rightAttrId,
-        rightCats,
+        dataConfig: self.dataConfiguration,
         resetPoints,
-        dataConfig,
+        xAxis: self.getAxis("bottom"),
+        yAxis: self.getAxis("left"),
         xScale,
         yScale
       }

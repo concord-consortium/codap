@@ -8,6 +8,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
+import { updateCellKey } from "../adornments/adornment-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -93,14 +94,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     placeShouldShowClickHereCue(place: GraphPlace, tileHasFocus: boolean) {
       return this.placeAlwaysShowsClickHereCue(place) ||
         (this.placeCanShowClickHereCue(place) && tileHasFocus)
-    },
-    isCaseInSubPlot(subPlotKey: Record<string, string>, caseData: Record<string, any>) {
-      const numOfKeys = Object.keys(subPlotKey).length
-      let matchedValCount = 0
-      Object.keys(subPlotKey).forEach(key => {
-        if (subPlotKey[key] === caseData[key]) matchedValCount++
-      })
-      return matchedValCount === numOfKeys
     }
   }))
   .views(self => {
@@ -132,18 +125,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         }
       })
       return allGraphCaseIds
-    },
-    subPlotCases(subPlotKey: Record<string, string>) {
-      const casesInPlot = [] as ICase[]
-      self.filteredCases?.forEach(aFilteredCases => {
-        aFilteredCases.caseIds.forEach((id) => {
-          const caseData = self.dataset?.getCase(id)
-          if (caseData) {
-            self.isCaseInSubPlot(subPlotKey, caseData) && casesInPlot.push(caseData)
-          }
-        })
-      })
-      return casesInPlot
     }
   }))
   .actions(self => ({
@@ -236,17 +217,63 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    isCaseInSubplot(cellKey: Record<string, string>, caseData: Record<string, any>) {
-      // Subplots are determined by categorical attributes on the top or right. When there is more than one subplot,
-      // a case is included if its value(s) for those attribute(s) match the keys for the subplot being considered.
-      if (self.hasSingleSubplot) return true
+    get categoriesOptions() {
+      // Helper used often by adornments that usually ask about the same categories and their specifics.
+      const xAttrType = self.attributeType("x")
+      const yAttrType = self.attributeType("y")
+      return {
+        xAttrId: self.attributeID("x"),
+        xAttrType,
+        xCats: xAttrType === "categorical" ? self.categoryArrayForAttrRole("x", []) : [""],
+        yAttrId: self.attributeID("y"),
+        yAttrType,
+        yCats: yAttrType === "categorical" ? self.categoryArrayForAttrRole("y", []) : [""],
+        topAttrId: self.attributeID("topSplit"),
+        topCats: self.categoryArrayForAttrRole("topSplit", []) ?? [""],
+        rightAttrId: self.attributeID("rightSplit"),
+        rightCats: self.categoryArrayForAttrRole("rightSplit", []) ?? [""],
+      }
+    }
+  }))
+  .views(self => ({
+    cellKey(index: number) {
+      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.categoriesOptions
+      const rightCatCount = rightCats.length || 1
+      const yCatCount = yCats.length || 1
+      const xCatCount = xCats.length || 1
+      let cellKey: Record<string, string> = {}
 
-      const topAttrID = self.attributeID("topSplit")
-      const rightAttrID = self.attributeID("rightSplit")
-      return (!topAttrID || (topAttrID && cellKey[topAttrID] === caseData[topAttrID])) &&
-        (!rightAttrID || (rightAttrID && cellKey[rightAttrID] === caseData[rightAttrID]))
+      // Determine which categories are associated with the cell's axes using the provided index value and
+      // the attributes and categories present in the graph.
+      const topIndex = Math.floor(index / (rightCatCount * yCatCount * xCatCount))
+      const topCat = topCats[topIndex]
+      cellKey = updateCellKey(cellKey, topAttrId, topCat)
+      const rightIndex = Math.floor(index / (yCatCount * xCatCount)) % rightCatCount
+      const rightCat = rightCats[rightIndex]
+      cellKey = updateCellKey(cellKey, rightAttrId, rightCat)
+      const yCat = yCats[index % yCatCount]
+      cellKey = updateCellKey(cellKey, yAttrId, yCat)
+      const xCat = xCats[index % xCatCount]
+      cellKey = updateCellKey(cellKey, xAttrId, xCat)
+
+      return cellKey
     },
-    isCaseInCell(cellKey: Record<string, string>, caseData: Record<string, any>) {
+    getAllCellKeys() {
+      const { xCats, yCats, topCats, rightCats } = self.categoriesOptions
+      const topCatCount = topCats.length || 1
+      const rightCatCount = rightCats.length || 1
+      const xCatCount = xCats.length || 1
+      const yCatCount = yCats.length || 1
+      const columnCount = topCatCount * xCatCount
+      const rowCount = rightCatCount * yCatCount
+      const totalCount = rowCount * columnCount
+      const cellKeys: Record<string, string>[] = []
+      for (let i = 0; i < totalCount; ++i) {
+        cellKeys.push(this.cellKey(i))
+      }
+      return cellKeys
+    },
+    isCaseInSubPlot(cellKey: Record<string, string>, caseData: Record<string, any>) {
       const numOfKeys = Object.keys(cellKey).length
       let matchedValCount = 0
       Object.keys(cellKey).forEach(key => {
@@ -262,7 +289,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         aFilteredCases.caseIds.forEach((id) => {
           const caseData = self.dataset?.getCase(id)
           const caseAlreadyMatched = casesInPlot.has(id)
-          if (caseData && !caseAlreadyMatched && self.isCaseInCell(cellKey, caseData)) {
+          if (caseData && !caseAlreadyMatched && self.isCaseInSubPlot(cellKey, caseData)) {
             casesInPlot.set(caseData.__id__, caseData)
           }
         })
@@ -316,21 +343,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         })
       })
       return casesInCol
-    },
-    cellCases(cellKey: Record<string, string>) {
-      const casesInCell: ICase[] = []
-
-      self.filteredCases?.forEach(aFilteredCases => {
-        aFilteredCases.caseIds.forEach(id => {
-          const caseData = self.dataset?.getCase(id)
-          if (!caseData) return
-
-          if (self.isCaseInSubplot(cellKey, caseData)) {
-            casesInCell.push(caseData)
-          }
-        })
-      })
-      return casesInCell
     }
   }))
   .views(self => (

@@ -1,5 +1,6 @@
 import { AdornmentsStore } from "./adornments-store"
 import * as contentInfo from "./adornment-content-info"
+import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 
 jest.spyOn(contentInfo, "getAdornmentTypes").mockReturnValue(
   [
@@ -30,7 +31,8 @@ const mockUpdateCategoriesOptions = {
   xAttrId: "abc123",
   xCats: [],
   yAttrId: "def456",
-  yCats: []
+  yCats: [],
+  dataConfig: {} as IGraphDataConfigurationModel
 }
 
 describe("AdornmentsStore", () => {

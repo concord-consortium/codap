@@ -51,8 +51,8 @@ export const MovableLineAdornmentModel = AdornmentModel
 }))
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
-    const { resetPoints, xAxis, yAxis } = options
-    self.getAllCellKeys(options).forEach(cellKey => {
+    const { resetPoints, dataConfig, xAxis, yAxis } = options
+    dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
       if (!self.lines.get(instanceKey) || resetPoints) {
         self.setInitialLine(xAxis, yAxis, instanceKey)

@@ -82,7 +82,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .views(self => ({
     // Clients should call measureValue instead of accessing the measure's volatile value property directly.
-    // measureValue will compute the value in cases where the volatile property may have been reset to the 
+    // measureValue will compute the value in cases where the volatile property may have been reset to the
     // default. This can happen, for example, when the adornment is added to the graph, then removed and
     // added back again using the undo/redo feature.
     measureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
@@ -97,11 +97,10 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAttrId, yAttrId, resetPoints, dataConfig } = options
-      if (!dataConfig) return
-      const xAttrType = dataConfig.attributeType("x")
+      const { dataConfig, resetPoints } = options
+      const { xAttrId, yAttrId, xAttrType } = dataConfig.categoriesOptions
       const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
-      self.getAllCellKeys(options).forEach(cellKey => {
+      dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
         if (!self.measures.get(instanceKey) || resetPoints) {

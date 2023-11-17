@@ -3,7 +3,6 @@ import {
 } from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-model"
 import { DataSet, IDataSet } from "../data/data-set"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
-import { IUpdateCategoriesOptions } from "../../components/graph/adornments/adornment-models"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 import { GraphDataConfigurationModel } from "../../components/graph/models/graph-data-configuration-model"
 
@@ -12,20 +11,35 @@ const getTestEnv = () => {
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
   const adornment = PlottedValueAdornmentModel.create({ formula: { display: "1 + 2", canonical: "1 + 2" }})
+  const dataConfig = GraphDataConfigurationModel.create({ })
+  const mockData: Record<string, Record<string, any>> = {
+    id: {
+      x: attribute.id,
+      y: "fake-y-attr-id",
+      topSplit: "fake-size-attr-id",
+      rightSplit: ""
+    },
+    type: {
+      x: "numeric",
+      y: "numeric",
+    },
+    categoryArrayForAttrRole: {
+      x: [],
+      y: [],
+      topSplit: ["small", "medium", "large"],
+      rightSplit: []
+    }
+  }
+  dataConfig.attributeID = (role: string) => mockData.id[role]
+  dataConfig.attributeType = (role: string) => mockData.type[role]
+  dataConfig.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
   const graphContentModel = {
     id: "fake-graph-content-model-id",
     adornments: [adornment],
     dataset: dataSet,
-    getUpdateCategoriesOptions: (): IUpdateCategoriesOptions => ({
-      xAttrId: attribute.id,
-      xCats: [],
-      yAttrId: "fake-y-attr-id",
-      yCats: [],
-      topAttrId: "fake-size-attr-id",
-      topCats: ["small", "medium", "large"],
-      rightAttrId: "",
-      rightCats: [],
-      dataConfig: GraphDataConfigurationModel.create({ }),
+    dataConfiguration: dataConfig,
+    getUpdateCategoriesOptions: () => ({
+      dataConfig
     }),
   }
   const formula = adornment.formula
@@ -33,7 +47,7 @@ const getTestEnv = () => {
   const context = { dataSet, formula }
   const extraMetadata = {
     dataSetId: dataSet.id,
-    defaultArgument: localAttrIdToCanonical("fake-y-attr-id"),
+    defaultArgument: localAttrIdToCanonical(attribute.id),
     graphCellKeys: [
       {"fake-size-attr-id": "small"},
       {"fake-size-attr-id": "medium"},

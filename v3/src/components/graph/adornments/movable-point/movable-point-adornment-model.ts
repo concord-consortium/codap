@@ -30,8 +30,8 @@ export const MovablePointAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { resetPoints, xAxis, yAxis } = options
-      self.getAllCellKeys(options).forEach(cellKey => {
+      const { resetPoints, xAxis, yAxis, dataConfig } = options
+      dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         if (!self.points.get(instanceKey) || resetPoints) {
           self.setInitialPoint(xAxis, yAxis, instanceKey)

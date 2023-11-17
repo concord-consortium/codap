@@ -115,14 +115,14 @@ export const MovableValueAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAxis, yAxis, resetPoints } = options
+      const { xAxis, yAxis, resetPoints, dataConfig } = options
       const axisMin = xAxis?.isNumeric ? (xAxis as INumericAxisModel).min : (yAxis as INumericAxisModel).min
       const axisMax = xAxis?.isNumeric ? (xAxis as INumericAxisModel).max : (yAxis as INumericAxisModel).max
 
       self.setAxisMin(axisMin)
       self.setAxisMax(axisMax)
 
-      self.getAllCellKeys(options).forEach(cellKey => {
+      dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
         // Each array in the model's values map should have the same length as all the others. If there are no existing
         // values for the current instance key, check if there is at least one array in the map. If there is, copy those

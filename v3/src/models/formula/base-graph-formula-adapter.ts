@@ -17,9 +17,7 @@ export interface IBaseGraphFormulaExtraMetadata extends IFormulaExtraMetadata {
 }
 
 export const getDefaultArgument = (graphContentModel: IGraphContentModel) => {
-  const options = graphContentModel.getUpdateCategoriesOptions()
-  const { xAttrId, yAttrId, dataConfig } = options
-  const xAttrType = dataConfig?.attributeType("x")
+  const { xAttrId, yAttrId, xAttrType } = graphContentModel.dataConfiguration.categoriesOptions
   const defaultArgumentId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
   return defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
 }
@@ -67,28 +65,6 @@ export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
     return graphContentModel
   }
 
-  getGraphCellKeys(graphContentModel: IGraphContentModel, adornment: IFormulaSupportingAdornment) {
-    // This code is mostly copied from UnivariateMeasureAdornmentModel.updateCategories.
-    // TODO: Is there a way to share it somehow?
-    const options = graphContentModel.getUpdateCategoriesOptions()
-    const { xCats, yCats, topCats, rightCats, dataConfig } = options
-    if (!dataConfig) {
-      return []
-    }
-    const result: GraphCellKey[] = []
-    const topCatCount = topCats.length || 1
-    const rightCatCount = rightCats.length || 1
-    const xCatCount = xCats.length || 1
-    const yCatCount = yCats.length || 1
-    const columnCount = topCatCount * xCatCount
-    const rowCount = rightCatCount * yCatCount
-    const totalCount = rowCount * columnCount
-    for (let i = 0; i < totalCount; ++i) {
-      result.push(adornment.cellKey(options, i))
-    }
-    return result
-  }
-
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] = []
     this.graphContentModels.forEach(graphContentModel => {
@@ -101,7 +77,7 @@ export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
             graphContentModelId: graphContentModel.id,
             dataSetId: graphContentModel.dataset.id,
             defaultArgument: getDefaultArgument(graphContentModel),
-            graphCellKeys: this.getGraphCellKeys(graphContentModel, adornment)
+            graphCellKeys: graphContentModel.dataConfiguration.getAllCellKeys()
           }
         })
       }
