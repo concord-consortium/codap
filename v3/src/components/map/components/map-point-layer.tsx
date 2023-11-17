@@ -140,19 +140,19 @@ export const MapPointLayer = function MapPointLayer(props: {
   }, [refreshPointPositions, dataConfiguration])
 
   useEffect(() => {
+    const startAnimation = mapModel.startAnimation
     if (mapLayerModel && dataConfiguration && layout && dotsRef.current) {
       matchCirclesToData({
         dataConfiguration,
         dotsElement: dotsRef.current,
         pointRadius: mapLayerModel.getPointRadius(),
-        enableAnimation,
         instanceId: dataConfiguration.id,
         pointColor: pointDescription?.pointColor,
-        pointStrokeColor: pointDescription?.pointStrokeColor
+        pointStrokeColor: pointDescription?.pointStrokeColor,
+        startAnimation
       })
     }
-  }, [dataConfiguration, enableAnimation, layout, mapLayerModel, pointDescription?.pointColor,
-    pointDescription?.pointStrokeColor])
+  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription])
 
   return (
     <svg ref={dotsRef} ></svg>

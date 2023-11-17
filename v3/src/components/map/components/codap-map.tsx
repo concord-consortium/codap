@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite"
-import React, {createRef, MutableRefObject} from "react"
+import React, {MutableRefObject, useRef} from "react"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {LatLngExpression} from "leaflet"
 import {MapContainer, TileLayer} from "react-leaflet"
@@ -21,7 +21,7 @@ interface IProps {
 export const CodapMap = observer(function CodapMap({mapController, mapRef}: IProps) {
   const instanceId = useInstanceIdContext(),
     mapModel = useMapModelContext(),
-    interiorSvgRef = createRef<SVGSVGElement>()
+    interiorSvgRef = useRef<SVGSVGElement>(null)
 
   const handleAttributeDropInMap = (dataSet: IDataSet, attrId: string) => {
     mapModel.applyUndoableAction(
