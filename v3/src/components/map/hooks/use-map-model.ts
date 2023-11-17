@@ -1,14 +1,12 @@
 import {useEffect} from "react"
 import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
-import {DotsElt} from "../../data-display/d3-types"
 import {kDefaultMapZoomForGeoLocation} from "../map-types"
 import {IMapContentModel} from "../models/map-content-model"
 import {fitMapBoundsToData} from "../utilities/map-utils"
 
 interface IProps {
   mapModel: IMapContentModel
-  dotsElement: DotsElt
   instanceId: string | undefined
 }
 

@@ -7,6 +7,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {DataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {PointDescriptionModel} from "../../data-display/models/point-description-model"
+import {defaultPointColor} from "../../../utilities/color-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 
@@ -20,6 +21,10 @@ export const MapPointLayerModel = MapLayerModel
     pointDescription: types.optional(PointDescriptionModel, () => PointDescriptionModel.create()),
   })
   .actions(self => ({
+    afterCreate() {
+      self.pointDescription.setPointColor(self.layerIndex === 0
+        ? defaultPointColor : self.pointDescription.pointColorAtIndex(self.layerIndex))
+    },
     setDataset(dataSet:IDataSet) {
       const {latId, longId} = latLongAttributesFromDataSet(dataSet)
       self.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
