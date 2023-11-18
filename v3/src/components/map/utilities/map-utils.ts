@@ -157,14 +157,17 @@ export const fitMapBoundsToData = (layers: IDataDisplayLayerModel[], leafletMap:
       }
     }
   }
-
-  layers.forEach((layer: any) => {
-    applyBounds(getLatLongBounds(layer.dataConfiguration))
-  })
-  leafletMap.eachLayer(function (iLayer: Polygon) {
-    iLayer.getBounds && applyBounds(iLayer.getBounds())
-  })
-  if (overallBounds) {
-    leafletMap.fitBounds(expandLatLngBounds(overallBounds, 1.1), {animate: true})
-  }
+  // Wait for leaflet to render the map before fitting the bounds
+  // Todo: See if we can instead wait for notification that the map is ready
+  setTimeout(() => {
+    layers.forEach((layer: any) => {
+      applyBounds(getLatLongBounds(layer.dataConfiguration))
+    })
+    leafletMap.eachLayer(function (iLayer: Polygon) {
+      iLayer.getBounds && applyBounds(iLayer.getBounds())
+    })
+    if (overallBounds) {
+      leafletMap.fitBounds(expandLatLngBounds(overallBounds, 1.1), {animate: true})
+    }
+  }, 100)
 }

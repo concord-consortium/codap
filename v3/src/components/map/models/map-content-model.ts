@@ -8,13 +8,15 @@ import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {kMapModelName, kMapTileType} from "../map-defs"
-import {datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet} from "../utilities/map-utils"
+import {
+  datasetHasBoundaryData,
+  datasetHasLatLongData,
+  fitMapBoundsToData,
+  latLongAttributesFromDataSet
+} from "../utilities/map-utils"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
-
-export interface MapProperties {
-}
 
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
@@ -39,7 +41,7 @@ export const MapContentModel = DataDisplayContentModel
   .actions(self => ({
     // Each layer can have one legend attribute. The layer that can handle the given legend attribute must already
     // be present in the layers array
-    setLegendAttributeID(datasetID:string, attributeID: string) {
+    setLegendAttributeID(datasetID: string, attributeID: string) {
       const foundLayer = self.layers.find(layer => layer.data?.id === datasetID)
       if (foundLayer) {
         foundLayer.dataConfiguration.setAttribute('legend', {attributeID})
@@ -84,6 +86,7 @@ export const MapContentModel = DataDisplayContentModel
           // We make a copy of the layers array and remove any layers that are still in the shared model
           // If there are any layers left in the copy, they are no longer in any shared  dataset and should be removed
           const layersToCheck = Array.from(self.layers)
+          let layersHaveChanged = false
           sharedDataSets.forEach(sharedDataSet => {
             if (datasetHasLatLongData(sharedDataSet.dataSet)) {
               const foundIndex = layersToCheck.findIndex(aLayer => aLayer.data === sharedDataSet.dataSet)
@@ -96,6 +99,7 @@ export const MapContentModel = DataDisplayContentModel
               } else {
                 // Add a new layer for this dataset
                 this.addPointLayer(sharedDataSet.dataSet)
+                layersHaveChanged = true
               }
             }
             // Todo: We should allow both points and polygons from the same dataset
@@ -107,24 +111,20 @@ export const MapContentModel = DataDisplayContentModel
               } else {
                 // Add a new layer for this dataset
                 this.addPolygonLayer(sharedDataSet.dataSet)
+                layersHaveChanged = true
               }
             }
           })
           // Remove any remaining layers in layersToCheck since they are no longer in any shared dataset
           layersToCheck.forEach(layer => {
             self.layers.splice(self.layers.indexOf(layer), 1)
+            layersHaveChanged = true
           })
+          if (layersHaveChanged) {
+            fitMapBoundsToData(self.layers, self.leafletMap)
+          }
         },
         {name: "sharedModelSetup", fireImmediately: true}))
-    },
-    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
-      /*
-            if (type === "link") {
-              self.dataConfiguration.setDataset(self.data, self.metadata)
-            } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
-              self.dataConfiguration.setDataset(undefined, undefined)
-            }
-      */
     },
     setLeafletMap(leafletMap: any) {
       self.leafletMap = leafletMap
@@ -141,7 +141,7 @@ export const MapContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     // Return true if there is already a layer for the given dataset and attributeID is not already in use
-    canAcceptAttributeIDDrop(dataset:IDataSet | undefined, attributeID: string | undefined) {
+    canAcceptAttributeIDDrop(dataset: IDataSet | undefined, attributeID: string | undefined) {
       if (dataset && attributeID) {
         const foundLayer = self.layers.find(layer => layer.data === dataset)
         return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID
@@ -159,7 +159,7 @@ export interface IMapModelContentSnapshot extends SnapshotIn<typeof MapContentMo
 }
 
 export function createMapContentModel(snap?: IMapModelContentSnapshot) {
-  return MapContentModel.create()
+  return MapContentModel.create(snap)
 }
 
 export function isMapContentModel(model?: ITileContentModel): model is IMapContentModel {
