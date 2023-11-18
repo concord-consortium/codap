@@ -71,7 +71,7 @@ export function useMapModel() {
     const disposer = reaction(
       () => [layout.mapWidth, layout.mapHeight],
       () => leafletMap.invalidateSize(),
-      {name: "updateMapSize"}
+      {name: "MapContentModel.updateMapSize"}
     )
     return () => disposer()
   }, [leafletMap, layout])
