@@ -1,18 +1,16 @@
+import {reaction} from "mobx"
 import {useEffect} from "react"
 import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
+import {useMapModelContext} from "./use-map-model-context"
+import {useMapLayoutContext} from "../models/map-layout"
 import {kDefaultMapZoomForGeoLocation} from "../map-types"
-import {IMapContentModel} from "../models/map-content-model"
 import {fitMapBoundsToData} from "../utilities/map-utils"
 
-interface IProps {
-  mapModel: IMapContentModel
-  instanceId: string | undefined
-}
-
-export function useMapModel(props: IProps) {
-  const {mapModel} = props,
-    leafletMap = useMap()
+export function useMapModel() {
+  const leafletMap = useMap(),
+    mapModel = useMapModelContext(),
+    layout = useMapLayoutContext()
 
   // Initialize
   useEffect(function initializeLeafletMapHandlers() {
@@ -64,4 +62,13 @@ export function useMapModel(props: IProps) {
     mapModel.setHasBeenInitialized()
   }, [leafletMap, mapModel, mapModel.layers])
 
+  // Respond to content width and height changes
+  useEffect(function updateMapSize() {
+    const disposer = reaction(
+      () => [layout.mapWidth, layout.mapHeight],
+      () => leafletMap.invalidateSize(),
+      {name: "MapContentModel.updateMapSize"}
+    )
+    return () => disposer()
+  }, [leafletMap, layout])
 }

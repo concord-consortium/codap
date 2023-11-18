@@ -5,7 +5,6 @@ import {LatLngExpression} from "leaflet"
 import {MapContainer, TileLayer} from "react-leaflet"
 import {kDefaultMapLocation, kDefaultMapZoom, kMapAttribution, kMapUrl} from "../map-types"
 import {useMapModelContext} from "../hooks/use-map-model-context"
-import {MapController} from "../models/map-controller"
 import {MapInterior} from "./map-interior"
 import {DroppableMapArea} from "./droppable-map-area"
 import {IDataSet} from "../../../models/data/data-set"
@@ -14,11 +13,10 @@ import 'leaflet/dist/leaflet.css'
 import "./map.scss"
 
 interface IProps {
-  mapController: MapController
   mapRef: MutableRefObject<HTMLDivElement | null>
 }
 
-export const CodapMap = observer(function CodapMap({mapController, mapRef}: IProps) {
+export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   const instanceId = useInstanceIdContext(),
     mapModel = useMapModelContext(),
     interiorSvgRef = useRef<SVGSVGElement>(null)
@@ -53,7 +51,7 @@ export const CodapMap = observer(function CodapMap({mapController, mapRef}: IPro
                     zoomSnap={0} trackResize={true}>
         <TileLayer attribution={kMapAttribution} url={kMapUrl}/>
         <svg ref={interiorSvgRef} className={`map-dot-area ${instanceId}`}>
-          <MapInterior mapController={mapController}/>
+          <MapInterior />
         </svg>
       </MapContainer>
       <DroppableMapArea
