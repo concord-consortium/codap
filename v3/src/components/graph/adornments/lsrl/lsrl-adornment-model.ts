@@ -146,7 +146,7 @@ export const LSRLAdornmentModel = AdornmentModel
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
     const { dataConfig } = options
-    const { xAttrId, yAttrId } = dataConfig.categoriesOptions
+    const { xAttrId, yAttrId } = dataConfig.getCategoriesOptions()
     const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
     self.lines.clear()
     dataConfig.getAllCellKeys().forEach(cellKey => {

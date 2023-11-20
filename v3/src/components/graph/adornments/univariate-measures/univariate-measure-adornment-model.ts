@@ -98,7 +98,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
       const { dataConfig, resetPoints } = options
-      const { xAttrId, yAttrId, xAttrType } = dataConfig.categoriesOptions
+      const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
       const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
