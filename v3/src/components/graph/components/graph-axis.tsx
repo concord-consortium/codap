@@ -18,7 +18,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {axisPlaceToAttrRole} from "../../data-display/data-display-types"
 import {kGraphClassSelector} from "../graphing-types"
 import {DroppableAxis} from "./droppable-axis"
-import {AttributeLabel} from "./attribute-label"
+import {GraphAttributeLabel} from "./graph-attribute-label"
 
 interface IProps {
   place: AxisPlace
@@ -97,7 +97,7 @@ export const GraphAxis = observer(function GraphAxis(
               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
               centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
         />}
-      <AttributeLabel
+      <GraphAttributeLabel
         place={place}
         onChangeAttribute={onDropAttribute}
         onRemoveAttribute={onRemoveAttribute}

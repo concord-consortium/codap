@@ -30,6 +30,9 @@ export const
   kDataDisplayFont = '12px sans-serif',
   kChoroplethHeight = 16
 
+export const kPortalClass = "portal-parent"
+export const kPortalClassSelector = `.${kPortalClass}`
+
 export const PrimaryAttrRoles = ['x', 'y'] as const
 export type PrimaryAttrRole = typeof PrimaryAttrRoles[number]
 export const GraphTipAttrRoles =

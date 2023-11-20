@@ -54,7 +54,9 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
       done = false
     while (!done) {
       f = format(`.${significantDigits}r`)
-      const n1AfterFormatting = Number(f(n1))
+      // d3 formats with unicode minus sign, which is not recognized by Number
+      const n1String = f(n1).replace('\u2212', '-'),
+        n1AfterFormatting = Number(n1String)
       switch (operator) {
         case '<':
           done = n1AfterFormatting < n2
@@ -97,6 +99,6 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
   })
 }
 
-export function isFiniteNumber(val:any) {
+export function isFiniteNumber(val: any) {
   return typeof val === 'number' && isFinite(val)
 }

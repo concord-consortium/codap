@@ -1,35 +1,35 @@
 import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
-import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {kChoroplethHeight} from "../../data-display-types"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
-import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 
 import vars from "../../../vars.scss"
+import {IDataConfigurationModel} from "../../models/data-configuration-model"
 
 
 interface INumericLegendProps {
-  legendAttrID: string
+  dataConfiguration: IDataConfigurationModel
+  layerIndex: number
+  tileWidth: number
+  setDesiredExtent: (layerIndex:number, extent: number) => void
 }
 
-export const NumericLegend = observer(function NumericLegend({legendAttrID}: INumericLegendProps) {
-  const dataConfiguration = useDataConfigurationContext(),
-    layout = useDataDisplayLayout(),
-    dataset = useDataSetContext(),
-    quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
+export const NumericLegend =
+  observer(function NumericLegend({dataConfiguration, layerIndex, tileWidth, setDesiredExtent}: INumericLegendProps) {
+  const quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
 
     getLabelHeight = useCallback(() => {
-      const labelFont = vars.labelFont
-      return getStringBounds(dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
-    }, [dataset, legendAttrID]),
+      const labelFont = vars.labelFont,
+        legendAttrID = dataConfiguration?.attributeID('legend') ?? ''
+      return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
+    }, [dataConfiguration]),
 
     refreshScale = useCallback(() => {
       const numberHeight = getStringBounds('0').height
@@ -43,14 +43,12 @@ export const NumericLegend = observer(function NumericLegend({legendAttrID}: INu
 
       if (choroplethElt) {
         valuesRef.current = dataConfiguration?.numericValuesForAttrRole('legend') ?? []
-        layout.setDesiredExtent('legend', computeDesiredExtent())
+        setDesiredExtent(layerIndex, computeDesiredExtent())
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
-        const bounds = layout.computedBounds.legend,
-          translate = `translate(${bounds?.left}, ${(bounds?.top ?? 0) + labelHeight})`
         choroplethLegend(quantileScale.current, choroplethElt,
           {
-            transform: translate, width: bounds?.width,
-            marginLeft: 6, marginRight: 6, ticks: 5,
+            width: tileWidth,
+            marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
             clickHandler: (quantile: number, extend: boolean) => {
               dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
             },
@@ -59,7 +57,7 @@ export const NumericLegend = observer(function NumericLegend({legendAttrID}: INu
             }
           })
       }
-    }, [choroplethElt, dataConfiguration, getLabelHeight, layout])
+    }, [choroplethElt, dataConfiguration, getLabelHeight, setDesiredExtent, tileWidth, layerIndex])
 
   useEffect(function refresh() {
     refreshScale()
@@ -68,16 +66,15 @@ export const NumericLegend = observer(function NumericLegend({legendAttrID}: INu
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
       () => {
-        const {tileHeight, tileWidth} = layout,
-          legendID = dataConfiguration?.attributeID('legend')
-        return {tileHeight, tileWidth, legendID}
+        const legendID = dataConfiguration?.attributeID('legend')
+        return {legendID}
       },
       () => {
         refreshScale()
       }, {fireImmediately: true}
     )
     return () => disposer()
-  }, [layout, dataConfiguration, refreshScale])
+  }, [dataConfiguration, refreshScale])
 
   useEffect(function respondToSelectionChange() {
     return dataConfiguration?.onAction(action => {
@@ -99,9 +96,9 @@ export const NumericLegend = observer(function NumericLegend({legendAttrID}: INu
 
   useEffect(function cleanup () {
     return () => {
-      layout.setDesiredExtent('legend', 0)
+      setDesiredExtent(layerIndex, 0)
     }
-  }, [layout])
+  }, [setDesiredExtent, layerIndex])
 
   return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)} data-testid='legend-categories'>
          </svg>

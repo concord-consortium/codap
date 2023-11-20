@@ -1,7 +1,5 @@
 import {reaction} from "mobx"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {ISharedModel} from "../../../models/shared/shared-model"
-import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {IDataSet} from "../../../models/data/data-set"
@@ -69,17 +67,18 @@ export const MapContentModel = DataDisplayContentModel
       newPolygonLayer.setDataset(dataSet)
     },
     afterAttachToDocument() {
-      // Monitor our parents and update our shared model when we have a document parent
+      // Monitor coming and going of shared datasets
       addDisposer(self, reaction(() => {
           const sharedModelManager = self.tileEnv?.sharedModelManager,
             sharedDataSets: ISharedDataSet[] = sharedModelManager?.isReady
               ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
-              : []
-          return {sharedModelManager, sharedDataSets}
+              : [],
+            leafletMap = self.leafletMap
+          return {sharedModelManager, sharedDataSets, leafletMap}
         },
         // reaction/effect
-        ({sharedModelManager, sharedDataSets}) => {
-          if (!sharedModelManager?.isReady) {
+        ({sharedModelManager, sharedDataSets, leafletMap}) => {
+          if (!sharedModelManager?.isReady || !leafletMap) {
             // We aren't added to a document yet, so we can't do anything yet
             return
           }
@@ -121,10 +120,10 @@ export const MapContentModel = DataDisplayContentModel
             layersHaveChanged = true
           })
           if (layersHaveChanged) {
-            fitMapBoundsToData(self.layers, self.leafletMap)
+            fitMapBoundsToData(self.layers, leafletMap)
           }
         },
-        {name: "sharedModelSetup", fireImmediately: true}))
+        {name: "MapContentModel.respondToSharedDatasetsChanges", fireImmediately: true}))
     },
     setLeafletMap(leafletMap: any) {
       self.leafletMap = leafletMap
@@ -141,7 +140,7 @@ export const MapContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     // Return true if there is already a layer for the given dataset and attributeID is not already in use
-    canAcceptAttributeIDDrop(dataset: IDataSet | undefined, attributeID: string | undefined) {
+    placeCanAcceptAttributeIDDrop(dataset: IDataSet, attributeID: string | undefined) {
       if (dataset && attributeID) {
         const foundLayer = self.layers.find(layer => layer.data === dataset)
         return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID

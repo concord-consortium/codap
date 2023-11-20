@@ -31,10 +31,19 @@
   }
 
 }
-  .legend-rect-selected {
-    stroke: black !important;
-    stroke-width: 2px !important;
-  }
+
+.multi-legend {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: $background-fill;
+}
+
+.legend-rect-selected {
+  stroke: black !important;
+  stroke-width: 2px !important;
+}
 
 .legend-categories {
 

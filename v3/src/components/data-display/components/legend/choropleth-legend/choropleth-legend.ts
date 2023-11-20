@@ -40,8 +40,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     domainValues = scale.domain(),
     significantDigits = neededSigDigitsArrayForQuantiles(fullBoundaries, domainValues)
 
-  const thresholdFormat = typeof tickFormat === "string" ? format(tickFormat)
-    : tickFormat
+  const thresholdFormat = format(tickFormat)
 
   const x = scaleLinear()
     .domain([-1, scale.range().length - 1])
@@ -70,7 +69,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
 
   svg.append("g")
     .attr('class', 'legend-axis')
-    .attr("transform", `${transform} translate(0,${kChoroplethHeight})`)
+    .attr("transform", `${transform} translate(0,${kChoroplethHeight + marginTop})`)
     .call(axisBottom(x)
       .ticks(ticks)
       .tickFormat(tickFormat)

@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {createPortal} from "react-dom"
 import {reaction} from "mobx"
-import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
@@ -12,8 +11,7 @@ import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
-import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
-import {kGraphClassSelector} from "../graphing-types"
+import {graphPlaceToAttrRole, kPortalClassSelector} from "../../data-display/data-display-types"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
 import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
@@ -27,8 +25,9 @@ interface IAttributeLabelProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
-export const AttributeLabel = observer(
-  function AttributeLabel({place, onTreatAttributeAs, onRemoveAttribute, onChangeAttribute}: IAttributeLabelProps) {
+export const GraphAttributeLabel =
+  function GraphAttributeLabel({place, onTreatAttributeAs, onRemoveAttribute,
+                                 onChangeAttribute}: IAttributeLabelProps) {
     const graphModel = useGraphContentModelContext(),
       dataConfiguration = useGraphDataConfigurationContext(),
       layout = useGraphLayoutContext(),
@@ -38,7 +37,7 @@ export const AttributeLabel = observer(
       useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false,
       hideClickHereCue = useClickHereCue &&
         !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected(),
-      parentElt = labelRef.current?.closest(kGraphClassSelector) as HTMLDivElement ?? null
+      parentElt = labelRef.current?.closest(kPortalClassSelector) as HTMLDivElement ?? null
 
     const getAttributeIDs = useCallback(() => {
       const isScatterPlot = graphModel.plotType === 'scatterPlot',
@@ -111,7 +110,7 @@ export const AttributeLabel = observer(
       const disposer = reaction(
         () => layout.getComputedBounds(place),
         () => refreshAxisTitle(),
-        { name: "AttributeLabel [layout.getComputedBounds]"}
+        { name: "GraphAttributeLabel [layout.getComputedBounds]"}
       )
       return () => disposer()
     }, [place, layout, refreshAxisTitle])
@@ -127,8 +126,7 @@ export const AttributeLabel = observer(
 
       if (labelRef) {
         removeUnusedLabel()
-        const anchor = place === 'legend' ? 'start' : 'middle',
-          className = useClickHereCue ? 'empty-label' : 'attribute-label'
+        const className = useClickHereCue ? 'empty-label' : 'attribute-label'
         select(labelRef.current)
           .selectAll(`text.${className}`)
           .data([1])
@@ -136,7 +134,7 @@ export const AttributeLabel = observer(
             (enter) =>
               enter.append('text')
                 .attr('class', className)
-                .attr('text-anchor', anchor)
+                .attr('text-anchor', 'middle')
                 .attr('data-testid', className)
           )
         refreshAxisTitle()
@@ -156,7 +154,7 @@ export const AttributeLabel = observer(
           },
           () => {
             refreshAxisTitle()
-          }, { name: "AttributeLabel [attribute configuration]" }, dataConfiguration
+          }, { name: "GraphAttributeLabel [attribute configuration]" }, dataConfiguration
         )
         return () => disposer()
     }, [place, dataConfiguration, refreshAxisTitle])
@@ -176,5 +174,4 @@ export const AttributeLabel = observer(
         }
       </>
     )
-  })
-AttributeLabel.displayName = "AttributeLabel"
+  }
