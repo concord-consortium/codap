@@ -407,20 +407,6 @@ export const DataConfigurationModel = types
       },
     }))
   .actions(self => ({
-    handleDataSetChange(data?: IDataSet) {
-      self.actionHandlerDisposer?.()
-      self.actionHandlerDisposer = undefined
-      self.clearFilteredCases()
-      if (data) {
-        self.actionHandlerDisposer = onAnyAction(data, this.handleAction)
-        self.filteredCases[0] = new FilteredCases({
-          source: data,
-          filter: self.filterCase,
-          collectionID: idOfChildmostCollectionForAttributes(self.attributes, data),
-          onSetCaseValues: this.handleSetCaseValues
-        })
-      }
-    },
     /**
      * This is called when the user swaps categories in the legend, but not when the user swaps categories
      * by dragging categories on an axis.
@@ -446,15 +432,6 @@ export const DataConfigurationModel = types
           beforeCat = catIndex2 < numCategories - 1 ? categoryArray[catIndex2 + 1] : undefined
         categorySet.move(cat1, beforeCat)
       }
-    },
-    handleAction(actionCall: ISerializedActionCall) {
-      // forward all actions from dataset except "setCaseValues" which requires intervention
-      if (actionCall.name === "setCaseValues") return
-      if (actionCall.name === "invalidateCollectionGroups") {
-        this._updateFilteredCasesCollectionID()
-        this._invalidateCases()
-      }
-      self.handlers.forEach(handler => handler(actionCall))
     },
     handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
       if (!isSetCaseValuesAction(actionCall)) return
@@ -524,6 +501,31 @@ export const DataConfigurationModel = types
         aFilteredCases.invalidateCases()
       })
     },
+    handleDataSetAction(actionCall: ISerializedActionCall) {
+      // forward all actions from dataset except "setCaseValues" which requires intervention
+      if (actionCall.name === "setCaseValues") return
+      if (actionCall.name === "invalidateCollectionGroups") {
+        this._updateFilteredCasesCollectionID()
+        this._invalidateCases()
+      }
+      self.handlers.forEach(handler => handler(actionCall))
+    },
+  }))
+  .actions(self => ({
+    handleDataSetChange(data?: IDataSet) {
+      self.actionHandlerDisposer?.()
+      self.actionHandlerDisposer = undefined
+      self.clearFilteredCases()
+      if (data) {
+        self.actionHandlerDisposer = onAnyAction(data, self.handleDataSetAction)
+        self.filteredCases[0] = new FilteredCases({
+          source: data,
+          filter: self.filterCase,
+          collectionID: idOfChildmostCollectionForAttributes(self.attributes, data),
+          onSetCaseValues: self.handleSetCaseValues
+        })
+      }
+    }
   }))
   .actions(self => ({
     afterCreate() {
