@@ -140,24 +140,20 @@ export const LSRLAdornmentModel = AdornmentModel
   ) {
     const caseValues = self.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, cat)
     const { intercept, rSquared, slope, sdResiduals } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
-    return { intercept, rSquared, slope, sdResiduals }  
+    return { intercept, rSquared, slope, sdResiduals }
   }
 }))
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
-    const { xAttrId, yAttrId, topCats, rightCats, dataConfig } = options
-    if (!dataConfig) return
-    self.lines.clear()
-    const columnCount = topCats?.length || 1
-    const rowCount = rightCats?.length || 1
-    const totalCount = rowCount * columnCount
+    const { dataConfig } = options
+    const { xAttrId, yAttrId } = dataConfig.categoriesOptions
     const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
-    for (let i = 0; i < totalCount; ++i) {
-      const cellKey = self.cellKey(options, i)
+    self.lines.clear()
+    dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
       for (let j = 0; j < legendCats.length; ++j) {
         const category = legendCats[j]
-        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like 
+        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like
         // isInterceptLocked instead of false in the call to self.computeValues.
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, instanceKey, false, category
@@ -165,7 +161,7 @@ export const LSRLAdornmentModel = AdornmentModel
         if (intercept == null || rSquared == null || slope == null || sdResiduals == null) continue
         self.updateLines({category, intercept, rSquared, slope, sdResiduals}, instanceKey, j)
       }
-    }
+    })
   }
 }))
 .views(self => ({
@@ -181,7 +177,7 @@ export const LSRLAdornmentModel = AdornmentModel
     lines?.forEach((line, i) => {
       if (!line?.isValid) {
 
-        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like 
+        // TODO: Once the Intercept Locked feature is implemented, we will need to pass in something like
         // isInterceptLocked instead of false in the call to self.computeValues.
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, key, false, legendCats[i]

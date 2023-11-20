@@ -40,21 +40,6 @@ describe("AdornmentModel", () => {
     adornment.setVisibility(false)
     expect(adornment.isVisible).toBe(false)
   })
-  it("will create a cell key from given values", () => {
-    const options = {
-      xAttrId: "abc123",
-      xCats: ["pizza", "pasta", "salad"],
-      yAttrId: "def456",
-      yCats: ["red", "green", "blue"],
-      topAttrId: "ghi789",
-      topCats: ["small", "medium", "large"],
-      rightAttrId: "jkl012",
-      rightCats: ["new", "used"]
-    }
-    const adornment = AdornmentModel.create({type: "Movable Line"})
-    const cellKey = adornment.cellKey(options, 0)
-    expect(cellKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
-  })
   it("will create an instance key value from given category values", () => {
     const adornment = AdornmentModel.create({type: "Movable Line"})
     const xCategories = ["pizza", "pasta", "salad"]
@@ -69,60 +54,6 @@ describe("AdornmentModel", () => {
     const yCategories = ["red", "green", "blue"]
     const cellKey = {abc123: xCategories[0], def456: yCategories[0]}
     expect(adornment.classNameFromKey(cellKey)).toEqual("abc123-pizza-def456-red")
-  })
-  it("will generate a list of all cell keys for a graph", () => {
-    const adornment = AdornmentModel.create({type: "Movable Line"})
-
-    // For a graph with no categorical attributes
-    const noCategoricalOptions = {
-      xAttrId: "abc123",
-      xCats: [],
-      yAttrId: "def456",
-      yCats: [],
-      topAttrId: "",
-      topCats: [],
-      rightAttrId: "",
-      rightCats: []
-    }
-    const noCategoricalCellKeys = adornment.getAllCellKeys(noCategoricalOptions)
-    expect(noCategoricalCellKeys.length).toEqual(1)
-    expect(noCategoricalCellKeys[0]).toEqual({})
-
-    // For a graph with one categorical attribute
-    const oneCategoricalOptions = {
-      xAttrId: "abc123",
-      xCats: [],
-      yAttrId: "def456",
-      yCats: ["small", "large"],
-      topAttrId: "",
-      topCats: [],
-      rightAttrId: "",
-      rightCats: []
-    }
-    const oneCategoricalCellKeys = adornment.getAllCellKeys(oneCategoricalOptions)
-    expect(oneCategoricalCellKeys.length).toEqual(2)
-    expect(oneCategoricalCellKeys[0]).toEqual({"def456": "small"})
-    expect(oneCategoricalCellKeys[1]).toEqual({"def456": "large"})
-
-    // For a graph with multiple categorical attributes
-    const xCategories = ["pizza", "salad"]
-    const yCategories = ["red", "green"]
-    const topCategories = ["medium", "large"]
-    const rightCategories = ["hot", "cold"]
-    const categoricalOptions = {
-      xAttrId: "abc123",
-      xCats: xCategories,
-      yAttrId: "def456",
-      yCats: yCategories,
-      topAttrId: "ghi789",
-      topCats: topCategories,
-      rightAttrId: "jkl012",
-      rightCats: rightCategories
-    }
-    const cellKeys = adornment.getAllCellKeys(categoricalOptions)
-    expect(cellKeys.length).toEqual(16)
-    expect(cellKeys[0]).toEqual({abc123: "pizza", def456: "red", ghi789: "medium", jkl012: "hot"})
-    expect(cellKeys[15]).toEqual({abc123: "salad", def456: "green", ghi789: "large", jkl012: "cold"})
   })
 })
 

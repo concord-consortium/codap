@@ -18,7 +18,7 @@ export const CountAdornmentModel = AdornmentModel
         ? dataConfig?.rowCases(cellKey)?.length ?? 0
         : self.percentType === "column"
           ? dataConfig?.columnCases(cellKey)?.length ?? 0
-          : dataConfig?.cellCases(cellKey)?.length ?? 0
+          : dataConfig?.subPlotCases(cellKey)?.length ?? 0
       const percentValue = casesInPlot / divisor
       return isFinite(percentValue) ? percentValue : 0
     }

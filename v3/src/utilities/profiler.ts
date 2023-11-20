@@ -160,6 +160,17 @@ class Profiler {
     // eslint-disable-next-line no-console
     console.log(lines.join("\n"))
   }
+
+  // Shorter alias methods when used in dev tools console:
+  start() {
+    this.beginProfiling()
+  }
+
+  stop() {
+    this.endProfiling()
+    this.report()
+  }
 }
 
 export const prf = new Profiler()
+;(window as any).prf = prf

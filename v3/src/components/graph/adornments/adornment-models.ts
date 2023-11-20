@@ -9,7 +9,6 @@ import {Point} from "../../data-display/data-display-types"
 import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
 import { IAxisLayout } from "../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
-import { updateCellKey } from "./adornment-utils"
 
 export const PointModel = types.model("Point", {
     x: types.optional(types.number, NaN),
@@ -31,18 +30,10 @@ export const PointModel = types.model("Point", {
 export const kInfinitePoint = {x:NaN, y:NaN}
 
 export interface IUpdateCategoriesOptions {
-  xAxis?: IAxisModel
-  xAttrId: string
-  xCats: string[]
-  yAxis?: IAxisModel
-  yAttrId: string
-  yCats: string[]
-  topCats: string[]
-  topAttrId: string
-  rightCats: string[]
-  rightAttrId: string
+  dataConfig: IGraphDataConfigurationModel
   resetPoints?: boolean
-  dataConfig?: IGraphDataConfigurationModel
+  xAxis?: IAxisModel
+  yAxis?: IAxisModel
   xScale?: ScaleNumericBaseType
   yScale?: ScaleNumericBaseType
 }
@@ -80,45 +71,6 @@ export const AdornmentModel = types.model("AdornmentModel", {
       const yCellCount = yCats.length * ySubAxesCount
       return {x: xCellCount, y: yCellCount}
     },
-    cellKey(options: IUpdateCategoriesOptions, index: number) {
-      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = options
-      const rightCatCount = rightCats.length || 1
-      const yCatCount = yCats.length || 1
-      const xCatCount = xCats.length || 1
-      let cellKey: Record<string, string> = {}
-
-      // Determine which categories are associated with the cell's axes using the provided index value and
-      // the attributes and categories present in the graph.
-      const topIndex = Math.floor(index / (rightCatCount * yCatCount * xCatCount))
-      const topCat = topCats[topIndex]
-      cellKey = updateCellKey(cellKey, topAttrId, topCat)
-      const rightIndex = Math.floor(index / (yCatCount * xCatCount)) % rightCatCount
-      const rightCat = rightCats[rightIndex]
-      cellKey = updateCellKey(cellKey, rightAttrId, rightCat)
-      const yCat = yCats[index % yCatCount]
-      cellKey = updateCellKey(cellKey, yAttrId, yCat)
-      const xCat = xCats[index % xCatCount]
-      cellKey = updateCellKey(cellKey, xAttrId, xCat)
-
-      return cellKey
-    }
-  }))
-  .views(self => ({
-    getAllCellKeys(options: IUpdateCategoriesOptions) {
-      const { xCats, yCats, topCats, rightCats } = options
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const totalCount = rowCount * columnCount
-      const cellKeys: Record<string, string>[] = []
-      for (let i = 0; i < totalCount; ++i) {
-        cellKeys.push(self.cellKey(options, i))
-      }
-      return cellKeys
-    }
   }))
   .actions(self => ({
     setVisibility(isVisible: boolean) {
