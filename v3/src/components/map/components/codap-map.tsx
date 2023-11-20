@@ -1,4 +1,3 @@
-import {observer} from "mobx-react-lite"
 import React, {MutableRefObject, useRef} from "react"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {LatLngExpression} from "leaflet"
@@ -16,7 +15,7 @@ interface IProps {
   mapRef: MutableRefObject<HTMLDivElement | null>
 }
 
-export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
+export const CodapMap = function CodapMap({mapRef}: IProps) {
   const instanceId = useInstanceIdContext(),
     mapModel = useMapModelContext(),
     interiorSvgRef = useRef<SVGSVGElement>(null)
@@ -62,4 +61,4 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
       {/*{renderLegends()}*/}
     </div>
   )
-})
+}
