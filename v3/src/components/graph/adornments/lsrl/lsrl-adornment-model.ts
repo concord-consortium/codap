@@ -182,7 +182,12 @@ export const LSRLAdornmentModel = AdornmentModel
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, key, false, legendCats[i]
         )
-        if (intercept == null || rSquared == null || slope == null || sdResiduals == null) return
+        if (
+          !Number.isFinite(intercept) ||
+          !Number.isFinite(rSquared) ||
+          !Number.isFinite(slope) ||
+          !Number.isFinite(sdResiduals)
+        ) return
         self.updateLines({category: legendCats[i], intercept, rSquared, slope, sdResiduals}, key, i)
       }
     })
