@@ -17,7 +17,7 @@ export interface IBaseGraphFormulaExtraMetadata extends IFormulaExtraMetadata {
 }
 
 export const getDefaultArgument = (graphContentModel: IGraphContentModel) => {
-  const { xAttrId, yAttrId, xAttrType } = graphContentModel.dataConfiguration.categoriesOptions
+  const { xAttrId, yAttrId, xAttrType } = graphContentModel.dataConfiguration.getCategoriesOptions()
   const defaultArgumentId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
   return defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
 }

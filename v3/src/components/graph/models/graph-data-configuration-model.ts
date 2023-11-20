@@ -217,7 +217,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    get categoriesOptions() {
+    getCategoriesOptions() {
       // Helper used often by adornments that usually ask about the same categories and their specifics.
       const xAttrType = self.attributeType("x")
       const yAttrType = self.attributeType("y")
@@ -237,7 +237,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .views(self => ({
     cellKey(index: number) {
-      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.categoriesOptions
+      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.getCategoriesOptions()
       const rightCatCount = rightCats.length || 1
       const yCatCount = yCats.length || 1
       const xCatCount = xCats.length || 1
@@ -259,7 +259,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return cellKey
     },
     getAllCellKeys() {
-      const { xCats, yCats, topCats, rightCats } = self.categoriesOptions
+      const { xCats, yCats, topCats, rightCats } = self.getCategoriesOptions()
       const topCatCount = topCats.length || 1
       const rightCatCount = rightCats.length || 1
       const xCatCount = xCats.length || 1
