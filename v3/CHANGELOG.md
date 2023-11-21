@@ -1,5 +1,55 @@
 # Changelog
 
+## Version 3.0.0-pre.1444 - November 20, 2023
+
+### Features/Improvements
+- Dot plots can be overlaid with a **box plot**. [#181914410](https://www.pivotaltracker.com/story/show/181914410)
+- Users can **plot a function** on a scatterplot [#181940062](https://www.pivotaltracker.com/story/show/181940062)
+- Handle plotted value formula specific errors + show them in UI [#186358491](https://www.pivotaltracker.com/story/show/186358491)
+- **Undo** and **Redo** icons indicate their enabled/disabled state (e.g. with opacity) [#186038023](https://www.pivotaltracker.com/story/show/186038023)
+- Handle plotted value formula default attribute [#186358510](https://www.pivotaltracker.com/story/show/186358510)
+- A map displays points for datasets that have lat/long attributes [#185781518](https://www.pivotaltracker.com/story/show/185781518)
+- Refactor formula-utils, split them into smaller files and improve test coverage [#186452591](https://www.pivotaltracker.com/story/show/186452591)
+- Add automated tests of formula manager and formula adapters [#186454270](https://www.pivotaltracker.com/story/show/186454270)
+- Add automated tests of semi-aggregate functions, try to test O(n) complexity  [#186479506](https://www.pivotaltracker.com/story/show/186479506)
+- Do not serialize attribute values if it has a non-empty formula and make formula attribute cells non-editable [#186424226](https://www.pivotaltracker.com/story/show/186424226)
+- Graph inspector has a rescale button that scales the axes to show all the data [#186438328](https://www.pivotaltracker.com/story/show/186438328)
+- For a case plot the graph's rescale button causes the points to rerandomize their positions [#186448224](https://www.pivotaltracker.com/story/show/186448224)
+- The graph's rescale button is disabled if the plot is not a case plot and has no numeric axes. [#186448263](https://www.pivotaltracker.com/story/show/186448263)
+- In the presence of datasets with a boundary attribute, maps include a boundary layer showing polygons [#186304968](https://www.pivotaltracker.com/story/show/186304968)
+- Maps have an inspector palette [#186459298](https://www.pivotaltracker.com/story/show/186459298)
+- Graph inspector palette allows user to hide selected/unselected cases and show all hidden [#186472161](https://www.pivotaltracker.com/story/show/186472161)
+- Simplify updateCategories actions for graph adornments [#186477102](https://www.pivotaltracker.com/story/show/186477102)
+- When user rescales graph axes, the rescaling is animated [#186448221](https://www.pivotaltracker.com/story/show/186448221)
+- Maps show lat/lng points from multiple datasets when available [#186337165](https://www.pivotaltracker.com/story/show/186337165)
+- Map layers are constructed automatically on creation of a map [#181961895](https://www.pivotaltracker.com/story/show/181961895)
+- Maps should expand when a user expands the component using the drag handle [#186408583](https://www.pivotaltracker.com/story/show/186408583)
+
+### Bug Fixes
+- Handle lookupByIndex and lookupByKey user errors [#186354628](https://www.pivotaltracker.com/story/show/186354628)
+- lookupByIndex generates uncaught exception [#186293413](https://www.pivotaltracker.com/story/show/186293413)
+- Data tips for points on a map should not show latitude and longitude [#186335272](https://www.pivotaltracker.com/story/show/186335272)
+- Undo/redo of switching axes on a dot plot is broken [#186377921](https://www.pivotaltracker.com/story/show/186377921)
+- Can't change bounds of bottom axis in graph [#185984385](https://www.pivotaltracker.com/story/show/185984385)
+- Case table doesn't fill entire vertical space available when the component's height is increased [#185799414](https://www.pivotaltracker.com/story/show/185799414)
+- When an attribute is dropped on a graph, the graph should becomes selected [#186382997](https://www.pivotaltracker.com/story/show/186382997)
+- Deleting a slider that is used in a formula shows errors with improper references [#186254226](https://www.pivotaltracker.com/story/show/186254226)
+- Deleting a case table should clear all graphs that use it [#185267584](https://www.pivotaltracker.com/story/show/185267584)
+- Graph is not properly handling delete of attribute from dataset [#186383038](https://www.pivotaltracker.com/story/show/186383038)
+- Global reference added **after** it is added to the formula doesn't get resolved automatically [#186252555](https://www.pivotaltracker.com/story/show/186252555)
+- Moving attribute with formula into a parent collection should apply the formula after the move [#186323665](https://www.pivotaltracker.com/story/show/186323665)
+- Graph Rescale button gets in wrong state [#186468144](https://www.pivotaltracker.com/story/show/186468144)
+- Standard deviation hover tip values are wrong [#186447543](https://www.pivotaltracker.com/story/show/186447543)
+- When plotted value or plotted function adornment is hidden, formulas should no longer be recalculated [#186452589](https://www.pivotaltracker.com/story/show/186452589)
+- Importing a csv with lat/long attributes should display points for the cases on existing map without further user intervention [#186435138](https://www.pivotaltracker.com/story/show/186435138)
+- Fix inefficiency in subPlotCases method making graph interactions slow [#186488009](https://www.pivotaltracker.com/story/show/186488009)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   72522 bytes |                            4.38% |
+|  index.js | 3469491 bytes |                            2.20% |
+
 ## Version 3.0.0-pre.1389 - October 24, 2023
 
 ### Features/Improvements
