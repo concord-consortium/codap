@@ -1,4 +1,5 @@
-import {getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
+import {addDisposer, getSnapshot, Instance, SnapshotIn, types, ISerializedActionCall} from "mobx-state-tree"
+import {comparer, reaction} from "mobx"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
@@ -8,7 +9,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
-import { updateCellKey } from "../adornments/adornment-utils"
+import {updateCellKey} from "../adornments/adornment-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -33,6 +34,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     // all attributes for (left) y role
     _yAttributeDescriptions: types.array(AttributeDescription),
   })
+  .volatile(self => ({
+    subPlotCasesCache: new Map<string, ICase[]>(),
+    rowCasesCache: new Map<string, ICase[]>(),
+    columnCasesCache: new Map<string, ICase[]>()
+  }))
   .views(self => ({
     get secondaryRole() {
       return self.primaryRole === 'x' ? 'y'
@@ -284,65 +290,77 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .views(self => ({
     subPlotCases(cellKey: Record<string, string>) {
-      const casesInPlot = new Map<string, ICase>()
-      self.filteredCases?.forEach(aFilteredCases => {
-        aFilteredCases.caseIds.forEach((id) => {
-          const caseData = self.dataset?.getCase(id)
-          const caseAlreadyMatched = casesInPlot.has(id)
-          if (caseData && !caseAlreadyMatched && self.isCaseInSubPlot(cellKey, caseData)) {
-            casesInPlot.set(caseData.__id__, caseData)
-          }
+      const key = JSON.stringify(cellKey)
+      if (!self.subPlotCasesCache.has(key)) {
+        const casesInPlot = new Map<string, ICase>()
+        self.filteredCases?.forEach(aFilteredCases => {
+          aFilteredCases.caseIds.forEach((id) => {
+            const caseData = self.dataset?.getCase(id)
+            const caseAlreadyMatched = casesInPlot.has(id)
+            if (caseData && !caseAlreadyMatched && self.isCaseInSubPlot(cellKey, caseData)) {
+              casesInPlot.set(caseData.__id__, caseData)
+            }
+          })
         })
-      })
-      return Array.from(casesInPlot.values())
+        self.subPlotCasesCache.set(key, Array.from(casesInPlot.values()))
+      }
+      return self.subPlotCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
     },
     rowCases(cellKey: Record<string, string>) {
-      const casesInRow: ICase[] = []
-      const leftAttrID = self.attributeID("y")
-      const leftAttrType = self.attributeType("y")
-      const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
-      const rightAttrID = self.attributeID("rightSplit")
-      const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
+      const key = JSON.stringify(cellKey)
+      if (!self.rowCasesCache.has(key)) {
+        const casesInRow: ICase[] = []
+        const leftAttrID = self.attributeID("y")
+        const leftAttrType = self.attributeType("y")
+        const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
+        const rightAttrID = self.attributeID("rightSplit")
+        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
-      self.filteredCases?.forEach(aFilteredCases => {
-        aFilteredCases.caseIds.forEach(id => {
-          const caseData = self.dataset?.getCase(id)
-          if (!caseData) return
+        self.filteredCases?.forEach(aFilteredCases => {
+          aFilteredCases.caseIds.forEach(id => {
+            const caseData = self.dataset?.getCase(id)
+            if (!caseData) return
 
-          const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
-            (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
+            const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
+              (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
+            const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
 
-          if (isLeftMatch && isRightMatch) {
-            casesInRow.push(caseData)
-          }
+            if (isLeftMatch && isRightMatch) {
+              casesInRow.push(caseData)
+            }
+          })
         })
-      })
-      return casesInRow
+        self.rowCasesCache.set(key, casesInRow)
+      }
+      return self.rowCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
     },
     columnCases(cellKey: Record<string, string>) {
-      const casesInCol: ICase[] = []
-      const bottomAttrID = self.attributeID("x")
-      const bottomAttrType = self.attributeType("x")
-      const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
-      const topAttrID = self.attributeID("topSplit")
-      const topValue = topAttrID ? cellKey[topAttrID] : ""
+      const key = JSON.stringify(cellKey)
+      if (!self.columnCasesCache.has(key)) {
+        const casesInCol: ICase[] = []
+        const bottomAttrID = self.attributeID("x")
+        const bottomAttrType = self.attributeType("x")
+        const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
+        const topAttrID = self.attributeID("topSplit")
+        const topValue = topAttrID ? cellKey[topAttrID] : ""
 
-      self.filteredCases?.forEach(aFilteredCases => {
-        aFilteredCases.caseIds.forEach(id => {
-          const caseData = self.dataset?.getCase(id)
-          if (!caseData) return
+        self.filteredCases?.forEach(aFilteredCases => {
+          aFilteredCases.caseIds.forEach(id => {
+            const caseData = self.dataset?.getCase(id)
+            if (!caseData) return
 
-          const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
-            (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
-          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
+            const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
+              (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
+            const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
 
-          if (isBottomMatch && isTopMatch) {
-            casesInCol.push(caseData)
-          }
+            if (isBottomMatch && isTopMatch) {
+              casesInCol.push(caseData)
+            }
+          })
         })
-      })
-      return casesInCol
+        self.columnCasesCache.set(key, casesInCol)
+      }
+      return self.columnCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
     }
   }))
   .views(self => (
@@ -472,10 +490,35 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
       self._setAttributeType(role, type, plotNumber)
     },
+    clearCasesCache() {
+      self.subPlotCasesCache.clear()
+      self.rowCasesCache.clear()
+      self.columnCasesCache.clear()
+    }
   }))
   .actions(self => {
+    const baseAfterCreate = self.afterCreate
+    const baseHandleDataSetAction = self.handleDataSetAction
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
+      afterCreate() {
+        addDisposer(self, reaction(
+          () => self.getAllCellKeys(),
+          () => self.clearCasesCache(),
+          {
+            name: "GraphDataConfigurationModel.afterCreate.reaction [getAllCellKeys]",
+            equals: comparer.structural
+          }
+        ))
+        baseAfterCreate()
+      },
+      handleDataSetAction(actionCall: ISerializedActionCall) {
+        const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
+        if (cacheClearingActions.includes(actionCall.name)) {
+          self.clearCasesCache()
+        }
+        baseHandleDataSetAction(actionCall)
+      },
       removeAttributeFromRole(role: GraphAttrRole, attrID: string) {
         if (role === "yPlus") {
           self.removeYAttributeWithID(attrID)
