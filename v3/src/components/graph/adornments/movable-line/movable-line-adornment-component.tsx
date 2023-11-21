@@ -54,6 +54,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const layout = useAxisLayoutContext()
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
@@ -92,10 +93,13 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
 
   const refreshEquation = useCallback((slope: number, intercept: number) => {
+    const lineModel = model.lines.get(instanceKey)
     const screenX = xScaleRef.current((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
     const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
     const attrNames = {x: xAttrName, y: yAttrName}
-    const string = equationString(slope, intercept, attrNames)
+    const sumOfSquares = dataConfig && showSumSquares ? lineModel?.sumOfSquares(dataConfig, layout, cellKey) : undefined
+
+    const string = equationString(slope, intercept, attrNames, sumOfSquares)
     const equation = select(equationContainerSelector).select("p")
 
     select(equationContainerSelector)
@@ -104,7 +108,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     equation.html(string)
     // The equation may have been unpinned from the line if the user dragged it away from the line.
     // Only move the equation if it is still pinned (i.e. equationCoords is not valid).
-    const lineModel = model.lines.get(instanceKey)
     const equationCoords = lineModel?.equationCoords
     if (!equationCoords?.isValid()) {
       equation.style("left", `${screenX}px`)
@@ -115,8 +118,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       equation.style("left", `${left}px`)
               .style("top", `${top}px`)
     }
-  }, [equationContainerSelector, instanceKey, model.lines, plotHeight, plotWidth, xAttrName, xSubAxesCount,
-      yAttrName, ySubAxesCount])
+  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight, plotWidth,
+      showSumSquares, xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
 
   
   const breakPointCoords = useCallback((
@@ -213,9 +216,16 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     updateLine()
     refreshEquation(slope, intercept)
 
+    // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
+    // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
+    // We don't want to save the values with every move of the line, but we do need to make the current values 
+    // available to other clients of the model via the volatile props.
     if (isFinished) {
       const equationCoords = lineParams?.equationCoords
       model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
+      model.updateVolatileProps({intercept: undefined, slope: undefined}, instanceKey)
+    } else {
+      model.updateVolatileProps({intercept: newIntercept, slope}, instanceKey)
     }
   }, [instanceKey, interceptLocked, model, refreshEquation, updateLine, xAxis, yAxis])
 
@@ -286,6 +296,10 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       updateLine()
       refreshEquation(newSlope, newIntercept)
 
+      // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
+      // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
+      // We don't want to save the values with every move of the line, but we do need to make the current values 
+      // available to other clients of the model via the volatile props.
       if (isFinished) {
         model.setLine(
           {
@@ -297,6 +311,9 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           },
           instanceKey
         )
+        model.updateVolatileProps({intercept: undefined, slope: undefined}, instanceKey)
+      } else {
+        model.updateVolatileProps({intercept: newIntercept, slope: newSlope}, instanceKey)
       }
     }
   }, [model, instanceKey, interceptLocked, newSlopeAndIntercept, lineObject.lower, lineObject.upper, xAxis,

@@ -6,6 +6,8 @@ import { kLSRLType } from "./lsrl-adornment-types"
 import { ICase } from "../../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { IAxisLayout } from "../../../axis/models/axis-layout-context"
+import { ILineInterceptAndSlope, ISquareOfResidual } from "../movable-line/movable-line-adornment-types"
 
 export const LSRLInstance = types.model("LSRLInstance", {
   equationCoords: types.maybe(PointModel)
@@ -23,6 +25,33 @@ export const LSRLInstance = types.model("LSRLInstance", {
            isFinite(Number(self.rSquared)) &&
            isFinite(Number(self.slope)) &&
            isFinite(Number(self.sdResiduals))
+  },
+  sumOfSquares(dataConfig: IGraphDataConfigurationModel, layout: IAxisLayout, cellKey: any) {
+    const dataset = dataConfig?.dataset
+    const caseData = dataset?.cases
+    const xAttrID = dataConfig?.attributeID("x") ?? ""
+    const yAttrID = dataConfig?.attributeID("y") ?? ""
+    let sumOfSquares = 0
+    caseData?.forEach((datum: any) => {
+      const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__)
+      if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
+        const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? 0
+        const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? 0
+        const { slope, intercept } = self
+        if (slope == null || intercept == null) return
+        const lineY = slope * x + intercept
+        const residual = y - lineY
+        if (isFinite(residual)) {
+          sumOfSquares += residual * residual
+        }
+      }
+    })
+    return sumOfSquares
+  },
+  get slopeAndIntercept() {
+    const intercept = self.intercept
+    const slope = self.slope
+    return {intercept, slope}
   }
 }))
 .actions(self => ({
@@ -53,7 +82,7 @@ export const LSRLAdornmentModel = AdornmentModel
   lines: types.map(types.array(LSRLInstance)),
   showConfidenceBands: types.optional(types.boolean, false)
 })
-.views(() => ({
+.views(self => ({
   getCaseValues(
     xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
     cat?: string
@@ -75,6 +104,41 @@ export const LSRLAdornmentModel = AdornmentModel
       }
     })
     return caseValues
+  },
+  squaresOfResiduals(
+    dataConfiguration: IGraphDataConfigurationModel,
+    squareAttributes: (caseID: string, intercept: number, slope: number) => ISquareOfResidual
+  ) {
+    const dataset = dataConfiguration?.dataset
+    const squares: ISquareOfResidual[] = []
+    const interceptsAndSlopes: ILineInterceptAndSlope[] = []
+    self.lines.forEach((linesArray, key) => {
+      linesArray.forEach(line => {
+        const intercept = line?.intercept ?? 0
+        const slope = line?.slope ?? 0
+        interceptsAndSlopes.push({ category: line.category, cellKey: JSON.parse(key), intercept, slope })
+      })
+    })
+    interceptsAndSlopes.forEach(interceptAndSlope => {
+      const { category, cellKey, intercept, slope } = interceptAndSlope
+      dataset?.cases.forEach(caseData => {
+        // Do not render squares in plots containing less than two cases.
+        if (dataConfiguration.subPlotCases(cellKey).length < 2) return
+        const legendID = dataConfiguration?.attributeID("legend")
+        const legendType = dataConfiguration?.attributeType("legend")
+        const legendValue = caseData.__id__ && legendID
+          ? dataset?.getStrValue(caseData.__id__, legendID)
+          : null
+        if (legendValue !== category && legendType === "categorical") return
+        const fullCaseData = dataset?.getCase(caseData.__id__)
+        if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
+          const square = squareAttributes(caseData.__id__, intercept, slope)
+          if (!isFinite(square.x) || !isFinite(square.y)) return
+          squares.push(square)
+        }
+      })
+    })
+    return squares
   }
 }))
 .views(self => ({

@@ -157,8 +157,11 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
   }
 }
 
-export function equationString(slope: number, intercept: number, attrNames: {x: string, y: string}) {
-  const float = format('.4~r')
+export function equationString(
+  slope: number, intercept: number, attrNames: {x: string, y: string}, sumOfSquares?: number
+) {
+  const float = format(".3~r")
+  const floatSumOfSquares = format(",.0f")
   if (isFinite(slope) && slope !== 0) {
     const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
     const interceptString = intercept === 0
@@ -166,7 +169,10 @@ export function equationString(slope: number, intercept: number, attrNames: {x: 
       : intercept > 0
         ? ` + ${float(intercept)}`
         : ` ${float(intercept)}`
-    return `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString}${interceptString}`
+    const squaresPart = sumOfSquares || sumOfSquares === 0
+      ? `<br />Sum of squares = ${floatSumOfSquares(sumOfSquares)}`
+      : ""
+    return `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString}${interceptString}${squaresPart}`
   } else {
     return `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${float(intercept)}`
   }
@@ -187,12 +193,13 @@ export function percentString(value: number) {
 
 export const lsrlEquationString = (
   slope: number, intercept: number, attrNames: {x: string, y: string}, caseValues: Point[],
-  rSquared?: number, confidenceBandsEnabled?: boolean, color?: string, interceptLocked=false
+  confidenceBandsEnabled?: boolean, rSquared?: number, color?: string, interceptLocked=false, sumOfSquares?: number
 ) => {
   const float = format(".3~r")
   const floatIntercept = format(".1~f")
   const floatSeSlope = format(".3~f")
   const linearRegression = leastSquaresLinearRegression(caseValues, interceptLocked)
+  const floatSumOfSquares = format(",.0f")
   const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
   const seSlope = Math.sqrt((sse / count - 2) / xSumSquaredDeviations)
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
@@ -207,9 +214,12 @@ export const lsrlEquationString = (
   const seSlopePart = confidenceBandsEnabled && !interceptLocked
     ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}`
     : ""
+  const squaresPart = sumOfSquares || sumOfSquares === 0
+    ? `<br />Sum of squares = ${floatSumOfSquares(sumOfSquares)}`
+    : ""
   const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${float(rSquared)}`
   const style = color ? `style="color: ${color}"` : ""
-  return `<span ${style}>${equationPart}${rSquaredPart}${seSlopePart}</span>`
+  return `<span ${style}>${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}</span>`
 }
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
