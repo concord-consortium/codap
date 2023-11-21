@@ -6,7 +6,7 @@ import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
-import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
+import {breakPointCoords, computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
@@ -33,11 +33,6 @@ interface ILine {
   lower?: Selection<SVGLineElement, unknown, null, undefined>
   middle?: Selection<SVGLineElement, unknown, null, undefined>
   upper?: Selection<SVGLineElement, unknown, null, undefined>
-}
-
-interface IPointsOnAxes {
-  pt1: Point
-  pt2: Point
 }
 
 interface IProps {
@@ -118,14 +113,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   }, [equationContainerSelector, instanceKey, model.lines, plotHeight, plotWidth, xAttrName, xSubAxesCount,
       yAttrName, ySubAxesCount])
 
-  const breakPointCoords = useCallback((pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number) => {
-    if (interceptLocked) return {x: xScaleRef.current(0), y: yScaleRef.current(0)}
-    const weight = breakPointNum === 1 ? 3/8 : 5/8
-    const x = pixelPtsOnAxes.pt1.x + weight * (pixelPtsOnAxes.pt2.x - pixelPtsOnAxes.pt1.x)
-    const y = pixelPtsOnAxes.pt1.y + weight * (pixelPtsOnAxes.pt2.y - pixelPtsOnAxes.pt1.y)
-    return {x, y}
-  }, [interceptLocked])
-
   const updateLine = useCallback(() => {
     // The coordinates at which the line intersects the axes
     const pixelPtsOnAxes = {
@@ -139,8 +126,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       }
     }
 
-    const breakPt1 = breakPointCoords(pixelPtsOnAxes, 1)
-    const breakPt2 = breakPointCoords(pixelPtsOnAxes, 2)
+    const breakPt1 = breakPointCoords(pixelPtsOnAxes, 1, interceptLocked, xScaleRef.current, yScaleRef.current)
+    const breakPt2 = breakPointCoords(pixelPtsOnAxes, 2, interceptLocked, xScaleRef.current, yScaleRef.current)
     const endPointsArray = [
       {pt1: pixelPtsOnAxes.pt1, pt2: pixelPtsOnAxes.pt2},
       {pt1: pixelPtsOnAxes.pt1, pt2: breakPt1},
@@ -179,7 +166,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       lineObject.handleMiddle?.style("display", "block")
     }
 
-  }, [breakPointCoords, interceptLocked, lineObject.handleLower, lineObject.handleMiddle, lineObject.handleUpper,
+  }, [interceptLocked, lineObject.handleLower, lineObject.handleMiddle, lineObject.handleUpper,
       lineObject.line, lineObject.lower, lineObject.middle, lineObject.upper])
 
   // Middle cover drag handler

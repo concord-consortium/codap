@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { drag, select, Selection } from "d3"
 import t from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { mstReaction } from "../../../../utilities/mst-reaction"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
@@ -147,14 +148,13 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
       const catColor = category && category !== "__main__" ? dataConfig?.getLegendColorForCategory(category) : undefined
       const { slope, intercept, rSquared } = lines[linesIndex]
+      if (slope == null || intercept == null) return
       const screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
       const attrNames = {x: xAttrName, y: yAttrName}
-      const string =
-        lsrlEquationString(
-          Number(slope), Number(intercept), Number(rSquared), attrNames, caseValues,
-          showConfidenceBands, catColor, interceptLocked
-        )
+      const string = lsrlEquationString(
+        slope, intercept, attrNames, caseValues, rSquared, showConfidenceBands, catColor, interceptLocked
+      )
       const equation = equationDiv.select(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`)
       equation.html(string)
 
@@ -203,9 +203,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     // If the Intercept Locked option is selected, we do not show confidence bands. So in that case we
     // simply clear the confidence band elements and return.
     if (interceptLocked) {
-      lineObj?.confidenceBandCurve?.attr("d", "")
-      lineObj?.confidenceBandCover?.attr("d", "")
-      lineObj?.confidenceBandShading?.attr("d", "")
+      lineObj?.confidenceBandCurve?.attr("d", null)
+      lineObj?.confidenceBandCover?.attr("d", null)
+      lineObj?.confidenceBandShading?.attr("d", null)
       return
     }
 
@@ -244,7 +244,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     updateEquations()
   }, [updateEquations, updateLines])
 
-  const createElements = useCallback(() => {
+  const buildElements = useCallback(() => {
     const lines = getLines()
     if (!lines) return
 
@@ -271,7 +271,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       const { slope, intercept } = lines[lineIndex]
       const { domain: xDomain } = xAxis
       const { domain: yDomain } = yAxis
-      if (!slope || (!intercept && intercept !== 0)) continue
+      if (slope == null || intercept == null) continue
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
       // Set up the confidence band elements. We add them before the line so they don't interfere
@@ -325,6 +325,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
 
       lineObj.equation = equationDiv
       lineObjectsRef.current = [...lineObjectsRef.current, lineObj]
+      updateEquations()
+      showConfidenceBands && updateConfidenceBands(lineIndex, lines[lineIndex])
 
       const equation = equationDiv.select<HTMLElement>(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`)
       equation?.call(
@@ -334,27 +336,33 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     }
 
   }, [cellKey, classFromKey, containerId, dataConfig, equationContainerClass, fixEndPoints, getLines,
-      handleHighlightLineAndEquation, handleMoveEquation, model, plotHeight, plotWidth, xAxis, yAxis])
+      handleHighlightLineAndEquation, handleMoveEquation, model, plotHeight, plotWidth, showConfidenceBands,
+      updateConfidenceBands, updateEquations, xAxis, yAxis])
 
   // Refresh values on interceptLocked change
   useEffect(function refreshInterceptLockChange() {
     const updateCategoryOptions = graphModel.getUpdateCategoriesOptions()
-    model.updateCategories(updateCategoryOptions)
-    createElements()
-    updateLSRL()
-  }, [createElements, graphModel, interceptLocked, model, updateEquations, updateLSRL])
+    return mstReaction(
+      () => {
+        model.updateCategories(updateCategoryOptions)
+      },
+      () => {
+        buildElements()
+      }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
+  }, [buildElements, dataConfig, graphModel, interceptLocked, model, updateLSRL, xAxis, yAxis])
 
-  // Refresh values on axis changes
+  // Refresh values on changes to axes
   useEffect(function refreshAxisChange() {
-    return mstAutorun(() => {
-      // We observe changes to the axis domains within the autorun by extracting them from the axes below.
-      // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-      // from triggering a reinstall of the autorun.
-      const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-      const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-      updateLSRL()
-    }, { name: "LSRLAdornmentComponent.refreshAxisChange" }, model)
-  }, [dataConfig, model, xAxis, yAxis, updateLSRL])
+    return mstAutorun(
+      () => {
+        // We observe changes to the axis domains within the autorun by extracting them from the axes below.
+        // We do this instead of including domains in the useEffect dependency array to prevent domain changes
+        // from triggering a reinstall of the autorun.
+        const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+        const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+        buildElements()
+      }, { name: "LSRLAdornmentComponent.refreshAxisChange" }, model)
+  }, [buildElements, dataConfig, model, xAxis, yAxis, updateLSRL])
 
   return (
     <svg

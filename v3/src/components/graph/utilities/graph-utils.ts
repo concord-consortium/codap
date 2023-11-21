@@ -13,6 +13,11 @@ import {IDataConfigurationModel} from "../../data-display/models/data-configurat
  * Utility routines having to do with graph entities
  */
 
+interface IPointsOnAxes {
+  pt1: Point
+  pt2: Point
+}
+
 /**
  * This function closely follows V2's CellLinearAxisModel:_computeBoundsAndTickGap
  */
@@ -186,8 +191,8 @@ export function percentString(value: number) {
 }
 
 export const lsrlEquationString = (
-  slope: number, intercept: number, rSquared: number, attrNames: {x: string, y: string}, caseValues: Point[],
-  confidenceBandsEnabled?: boolean, color?: string, interceptLocked=false
+  slope: number, intercept: number, attrNames: {x: string, y: string}, caseValues: Point[],
+  rSquared?: number, confidenceBandsEnabled?: boolean, color?: string, interceptLocked=false
 ) => {
   const float = format(".3~r")
   const floatIntercept = format(".1~f")
@@ -207,7 +212,7 @@ export const lsrlEquationString = (
   const seSlopePart = confidenceBandsEnabled && !interceptLocked
     ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}`
     : ""
-  const rSquaredPart = intercept === 0 ? "" : `<br />r<sup>2</sup> = ${float(rSquared)}`
+  const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${float(rSquared)}`
   const style = color ? `style="color: ${color}"` : ""
   return `<span ${style}>${equationPart}${rSquaredPart}${seSlopePart}</span>`
 }
@@ -517,4 +522,15 @@ export const curveBasis = (points: Point[]) => {
   path += pathBasis(p1, p2, p3, p3)
   path += pathBasis(p2, p3, p3, p3)
   return path
+}
+
+export const breakPointCoords = (
+  pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number, interceptLocked: boolean,
+  xScale: ScaleNumericBaseType, yScale: ScaleNumericBaseType
+) => {
+  if (interceptLocked) return {x: xScale(0), y: yScale(0)}
+  const weight = breakPointNum === 1 ? 3/8 : 5/8
+  const x = pixelPtsOnAxes.pt1.x + weight * (pixelPtsOnAxes.pt2.x - pixelPtsOnAxes.pt1.x)
+  const y = pixelPtsOnAxes.pt1.y + weight * (pixelPtsOnAxes.pt2.y - pixelPtsOnAxes.pt1.y)
+  return {x, y}
 }

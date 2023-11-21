@@ -3,6 +3,8 @@ import { IAdornmentContentInfo, getAdornmentContentInfo, getAdornmentTypes } fro
 import { IAdornmentComponentInfo, getAdornmentComponentInfo } from "./adornment-component-info"
 import { AdornmentModelUnion, IMeasure, PlotTypes, measures } from "./adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
+import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
+import { kLSRLType } from "./lsrl/lsrl-adornment-types"
 
 interface IMeasureMenuItem {
   checked: boolean
@@ -41,6 +43,11 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     }
   }))
   .views(self => ({
+    isShowingAdornment(type: string) {
+      return !!self.adornments.find(a => a.type === type)?.isVisible
+    }
+  }))
+  .views(self => ({
     getAdornmentsMenuItems(plotType: PlotTypes) {
       const registeredAdornments = getAdornmentTypes()
       const measureMenuItems: IMeasureMenuItem[] = []
@@ -48,9 +55,13 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
       let addedShowMeasureLabels = false
       measures[plotType].map((measure: IMeasure) => {
         const { title, type } = measure
-        const checked = !!self.adornments.find(a => a.type === type)?.isVisible
+        const checked = self.isShowingAdornment(type)
         const registeredAdornment = registeredAdornments.find(a => a.type === type)
         const isUnivariateMeasure = registeredAdornment?.parentType === "Univariate Measure"
+        // Add the Show Measure Labels option checkbox immediately before the first univariate measure adornment's
+        // checkbox. Since the Show Measure Labels option isn't for activating an adornment, but rather for
+        // modifying the behavior of other adornments, it doesn't have an associated registeredAdornment. So we nee
+        //  to add it like this.
         if (isUnivariateMeasure && !addedShowMeasureLabels) {
           measureMenuItems.push({
             checked: self.showMeasureLabels,
@@ -69,12 +80,15 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
           title,
           type
         })
+        // Add the Intercept Locked option checkbox immediately after the LSRL checkbox. Since the Intercept Locked
+        // option isn't for activating an adornment, but rather for modifying the behavior of other adornments, it
+        // doesn't have an associated registeredAdornment. So we need to add it like this.
         if (
           registeredAdornment?.type === "LSRL" &&
           plotType === "scatterPlot" && !addedInterceptLocked
         ) {
-          const movableLineVisible = !!self.adornments.find(a => a.type === "Movable Line")?.isVisible
-          const lsrlVisible = !!self.adornments.find(a => a.type === "LSRL")?.isVisible
+          const movableLineVisible = self.isShowingAdornment(kMovableLineType)
+          const lsrlVisible = self.isShowingAdornment(kLSRLType)
           const disabled = !movableLineVisible && !lsrlVisible
           measureMenuItems.push({
             checked: self.interceptLocked,
