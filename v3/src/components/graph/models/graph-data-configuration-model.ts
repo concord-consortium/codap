@@ -513,7 +513,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         baseAfterCreate()
       },
       handleDataSetAction(actionCall: ISerializedActionCall) {
-        const cacheClearingActions = ["setCaseData", "addCases", "removeCases"]
+        const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
         if (cacheClearingActions.includes(actionCall.name)) {
           self.clearCasesCache()
         }
