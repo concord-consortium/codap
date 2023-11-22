@@ -13,11 +13,6 @@ import {IDataConfigurationModel} from "../../data-display/models/data-configurat
  * Utility routines having to do with graph entities
  */
 
-interface IPointsOnAxes {
-  pt1: Point
-  pt2: Point
-}
-
 /**
  * This function closely follows V2's CellLinearAxisModel:_computeBoundsAndTickGap
  */
@@ -522,15 +517,4 @@ export const curveBasis = (points: Point[]) => {
   path += pathBasis(p1, p2, p3, p3)
   path += pathBasis(p2, p3, p3, p3)
   return path
-}
-
-export const breakPointCoords = (
-  pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number, interceptLocked: boolean,
-  xScale: ScaleNumericBaseType, yScale: ScaleNumericBaseType
-) => {
-  if (interceptLocked) return {x: xScale(0), y: yScale(0)}
-  const weight = breakPointNum === 1 ? 3/8 : 5/8
-  const x = pixelPtsOnAxes.pt1.x + weight * (pixelPtsOnAxes.pt2.x - pixelPtsOnAxes.pt1.x)
-  const y = pixelPtsOnAxes.pt1.y + weight * (pixelPtsOnAxes.pt2.y - pixelPtsOnAxes.pt1.y)
-  return {x, y}
 }

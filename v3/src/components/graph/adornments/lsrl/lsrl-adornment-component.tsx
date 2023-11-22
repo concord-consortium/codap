@@ -360,9 +360,10 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
         // from triggering a reinstall of the autorun.
         const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
         const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+        graphModel.getUpdateCategoriesOptions()
         buildElements()
       }, { name: "LSRLAdornmentComponent.refreshAxisChange" }, model)
-  }, [buildElements, dataConfig, model, xAxis, yAxis, updateLSRL])
+  }, [buildElements, graphModel, model, xAxis, yAxis])
 
   return (
     <svg
