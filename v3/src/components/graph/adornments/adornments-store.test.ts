@@ -44,6 +44,14 @@ describe("AdornmentsStore", () => {
     expect(adornmentsStore).toBeDefined()
     expect(adornmentsStore.type).toEqual("Adornments Store")
   })
+  it("can have its interceptLocked property set", () => {
+    const adornmentsStore = AdornmentsStore.create()
+    expect(adornmentsStore.interceptLocked).toBe(false)
+    adornmentsStore.toggleInterceptLocked()
+    expect(adornmentsStore.interceptLocked).toBe(true)
+    adornmentsStore.toggleInterceptLocked()
+    expect(adornmentsStore.interceptLocked).toBe(false)
+  })
   it("can have its showMeasureLabels property set", () => {
     const adornmentsStore = AdornmentsStore.create()
     expect(adornmentsStore.showMeasureLabels).toBe(false)

@@ -85,7 +85,6 @@ export const measures: IMeasures = {
     { title: "DG.Inspector.graphMovablePoint", type: "Movable Point" },
     { title: "DG.Inspector.graphMovableLine", type: "Movable Line" },
     { title: "DG.Inspector.graphLSRL", type: "LSRL" },
-    { title: "DG.Inspector.graphInterceptLocked", type: "Intercept Locked" },
     { title: "DG.Inspector.graphPlottedFunction", type: "Plotted Function" },
     { title: "DG.Inspector.graphPlottedValue", type: "Plotted Value" },
     { title: "DG.Inspector.graphSquares", type: "Squares" },

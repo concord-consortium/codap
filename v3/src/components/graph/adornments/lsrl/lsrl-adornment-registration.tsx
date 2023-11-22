@@ -15,6 +15,7 @@ const Controls = observer(() => {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
+  const interceptLocked = adornmentsStore?.interceptLocked
 
   const handleLSRLSetting = (checked: boolean) => {
     const existingLSRLAdornment = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
@@ -59,7 +60,7 @@ const Controls = observer(() => {
         className="sub-options show-confidence-bands"
         data-testid="adornment-show-confidence-bands-options"
       >
-        <FormControl isDisabled={!existingAdornment?.isVisible}>
+        <FormControl isDisabled={!existingAdornment?.isVisible || interceptLocked}>
           <Checkbox
             data-testid={`adornment-checkbox-${kLSRLClass}-show-confidence-bands`}
             defaultChecked={existingAdornment?.showConfidenceBands}

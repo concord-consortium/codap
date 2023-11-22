@@ -230,6 +230,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
       .should(
         "contain.html",
+        // eslint-disable-next-line max-len
         "<span><em>Speed</em> = −0.00142 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933<br>SE<sub>slope</sub> = 0.003</span>"
       )
     // TODO: Test that mousing over equation highlights the line and vice versa
@@ -290,6 +291,38 @@ context("Graph adornments", () => {
     cy.wait(250)
     movableLineCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+  })
+  it("locks intercept of LSRL and movable line when Lock Intercept checkbox is checked", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Speed", "y")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-intercept-locked]").find("input")
+      .should("not.be.checked").should("have.attr", "disabled")
+    cy.get("[data-testid=adornment-checkbox-lsrl]").click()
+    cy.get("[data-testid=adornment-show-confidence-bands-options]").click()
+    cy.get("*[data-testid=lsrl-confidence-band]").should("have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("have.attr", "d")
+    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
+    cy.get("[data-testid=adornment-checkbox-intercept-locked]").find("input").should("not.have.attr", "disabled")
+    cy.get("[data-testid=adornment-checkbox-intercept-locked]").click()
+    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("have.attr", "disabled")
+    cy.get("*[data-testid=lsrl-confidence-band]").should("not.have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("not.have.attr", "d")
+    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("not.have.attr", "d")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
+      .should("not.contain.html", "r<sup>2</sup> = ")
+    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
+      .find("[data-testid=movable-line-equation-]")
+      .should("not.contain.html", "(<em>Sleep</em>) + ")
+    cy.get("[data-testid=adornment-checkbox-intercept-locked]").click()
+    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("not.have.attr", "disabled")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
+      .should("contain.html", "r<sup>2</sup> = ")
+    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
+      .find("[data-testid=movable-line-equation-]")
+      .should("contain.html", "(<em>Sleep</em>) + ")
   })
   it("adds movable point to graph when Movable Point checkbox is checked", () => {
     c.selectTile("graph", 0)

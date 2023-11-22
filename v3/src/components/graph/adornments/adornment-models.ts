@@ -31,6 +31,7 @@ export const kInfinitePoint = {x:NaN, y:NaN}
 
 export interface IUpdateCategoriesOptions {
   dataConfig: IGraphDataConfigurationModel
+  interceptLocked?: boolean
   resetPoints?: boolean
   xAxis?: IAxisModel
   yAxis?: IAxisModel

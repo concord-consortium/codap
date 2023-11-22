@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
-import {drag, select} from "d3"
+import {drag, select, Selection} from "d3"
+import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
@@ -11,6 +12,7 @@ import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-confi
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { Point } from "../../../data-display/data-display-types"
 
 import "./movable-line-adornment-component.scss"
 
@@ -20,6 +22,22 @@ function equationContainer(model: IMovableLineAdornmentModel, cellKey: Record<st
   const equationContainerSelector = `#${containerId} .${equationContainerClass}`
 
   return { equationContainerClass, equationContainerSelector }
+}
+
+interface IPointsOnAxes {
+  pt1: Point
+  pt2: Point
+}
+
+interface ILine {
+  equation?: Selection<HTMLDivElement, unknown, HTMLElement, undefined>
+  handleLower?: Selection<SVGRectElement, unknown, null, undefined>
+  handleMiddle?: Selection<SVGRectElement, unknown, null, undefined>
+  handleUpper?: Selection<SVGRectElement, unknown, null, undefined>
+  line?: Selection<SVGLineElement, unknown, null, undefined>
+  lower?: Selection<SVGLineElement, unknown, null, undefined>
+  middle?: Selection<SVGLineElement, unknown, null, undefined>
+  upper?: Selection<SVGLineElement, unknown, null, undefined>
 }
 
 interface IProps {
@@ -38,27 +56,29 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const dataConfig = useGraphDataConfigurationContext()
   const layout = useAxisLayoutContext()
   const instanceId = useInstanceIdContext()
+  const adornmentsStore = graphModel.adornmentsStore
   const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
   const xRange = xScale.range()
-  const xScaleCopy = xScale.copy()
   const yScale = layout.getAxisScale("left") as ScaleNumericBaseType
   const yRange = yScale.range()
-  const yScaleCopy = yScale.copy()
   const kTolerance = 4 // pixels to snap to horizontal or vertical
   const kHandleSize = 12
+  const interceptLocked = adornmentsStore?.interceptLocked
   const instanceKey = model.instanceKey(cellKey)
   const classFromKey = model.classNameFromKey(cellKey)
   const {equationContainerClass, equationContainerSelector} = equationContainer(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
-  const [lineObject, setLineObject] = useState<{ [index: string]: any }>({
-    line: null, lower: null, middle: null, upper: null, equation: null
-  })
+  const [lineObject, setLineObject] = useState<ILine>({})
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
+  const xScaleRef = useRef(xScale.copy())
+  const yScaleRef = useRef(yScale.copy())
 
-  // Set scale copy ranges. The scale copies are used when computing the line's
-  // coordinates during dragging.
-  xScaleCopy.range([0, plotWidth])
-  yScaleCopy.range([plotHeight, 0])
+  // Set scale copy ranges. The scale copies are used when computing the line's coordinates during
+  // dragging. We modify the ranges of the scale copies to match the sub plot's width and height so that
+  // the line's coordinates are computed correctly. The original scales use the entire plot's width and
+  // height, which won't work when there are multiple subplots.
+  xScaleRef.current.range([0, plotWidth])
+  yScaleRef.current.range([plotHeight, 0])
 
   // get attributes for use in equation
   const allAttributes = dataConfig?.dataset?.attributes
@@ -72,8 +92,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
 
   const refreshEquation = useCallback((slope: number, intercept: number) => {
-    const screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
-    const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
+    const screenX = xScaleRef.current((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
+    const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
     const attrNames = {x: xAttrName, y: yAttrName}
     const string = equationString(slope, intercept, attrNames)
     const equation = select(equationContainerSelector).select("p")
@@ -90,35 +110,40 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       equation.style("left", `${screenX}px`)
         .style("top", `${screenY}px`)
     } else {
-      const left = equationCoords.x * 100
-      const top = equationCoords.y * 100
-      equation.style("left", `${left}%`)
-              .style("top", `${top}%`)
+      const left = equationCoords.x
+      const top = equationCoords.y
+      equation.style("left", `${left}px`)
+              .style("top", `${top}px`)
     }
-  }, [equationContainerSelector, instanceKey, model.lines, plotHeight, plotWidth, xAttrName,
-      xScale, xSubAxesCount, yAttrName, yScale, ySubAxesCount])
+  }, [equationContainerSelector, instanceKey, model.lines, plotHeight, plotWidth, xAttrName, xSubAxesCount,
+      yAttrName, ySubAxesCount])
+
+  
+  const breakPointCoords = useCallback((
+    pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number, _interceptLocked: boolean
+  ) => {
+    if (_interceptLocked) return {x: xScaleRef.current(0), y: yScaleRef.current(0)}
+    const weight = breakPointNum === 1 ? 3/8 : 5/8
+    const x = pixelPtsOnAxes.pt1.x + weight * (pixelPtsOnAxes.pt2.x - pixelPtsOnAxes.pt1.x)
+    const y = pixelPtsOnAxes.pt1.y + weight * (pixelPtsOnAxes.pt2.y - pixelPtsOnAxes.pt1.y)
+    return {x, y}
+  }, [])
 
   const updateLine = useCallback(() => {
     // The coordinates at which the line intersects the axes
     const pixelPtsOnAxes = {
       pt1: {
-        x: xScale(pointsOnAxes.current.pt1.x) / xSubAxesCount,
-        y: yScale(pointsOnAxes.current.pt1.y) / ySubAxesCount
+        x: xScaleRef.current(pointsOnAxes.current.pt1.x),
+        y: yScaleRef.current(pointsOnAxes.current.pt1.y)
       },
       pt2: {
-        x: xScale(pointsOnAxes.current.pt2.x) / xSubAxesCount,
-        y: yScale(pointsOnAxes.current.pt2.y) / ySubAxesCount
+        x: xScaleRef.current(pointsOnAxes.current.pt2.x),
+        y: yScaleRef.current(pointsOnAxes.current.pt2.y)
       }
     }
 
-    const breakPt1 = {
-      x: pixelPtsOnAxes.pt1.x + (3 / 8) * (pixelPtsOnAxes.pt2.x - pixelPtsOnAxes.pt1.x),
-      y: pixelPtsOnAxes.pt1.y + (3 / 8) * (pixelPtsOnAxes.pt2.y - pixelPtsOnAxes.pt1.y)
-    }
-    const breakPt2 = {
-      x: pixelPtsOnAxes.pt1.x + (5 / 8) * (pixelPtsOnAxes.pt2.x - pixelPtsOnAxes.pt1.x),
-      y: pixelPtsOnAxes.pt1.y + (5 / 8) * (pixelPtsOnAxes.pt2.y - pixelPtsOnAxes.pt1.y)
-    }
+    const breakPt1 = breakPointCoords(pixelPtsOnAxes, 1, interceptLocked)
+    const breakPt2 = breakPointCoords(pixelPtsOnAxes, 2, interceptLocked)
     const endPointsArray = [
       {pt1: pixelPtsOnAxes.pt1, pt2: pixelPtsOnAxes.pt2},
       {pt1: pixelPtsOnAxes.pt1, pt2: breakPt1},
@@ -126,7 +151,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       {pt1: breakPt2, pt2: pixelPtsOnAxes.pt2}
     ]
 
-    function fixEndPoints(iLine: any, index: number) {
+    function fixEndPoints(iLine: Selection<SVGLineElement, unknown, null, undefined>, index: number) {
       iLine
         .attr("x1", endPointsArray[index].pt1.x)
         .attr("y1", endPointsArray[index].pt1.y)
@@ -134,39 +159,47 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         .attr("y2", endPointsArray[index].pt2.y)
     }
 
-    function fixHandles(iRect: any, index: number) {
-      const xCenter = (endPointsArray[index].pt1.x + endPointsArray[index].pt2.x) / 2,
-        yCenter = (endPointsArray[index].pt1.y + endPointsArray[index].pt2.y) / 2
-      iRect
-        .attr("x", xCenter - kHandleSize / 2)
-        .attr("y", yCenter - kHandleSize / 2)
+    function fixHandles(iRect: Selection<SVGRectElement, unknown, null, undefined>, index: number) {
+      const xCenter = (endPointsArray[index].pt1.x + endPointsArray[index].pt2.x) / 2
+      const yCenter = (endPointsArray[index].pt1.y + endPointsArray[index].pt2.y) / 2
+      iRect.attr("x", xCenter - kHandleSize / 2)
+           .attr("y", yCenter - kHandleSize / 2)
     }
 
-    fixEndPoints(lineObject.line, 0)
-    fixEndPoints(lineObject.lower, 1)
-    fixEndPoints(lineObject.middle, 2)
-    fixEndPoints(lineObject.upper, 3)
-    fixHandles(lineObject.handleLower, 1)
-    fixHandles(lineObject.handleMiddle, 2)
-    fixHandles(lineObject.handleUpper, 3)
+    lineObject.line && fixEndPoints(lineObject.line, 0)
+    lineObject.lower && fixEndPoints(lineObject.lower, 1)
+    lineObject.middle && fixEndPoints(lineObject.middle, 2)
+    lineObject.upper && fixEndPoints(lineObject.upper, 3)
+    lineObject.handleLower && fixHandles(lineObject.handleLower, 1)
+    lineObject.handleMiddle && fixHandles(lineObject.handleMiddle, 2)
+    lineObject.handleUpper && fixHandles(lineObject.handleUpper, 3)
 
-  }, [lineObject.handleLower, lineObject.handleMiddle, lineObject.handleUpper, lineObject.line,
-      lineObject.lower, lineObject.middle, lineObject.upper, xScale, xSubAxesCount, yScale, ySubAxesCount])
+    // If the intercept is locked, hide the middle handle. It's not needed since it would then be permanently fixed
+    // at the origin and is not draggable.
+    if (interceptLocked) {
+      lineObject.handleMiddle?.style("display", "none")
+    } else {
+      lineObject.handleMiddle?.style("display", "block")
+    }
+
+  }, [breakPointCoords, interceptLocked, lineObject.handleLower, lineObject.handleMiddle, lineObject.handleUpper,
+      lineObject.line, lineObject.lower, lineObject.middle, lineObject.upper])
 
   // Middle cover drag handler
   const handleTranslate = useCallback((event: MouseEvent, isFinished=false) => {
+    if (interceptLocked) return
     const lineParams = model.lines?.get(instanceKey)
     const slope = lineParams?.slope || 0
     const intercept = lineParams?.intercept || 0
-    const tWorldX = xScaleCopy.invert(event.x)
-    const tWorldY = yScaleCopy.invert(event.y)
+    const tWorldX = xScaleRef.current.invert(event.x)
+    const tWorldY = yScaleRef.current.invert(event.y)
 
     // If the line is dragged outside plot area, reset it to the initial state
     if (
-        tWorldX < xScaleCopy.domain()[0] ||
-        tWorldX > xScaleCopy.domain()[1] ||
-        tWorldY < yScaleCopy.domain()[0] ||
-        tWorldY > yScaleCopy.domain()[1]
+        tWorldX < xScaleRef.current.domain()[0] ||
+        tWorldX > xScaleRef.current.domain()[1] ||
+        tWorldY < yScaleRef.current.domain()[0] ||
+        tWorldY > yScaleRef.current.domain()[1]
     ) {
       const { intercept: initIntercept, slope: initSlope } = computeSlopeAndIntercept(xAxis, yAxis)
       model.setLine({slope: initSlope, intercept: initIntercept}, instanceKey)
@@ -184,7 +217,25 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       const equationCoords = lineParams?.equationCoords
       model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
     }
-  }, [instanceKey, model, refreshEquation, updateLine, xAxis, xScaleCopy, yAxis, yScaleCopy])
+  }, [instanceKey, interceptLocked, model, refreshEquation, updateLine, xAxis, yAxis])
+
+  const newSlopeAndIntercept = useCallback((
+    pivot: Point, mousePosition: Point, lineSection: string, isVertical: boolean
+  ) => {
+    let newSlope, newIntercept
+    if (isVertical) {
+      newSlope = Number.POSITIVE_INFINITY
+      newIntercept = interceptLocked ? 0 : pivot.x
+    } else {
+      newSlope = interceptLocked
+        ? mousePosition.y / mousePosition.x
+        : lineSection === "lower"
+          ? (pivot.y - mousePosition.y) / (pivot.x - mousePosition.x)
+          : (mousePosition.y - pivot.y) / (mousePosition.x - pivot.x)
+      newIntercept = interceptLocked ? 0 : mousePosition.y - newSlope * mousePosition.x
+    }
+    return {newSlope, newIntercept}
+  }, [interceptLocked])
 
   const handleRotation = useCallback((
     event: { x: number, y: number, dx: number, dy: number },
@@ -196,46 +247,38 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
 
     if (event.dx !== 0 || event.dy !== 0 || isFinished) {
       const equationCoords = lineParams?.equationCoords
-
       // The current pivot is the pivot point on the line section not being dragged.
       // lineParams.pivot1 is the pivot point on the lower section, lineParams.pivot2 is the
       // pivot point on the upper section
       const currentPivot = lineSection === "lower" ? lineParams?.pivot2 : lineParams?.pivot1
-
-      let isVertical = false
-      // The new pivot will be the point on the line section where it is being dragged.
-      const newPivot = { x: xScaleCopy.invert(event.x), y: yScaleCopy.invert(event.y) }
-      // If the current pivot isn't valid, use the point where the other line section intersects the
-      // axes as the pivot point.
-      const pivot = currentPivot?.isValid()
-                      ? currentPivot
-                      : lineSection === "lower"
-                        ? pointsOnAxes.current.pt2
-                        : pointsOnAxes.current.pt1
+      // The new pivot will be the point on the line section where it is currently being dragged,
+      // i.e. where the mouse cursor is.
+      const mousePosition = { x: xScaleRef.current.invert(event.x), y: yScaleRef.current.invert(event.y) }
+      // If the intercept is locked, the pivot is fixed. Otherwise, if the current pivot isn't
+      // valid, use the point where the other line section intersects the axes as the pivot point.
+      const pivot = interceptLocked
+        ? {x: 0, y: 0}
+        : currentPivot?.isValid()
+          ? currentPivot
+          : lineSection === "lower"
+            ? pointsOnAxes.current.pt2
+            : pointsOnAxes.current.pt1
 
       // If the line is perfectly vertical, set the new pivot's x coordinate to the x coordinate of the
       // original pivot. If the line is perfectly horizontal, set the new pivot's y coordinate to the y
       // coordinate of the original pivot.
-      if (Math.abs(xScaleCopy(newPivot.x) - xScaleCopy(pivot.x)) < kTolerance) { // vertical
-        newPivot.x = pivot.x
+      let isVertical = false
+      if (Math.abs(xScaleRef.current(mousePosition.x) - xScaleRef.current(pivot.x)) < kTolerance) { // vertical
+        mousePosition.x = pivot.x
         isVertical = true
-      } else if (Math.abs(yScaleCopy(newPivot.y) - yScaleCopy(pivot.y)) < kTolerance) { // horizontal
-        newPivot.y = pivot.y
+      } else if (Math.abs(yScaleRef.current(mousePosition.y) - yScaleRef.current(pivot.y)) < kTolerance) { // horizontal
+        mousePosition.y = pivot.y
       }
 
-      let newSlope, newIntercept
-      if (isVertical) {
-        newSlope = Number.POSITIVE_INFINITY
-        newIntercept = pivot.x
-      } else {
-        newSlope = lineSection === "lower"
-          ? (pivot.y - newPivot.y) / (pivot.x - newPivot.x)
-          : (newPivot.y - pivot.y) / (newPivot.x - pivot.x)
-        newIntercept = newPivot.y - newSlope * newPivot.x
-      }
+      const { newSlope, newIntercept } = newSlopeAndIntercept(pivot, mousePosition, lineSection, isVertical)
 
-      lineObject.lower.classed("negative-slope", newSlope < 0)
-      lineObject.upper.classed("negative-slope", newSlope < 0)
+      lineObject.lower?.classed("negative-slope", newSlope < 0)
+      lineObject.upper?.classed("negative-slope", newSlope < 0)
 
       const {domain: xDomain} = xAxis
       const {domain: yDomain} = yAxis
@@ -248,16 +291,16 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           {
             slope: newSlope,
             intercept: newIntercept,
-            pivot1: lineSection === "lower" ? newPivot : pivot,
-            pivot2: lineSection === "lower" ? pivot : newPivot,
+            pivot1: lineSection === "lower" ? mousePosition : lineParams.pivot1,
+            pivot2: lineSection === "lower" ? lineParams.pivot2 : mousePosition,
             equationCoords,
           },
           instanceKey
         )
       }
     }
-  }, [model, instanceKey, xScaleCopy, yScaleCopy, lineObject.lower, lineObject.upper, xAxis, yAxis,
-      updateLine, refreshEquation])
+  }, [model, instanceKey, interceptLocked, newSlopeAndIntercept, lineObject.lower, lineObject.upper, xAxis,
+      yAxis, updateLine, refreshEquation])
 
   const handleMoveEquation = useCallback((
     event: { x: number, y: number, dx: number, dy: number },
@@ -265,27 +308,22 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   ) => {
     if (event.dx !== 0 || event.dy !== 0 || isFinished) {
       const equation = select(`${equationContainerSelector} p`)
-      const equationNode = equation.node() as Element
-      const equationWidth = equationNode?.getBoundingClientRect().width || 0
-      const equationHeight = equationNode?.getBoundingClientRect().height || 0
-      const left = event.x - equationWidth / 2
-      const top = event.y - equationHeight / 2
+      const equationLeft = equation.style("left") ? parseFloat(equation.style("left")) : 0
+      const equationTop = equation.style("top") ? parseFloat(equation.style("top")) : 0
+      const left = equationLeft + event.dx
+      const top = equationTop + event.dy
       equation.style("left", `${left}px`)
         .style("top", `${top}px`)
 
       if (isFinished) {
         const lineModel = model.lines.get(instanceKey)
-        // Get the percentage of plot width and height of the equation box's coordinates
-        // for a more accurate placement of the equation box.
-        const x = left / plotWidth
-        const y = top / plotHeight
         graphModel.applyUndoableAction(
-          () => lineModel?.setEquationCoords({x, y}),
+          () => lineModel?.setEquationCoords({x: left, y: top}),
           "DG.Undo.graph.repositionEquation", "DG.Redo.graph.repositionEquation"
         )
       }
     }
-  }, [equationContainerSelector, graphModel, instanceKey, model.lines, plotHeight, plotWidth])
+  }, [equationContainerSelector, graphModel, instanceKey, model.lines])
 
   // Refresh the line
   useEffect(function refresh() {
@@ -293,7 +331,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       const lineModel = model.lines.get(instanceKey)
       if (!lineObject.line || !lineModel) return
 
-      const { slope, intercept } = lineModel
+      const slope = lineModel.slope
+      const intercept = interceptLocked ? 0 : lineModel.intercept
       const {domain: xDomain} = xAxis
       const {domain: yDomain} = yAxis
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
@@ -301,7 +340,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       refreshEquation(slope, intercept)
     })
     return () => disposer()
-  }, [instanceId, pointsOnAxes, lineObject, plotHeight, plotWidth, xScale, yScale, model,
+  }, [instanceId, interceptLocked, pointsOnAxes, lineObject, plotHeight, plotWidth, model,
       model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount, yAxis, xRange,
       yRange, equationContainerSelector, cellKey, instanceKey, updateLine, refreshEquation])
 
@@ -316,22 +355,22 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         .on("end", (e) => handleTranslate(e, true)),
       upper: drag()
         .on("drag", (e) => handleRotation(e, "upper"))
-        .on("end", (e) => handleRotation(e, "lower", true)),
+        .on("end", (e) => handleRotation(e, "upper", true)),
       equation: drag()
         .on("drag", (e) => handleMoveEquation(e))
         .on("end", (e) => handleMoveEquation(e, true))
     }
 
     lineObject.lower?.call(behaviors.lower)
-    lineObject.middle?.call(behaviors.middle)
+    !interceptLocked && lineObject.middle?.call(behaviors.middle)
     lineObject.upper?.call(behaviors.upper)
     lineObject.equation?.call(behaviors.equation)
-  }, [lineObject, handleTranslate, handleRotation, handleMoveEquation])
+  }, [lineObject, handleTranslate, handleRotation, handleMoveEquation, interceptLocked])
 
   // Build the line and its cover segments and handles just once
   useEffect(function createElements() {
     const selection = select(lineRef.current)
-    const newLineObject: any = {}
+    const newLineObject: ILine = {}
 
     // Set up the line and its cover segments and handles
     newLineObject.line = selection.append("line")
@@ -344,11 +383,11 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     newLineObject.upper = selection.append("line")
       .attr("class", "movable-line-cover movable-line-upper-cover")
     newLineObject.handleLower = selection.append("rect")
-        .attr("class", "movable-line-handle movable-line-lower-handle show-on-tile-selected")
+      .attr("class", "movable-line-handle movable-line-lower-handle show-on-tile-selected")
     newLineObject.handleMiddle = selection.append("rect")
-        .attr("class", "movable-line-handle movable-line-middle-handle show-on-tile-selected")
+      .attr("class", "movable-line-handle movable-line-middle-handle show-on-tile-selected")
     newLineObject.handleUpper = selection.append("rect")
-        .attr("class", "movable-line-handle movable-line-upper-handle show-on-tile-selected")
+      .attr("class", "movable-line-handle movable-line-upper-handle show-on-tile-selected")
 
     // Set up the corresponding equation box
     // Define the selector that corresponds with this specific movable line's adornment container
@@ -362,17 +401,17 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       .append("p")
       .attr("class", "movable-line-equation")
       .attr("data-testid", `movable-line-equation-${model.classNameFromKey(cellKey)}`)
-      .on("mouseover", () => { newLineObject.line.style("stroke-width", 2) })
-      .on("mouseout", () => { newLineObject.line.style("stroke-width", 1) })
+      .on("mouseover", () => { newLineObject.line?.style("stroke-width", 2) })
+      .on("mouseout", () => { newLineObject.line?.style("stroke-width", 1) })
 
     // If the equation is not pinned to the line, set its initial coordinates to
     // the values specified in the model.
     const equationCoords = model.lines?.get(instanceKey)?.equationCoords
     if (equationCoords?.isValid()) {
-      const left = equationCoords.x * 100
-      const top = equationCoords.y * 100
-      equationP.style("left", `${left}%`)
-        .style("top", `${top}%`)
+      const left = equationCoords.x
+      const top = equationCoords.y
+      equationP.style("left", `${left}px`)
+        .style("top", `${top}px`)
     }
 
     newLineObject.equation = equationDiv
@@ -385,6 +424,23 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   // instances of the line elements
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Refresh values on axis changes
+  useEffect(function refreshAxisChange() {
+    return mstAutorun(() => {
+      // We observe changes to the axis domains within the autorun by extracting them from the axes below.
+      // We do this instead of including domains in the useEffect dependency array to prevent domain changes
+      // from triggering a reinstall of the autorun.
+      const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+      const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+      updateLine()
+      // Update scale copy ranges
+      xScaleRef.current = xScale.copy()
+      yScaleRef.current = yScale.copy()
+      xScaleRef.current.range([0, plotWidth])
+      yScaleRef.current.range([plotHeight, 0])
+    }, { name: "LSRLAdornmentComponent.refreshAxisChange" }, model)
+  }, [dataConfig, interceptLocked, model, xAxis, xScale, yAxis, yScale, updateLine, plotWidth, plotHeight])
 
   return (
     <svg
