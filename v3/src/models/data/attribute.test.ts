@@ -81,7 +81,7 @@ describe("Attribute", () => {
 
     attribute.setUnits("m")
     expect(attribute.units).toBe("m")
-    expect(attribute.numericCount).toBe(0)
+    expect(attribute.getNumericCount()).toBe(0)
     expect(attribute.type).toBeUndefined()
 
     attribute.addValue("1")
@@ -95,7 +95,7 @@ describe("Attribute", () => {
     expect(attribute.value(2)).toBe("3")
     expect(attribute.numeric(1)).toBe(2)
     expect(attribute.numeric(2)).toBe(3)
-    expect(attribute.numericCount).toBe(3)
+    expect(attribute.getNumericCount()).toBe(3)
 
     attribute.addValue(0, 0)
     expect(attribute.length).toBe(4)
@@ -132,7 +132,7 @@ describe("Attribute", () => {
     expect(attribute.value(1)).toBe("2")
     expect(attribute.numeric(0)).toBe(0)
     expect(attribute.numeric(1)).toBe(2)
-    expect(attribute.numericCount).toBe(6)
+    expect(attribute.getNumericCount()).toBe(6)
     expect(attribute.type).toBe("numeric")
 
     // undefined/empty values are ignored when determining type
@@ -202,21 +202,21 @@ describe("Attribute", () => {
 
     // value changes should trigger emptyCount reevaluation
     const emptyCountListener = jest.fn()
-    const emptyCountDisposer = reaction(() => a.emptyCount, () => emptyCountListener())
-    expect(a.emptyCount).toBe(0)
+    const emptyCountDisposer = reaction(() => a.getEmptyCount(), () => emptyCountListener())
+    expect(a.getEmptyCount()).toBe(0)
     expect(emptyCountListener).toHaveBeenCalledTimes(0)
     a.setValue(2, "")
-    expect(a.emptyCount).toBe(1)
+    expect(a.getEmptyCount()).toBe(1)
     expect(emptyCountListener).toHaveBeenCalledTimes(1)
     emptyCountDisposer()
 
     // value changes should trigger numericCount reevaluation
     const numericCountListener = jest.fn()
-    const numericCountDisposer = reaction(() => a.numericCount, () => numericCountListener())
-    expect(a.numericCount).toBe(3)
+    const numericCountDisposer = reaction(() => a.getNumericCount(), () => numericCountListener())
+    expect(a.getNumericCount()).toBe(3)
     expect(numericCountListener).toHaveBeenCalledTimes(0)
     a.setValue(2, "3")
-    expect(a.numericCount).toBe(4)
+    expect(a.getNumericCount()).toBe(4)
     expect(numericCountListener).toHaveBeenCalledTimes(1)
     numericCountDisposer()
 

@@ -76,3 +76,25 @@ export function onAnyAction(
 ): IDisposer {
     return onAction(target, listener, { attachAfter: true, allActions: true, ...options })
 }
+
+/**
+ * A function factory that returns lazily evaluated function which will return the same value until invalidate() is
+ * called. This is useful for caching values that are expensive to calculate.
+ *
+ * @param recalculate
+ * @returns a function that will return the same value until invalidate() is called.
+ */
+export function cachedFnFactory<T>(recalculate: () => T): (() => T) & { invalidate: () => void } {
+  const invalidKey = "__invalid__"
+  let cachedValue: T | "__invalid__" = invalidKey
+  const getter = () => {
+    if (cachedValue === invalidKey) {
+      cachedValue = recalculate()
+    }
+    return cachedValue
+  }
+  getter.invalidate = () => {
+    cachedValue = invalidKey
+  }
+  return getter
+}

@@ -30,6 +30,7 @@ import { Formula } from "../formula/formula"
 import { typedId } from "../../utilities/js-utils"
 import t from "../../utilities/translation/translate"
 import { withoutUndo } from "../history/without-undo"
+import { cachedFnFactory } from "../../utilities/mst-utils"
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -76,11 +77,6 @@ export const Attribute = types.model("Attribute", {
   numValues: [] as number[],
   changeCount: 0
 }))
-.actions(self => ({
-  incChangeCount() {
-    ++self.changeCount
-  }
-}))
 .views(self => ({
   importValue(value: IValueType) {
     // may eventually want to do something more sophisticated here, like convert
@@ -91,16 +87,29 @@ export const Attribute = types.model("Attribute", {
     if (value == null || value === "") return NaN
     return Number(value)
   },
-  get emptyCount() {
-    self.changeCount  // eslint-disable-line no-unused-expressions
+  getEmptyCount: cachedFnFactory<number>(() => {
+    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
+    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
+    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
+    self.changeCount // eslint-disable-line no-unused-expressions
     return self.strValues.reduce((prev, current) => current === "" ? ++prev : prev, 0)
-  },
-  get numericCount() {
-    self.changeCount  // eslint-disable-line no-unused-expressions
+  }),
+  getNumericCount: cachedFnFactory<number>(() => {
+    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
+    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
+    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
+    self.changeCount // eslint-disable-line no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
-  },
+  }),
   get shouldSerializeValues() {
     return self.formula.empty
+  }
+}))
+.actions(self => ({
+  incChangeCount() {
+    ++self.changeCount
+    self.getEmptyCount.invalidate()
+    self.getNumericCount.invalidate()
   }
 }))
 .actions(self => ({
@@ -162,7 +171,7 @@ export const Attribute = types.model("Attribute", {
     if (self.userType) return self.userType
     if (this.length === 0) return
     // only infer numeric if all non-empty values are numeric (CODAP2)
-    return self.numericCount === this.length - self.emptyCount ? "numeric" : "categorical"
+    return self.getNumericCount() === this.length - self.getEmptyCount() ? "numeric" : "categorical"
   },
   get format() {
     return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
