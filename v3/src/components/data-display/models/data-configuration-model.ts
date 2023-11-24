@@ -95,9 +95,12 @@ export const DataConfigurationModel = types
     },
     attributeType(role: AttrRole) {
       const desc = this.attributeDescriptionForRole(role)
+      if (desc?.type) {
+        return desc.type
+      }
       const attrID = this.attributeID(role)
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
-      return desc?.type || attr?.type
+      return attr?.type
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
@@ -223,11 +226,10 @@ export const DataConfigurationModel = types
     {
       // Note that we have to go through each of the filteredCases in order to return all the values
       valuesForAttrRole(role: AttrRole): string[] {
-        const attrID = self.attributeID(role),
-          dataset = self.dataset,
-          allCaseIDs = Array.from(self.allCaseIDs),
-          allValues = attrID ? allCaseIDs.map((anID: string) => String(dataset?.getValue(anID, attrID)))
-            : []
+        const attrID = self.attributeID(role)
+        const dataset = self.dataset
+        const allCaseIDs = Array.from(self.allCaseIDs)
+        const allValues = attrID ? allCaseIDs.map((anID: string) => String(dataset?.getValue(anID, attrID))) : []
         return allValues.filter(aValue => aValue)
       },
       numericValuesForAttrRole(role: AttrRole): number[] {
@@ -250,9 +252,9 @@ export const DataConfigurationModel = types
       categoryArrayForAttrRole(role: AttrRole, emptyCategoryArray = ['__main__']): string[] {
         let categoryArray: string[] = []
         if (self.metadata) {
-          const attributeID = self.attributeID(role) || '',
-            categorySet = self.metadata.getCategorySet(attributeID),
-            validValues: Set<string> = new Set(this.valuesForAttrRole(role))
+          const attributeID = self.attributeID(role) || ''
+          const categorySet = self.metadata.getCategorySet(attributeID)
+          const validValues: Set<string> = new Set(this.valuesForAttrRole(role))
           categoryArray = (categorySet?.values || emptyCategoryArray)
             .filter((aValue: string) => validValues.has(aValue))
         }
@@ -350,11 +352,11 @@ export const DataConfigurationModel = types
         }
       },
       allCasesForCategoryAreSelected(cat: string) {
-        const dataset = self.dataset,
-          legendID = self.attributeID('legend'),
-          selection = (legendID && self.caseDataArray.filter((aCaseData: CaseData) => {
-            return dataset?.getValue(aCaseData.caseID, legendID) === cat
-          }).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
+        const dataset = self.dataset
+        const legendID = self.attributeID('legend')
+        const selection = (legendID && self.caseDataArray.filter((aCaseData: CaseData) =>
+          dataset?.getValue(aCaseData.caseID, legendID) === cat
+        ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
         return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
       },
       selectedCasesForLegendQuantile(quantile: number) {
@@ -397,14 +399,24 @@ export const DataConfigurationModel = types
         return false
       },
       getLegendColorForCase(id: string): string {
-        const legendID = self.attributeID('legend'),
-          legendType = self.attributeType('legend'),
-          legendValue = id && legendID ? self.dataset?.getStrValue(id, legendID) : null
-        return legendValue == null ? ''
-          : legendType === 'categorical' ? self.getLegendColorForCategory(legendValue)
-            : legendType === 'numeric' ? self.getLegendColorForNumericValue(Number(legendValue))
-              : ''
-      },
+        const legendID = self.attributeID('legend')
+        const legendType = self.attributeType('legend')
+        if (!id || !legendID) {
+          return ''
+        }
+        const legendValue = self.dataset?.getStrValue(id, legendID)
+        if (legendValue == null) {
+          return ''
+        }
+        switch (legendType) {
+          case 'categorical':
+            return self.getLegendColorForCategory(legendValue)
+          case 'numeric':
+            return self.getLegendColorForNumericValue(Number(legendValue))
+          default:
+            return ''
+        }
+      }
     }))
   .actions(self => ({
     /**

@@ -149,14 +149,14 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
 
     const incorrectParentAttrId = getIncorrectParentAttrReference(formula.canonical, collectionIndex, dataSet)
     if (incorrectParentAttrId) {
-      const attrName = dataSet.attrFromID(incorrectParentAttrId).name
+      const attrName = dataSet.attrFromID(incorrectParentAttrId)?.name || ""
       return this.setFormulaError(formulaContext, extraMetadata,
         formulaError("V3.formula.error.invalidParentAttrRef", [ attrName ]))
     }
 
     const incorrectChildAttrId = getIncorrectChildAttrReference(formula.canonical, collectionIndex, dataSet)
     if (incorrectChildAttrId) {
-      const attrName = dataSet.attrFromID(incorrectChildAttrId).name
+      const attrName = dataSet.attrFromID(incorrectChildAttrId)?.name || ""
       return this.setFormulaError(formulaContext, extraMetadata,
         formulaError("DG.Formula.HierReferenceError.message", [ attrName ]))
     }

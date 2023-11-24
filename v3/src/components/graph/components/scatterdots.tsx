@@ -153,24 +153,25 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
 
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
     const getScreenX = (anID: string) => {
-      const xAttrID = dataConfiguration?.attributeID('x') ?? '',
-        xValue = dataset?.getNumeric(anID, xAttrID) ?? NaN,
-        xScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
-        topSplitID = dataConfiguration?.attributeID('topSplit') ?? '',
-        topCoordValue = dataset?.getStrValue(anID, topSplitID) ?? '',
-        topScale = layout.getAxisScale('top') as ScaleBand<string>
+      const xAttrID = dataConfiguration?.attributeID('x') ?? ''
+      const xValue = dataset?.getNumeric(anID, xAttrID) ?? NaN
+      const xScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
+      const topSplitID = dataConfiguration?.attributeID('topSplit') ?? ''
+      const topCoordValue = dataset?.getStrValue(anID, topSplitID) ?? ''
+      const topScale = layout.getAxisScale('top') as ScaleBand<string>
       return xScale(xValue) / numExtraPrimaryBands + (topScale(topCoordValue) || 0)
     }
 
     const getScreenY = (anID: string, plotNum = 0) => {
-      const yAttrID = yAttrIDs[plotNum],
-        yValue = dataset?.getNumeric(anID, yAttrID) ?? NaN,
-        yScale = (hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScaleRef.current) as
-          ScaleLinear<number, number>,
-        rightSplitID = dataConfiguration?.attributeID('rightSplit') ?? '',
-        rightCoordValue = dataset?.getStrValue(anID, rightSplitID) ?? '',
-        rightScale = layout.getAxisScale('rightCat') as ScaleBand<string>,
-        rightScreenCoord = ((rightCoordValue && rightScale(rightCoordValue)) || 0)
+      const yAttrID = yAttrIDs[plotNum]
+      const yScale = (hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScaleRef.current) as
+          ScaleLinear<number, number>
+      const rightSplitID = dataConfiguration?.attributeID('rightSplit') ?? ''
+      const rightScale = layout.getAxisScale('rightCat') as ScaleBand<string>
+
+      const yValue = dataset?.getNumeric(anID, yAttrID) ?? NaN
+      const rightCoordValue = dataset?.getStrValue(anID, rightSplitID) ?? ''
+      const rightScreenCoord = ((rightCoordValue && rightScale(rightCoordValue)) || 0)
       return yScale(yValue) / numExtraSecondaryBands + rightScreenCoord
     }
 

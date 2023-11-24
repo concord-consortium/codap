@@ -189,8 +189,11 @@ export const CategorySet = types.model("CategorySet", {
   },
   colorForCategory(category: string) {
     const userColor = self.colors.get(category)
+    if (userColor) {
+      return userColor
+    }
     const catIndex = self.index(category)
-    return userColor || (catIndex != null ? kellyColors[catIndex % kellyColors.length] : undefined)
+    return catIndex != null ? kellyColors[catIndex % kellyColors.length] : undefined
   }
 }))
 .actions(self => ({

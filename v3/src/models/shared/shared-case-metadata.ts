@@ -42,7 +42,7 @@ export const SharedCaseMetadata = SharedModel
     },
     // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
-      const { collectionId, valuesJson } = self.data?.pseudoCaseMap[caseId] || {}
+      const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}
       return (collectionId && valuesJson && self.collections.get(collectionId)?.collapsed.get(valuesJson)) ?? false
     },
     // true if passed the id of a hidden attribute, false otherwise
@@ -66,7 +66,7 @@ export const SharedCaseMetadata = SharedModel
       }
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
-      const { collectionId, valuesJson } = self.data?.pseudoCaseMap[caseId] || {}
+      const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}
       if (collectionId && valuesJson) {
         let tableCollection = self.collections.get(collectionId)
         if (isCollapsed) {

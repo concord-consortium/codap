@@ -161,7 +161,7 @@ test("DataSet basic functionality", () => {
   const redShirtID = dataset.attributes[1].id
   expect(dataset.attributes.length).toBe(3)
   const redShirt = dataset.attrFromID(redShirtID)
-  expect(redShirt.name).toBe("redShirt")
+  expect(redShirt?.name).toBe("redShirt")
   dataset.removeAttribute(redShirtID)
   expect(dataset.attributes.length).toBe(2)
   expect(dataset.attrFromID(redShirtID)).toBeUndefined()
@@ -291,7 +291,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.getCases([""], { canonical: true })).toEqual([])
   // validate that caseIDMap is correct
   dataset.cases.forEach((aCase: ICaseID) => {
-    const caseIndex = dataset.caseIndexFromID(aCase.__id__)
+    const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
     expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
 
@@ -362,7 +362,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.cases.length).toBe(4)
   // validate that caseIDMap is correct
   dataset.cases.forEach((aCase: ICaseID) => {
-    const caseIndex = dataset.caseIndexFromID(aCase.__id__)
+    const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
     expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.removeCases([""])
@@ -443,7 +443,7 @@ test("Canonical case functionality", () => {
   expect(dataset.getCases([""], { canonical: true })).toEqual([])
   // validate that caseIDMap is correct
   dataset.cases.forEach((aCase: ICaseID) => {
-    const caseIndex = dataset.caseIndexFromID(aCase.__id__)
+    const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
     expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.addCases([{ __id__: "12345", [strAttrID]: "e", [numAttrID]: 5 }])
@@ -477,7 +477,7 @@ test("Canonical case functionality", () => {
   expect(dataset.cases.length).toBe(2)
   // validate that caseIDMap is correct
   dataset.cases.forEach((aCase: ICaseID) => {
-    const caseIndex = dataset.caseIndexFromID(aCase.__id__)
+    const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
     expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.removeCases([""])

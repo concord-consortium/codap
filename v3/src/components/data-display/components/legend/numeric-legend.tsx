@@ -28,7 +28,7 @@ export const NumericLegend = observer(function NumericLegend({legendAttrID}: INu
 
     getLabelHeight = useCallback(() => {
       const labelFont = vars.labelFont
-      return getStringBounds(dataset?.attrFromID(legendAttrID).name ?? '', labelFont).height
+      return getStringBounds(dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
     }, [dataset, legendAttrID]),
 
     refreshScale = useCallback(() => {

@@ -91,10 +91,10 @@ export const CategoricalLegend = observer(function CategoricalLegend(
     }),
     duration = useRef(0)
 
-  const // keyFunc = (index: number) => index,
-    keysElt = useRef(null),
+  // keyFunc = (index: number) => index,
+  const keysElt = useRef(null)
 
-    computeLayout = useCallback(() => {
+  const computeLayout = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
         lod: Layout = layoutData.current
@@ -118,18 +118,18 @@ export const CategoricalLegend = observer(function CategoricalLegend(
         })
       })
       layoutData.current = lod
-    }, [layout, dataConfiguration]),
+    }, [layout, dataConfiguration])
 
-    computeDesiredExtent = useCallback(() => {
+    const computeDesiredExtent = useCallback(() => {
       if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
         return 0
       }
       computeLayout()
       const lod = layoutData.current
       return lod.numRows * (keySize + padding) + labelHeight + axisGap
-    }, [computeLayout, dataConfiguration]),
+    }, [computeLayout, dataConfiguration])
 
-    refreshKeys = useCallback(() => {
+    const refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
         catData = categoryData.current
@@ -187,9 +187,9 @@ export const CategoricalLegend = observer(function CategoricalLegend(
         dragInfo.current.indexOfCategory === index && select(this).raise()
       })
 */
-    }, [dataConfiguration, transform]),  // eslint-disable-line react-hooks/exhaustive-deps
+    }, [dataConfiguration, transform])  // eslint-disable-line react-hooks/exhaustive-deps
 
-    onDragStart = useCallback((event: { x: number; y: number }) => {
+    const onDragStart = useCallback((event: { x: number; y: number }) => {
       const dI = dragInfo.current,
         lod = layoutData.current,
         numCategories = categoriesRef.current?.length ?? 0,
@@ -227,9 +227,9 @@ export const CategoricalLegend = observer(function CategoricalLegend(
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [dataConfiguration, refreshKeys]),
+    }, [dataConfiguration, refreshKeys])
 
-    onDragEnd = useCallback(() => {
+    const onDragEnd = useCallback(() => {
       duration.current = transitionDuration
       dragInfo.current.indexOfCategory = -1
       refreshKeys()
