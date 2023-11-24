@@ -10,6 +10,7 @@ import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnaps
   from "../../data-display/models/data-configuration-model"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
+import { cachedFnWithArgsFactory } from "../../../utilities/mst-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -34,11 +35,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     // all attributes for (left) y role
     _yAttributeDescriptions: types.array(AttributeDescription),
   })
-  .volatile(self => ({
-    subPlotCasesCache: new Map<string, ICase[]>(),
-    rowCasesCache: new Map<string, ICase[]>(),
-    columnCasesCache: new Map<string, ICase[]>()
-  }))
   .views(self => ({
     get secondaryRole() {
       return self.primaryRole === 'x' ? 'y'
@@ -289,9 +285,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    subPlotCases(cellKey: Record<string, string>) {
-      const key = JSON.stringify(cellKey)
-      if (!self.subPlotCasesCache.has(key)) {
+    subPlotCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
         const casesInPlot = new Map<string, ICase>()
         self.filteredCases?.forEach(aFilteredCases => {
           aFilteredCases.caseIds.forEach((id) => {
@@ -302,13 +298,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
             }
           })
         })
-        self.subPlotCasesCache.set(key, Array.from(casesInPlot.values()))
+        return Array.from(casesInPlot.values())
       }
-      return self.subPlotCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
-    },
-    rowCases(cellKey: Record<string, string>) {
-      const key = JSON.stringify(cellKey)
-      if (!self.rowCasesCache.has(key)) {
+    }),
+    rowCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
         const casesInRow: ICase[] = []
         const leftAttrID = self.attributeID("y")
         const leftAttrType = self.attributeType("y")
@@ -330,13 +325,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
             }
           })
         })
-        self.rowCasesCache.set(key, casesInRow)
+        return casesInRow
       }
-      return self.rowCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
-    },
-    columnCases(cellKey: Record<string, string>) {
-      const key = JSON.stringify(cellKey)
-      if (!self.columnCasesCache.has(key)) {
+    }),
+    columnCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
         const casesInCol: ICase[] = []
         const bottomAttrID = self.attributeID("x")
         const bottomAttrType = self.attributeType("x")
@@ -358,10 +352,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
             }
           })
         })
-        self.columnCasesCache.set(key, casesInCol)
+        return casesInCol
       }
-      return self.columnCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
-    }
+    })
   }))
   .views(self => (
     {
@@ -493,9 +486,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .actions(self => ({
     clearGraphSpecificCasesCache() {
-      self.subPlotCasesCache.clear()
-      self.rowCasesCache.clear()
-      self.columnCasesCache.clear()
+      self.subPlotCases.invalidateAll()
+      self.rowCases.invalidateAll()
+      self.columnCases.invalidateAll()
     }
   }))
   .actions(self => {
