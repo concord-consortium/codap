@@ -1,4 +1,4 @@
-import {addDisposer, getSnapshot, Instance, SnapshotIn, types, ISerializedActionCall} from "mobx-state-tree"
+import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {comparer, reaction} from "mobx"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -490,34 +490,37 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
       self._setAttributeType(role, type, plotNumber)
     },
-    clearCasesCache() {
+  }))
+  .actions(self => ({
+    clearGraphSpecificCasesCache() {
       self.subPlotCasesCache.clear()
       self.rowCasesCache.clear()
       self.columnCasesCache.clear()
     }
   }))
   .actions(self => {
+    const baseClearCasesCache = self.clearCasesCache
+    return {
+      clearCasesCache() {
+        self.clearGraphSpecificCasesCache()
+        baseClearCasesCache()
+      }
+    }
+  })
+  .actions(self => {
     const baseAfterCreate = self.afterCreate
-    const baseHandleDataSetAction = self.handleDataSetAction
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
         addDisposer(self, reaction(
           () => self.getAllCellKeys(),
-          () => self.clearCasesCache(),
+          () => self.clearGraphSpecificCasesCache(),
           {
             name: "GraphDataConfigurationModel.afterCreate.reaction [getAllCellKeys]",
             equals: comparer.structural
           }
         ))
         baseAfterCreate()
-      },
-      handleDataSetAction(actionCall: ISerializedActionCall) {
-        const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
-        if (cacheClearingActions.includes(actionCall.name)) {
-          self.clearCasesCache()
-        }
-        baseHandleDataSetAction(actionCall)
       },
       removeAttributeFromRole(role: GraphAttrRole, attrID: string) {
         if (role === "yPlus") {
