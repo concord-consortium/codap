@@ -1,5 +1,5 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
@@ -570,10 +570,14 @@ export const DataConfigurationModel = types
         () => self.invalidateQuantileScale(),
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
       ))
+      // Invalidate cache when selection changes.
       addDisposer(self, reaction(
-        () => self.dataset?.selection,
-        () => self.allCasesForCategoryAreSelected.invalidateAll(),
-        {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
+        () => self.dataset?.selection.values(),
+        () =>  self.allCasesForCategoryAreSelected.invalidateAll(),
+        {
+          name: "DataConfigurationModel.afterCreate.reaction [allCasesForCategoryAreSelected invalidate cache]",
+          equals: comparer.structural
+        }
       ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
