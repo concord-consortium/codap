@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 3.0.0-pre.1449 - November 27, 2023
+
+### Features/Improvements
+- Precalculate sub-plot cases in GraphDataConfiguationModel [#186496477](https://www.pivotaltracker.com/story/show/186496477)
+- On a scatterplot movable lines and least squares lines can have their **intercepts locked** [#181939990](https://www.pivotaltracker.com/story/show/181939990)
+- Ensure Attribute#numericCount, Attribute#emptyCount, and Attribute#type are cached (and investigate why they were not(?)) [#186496489](https://www.pivotaltracker.com/story/show/186496489)
+
+### Bug Fixes
+- Dragging movable line isn't following the mouse correctly [#186448628](https://www.pivotaltracker.com/story/show/186448628)
+- Equation box for Movable Line and LSRL "jumps" when dragged. [#186485315](https://www.pivotaltracker.com/story/show/186485315)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   72522 bytes |                               0% |
+|  index.js | 3472787 bytes |                            0.09% |
+
 ## Version 3.0.0-pre.1444 - November 20, 2023
 
 ### Features/Improvements
