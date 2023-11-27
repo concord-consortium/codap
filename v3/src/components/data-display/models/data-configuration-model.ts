@@ -5,6 +5,7 @@ import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, t
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
+import {ICategorySet} from "../../../models/data/category-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
 import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
@@ -322,8 +323,10 @@ export const DataConfigurationModel = types
   })
   .views(self => (
     {
-      getLegendColorForCategory(cat: string): string {
-        const categorySet = self.categorySetForAttrRole('legend')
+      getLegendColorForCategory(cat: string, categorySet?: ICategorySet): string {
+        if (!categorySet) {
+          categorySet = self.categorySetForAttrRole('legend')
+        }
         return categorySet?.colorForCategory(cat) ?? missingColor
       },
 
@@ -404,9 +407,13 @@ export const DataConfigurationModel = types
         }
         return false
       },
-      getLegendColorForCase(id: string): string {
-        const legendID = self.attributeID('legend')
-        const legendType = self.attributeType('legend')
+      getLegendColorForCase(id: string, legendID?: string, legendType?: string, categorySet?: ICategorySet): string {
+        if (!legendID) {
+          legendID = self.attributeID('legend')
+        }
+        if (!legendType) {
+          legendType = self.attributeType('legend')
+        }
         if (!id || !legendID) {
           return ''
         }
@@ -416,7 +423,7 @@ export const DataConfigurationModel = types
         }
         switch (legendType) {
           case 'categorical':
-            return self.getLegendColorForCategory(legendValue)
+            return self.getLegendColorForCategory(legendValue, categorySet)
           case 'numeric':
             return self.getLegendColorForNumericValue(Number(legendValue))
           default:

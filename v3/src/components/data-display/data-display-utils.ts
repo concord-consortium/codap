@@ -124,6 +124,8 @@ export function setPointSelection(props: ISetPointSelection) {
 
   if (!(dotsRef.current && dots)) return
 
+  const legendType = dataConfiguration.attributeType('legend') || ""
+  const categorySet = dataConfiguration.categorySetForAttrRole('legend')
   // First set the class based on selection
   dots
     .classed('graph-dot-highlighted', (aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID))
@@ -132,7 +134,7 @@ export function setPointSelection(props: ISetPointSelection) {
     .style('stroke', pointStrokeColor)
     .style('fill', (aCaseData:CaseData) => {
       return legendID
-        ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
+        ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID, legendID, legendType, categorySet)
         : aCaseData.plotNum && getPointColorAtIndex
           ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
     })
@@ -227,4 +229,3 @@ export function rectToTreeRect(rect: Rect) {
     h: rect.height
   }
 }
-
