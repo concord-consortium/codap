@@ -182,7 +182,7 @@
     "pluralize": "^8.0.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
-    "react-data-grid": "7.0.0-beta.40",
+    "react-data-grid": "7.0.0-beta.41",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",
     "react-resize-detector": "^9.1.0",

@@ -17,10 +17,9 @@ export class CollectionTableModel {
   // tracks the last user- or programmatically-set scrollTop value
   // different from `scrollTop`, which animates to the target in multiple steps
   @observable targetScrollTop = 0
-  // last time table was scrolled programmatically
-  lastProgramScrollTime = 0
-  // last time a presumed response echo was ignored
-  lastIgnoredScrollEventTime = 0
+  // scroll steps -- used to distinguish user scrolls from browser-generated smooth scrolls
+  lastScrollStep = 0
+  scrollStep = 0
 
   // rowCache contains all rows, whether collapsed or not; key is [pseudo-]case id
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
@@ -146,23 +145,14 @@ export class CollectionTableModel {
   }
 
   shouldHandleScrollEvent() {
-    const now = Date.now()
-    // if this table has been programmatically triggered recently, then
-    // assume that this is a propagation event that should be ignored
-    const timeSinceProgramScroll = now - this.lastProgramScrollTime
-    // with `scroll-behavior: smooth`, a single programmatic scroll can trigger multiple
-    // scroll events over a period of time. If we have very recently ignored a similar
-    // scroll event, assume this is part of the same sequence and ignore it as well.
-    const timeSinceIgnoredScrollResponse = now - this.lastIgnoredScrollEventTime
-    // table won't respond to manual scroll events for this long after being programmatically scrolled
-    const kProgramScrollTimeOut = 250
-    // table won't respond to manual scroll events for this long after ignoring a previous scroll event
-    // this can be longer than the `kProgramScrollTimeOut` for an animated sequence of scroll events
-    const kIgnoredScrollTimeOut = 60  // 3 frames at 60Hx ~50ms
-    const shouldHandle = timeSinceProgramScroll > kProgramScrollTimeOut &&
-                          timeSinceIgnoredScrollResponse > kIgnoredScrollTimeOut
-    !shouldHandle && (this.lastIgnoredScrollEventTime = now)
-    return shouldHandle
+    const isForward = this.scrollStep >= 0
+    const isBackward = this.scrollStep <= 0
+    const wasForward = this.lastScrollStep >= 0
+    const wasBackward = this.lastScrollStep <= 0
+    // if we're still heading toward the target scroll position, assume it's browser-generated
+    const isSmoothScroll = (isForward && wasForward && this.scrollTop <= this.targetScrollTop) ||
+                          (isBackward && wasBackward && this.scrollTop >= this.targetScrollTop)
+    return !isSmoothScroll
   }
 
   @action resetRowCache(rowCache: Map<string, TRow>) {
@@ -173,22 +163,20 @@ export class CollectionTableModel {
     this.rows = rows
   }
 
-  @action updateLastProgramScrollTime() {
-    this.lastProgramScrollTime = Date.now()
-  }
-
   @action setElement(element: HTMLDivElement) {
     this.element = element
   }
 
-  @action syncScrollTopFromElement() {
-    if (this.element) {
-      this.scrollTop = this.element.scrollTop
-    }
+  @action syncScrollTopFromEvent(event: React.UIEvent<HTMLDivElement, UIEvent>) {
+    const { scrollTop } = event.currentTarget
+    this.lastScrollStep = this.scrollStep
+    this.scrollStep = scrollTop - this.scrollTop
+    this.scrollTop = scrollTop
   }
 
   setElementScrollTop(scrollTop: number) {
     if (this.element) {
+      this.scrollStep = this.lastScrollStep = 0
       this.element.scrollTop = scrollTop
     }
   }
@@ -199,19 +187,23 @@ export class CollectionTableModel {
   }
 
   syncScrollTopToElement() {
-    this.setElementScrollTop(this.scrollTop)
+    if (this.element) {
+      const scrollBehavior = this.element.style.scrollBehavior
+      // turn off smooth scrolling for this sync
+      this.element.style.scrollBehavior = "auto"
+      this.setElementScrollTop(this.scrollTop)
+      this.element.style.scrollBehavior = scrollBehavior
+    }
   }
 
   scrollRowToTop(rowIndex: number) {
     if (!this.element) return
     this.setTargetScrollTop(rowIndex * this.rowHeight)
-    this.updateLastProgramScrollTime()
   }
 
   scrollRowToBottom(rowIndex: number) {
     if (!this.element) return
     this.setTargetScrollTop(Math.max(0, (rowIndex + 1) * this.rowHeight - this.gridBodyHeight))
-    this.updateLastProgramScrollTime()
   }
 
   scrollRowIntoView(rowIndex: number) {
