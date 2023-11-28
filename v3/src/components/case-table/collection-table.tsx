@@ -68,7 +68,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const handleGridScroll = useCallback(function handleGridScroll(event: React.UIEvent<HTMLDivElement, UIEvent>) {
     const gridElt = gridRef.current?.element
     if (gridElt != null) {
-      collectionTableModel?.syncScrollTopFromElement()
+      collectionTableModel?.syncScrollTopFromEvent(event)
       onTableScroll(event, collectionId, gridElt)
     }
   }, [collectionId, collectionTableModel, onTableScroll])
