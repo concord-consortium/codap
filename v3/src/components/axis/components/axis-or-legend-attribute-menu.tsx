@@ -30,7 +30,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
 }
 
-const _AxisOrLegendAttributeMenu = ({ place, target, portal,
+export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
   const data = useDataSetContext()
   const dataConfig = useDataConfigurationContext()
@@ -90,4 +90,3 @@ const _AxisOrLegendAttributeMenu = ({ place, target, portal,
     </div>
   )
 }
-export const AxisOrLegendAttributeMenu = memo(_AxisOrLegendAttributeMenu)

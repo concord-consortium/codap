@@ -27,7 +27,7 @@ interface IAttributeLabelProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
-export const AttributeLabel = observer(
+export const AttributeLabel =
   function AttributeLabel({place, onTreatAttributeAs, onRemoveAttribute, onChangeAttribute}: IAttributeLabelProps) {
     const graphModel = useGraphContentModelContext(),
       dataConfiguration = useGraphDataConfigurationContext(),
@@ -176,5 +176,5 @@ export const AttributeLabel = observer(
         }
       </>
     )
-  })
+  }
 AttributeLabel.displayName = "AttributeLabel"

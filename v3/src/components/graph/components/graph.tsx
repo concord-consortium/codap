@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite"
 import {addDisposer, isAlive} from "mobx-state-tree"
-import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
+import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole}
   from "../../data-display/data-display-types"
@@ -112,19 +112,19 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     }))
   }, [dataset, graphModel])
 
-  const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
+  const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     graphModel.applyUndoableAction(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
-  }
+  }, [graphModel])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
    * do we have to do anything special. Otherwise, we can just call handleChangeAttribute.
    */
-  const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
+  const handleRemoveAttribute = useCallback((place: GraphPlace, idOfAttributeToRemove: string) => {
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
       graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
       const yAxisModel = graphModel.getAxis('left') as IAxisModel
@@ -132,7 +132,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     } else {
       dataset && handleChangeAttribute(place, dataset, '')
     }
-  }
+  }, [dataset, graphModel, handleChangeAttribute])
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
@@ -147,12 +147,12 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
+  const handleTreatAttrAs = useCallback((place: GraphPlace, attrId: string, treatAs: AttributeType) => {
     dataset && graphModel.applyUndoableAction(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
     }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
-  }
+  }, [dataset, graphController, graphModel])
 
   useDataTips({dotsRef, dataset, displayModel: graphModel})
 
