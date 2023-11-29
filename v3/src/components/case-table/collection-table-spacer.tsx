@@ -69,6 +69,16 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
   }
 
+  function handleExpandCollapseClick(parentCaseId: string) {
+    // collapse the parent case
+    caseMetadata?.setIsCollapsed(parentCaseId, !caseMetadata?.isCollapsed(parentCaseId))
+    // scroll to the first expanded/collapsed child case (if necessary)
+    const parentPseudoCase = data?.pseudoCaseMap[parentCaseId]
+    const firstChildId = parentPseudoCase?.childPseudoCaseIds?.[0] || parentPseudoCase?.childCaseIds?.[0]
+    const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
+    ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
+  }
+
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
   const topButtonTooltip = t(topTooltipKey)
 
@@ -95,7 +105,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
             <div className="spacer-mid-layer">
               {parentCases?.map((value, index) => (
                 <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                  onClick={() => caseMetadata?.setIsCollapsed(value.__id__, !caseMetadata?.isCollapsed(value.__id__))}
+                  onClick={() => handleExpandCollapseClick(value.__id__)}
                   styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
                 />
               ))}
