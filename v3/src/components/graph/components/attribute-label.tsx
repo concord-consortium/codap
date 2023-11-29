@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {createPortal} from "react-dom"
 import {reaction} from "mobx"
-import {observer} from "mobx-react-lite"
 import {select} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
