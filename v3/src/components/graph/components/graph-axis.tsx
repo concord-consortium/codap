@@ -90,7 +90,7 @@ export const GraphAxis = observer(function GraphAxis(
   }, [layout, place, graphModel])
 
   return (
-    <g className='axis-wrapper' ref={elt => setWrapperElt(elt)}>
+    <g className={`axis-wrapper ${place}`} ref={elt => setWrapperElt(elt)}>
       <rect className='axis-background'/>
       {axisModel &&
         <Axis axisPlace={place}

@@ -21,15 +21,15 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
   // labelRef must be a MutableRefObject, not a function
   const labelElt = typeof labelRef !== "function" ? labelRef?.current ?? null : null
   const layout = useDataDisplayLayout()
-  const [ , setLayoutPos] = useState("")
+  const [ , setLayoutBounds] = useState("")
 
   useEffect(() => {
     return autorun(() => {
       // accessing layout triggers autorun on change
       const bounds = layout.getComputedBounds(place)
-      const layoutPos = `${bounds?.left ?? 0}, ${bounds?.top ?? 0}`
+      const layoutBounds = JSON.stringify(bounds)
       // trigger re-render on layout position change
-      setLayoutPos(layoutPos)
+      setLayoutBounds(layoutBounds)
       // render label and trigger autorun on change to observables within
       refreshLabel()
     }, { name: "AttributeLabel.autorun [refreshLabel]" })

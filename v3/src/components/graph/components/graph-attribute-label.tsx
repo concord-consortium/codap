@@ -30,9 +30,6 @@ export const GraphAttributeLabel =
       {isTileSelected} = useTileModelContext(),
       dataset = dataConfiguration?.dataset,
       labelRef = useRef<SVGGElement>(null),
-      useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false,
-      hideClickHereCue = useClickHereCue &&
-        !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected(),
       parentElt = labelRef.current?.closest(kPortalClassSelector) as HTMLDivElement ?? null
 
     const getAttributeIDs = useCallback(() => {
@@ -45,17 +42,29 @@ export const GraphAttributeLabel =
         : [attrID]
     }, [dataConfiguration, graphModel.plotType, place])
 
+    const getClickHereCue = useCallback(() => {
+      const useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false
+      const hideClickHereCue = useClickHereCue &&
+        !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected()
+      const className = useClickHereCue ? 'empty-label' : 'attribute-label'
+      const unusedClassName = useClickHereCue ? 'attribute-label' : 'empty-label'
+      const visibility = hideClickHereCue ? 'hidden' : 'visible'
+      const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont
+      return { useClickHereCue, className, unusedClassName, labelFont, visibility }
+    }, [dataConfiguration, isTileSelected, place])
+
     const getLabel = useCallback(() => {
+      const { useClickHereCue } = getClickHereCue()
       if (useClickHereCue) {
         return t('DG.AxisView.emptyGraphCue')
       }
       const attrIDs = getAttributeIDs()
       return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
-    }, [dataset, getAttributeIDs, useClickHereCue])
+    }, [dataset, getAttributeIDs, getClickHereCue, place])
 
     const refreshAxisTitle = useCallback(() => {
-      const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont,
+      const {labelFont, className, visibility} = getClickHereCue(),
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
@@ -69,8 +78,7 @@ export const GraphAttributeLabel =
         tY = isVertical(place) ? halfRange
           : place === 'legend' ? labelBounds.height / 2
             : place === 'top' ? labelBounds.height : bounds.height - labelBounds.height / 2,
-        tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : '',
-        className = useClickHereCue ? 'empty-label' : 'attribute-label'
+        tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : ''
       select(labelRef.current)
         .selectAll(`text.${className}`)
         .data([1])
@@ -81,25 +89,25 @@ export const GraphAttributeLabel =
               .attr("transform", labelTransform + tRotation)
               .attr('class', className)
               .attr('data-testid', className)
-              .style('visibility', hideClickHereCue ? 'hidden' : 'visible')
+              .style('visibility', visibility)
               .attr('x', tX)
               .attr('y', tY)
               .text(label)
         )
-    }, [layout, place, getLabel, useClickHereCue, hideClickHereCue])
+    }, [getClickHereCue, getLabel, layout, place])
 
     useEffect(function setupTitle() {
 
+      const { className, unusedClassName } = getClickHereCue()
+
       const removeUnusedLabel = () => {
-        const classNameToRemove = useClickHereCue ? 'attribute-label' : 'empty-label'
         select(labelRef.current)
-          .selectAll(`text.${classNameToRemove}`)
+          .selectAll(`text.${unusedClassName}`)
           .remove()
       }
 
       if (labelRef.current) {
         removeUnusedLabel()
-        const className = useClickHereCue ? 'empty-label' : 'attribute-label'
         select(labelRef.current)
           .selectAll(`text.${className}`)
           .data([1])
@@ -112,7 +120,7 @@ export const GraphAttributeLabel =
           )
         refreshAxisTitle()
       }
-    }, [place, useClickHereCue, refreshAxisTitle])
+    }, [getClickHereCue, place, refreshAxisTitle])
 
     return (
       <AttributeLabel
