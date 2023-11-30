@@ -1,20 +1,16 @@
 import React, {useCallback, useEffect, useRef} from "react"
-import {createPortal} from "react-dom"
-import {reaction} from "mobx"
 import {select} from "d3"
-import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
+import {AttributeLabel} from "../../data-display/components/attribute-label"
 import {graphPlaceToAttrRole, kPortalClassSelector} from "../../data-display/data-display-types"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
-import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
 import vars from "../../vars.scss"
 
@@ -90,30 +86,7 @@ export const GraphAttributeLabel =
               .attr('y', tY)
               .text(label)
         )
-    }, [layout, place, labelRef, getLabel, useClickHereCue, hideClickHereCue])
-
-    useEffect(function observeAttributeNameChange() {
-      const disposer = dataConfiguration?.onAction(action => {
-        if (isSetAttributeNameAction(action)) {
-          const [changedAttributeID] = action.args
-          if (getAttributeIDs().includes(changedAttributeID)) {
-            refreshAxisTitle()
-          }
-        }
-      })
-
-      return () => disposer?.()
-    }, [dataConfiguration, refreshAxisTitle, getAttributeIDs])
-
-    // Install reaction to bring about rerender when layout's computedBounds changes
-    useEffect(() => {
-      const disposer = reaction(
-        () => layout.getComputedBounds(place),
-        () => refreshAxisTitle(),
-        { name: "GraphAttributeLabel [layout.getComputedBounds]"}
-      )
-      return () => disposer()
-    }, [place, layout, refreshAxisTitle])
+    }, [layout, place, getLabel, useClickHereCue, hideClickHereCue])
 
     useEffect(function setupTitle() {
 
@@ -124,7 +97,7 @@ export const GraphAttributeLabel =
           .remove()
       }
 
-      if (labelRef) {
+      if (labelRef.current) {
         removeUnusedLabel()
         const className = useClickHereCue ? 'empty-label' : 'attribute-label'
         select(labelRef.current)
@@ -139,39 +112,17 @@ export const GraphAttributeLabel =
           )
         refreshAxisTitle()
       }
-    }, [labelRef, place, useClickHereCue, refreshAxisTitle])
-
-    // Respond to changes in attributeID assigned to my place
-    useEffect(() => {
-        const disposer = mstReaction(
-          () => {
-            if (place === 'left') {
-              return dataConfiguration?.yAttributeDescriptionsExcludingY2.map((desc) => desc.attributeID)
-            }
-            else {
-              return dataConfiguration?.attributeID(graphPlaceToAttrRole[place])
-            }
-          },
-          () => {
-            refreshAxisTitle()
-          }, { name: "GraphAttributeLabel [attribute configuration]" }, dataConfiguration
-        )
-        return () => disposer()
-    }, [place, dataConfiguration, refreshAxisTitle])
+    }, [place, useClickHereCue, refreshAxisTitle])
 
     return (
-      <>
-        <g ref={labelRef}/>
-        {parentElt && onChangeAttribute && onTreatAttributeAs && onRemoveAttribute &&
-          createPortal(<AxisOrLegendAttributeMenu
-            target={labelRef.current}
-            portal={parentElt}
-            place={place}
-            onChangeAttribute={onChangeAttribute}
-            onRemoveAttribute={onRemoveAttribute}
-            onTreatAttributeAs={onTreatAttributeAs}
-          />, parentElt)
-        }
-      </>
+      <AttributeLabel
+        ref={labelRef}
+        place={place}
+        portal={parentElt}
+        refreshLabel={refreshAxisTitle}
+        onChangeAttribute={onChangeAttribute}
+        onRemoveAttribute={onRemoveAttribute}
+        onTreatAttributeAs={onTreatAttributeAs}
+      />
     )
   }
