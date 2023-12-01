@@ -78,23 +78,59 @@ export function onAnyAction(
 }
 
 /**
- * A function factory that returns lazily evaluated function which will return the same value until invalidate() is
- * called. This is useful for caching values that are expensive to calculate.
+ * A function factory that returns a lazily evaluated function that doesn't take arguments and will return the same
+ * value until invalidate() is called. This is useful for caching values that are expensive to calculate.
  *
- * @param recalculate
+ * @param calculate
  * @returns a function that will return the same value until invalidate() is called.
  */
-export function cachedFnFactory<T>(recalculate: () => T): (() => T) & { invalidate: () => void } {
-  const invalidKey = "__invalid__"
-  let cachedValue: T | "__invalid__" = invalidKey
+export function cachedFnFactory<T>(calculate: () => T): (() => T) & { invalidate: () => void } {
+  let valid = false
+  let cachedValue: T
   const getter = () => {
-    if (cachedValue === invalidKey) {
-      cachedValue = recalculate()
+    if (!valid) {
+      cachedValue = calculate()
+      valid = true
     }
     return cachedValue
   }
   getter.invalidate = () => {
-    cachedValue = invalidKey
+    valid = false
+  }
+  return getter
+}
+
+/**
+ * A function factory that returns a lazily evaluated function, which takes arguments and will return the same value
+ * until invalidate() or invalidateAll() is called. This is useful for caching values that are expensive to calculate.
+ *
+ * @param key a function that returns a string cache key using the arguments.
+ * @param calculate a function that will be called to calculate the value when it is invalidated.
+ * @returns a function that will return the same value for the same arguments until invalidate() is called.
+ */
+export function cachedFnWithArgsFactory<FunDef extends (...args: any[]) => any>(options: {
+  key: (...args: Parameters<FunDef>) => string,
+  calculate: FunDef
+}): ((...args: Parameters<FunDef>) => ReturnType<FunDef>)
+  & { invalidate: (...args: Parameters<FunDef>) => void, invalidateAll: () => void } {
+  // TypeScript generics are a bit complicated here. However, they ensure that invalidate() function is called
+  // with the same arguments as the calculate() function. It will work even if the client code completely skips
+  // explicit type definition between < and >.
+  const { key, calculate } = options
+  const cacheMap = new Map<string, ReturnType<FunDef>>()
+  const getter = (...args: Parameters<FunDef>) => {
+    const cacheKey = key(...args)
+    if (!cacheMap.has(cacheKey)) {
+      cacheMap.set(cacheKey, calculate(...args))
+    }
+    return cacheMap.get(cacheKey) as ReturnType<FunDef>
+  }
+  getter.invalidate = (...args: Parameters<FunDef>) => {
+    const cacheKey = key(...args)
+    cacheMap.delete(cacheKey)
+  }
+  getter.invalidateAll = () => {
+    cacheMap.clear()
   }
   return getter
 }

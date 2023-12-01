@@ -1,4 +1,3 @@
-import { IAttribute } from "./attribute"
 import { CollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
 

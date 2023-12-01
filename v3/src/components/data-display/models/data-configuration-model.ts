@@ -1,8 +1,8 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
-import {onAnyAction} from "../../../utilities/mst-utils"
+import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
@@ -225,13 +225,16 @@ export const DataConfigurationModel = types
   .views(self => (
     {
       // Note that we have to go through each of the filteredCases in order to return all the values
-      valuesForAttrRole(role: AttrRole): string[] {
-        const attrID = self.attributeID(role)
-        const dataset = self.dataset
-        const allCaseIDs = Array.from(self.allCaseIDs)
-        const allValues = attrID ? allCaseIDs.map((anID: string) =>dataset?.getStrValue(anID, attrID)) : []
-        return allValues.filter(aValue => aValue)
-      },
+      valuesForAttrRole: cachedFnWithArgsFactory({
+        key: (role: AttrRole) => role,
+        calculate: (role: AttrRole) => {
+          const attrID = self.attributeID(role)
+          const dataset = self.dataset
+          const allCaseIDs = Array.from(self.allCaseIDs)
+          const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
+          return allValues.filter(aValue => aValue) as string[]
+        }
+      }),
       numericValuesForAttrRole(role: AttrRole): number[] {
         return this.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
           .filter((aValue: number) => isFinite(aValue))
@@ -351,14 +354,17 @@ export const DataConfigurationModel = types
           else dataset?.setSelectedCases(selection)
         }
       },
-      allCasesForCategoryAreSelected(cat: string) {
-        const dataset = self.dataset
-        const legendID = self.attributeID('legend')
-        const selection = (legendID && self.caseDataArray.filter((aCaseData: CaseData) =>
-          dataset?.getValue(aCaseData.caseID, legendID) === cat
-        ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
-        return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
-      },
+      allCasesForCategoryAreSelected: cachedFnWithArgsFactory({
+        key: (cat: string) => cat,
+        calculate: (cat: string) => {
+          const dataset = self.dataset
+          const legendID = self.attributeID('legend')
+          const selection = (legendID && self.caseDataArray.filter((aCaseData: CaseData) =>
+            dataset?.getValue(aCaseData.caseID, legendID) === cat
+          ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
+          return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
+        }
+      }),
       selectedCasesForLegendQuantile(quantile: number) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
@@ -418,6 +424,12 @@ export const DataConfigurationModel = types
         }
       }
     }))
+  .actions(self => ({
+    clearCasesCache() {
+      self.valuesForAttrRole.invalidateAll()
+      self.allCasesForCategoryAreSelected.invalidateAll()
+    }
+  }))
   .actions(self => ({
     /**
      * This is called when the user swaps categories in the legend, but not when the user swaps categories
@@ -507,6 +519,7 @@ export const DataConfigurationModel = types
     },
     _setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       this._updateFilteredCasesCollectionID()
+      self.clearCasesCache()
     },
     _setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self.filteredCases?.forEach((aFilteredCases) => {
@@ -514,6 +527,10 @@ export const DataConfigurationModel = types
       })
     },
     handleDataSetAction(actionCall: ISerializedActionCall) {
+      const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
+      if (cacheClearingActions.includes(actionCall.name)) {
+        self.clearCasesCache()
+      }
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return
       if (actionCall.name === "invalidateCollectionGroups") {
@@ -552,6 +569,15 @@ export const DataConfigurationModel = types
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
         () => self.invalidateQuantileScale(),
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
+      ))
+      // Invalidate cache when selection changes.
+      addDisposer(self, reaction(
+        () => self.dataset?.selection.values(),
+        () =>  self.allCasesForCategoryAreSelected.invalidateAll(),
+        {
+          name: "DataConfigurationModel.afterCreate.reaction [allCasesForCategoryAreSelected invalidate cache]",
+          equals: comparer.structural
+        }
       ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {

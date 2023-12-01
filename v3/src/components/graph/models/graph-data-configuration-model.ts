@@ -1,9 +1,10 @@
-import {addDisposer, getSnapshot, Instance, SnapshotIn, types, ISerializedActionCall} from "mobx-state-tree"
+import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {comparer, reaction} from "mobx"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {typedId} from "../../../utilities/js-utils"
+import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
@@ -34,11 +35,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     // all attributes for (left) y role
     _yAttributeDescriptions: types.array(AttributeDescription),
   })
-  .volatile(self => ({
-    subPlotCasesCache: new Map<string, ICase[]>(),
-    rowCasesCache: new Map<string, ICase[]>(),
-    columnCasesCache: new Map<string, ICase[]>()
-  }))
   .views(self => ({
     get secondaryRole() {
       return self.primaryRole === 'x' ? 'y'
@@ -289,9 +285,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    subPlotCases(cellKey: Record<string, string>) {
-      const key = JSON.stringify(cellKey)
-      if (!self.subPlotCasesCache.has(key)) {
+    subPlotCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
         const casesInPlot = new Map<string, ICase>()
         self.filteredCases?.forEach(aFilteredCases => {
           aFilteredCases.caseIds.forEach((id) => {
@@ -302,13 +298,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
             }
           })
         })
-        self.subPlotCasesCache.set(key, Array.from(casesInPlot.values()))
+        return Array.from(casesInPlot.values())
       }
-      return self.subPlotCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
-    },
-    rowCases(cellKey: Record<string, string>) {
-      const key = JSON.stringify(cellKey)
-      if (!self.rowCasesCache.has(key)) {
+    }),
+    rowCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
         const casesInRow: ICase[] = []
         const leftAttrID = self.attributeID("y")
         const leftAttrType = self.attributeType("y")
@@ -330,13 +325,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
             }
           })
         })
-        self.rowCasesCache.set(key, casesInRow)
+        return casesInRow
       }
-      return self.rowCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
-    },
-    columnCases(cellKey: Record<string, string>) {
-      const key = JSON.stringify(cellKey)
-      if (!self.columnCasesCache.has(key)) {
+    }),
+    columnCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
         const casesInCol: ICase[] = []
         const bottomAttrID = self.attributeID("x")
         const bottomAttrType = self.attributeType("x")
@@ -358,10 +352,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
             }
           })
         })
-        self.columnCasesCache.set(key, casesInCol)
+        return casesInCol
       }
-      return self.columnCasesCache.get(key) as ICase[] // undefined is not an option due to lines above
-    }
+    })
   }))
   .views(self => (
     {
@@ -490,34 +483,37 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
       self._setAttributeType(role, type, plotNumber)
     },
-    clearCasesCache() {
-      self.subPlotCasesCache.clear()
-      self.rowCasesCache.clear()
-      self.columnCasesCache.clear()
+  }))
+  .actions(self => ({
+    clearGraphSpecificCasesCache() {
+      self.subPlotCases.invalidateAll()
+      self.rowCases.invalidateAll()
+      self.columnCases.invalidateAll()
     }
   }))
   .actions(self => {
+    const baseClearCasesCache = self.clearCasesCache
+    return {
+      clearCasesCache() {
+        self.clearGraphSpecificCasesCache()
+        baseClearCasesCache()
+      }
+    }
+  })
+  .actions(self => {
     const baseAfterCreate = self.afterCreate
-    const baseHandleDataSetAction = self.handleDataSetAction
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
         addDisposer(self, reaction(
           () => self.getAllCellKeys(),
-          () => self.clearCasesCache(),
+          () => self.clearGraphSpecificCasesCache(),
           {
             name: "GraphDataConfigurationModel.afterCreate.reaction [getAllCellKeys]",
             equals: comparer.structural
           }
         ))
         baseAfterCreate()
-      },
-      handleDataSetAction(actionCall: ISerializedActionCall) {
-        const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
-        if (cacheClearingActions.includes(actionCall.name)) {
-          self.clearCasesCache()
-        }
-        baseHandleDataSetAction(actionCall)
       },
       removeAttributeFromRole(role: GraphAttrRole, attrID: string) {
         if (role === "yPlus") {
