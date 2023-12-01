@@ -152,11 +152,11 @@ export const DataSet = types.model("DataSet", {
 })
 .volatile(self => ({
   // map from case IDs to indices
-  caseIDMap: {} as Record<string, number>,
+  caseIDMap: new Map<string, number>(),
   // MobX-observable set of selected case IDs
   selection: observable.set<string>(),
   // map from pseudo-case ID to the CaseGroup it represents
-  pseudoCaseMap: {} as Record<string, CaseGroup>,
+  pseudoCaseMap: new Map<string, CaseGroup>(),
   transactionCount: 0
 }))
 .views(self => {
@@ -183,9 +183,9 @@ export const DataSet = types.model("DataSet", {
 .views(self => ({
   // map from attribute id to attribute
   get attrIDMap() {
-    const idMap: Record<string, IAttribute> = {}
+    const idMap = new Map<string, IAttribute>()
     self.attributes.forEach(attr => {
-      idMap[attr.id] = attr
+      idMap.set(attr.id, attr)
     })
     return idMap
   },
@@ -318,7 +318,7 @@ export const DataSet = types.model("DataSet", {
 
         prf.measure("DataSet.collectionGroups", () => {
           self.cases.forEach(aCase => {
-            const index = self.caseIDMap[aCase.__id__]
+            const index = self.caseIDMap.get(aCase.__id__) ?? -1
             // parent attributes used for grouping are cumulative
             const parentAttrs: IAttribute[] = []
             newCollectionGroups.forEach(({ collection, groups, groupsMap }, collIndex) => {
@@ -426,12 +426,12 @@ export const DataSet = types.model("DataSet", {
         // clear map from pseudo-case id to pseudo-case
         // can't assign empty object because we're not an action
         for (const id in self.pseudoCaseMap) {
-          delete self.pseudoCaseMap[id]
+          self.pseudoCaseMap.delete(id)
         }
         // update map from pseudo-case id to pseudo-case
         newCollectionGroups.forEach(collectionGroup => {
           collectionGroup.groups.forEach(caseGroup => {
-            self.pseudoCaseMap[caseGroup.pseudoCase.__id__] = caseGroup
+            self.pseudoCaseMap.set(caseGroup.pseudoCase.__id__, caseGroup)
           })
         })
 
@@ -563,7 +563,7 @@ export const DataSet = types.model("DataSet", {
   const attrIDFromName = (name: string) => self.attrNameMap[name]
 
   function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
-    const index = self.caseIDMap[caseID]
+    const index = self.caseIDMap.get(caseID)
     if (index == null) { return undefined }
 
     const { canonical = true, numeric = true } = options || {}
@@ -595,15 +595,15 @@ export const DataSet = types.model("DataSet", {
   function beforeIndexForInsert(index: number, beforeID?: string | string[]) {
     if (!beforeID) { return self.cases.length }
     return Array.isArray(beforeID)
-            ? self.caseIDMap[beforeID[index]]
-            : self.caseIDMap[beforeID]
+            ? self.caseIDMap.get(beforeID[index])
+            : self.caseIDMap.get(beforeID)
   }
 
   function afterIndexForInsert(index: number, afterID?: string | string[]) {
     if (!afterID) { return self.cases.length }
     return Array.isArray(afterID)
-            ? self.caseIDMap[afterID[index]] + 1
-            : self.caseIDMap[afterID] + 1
+            ? (self.caseIDMap.get(afterID[index]) || 0) + 1
+            : (self.caseIDMap.get(afterID) || 0) + 1
   }
 
   function insertCaseIDAtIndex(id: string, beforeIndex: number) {
@@ -613,22 +613,26 @@ export const DataSet = types.model("DataSet", {
       // increment indices of all subsequent cases
       for (let i = beforeIndex + 1; i < self.cases.length; ++i) {
         const aCase = self.cases[i]
-        ++self.caseIDMap[aCase.__id__]
+        const currentVal = self.caseIDMap.get(aCase.__id__)
+        if (currentVal != null) {
+          self.caseIDMap.set(aCase.__id__, currentVal + 1)
+        }
       }
     }
     else {
       self.cases.push(newCase)
       beforeIndex = self.cases.length - 1
     }
-    self.caseIDMap[self.cases[beforeIndex].__id__] = beforeIndex
+    self.caseIDMap.set(self.cases[beforeIndex].__id__, beforeIndex)
+
   }
 
   function setCaseValues(caseValues: ICase) {
-    const index = self.caseIDMap[caseValues.__id__]
+    const index = self.caseIDMap.get(caseValues.__id__)
     if (index == null) { return }
     for (const key in caseValues) {
       if (key !== "__id__") {
-        const attribute = self.attrIDMap[key]
+        const attribute = self.attrIDMap.get(key)
         if (attribute) {
           const value = caseValues[key]
           attribute.setValue(index, value != null ? value : undefined)
@@ -643,21 +647,21 @@ export const DataSet = types.model("DataSet", {
      */
     views: {
       attrFromID(id: string) {
-        return self.attrIDMap[id]
+        return self.attrIDMap.get(id)
       },
       attrFromName(name: string) {
         const id = self.attrNameMap[name]
-        return id ? self.attrIDMap[id] : undefined
+        return id ? self.attrIDMap.get(id) : undefined
       },
       attrIDFromName,
       caseIndexFromID(id: string) {
-        return self.caseIDMap[id]
+        return self.caseIDMap.get(id)
       },
       caseIDFromIndex(index: number) {
         return getCaseAtIndex(index)?.__id__
       },
       nextCaseID(id: string) {
-        const index = self.caseIDMap[id],
+        const index = self.caseIDMap.get(id),
               nextCase = (index != null) && (index < self.cases.length - 1)
                           ? self.cases[index + 1] : undefined
         return nextCase?.__id__
@@ -666,61 +670,61 @@ export const DataSet = types.model("DataSet", {
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
-        const _caseId = self.pseudoCaseMap[caseID]
-                          ? self.pseudoCaseMap[caseID].childCaseIds[0]
-                          : caseID
-        const index = _caseId ? self.caseIDMap[_caseId] : undefined
-        return index != null
-                ? this.getValueAtIndex(self.caseIDMap[_caseId], attributeID)
-                : undefined
+        const pseudoCase = self.pseudoCaseMap.get(caseID)
+        const _caseId = pseudoCase ? pseudoCase?.childCaseIds[0] : caseID
+        const index = self.caseIDMap.get(_caseId)
+        return index != null ? this.getValueAtIndex(index, attributeID) : undefined
       },
       getValueAtIndex(index: number, attributeID: string) {
-        const attr = self.attrIDMap[attributeID],
-              caseID = self.cases[index]?.__id__,
-              cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
-        return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
-                ? cachedCase[attributeID]
-                : attr && (index != null) ? attr.value(index) : undefined
+          if (self.isCaching) {
+            const caseID = self.cases[index]?.__id__
+            const cachedCase = self.caseCache.get(caseID)
+            if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
+              return cachedCase[attributeID]
+            }
+          }
+          const attr = self.attrIDMap.get(attributeID)
+          return attr?.value(index)
       },
       getStrValue(caseID: string, attributeID: string) {
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
-        const _caseId = self.pseudoCaseMap[caseID]
-                          ? self.pseudoCaseMap[caseID].childCaseIds[0]
-                          : caseID
-        const index = _caseId ? self.caseIDMap[_caseId] : undefined
-        return index != null
-                ? this.getStrValueAtIndex(self.caseIDMap[_caseId], attributeID)
-                : ""
+        const pseudoCase = self.pseudoCaseMap.get(caseID)
+        const _caseId = pseudoCase ? pseudoCase.childCaseIds[0] : caseID
+        const index = self.caseIDMap.get(_caseId)
+        return index != null ? this.getStrValueAtIndex(index, attributeID) : ""
       },
       getStrValueAtIndex(index: number, attributeID: string) {
-        const attr = self.attrIDMap[attributeID],
-              caseID = self.cases[index]?.__id__,
-              cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
-        return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
-                ? `${cachedCase[attributeID]}`  // TODO: respect attribute formatting
-                : attr && (index != null) ? attr.value(index) : ""
+        if (self.isCaching) {
+          const caseID = self.cases[index]?.__id__
+          const cachedCase = self.caseCache.get(caseID)
+          if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
+            return cachedCase[attributeID]?.toString()
+          }
+        }
+        const attr = self.attrIDMap.get(attributeID)
+        return attr?.value(index) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
-        const _caseId = self.pseudoCaseMap[caseID]
-                          ? self.pseudoCaseMap[caseID].childCaseIds[0]
-                          : caseID
-        const index = _caseId ? self.caseIDMap[_caseId] : undefined
-        return index != null
-                ? this.getNumericAtIndex(self.caseIDMap[_caseId], attributeID)
-                : undefined
+        const pseudoCase = self.pseudoCaseMap.get(caseID)
+        const _caseId = pseudoCase ? pseudoCase.childCaseIds[0] : caseID
+        const index = _caseId ? self.caseIDMap.get(_caseId) : undefined
+        return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
       },
       getNumericAtIndex(index: number, attributeID: string) {
-        const attr = self.attrIDMap[attributeID],
-              caseID = self.cases[index]?.__id__,
-              cachedCase = self.isCaching ? self.caseCache.get(caseID) : undefined
-        return (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID))
-                ? Number(cachedCase[attributeID])
-                : attr && (index != null) ? attr.numeric(index) : undefined
+        if (self.isCaching) {
+          const caseID = self.cases[index]?.__id__
+          const cachedCase = self.caseCache.get(caseID)
+          if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
+            return Number(cachedCase[attributeID])
+          }
+        }
+        const attr = self.attrIDMap.get(attributeID)
+        return attr?.numeric(index)
       },
       getCase,
       getCases,
@@ -736,7 +740,7 @@ export const DataSet = types.model("DataSet", {
       },
       isCaseSelected(caseId: string) {
         // a pseudo-case is selected if all of its individual cases are selected
-        const group = self.pseudoCaseMap[caseId]
+        const group = self.pseudoCaseMap.get(caseId)
         return group
                 ? group.childCaseIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
@@ -760,7 +764,7 @@ export const DataSet = types.model("DataSet", {
 
         // build caseIDMap
         self.cases.forEach((aCase, index) => {
-          self.caseIDMap[aCase.__id__] = index
+          self.caseIDMap.set(aCase.__id__, index)
         })
 
         if (!srcDataSet) {
@@ -839,7 +843,7 @@ export const DataSet = types.model("DataSet", {
       },
 
       setAttributeName(attributeID: string, name: string | (() => string)) {
-        const attribute = attributeID && self.attrIDMap[attributeID]
+        const attribute = attributeID && self.attrIDMap.get(attributeID)
         if (attribute) {
           const nameStr = typeof name === "string" ? name : name()
           attribute.setName(nameStr)
@@ -848,7 +852,7 @@ export const DataSet = types.model("DataSet", {
 
       applyAttributeProperties(attributeID: string, attrProps: IAttributeSnapshot) {
         (attrProps.name != null) && this.setAttributeName(attributeID, attrProps.name)
-        const attribute = attributeID && self.attrIDMap[attributeID]
+        const attribute = attributeID && self.attrIDMap.get(attributeID)
         if (!attribute) return
         ;(attrProps.description != null) && attribute.setDescription(attrProps.description)
         ;(attrProps.userType != null) && attribute.setUserType(attrProps.userType)
@@ -859,7 +863,7 @@ export const DataSet = types.model("DataSet", {
 
       removeAttribute(attributeID: string) {
         const attrIndex = self.attrIndexFromID(attributeID),
-              attribute = attributeID ? self.attrIDMap[attributeID] : undefined
+              attribute = attributeID ? self.attrIDMap.get(attributeID) : undefined
 
         if (attribute && attrIndex != null) {
           // remove attribute from any collection
@@ -888,7 +892,7 @@ export const DataSet = types.model("DataSet", {
             const value = aCase[attr.id]
             attr.addValue(value != null ? value : undefined, insertPosition)
           })
-          insertCaseIDAtIndex(__id__, insertPosition)
+          insertCaseIDAtIndex(__id__, insertPosition ?? 0)
         })
         // invalidate collectionGroups (including childCases)
         self.invalidateCollectionGroups()
@@ -905,7 +909,7 @@ export const DataSet = types.model("DataSet", {
         const ungroupedCases: ICase[] = []
         // convert each pseudo-case change to a change to each underlying case
         cases.forEach(aCase => {
-          const caseGroup = self.pseudoCaseMap[aCase.__id__]
+          const caseGroup = self.pseudoCaseMap.get(aCase.__id__)
           if (caseGroup) {
             ungroupedCases.push(...caseGroup.childCaseIds.map(id => ({ ...aCase, __id__: id })))
           }
@@ -944,17 +948,17 @@ export const DataSet = types.model("DataSet", {
 
       removeCases(caseIDs: string[]) {
         caseIDs.forEach((caseID) => {
-          const index = self.caseIDMap[caseID]
+          const index = self.caseIDMap.get(caseID)
           if (index != null) {
             self.cases.splice(index, 1)
             self.attributes.forEach((attr) => {
               attr.removeValues(index)
             })
             self.selection.delete(caseID)
-            delete self.caseIDMap[caseID]
+            self.caseIDMap.delete(caseID)
             for (let i = index; i < self.cases.length; ++i) {
               const id = self.cases[i].__id__
-              self.caseIDMap[id] = i
+              self.caseIDMap.set(id, i)
             }
           }
         })
@@ -974,7 +978,7 @@ export const DataSet = types.model("DataSet", {
       selectCases(caseIds: string[], select = true) {
         const ids: string[] = []
         caseIds.forEach(id => {
-          const pseudoCase = self.pseudoCaseMap[id]
+          const pseudoCase = self.pseudoCaseMap.get(id)
           if (pseudoCase) {
             ids.push(...pseudoCase.childCaseIds)
           } else {
@@ -994,7 +998,7 @@ export const DataSet = types.model("DataSet", {
       setSelectedCases(caseIds: string[]) {
         const ids: string[] = []
         caseIds.forEach(id => {
-          const pseudoCase = self.pseudoCaseMap[id]
+          const pseudoCase = self.pseudoCaseMap.get(id)
           if (pseudoCase) {
             ids.push(...pseudoCase.childCaseIds)
           } else {

@@ -193,13 +193,13 @@ describe("observeSymbolNameChanges", () => {
     globalValueManager.addValue(globalValue)
     const nameUpdateCallback = jest.fn()
     const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
-    dataSet.attrFromID("attr1").setName("newName")
+    dataSet.attrFromID("attr1")?.setName("newName")
     expect(nameUpdateCallback).toHaveBeenCalledTimes(1)
     globalValueManager.getValueByName("global1")?.setName("newName")
     expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
 
     dispose()
-    dataSet.attrFromID("attr1").setName("newName2")
+    dataSet.attrFromID("attr1")?.setName("newName2")
     expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
   })
 

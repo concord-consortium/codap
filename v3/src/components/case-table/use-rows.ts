@@ -127,7 +127,11 @@ export const useRows = () => {
       if (!data?.collections.length && isRemoveCasesAction(action)) {
         const caseIds = action.args[0]
         // have to determine the lowest index before the cases are actually removed
-        lowestIndex.current = Math.min(...caseIds.map(id => data.caseIndexFromID(id)).filter(index => index != null))
+        lowestIndex.current = Math.min(
+          ...caseIds
+            .map(id => data.caseIndexFromID(id) ?? -1)
+            .filter(index => index >= 0)
+        )
       }
     }, { attachAfter: false })
     const afterAnyActionDisposer = data && onAnyAction(data, action => {
@@ -150,7 +154,7 @@ export const useRows = () => {
             lowestIndex.current = index != null ? index : data.cases.length
             const casesToUpdate = []
             for (let i=0; i<_cases.length; ++i) {
-              lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__))
+              lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__) ?? Infinity)
             }
             for (let j=lowestIndex.current; j < data.cases.length; ++j) {
               casesToUpdate.push(data.cases[j])
@@ -194,7 +198,7 @@ export const useRows = () => {
     const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
-        const caseGroup = data?.pseudoCaseMap[caseId]
+        const caseGroup = data?.pseudoCaseMap.get(caseId)
         const childCaseIds = caseGroup?.childPseudoCaseIds ?? caseGroup?.childCaseIds
         const firstChildCaseId = childCaseIds?.[0]
         if (firstChildCaseId) {
