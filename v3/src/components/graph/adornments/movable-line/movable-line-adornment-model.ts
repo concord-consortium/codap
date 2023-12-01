@@ -4,9 +4,10 @@ import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel,
          kInfinitePoint } from "../adornment-models"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
-import { ILineInterceptAndSlope, ISquareOfResidual, kMovableLineType } from "./movable-line-adornment-types"
+import { kMovableLineType } from "./movable-line-adornment-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
+import { ILineDescription, ISquareOfResidual, ResidualSquareFn } from "../shared-adornment-types"
 
 export const MovableLineInstance = types.model("MovableLineInstance", {
   equationCoords: types.maybe(PointModel),
@@ -72,23 +73,28 @@ export const MovableLineAdornmentModel = AdornmentModel
   lines: types.map(MovableLineInstance)
 })
 .views(self => ({
+  get lineDescriptions() {
+    const lineDescriptions: ILineDescription[] = []
+    self.lines.forEach((line, key) => {
+      // TODO: maybe don't even add the line if it isn't valid
+      const { intercept, slope } = line?.slopeAndIntercept ?? { intercept: 0, slope: 0 }
+      lineDescriptions.push({ cellKey: JSON.parse(key), intercept, slope })
+    })
+    return lineDescriptions
+  },
   squaresOfResiduals(
     dataConfiguration: IGraphDataConfigurationModel,
-    squareAttributes: (caseID: string, intercept: number, slope: number) => ISquareOfResidual
+    residualSquare: ResidualSquareFn
   ) {
     const dataset = dataConfiguration?.dataset
     const squares: ISquareOfResidual[] = []
-    const interceptsAndSlopes: ILineInterceptAndSlope[] = []
-    self.lines.forEach((line, key) => {
-      const { intercept, slope } = line?.slopeAndIntercept ?? { intercept: 0, slope: 0 }
-      interceptsAndSlopes.push({ cellKey: JSON.parse(key), intercept, slope })
-    })
+    const interceptsAndSlopes = this.lineDescriptions
     interceptsAndSlopes.forEach(interceptAndSlope => {
       const { cellKey, intercept, slope } = interceptAndSlope
       dataset?.cases.forEach(caseData => {
         const fullCaseData = dataset?.getCase(caseData.__id__)
         if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
-          const square = squareAttributes(caseData.__id__, intercept, slope)
+          const square = residualSquare(slope, intercept, caseData.__id__)
           if (!isFinite(square.x) || !isFinite(square.y)) return
           squares.push(square)
         }

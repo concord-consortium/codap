@@ -7,7 +7,7 @@ import { ICase } from "../../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
-import { ILineInterceptAndSlope, ISquareOfResidual } from "../movable-line/movable-line-adornment-types"
+import { ILineDescription, ISquareOfResidual, ResidualSquareFn } from "../shared-adornment-types"
 
 export const LSRLInstance = types.model("LSRLInstance", {
   equationCoords: types.maybe(PointModel)
@@ -107,11 +107,11 @@ export const LSRLAdornmentModel = AdornmentModel
   },
   squaresOfResiduals(
     dataConfiguration: IGraphDataConfigurationModel,
-    squareAttributes: (caseID: string, intercept: number, slope: number) => ISquareOfResidual
+    residualSquare: ResidualSquareFn
   ) {
     const dataset = dataConfiguration?.dataset
     const squares: ISquareOfResidual[] = []
-    const interceptsAndSlopes: ILineInterceptAndSlope[] = []
+    const interceptsAndSlopes: ILineDescription[] = []
     self.lines.forEach((linesArray, key) => {
       linesArray.forEach(line => {
         const intercept = line?.intercept ?? 0
@@ -132,7 +132,7 @@ export const LSRLAdornmentModel = AdornmentModel
         if (legendValue !== category && legendType === "categorical") return
         const fullCaseData = dataset?.getCase(caseData.__id__)
         if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
-          const square = squareAttributes(caseData.__id__, intercept, slope)
+          const square = residualSquare(slope, intercept, caseData.__id__)
           if (!isFinite(square.x) || !isFinite(square.y)) return
           squares.push(square)
         }
