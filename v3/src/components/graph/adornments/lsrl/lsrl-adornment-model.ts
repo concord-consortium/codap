@@ -7,7 +7,7 @@ import { ICase } from "../../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
-import { ILineDescription, ISquareOfResidual, ResidualSquareFn } from "../shared-adornment-types"
+import { ILineDescription } from "../shared-adornment-types"
 
 export const LSRLInstance = types.model("LSRLInstance", {
   equationCoords: types.maybe(PointModel)
@@ -105,40 +105,17 @@ export const LSRLAdornmentModel = AdornmentModel
     })
     return caseValues
   },
-  squaresOfResiduals(
-    dataConfiguration: IGraphDataConfigurationModel,
-    residualSquare: ResidualSquareFn
-  ) {
-    const dataset = dataConfiguration?.dataset
-    const squares: ISquareOfResidual[] = []
-    const interceptsAndSlopes: ILineDescription[] = []
+  get lineDescriptions() {
+    const lineDescriptions: ILineDescription[] = []
     self.lines.forEach((linesArray, key) => {
       linesArray.forEach(line => {
-        const intercept = line?.intercept ?? 0
-        const slope = line?.slope ?? 0
-        interceptsAndSlopes.push({ category: line.category, cellKey: JSON.parse(key), intercept, slope })
+        const { category, intercept, slope } = line
+        if (!intercept || !isFinite(intercept) || !slope || !isFinite(slope)) return
+        const cellKey = JSON.parse(key)
+        lineDescriptions.push({ category, cellKey, intercept, slope })
       })
     })
-    interceptsAndSlopes.forEach(interceptAndSlope => {
-      const { category, cellKey, intercept, slope } = interceptAndSlope
-      dataset?.cases.forEach(caseData => {
-        // Do not render squares in plots containing less than two cases.
-        if (dataConfiguration.subPlotCases(cellKey).length < 2) return
-        const legendID = dataConfiguration?.attributeID("legend")
-        const legendType = dataConfiguration?.attributeType("legend")
-        const legendValue = caseData.__id__ && legendID
-          ? dataset?.getStrValue(caseData.__id__, legendID)
-          : null
-        if (legendValue !== category && legendType === "categorical") return
-        const fullCaseData = dataset?.getCase(caseData.__id__)
-        if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
-          const square = residualSquare(slope, intercept, caseData.__id__)
-          if (!isFinite(square.x) || !isFinite(square.y)) return
-          squares.push(square)
-        }
-      })
-    })
-    return squares
+    return lineDescriptions
   }
 }))
 .views(self => ({

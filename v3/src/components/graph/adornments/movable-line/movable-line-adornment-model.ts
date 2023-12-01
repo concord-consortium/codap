@@ -7,7 +7,7 @@ import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
 import { kMovableLineType } from "./movable-line-adornment-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
-import { ILineDescription, ISquareOfResidual, ResidualSquareFn } from "../shared-adornment-types"
+import { ILineDescription } from "../shared-adornment-types"
 
 export const MovableLineInstance = types.model("MovableLineInstance", {
   equationCoords: types.maybe(PointModel),
@@ -76,31 +76,12 @@ export const MovableLineAdornmentModel = AdornmentModel
   get lineDescriptions() {
     const lineDescriptions: ILineDescription[] = []
     self.lines.forEach((line, key) => {
-      // TODO: maybe don't even add the line if it isn't valid
-      const { intercept, slope } = line?.slopeAndIntercept ?? { intercept: 0, slope: 0 }
-      lineDescriptions.push({ cellKey: JSON.parse(key), intercept, slope })
+      const { intercept, slope } = line.slopeAndIntercept
+      if (!isFinite(intercept) || !isFinite(slope)) return
+      const cellKey = JSON.parse(key)
+      lineDescriptions.push({ cellKey, intercept, slope })
     })
     return lineDescriptions
-  },
-  squaresOfResiduals(
-    dataConfiguration: IGraphDataConfigurationModel,
-    residualSquare: ResidualSquareFn
-  ) {
-    const dataset = dataConfiguration?.dataset
-    const squares: ISquareOfResidual[] = []
-    const interceptsAndSlopes = this.lineDescriptions
-    interceptsAndSlopes.forEach(interceptAndSlope => {
-      const { cellKey, intercept, slope } = interceptAndSlope
-      dataset?.cases.forEach(caseData => {
-        const fullCaseData = dataset?.getCase(caseData.__id__)
-        if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
-          const square = residualSquare(slope, intercept, caseData.__id__)
-          if (!isFinite(square.x) || !isFinite(square.y)) return
-          squares.push(square)
-        }
-      })
-    })
-    return squares
   }
 }))
 .actions(self => ({
