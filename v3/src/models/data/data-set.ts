@@ -673,7 +673,7 @@ export const DataSet = types.model("DataSet", {
         const pseudoCase = self.pseudoCaseMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase?.childCaseIds[0] : caseID
         const index = self.caseIDMap.get(_caseId)
-        return index !== undefined ? this.getValueAtIndex(index, attributeID) : undefined
+        return index != null ? this.getValueAtIndex(index, attributeID) : undefined
       },
       getValueAtIndex(index: number, attributeID: string) {
           if (self.isCaching) {
@@ -693,7 +693,7 @@ export const DataSet = types.model("DataSet", {
         const pseudoCase = self.pseudoCaseMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase.childCaseIds[0] : caseID
         const index = self.caseIDMap.get(_caseId)
-        return index !== undefined ? this.getStrValueAtIndex(index, attributeID) : ""
+        return index != null ? this.getStrValueAtIndex(index, attributeID) : ""
       },
       getStrValueAtIndex(index: number, attributeID: string) {
         if (self.isCaching) {
@@ -704,7 +704,7 @@ export const DataSet = types.model("DataSet", {
           }
         }
         const attr = self.attrIDMap.get(attributeID)
-        return attr?.value(index) || ""
+        return attr?.value(index) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         // The values of a pseudo-case are considered to be the values of the first real case.
@@ -713,7 +713,7 @@ export const DataSet = types.model("DataSet", {
         const pseudoCase = self.pseudoCaseMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase.childCaseIds[0] : caseID
         const index = _caseId ? self.caseIDMap.get(_caseId) : undefined
-        return index !== undefined ? this.getNumericAtIndex(index, attributeID) : undefined
+        return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
       },
       getNumericAtIndex(index: number, attributeID: string) {
         if (self.isCaching) {

@@ -231,8 +231,8 @@ export const DataConfigurationModel = types
           const attrID = self.attributeID(role)
           const dataset = self.dataset
           const allCaseIDs = Array.from(self.allCaseIDs)
-          const allValues = attrID ? allCaseIDs.map((anID: string) => String(dataset?.getValue(anID, attrID))) : []
-          return allValues.filter(aValue => aValue)
+          const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
+          return allValues.filter(aValue => aValue) as string[]
         }
       }),
       numericValuesForAttrRole(role: AttrRole): number[] {
@@ -411,7 +411,7 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
-        if (legendValue == null) {
+        if (!legendValue) {
           return ''
         }
         switch (legendType) {

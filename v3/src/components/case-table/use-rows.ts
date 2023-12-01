@@ -130,7 +130,7 @@ export const useRows = () => {
         lowestIndex.current = Math.min(
           ...caseIds
             .map(id => data.caseIndexFromID(id) ?? -1)
-            .filter(index => index !== -1)
+            .filter(index => index >= 0)
         )
       }
     }, { attachAfter: false })

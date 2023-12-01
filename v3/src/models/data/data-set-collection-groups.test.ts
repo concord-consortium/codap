@@ -1,4 +1,3 @@
-import { IAttribute } from "./attribute"
 import { CollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
 
@@ -72,7 +71,7 @@ describe("CollectionGroups", () => {
 
   it("handles grouping by a single attribute", () => {
     const collection = CollectionModel.create()
-    collection.addAttribute(data.attrFromID("aId") as IAttribute)
+    collection.addAttribute(data.attrFromID("aId")!)
     data.addCollection(collection)
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["bId", "cId"])
@@ -91,8 +90,8 @@ describe("CollectionGroups", () => {
 
   it("handles grouping by multiple attributes", () => {
     const collection = CollectionModel.create()
-    collection.addAttribute(data.attrFromID("aId") as IAttribute)
-    collection.addAttribute(data.attrFromID("bId") as IAttribute)
+    collection.addAttribute(data.attrFromID("aId")!)
+    collection.addAttribute(data.attrFromID("bId")!)
     data.addCollection(collection)
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])
@@ -113,11 +112,11 @@ describe("CollectionGroups", () => {
 
   it("handles multiple groupings", () => {
     const collection1 = CollectionModel.create()
-    collection1.addAttribute(data.attrFromID("aId") as IAttribute)
+    collection1.addAttribute(data.attrFromID("aId")!)
     data.addCollection(collection1)
     expect(data.collectionGroups.length).toBe(1)
     const collection2 = CollectionModel.create()
-    collection2.addAttribute(data.attrFromID("bId") as IAttribute)
+    collection2.addAttribute(data.attrFromID("bId")!)
     data.addCollection(collection2)
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId", "bId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["cId"])

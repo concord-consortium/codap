@@ -253,8 +253,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
 
   const lookupLegendColor = (caseData: CaseData): string => {
     const { caseID } = caseData
-    const legendColor = getLegendColor?.(caseID) || ''
-    if (legendColor !== '') {
+    const legendColor = getLegendColor?.(caseID)
+    if (legendColor) {
       return legendColor
     }
     if (dataset?.isCaseSelected(caseID)) {
