@@ -131,7 +131,9 @@ export const MapPointLayer = function MapPointLayer(props: {
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
     const disposer = mstReaction(
-      () => dataConfiguration?.attributeID('legend'),
+      () => {
+        return [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')]
+      },
       () => {
         refreshPointPositions(false)
       }, { name: "setupResponseToLegendAttributeChange" }, dataConfiguration

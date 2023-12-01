@@ -29,7 +29,8 @@ export const NumericLegend =
     getLabelHeight = useCallback(() => {
       const labelFont = vars.labelFont,
         legendAttrID = dataConfiguration?.attributeID('legend') ?? ''
-      return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
+      return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height +
+        axisGap
     }, [dataConfiguration]),
 
     refreshScale = useCallback(() => {

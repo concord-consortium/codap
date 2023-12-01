@@ -11,12 +11,6 @@
   width: 100%;
   height: calc(100% - $title-bar-height);
 
-  .attribute-label {
-    fill: blue;
-    text-decoration: underline;
-    font: $label-font;
-  }
-
   .empty-label {
     fill: #999;
     font: $empty-label-font;

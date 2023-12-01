@@ -3,8 +3,7 @@ import React, {CSSProperties, useRef} from "react"
 import t from "../../../utilities/translation/translate"
 import {GraphPlace} from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
-import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute"
@@ -13,6 +12,7 @@ import {IUseDraggableAttribute, useDraggableAttribute} from "../../../hooks/use-
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IProps {
+  dataConfiguration: IDataConfigurationModel
   place: GraphPlace,
   target: SVGGElement | null
   portal: HTMLElement | null
@@ -30,16 +30,15 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
 }
 
-export const AxisOrLegendAttributeMenu = ({ place, target, portal,
+export const AxisOrLegendAttributeMenu = ({ dataConfiguration, place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
-  const data = useDataSetContext()
-  const dataConfig = useDataConfigurationContext()
+  const data = dataConfiguration.dataset
   const role = graphPlaceToAttrRole[place]
-  const attrId = dataConfig?.attributeID(role) || ''
+  const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
   const attribute = attrId ? data?.attrFromID(attrId) : null
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
-  const treatAs = dataConfig?.attributeType(role) === "numeric" ? "categorical" : "numeric"
+  const treatAs = dataConfiguration?.attributeType(role) === "numeric" ? "categorical" : "numeric"
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
   const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)

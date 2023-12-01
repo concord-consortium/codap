@@ -8,7 +8,6 @@
 
 .map-container {
   position: relative;
-  overflow: hidden;
   width: 100%;
   height: calc(100% - $title-bar-height);
   z-index: 5;

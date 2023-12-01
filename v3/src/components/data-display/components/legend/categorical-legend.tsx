@@ -2,7 +2,6 @@ import {observer} from "mobx-react-lite"
 import {reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
-import {IDataConfigurationModel} from "../../models/data-configuration-model"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
@@ -46,7 +45,7 @@ interface DragInfo {
 const keySize = 15,
   padding = 5
 
-const labelHeight = getStringBounds('Wy', vars.labelFont).height
+const labelHeight = getStringBounds('Wy', vars.labelFont).height + axisGap
 
 const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: { x: number, y: number }) => {
     const {x, y} = localPoint,
@@ -87,7 +86,7 @@ export const CategoricalLegend = observer(
     const
       keysElt = useRef(null)
 
-      constcomputeLayout = useCallback(() => {
+      const computeLayout = useCallback(() => {
         categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
         const numCategories = categoriesRef.current?.length,
           lod: Layout = layoutData.current
@@ -113,7 +112,7 @@ export const CategoricalLegend = observer(
         layoutData.current = lod
       }, [dataConfiguration, tileWidth])
 
-      constcomputeDesiredExtent = useCallback(() => {
+      const computeDesiredExtent = useCallback(() => {
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
@@ -191,7 +190,7 @@ export const CategoricalLegend = observer(
       duration.current = 0
     }, [])
 
-      constonDrag = useCallback((event: { dx: number; dy: number }) => {
+      const onDrag = useCallback((event: { dx: number; dy: number }) => {
         if (event.dx !== 0 || event.dy !== 0) {
           const dI = dragInfo.current,
             lod = layoutData.current,
@@ -214,7 +213,7 @@ export const CategoricalLegend = observer(
         }
       }, [dataConfiguration, refreshKeys])
 
-      constonDragEnd = useCallback(() => {
+      const onDragEnd = useCallback(() => {
         duration.current = transitionDuration
         dragInfo.current.indexOfCategory = -1
         refreshKeys()

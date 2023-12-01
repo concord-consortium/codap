@@ -1,0 +1,11 @@
+@import "../../vars.scss";
+
+.attribute-label {
+  fill: blue !important;
+  text-decoration: underline;
+  font: $label-font !important;
+}
+
+.codap-graph-attribute-label {
+  z-index: 1200;
+}

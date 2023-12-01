@@ -27,6 +27,8 @@
     // V3 map strings that are not present in V2 and will eventually require translation.
     "V3.Undo.mapLegendAttributeChange": "Undo changing map legend attribute",
     "V3.Redo.mapLegendAttributeChange": "Redo changing map legend attribute",
+    "V3.Undo.mapLegendAttributeRemove": "Undo removing map legend attribute",
+    "V3.Redo.mapLegendAttributeRemove": "Redo removing map legend attribute",
     "V3.map.legendDrop": "Color regions by values of %@",
 
     // CFM/File menu

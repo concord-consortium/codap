@@ -233,8 +233,6 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         <MultiLegend
           divElt={graphRef.current}
           onDropAttribute={handleChangeAttribute}
-          onRemoveAttribute={handleRemoveAttribute}
-          onTreatAttributeAs={handleTreatAttrAs}
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
