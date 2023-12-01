@@ -13,6 +13,8 @@ import { measureText } from "../../../../hooks/use-measure-text"
 import { ILabel, IValue } from "./univariate-measure-adornment-types"
 import { UnivariateMeasureAdornmentHelper } from "./univariate-measure-adornment-helper"
 import { UnivariateMeasureAdornmentBaseComponent } from "./univariate-measure-adornment-base-component"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
 interface IProps {
   cellKey: Record<string, string>
@@ -34,15 +36,10 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
     }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
-    const xAttrId = dataConfig?.attributeID("x")
-    const yAttrId = dataConfig?.attributeID("y")
-    const xAttrType = dataConfig?.attributeType("x")
-    const yAttrType = dataConfig?.attributeType("y")
+    const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
+    const { cellCounts } = useAdornmentCells(model, cellKey)
     const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
     const showLabel = adornmentsStore?.showMeasureLabels
-    const cellCounts = useMemo(() => {
-      return model.cellCount(layout, xAttrType, yAttrType)
-    }, [layout, model, xAttrType, yAttrType])
     const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
     const valueRef = useRef<SVGGElement>(null)
     const valueObjRef = useRef<IValue>({})

@@ -3,12 +3,13 @@ import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
-import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
 import { IMovableValueAdornmentModel } from "./movable-value-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
 import "./movable-value-adornment-component.scss"
 
@@ -31,28 +32,16 @@ interface IProps {
 
 export const MovableValueAdornment = observer(function MovableValueAdornment(props: IProps) {
   const {containerId, model, cellKey={}, transform, xAxis, yAxis} = props
-  const layout = useAxisLayoutContext(),
-    graphModel = useGraphContentModelContext(),
-    dataConfig = useGraphDataConfigurationContext(),
-    xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
-    yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
-    instanceKey = model.instanceKey(cellKey),
-    classFromKey = model.classNameFromKey(cellKey),
-    [left, right] = xScale?.range() || [0, 1],
-    [bottom, top] = yScale?.range() || [0, 1],
-    xAttrType = dataConfig?.attributeType("x"),
-    yAttrType = dataConfig?.attributeType("y"),
-    xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1,
-    ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1,
-    xCatSet = layout.getAxisMultiScale("bottom")?.categorySet,
-    xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""],
-    yCatSet = layout.getAxisMultiScale("left")?.categorySet,
-    yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""],
-    xCellCount = xCats.length * xSubAxesCount,
-    yCellCount = yCats.length * ySubAxesCount,
-    valueRef = useRef<SVGSVGElement>(null),
-    valueObjects = useRef<IValueObject[]>([]),
-    isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
+  const layout = useAxisLayoutContext()
+  const graphModel = useGraphContentModelContext()
+  const dataConfig = useGraphDataConfigurationContext()
+  const { xAttrType, xScale, yScale } = useAdornmentAttributes()
+  const { cellCounts, classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
+  const [left, right] = xScale?.range() || [0, 1]
+  const [bottom, top] = yScale?.range() || [0, 1]
+  const valueRef = useRef<SVGSVGElement>(null)
+  const valueObjects = useRef<IValueObject[]>([])
+  const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
 
   const getValues = useCallback(() => {
     const { values } = model
@@ -62,12 +51,12 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const determineLineCoords = useCallback((value: number) => {
     const offsetRight = 50
     const offsetTop = 20
-    const x1 = isVertical.current ? xScale(value) / xCellCount : right / xCellCount - offsetRight
-    const x2 = isVertical.current ? xScale(value) / xCellCount : left / xCellCount - offsetRight
-    const y1 = !isVertical.current ? yScale(value) / yCellCount : top / yCellCount + offsetTop
-    const y2 = !isVertical.current ? yScale(value) / yCellCount : bottom / yCellCount
+    const x1 = isVertical.current ? xScale(value) / cellCounts.x : right / cellCounts.x - offsetRight
+    const x2 = isVertical.current ? xScale(value) / cellCounts.x : left / cellCounts.x - offsetRight
+    const y1 = !isVertical.current ? yScale(value) / cellCounts.y : top / cellCounts.y + offsetTop
+    const y2 = !isVertical.current ? yScale(value) / cellCounts.y : bottom / cellCounts.y
     return { x1, x2, y1, y2 }
-  }, [bottom, left, right, top, xCellCount, xScale, yCellCount, yScale])
+  }, [bottom, cellCounts, left, right, top, xScale, yScale])
 
   const renderFills = useCallback(() => {
     const values = getValues()
@@ -84,9 +73,9 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
       if (i % 2 === 0) {
         const nextValue = sortedValues[i + 1] ?? axisMax
         const fillStart = isVertical.current
-          ? xScale(sortedValues[i]) / xCellCount
-          : yScale(sortedValues[i]) / yCellCount
-        const fillEnd = isVertical.current ? xScale(nextValue) / xCellCount : yScale(nextValue) / yCellCount
+          ? xScale(sortedValues[i]) / cellCounts.x
+          : yScale(sortedValues[i]) / cellCounts.y
+        const fillEnd = isVertical.current ? xScale(nextValue) / cellCounts.x : yScale(nextValue) / cellCounts.y
         const width = isVertical.current ? Math.abs(fillEnd - fillStart) : x1 + 3
         const height = isVertical.current ? y2 - offsetTop : Math.abs(fillEnd - fillStart)
         selection.append("rect")
@@ -97,7 +86,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
           .attr("height", height)
       }
     }
-  }, [getValues, containerId, model, instanceKey, determineLineCoords, xScale, yScale, xCellCount, yCellCount])
+  }, [getValues, containerId, model, instanceKey, determineLineCoords, xScale, yScale, cellCounts.x, cellCounts.y])
 
   // Updates the coordinates of the line and its cover segments
   const refreshValue = useCallback((value: number, valueObjIndex: number) => {
@@ -140,8 +129,8 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
     const axisMin = isVertical.current ? xScale.domain()[0] : yScale.domain()[0]
     const axisMax = isVertical.current ? xScale.domain()[1] : yScale.domain()[1]
     let newValue = xAttrType === "numeric"
-      ? xScale.invert(event.x) * xCellCount
-      : yScale.invert(event.y) * yCellCount
+      ? xScale.invert(event.x) * cellCounts.x
+      : yScale.invert(event.y) * cellCounts.y
 
     // If the value is dragged outside plot area, reset it to its initial value
     if ((preDragValue != null) && (newValue < axisMin || newValue > axisMax)) {
@@ -149,7 +138,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
     }
     model.updateDrag(newValue, instanceKey, index)
     refreshValue(newValue, index)
-  }, [getValues, instanceKey, model, refreshValue, xAttrType, xCellCount, xScale, yCellCount, yScale])
+  }, [getValues, instanceKey, model, refreshValue, xAttrType, cellCounts.x, xScale, cellCounts.y, yScale])
 
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model

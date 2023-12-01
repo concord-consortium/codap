@@ -4,11 +4,11 @@ import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
-import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
-import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
-import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { IMovablePointAdornmentModel } from "./movable-point-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
 import "./movable-point-adornment-component.scss"
 
@@ -34,32 +34,18 @@ interface IProps {
 }
 
 export const MovablePointAdornment = observer(function MovablePointAdornment(props: IProps) {
-  const {model, plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props,
-    graphModel = useGraphContentModelContext(),
-    dataConfig = useGraphDataConfigurationContext(),
-    layout = useAxisLayoutContext(),
-    xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType,
-    yScale = layout.getAxisScale("left") as ScaleNumericBaseType,
-    graphHeight = layout.getAxisLength('left'),
-    graphWidth = layout.getAxisLength('bottom'),
-    xSubAxesCount = layout.getAxisMultiScale('bottom')?.repetitions ?? 1,
-    ySubAxesCount = layout.getAxisMultiScale('left')?.repetitions ?? 1,
-    classFromKey = model.classNameFromKey(cellKey),
-    instanceKey = model.instanceKey(cellKey),
-    pointRef = useRef<SVGGElement | null>(null),
-    [pointObject, setPointObject] = useState<IPointObject>({})
+  const {model, plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props
+  const graphModel = useGraphContentModelContext()
+  const { xAttrId, yAttrId, xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
+  const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
+  const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
+  const pointRef = useRef<SVGGElement | null>(null)
+  const [pointObject, setPointObject] = useState<IPointObject>({})
 
-  // get attributes for use in coordinates box and for determining when to reset the point
-  // to the initial position when the attributes have changed
-  const allAttributes = dataConfig?.dataset?.attributes,
-    xAttrId = dataConfig?.attributeID('x') || '',
-    yAttrId = dataConfig?.attributeID('y') || '',
-    xAttr = allAttributes?.find(attr => attr.id === xAttrId),
-    yAttr = allAttributes?.find(attr => attr.id === yAttrId),
-    xAttrName = xAttr?.name ?? '',
-    yAttrName = yAttr?.name ?? '',
-    prevXAttrIdRef = useRef<string>(xAttrId),
-    prevYAttrIdRef = useRef<string>(yAttrId)
+  // Set up refs for determining when attributes have changed and the point needs to be reset
+  // to the initial position
+  const prevXAttrIdRef = useRef<string>(xAttrId)
+  const prevYAttrIdRef = useRef<string>(yAttrId)
 
   const showCoordinates = useCallback((event: MouseEvent) => {
     const xValue = model.points.get(instanceKey)?.x ?? 0,
@@ -129,7 +115,7 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
 
       movePoint(xPoint, yPoint)
     })
-  }, [graphHeight, graphWidth, instanceKey, model, model.points, movePoint, xAttrId, xAttrName,
+  }, [plotHeight, plotWidth, instanceKey, model, model.points, movePoint, xAttrId, xAttrName,
       xAxis, xAxis?.domain, xScale, xSubAxesCount, yAttrId, yAttrName, yAxis, yAxis?.domain,
       yScale, ySubAxesCount])
 

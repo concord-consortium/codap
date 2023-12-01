@@ -3,6 +3,7 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { ICountAdornmentModel } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { percentString } from "../../utilities/graph-utils"
 import { prf } from "../../../../utilities/profiler"
 
@@ -15,7 +16,7 @@ interface IProps {
 
 export const CountAdornment = observer(function CountAdornment({model, cellKey}: IProps) {
   prf.begin("CountAdornment.render")
-  const classFromKey = model.classNameFromKey(cellKey)
+  const { classFromKey } = useAdornmentCells(model, cellKey)
   const dataConfig = useGraphDataConfigurationContext()
   const casesInPlot = dataConfig?.subPlotCases(cellKey)?.length ?? 0
   const percent = model.percentValue(casesInPlot, cellKey, dataConfig)
