@@ -72,7 +72,7 @@ describe("CollectionGroups", () => {
 
   it("handles grouping by a single attribute", () => {
     const collection = CollectionModel.create()
-    collection.addAttribute(data.attrFromID("aId") as IAttribute)
+    collection.addAttribute(data.attrFromID("aId")!)
     data.addCollection(collection)
     expect(data.groupedAttributes.map(attr => attr.id)).toEqual(["aId"])
     expect(data.ungroupedAttributes.map(attr => attr.id)).toEqual(["bId", "cId"])
