@@ -7,7 +7,7 @@ import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {CodapMap} from "./codap-map"
 import {isMapContentModel} from "../models/map-content-model"
-import {MapLayoutContext} from "../models/map-layout"
+import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
 import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
 
@@ -20,7 +20,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: mapRef})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setParentExtent(width, height)
+    (width != null) && (height != null) && layout.setTileExtent(width, height)
   }, [width, height, layout])
 
   // used to determine when a dragged attribute is over the map component
@@ -36,12 +36,12 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
 
   return (
     <InstanceIdContext.Provider value={instanceId}>
-      <MapLayoutContext.Provider value={layout}>
+      <DataDisplayLayoutContext.Provider value={layout}>
         <MapModelContext.Provider value={mapModel}>
           <CodapMap mapRef={mapRef}/>
           <AttributeDragOverlay activeDragId={overlayDragId}/>
         </MapModelContext.Provider>
-      </MapLayoutContext.Provider>
+      </DataDisplayLayoutContext.Provider>
     </InstanceIdContext.Provider>
   )
 })
