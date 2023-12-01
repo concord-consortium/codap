@@ -261,8 +261,20 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   return (
     <>
       <svg/>
-      {movableLine?.isVisible && <g ref={movableLineSquaresRef}/>}
-      {lsrl?.isVisible && <g ref={lsrlSquaresRef}/>}
+      { movableLine?.isVisible && showSquares &&
+        <g
+          data-testid={`movable-line-squares-${instanceId}`}
+          className="movable-line-squares"
+          ref={movableLineSquaresRef}
+        />
+      }
+      { lsrl?.isVisible && showSquares &&
+        <g
+          data-testid={`lsrl-squares-${instanceId}`}
+          className="lsrl-squares"
+          ref={lsrlSquaresRef}
+        />
+      }
     </>
   )
 })
