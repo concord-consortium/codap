@@ -115,8 +115,6 @@ export const Adornments = observer(function Adornments() {
                           key={`graph-adornment-${adornment.id}-${yIndex}-${xIndex}-${rightIndex}-${topIndex}`}
                           adornment={adornment}
                           cellKey={cellKey}
-                          topCats={topCats}
-                          rightCats={rightCats}
                         />
                 })
               }
