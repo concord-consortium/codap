@@ -24,8 +24,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     minValue = min(scale.domain()) ?? 0,
     maxValue = max(scale.domain()) ?? 0
 
-  let tickFormat: string | ((i: NumberValue) => string) = '.2r',
-    tickValues: number[] = []
+  const tickFormatSpec = '.2r'
 
   select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")
@@ -34,13 +33,12 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .style("overflow", "visible")
     .style("display", "block")
 
-  const thresholds =
-      scale.quantiles(),
+  const thresholds = scale.quantiles(),
     fullBoundaries = [minValue, ...thresholds, maxValue],
     domainValues = scale.domain(),
     significantDigits = neededSigDigitsArrayForQuantiles(fullBoundaries, domainValues)
 
-  const thresholdFormat = format(tickFormat)
+  const thresholdFormat = format(tickFormatSpec)
 
   const x = scaleLinear()
     .domain([-1, scale.range().length - 1])
@@ -64,8 +62,8 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
       clickHandler(scale.range().indexOf(color), event.shiftKey)
     })
 
-  tickValues = range(thresholds.length)
-  tickFormat = (i: NumberValue) => thresholdFormat(thresholds[Number(i)])
+  const tickValues = range(thresholds.length)
+  const tickFormat = (i: NumberValue) => thresholdFormat(thresholds[Number(i)])
 
   svg.append("g")
     .attr('class', 'legend-axis')

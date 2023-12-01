@@ -61,7 +61,7 @@ export const GraphAttributeLabel =
       const attrIDs = getAttributeIDs()
       return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
-    }, [dataset, getAttributeIDs, getClickHereCue, place])
+    }, [dataset, getAttributeIDs, getClickHereCue])
 
     const refreshAxisTitle = useCallback(() => {
       const {labelFont, className, visibility} = getClickHereCue(),

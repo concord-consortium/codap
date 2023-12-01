@@ -171,7 +171,7 @@ export const CategoricalLegend = observer(
                   })
             }
           )
-      }, [dataConfiguration]),  // eslint-disable-line react-hooks/exhaustive-deps
+      }, [dataConfiguration]),
 
       onDragStart = useCallback((event: { x: number; y: number }) => {
         const dI = dragInfo.current,
