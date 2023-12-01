@@ -673,7 +673,7 @@ export const DataSet = types.model("DataSet", {
         const pseudoCase = self.pseudoCaseMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase?.childCaseIds[0] : caseID
         const index = self.caseIDMap.get(_caseId)
-        return index !== undefined ? this.getValueAtIndex(index, attributeID) : undefined
+        return index != null ? this.getValueAtIndex(index, attributeID) : undefined
       },
       getValueAtIndex(index: number, attributeID: string) {
           if (self.isCaching) {
