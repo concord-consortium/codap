@@ -8,6 +8,7 @@ import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-d
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {AttributeType} from "../../../../models/data/attribute"
 import {IDataSet} from "../../../../models/data/data-set"
+import {DataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {GraphAttrRole} from "../../data-display-types"
 import {GraphPlace} from "../../../axis-graph-shared"
@@ -70,14 +71,15 @@ export const MultiLegend = observer(function MultiLegend({
           divRefs.current[index] = divRef
             return (
               <div className='legend' key={layer.id} ref={divRef} style={{height: `${extentsRef.current[index]}px`}}>
-                <Legend dataConfiguration={layer.dataConfiguration}
-                        layerIndex={index}
-                        tileWidth={tileWidth}
-                        setDesiredExtent={setDesiredExtent}
-                        onDropAttribute={onDropAttribute}
-                        onRemoveAttribute={onRemoveAttribute}
-                        onTreatAttributeAs={onTreatAttributeAs}
-                />
+                <DataConfigurationContext.Provider value={layer.dataConfiguration}>
+                  <Legend layerIndex={index}
+                          tileWidth={tileWidth}
+                          setDesiredExtent={setDesiredExtent}
+                          onDropAttribute={onDropAttribute}
+                          onRemoveAttribute={onRemoveAttribute}
+                          onTreatAttributeAs={onTreatAttributeAs}
+                  />
+                </DataConfigurationContext.Provider>
               </div>
             )
           }

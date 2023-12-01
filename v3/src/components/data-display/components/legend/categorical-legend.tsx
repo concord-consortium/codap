@@ -2,11 +2,11 @@ import {observer} from "mobx-react-lite"
 import {reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
-import {IDataConfigurationModel} from "../../models/data-configuration-model"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
@@ -15,7 +15,6 @@ import './legend.scss'
 import vars from "../../../vars.scss"
 
 interface ICategoricalLegendProps {
-  dataConfiguration: IDataConfigurationModel
   layerIndex: number
   tileWidth: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
@@ -63,8 +62,9 @@ const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: {
   }
 
 export const CategoricalLegend = observer(
-  function CategoricalLegend({dataConfiguration, layerIndex, tileWidth, setDesiredExtent}: ICategoricalLegendProps) {
-    const dataset = dataConfiguration?.dataset,
+  function CategoricalLegend({layerIndex, tileWidth, setDesiredExtent}: ICategoricalLegendProps) {
+    const dataConfiguration = useDataConfigurationContext(),
+      dataset = dataConfiguration?.dataset,
       categoriesRef = useRef<string[] | undefined>(),
       categoryData = useRef<Key[]>([]),
       layoutData = useRef<Layout>({

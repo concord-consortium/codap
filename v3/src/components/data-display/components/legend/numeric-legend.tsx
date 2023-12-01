@@ -7,21 +7,21 @@ import {kChoroplethHeight} from "../../data-display-types"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 
 import vars from "../../../vars.scss"
-import {IDataConfigurationModel} from "../../models/data-configuration-model"
 
 
 interface INumericLegendProps {
-  dataConfiguration: IDataConfigurationModel
   layerIndex: number
   tileWidth: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
 }
 
 export const NumericLegend =
-  observer(function NumericLegend({dataConfiguration, layerIndex, tileWidth, setDesiredExtent}: INumericLegendProps) {
-  const quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
+  observer(function NumericLegend({layerIndex, tileWidth, setDesiredExtent}: INumericLegendProps) {
+  const dataConfiguration = useDataConfigurationContext(),
+    quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
 

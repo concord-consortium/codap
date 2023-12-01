@@ -1,14 +1,13 @@
 import React, {useRef} from "react"
 import {IDataSet} from "../../../../models/data/data-set"
-import {IDataConfigurationModel} from "../../models/data-configuration-model"
 import {LegendAttributeLabel} from "./legend-attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import {NumericLegend} from "./numeric-legend"
 import {AttributeType} from "../../../../models/data/attribute"
 import {GraphPlace} from "../../../axis-graph-shared"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 
 interface ILegendProps {
-  dataConfiguration: IDataConfigurationModel
   layerIndex: number
   tileWidth: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
@@ -18,18 +17,18 @@ interface ILegendProps {
 }
 
 export const Legend = function Legend({
-                                        dataConfiguration, layerIndex, tileWidth, setDesiredExtent, onDropAttribute,
+                                        layerIndex, tileWidth, setDesiredExtent, onDropAttribute,
                                         onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
-  const legendAttrID = dataConfiguration.attributeID('legend'),
-    attrType = dataConfiguration.dataset?.attrFromID(legendAttrID ?? '')?.type,
+  const dataConfiguration = useDataConfigurationContext(),
+    legendAttrID = dataConfiguration?.attributeID('legend'),
+    attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendRef = useRef() as React.RefObject<SVGSVGElement>
 
   return legendAttrID ? (
     <>
       <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
         <LegendAttributeLabel
-          dataConfiguration={dataConfiguration}
           onChangeAttribute={onDropAttribute}
           onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
@@ -37,16 +36,14 @@ export const Legend = function Legend({
         {
           attrType === 'categorical'
             ? <CategoricalLegend
-              layerIndex={layerIndex}
-              tileWidth={tileWidth}
-              setDesiredExtent={setDesiredExtent}
-              dataConfiguration={dataConfiguration}/>
-            : attrType === 'numeric'
-              ? <NumericLegend
                 layerIndex={layerIndex}
                 tileWidth={tileWidth}
-                setDesiredExtent={setDesiredExtent}
-                dataConfiguration={dataConfiguration}/> : null
+                setDesiredExtent={setDesiredExtent}/>
+            : attrType === 'numeric'
+              ? <NumericLegend
+                  layerIndex={layerIndex}
+                  tileWidth={tileWidth}
+                  setDesiredExtent={setDesiredExtent}/> : null
         }
       </svg>
     </>
