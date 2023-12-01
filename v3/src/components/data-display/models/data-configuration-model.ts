@@ -405,7 +405,7 @@ export const DataConfigurationModel = types
           return ''
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
-        if (legendValue == null) {
+        if (!legendValue) {
           return ''
         }
         switch (legendType) {
