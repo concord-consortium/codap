@@ -229,7 +229,7 @@ export const DataConfigurationModel = types
         const attrID = self.attributeID(role)
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.allCaseIDs)
-        const allValues = attrID ? allCaseIDs.map((anID: string) => String(dataset?.getValue(anID, attrID))) : []
+        const allValues = attrID ? allCaseIDs.map((anID: string) =>dataset?.getStrValue(anID, attrID)) : []
         return allValues.filter(aValue => aValue)
       },
       numericValuesForAttrRole(role: AttrRole): number[] {
