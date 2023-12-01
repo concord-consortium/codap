@@ -704,7 +704,7 @@ export const DataSet = types.model("DataSet", {
           }
         }
         const attr = self.attrIDMap.get(attributeID)
-        return attr?.value(index) || ""
+        return attr?.value(index) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         // The values of a pseudo-case are considered to be the values of the first real case.
