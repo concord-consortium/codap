@@ -4,13 +4,13 @@ import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {typedId} from "../../../utilities/js-utils"
+import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
-import { cachedFnWithArgsFactory } from "../../../utilities/mst-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
