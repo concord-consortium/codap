@@ -113,4 +113,15 @@ describe("LSRLAdornmentModel", () => {
     expect(modelLine2?.sdResiduals).toEqual(line2.sdResiduals)
     expect(modelLine2?.slope).toEqual(line2.slope)
   })
+  it("can have its showConfidenceBands property set", () => {
+    const lSRL = LSRLAdornmentModel.create()
+    expect(lSRL.showConfidenceBands).toEqual(false)
+    lSRL.setShowConfidenceBands(true)
+    expect(lSRL.showConfidenceBands).toEqual(true)
+  })
+  it("can get both the intercept and slope values of a line via the line's slopeAndIntercept view", () => {
+    const lSRL = LSRLAdornmentModel.create()
+    lSRL.updateLines(mockLSRLInstanceProps1)
+    expect(lSRL.lines.get("")?.[0]?.slopeAndIntercept).toEqual({intercept: 1, slope: 1})
+  })
 })
