@@ -1,15 +1,15 @@
+import {DataDisplayLayout} from "../../data-display/models/data-display-layout"
 import {IMapContentModel} from "./map-content-model"
-import {MapLayout} from "./map-layout"
 
 interface IMapControllerConstructorProps {
   mapModel?: IMapContentModel
-  layout: MapLayout
+  layout: DataDisplayLayout
   instanceId: string
 }
 
 export class MapController {
   mapModel?: IMapContentModel
-  layout: MapLayout
+  layout: DataDisplayLayout
   instanceId: string
 
   constructor({mapModel, layout, instanceId}: IMapControllerConstructorProps) {

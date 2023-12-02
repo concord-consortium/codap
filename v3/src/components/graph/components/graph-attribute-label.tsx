@@ -1,22 +1,16 @@
 import React, {useCallback, useEffect, useRef} from "react"
-import {createPortal} from "react-dom"
-import {reaction} from "mobx"
-import {observer} from "mobx-react-lite"
 import {select} from "d3"
-import {mstReaction} from "../../../utilities/mst-reaction"
 import t from "../../../utilities/translation/translate"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {isSetAttributeNameAction} from "../../../models/data/data-set-actions"
 import {GraphPlace, isVertical} from "../../axis-graph-shared"
-import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
-import {kGraphClassSelector} from "../graphing-types"
+import {AttributeLabel} from "../../data-display/components/attribute-label"
+import {graphPlaceToAttrRole, kPortalClassSelector} from "../../data-display/data-display-types"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
-import {AxisOrLegendAttributeMenu} from "../../axis/components/axis-or-legend-attribute-menu"
 
 import vars from "../../vars.scss"
 
@@ -27,18 +21,16 @@ interface IAttributeLabelProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
-export const AttributeLabel = observer(
-  function AttributeLabel({place, onTreatAttributeAs, onRemoveAttribute, onChangeAttribute}: IAttributeLabelProps) {
+export const GraphAttributeLabel =
+  function GraphAttributeLabel({place, onTreatAttributeAs, onRemoveAttribute,
+                                 onChangeAttribute}: IAttributeLabelProps) {
     const graphModel = useGraphContentModelContext(),
       dataConfiguration = useGraphDataConfigurationContext(),
       layout = useGraphLayoutContext(),
       {isTileSelected} = useTileModelContext(),
       dataset = dataConfiguration?.dataset,
       labelRef = useRef<SVGGElement>(null),
-      useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false,
-      hideClickHereCue = useClickHereCue &&
-        !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected(),
-      parentElt = labelRef.current?.closest(kGraphClassSelector) as HTMLDivElement ?? null
+      parentElt = labelRef.current?.closest(kPortalClassSelector) as HTMLDivElement ?? null
 
     const getAttributeIDs = useCallback(() => {
       const isScatterPlot = graphModel.plotType === 'scatterPlot',
@@ -50,17 +42,29 @@ export const AttributeLabel = observer(
         : [attrID]
     }, [dataConfiguration, graphModel.plotType, place])
 
+    const getClickHereCue = useCallback(() => {
+      const useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false
+      const hideClickHereCue = useClickHereCue &&
+        !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected()
+      const className = useClickHereCue ? 'empty-label' : 'attribute-label'
+      const unusedClassName = useClickHereCue ? 'attribute-label' : 'empty-label'
+      const visibility = hideClickHereCue ? 'hidden' : 'visible'
+      const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont
+      return { useClickHereCue, className, unusedClassName, labelFont, visibility }
+    }, [dataConfiguration, isTileSelected, place])
+
     const getLabel = useCallback(() => {
+      const { useClickHereCue } = getClickHereCue()
       if (useClickHereCue) {
         return t('DG.AxisView.emptyGraphCue')
       }
       const attrIDs = getAttributeIDs()
       return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
-    }, [dataset, getAttributeIDs, useClickHereCue])
+    }, [dataset, getAttributeIDs, getClickHereCue])
 
     const refreshAxisTitle = useCallback(() => {
-      const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont,
+      const {labelFont, className, visibility} = getClickHereCue(),
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
@@ -74,8 +78,7 @@ export const AttributeLabel = observer(
         tY = isVertical(place) ? halfRange
           : place === 'legend' ? labelBounds.height / 2
             : place === 'top' ? labelBounds.height : bounds.height - labelBounds.height / 2,
-        tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : '',
-        className = useClickHereCue ? 'empty-label' : 'attribute-label'
+        tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : ''
       select(labelRef.current)
         .selectAll(`text.${className}`)
         .data([1])
@@ -86,49 +89,25 @@ export const AttributeLabel = observer(
               .attr("transform", labelTransform + tRotation)
               .attr('class', className)
               .attr('data-testid', className)
-              .style('visibility', hideClickHereCue ? 'hidden' : 'visible')
+              .style('visibility', visibility)
               .attr('x', tX)
               .attr('y', tY)
               .text(label)
         )
-    }, [layout, place, labelRef, getLabel, useClickHereCue, hideClickHereCue])
-
-    useEffect(function observeAttributeNameChange() {
-      const disposer = dataConfiguration?.onAction(action => {
-        if (isSetAttributeNameAction(action)) {
-          const [changedAttributeID] = action.args
-          if (getAttributeIDs().includes(changedAttributeID)) {
-            refreshAxisTitle()
-          }
-        }
-      })
-
-      return () => disposer?.()
-    }, [dataConfiguration, refreshAxisTitle, getAttributeIDs])
-
-    // Install reaction to bring about rerender when layout's computedBounds changes
-    useEffect(() => {
-      const disposer = reaction(
-        () => layout.getComputedBounds(place),
-        () => refreshAxisTitle(),
-        { name: "AttributeLabel [layout.getComputedBounds]"}
-      )
-      return () => disposer()
-    }, [place, layout, refreshAxisTitle])
+    }, [getClickHereCue, getLabel, layout, place])
 
     useEffect(function setupTitle() {
 
+      const { className, unusedClassName } = getClickHereCue()
+
       const removeUnusedLabel = () => {
-        const classNameToRemove = useClickHereCue ? 'attribute-label' : 'empty-label'
         select(labelRef.current)
-          .selectAll(`text.${classNameToRemove}`)
+          .selectAll(`text.${unusedClassName}`)
           .remove()
       }
 
-      if (labelRef) {
+      if (labelRef.current) {
         removeUnusedLabel()
-        const anchor = place === 'legend' ? 'start' : 'middle',
-          className = useClickHereCue ? 'empty-label' : 'attribute-label'
         select(labelRef.current)
           .selectAll(`text.${className}`)
           .data([1])
@@ -136,45 +115,22 @@ export const AttributeLabel = observer(
             (enter) =>
               enter.append('text')
                 .attr('class', className)
-                .attr('text-anchor', anchor)
+                .attr('text-anchor', 'middle')
                 .attr('data-testid', className)
           )
         refreshAxisTitle()
       }
-    }, [labelRef, place, useClickHereCue, refreshAxisTitle])
-
-    // Respond to changes in attributeID assigned to my place
-    useEffect(() => {
-        const disposer = mstReaction(
-          () => {
-            if (place === 'left') {
-              return dataConfiguration?.yAttributeDescriptionsExcludingY2.map((desc) => desc.attributeID)
-            }
-            else {
-              return dataConfiguration?.attributeID(graphPlaceToAttrRole[place])
-            }
-          },
-          () => {
-            refreshAxisTitle()
-          }, { name: "AttributeLabel [attribute configuration]" }, dataConfiguration
-        )
-        return () => disposer()
-    }, [place, dataConfiguration, refreshAxisTitle])
+    }, [getClickHereCue, place, refreshAxisTitle])
 
     return (
-      <>
-        <g ref={labelRef}/>
-        {parentElt && onChangeAttribute && onTreatAttributeAs && onRemoveAttribute &&
-          createPortal(<AxisOrLegendAttributeMenu
-            target={labelRef.current}
-            portal={parentElt}
-            place={place}
-            onChangeAttribute={onChangeAttribute}
-            onRemoveAttribute={onRemoveAttribute}
-            onTreatAttributeAs={onTreatAttributeAs}
-          />, parentElt)
-        }
-      </>
+      <AttributeLabel
+        ref={labelRef}
+        place={place}
+        portal={parentElt}
+        refreshLabel={refreshAxisTitle}
+        onChangeAttribute={onChangeAttribute}
+        onRemoveAttribute={onRemoveAttribute}
+        onTreatAttributeAs={onTreatAttributeAs}
+      />
     )
-  })
-AttributeLabel.displayName = "AttributeLabel"
+  }

@@ -11,4 +11,4 @@ import React from "react"
 // Other configuration options, detailed at:
 // https://github.com/welldone-software/why-did-you-render#readme
 
-whyDidYouRender(React, { trackAllPureComponents: true })
+whyDidYouRender(React, { trackAllPureComponents: false })

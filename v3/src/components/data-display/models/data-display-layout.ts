@@ -1,7 +1,7 @@
 import {action, computed, makeObservable, observable} from "mobx"
 import {GraphPlace} from "../../axis-graph-shared"
 
-export const kDefaultTileWidth = 480
+export const kDefaultTileWidth = 300
 export const kDefaultTileHeight = 300
 
 export interface Bounds {

@@ -21,14 +21,14 @@ const computeDropHint = (active: Active) => {
 export const DroppableMapArea = ({mapElt, targetElt, onDropAttribute}: IProps) => {
   const instanceId = useInstanceIdContext(),
     mapModel = useMapModelContext(),
-    isDropAllowed = mapModel.canAcceptAttributeIDDrop ?? (() => true),
+    isDropAllowed = mapModel.placeCanAcceptAttributeIDDrop ?? (() => true),
     droppableId = `${instanceId}-map-area-drop`,
     {active: currentActive} = useDndContext(),
     hintString = currentActive ? computeDropHint(currentActive) : ''
 
     const handleIsActive = (active: Active) => {
       const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
-      if (isDropAllowed) {
+      if (dataSet && isDropAllowed) {
         return isDropAllowed(dataSet, droppedAttrId)
       } else {
         return !!droppedAttrId

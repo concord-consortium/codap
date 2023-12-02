@@ -1,4 +1,4 @@
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import React, {useCallback, useEffect} from "react"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
@@ -6,6 +6,9 @@ import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {getCaseTipText, handleClickOnCase} from "../../data-display/data-display-utils"
+import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
+import {useMapModelContext} from "../hooks/use-map-model-context"
+import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
 import {safeJsonParse} from "../../../utilities/js-utils"
 import {
@@ -15,9 +18,6 @@ import {
   kMapAreaWithLegendSelectedBorderColor, PolygonLayerOptions
 }
   from "../map-types"
-import {useMapModelContext} from "../hooks/use-map-model-context"
-import {useMapLayoutContext} from "../models/map-layout"
-import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
@@ -27,7 +27,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
     leafletMap = useMap(),
-    layout = useMapLayoutContext()
+    layout = useDataDisplayLayout()
 
   // useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
@@ -175,10 +175,10 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 // Changes in layout require repositioning polygons
   useEffect(function setupResponsesToLayoutChanges() {
     const disposer = reaction(
-      () => [layout.mapWidth, layout.mapHeight, layout.legendHeight],
+      () => [layout.tileWidth, layout.tileHeight, layout.getComputedBounds('legend')?.height],
       () => {
         refreshPolygons(false)
-      }
+      }, { name: "MapPolygonLayer.respondToLayoutChanges", equals: comparer.structural }
     )
     return () => disposer()
   }, [layout, refreshPolygons])

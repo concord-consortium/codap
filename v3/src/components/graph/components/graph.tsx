@@ -1,8 +1,9 @@
 import {observer} from "mobx-react-lite"
 import {addDisposer, isAlive} from "mobx-state-tree"
-import React, {MutableRefObject, useEffect, useMemo, useRef} from "react"
+import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
-import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole}
+import {clsx} from "clsx"
+import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -27,7 +28,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {isSetAttributeIDAction} from "../models/graph-content-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
-import {Legend} from "../../data-display/components/legend/legend"
+import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
@@ -36,7 +37,7 @@ import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import { Adornments } from "../adornments/adornments"
+import {Adornments} from "../adornments/adornments"
 
 import "./graph.scss"
 
@@ -68,11 +69,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         // filtered cases become empty when DataSet is deleted, for instance
         if ((length === 0) && !isUndoingOrRedoing()) {
           graphController.clearGraph()
-        }
-        else {
+        } else {
           graphController.callMatchCirclesToData()
         }
-      }, { name: "Graph.useEffect.handleFilteredCasesLengthChange" }, graphModel
+      }, {name: "Graph.useEffect.handleFilteredCasesLengthChange"}, graphModel
     )
   }, [graphController, graphModel])
 
@@ -93,7 +93,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return mstReaction(
       () => graphModel.dataConfiguration.attributeDescriptionsStr,
       () => graphController.initializeGraph(),
-      { name: "Graph.handleAttributeConfigurationChange" }, graphModel)
+      {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
 
   useEffect(function handleDeleteAttribute() {
@@ -103,8 +103,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         graphModel.dataConfiguration.rolesForAttribute(attrId).forEach(role => {
           if (role === "yPlus") {
             graphModel.dataConfiguration.removeYAttributeWithID(attrId)
-          }
-          else {
+          } else {
             graphModel.setAttributeID(role as GraphAttrRole, "", "")
           }
         })
@@ -112,19 +111,19 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     }))
   }, [dataset, graphModel])
 
-  const handleChangeAttribute = (place: GraphPlace, dataSet: IDataSet, attrId: string) => {
+  const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     graphModel.applyUndoableAction(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
-  }
+  }, [graphModel])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
    * do we have to do anything special. Otherwise, we can just call handleChangeAttribute.
    */
-  const handleRemoveAttribute = (place: GraphPlace, idOfAttributeToRemove: string) => {
+  const handleRemoveAttribute = useCallback((place: GraphPlace, idOfAttributeToRemove: string) => {
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
       graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
       const yAxisModel = graphModel.getAxis('left') as IAxisModel
@@ -132,7 +131,14 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     } else {
       dataset && handleChangeAttribute(place, dataset, '')
     }
-  }
+  }, [dataset, graphModel, handleChangeAttribute])
+
+  const handleTreatAttrAs = useCallback((place: GraphPlace, attrId: string, treatAs: AttributeType) => {
+    dataset && graphModel.applyUndoableAction(() => {
+      graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
+      dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
+    }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
+  }, [dataset, graphController, graphModel])
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
@@ -147,17 +153,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  const handleTreatAttrAs = (place: GraphPlace, attrId: string, treatAs: AttributeType) => {
-    dataset && graphModel.applyUndoableAction(() => {
-      graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
-      dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
-    }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
-  }
-
   useDataTips({dotsRef, dataset, displayModel: graphModel})
 
   const renderPlotComponent = () => {
-    const props = { xAttrID, yAttrID, dotsRef },
+    const props = {xAttrID, yAttrID, dotsRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -209,7 +208,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
 
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
-      <div className={kGraphClass} ref={graphRef} data-testid="graph">
+      <div className={clsx(kGraphClass, kPortalClass)} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
             marqueeState={marqueeState}
@@ -230,19 +229,17 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
             plotElt={backgroundSvgRef.current}
             onDropAttribute={handleChangeAttribute}
           />
-
-          <Legend
-            dataConfiguration={graphModel.dataConfiguration}
-            legendAttrID={graphModel.getAttributeID('legend')}
-            divElt={graphRef.current}
-            onDropAttribute={handleChangeAttribute}
-            onRemoveAttribute={handleRemoveAttribute}
-            onTreatAttributeAs={handleTreatAttrAs}
-          />
         </svg>
+        <MultiLegend
+          divElt={graphRef.current}
+          onDropAttribute={handleChangeAttribute}
+          onRemoveAttribute={handleRemoveAttribute}
+          onTreatAttributeAs={handleTreatAttrAs}
+        />
         {renderDroppableAddAttributes()}
-        <Adornments />
+        <Adornments/>
       </div>
     </GraphDataConfigurationContext.Provider>
   )
 })
+// Graph.whyDidYouRender = true

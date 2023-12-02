@@ -6,17 +6,18 @@ import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
-import {getStringBounds} from "../../../axis/axis-utils"
-import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
+import {getStringBounds} from "../../../axis/axis-utils"
+import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
 
 import './legend.scss'
 import vars from "../../../vars.scss"
 
 interface ICategoricalLegendProps {
-  transform: string,
+  layerIndex: number
+  setDesiredExtent: (layerIndex:number, extent: number) => void
 }
 
 interface Key {
@@ -44,61 +45,51 @@ interface DragInfo {
 const keySize = 15,
   padding = 5
 
-interface LayoutData {
-  maxWidth: number
-  fullWidth: number
-  numColumns: number
-  numRows: number
-  columnWidth: number
-}
-
 const labelHeight = getStringBounds('Wy', vars.labelFont).height
 
-const coordinatesToCatIndex = (lod: LayoutData, numCategories: number, localPoint: { x: number, y: number }) => {
+const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: { x: number, y: number }) => {
     const {x, y} = localPoint,
       col = Math.floor(x / lod.columnWidth),
       row = Math.floor(y / (keySize + padding)),
       catIndex = row * lod.numColumns + col
     return catIndex >= 0 && catIndex < numCategories ? catIndex : -1
   },
-  catLocation = (lod: LayoutData, catData: Key[], index: number) => {
+  catLocation = (lod: Layout, catData: Key[], index: number) => {
     return {
       x: axisGap + catData[index].column * lod.columnWidth,
       y: /*labelHeight + */catData[index].row * (keySize + padding)
     }
   }
 
-export const CategoricalLegend = observer(function CategoricalLegend(
-  {transform}: ICategoricalLegendProps) {
-  const transformRef = useRef(transform),
-    dataConfiguration = useDataConfigurationContext(),
-    dataset = dataConfiguration?.dataset,
-    layout = useDataDisplayLayout(),
-    categoriesRef = useRef<string[] | undefined>(),
-    categoryData = useRef<Key[]>([]),
-    layoutData = useRef<Layout>({
-        maxWidth: 0,
-        fullWidth: 0,
-        numColumns: 0,
-        numRows: 0,
-        columnWidth: 0
-      }
-    ),
-    dragInfo = useRef<DragInfo>({
-      indexOfCategory: -1,
-      initialOffset: {x: 0, y: 0},
-      currentDragPosition: {x: 0, y: 0}
-    }),
-    duration = useRef(0)
+export const CategoricalLegend = observer(
+  function CategoricalLegend({layerIndex, setDesiredExtent}: ICategoricalLegendProps) {
+    const dataConfiguration = useDataConfigurationContext(),
+      dataset = dataConfiguration?.dataset,
+      tileWidth = useDataDisplayLayout().tileWidth,
+      categoriesRef = useRef<string[] | undefined>(),
+      categoryData = useRef<Key[]>([]),
+      layoutData = useRef<Layout>({
+          maxWidth: 0,
+          fullWidth: 0,
+          numColumns: 0,
+          numRows: 0,
+          columnWidth: 0
+        }
+      ),
+      dragInfo = useRef<DragInfo>({
+        indexOfCategory: -1,
+        initialOffset: {x: 0, y: 0},
+        currentDragPosition: {x: 0, y: 0}
+      }),
+      duration = useRef(0)
 
-  // keyFunc = (index: number) => index,
-  const keysElt = useRef(null)
+    const keysElt = useRef(null)
 
-  const computeLayout = useCallback(() => {
+    const computeLayout = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
         lod: Layout = layoutData.current
-      lod.fullWidth = layout.contentWidth
+      lod.fullWidth = tileWidth
       lod.maxWidth = 0
       categoriesRef.current?.forEach(cat => {
         lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
@@ -118,7 +109,7 @@ export const CategoricalLegend = observer(function CategoricalLegend(
         })
       })
       layoutData.current = lod
-    }, [layout, dataConfiguration])
+    }, [dataConfiguration, tileWidth])
 
     const computeDesiredExtent = useCallback(() => {
       if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
@@ -150,7 +141,6 @@ export const CategoricalLegend = observer(function CategoricalLegend(
               .on('end', () => {
                 duration.current = 0
               })
-              .attr('transform', transformRef.current)
               .attr('x', (index: number) => {
                 return dragInfo.current.indexOfCategory === index
                   ? dragInfo.current.currentDragPosition.x - dragInfo.current.initialOffset.x
@@ -158,13 +148,12 @@ export const CategoricalLegend = observer(function CategoricalLegend(
               })
               .attr('y',
                 (index: number) => {
-                return labelHeight + (dragInfo.current.indexOfCategory === index
-                  ? dragInfo.current.currentDragPosition.y - dragInfo.current.initialOffset.y
-                  : catData[index].row * (keySize + padding))
+                  return labelHeight + (dragInfo.current.indexOfCategory === index
+                    ? dragInfo.current.currentDragPosition.y - dragInfo.current.initialOffset.y
+                    : catData[index].row * (keySize + padding))
                 })
             return update.select('text')
               .text((index: number) => catData[index].category)
-              .attr('transform', transformRef.current)
               .transition().duration(duration.current)
               .on('end', () => {
                 duration.current = 0
@@ -182,21 +171,15 @@ export const CategoricalLegend = observer(function CategoricalLegend(
                 })
           }
         )
-/*  This causes flickering, so we leave it out for now until we assign data properly to the keys
-      select(keysElt.current).selectAll('g').each(function (index) {
-        dragInfo.current.indexOfCategory === index && select(this).raise()
-      })
-*/
-    }, [dataConfiguration, transform])  // eslint-disable-line react-hooks/exhaustive-deps
+    }, [dataConfiguration])
 
     const onDragStart = useCallback((event: { x: number; y: number }) => {
       const dI = dragInfo.current,
         lod = layoutData.current,
         numCategories = categoriesRef.current?.length ?? 0,
-        legendBounds = layout?.getComputedBounds('legend'),
         localPt = {
-          x: event.x - (legendBounds?.left ?? 0),
-          y: event.y - labelHeight - (legendBounds?.top ?? 0)
+          x: event.x,
+          y: event.y - labelHeight
         },
         catIndex = coordinatesToCatIndex(lod, numCategories, localPt),
         keyLocation = catLocation(lod, categoryData.current, catIndex)
@@ -204,9 +187,9 @@ export const CategoricalLegend = observer(function CategoricalLegend(
       dI.initialOffset = {x: localPt.x - keyLocation.x, y: localPt.y - keyLocation.y}
       dI.currentDragPosition = localPt
       duration.current = 0
-    }, [layout]),
+    }, [])
 
-    onDrag = useCallback((event: { dx: number; dy: number }) => {
+    const onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
         const dI = dragInfo.current,
           lod = layoutData.current,
@@ -233,12 +216,14 @@ export const CategoricalLegend = observer(function CategoricalLegend(
       duration.current = transitionDuration
       dragInfo.current.indexOfCategory = -1
       refreshKeys()
-    }, [refreshKeys]),
-    dragBehavior = useMemo(() => drag<SVGGElement, number>()
+    }, [refreshKeys])
+
+    const dragBehavior = useMemo(() => drag<SVGGElement, number>()
       .on("start", onDragStart)
       .on("drag", onDrag)
-      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart]),
-    setupKeys = useCallback(() => {
+      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
+
+    const setupKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length
       if (keysElt.current && categoryData.current) {
@@ -273,58 +258,54 @@ export const CategoricalLegend = observer(function CategoricalLegend(
       }
     }, [dataConfiguration, dragBehavior])
 
-  useEffect(function respondToSelectionChange() {
-    return onAnyAction(dataset, action => {
-      if (isSelectionAction(action)) {
+    useEffect(function respondToSelectionChange() {
+      return onAnyAction(dataset, action => {
+        if (isSelectionAction(action)) {
+          refreshKeys()
+        }
+      })
+    }, [refreshKeys, dataset, computeDesiredExtent])
+
+    useEffect(function respondToCategorySetsChange() {
+      return reaction(
+        () => dataConfiguration?.categoryArrayForAttrRole('legend'),
+        () => {
+          setDesiredExtent(layerIndex, computeDesiredExtent())
+          setupKeys()
+          refreshKeys()
+        })
+    }, [setupKeys, refreshKeys, dataConfiguration, computeDesiredExtent, setDesiredExtent, layerIndex])
+
+    useEffect(function respondToAttributeIDChange() {
+      const disposer = reaction(
+        () => {
+          return [dataConfiguration?.attributeID('legend')]
+        },
+        () => {
+          setDesiredExtent(layerIndex, computeDesiredExtent())
+          // todo: Figure out whether this is cause extra calls to setupKeys and refreshKeys
+          setupKeys()
+          refreshKeys()
+        }, {fireImmediately: true}
+      )
+      return () => disposer()
+    }, [refreshKeys, computeDesiredExtent, dataConfiguration, setupKeys, setDesiredExtent, layerIndex])
+
+    useEffect(function setup() {
+      if (keysElt.current && categoryData.current) {
+        setupKeys()
         refreshKeys()
       }
-    })
-  }, [refreshKeys, dataset, computeDesiredExtent])
+    }, [categoryData, setupKeys, refreshKeys, dataConfiguration])
 
-  useEffect(function respondToCategorySetsChange() {
-    return reaction(
-      () => dataConfiguration?.categoryArrayForAttrRole('legend'),
-      () => {
-        layout.setDesiredExtent('legend', computeDesiredExtent())
-        setupKeys()
-        refreshKeys()
-      })
-  }, [setupKeys, refreshKeys, dataConfiguration, layout, computeDesiredExtent])
+    useEffect(function cleanup() {
+      return () => {
+        setDesiredExtent(layerIndex, 0)
+      }
+    }, [setDesiredExtent, layerIndex])
 
-  useEffect(function respondToLayoutChange() {
-    const disposer = reaction(
-      () => {
-        const {tileHeight, tileWidth} = layout,
-          legendAttrID = dataConfiguration?.attributeID('legend')
-        return [tileHeight, tileWidth, legendAttrID]
-      },
-      () => {
-        layout.setDesiredExtent('legend', computeDesiredExtent())
-        // todo: Figure out whether this is cause extra calls to setupKeys and refreshKeys
-        setupKeys()
-        refreshKeys()
-      }, {fireImmediately: true}
+    return (
+      <svg className='legend-categories' ref={keysElt} data-testid='legend-categories'></svg>
     )
-    return () => disposer()
-  }, [layout, refreshKeys, computeDesiredExtent, dataConfiguration, setupKeys])
-
-  useEffect(function setup() {
-    if (keysElt.current && categoryData.current) {
-      setupKeys()
-      refreshKeys()
-    }
-  }, [categoryData, setupKeys, refreshKeys, dataConfiguration])
-
-  useEffect(function cleanup() {
-    return () => {
-      layout.setDesiredExtent('legend', 0)
-    }
-  }, [layout])
-
-  transformRef.current = transform
-
-  return (
-    <svg className='legend-categories' ref={keysElt} data-testid='legend-categories'></svg>
-  )
-})
+  })
 CategoricalLegend.displayName = "CategoricalLegend"

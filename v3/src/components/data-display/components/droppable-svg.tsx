@@ -9,7 +9,7 @@ import "./droppable-svg.scss"
 interface IProps {
   className?: string
   portal: HTMLElement | null
-  target: SVGGElement | null
+  target: HTMLDivElement | SVGGElement | null
   dropId: string
   onIsActive?: (active: Active) => boolean
   hintString?: string

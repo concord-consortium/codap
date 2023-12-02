@@ -1,4 +1,8 @@
-import {format} from "d3"
+import {FormatLocaleDefinition, formatLocale} from "d3-format"
+
+// locale which uses ASCII minus sign and ignores grouping and currency
+const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
+const asciiFormat = asciiLocale.format
 
 export function between(num: number, min: number, max: number) {
   return min < max ? (min <= num && num <= max) : (max <= num && num <= min)
@@ -8,10 +12,10 @@ export function between(num: number, min: number, max: number) {
 * between them. */
 export function neededSignificantDigits(num1: number, num2: number) {
   let significantDigits = 0,
-    f: (n: (number | { valueOf(): number })) => string,
+    f: ReturnType<typeof asciiFormat>,
     done = false
   while (!done) {
-    f = format(`.${significantDigits}r`)
+    f = asciiFormat(`.${significantDigits}r`)
     const num1str = f(num1),
       num2str = f(num2)
     done = num1str !== num2str
@@ -50,11 +54,12 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
 
   const sigDigits = (n1: number, n2: number, operator: '<' | '>' | '<=' | '>=') => {
     let significantDigits = 0,
-      f: (n: (number | { valueOf(): number })) => string,
+      f: ReturnType<typeof asciiFormat>,
       done = false
     while (!done) {
-      f = format(`.${significantDigits}r`)
-      const n1AfterFormatting = Number(f(n1))
+      f = asciiFormat(`.${significantDigits}r`)
+      const n1String = f(n1),
+        n1AfterFormatting = Number(n1String)
       switch (operator) {
         case '<':
           done = n1AfterFormatting < n2
@@ -97,6 +102,6 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
   })
 }
 
-export function isFiniteNumber(val:any) {
+export function isFiniteNumber(val: any) {
   return typeof val === 'number' && isFinite(val)
 }

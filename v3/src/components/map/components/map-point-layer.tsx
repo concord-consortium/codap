@@ -1,4 +1,4 @@
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import React, {useCallback, useEffect, useRef} from "react"
@@ -9,10 +9,10 @@ import {CaseData, DotsElt, selectDots} from "../../data-display/d3-types"
 import {computePointRadius, matchCirclesToData, setPointSelection} from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
+import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {useMapModelContext} from "../hooks/use-map-model-context"
-import {useMapLayoutContext} from "../models/map-layout"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 
 export const MapPointLayer = function MapPointLayer(props: {
@@ -24,7 +24,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     mapModel = useMapModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
-    layout = useMapLayoutContext(),
+    layout = useDataDisplayLayout(),
     dotsRef = useRef<DotsElt>(null)
 
   useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
@@ -110,10 +110,10 @@ export const MapPointLayer = function MapPointLayer(props: {
   // Changes in layout require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
     const disposer = reaction(
-      () => [layout.mapWidth, layout.mapHeight, layout.legendHeight],
+      () => [layout.tileWidth, layout.tileHeight, layout.getComputedBounds('legend')],
       () => {
         refreshPointPositions(false)
-      }
+      }, { name: "MapPointLayout.respondToLayoutChanges", equals: comparer.structural }
     )
     return () => disposer()
   }, [layout, refreshPointPositions])

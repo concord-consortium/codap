@@ -12,12 +12,14 @@ import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
   from "../../../models/shared/shared-data-set"
 import {typedId} from "../../../utilities/js-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
+import {IDataSet} from "../../../models/data/data-set"
 import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
   from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
+import {GraphPlace} from "../../axis-graph-shared"
 import {axisPlaceToAttrRole, GraphAttrRole} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
@@ -110,6 +112,11 @@ export const GraphContentModel = DataDisplayContentModel
     },
     axisShouldShowGridLines(place: AxisPlace) {
       return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
+    },
+    placeCanAcceptAttributeIDDrop(place: GraphPlace,
+                             dataset: IDataSet | undefined,
+                             attributeID: string | undefined): boolean {
+      return self.dataConfiguration.placeCanAcceptAttributeIDDrop(place, dataset, attributeID)
     }
   }))
   .views(self => ({
