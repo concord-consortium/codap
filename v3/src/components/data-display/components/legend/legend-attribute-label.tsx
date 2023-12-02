@@ -30,7 +30,7 @@ export const LegendAttributeLabel =
     const refreshLegendTitle = useCallback(() => {
       const dataset = dataConfiguration?.dataset,
         attributeID = dataConfiguration?.attributeID('legend'),
-        attributeName = (attributeID ? dataset?.attrFromID(attributeID).name : '') ?? '',
+        attributeName = (attributeID ? dataset?.attrFromID(attributeID)?.name : '') ?? '',
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
         tX = axisGap,

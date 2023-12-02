@@ -82,180 +82,181 @@ export const CategoricalLegend = observer(
       }),
       duration = useRef(0)
 
-    const // keyFunc = (index: number) => index,
-      keysElt = useRef(null),
+    const keysElt = useRef(null)
 
-      computeLayout = useCallback(() => {
-        categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
-        const numCategories = categoriesRef.current?.length,
-          lod: Layout = layoutData.current
-        lod.fullWidth = tileWidth
-        lod.maxWidth = 0
-        categoriesRef.current?.forEach(cat => {
-          lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
+    const computeLayout = useCallback(() => {
+      categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+      const numCategories = categoriesRef.current?.length,
+        lod: Layout = layoutData.current
+      lod.fullWidth = tileWidth
+      lod.maxWidth = 0
+      categoriesRef.current?.forEach(cat => {
+        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
+      })
+      lod.maxWidth += keySize + padding
+      lod.numColumns = Math.floor(lod.fullWidth / lod.maxWidth)
+      lod.columnWidth = lod.fullWidth / lod.numColumns
+      lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
+      categoryData.current.length = 0
+      categoriesRef.current && Array.from(categoriesRef.current).forEach((cat: string, index) => {
+        categoryData.current.push({
+          category: cat,
+          color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
+          index,
+          row: Math.floor(index / lod.numColumns),
+          column: index % lod.numColumns
         })
-        lod.maxWidth += keySize + padding
-        lod.numColumns = Math.floor(lod.fullWidth / lod.maxWidth)
-        lod.columnWidth = lod.fullWidth / lod.numColumns
-        lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
-        categoryData.current.length = 0
-        categoriesRef.current && Array.from(categoriesRef.current).forEach((cat: string, index) => {
-          categoryData.current.push({
-            category: cat,
-            color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
-            index,
-            row: Math.floor(index / lod.numColumns),
-            column: index % lod.numColumns
-          })
-        })
-        layoutData.current = lod
-      }, [dataConfiguration, tileWidth]),
+      })
+      layoutData.current = lod
+    }, [dataConfiguration, tileWidth])
 
-      computeDesiredExtent = useCallback(() => {
-        if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
-          return 0
-        }
-        computeLayout()
-        const lod = layoutData.current
-        return lod.numRows * (keySize + padding) + labelHeight + axisGap
-      }, [computeLayout, dataConfiguration]),
+    const computeDesiredExtent = useCallback(() => {
+      if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
+        return 0
+      }
+      computeLayout()
+      const lod = layoutData.current
+      return lod.numRows * (keySize + padding) + labelHeight + axisGap
+    }, [computeLayout, dataConfiguration])
 
-      refreshKeys = useCallback(() => {
-        categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
-        const numCategories = categoriesRef.current?.length,
-          catData = categoryData.current
-        select(keysElt.current)
-          .selectAll('g')
-          .data(range(0, numCategories ?? 0))
-          .join(
-            enter => enter,
-            update => {
-              update.select('rect')
-                .classed('legend-rect-selected',
-                  (index) => {
-                    return dataConfiguration?.allCasesForCategoryAreSelected(catData[index].category) ??
-                      false
-                  })
-                .style('fill', (index: number) => catData[index].color || 'white')
-                .transition().duration(duration.current)
-                .on('end', () => {
-                  duration.current = 0
+    const refreshKeys = useCallback(() => {
+      categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+      const numCategories = categoriesRef.current?.length,
+        catData = categoryData.current
+      select(keysElt.current)
+        .selectAll('g')
+        .data(range(0, numCategories ?? 0))
+        .join(
+          enter => enter,
+          update => {
+            update.select('rect')
+              .classed('legend-rect-selected',
+                (index) => {
+                  return dataConfiguration?.allCasesForCategoryAreSelected(catData[index].category) ??
+                    false
                 })
-                .attr('x', (index: number) => {
-                  return dragInfo.current.indexOfCategory === index
-                    ? dragInfo.current.currentDragPosition.x - dragInfo.current.initialOffset.x
-                    : axisGap + catData[index].column * layoutData.current.columnWidth
+              .style('fill', (index: number) => catData[index].color || 'white')
+              .transition().duration(duration.current)
+              .on('end', () => {
+                duration.current = 0
+              })
+              .attr('x', (index: number) => {
+                return dragInfo.current.indexOfCategory === index
+                  ? dragInfo.current.currentDragPosition.x - dragInfo.current.initialOffset.x
+                  : axisGap + catData[index].column * layoutData.current.columnWidth
+              })
+              .attr('y',
+                (index: number) => {
+                  return labelHeight + (dragInfo.current.indexOfCategory === index
+                    ? dragInfo.current.currentDragPosition.y - dragInfo.current.initialOffset.y
+                    : catData[index].row * (keySize + padding))
                 })
-                .attr('y',
-                  (index: number) => {
-                    return labelHeight + (dragInfo.current.indexOfCategory === index
-                      ? dragInfo.current.currentDragPosition.y - dragInfo.current.initialOffset.y
-                      : catData[index].row * (keySize + padding))
-                  })
-              return update.select('text')
-                .text((index: number) => catData[index].category)
-                .transition().duration(duration.current)
-                .on('end', () => {
-                  duration.current = 0
+            return update.select('text')
+              .text((index: number) => catData[index].category)
+              .transition().duration(duration.current)
+              .on('end', () => {
+                duration.current = 0
+              })
+              .attr('x', (index: number) => {
+                return keySize + 3 + (dragInfo.current.indexOfCategory === index
+                  ? dragInfo.current.currentDragPosition.x - dragInfo.current.initialOffset.x
+                  : axisGap + catData[index].column * layoutData.current.columnWidth)
+              })
+              .attr('y',
+                (index: number) => {
+                  return labelHeight + 0.8 * keySize + (dragInfo.current.indexOfCategory === index
+                    ? dragInfo.current.currentDragPosition.y - dragInfo.current.initialOffset.y
+                    : catData[index].row * (keySize + padding))
                 })
-                .attr('x', (index: number) => {
-                  return keySize + 3 + (dragInfo.current.indexOfCategory === index
-                    ? dragInfo.current.currentDragPosition.x - dragInfo.current.initialOffset.x
-                    : axisGap + catData[index].column * layoutData.current.columnWidth)
-                })
-                .attr('y',
-                  (index: number) => {
-                    return labelHeight + 0.8 * keySize + (dragInfo.current.indexOfCategory === index
-                      ? dragInfo.current.currentDragPosition.y - dragInfo.current.initialOffset.y
-                      : catData[index].row * (keySize + padding))
-                  })
-            }
-          )
-      }, [dataConfiguration]),
+          }
+        )
+    }, [dataConfiguration])
 
-      onDragStart = useCallback((event: { x: number; y: number }) => {
+    const onDragStart = useCallback((event: { x: number; y: number }) => {
+      const dI = dragInfo.current,
+        lod = layoutData.current,
+        numCategories = categoriesRef.current?.length ?? 0,
+        // legendBounds = layout?.getComputedBounds('legend'),
+        localPt = {
+          x: event.x/* - (legendBounds?.left ?? 0)*/,
+          y: event.y - labelHeight/* - (legendBounds?.top ?? 0)*/
+        },
+        catIndex = coordinatesToCatIndex(lod, numCategories, localPt),
+        keyLocation = catLocation(lod, categoryData.current, catIndex)
+      dI.indexOfCategory = catIndex
+      dI.initialOffset = {x: localPt.x - keyLocation.x, y: localPt.y - keyLocation.y}
+      dI.currentDragPosition = localPt
+      duration.current = 0
+    }, [])
+
+    const onDrag = useCallback((event: { dx: number; dy: number }) => {
+      if (event.dx !== 0 || event.dy !== 0) {
         const dI = dragInfo.current,
           lod = layoutData.current,
           numCategories = categoriesRef.current?.length ?? 0,
-          // legendBounds = layout?.getComputedBounds('legend'),
-          localPt = {
-            x: event.x/* - (legendBounds?.left ?? 0)*/,
-            y: event.y - labelHeight/* - (legendBounds?.top ?? 0)*/
+          newDragPosition = {
+            x: dI.currentDragPosition.x + event.dx,
+            y: dI.currentDragPosition.y + event.dy
           },
-          catIndex = coordinatesToCatIndex(lod, numCategories, localPt),
-          keyLocation = catLocation(lod, categoryData.current, catIndex)
-        dI.indexOfCategory = catIndex
-        dI.initialOffset = {x: localPt.x - keyLocation.x, y: localPt.y - keyLocation.y}
-        dI.currentDragPosition = localPt
-        duration.current = 0
-      }, []),
+          newCatIndex = coordinatesToCatIndex(lod, numCategories, newDragPosition)
+        if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
+          // swap the two categories
+          duration.current = transitionDuration / 2
+          dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
+          dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
+          dI.indexOfCategory = newCatIndex
+        } else {
+          refreshKeys()
+        }
+        dI.currentDragPosition = newDragPosition
+      }
+    }, [dataConfiguration, refreshKeys])
 
-      onDrag = useCallback((event: { dx: number; dy: number }) => {
-        if (event.dx !== 0 || event.dy !== 0) {
-          const dI = dragInfo.current,
-            lod = layoutData.current,
-            numCategories = categoriesRef.current?.length ?? 0,
-            newDragPosition = {
-              x: dI.currentDragPosition.x + event.dx,
-              y: dI.currentDragPosition.y + event.dy
-            },
-            newCatIndex = coordinatesToCatIndex(lod, numCategories, newDragPosition)
-          if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
-            // swap the two categories
-            duration.current = transitionDuration / 2
-            dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
-            dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
-            dI.indexOfCategory = newCatIndex
-          } else {
-            refreshKeys()
+    const onDragEnd = useCallback(() => {
+      duration.current = transitionDuration
+      dragInfo.current.indexOfCategory = -1
+      refreshKeys()
+    }, [refreshKeys])
+
+    const dragBehavior = useMemo(() => drag<SVGGElement, number>()
+      .on("start", onDragStart)
+      .on("drag", onDrag)
+      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
+
+    const setupKeys = useCallback(() => {
+      categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+      const numCategories = categoriesRef.current?.length
+      if (keysElt.current && categoryData.current) {
+        select(keysElt.current).selectAll('legend-key').remove() // start fresh
+
+        const keysSelection = select(keysElt.current)
+          .selectAll<SVGGElement, number>('g')
+          .data(range(0, numCategories ?? 0))
+          .join(
+            enter => enter
+              .append('g')
+              .attr('class', 'legend-key')
+              .attr('data-testid', 'legend-key')
+              .call(dragBehavior)
+          )
+        keysSelection.each(function () {
+          const sel = select<SVGGElement, number>(this),
+            size = sel.selectAll<SVGRectElement, number>('rect').size()
+          if (size === 0) {
+            sel.append('rect')
+              .attr('width', keySize)
+              .attr('height', keySize)
+              .on('click', (event, i: number) => {
+                dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+              })
+            sel.append('text')
+              .on('click', (event, i: number) => {
+                dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+              })
           }
-          dI.currentDragPosition = newDragPosition
-        }
-      }, [dataConfiguration, refreshKeys]),
-
-      onDragEnd = useCallback(() => {
-        duration.current = transitionDuration
-        dragInfo.current.indexOfCategory = -1
-        refreshKeys()
-      }, [refreshKeys]),
-      dragBehavior = useMemo(() => drag<SVGGElement, number>()
-        .on("start", onDragStart)
-        .on("drag", onDrag)
-        .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart]),
-      setupKeys = useCallback(() => {
-        categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
-        const numCategories = categoriesRef.current?.length
-        if (keysElt.current && categoryData.current) {
-          select(keysElt.current).selectAll('legend-key').remove() // start fresh
-
-          const keysSelection = select(keysElt.current)
-            .selectAll<SVGGElement, number>('g')
-            .data(range(0, numCategories ?? 0))
-            .join(
-              enter => enter
-                .append('g')
-                .attr('class', 'legend-key')
-                .attr('data-testid', 'legend-key')
-                .call(dragBehavior)
-            )
-          keysSelection.each(function () {
-            const sel = select<SVGGElement, number>(this),
-              size = sel.selectAll<SVGRectElement, number>('rect').size()
-            if (size === 0) {
-              sel.append('rect')
-                .attr('width', keySize)
-                .attr('height', keySize)
-                .on('click', (event, i: number) => {
-                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
-                })
-              sel.append('text')
-                .on('click', (event, i: number) => {
-                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
-                })
-            }
-          })
-        }
-      }, [dataConfiguration, dragBehavior])
+        })
+      }
+    }, [dataConfiguration, dragBehavior])
 
     useEffect(function respondToSelectionChange() {
       return onAnyAction(dataset, action => {
