@@ -1,26 +1,27 @@
 import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
+import {getStringBounds} from "../../../axis/axis-utils"
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {kChoroplethHeight} from "../../data-display-types"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
 import {axisGap} from "../../../axis/axis-types"
-import {getStringBounds} from "../../../axis/axis-utils"
-import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 
 import vars from "../../../vars.scss"
 
 
 interface INumericLegendProps {
   layerIndex: number
-  tileWidth: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
 }
 
 export const NumericLegend =
-  observer(function NumericLegend({layerIndex, tileWidth, setDesiredExtent}: INumericLegendProps) {
+  observer(function NumericLegend({layerIndex, setDesiredExtent}: INumericLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
+    tileWidth = useDataDisplayLayout().tileWidth,
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),

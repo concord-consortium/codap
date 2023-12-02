@@ -35,15 +35,11 @@ export const MultiLegend = observer(function MultiLegend({
     divRefs =
       useRef([] as RefObject<HTMLDivElement>[] & { [key: number]: RefObject<HTMLDivElement> }),
     extentsRef = useRef([] as number[])
-  const { tileWidth, computedBounds: {legend: legendBounds}} = layout
+  const { computedBounds: {legend: legendBounds}} = layout
 
   const handleIsActive = (active: Active) => {
       const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
-      if (isDropAllowed) {
         return isDropAllowed('legend', dataSet, droppedAttrId)
-      } else {
-        return !!droppedAttrId
-      }
     },
 
     setDesiredExtent = useCallback((layerIndex: number, extent: number) => {
@@ -73,7 +69,6 @@ export const MultiLegend = observer(function MultiLegend({
               <div className='legend' key={layer.id} ref={divRef} style={{height: `${extentsRef.current[index]}px`}}>
                 <DataConfigurationContext.Provider value={layer.dataConfiguration}>
                   <Legend layerIndex={index}
-                          tileWidth={tileWidth}
                           setDesiredExtent={setDesiredExtent}
                           onDropAttribute={onDropAttribute}
                           onRemoveAttribute={onRemoveAttribute}

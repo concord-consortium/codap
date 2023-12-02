@@ -7,6 +7,7 @@ import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
@@ -16,7 +17,6 @@ import vars from "../../../vars.scss"
 
 interface ICategoricalLegendProps {
   layerIndex: number
-  tileWidth: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
 }
 
@@ -62,9 +62,10 @@ const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: {
   }
 
 export const CategoricalLegend = observer(
-  function CategoricalLegend({layerIndex, tileWidth, setDesiredExtent}: ICategoricalLegendProps) {
+  function CategoricalLegend({layerIndex, setDesiredExtent}: ICategoricalLegendProps) {
     const dataConfiguration = useDataConfigurationContext(),
       dataset = dataConfiguration?.dataset,
+      tileWidth = useDataDisplayLayout().tileWidth,
       categoriesRef = useRef<string[] | undefined>(),
       categoryData = useRef<Key[]>([]),
       layoutData = useRef<Layout>({
@@ -176,10 +177,9 @@ export const CategoricalLegend = observer(
       const dI = dragInfo.current,
         lod = layoutData.current,
         numCategories = categoriesRef.current?.length ?? 0,
-        // legendBounds = layout?.getComputedBounds('legend'),
         localPt = {
-          x: event.x/* - (legendBounds?.left ?? 0)*/,
-          y: event.y - labelHeight/* - (legendBounds?.top ?? 0)*/
+          x: event.x,
+          y: event.y - labelHeight
         },
         catIndex = coordinatesToCatIndex(lod, numCategories, localPt),
         keyLocation = catLocation(lod, categoryData.current, catIndex)

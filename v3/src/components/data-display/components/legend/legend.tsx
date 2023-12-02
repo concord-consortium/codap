@@ -9,7 +9,6 @@ import {useDataConfigurationContext} from "../../hooks/use-data-configuration-co
 
 interface ILegendProps {
   layerIndex: number
-  tileWidth: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
@@ -17,7 +16,7 @@ interface ILegendProps {
 }
 
 export const Legend = function Legend({
-                                        layerIndex, tileWidth, setDesiredExtent, onDropAttribute,
+                                        layerIndex, setDesiredExtent, onDropAttribute,
                                         onTreatAttributeAs, onRemoveAttribute
                                       }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
@@ -37,12 +36,10 @@ export const Legend = function Legend({
           attrType === 'categorical'
             ? <CategoricalLegend
                 layerIndex={layerIndex}
-                tileWidth={tileWidth}
                 setDesiredExtent={setDesiredExtent}/>
             : attrType === 'numeric'
               ? <NumericLegend
                   layerIndex={layerIndex}
-                  tileWidth={tileWidth}
                   setDesiredExtent={setDesiredExtent}/> : null
         }
       </svg>
