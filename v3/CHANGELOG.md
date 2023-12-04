@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 3.0.0-pre.1455 - December 4, 2023
+
+### Features/Improvements
+- Table should scroll to show collapsed row when it is scrolled out of view [#185270348](https://www.pivotaltracker.com/story/show/185270348)
+
+### Bug Fixes
+- Hierarchical case tables more than one level deep do not show grouping lines and expand/collapse buttons [#186208228](https://www.pivotaltracker.com/story/show/186208228)
+- Case table contents disappears [#186510549](https://www.pivotaltracker.com/story/show/186510549)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   72625 bytes |                            0.14% |
+|  index.js | 3476940 bytes |                            0.12% |
+
 ## Version 3.0.0-pre.1449 - November 27, 2023
 
 ### Features/Improvements
