@@ -18,7 +18,7 @@ interface IMultiLegendProps {
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
 }
 
-export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribute }: IMultiLegendProps) {
+export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribute}: IMultiLegendProps) {
   const dataDisplayModel = useDataDisplayModelContext(),
     layout = useDataDisplayLayout(),
     legendRef = useRef() as React.RefObject<HTMLDivElement>,
@@ -65,10 +65,9 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
               <div className='legend' key={layer.id} ref={divRef} style={{height: `${extentsRef.current[index]}px`}}>
                 <DataConfigurationContext.Provider value={layer.dataConfiguration}>
                   <Legend layerIndex={index}
-
-                        setDesiredExtent={setDesiredExtent}
-                        onDropAttribute={onDropAttribute}
-                />
+                          setDesiredExtent={setDesiredExtent}
+                          onDropAttribute={onDropAttribute}
+                  />
                 </DataConfigurationContext.Provider>
               </div>
             )

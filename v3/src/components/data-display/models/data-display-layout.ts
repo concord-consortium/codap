@@ -3,6 +3,11 @@ import {GraphPlace} from "../../axis-graph-shared"
 
 export const kDefaultTileWidth = 300
 export const kDefaultTileHeight = 300
+interface ITileSize {
+  tileWidth: number
+  tileHeight: number
+}
+
 
 export interface Bounds {
   left: number
@@ -17,7 +22,11 @@ export class DataDisplayLayout {
   // desired/required size of child elements
   @observable desiredExtents: Map<GraphPlace, number> = new Map()
 
-  constructor() {
+  constructor(tileSize?: ITileSize) {
+    if (tileSize) {
+      this.tileWidth = tileSize.tileWidth
+      this.tileHeight = tileSize.tileHeight
+    }
     makeObservable(this)
   }
 

@@ -1,4 +1,3 @@
-import {observer} from "mobx-react-lite"
 import React, {useRef} from "react"
 import {IDataSet} from "../../../../models/data/data-set"
 import {LegendAttributeLabel} from "./legend-attribute-label"
@@ -13,12 +12,12 @@ interface ILegendProps {
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
 }
 
-export const Legend = observer(function Legend({
-                                        layerIndex, setDesiredExtent, onDropAttribute,
-                                        }: ILegendProps) {
+export const Legend = function Legend({
+                                        layerIndex, setDesiredExtent, onDropAttribute
+                                      }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     legendAttrID = dataConfiguration?.attributeID('legend'),
-    attrType = dataConfiguration?.attributeType('legend'),
+    attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
     legendRef = useRef() as React.RefObject<SVGSVGElement>
 
   return legendAttrID ? (
@@ -41,5 +40,5 @@ export const Legend = observer(function Legend({
     </>
 
   ) : null
-})
+}
 Legend.displayName = "Legend"

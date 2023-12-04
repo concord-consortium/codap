@@ -1,4 +1,5 @@
 import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
+import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {clsx} from "clsx"
@@ -26,7 +27,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     legendHeight = layout?.computedBounds?.legend?.height ?? 0,
-    mapHeight = layout?.computedBounds?.legend?.top ?? 0,
+    mapHeight = layout?.tileHeight - legendHeight,
     interiorSvgRef = useRef<SVGSVGElement>(null)
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
@@ -39,8 +40,20 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   }, [handleChangeLegendAttribute])
 
   useEffect(() => {
-    mapModel?.leafletMap?.invalidateSize(true)
-  }, [mapModel?.leafletMap, legendHeight])
+    const disposer = reaction(
+      () => {
+        return [mapModel?.leafletMap, layout.getComputedBounds('legend')]
+      },
+      () => {
+        mapModel?.leafletMap?.invalidateSize(true)
+      }, {name: "codap-map-legend-size-change"}
+    )
+    return () => disposer()
+  }, [mapModel?.leafletMap, legendHeight, layout])
+
+  useEffect(() => {
+    mapModel?.leafletMap?.invalidateSize()
+  }, [mapHeight, mapModel?.leafletMap])
 
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">

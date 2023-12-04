@@ -43,13 +43,13 @@ export const LegendAttributeLabel =
         )
     }, [dataConfiguration])
 
-    const onRemoveAttribute = useCallback((attrId: string) => {
+    const onRemoveAttribute = useCallback(() => {
       dataConfiguration?.applyUndoableAction(
         () => dataConfiguration.setAttribute('legend', {attributeID: ''}),
         "V3.Undo.mapLegendAttributeRemove", "V3.Redo.mapLegendAttributeRemove")
     }, [dataConfiguration])
 
-    const onTreatAttributeAs = useCallback((place: GraphPlace, attrId: string, treatAs: AttributeType) => {
+    const onTreatAttributeAs = useCallback((_place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
       dataConfiguration?.applyUndoableAction(
         () => dataConfiguration.setAttributeType('legend', treatAs),
         "V3.Undo.axisAttributeChange", "V3.Redo.axisAttributeChange")
@@ -80,16 +80,16 @@ export const LegendAttributeLabel =
     }, [labelRef, refreshLegendTitle])
 
     if (dataConfiguration) {
-      return (
-        <AttributeLabel
-          ref={labelRef}
+    return (
+      <AttributeLabel
+        ref={labelRef}
           dataConfiguration={dataConfiguration}
-          place={'legend'}
-          refreshLabel={refreshLegendTitle}
-          onChangeAttribute={onChangeAttribute}
-          onRemoveAttribute={onRemoveAttribute}
-          onTreatAttributeAs={onTreatAttributeAs}
-        />
-      )
-    }
+        place={'legend'}
+        refreshLabel={refreshLegendTitle}
+        onChangeAttribute={onChangeAttribute}
+        onRemoveAttribute={onRemoveAttribute}
+        onTreatAttributeAs={onTreatAttributeAs}
+      />
+    )
+  }
   }
