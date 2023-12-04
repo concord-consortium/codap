@@ -58,10 +58,8 @@ export const MovableLineInstance = types.model("MovableLineInstance", {
   setPivot2(point: Point) {
     self.pivot2.set(point)
   },
-  setVolatileIntercept(intercept?: number) {
+  setVolatile(intercept?: number, slope?: number) {
     self.dynamicIntercept = intercept
-  },
-  setVolatileSlope(slope?: number) {
     self.dynamicSlope = slope
   }
 }))
@@ -77,7 +75,7 @@ export const MovableLineAdornmentModel = AdornmentModel
     const lineDescriptions: ILineDescription[] = []
     self.lines.forEach((line, key) => {
       const { intercept, slope } = line.slopeAndIntercept
-      if (!isFinite(intercept) || !isFinite(slope)) return
+      if (!Number.isFinite(intercept) || !Number.isFinite(slope)) return
       const cellKey = JSON.parse(key)
       lineDescriptions.push({ cellKey, intercept, slope })
     })
@@ -90,15 +88,15 @@ export const MovableLineAdornmentModel = AdornmentModel
   ) {
     self.lines.set(key, aLine)
     const line = self.lines.get(key)
+    line?.setVolatile()
     line?.setPivot1(aLine.pivot1 ?? kInfinitePoint)
     line?.setPivot2(aLine.pivot2 ?? kInfinitePoint)
   },
-  updateVolatileProps(
+  setVolatileLine(
     aLine: {intercept: number | undefined, slope: number | undefined}, key=""
   ) {
     const existingLine = self.lines.get(key)
-    existingLine?.setVolatileIntercept(aLine.intercept)
-    existingLine?.setVolatileSlope(aLine.slope)
+    existingLine?.setVolatile(aLine.intercept, aLine.slope)
   }
 }))
 .actions(self => ({

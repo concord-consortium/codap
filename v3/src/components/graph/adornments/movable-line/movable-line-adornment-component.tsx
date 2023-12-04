@@ -98,8 +98,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
     const attrNames = {x: xAttrName, y: yAttrName}
     const sumOfSquares = dataConfig && showSumSquares ? lineModel?.sumOfSquares(dataConfig, layout, cellKey) : undefined
-
-    const string = equationString(slope, intercept, attrNames, sumOfSquares)
+    const string = equationString({slope, intercept, attrNames, sumOfSquares})
     const equation = select(equationContainerSelector).select("p")
 
     select(equationContainerSelector)
@@ -223,9 +222,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     if (isFinished) {
       const equationCoords = lineParams?.equationCoords
       model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
-      model.updateVolatileProps({intercept: undefined, slope: undefined}, instanceKey)
     } else {
-      model.updateVolatileProps({intercept: newIntercept, slope}, instanceKey)
+      model.setVolatileLine({intercept: newIntercept, slope}, instanceKey)
     }
   }, [instanceKey, interceptLocked, model, refreshEquation, updateLine, xAxis, yAxis])
 
@@ -311,9 +309,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           },
           instanceKey
         )
-        model.updateVolatileProps({intercept: undefined, slope: undefined}, instanceKey)
       } else {
-        model.updateVolatileProps({intercept: newIntercept, slope: newSlope}, instanceKey)
+        model.setVolatileLine({intercept: newIntercept, slope: newSlope}, instanceKey)
       }
     }
   }, [model, instanceKey, interceptLocked, newSlopeAndIntercept, lineObject.lower, lineObject.upper, xAxis,

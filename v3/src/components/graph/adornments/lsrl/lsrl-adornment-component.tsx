@@ -156,9 +156,10 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       const screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
       const attrNames = {x: xAttrName, y: yAttrName}
-      const string = lsrlEquationString(
-        slope, intercept, attrNames, caseValues, showConfidenceBands, rSquared, catColor, interceptLocked, sumOfSquares
-      )
+      const equationParams = {
+        attrNames, caseValues, catColor, intercept, interceptLocked, rSquared, showConfidenceBands, slope, sumOfSquares
+      }
+      const string = lsrlEquationString(equationParams)
       const equation = equationDiv.select(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`)
       equation.html(string)
 

@@ -26,8 +26,7 @@ describe("MovableLineInstance", () => {
     const lineParams = MovableLineInstance.create({intercept: 1, slope: 1})
     expect(lineParams.dynamicIntercept).toBeUndefined()
     expect(lineParams.dynamicSlope).toBeUndefined()
-    lineParams.setVolatileIntercept(2)
-    lineParams.setVolatileSlope(2)
+    lineParams.setVolatile(2, 2)
     expect(lineParams.dynamicIntercept).toEqual(2)
     expect(lineParams.dynamicSlope).toEqual(2)
     expect(lineParams.intercept).toEqual(1)
@@ -62,7 +61,7 @@ describe("MovableLineAdornmentModel", () => {
   it("can update dynamic intercept and slope values and get both values via the line's slopeAndIntercept view", () => {
     const movableLine = MovableLineAdornmentModel.create()
     movableLine.setLine(line1)
-    movableLine.updateVolatileProps({intercept: 2, slope: 2})
+    movableLine.setVolatileLine({intercept: 2, slope: 2})
     expect(movableLine.lines.get("")?.slopeAndIntercept).toEqual({intercept: 2, slope: 2})
   })
   it("can have multiple lines added to its lines property", () => {

@@ -8,6 +8,7 @@ import { IGraphDataConfigurationModel } from "../../models/graph-data-configurat
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { ILineDescription } from "../shared-adornment-types"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 
 export const LSRLInstance = types.model("LSRLInstance", {
   equationCoords: types.maybe(PointModel)
@@ -110,7 +111,7 @@ export const LSRLAdornmentModel = AdornmentModel
     self.lines.forEach((linesArray, key) => {
       linesArray.forEach(line => {
         const { category, intercept, slope } = line
-        if (!intercept || !isFinite(intercept) || !slope || !isFinite(slope)) return
+        if (!isFiniteNumber(intercept) || !isFiniteNumber(slope)) return
         const cellKey = JSON.parse(key)
         lineDescriptions.push({ category, cellKey, intercept, slope })
       })

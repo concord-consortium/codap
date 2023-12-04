@@ -56,7 +56,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return { caseID, color, side, x, y }
   }
 
-  function residualSquares(lineDescriptions: ILineDescription[]) {
+  function residualSquaresForLines(lineDescriptions: ILineDescription[]) {
     const squares: ISquareOfResidual[] = []
     const dataset = dataConfiguration?.dataset
     lineDescriptions.forEach((lineDescription: ILineDescription) => {
@@ -79,5 +79,5 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return squares
   }
 
-  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquares }
+  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquares: residualSquaresForLines }
 }

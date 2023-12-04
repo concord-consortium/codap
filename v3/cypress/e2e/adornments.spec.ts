@@ -532,7 +532,7 @@ context("Graph adornments", () => {
     // cy.get(".movable-value-label").should("have.length", 0)
     // cy.get(".movable-value-fill").should("have.length", 0)
   })
-  it.only("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
+  it("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Speed", "y")

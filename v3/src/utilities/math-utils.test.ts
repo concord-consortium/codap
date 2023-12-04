@@ -1,4 +1,5 @@
 import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
+import {between, isFiniteNumber} from "./math-utils"
 
 // default formatting except uses ASCII minus sign
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
@@ -23,6 +24,38 @@ describe("math-utils", () => {
     it("locale can be configured to use ASCII hyphen for minus sign", () => {
       expect(defaultFormat(-1)).not.toBe("-1")
       expect(asciiFormat(-1)).toBe("-1")
+    })
+
+    describe("between", () => {
+      it("should return true if the value is between the min and max values", () => {
+        expect(between(1, 0, 2)).toBe(true)
+        expect(between(0, 0, 2)).toBe(true)
+        expect(between(2, 0, 2)).toBe(true)
+      })
+      it("should return false if the value is not between the min and max values", () => {
+        expect(between(-1, 0, 2)).toBe(false)
+        expect(between(3, 0, 2)).toBe(false)
+        expect(between(NaN, 0, 2)).toBe(false)
+        expect(between(Infinity, 0, 2)).toBe(false)
+      })
+    })
+
+    describe("isFiniteNumber", () => {
+      it("should return true for finite numbers and false for non-finite numbers", () => {
+        expect(isFiniteNumber(1)).toBe(true)
+        expect(isFiniteNumber(1.1)).toBe(true)
+        expect(isFiniteNumber(0)).toBe(true)
+        expect(isFiniteNumber(Infinity)).toBe(false)
+        expect(isFiniteNumber(-Infinity)).toBe(false)
+        expect(isFiniteNumber(NaN)).toBe(false)
+      })
+      it("should return false for non-numbers", () => {
+        expect(isFiniteNumber("foo")).toBe(false)
+        expect(isFiniteNumber({})).toBe(false)
+        expect(isFiniteNumber([])).toBe(false)
+        expect(isFiniteNumber(null)).toBe(false)
+        expect(isFiniteNumber(undefined)).toBe(false)
+      })
     })
   })
 })

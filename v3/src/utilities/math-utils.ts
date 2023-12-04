@@ -102,6 +102,6 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
   })
 }
 
-export function isFiniteNumber(val: any) {
-  return typeof val === 'number' && isFinite(val)
+export function isFiniteNumber(x: any): x is number {
+  return x != null && Number.isFinite(x)
 }

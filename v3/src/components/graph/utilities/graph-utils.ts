@@ -8,6 +8,7 @@ import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
   from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 
 /**
  * Utility routines having to do with graph entities
@@ -157,9 +158,14 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
   }
 }
 
-export function equationString(
-  slope: number, intercept: number, attrNames: {x: string, y: string}, sumOfSquares?: number
-) {
+interface IEquationString {
+  slope: number
+  intercept: number
+  attrNames: {x: string, y: string}
+  sumOfSquares?: number
+}
+
+export function equationString({ slope, intercept, attrNames, sumOfSquares }: IEquationString) {
   const float = format(".3~r")
   const floatSumOfSquares = format(",.0f")
   if (isFinite(slope) && slope !== 0) {
@@ -169,7 +175,7 @@ export function equationString(
       : intercept > 0
         ? ` + ${float(intercept)}`
         : ` ${float(intercept)}`
-    const squaresPart = sumOfSquares || sumOfSquares === 0
+    const squaresPart = isFiniteNumber(sumOfSquares)
       ? `<br />Sum of squares = ${floatSumOfSquares(sumOfSquares)}`
       : ""
     return `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString}${interceptString}${squaresPart}`
@@ -191,9 +197,21 @@ export function percentString(value: number) {
   }).format(value)
 }
 
+interface ILsrlEquationString {
+  attrNames: {x: string, y: string}
+  caseValues: Point[]
+  color?: string
+  showConfidenceBands?: boolean
+  intercept: number
+  interceptLocked?: boolean
+  rSquared?: number
+  slope: number
+  sumOfSquares?: number
+}
+
 export const lsrlEquationString = (
-  slope: number, intercept: number, attrNames: {x: string, y: string}, caseValues: Point[],
-  confidenceBandsEnabled?: boolean, rSquared?: number, color?: string, interceptLocked=false, sumOfSquares?: number
+  { slope, intercept, attrNames, caseValues, showConfidenceBands, rSquared, color,
+  interceptLocked=false, sumOfSquares }: ILsrlEquationString
 ) => {
   const float = format(".3~r")
   const floatIntercept = format(".1~f")
@@ -211,15 +229,15 @@ export const lsrlEquationString = (
   const equationPart = isFinite(slope) && slope !== 0
     ? `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString} ${interceptString}`
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${floatIntercept(intercept)}`
-  const seSlopePart = confidenceBandsEnabled && !interceptLocked
+  const seSlopePart = showConfidenceBands && !interceptLocked
     ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}`
     : ""
-  const squaresPart = sumOfSquares || sumOfSquares === 0
+  const squaresPart = isFiniteNumber(sumOfSquares)
     ? `<br />Sum of squares = ${floatSumOfSquares(sumOfSquares)}`
     : ""
   const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${float(rSquared)}`
-  const style = color ? `style="color: ${color}"` : ""
-  return `<span ${style}>${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}</span>`
+  const style = color ? ` style="color: ${color}"` : ""
+  return `<span${style}>${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}</span>`
 }
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
