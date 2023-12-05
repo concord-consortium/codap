@@ -9,6 +9,7 @@ import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth,
   from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 
 /**
  * Utility routines having to do with graph entities
@@ -492,6 +493,36 @@ export const leastSquaresLinearRegression = (iValues: Point[], iInterceptLocked:
     }
   }
   return tRegression
+}
+
+interface ISumOfSquares {
+  cellKey: Record<string, string>
+  dataConfig: IGraphDataConfigurationModel
+  intercept: number
+  slope: number
+  defaultVal?: number
+}
+
+export const calculateSumOfSquares = ({ cellKey, dataConfig, defaultVal=0, intercept, slope }: ISumOfSquares) => {
+  const dataset = dataConfig?.dataset
+  const caseData = dataset?.cases
+  const xAttrID = dataConfig?.attributeID("x") ?? ""
+  const yAttrID = dataConfig?.attributeID("y") ?? ""
+  let sumOfSquares = 0
+  caseData?.forEach((datum: any) => {
+    const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__)
+    if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
+      const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? defaultVal
+      const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? defaultVal
+      if (slope == null || intercept == null) return
+      const lineY = slope * x + intercept
+      const residual = y - lineY
+      if (isFinite(residual)) {
+        sumOfSquares += residual * residual
+      }
+    }
+  })
+  return sumOfSquares
 }
 
 // This is a modified version of CODAP V2's SvgScene.pathBasis which was extracted from protovis

@@ -27,28 +27,6 @@ export const LSRLInstance = types.model("LSRLInstance", {
            isFinite(Number(self.slope)) &&
            isFinite(Number(self.sdResiduals))
   },
-  sumOfSquares(dataConfig: IGraphDataConfigurationModel, layout: IAxisLayout, cellKey: any) {
-    const dataset = dataConfig?.dataset
-    const caseData = dataset?.cases
-    const xAttrID = dataConfig?.attributeID("x") ?? ""
-    const yAttrID = dataConfig?.attributeID("y") ?? ""
-    let sumOfSquares = 0
-    caseData?.forEach((datum: any) => {
-      const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__)
-      if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
-        const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? 0
-        const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? 0
-        const { slope, intercept } = self
-        if (slope == null || intercept == null) return
-        const lineY = slope * x + intercept
-        const residual = y - lineY
-        if (isFinite(residual)) {
-          sumOfSquares += residual * residual
-        }
-      }
-    })
-    return sumOfSquares
-  },
   get slopeAndIntercept() {
     const intercept = self.intercept
     const slope = self.slope

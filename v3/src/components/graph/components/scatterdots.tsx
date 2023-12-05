@@ -166,11 +166,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   const refreshSquares = useCallback(() => {
 
-    const { residualSquares } = scatterPlotFuncs(layout, dataConfiguration)
+    const { residualSquaresForLines } = scatterPlotFuncs(layout, dataConfiguration)
 
     if (lsrl?.isVisible) {
       const lsrlLineDescriptions = lsrl.lineDescriptions
-      const lsrlSquares: ISquareOfResidual[] = residualSquares(lsrlLineDescriptions)
+      const lsrlSquares: ISquareOfResidual[] = residualSquaresForLines(lsrlLineDescriptions)
       select(lsrlSquaresRef.current).selectAll("*")
         .data(lsrlSquares)
         .join("rect")
@@ -185,7 +185,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
     if (movableLine?.isVisible) {
       const mlLineDescriptions = movableLine.lineDescriptions
-      const mlSquares: ISquareOfResidual[] = residualSquares(mlLineDescriptions)
+      const mlSquares: ISquareOfResidual[] = residualSquaresForLines(mlLineDescriptions)
       select(movableLineSquaresRef.current).selectAll("*")
         .data(mlSquares)
         .join("rect")

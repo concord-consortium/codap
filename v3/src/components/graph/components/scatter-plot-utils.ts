@@ -79,5 +79,5 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return squares
   }
 
-  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquares: residualSquaresForLines }
+  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquaresForLines }
 }

@@ -5,8 +5,6 @@ import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel,
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
 import { kMovableLineType } from "./movable-line-adornment-types"
-import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
-import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { ILineDescription } from "../shared-adornment-types"
 
 export const MovableLineInstance = types.model("MovableLineInstance", {
@@ -25,27 +23,6 @@ export const MovableLineInstance = types.model("MovableLineInstance", {
     const intercept = self.dynamicIntercept ?? self.intercept
     const slope = self.dynamicSlope ?? self.slope
     return {intercept, slope}
-  },
-  sumOfSquares(dataConfig: IGraphDataConfigurationModel, layout: IAxisLayout, cellKey: any) {
-    const dataset = dataConfig?.dataset
-    const caseData = dataset?.cases
-    const xAttrID = dataConfig?.attributeID("x") ?? ""
-    const yAttrID = dataConfig?.attributeID("y") ?? ""
-    let sumOfSquares = 0
-    caseData?.forEach((datum: any) => {
-      const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__)
-      if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
-        const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? 0
-        const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? 0
-        const { slope, intercept } = self
-        const lineY = slope * x + intercept
-        const residual = y - lineY
-        if (isFinite(residual)) {
-          sumOfSquares += residual * residual
-        }
-      }
-    })
-    return sumOfSquares
   }
 }))
 .actions(self => ({

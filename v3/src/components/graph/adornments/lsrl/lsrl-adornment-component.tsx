@@ -8,7 +8,8 @@ import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
-import { IAxisIntercepts, curveBasis, lineToAxisIntercepts, lsrlEquationString } from "../../utilities/graph-utils"
+import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts,
+         lsrlEquationString } from "../../utilities/graph-utils"
 import { ILSRLAdornmentModel, ILSRLInstance } from "./lsrl-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -147,19 +148,18 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     for (let linesIndex = 0; linesIndex < lines.length; linesIndex++) {
       const category = lines[linesIndex].category
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
-      const catColor = category && category !== "__main__" ? dataConfig?.getLegendColorForCategory(category) : undefined
+      const color = category && category !== "__main__" ? dataConfig?.getLegendColorForCategory(category) : undefined
       const { slope, intercept, rSquared } = lines[linesIndex]
       if (slope == null || intercept == null) return
       const sumOfSquares = dataConfig && showSumSquares
-        ? lines[linesIndex]?.sumOfSquares(dataConfig, layout, cellKey)
+        ? calculateSumOfSquares({ cellKey, dataConfig, defaultVal: NaN, intercept, slope })
         : undefined
       const screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
       const attrNames = {x: xAttrName, y: yAttrName}
-      const equationParams = {
-        attrNames, caseValues, catColor, intercept, interceptLocked, rSquared, showConfidenceBands, slope, sumOfSquares
-      }
-      const string = lsrlEquationString(equationParams)
+      const string = lsrlEquationString({
+        attrNames, caseValues, color, intercept, interceptLocked, rSquared, showConfidenceBands, slope, sumOfSquares
+      })
       const equation = equationDiv.select(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`)
       equation.html(string)
 
@@ -177,7 +177,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
           .style("top", `${top}px`)
       }
     }
-  }, [cellKey, dataConfig, equationContainerSelector, getLines, interceptLocked, layout, model, plotHeight, plotWidth,
+  }, [cellKey, dataConfig, equationContainerSelector, getLines, interceptLocked, model, plotHeight, plotWidth,
       showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId, yAttrName, yScale,
       ySubAxesCount])
 

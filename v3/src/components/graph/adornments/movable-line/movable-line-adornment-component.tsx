@@ -6,7 +6,7 @@ import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
-import {computeSlopeAndIntercept, equationString, IAxisIntercepts,
+import {calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
@@ -97,7 +97,9 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const screenX = xScaleRef.current((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
     const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
     const attrNames = {x: xAttrName, y: yAttrName}
-    const sumOfSquares = dataConfig && showSumSquares ? lineModel?.sumOfSquares(dataConfig, layout, cellKey) : undefined
+    const sumOfSquares = dataConfig && showSumSquares
+      ? calculateSumOfSquares({ cellKey, dataConfig, intercept, slope })
+      : undefined
     const string = equationString({slope, intercept, attrNames, sumOfSquares})
     const equation = select(equationContainerSelector).select("p")
 
@@ -117,8 +119,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       equation.style("left", `${left}px`)
               .style("top", `${top}px`)
     }
-  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight, plotWidth,
-      showSumSquares, xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
+  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, model, plotHeight, plotWidth, showSumSquares,
+      xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
 
   
   const breakPointCoords = useCallback((
