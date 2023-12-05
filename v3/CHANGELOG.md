@@ -4,6 +4,7 @@
 
 ### Features/Improvements
 - Table should scroll to show collapsed row when it is scrolled out of view [#185270348](https://www.pivotaltracker.com/story/show/185270348)
+- Improved graph performance
 
 ### Bug Fixes
 - Hierarchical case tables more than one level deep do not show grouping lines and expand/collapse buttons [#186208228](https://www.pivotaltracker.com/story/show/186208228)
