@@ -2,6 +2,13 @@ import { ScaleBand, ScaleLinear } from "d3"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { ILineDescription, ISquareOfResidual } from "../adornments/shared-adornment-types"
+import { ICase } from "../../../models/data/data-set-types"
+
+export interface IConnectingLineDescription {
+  caseData: ICase
+  lineCoords: [number, number]
+  plotNum: number
+}
 
 export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraphDataConfigurationModel) {
   const { dataset: data, yAttributeIDs: yAttrIDs = [], hasY2Attribute, numberOfPlots = 1 } = dataConfiguration || {}
@@ -44,6 +51,37 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return { xValue, yValue, xCoord, yCoord, rightCoord, color }
   }
 
+  function connectingLine(caseID: string, plotNum: number) {
+    const dataset = dataConfiguration?.dataset
+    const xValue = getXCoord(caseID)
+    const yValue = getYCoord(caseID, plotNum)
+    if (isFinite(xValue) && isFinite(yValue)) {
+      const caseData = dataset?.getCase(caseID)
+      if (caseData) {
+        const lineCoords: [number, number] = [xValue, yValue]
+        return {
+          caseData,
+          lineCoords,
+          plotNum
+        }
+      }
+    }
+  }
+
+  function connectingLinesForCases() {
+    const lineDescriptions: IConnectingLineDescription[] = []
+    const dataset = dataConfiguration?.dataset
+    dataset?.cases.forEach(c => {
+      const line = connectingLine(c.__id__, 0)
+      line && lineDescriptions.push(line)
+      const y2line = yAttrIDs[1] && connectingLine(c.__id__, 1)
+      y2line && lineDescriptions.push(y2line)
+      const yRightLine = yAttrIDs[2] && connectingLine(c.__id__, 2)
+      yRightLine && lineDescriptions.push(yRightLine)
+    })
+    return lineDescriptions
+  }
+
   function residualSquare(slope: number, intercept: number, caseID: string, plotNum = 0): ISquareOfResidual {
     const { xValue, xCoord, yCoord, rightCoord, color } = getCaseCoords(caseID)
     const yScale = y2Scale && plotNum === numberOfPlots - 1 ? y2Scale : y1Scale
@@ -79,5 +117,5 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return squares
   }
 
-  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquaresForLines }
+  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquaresForLines, connectingLinesForCases }
 }

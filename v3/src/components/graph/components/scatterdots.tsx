@@ -1,5 +1,6 @@
-import {ScaleLinear, select} from "d3"
+import {ScaleLinear, curveLinear, line, select} from "d3"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import {appState} from "../../../models/app-state"
@@ -17,7 +18,9 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
-import {scatterPlotFuncs} from "./scatter-plot-utils"
+import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
+import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { importValueToString } from "../../../models/data/attribute"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const {dotsRef} = props,
@@ -26,6 +29,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     dataConfiguration = useGraphDataConfigurationContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
+    dataDisplayModel = useDataDisplayModelContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
     selectedPointRadiusRef = useRef(0),
@@ -40,12 +44,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
     plotNumRef = useRef(0)
 
-  secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
-  pointRadiusRef.current = graphModel.getPointRadius()
-  selectedPointRadiusRef.current = graphModel.getPointRadius('select')
-  dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
-  yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
-
   // The Squares of Residuals option is controlled by the AdornmentsStore, so we need to watch for changes to that store
   // and call refreshSquares when the option changes. The squares are rendered in connection with the Movable Line and
   // LSRL adornments, so we need to get information from those adornments as well.
@@ -55,6 +53,19 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const lsrl = adornmentsStore.adornments.find(a => a.type === "LSRL")
   const movableLineSquaresRef = useRef<SVGGElement>(null)
   const lsrlSquaresRef = useRef<SVGGElement>(null)
+
+  // The Connecting Lines option is controlled by the AdornmentsStore, so we need to watch for changes to that store
+  // and call refreshConnectingLines when the option changes. Unlike the Squares of Residuals, the lines are not
+  // rendered in connection with any other adornments.
+  const showConnectingLines = adornmentsStore.showConnectingLines
+  const connectingLinesRef = useRef<SVGGElement>(null)
+  const connectingLinesActivatedRef = useRef(false)
+
+  secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
+  pointRadiusRef.current = graphModel.getPointRadius()
+  selectedPointRadiusRef.current = graphModel.getPointRadius('select')
+  dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
+  yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
   const onDragStart = useCallback((event: MouseEvent) => {
       target.current = select(event.target as SVGSVGElement)
@@ -164,6 +175,125 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       })
   }, [dataConfiguration, dotsRef, graphModel])
 
+  const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
+    const linesPath = event.target && select(event.target as HTMLElement)
+    if (linesPath?.classed("selected")) {
+      linesPath?.classed("selected", false)
+      linesPath?.attr("stroke-width", 2)
+      dataset?.setSelectedCases([])
+    } else {
+      linesPath?.classed("selected", true)
+      linesPath?.attr("stroke-width", 4)
+      dataset?.setSelectedCases(caseIDs)
+    }
+  }, [dataset])
+
+  const dataTip = d3tip().attr("class", "graph-d3-tip")
+    .attr("data-testid", "graph-connecting-lines-data-tip")
+    .html((d: string) => {
+      return `<p>${d}</p>`
+    })
+
+  const handleConnectingLinesHover = useCallback((
+    event: MouseEvent, caseIDs: string[], parentAttrName?: string, parentAttrValue?: string
+    ) => {
+    const caseIdCount = caseIDs?.length ?? 0
+    const datasetName = dataset?.name ?? ""
+    const parentAttrPart = `${parentAttrName}: ${parentAttrValue}<br />with `
+    const countPart = `${caseIdCount} points (${datasetName}) on this line`
+    const dataTipContent = `${parentAttrName ? parentAttrPart : ""}${countPart}`
+    dataTip.show(dataTipContent, event.target)
+  }, [dataTip, dataset?.name])
+
+  const connectingLinesCleanUp = useCallback(() => {
+    connectingLinesActivatedRef.current = showConnectingLines
+    // TODO: The point size needs to be made smaller when Connecting Lines are activated, and then revert to the
+    // original size when Connecting Lines are deactivated. The below makes this happen, but the rescaling should
+    // really occur in a smooth transition while the lines are fading in/out, not instantly after the lines are
+    // done fading.
+    const pointSizeMultiplier = dataDisplayModel?.pointDescription.pointSizeMultiplier
+    if (showConnectingLines && pointSizeMultiplier > .5) {
+      dataDisplayModel?.pointDescription.setPointSizeMultiplier(.5)
+    } else if (!showConnectingLines) {
+      dataDisplayModel?.pointDescription.setPointSizeMultiplier(1)
+    }
+    if (!showConnectingLines) {
+      select(connectingLinesRef.current).selectAll("path").remove()
+    }
+  }, [dataDisplayModel?.pointDescription, showConnectingLines])
+
+  const refreshConnectingLines = useCallback(() => {
+    if (!showConnectingLines && !connectingLinesActivatedRef.current) return
+    const connectingLinesArea = select(connectingLinesRef.current)
+    const curve = line().curve(curveLinear)
+    const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
+    const connectingLines = connectingLinesForCases()
+    const parentAttr = dataset?.collections[0]?.attributes[0]
+    const parentAttrID = parentAttr?.id
+    const parentAttrName = parentAttr?.name
+    const parentAttrValues = parentAttrID && dataConfiguration?.metadata?.getCategorySet(parentAttrID)?.values
+    const cellKeys = dataConfiguration?.getAllCellKeys()
+
+    connectingLinesArea.selectAll("path").remove()
+    cellKeys?.forEach((cellKey) => {
+      // Each plot can have multiple groups of connecting lines. The number of groups is determined by the number of Y
+      // attributes or the presence of a parent attribute and the number of unique values for that attribute. If there
+      // are multiple Y attributes, the number of groups matches the number of Y attributes. Otherwise, if there's a
+      // parent attribute, the number of groups matches the number of unique values for that attribute. If there's only
+      // one Y attribute and no parent attribute, then there's a only single group. The code below builds lists of
+      // connecting lines and case IDs for each group.
+      const lineGroups: Record<string, IConnectingLineDescription[]> = {}
+      const allLineCaseIds: Record<string, string[]> = {}
+      const yAttrCount = dataConfiguration?.yAttributeIDs?.length ?? 0
+      connectingLines.forEach((lineDescription: IConnectingLineDescription) => {
+        const parentAttrValue = parentAttrID ? importValueToString(lineDescription.caseData[parentAttrID]) : undefined
+        const groupKey = yAttrCount > 1
+          ? lineDescription.plotNum
+          : parentAttrValues && parentAttrValue
+            ? parentAttrValues.indexOf(parentAttrValue)
+            : 0
+
+        if (dataConfiguration?.isCaseInSubPlot(cellKey, lineDescription.caseData)) {
+          lineGroups[groupKey] ||= []
+          allLineCaseIds[groupKey] ||= []
+          lineGroups[groupKey].push(lineDescription)
+          allLineCaseIds[groupKey].push(lineDescription.caseData.__id__)
+        }
+      })
+
+      // For each group of lines, draw a path using the lines' coordinates
+      for (const [linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
+        const allLineCoords = cases.map((l) => l.lineCoords)
+        const lineCaseIds = allLineCaseIds[linesIndex]
+        const allCasesSelected = lineCaseIds?.every(caseID => dataConfiguration?.selection.includes(caseID))
+        const legendID = dataConfiguration?.attributeID("legend")
+        const color = parentAttrID && legendID
+          ? graphModel.pointDescription.pointColorAtIndex(linesIndex)
+          : graphModel.pointDescription.pointColorAtIndex(0)
+
+        connectingLinesArea
+          .append("path")
+          .data([allLineCoords])
+          .attr("d", d => curve(d))
+          .classed("selected", allCasesSelected)
+          .on("click", (e) => handleConnectingLinesClick(e, lineCaseIds))
+          .on("mouseover", (e) => handleConnectingLinesHover(e, lineCaseIds, parentAttrName, primaryAttrValue))
+          .on("mouseout", dataTip.hide)
+          .call(dataTip)
+          .attr("fill", "none")
+          .attr("stroke", color)
+          .attr("stroke-width", allCasesSelected ? 4 : 2)
+          .style("cursor", "pointer")
+          .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
+          .transition()
+          .duration(1000)
+          .style("opacity", showConnectingLines ? 1 : 0)
+          .on("end", connectingLinesCleanUp)
+      }
+    })
+  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset, graphModel.pointDescription,
+      handleConnectingLinesClick, handleConnectingLinesHover, layout, showConnectingLines])
+
   const refreshSquares = useCallback(() => {
 
     const { residualSquaresForLines } = scatterPlotFuncs(layout, dataConfiguration)
@@ -242,13 +372,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   }, [layout, dataConfiguration, dataset, dotsRef, instanceId])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
+    refreshConnectingLines()
     if (appState.isPerformanceMode) {
       refreshPointPositionsSVG(selectedOnly)
     } else {
       refreshPointPositionsD3(selectedOnly)
     }
     showSquares && refreshSquares()
-  }, [refreshSquares, refreshPointPositionsD3, refreshPointPositionsSVG, showSquares])
+  }, [refreshConnectingLines, showSquares, refreshSquares, refreshPointPositionsSVG, refreshPointPositionsD3])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
@@ -258,10 +389,19 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     }, { name: "ScatterDots.renderSquares" })
   }, [refreshSquares, showSquares])
 
+  // Call refreshConnectingLines when Connecting Lines option is switched on and when all
+  // points are selected.
+  useEffect(function renderConnectingLines() {
+    return autorun(() => {
+      refreshConnectingLines()
+    }, { name: "ScatterDots.renderSquares" })
+  }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
+
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <>
+      <g data-testid={`connecting-lines-${instanceId}`} className="connecting-lines" ref={connectingLinesRef}/>
       <svg/>
       { movableLine?.isVisible && showSquares &&
         <g
