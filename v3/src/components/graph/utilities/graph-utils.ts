@@ -503,7 +503,7 @@ interface ISumOfSquares {
   defaultVal?: number
 }
 
-export const calculateSumOfSquares = ({ cellKey, dataConfig, defaultVal=0, intercept, slope }: ISumOfSquares) => {
+export const calculateSumOfSquares = ({ cellKey, dataConfig, intercept, slope }: ISumOfSquares) => {
   const dataset = dataConfig?.dataset
   const caseData = dataset?.cases
   const xAttrID = dataConfig?.attributeID("x") ?? ""
@@ -512,8 +512,8 @@ export const calculateSumOfSquares = ({ cellKey, dataConfig, defaultVal=0, inter
   caseData?.forEach((datum: any) => {
     const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__)
     if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
-      const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? defaultVal
-      const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? defaultVal
+      const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? NaN
+      const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? NaN
       if (slope == null || intercept == null) return
       const lineY = slope * x + intercept
       const residual = y - lineY
