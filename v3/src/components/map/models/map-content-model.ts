@@ -1,3 +1,4 @@
+import {Map as LeafletMap} from 'leaflet'
 import {reaction} from "mobx"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
@@ -33,7 +34,7 @@ export const MapContentModel = DataDisplayContentModel
     baseMapLayerIsVisible: true,
   })
   .volatile(() => ({
-    leafletMap: undefined as any,
+    leafletMap: undefined as LeafletMap | undefined,
     displayChangeCount: 0,
     hasBeenInitialized: false
   }))
@@ -49,9 +50,11 @@ export const MapContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     syncCenterAndZoom() {
-      const center = self.leafletMap.getCenter()
-      self.center.replace({lat: center.lat, lng: center.lng})
-      self.zoom = self.leafletMap.getZoom()
+      if (self.leafletMap) {
+        const center = self.leafletMap.getCenter()
+        self.center.replace({lat: center.lat, lng: center.lng})
+        self.zoom = self.leafletMap.getZoom()
+      }
     },
     addPointLayer(dataSet: IDataSet) {
       const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
@@ -126,7 +129,7 @@ export const MapContentModel = DataDisplayContentModel
         },
         {name: "MapContentModel.respondToSharedDatasetsChanges", fireImmediately: true}))
     },
-    setLeafletMap(leafletMap: any) {
+    setLeafletMap(leafletMap: LeafletMap) {
       self.leafletMap = leafletMap
     },
     setHasBeenInitialized() {

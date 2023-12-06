@@ -136,7 +136,7 @@ export const MapPointLayer = function MapPointLayer(props: {
       },
       () => {
         refreshPointPositions(false)
-      }, { name: "setupResponseToLegendAttributeChange" }, dataConfiguration
+      }, { name: "setupResponseToLegendAttributeChange", equals: comparer.structural }, dataConfiguration
     )
     return () => disposer()
   }, [refreshPointPositions, dataConfiguration])

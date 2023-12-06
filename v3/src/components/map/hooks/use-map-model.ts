@@ -51,7 +51,7 @@ export function useMapModel() {
         navigator.geolocation.getCurrentPosition(
           (pos: GeolocationPosition) => {
             const coords = pos.coords
-            mapModel.leafletMap.setView([coords.latitude, coords.longitude],
+            mapModel.leafletMap?.setView([coords.latitude, coords.longitude],
               kDefaultMapZoomForGeoLocation, {animate: true})
           }
         )
