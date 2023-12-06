@@ -15,7 +15,7 @@ import {setPointCoordinates} from "../utilities/graph-utils"
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
 
 export const ChartDots = function ChartDots(props: PlotProps) {
-  const {dotsRef} = props,
+  const {dotsRef, pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
@@ -211,10 +211,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
-      dotsRef, selectedOnly, pointColor, pointStrokeColor,
+      dotsRef, pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
+  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef, pixiPointsRef,
     extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor, isAnimating,
     primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 

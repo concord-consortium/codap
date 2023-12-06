@@ -20,7 +20,7 @@ import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {scatterPlotFuncs} from "./scatter-plot-utils"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
-  const {dotsRef} = props,
+  const {dotsRef, pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -158,11 +158,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        dotsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
+        dotsRef, pixiPointsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
-  }, [dataConfiguration, dotsRef, graphModel])
+  }, [dataConfiguration, dotsRef, graphModel, pixiPointsRef])
 
   const refreshSquares = useCallback(() => {
 
@@ -207,14 +207,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, dotsRef, pointRadius: pointRadiusRef.current,
+      dataset, dotsRef, pixiPointsRef, pointRadius: pointRadiusRef.current,
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-
-  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, dotsRef, isAnimating])
+  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, dotsRef, pixiPointsRef,
+    isAnimating])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',

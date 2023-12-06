@@ -1,7 +1,8 @@
-import {IDotsRef} from "../data-display/data-display-types"
+import {IPixiPointsRef, IDotsRef} from "../data-display/data-display-types"
 
 export interface PlotProps {
   dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
 // One element of the data array assigned to the points

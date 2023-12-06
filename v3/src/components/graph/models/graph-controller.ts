@@ -1,5 +1,7 @@
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
-import {IDotsRef, axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
+import {
+  IDotsRef, IPixiPointsRef, axisPlaceToAttrRole, graphPlaceToAttrRole
+} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
@@ -26,11 +28,13 @@ interface IGraphControllerConstructorProps {
 interface IGraphControllerProps {
   graphModel: IGraphContentModel
   dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
 export class GraphController {
   graphModel?: IGraphContentModel
   dotsRef?: IDotsRef
+  pixiPointsRef?: IPixiPointsRef
   layout: GraphLayout
   instanceId: string
   // tracks the currently configured attribute descriptions so that we know whether
@@ -45,6 +49,7 @@ export class GraphController {
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
     this.dotsRef = props.dotsRef
+    this.pixiPointsRef = props.pixiPointsRef
     if (this.graphModel.dataConfiguration.dataset !== this.graphModel.dataset) {
       this.graphModel.dataConfiguration.setDataset(
         this.graphModel.dataset, this.graphModel.metadata)
@@ -53,13 +58,13 @@ export class GraphController {
   }
 
   callMatchCirclesToData() {
-    const {graphModel, dotsRef, instanceId} = this
-    if (graphModel && dotsRef?.current) {
+    const {graphModel, dotsRef, pixiPointsRef, instanceId} = this
+    if (graphModel && dotsRef?.current && pixiPointsRef?.current) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius()
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, dotsElement: dotsRef.current,
+        dataConfiguration, dotsElement: dotsRef.current, pixiPoints: pixiPointsRef.current,
         pointRadius, startAnimation: graphModel.startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }

@@ -2,35 +2,33 @@ import {autorun} from "mobx"
 import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {drag, select, color, range} from "d3"
 import RTreeLib from 'rtree'
-import {CaseData} from "../../data-display/d3-types"
-import {rTreeRect} from "../../data-display/data-display-types"
+import * as PIXI from "pixi.js"
+import {IPixiPointsRef, rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
+import {IPixiPointMetadata, PixiPoints} from "../utilities/pixi-points"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {InternalizedData} from "../graphing-types"
 
 interface IProps {
   marqueeState: MarqueeState
+  pixiPointsRef: IPixiPointsRef
 }
 
 type RTree = ReturnType<typeof RTreeLib>
-const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
+const prepareTree = (pixiPoints?: PixiPoints): RTree => {
     const selectionTree = RTreeLib(10)
-    select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
-      .each((datum: InternalizedData, index, groups) => {
-        const element: any = groups[index],
-          rect = {
-            x: Number(element.cx.baseVal.value),
-            y: Number(element.cy.baseVal.value),
-            w: 1, h: 1
-          }
-        selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
-      })
+    pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      const rect = {
+        x: point.x,
+        y: point.y,
+        w: 1, h: 1
+      }
+      selectionTree.insert(rect, metadata.caseID)
+    })
     return selectionTree
   },
 
@@ -45,8 +43,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
   }
 
 export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
-  const {marqueeState} = props,
-    instanceId = useInstanceIdContext() || 'background',
+  const {marqueeState, pixiPointsRef} = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphContentModelContext(),
@@ -62,7 +59,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       const {computedBounds} = layout,
         plotBounds = computedBounds.plot
       appState.beginPerformance()
-      selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
+      selectionTree.current = prepareTree(pixiPointsRef.current)
       startX.current = event.x - plotBounds.left
       startY.current = event.y - plotBounds.top
       width.current = 0
@@ -71,7 +68,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         dataset.current?.setSelectedCases([])
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [dataset, instanceId, layout, marqueeState]),
+    }, [dataset, layout, marqueeState, pixiPointsRef]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {

@@ -181,6 +181,7 @@
     "mobx-react-lite": "^4.0.5",
     "nanoid": "^5.0.2",
     "papaparse": "^5.4.1",
+    "pixi.js": "^7.3.2",
     "pluralize": "^8.0.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",

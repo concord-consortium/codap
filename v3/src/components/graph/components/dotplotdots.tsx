@@ -15,7 +15,7 @@ import {ICase} from "../../../models/data/data-set-types"
 import {setPointCoordinates} from "../utilities/graph-utils"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
-  const {dotsRef} = props,
+  const {dotsRef, pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -257,11 +257,11 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       setPointCoordinates({
         dataset, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
-        dotsRef, selectedOnly, pointColor, pointStrokeColor,
+        dotsRef, pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
       })
     },
-    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef,
+    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef, pixiPointsRef,
       primaryIsBottom, pointColor, pointStrokeColor, isAnimating])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
