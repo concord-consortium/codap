@@ -60,6 +60,14 @@ describe("AdornmentsStore", () => {
     adornmentsStore.toggleShowLabels()
     expect(adornmentsStore.showMeasureLabels).toBe(false)
   })
+  it("can have its showSquaresOfResiduals property set", () => {
+    const adornmentsStore = AdornmentsStore.create()
+    expect(adornmentsStore.showSquaresOfResiduals).toBe(false)
+    adornmentsStore.toggleShowSquaresOfResiduals()
+    expect(adornmentsStore.showSquaresOfResiduals).toBe(true)
+    adornmentsStore.toggleShowSquaresOfResiduals()
+    expect(adornmentsStore.showSquaresOfResiduals).toBe(false)
+  })
   it("returns a list of adornment items for use in menus", () => {
     const adornmentsStore = AdornmentsStore.create()
     const adornmentsMenuItems = adornmentsStore.getAdornmentsMenuItems("dotPlot")

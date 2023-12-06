@@ -5,15 +5,25 @@ import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel,
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
 import { kMovableLineType } from "./movable-line-adornment-types"
+import { ILineDescription } from "../shared-adornment-types"
 
 export const MovableLineInstance = types.model("MovableLineInstance", {
   equationCoords: types.maybe(PointModel),
   intercept: types.number,
   slope: types.number,
 })
-.volatile(self => ({
+.volatile(() => ({
+  dynamicIntercept: undefined as number | undefined,
+  dynamicSlope: undefined as number | undefined,
   pivot1: PointModel.create(),
   pivot2: PointModel.create()
+}))
+.views(self => ({
+  get slopeAndIntercept() {
+    const intercept = self.dynamicIntercept ?? self.intercept
+    const slope = self.dynamicSlope ?? self.slope
+    return {intercept, slope}
+  }
 }))
 .actions(self => ({
   setEquationCoords(coords: Point) {
@@ -24,6 +34,10 @@ export const MovableLineInstance = types.model("MovableLineInstance", {
   },
   setPivot2(point: Point) {
     self.pivot2.set(point)
+  },
+  setVolatile(intercept?: number, slope?: number) {
+    self.dynamicIntercept = intercept
+    self.dynamicSlope = slope
   }
 }))
 
@@ -33,14 +47,33 @@ export const MovableLineAdornmentModel = AdornmentModel
   type: types.optional(types.literal(kMovableLineType), kMovableLineType),
   lines: types.map(MovableLineInstance)
 })
+.views(self => ({
+  get lineDescriptions() {
+    const lineDescriptions: ILineDescription[] = []
+    self.lines.forEach((line, key) => {
+      const { intercept, slope } = line.slopeAndIntercept
+      if (!Number.isFinite(intercept) || !Number.isFinite(slope)) return
+      const cellKey = JSON.parse(key)
+      lineDescriptions.push({ cellKey, intercept, slope })
+    })
+    return lineDescriptions
+  }
+}))
 .actions(self => ({
   setLine(
-    aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point, equationCoords?: Point}, key=''
+    aLine: {intercept: number, slope: number, pivot1?: Point, pivot2?: Point, equationCoords?: Point}, key=""
   ) {
     self.lines.set(key, aLine)
     const line = self.lines.get(key)
+    line?.setVolatile()
     line?.setPivot1(aLine.pivot1 ?? kInfinitePoint)
     line?.setPivot2(aLine.pivot2 ?? kInfinitePoint)
+  },
+  setVolatileLine(
+    aLine: {intercept: number | undefined, slope: number | undefined}, key=""
+  ) {
+    const existingLine = self.lines.get(key)
+    existingLine?.setVolatile(aLine.intercept, aLine.slope)
   }
 }))
 .actions(self => ({

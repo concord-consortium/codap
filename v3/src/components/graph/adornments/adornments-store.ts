@@ -20,7 +20,8 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     type: "Adornments Store",
     adornments: types.array(AdornmentModelUnion),
     interceptLocked: false,
-    showMeasureLabels: false
+    showMeasureLabels: false,
+    showSquaresOfResiduals: false
   })
   .actions(self => ({
     toggleInterceptLocked() {
@@ -28,6 +29,9 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     },
     toggleShowLabels() {
       self.showMeasureLabels = !self.showMeasureLabels
+    },
+    toggleShowSquaresOfResiduals() {
+      self.showSquaresOfResiduals = !self.showSquaresOfResiduals
     },
     showAdornment(adornment: IAdornmentModel, type: string) {
       const adornmentExists = self.adornments.find(a => a.type === type)
@@ -53,6 +57,7 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
       const measureMenuItems: IMeasureMenuItem[] = []
       let addedInterceptLocked = false
       let addedShowMeasureLabels = false
+      let addedShowSquaresOfResiduals = false
       measures[plotType].map((measure: IMeasure) => {
         const { title, type } = measure
         const checked = self.isShowingAdornment(type)
@@ -100,6 +105,21 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
           addedInterceptLocked = true
         }
       })
+      if (
+        plotType === "scatterPlot" && !addedShowSquaresOfResiduals
+      ) {
+        const movableLineVisible = !!self.adornments.find(a => a.type === "Movable Line")?.isVisible
+        const lsrlVisible = !!self.adornments.find(a => a.type === "LSRL")?.isVisible
+        const disabled = !movableLineVisible && !lsrlVisible
+        measureMenuItems.push({
+          checked: self.showSquaresOfResiduals,
+          disabled,
+          title: "DG.Inspector.graphSquares",
+          type: "control",
+          clickHandler: self.toggleShowSquaresOfResiduals
+        })
+        addedShowSquaresOfResiduals = true
+      }
 
       return measureMenuItems
     },

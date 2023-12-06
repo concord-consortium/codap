@@ -1,5 +1,7 @@
-import {ScaleBand, ScaleLinear, select} from "d3"
-import React, {useCallback, useRef, useState} from "react"
+import {ScaleLinear, select} from "d3"
+import React, {useCallback, useEffect, useRef, useState} from "react"
+import { autorun } from "mobx"
+import { observer } from "mobx-react-lite"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
@@ -14,8 +16,10 @@ import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
+import {ISquareOfResidual} from "../adornments/shared-adornment-types"
+import {scatterPlotFuncs} from "./scatter-plot-utils"
 
-export const ScatterDots = function ScatterDots(props: PlotProps) {
+export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const {dotsRef} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
@@ -40,8 +44,17 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
   pointRadiusRef.current = graphModel.getPointRadius()
   selectedPointRadiusRef.current = graphModel.getPointRadius('select')
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
-
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
+
+  // The Squares of Residuals option is controlled by the AdornmentsStore, so we need to watch for changes to that store
+  // and call refreshSquares when the option changes. The squares are rendered in connection with the Movable Line and
+  // LSRL adornments, so we need to get information from those adornments as well.
+  const adornmentsStore = graphModel.adornmentsStore
+  const showSquares = adornmentsStore.showSquaresOfResiduals
+  const movableLine = adornmentsStore.adornments.find(a => a.type === "Movable Line")
+  const lsrl = adornmentsStore.adornments.find(a => a.type === "LSRL")
+  const movableLineSquaresRef = useRef<SVGGElement>(null)
+  const lsrlSquaresRef = useRef<SVGGElement>(null)
 
   const onDragStart = useCallback((event: MouseEvent) => {
       target.current = select(event.target as SVGSVGElement)
@@ -151,37 +164,46 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       })
   }, [dataConfiguration, dotsRef, graphModel])
 
+  const refreshSquares = useCallback(() => {
+
+    const { residualSquaresForLines } = scatterPlotFuncs(layout, dataConfiguration)
+
+    if (lsrl?.isVisible) {
+      const lsrlLineDescriptions = lsrl.lineDescriptions
+      const lsrlSquares: ISquareOfResidual[] = residualSquaresForLines(lsrlLineDescriptions)
+      select(lsrlSquaresRef.current).selectAll("*")
+        .data(lsrlSquares)
+        .join("rect")
+        .attr("id", (d: ISquareOfResidual) => `#${instanceId}-${d.caseID}-lsrl-square`)
+        .attr("x", (d: ISquareOfResidual) => d.x)
+        .attr("y", (d: ISquareOfResidual) => d.y)
+        .attr("width", (d: ISquareOfResidual) => d.side)
+        .attr("height", (d: ISquareOfResidual) => d.side)
+        .attr("fill", "none")
+        .attr("stroke", (d: ISquareOfResidual) => d.color && d.color !== "" ? d.color : "#008000")
+    }
+
+    if (movableLine?.isVisible) {
+      const mlLineDescriptions = movableLine.lineDescriptions
+      const mlSquares: ISquareOfResidual[] = residualSquaresForLines(mlLineDescriptions)
+      select(movableLineSquaresRef.current).selectAll("*")
+        .data(mlSquares)
+        .join("rect")
+        .attr("id", (d: ISquareOfResidual) => `#${instanceId}-${d.caseID}-ml-square`)
+        .attr("x", (d: ISquareOfResidual) => d.x)
+        .attr("y", (d: ISquareOfResidual) => d.y)
+        .attr("width", (d: ISquareOfResidual) => d.side)
+        .attr("height", (d: ISquareOfResidual) => d.side)
+        .attr("fill", "none")
+        .attr("stroke", "#4682b4")
+    }
+
+  }, [lsrl, movableLine, dataConfiguration, layout, instanceId])
+
   const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
-    const getScreenX = (anID: string) => {
-      const xAttrID = dataConfiguration?.attributeID('x') ?? ''
-      const xValue = dataset?.getNumeric(anID, xAttrID) ?? NaN
-      const xScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
-      const topSplitID = dataConfiguration?.attributeID('topSplit') ?? ''
-      const topCoordValue = dataset?.getStrValue(anID, topSplitID) ?? ''
-      const topScale = layout.getAxisScale('top') as ScaleBand<string>
-      return xScale(xValue) / numExtraPrimaryBands + (topScale(topCoordValue) || 0)
-    }
 
-    const getScreenY = (anID: string, plotNum = 0) => {
-      const yAttrID = yAttrIDs[plotNum]
-      const yScale = (hasY2Attribute && plotNum === numberOfPlots - 1 ? v2Scale : yScaleRef.current) as
-          ScaleLinear<number, number>
-      const rightSplitID = dataConfiguration?.attributeID('rightSplit') ?? ''
-      const rightScale = layout.getAxisScale('rightCat') as ScaleBand<string>
-
-      const yValue = dataset?.getNumeric(anID, yAttrID) ?? NaN
-      const rightCoordValue = dataset?.getStrValue(anID, rightSplitID) ?? ''
-      const rightScreenCoord = ((rightCoordValue && rightScale(rightCoordValue)) || 0)
-      return yScale(yValue) / numExtraSecondaryBands + rightScreenCoord
-    }
-
-    const yAttrIDs = dataConfiguration?.yAttributeIDs || [],
+    const {getXCoord: getScreenX, getYCoord: getScreenY} = scatterPlotFuncs(layout, dataConfiguration),
       {pointColor, pointStrokeColor} = graphModel.pointDescription,
-      hasY2Attribute = dataConfiguration?.hasY2Attribute,
-      v2Scale = layout.getAxisScale("rightNumeric") as ScaleNumericBaseType,
-      numExtraPrimaryBands = dataConfiguration?.numRepetitionsForPlace('bottom') ?? 1,
-      numExtraSecondaryBands = dataConfiguration?.numRepetitionsForPlace('left') ?? 1,
-      numberOfPlots = dataConfiguration?.numberOfPlots || 1,
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
@@ -191,8 +213,8 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, dataset, dotsRef, layout, legendAttrID,
-    isAnimating, graphModel, yScaleRef])
+
+  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, dotsRef, isAnimating])
 
   const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',
@@ -225,11 +247,36 @@ export const ScatterDots = function ScatterDots(props: PlotProps) {
     } else {
       refreshPointPositionsD3(selectedOnly)
     }
-  }, [refreshPointPositionsD3, refreshPointPositionsSVG])
+    showSquares && refreshSquares()
+  }, [refreshSquares, refreshPointPositionsD3, refreshPointPositionsSVG, showSquares])
+
+  // Call refreshSquares when Squares of Residuals option is switched on and when a
+  // Movable Line adornment is being dragged.
+  useEffect(function renderSquares() {
+    return autorun(() => {
+      showSquares && refreshSquares()
+    }, { name: "ScatterDots.renderSquares" })
+  }, [refreshSquares, showSquares])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
 
   return (
-    <svg/>
+    <>
+      <svg/>
+      { movableLine?.isVisible && showSquares &&
+        <g
+          data-testid={`movable-line-squares-${instanceId}`}
+          className="movable-line-squares"
+          ref={movableLineSquaresRef}
+        />
+      }
+      { lsrl?.isVisible && showSquares &&
+        <g
+          data-testid={`lsrl-squares-${instanceId}`}
+          className="lsrl-squares"
+          ref={lsrlSquaresRef}
+        />
+      }
+    </>
   )
-}
+})

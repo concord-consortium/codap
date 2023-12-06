@@ -6,6 +6,9 @@ import { kLSRLType } from "./lsrl-adornment-types"
 import { ICase } from "../../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { IAxisLayout } from "../../../axis/models/axis-layout-context"
+import { ILineDescription } from "../shared-adornment-types"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 
 export const LSRLInstance = types.model("LSRLInstance", {
   equationCoords: types.maybe(PointModel)
@@ -23,6 +26,11 @@ export const LSRLInstance = types.model("LSRLInstance", {
            isFinite(Number(self.rSquared)) &&
            isFinite(Number(self.slope)) &&
            isFinite(Number(self.sdResiduals))
+  },
+  get slopeAndIntercept() {
+    const intercept = self.intercept
+    const slope = self.slope
+    return {intercept, slope}
   }
 }))
 .actions(self => ({
@@ -53,7 +61,7 @@ export const LSRLAdornmentModel = AdornmentModel
   lines: types.map(types.array(LSRLInstance)),
   showConfidenceBands: types.optional(types.boolean, false)
 })
-.views(() => ({
+.views(self => ({
   getCaseValues(
     xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
     cat?: string
@@ -75,6 +83,18 @@ export const LSRLAdornmentModel = AdornmentModel
       }
     })
     return caseValues
+  },
+  get lineDescriptions() {
+    const lineDescriptions: ILineDescription[] = []
+    self.lines.forEach((linesArray, key) => {
+      linesArray.forEach(line => {
+        const { category, intercept, slope } = line
+        if (!isFiniteNumber(intercept) || !isFiniteNumber(slope)) return
+        const cellKey = JSON.parse(key)
+        lineDescriptions.push({ category, cellKey, intercept, slope })
+      })
+    })
+    return lineDescriptions
   }
 }))
 .views(self => ({
