@@ -137,7 +137,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     dataset && graphModel.applyUndoableAction(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
-    }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
+    }, "V3.Undo.attributeTreatAs", "V3.Redo.attributeTreatAs")
   }, [dataset, graphController, graphModel])
 
   // respond to assignment of new attribute ID

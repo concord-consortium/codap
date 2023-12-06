@@ -24,11 +24,13 @@
     "V3.formula.error.stringConstantArg": "The '%@()' function expects %@ argument to be a string constant",
     "V3.formula.error.caseDependentNotSupported": "This formula scope does not support case-dependent formulas",
 
-    // V3 map strings that are not present in V2 and will eventually require translation.
+    // V3 graph & map strings that are not present in V2 and will eventually require translation.
     "V3.Undo.mapLegendAttributeChange": "Undo changing map legend attribute",
     "V3.Redo.mapLegendAttributeChange": "Redo changing map legend attribute",
-    "V3.Undo.mapLegendAttributeRemove": "Undo removing map legend attribute",
-    "V3.Redo.mapLegendAttributeRemove": "Redo removing map legend attribute",
+    "V3.Undo.legendAttributeRemove": "Undo removing map legend attribute",
+    "V3.Redo.legendAttributeRemove": "Redo removing map legend attribute",
+    "V3.Undo.attributeTreatAs": "Undo changing attribute treatment",
+    "V3.Redo.attributeTreatAs": "Redo changing attribute treatment",
     "V3.map.legendDrop": "Color regions by values of %@",
 
     // CFM/File menu
