@@ -44,12 +44,15 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   }, [handleChangeLegendAttribute])
 
   useEffect(() => {
+    let prevLegendHeight = layout.tileHeight - layout.contentHeight
     return mstAutorun(function invalidateLeafletMapSize() {
       // trigger autorun if map or legend layout change
-      layout.getComputedBounds('legend')
-      layout.contentHeight  // eslint-disable-line no-unused-expressions
+      const legendHeight = layout.tileHeight - layout.contentHeight
+      // animate on legend change, not tile resize
+      const animate = legendHeight !== prevLegendHeight
       // invalidate leaflet map when layout changes
-      mapModel?.leafletMap?.invalidateSize(true)
+      mapModel?.leafletMap?.invalidateSize(animate)
+      prevLegendHeight = legendHeight
     }, {name: "CodapMap.invalidateLeafletMapSize"}, mapModel)
   }, [layout, mapModel])
 
