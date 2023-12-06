@@ -3,7 +3,7 @@ import React, {CSSProperties, useRef} from "react"
 import t from "../../../utilities/translation/translate"
 import {GraphPlace} from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
-import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
+import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute"
@@ -12,7 +12,6 @@ import {IUseDraggableAttribute, useDraggableAttribute} from "../../../hooks/use-
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
 interface IProps {
-  dataConfiguration: IDataConfigurationModel
   place: GraphPlace,
   target: SVGGElement | null
   portal: HTMLElement | null
@@ -30,9 +29,10 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
 }
 
-export const AxisOrLegendAttributeMenu = ({ dataConfiguration, place, target, portal,
+export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
-  const data = dataConfiguration.dataset
+  const dataConfiguration = useDataConfigurationContext()
+  const data = dataConfiguration?.dataset
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
@@ -57,9 +57,9 @@ export const AxisOrLegendAttributeMenu = ({ dataConfiguration, place, target, po
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
-            <div className="codap-graph-attribute-label" ref={setDragNodeRef}
+            <div className="attribute-label-menu" ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
-                data-testid={`codap-graph-attribute-label-${place}`}>
+                data-testid={`attribute-label-menu-${place}`}>
               <MenuButton style={buttonStyle} data-testid="axis-legend-attribute-button">{attribute?.name}</MenuButton>
               <MenuList>
                 { data?.attributes?.map((attr) => {

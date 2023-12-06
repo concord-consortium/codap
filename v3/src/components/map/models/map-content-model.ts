@@ -12,6 +12,7 @@ import {
   fitMapBoundsToData,
   latLongAttributesFromDataSet
 } from "../utilities/map-utils"
+import {GraphPlace} from '../../axis-graph-shared'
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
@@ -140,7 +141,7 @@ export const MapContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     // Return true if there is already a layer for the given dataset and attributeID is not already in use
-    placeCanAcceptAttributeIDDrop(dataset: IDataSet, attributeID: string | undefined) {
+    placeCanAcceptAttributeIDDrop(place: GraphPlace, dataset: IDataSet, attributeID: string | undefined) {
       if (dataset && attributeID) {
         const foundLayer = self.layers.find(layer => layer.data === dataset)
         return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID

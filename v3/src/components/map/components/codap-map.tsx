@@ -1,5 +1,4 @@
 import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
-import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {clsx} from "clsx"
@@ -8,12 +7,14 @@ import {MapContainer, TileLayer} from "react-leaflet"
 import {kPortalClass} from "../../data-display/data-display-types"
 import {kDefaultMapLocation, kDefaultMapZoom, kMapAttribution, kMapUrl} from "../map-types"
 import {GraphPlace} from "../../axis-graph-shared"
+import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {MapInterior} from "./map-interior"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {DroppableMapArea} from "./droppable-map-area"
 import {IDataSet} from "../../../models/data/data-set"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 
 import 'leaflet/dist/leaflet.css'
 import "./map.scss"
@@ -26,9 +27,12 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   const instanceId = useInstanceIdContext(),
     mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
-    legendHeight = layout?.computedBounds?.legend?.height ?? 0,
-    mapHeight = layout?.tileHeight - legendHeight,
-    interiorSvgRef = useRef<SVGSVGElement>(null)
+    mapHeight = layout.contentHeight,
+    interiorSvgRef = useRef<SVGSVGElement>(null),
+    forceUpdate = useForceUpdate()
+
+  // trigger an additional render once references have been fulfilled
+  useEffect(() => forceUpdate(), [forceUpdate])
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
     mapModel.applyUndoableAction(
@@ -40,20 +44,14 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   }, [handleChangeLegendAttribute])
 
   useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return [mapModel?.leafletMap, layout.getComputedBounds('legend')]
-      },
-      () => {
-        mapModel?.leafletMap?.invalidateSize(true)
-      }, {name: "codap-map-legend-size-change"}
-    )
-    return () => disposer()
-  }, [mapModel?.leafletMap, legendHeight, layout])
-
-  useEffect(() => {
-    mapModel?.leafletMap?.invalidateSize()
-  }, [mapHeight, mapModel?.leafletMap])
+    return mstAutorun(function invalidateLeafletMapSize() {
+      // trigger autorun if map or legend layout change
+      layout.getComputedBounds('legend')
+      layout.contentHeight  // eslint-disable-line no-unused-expressions
+      // invalidate leaflet map when layout changes
+      mapModel?.leafletMap?.invalidateSize(true)
+    }, {name: "CodapMap.invalidateLeafletMapSize"}, mapModel)
+  }, [layout, mapModel])
 
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">

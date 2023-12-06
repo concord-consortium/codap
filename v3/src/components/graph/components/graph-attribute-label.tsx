@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
 import t from "../../../utilities/translation/translate"
-import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
@@ -125,7 +124,6 @@ export const GraphAttributeLabel =
     return (
       <AttributeLabel
         ref={labelRef}
-        dataConfiguration={dataConfiguration as IDataConfigurationModel}
         place={place}
         refreshLabel={refreshAxisTitle}
         onChangeAttribute={onChangeAttribute}
