@@ -138,7 +138,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
     }
     model.updateDrag(newValue, instanceKey, index)
     refreshValue(newValue, index)
-  }, [getValues, instanceKey, model, refreshValue, xAttrType, cellCounts.x, xScale, cellCounts.y, yScale])
+  }, [getValues, instanceKey, model, refreshValue, xAttrType, cellCounts, xScale, yScale])
 
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model
