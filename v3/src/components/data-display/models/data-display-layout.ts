@@ -19,6 +19,7 @@ export interface Bounds {
 export class DataDisplayLayout {
   @observable tileWidth = kDefaultTileWidth
   @observable tileHeight = kDefaultTileHeight
+  @observable isTileExtentInitialized = false
   // desired/required size of child elements
   @observable desiredExtents: Map<GraphPlace, number> = new Map()
 
@@ -49,6 +50,7 @@ export class DataDisplayLayout {
   @action setTileExtent(width: number, height: number) {
     this.tileWidth = width
     this.tileHeight = height
+    this.isTileExtentInitialized = true
   }
 
   /**

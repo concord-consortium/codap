@@ -3,6 +3,7 @@ import {reaction} from "mobx"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {withoutUndo} from '../../../models/history/without-undo'
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
@@ -130,9 +131,11 @@ export const MapContentModel = DataDisplayContentModel
         {name: "MapContentModel.respondToSharedDatasetsChanges", fireImmediately: true}))
     },
     setLeafletMap(leafletMap: LeafletMap) {
+      withoutUndo()
       self.leafletMap = leafletMap
     },
     setHasBeenInitialized() {
+      withoutUndo()
       self.hasBeenInitialized = true
     },
     incrementDisplayChangeCount() {

@@ -58,7 +58,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
 
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
-      <div style={{height: mapHeight}}>
+      <div className="leaflet-wrapper" style={{height: mapHeight}}>
         <MapContainer center={kDefaultMapLocation as LatLngExpression} zoom={kDefaultMapZoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
           <TileLayer attribution={kMapAttribution} url={kMapUrl}/>
