@@ -182,7 +182,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     if (interceptLocked) return
     const lineParams = model.lines?.get(instanceKey)
     const slope = lineParams?.slope || 0
-    const intercept = lineParams?.intercept || 0
     const tWorldX = xScaleRef.current.invert(event.x)
     const tWorldY = yScaleRef.current.invert(event.y)
 
@@ -203,7 +202,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const {domain: yDomain} = yAxis
     pointsOnAxes.current = lineToAxisIntercepts(slope, newIntercept, xDomain, yDomain)
     updateLine()
-    refreshEquation(slope, intercept)
+    refreshEquation(slope, newIntercept)
 
     // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
     // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
