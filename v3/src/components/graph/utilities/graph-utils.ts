@@ -3,7 +3,7 @@ import {isInteger} from "lodash"
 import * as PIXI from "pixi.js"
 import {IPixiPointMetadata} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
-import {CaseData,} from "../../data-display/d3-types"
+import {CaseData, selectDots,} from "../../data-display/d3-types"
 import {IPixiPointsRef, IDotsRef, Point, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
@@ -322,14 +322,10 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     // TODO: Do we really need to calculate legend color here? If this function is called both while resizing
     // the graph and while updating legend colors, we could possibly split it into two different functions.
     // TODO: add animation
-    // const duration = getAnimationEnabled() ? transitionDuration : 0
-    // const theSelection = selectDots(dotsRef.current, selectedOnly)
     const pixiRenderer = pixiPointsRef?.current
     if (pixiRenderer) {
       pixiRenderer.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata, idx: number) => {
         const { caseID, plotNum } = metadata
-        point.position.x = getScreenX(caseID) || 0
-        point.position.y = getScreenY(caseID, plotNum) || 0
         pixiRenderer.setPointStyle(idx, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),
@@ -337,7 +333,11 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
             ? defaultSelectedStrokeWidth : defaultStrokeWidth
         })
-      })
+
+        const duration = getAnimationEnabled() ? transitionDuration : 0
+        pixiRenderer.setTransitionDuration(duration)
+        pixiRenderer.movePointTo(idx, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+      }, { selectedOnly })
     }
   }
 
