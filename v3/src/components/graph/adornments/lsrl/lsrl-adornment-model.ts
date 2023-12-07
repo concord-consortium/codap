@@ -6,7 +6,6 @@ import { kLSRLType } from "./lsrl-adornment-types"
 import { ICase } from "../../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
-import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { ILineDescription } from "../shared-adornment-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 
