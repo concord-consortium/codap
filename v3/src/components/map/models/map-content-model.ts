@@ -1,7 +1,9 @@
+import {Map as LeafletMap} from 'leaflet'
 import {reaction} from "mobx"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {withoutUndo} from '../../../models/history/without-undo'
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
@@ -12,6 +14,7 @@ import {
   fitMapBoundsToData,
   latLongAttributesFromDataSet
 } from "../utilities/map-utils"
+import {GraphPlace} from '../../axis-graph-shared'
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
@@ -32,7 +35,7 @@ export const MapContentModel = DataDisplayContentModel
     baseMapLayerIsVisible: true,
   })
   .volatile(() => ({
-    leafletMap: undefined as any,
+    leafletMap: undefined as LeafletMap | undefined,
     displayChangeCount: 0,
     hasBeenInitialized: false
   }))
@@ -48,9 +51,11 @@ export const MapContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     syncCenterAndZoom() {
-      const center = self.leafletMap.getCenter()
-      self.center.replace({lat: center.lat, lng: center.lng})
-      self.zoom = self.leafletMap.getZoom()
+      if (self.leafletMap) {
+        const center = self.leafletMap.getCenter()
+        self.center.replace({lat: center.lat, lng: center.lng})
+        self.zoom = self.leafletMap.getZoom()
+      }
     },
     addPointLayer(dataSet: IDataSet) {
       const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
@@ -125,10 +130,12 @@ export const MapContentModel = DataDisplayContentModel
         },
         {name: "MapContentModel.respondToSharedDatasetsChanges", fireImmediately: true}))
     },
-    setLeafletMap(leafletMap: any) {
+    setLeafletMap(leafletMap: LeafletMap) {
+      withoutUndo()
       self.leafletMap = leafletMap
     },
     setHasBeenInitialized() {
+      withoutUndo()
       self.hasBeenInitialized = true
     },
     incrementDisplayChangeCount() {
@@ -140,7 +147,7 @@ export const MapContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     // Return true if there is already a layer for the given dataset and attributeID is not already in use
-    placeCanAcceptAttributeIDDrop(dataset: IDataSet, attributeID: string | undefined) {
+    placeCanAcceptAttributeIDDrop(place: GraphPlace, dataset: IDataSet, attributeID: string | undefined) {
       if (dataset && attributeID) {
         const foundLayer = self.layers.find(layer => layer.data === dataset)
         return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID

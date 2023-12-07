@@ -394,7 +394,7 @@ export const DataConfigurationModel = types
     {
       placeCanHaveZeroExtent(place: GraphPlace) {
         return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
-          self.attributeID(graphPlaceToAttrRole[place]) === ''
+          !self.attributeID(graphPlaceToAttrRole[place])
       },
       // GraphDataConfigurationModel overrides this. Here we only have to worry about the 'legend' role.
       placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
@@ -567,7 +567,10 @@ export const DataConfigurationModel = types
       // respond to change of legend attribute
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
-        () => self.invalidateQuantileScale(),
+        () => {
+          self.invalidateQuantileScale()
+          self.clearCasesCache()
+        },
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
       ))
       // Invalidate cache when selection changes.

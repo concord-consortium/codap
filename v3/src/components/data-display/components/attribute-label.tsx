@@ -1,15 +1,17 @@
 import { autorun } from "mobx"
 import React, { ForwardedRef, forwardRef, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
+import { IDataSet } from "../../../models/data/data-set"
+import {kPortalClassSelector} from "../data-display-types"
 import { GraphPlace } from "../../axis-graph-shared"
 import { useDataDisplayLayout } from "../hooks/use-data-display-layout"
 import { AxisOrLegendAttributeMenu } from "../../axis/components/axis-or-legend-attribute-menu"
-import { IDataSet } from "../../../models/data/data-set"
 import { AttributeType } from "../../../models/data/attribute"
+
+import "./attribute-label.scss"
 
 interface IProps {
   place: GraphPlace
-  portal: HTMLElement | null
   refreshLabel: () => void
   onChangeAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
@@ -17,9 +19,10 @@ interface IProps {
 }
 
 export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<SVGGElement>) => {
-  const { place, portal, refreshLabel, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs } = props
+  const { place, refreshLabel, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs } = props
   // labelRef must be a MutableRefObject, not a function
   const labelElt = typeof labelRef !== "function" ? labelRef?.current ?? null : null
+  const portal = labelElt?.closest(kPortalClassSelector) as HTMLDivElement ?? null
   const layout = useDataDisplayLayout()
   const [ , setLayoutBounds] = useState("")
 

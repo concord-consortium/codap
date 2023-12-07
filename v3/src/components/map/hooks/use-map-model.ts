@@ -1,5 +1,5 @@
 import {comparer, reaction} from "mobx"
-import {useEffect} from "react"
+import {useCallback, useEffect} from "react"
 import {latLng} from 'leaflet'
 import {useMap} from "react-leaflet"
 import {useMapModelContext} from "./use-map-model-context"
@@ -12,8 +12,7 @@ export function useMapModel() {
     mapModel = useMapModelContext(),
     layout = useDataDisplayLayout()
 
-  // Initialize
-  useEffect(function initializeLeafletMapHandlers() {
+  const initializeLeafletMapHandlers = useCallback(function initializeLeafletMapHandlers() {
     const onLayerAdd = () => {
         console.log('onLayerAdd')
       },
@@ -32,13 +31,14 @@ export function useMapModel() {
     leafletMap.on('layeradd', onLayerAdd)
       .on('click', onClick)
       .on('drag move zoom', onMapIsChanging)
-      .on('load dragend zoomend moveend', onDisplayChangeEvent)
+      .on('dragend zoomend moveend', onDisplayChangeEvent)
     mapModel.setLeafletMap(leafletMap)
   }, [leafletMap, mapModel])
 
   // Initialize
   useEffect(function initializeLeafletMapView() {
-    if (mapModel.hasBeenInitialized) {
+    // wait until tile has its correct size before initializing the map
+    if (!layout.isTileExtentInitialized || mapModel.hasBeenInitialized) {
       return
     }
     if (mapModel.zoom >= 0) {
@@ -51,7 +51,7 @@ export function useMapModel() {
         navigator.geolocation.getCurrentPosition(
           (pos: GeolocationPosition) => {
             const coords = pos.coords
-            mapModel.leafletMap.setView([coords.latitude, coords.longitude],
+            mapModel.leafletMap?.setView([coords.latitude, coords.longitude],
               kDefaultMapZoomForGeoLocation, {animate: true})
           }
         )
@@ -59,8 +59,10 @@ export function useMapModel() {
     } else {
       fitMapBoundsToData(mapModel.layers, leafletMap)
     }
+    // set up handlers after map has been initialized
+    initializeLeafletMapHandlers()
     mapModel.setHasBeenInitialized()
-  }, [leafletMap, mapModel, mapModel.layers])
+  }, [initializeLeafletMapHandlers, layout.isTileExtentInitialized, leafletMap, mapModel, mapModel.layers])
 
   // Respond to content width and height changes
   useEffect(function updateMapSize() {
