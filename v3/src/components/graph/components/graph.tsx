@@ -3,7 +3,7 @@ import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
-import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
+import {GraphAttrRole, IPixiPointsRef, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -45,9 +45,10 @@ interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
   dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, dotsRef, pixiPointsRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
     {startAnimation} = useDataDisplayAnimation(),
@@ -59,8 +60,13 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     svgRef = useRef<SVGSVGElement>(null),
     plotAreaSVGRef = useRef<SVGSVGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
+    pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
+
+  if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
+  }
 
   useEffect(function handleFilteredCasesLengthChange() {
     return mstReaction(
@@ -84,8 +90,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         .attr('y', plotBounds?.top || 0)
         .attr('width', layout.plotWidth)
         .attr('height', layout.plotHeight)
+
+      pixiPointsRef.current?.resize(layout.plotWidth, layout.plotHeight)
     }
-  }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
+  }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale, pixiPointsRef])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
@@ -156,7 +164,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   useDataTips({dotsRef, dataset, displayModel: graphModel})
 
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, dotsRef},
+    const props = {xAttrID, yAttrID, dotsRef, pixiPointsRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -211,14 +219,23 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
       <div className={clsx(kGraphClass, kPortalClass)} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
-            marqueeState={marqueeState}
             ref={backgroundSvgRef}
+            marqueeState={marqueeState}
+            pixiPointsRef={pixiPointsRef}
           />
 
           {renderGraphAxes()}
 
-          <svg ref={plotAreaSVGRef}>
+          <svg ref={plotAreaSVGRef} className="plot-area-svg">
+
             <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
+            <foreignObject
+              ref={pixiContainerRef}
+              x={0} y={0} width="100%" height="100%"
+              // TODO PIXI: remove this to handle mouse events later, find a solution so that we can support
+              // background events too
+              style={{ pointerEvents: "none" }}
+            />
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>
