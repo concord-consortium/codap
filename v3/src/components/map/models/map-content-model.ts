@@ -142,7 +142,7 @@ export const MapContentModel = DataDisplayContentModel
       self.displayChangeCount++
     },
     rescale() {
-      console.log("rescale")
+      fitMapBoundsToData(self.layers, self.leafletMap)
     }
   }))
   .actions(self => ({
