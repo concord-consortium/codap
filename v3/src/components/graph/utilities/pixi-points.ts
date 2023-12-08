@@ -1,10 +1,9 @@
 import * as PIXI from "pixi.js"
-import { Actions, Interpolations } from "pixi-actions"
 import { CaseData } from "../../data-display/d3-types"
+import { PixiTranstion } from "./pixi-transition"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 1
-const TARGET_FPS = 60
 export interface IPixiPointMetadata {
   caseID: string
   plotNum: number
@@ -19,8 +18,6 @@ export interface IPixiPointStyle {
   strokeOpacity?: number
 }
 
-export type Interpolation = (input: number) => number
-
 export class PixiPoints {
   app: PIXI.Application = new PIXI.Application({
     resolution: window.devicePixelRatio,
@@ -31,14 +28,8 @@ export class PixiPoints {
   pointMetadata: IPixiPointMetadata[] = []
   pointIdToIndex = new Map<string, number>()
   textures = new Map<string, PIXI.Texture>()
-  transitionDuration = 0.5 // seconds
-  transitionInterpolation = Interpolations.smooth
 
-  constructor() {
-    this.app.ticker.add((delta) => {
-      Actions.tick(delta / TARGET_FPS)
-    })
-  }
+  currentTransition?: PixiTranstion
 
   get canvas() {
     return this.app.view as HTMLCanvasElement
@@ -52,8 +43,19 @@ export class PixiPoints {
     return this.points.length
   }
 
-  setTransitionDuration(duration: number) {
-    this.transitionDuration = duration / 1000
+  transition(duration: number, callback: () => void) {
+    if (this.currentTransition) {
+      this.currentTransition.destroy()
+      this.currentTransition = undefined
+    }
+    if (duration === 0) {
+      callback()
+      return
+    }
+    this.currentTransition = new PixiTranstion(duration, this.points)
+    this.currentTransition.onFinish(() => this.currentTransition = undefined)
+    callback()
+    this.currentTransition.play()
   }
 
   textureKey(style: IPixiPointStyle) {
@@ -171,14 +173,10 @@ export class PixiPoints {
 
   setPointPosition(index: number, x: number, y: number) {
     const point = this.points[index]
-    point.position.set(x, y)
-  }
-
-  movePointTo(index: number, x: number, y: number) {
-    if (this.transitionDuration > 0) {
-      Actions.moveTo(this.points[index], x, y, this.transitionDuration, this.transitionInterpolation).play()
+    if (this.currentTransition) {
+      this.currentTransition.setTargetPosition(index, x, y)
     } else {
-      this.setPointPosition(index, x, y)
+      point.position.set(x, y)
     }
   }
 
