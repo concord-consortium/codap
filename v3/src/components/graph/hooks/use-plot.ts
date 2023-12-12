@@ -4,7 +4,6 @@ import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
-import {useCurrent} from "../../../hooks/use-current"
 import {useDebouncedCallback} from "use-debounce"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
@@ -53,11 +52,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
     dataset = dataConfiguration?.dataset,
-    instanceId = useInstanceIdContext(),
-    refreshPointPositionsRef = useCurrent(refreshPointPositions)
+    instanceId = useInstanceIdContext()
 
   const callRefreshPointPositions = useDebouncedCallback((selectedOnly: boolean) => {
-    refreshPointPositionsRef.current(selectedOnly)
+    refreshPointPositions(selectedOnly)
   })
 
   // respond to numeric axis domain changes (e.g. axis dragging)
