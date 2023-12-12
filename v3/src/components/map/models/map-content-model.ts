@@ -145,6 +145,27 @@ export const MapContentModel = DataDisplayContentModel
       console.log("rescale")
     }
   }))
+  .actions(self => ({
+    hideSelectedCases() {
+      self.layers.forEach(layer => {
+        layer.dataConfiguration?.addNewHiddenCases(
+          layer.dataConfiguration.selection ?? []
+        )
+      })
+    },
+    hideUnselectedCases() {
+      self.layers.forEach(layer => {
+        layer.dataConfiguration?.addNewHiddenCases(
+          layer.dataConfiguration.unselectedCases ?? []
+        )
+      })
+    },
+    clearHiddenCases() {
+      self.layers.forEach(layer => {
+          layer.dataConfiguration.clearHiddenCases()
+      })
+    }
+  }))
   .views(self => ({
     // Return true if there is already a layer for the given dataset and attributeID is not already in use
     placeCanAcceptAttributeIDDrop(place: GraphPlace, dataset: IDataSet, attributeID: string | undefined) {
@@ -153,6 +174,15 @@ export const MapContentModel = DataDisplayContentModel
         return !!foundLayer && foundLayer.dataConfiguration.attributeID('legend') !== attributeID
       }
       return false
+    },
+    numSelected() {
+      return self.layers.reduce((sum, layer) => sum + layer.dataConfiguration.selection.length, 0)
+    },
+    numUnselected() {
+      return self.layers.reduce((sum, layer) => sum + layer.dataConfiguration.unselectedCases.length, 0)
+    },
+    numHidden() {
+      return self.layers.reduce((sum, layer) => sum + layer.dataConfiguration.hiddenCases.length, 0)
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

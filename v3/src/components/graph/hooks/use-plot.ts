@@ -1,10 +1,10 @@
-import {useCallback, useEffect, useRef} from "react"
+import {useEffect} from "react"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
-import {useCurrent} from "../../../hooks/use-current"
+import {useDebouncedCallback} from "use-debounce"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
@@ -46,46 +46,17 @@ function isDefunctAxisModel(axisModel?: IAxisModel) {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const { refreshPointPositions, refreshPointSelection, dotsRef} = props,
+  const {refreshPointPositions, refreshPointSelection, dotsRef} = props,
     graphModel = useGraphContentModelContext(),
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
     dataset = dataConfiguration?.dataset,
-    instanceId = useInstanceIdContext(),
-    refreshPointPositionsRef = useCurrent(refreshPointPositions)
+    instanceId = useInstanceIdContext()
 
-  /* This routine is frequently called many times in a row when something about the graph changes that requires
-  * refreshing the plot's point positions. That, by itself, would be a reason to ensure that
-  * the actual refreshPointPositions function is only called once. But another, even more important reason is
-  * that there is no guarantee that when callRefreshPointPositions is invoked, the d3 points in the plot
-  * have been synced with the data configuration's notion of which cases are plottable. Delaying the actual
-  * plotting of points until the next event cycle ensures that the data configuration's filter process will
-  * have had a chance to take place. */
-  const timer = useRef<any>()
-  const callRefreshPointPositions = useCallback((selectedOnly: boolean) => {
-    if (timer.current) {
-      return
-    }
-    timer.current = setTimeout(() => {
-      refreshPointPositionsRef.current(selectedOnly)
-      timer.current = null
-    }, 10)
-    return () => {
-      if (timer.current) {
-        clearTimeout(timer.current)
-        timer.current = null
-      }
-    }
-  }, [refreshPointPositionsRef])
-
-  useEffect(function doneWithTimer() {
-    return () => {
-      if (timer.current) {
-        clearTimeout(timer.current)
-      }
-    }
-  }, [])
+  const callRefreshPointPositions = useDebouncedCallback((selectedOnly: boolean) => {
+    refreshPointPositions(selectedOnly)
+  })
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
@@ -98,9 +69,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           console.warn("usePlot numeric domains reaction skipped for defunct axis model(s)")
           return
         }
-        const { domain: xDomain } = xNumeric || {}
-        const { domain: yDomain } = yNumeric || {}
-        const { domain: v2Domain } = v2Numeric || {}
+        const {domain: xDomain} = xNumeric || {}
+        const {domain: yDomain} = yNumeric || {}
+        const {domain: v2Domain} = v2Numeric || {}
         return [xDomain, yDomain, v2Domain]
       },
       () => {
@@ -117,7 +88,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         startAnimation()
         callRefreshPointPositions(false)
       }
-    }, { name: "usePlot.respondToCategorySetChanges" })
+    }, {name: "usePlot.respondToCategorySetChanges"})
   }, [callRefreshPointPositions, layout.categorySetArrays, startAnimation])
 
   // respond to attribute assignment changes
@@ -127,7 +98,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => {
         startAnimation()
         callRefreshPointPositions(false)
-      }, { name: "usePlot [attribute assignment]" }, dataConfiguration
+      }, {name: "usePlot [attribute assignment]"}, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, startAnimation])
@@ -145,7 +116,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
-      }, { name: "respondToHiddenCasesChange" }, dataConfiguration
+      }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, dotsRef, graphModel, instanceId, startAnimation])
@@ -156,7 +127,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => [layout.getAxisLength('left'), layout.getAxisLength('bottom')],
       () => {
         callRefreshPointPositions(false)
-      }, { name: "usePlot [axis range]" }
+      }, {name: "usePlot [axis range]"}
     )
     return () => disposer()
   }, [layout, callRefreshPointPositions])
@@ -206,6 +177,6 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstAutorun(
       () => {
         !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions(false)
-      }, { name: "usePlot [callRefreshPointPositions]" }, graphModel)
+      }, {name: "usePlot [callRefreshPointPositions]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 }
