@@ -1,5 +1,6 @@
 import {observer} from "mobx-react-lite"
-import {reaction} from "mobx"
+import {mstReaction} from "../../../../utilities/mst-reaction"
+import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
@@ -266,13 +267,17 @@ export const CategoricalLegend = observer(
     }, [refreshKeys, dataset, computeDesiredExtent])
 
     useEffect(function respondToCategorySetsChange() {
-      return reaction(
-        () => dataConfiguration?.categoryArrayForAttrRole('legend'),
+      return mstReaction(
+        () => {
+          const numHidden = dataConfiguration?.hiddenCases.length
+          return dataConfiguration?.categoryArrayForAttrRole('legend')
+        },
         () => {
           setDesiredExtent(layerIndex, computeDesiredExtent())
           setupKeys()
           refreshKeys()
-        })
+        }, {name: 'CategoricalLegend respondToCategorySetsChange',
+          equals: comparer.structural}, dataConfiguration)
     }, [setupKeys, refreshKeys, dataConfiguration, computeDesiredExtent, setDesiredExtent, layerIndex])
 
     useEffect(function respondToAttributeIDChange() {
