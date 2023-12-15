@@ -287,7 +287,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const casesInPlot = new Map<string, ICase>()
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
-          const caseData = self.dataset?.getCase(id)
+          const caseData = self.dataset?.getCase(id, { numeric: false })
           const caseAlreadyMatched = casesInPlot.has(id)
           if (caseData && !caseAlreadyMatched) {
             casesInPlot.set(caseData.__id__, caseData)
