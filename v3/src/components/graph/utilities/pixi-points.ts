@@ -19,42 +19,86 @@ export interface IPixiPointStyle {
 }
 
 export class PixiPoints {
-  app: PIXI.Application = new PIXI.Application({
+  renderer: PIXI.Renderer = new PIXI.Renderer({
     resolution: window.devicePixelRatio,
     autoDensity: true,
     backgroundAlpha: 0,
     antialias: true
   })
+  stage = new PIXI.Container()
+  ticker = new PIXI.Ticker()
+  tickerStopTimeoutId: number | undefined
+
   pointMetadata: IPixiPointMetadata[] = []
   pointIdToIndex = new Map<string, number>()
   textures = new Map<string, PIXI.Texture>()
 
+  activeTransitions = 0
   currentTransition?: PixiTransition
 
+  constructor() {
+    this.ticker.add(() => this.renderer.render(this.stage))
+  }
+
   get canvas() {
-    return this.app.view as HTMLCanvasElement
+    return this.renderer.view as HTMLCanvasElement
   }
 
   get points() {
-    return this.app.stage.children as PIXI.Sprite[]
+    return this.stage.children as PIXI.Sprite[]
   }
 
   get pointsCount() {
     return this.points.length
   }
 
+  startRenderLoop() {
+    if (this.activeTransitions === 0) {
+      this.ticker.start()
+    }
+    this.activeTransitions += 1
+  }
+
+  stopRenderLoop() {
+    this.activeTransitions -= 1
+    if (this.activeTransitions === 0) {
+      this.ticker.stop()
+    }
+  }
+
+  rerender() {
+    // This function is currently used only by resize() and it uses render loop to avoid rendering in the main thread.
+    if (this.activeTransitions) {
+       // rendering loop is already running
+      return
+    }
+    window.clearTimeout(this.tickerStopTimeoutId)
+    this.tickerStopTimeoutId = window.setTimeout(() => {
+      if (!this.activeTransitions) {
+        this.ticker.stop()
+      }
+    }, 250)
+    if (!this.ticker.started) {
+      this.ticker.start()
+    }
+  }
+
   transition(duration: number, callback: () => void) {
     if (this.currentTransition) {
       this.currentTransition.destroy()
-      this.currentTransition = undefined
+      this.currentTransition.onFinishCallback?.()
     }
     if (duration === 0) {
       callback()
       return
     }
     this.currentTransition = new PixiTransition(duration, this.points)
-    this.currentTransition.onFinish(() => this.currentTransition = undefined)
+    this.currentTransition.onFinish(() => {
+      this.currentTransition = undefined
+      this.stopRenderLoop()
+    })
     callback()
+    this.startRenderLoop()
     this.currentTransition.play()
   }
 
@@ -77,14 +121,15 @@ export class PixiPoints {
     graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
     graphics.drawCircle(0, 0, radius)
     graphics.endFill()
-    const texture = this.app.renderer.generateTexture(graphics)
+    const texture = this.renderer.generateTexture(graphics)
     this.textures.set(key, texture)
     this.cleanupUnusedTextures()
     return texture
   }
 
   resize(width: number, height: number) {
-    this.app.renderer.resize(width, height)
+    this.renderer.resize(width, height)
+    this.rerender()
   }
 
   matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
@@ -119,7 +164,7 @@ export class PixiPoints {
       const { caseID, plotNum } = caseData[i]
       if (!currentIDs.has(caseID)) {
         const sprite = new PIXI.Sprite(texture)
-        this.app.stage.addChild(sprite)
+        this.stage.addChild(sprite)
         sprite.anchor.set(0.5)
         sprite.zIndex = DEFAULT_Z_INDEX
         this.pointMetadata.push({ caseID, plotNum, style })
@@ -186,7 +231,8 @@ export class PixiPoints {
   }
 
   dispose() {
-    this.app.destroy()
+    this.renderer.destroy()
+    this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
   }
 }
