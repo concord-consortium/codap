@@ -231,6 +231,7 @@ export class PixiPoints {
   }
 
   dispose() {
+    this.ticker.destroy()
     this.renderer.destroy()
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
