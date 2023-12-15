@@ -128,6 +128,13 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
 export interface ICodapV2PlotStorage {
   verticalAxisIsY2: boolean
   adornments: Record<string, any>
+  areSquaresVisible: boolean
+  isLSRLVisible: boolean
+  movableLineStorage: Record<string, any>
+  movablePointStorage: Record<string, any>
+  multipleLSRLsStorage: Record<string, any>
+  multipleMovableValues: Record<string, any>
+  showMeasureLabels: boolean
 }
 
 export interface ICodapV2PlotModel {
