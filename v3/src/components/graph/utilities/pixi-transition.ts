@@ -13,7 +13,7 @@ const defaultInterpolation = smoother
 export type SupportedPropKey = "position" | "scale"
 export type SupportedPropValue = { x: number, y: number }
 
-export class PixiTranstion {
+export class PixiTransition {
   duration = 0
   time = 0
   isFinished = false

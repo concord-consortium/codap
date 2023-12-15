@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
-import { PixiTranstion } from "./pixi-transition"
+import { PixiTransition } from "./pixi-transition"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 1
@@ -29,7 +29,7 @@ export class PixiPoints {
   pointIdToIndex = new Map<string, number>()
   textures = new Map<string, PIXI.Texture>()
 
-  currentTransition?: PixiTranstion
+  currentTransition?: PixiTransition
 
   get canvas() {
     return this.app.view as HTMLCanvasElement
@@ -52,7 +52,7 @@ export class PixiPoints {
       callback()
       return
     }
-    this.currentTransition = new PixiTranstion(duration, this.points)
+    this.currentTransition = new PixiTransition(duration, this.points)
     this.currentTransition.onFinish(() => this.currentTransition = undefined)
     callback()
     this.currentTransition.play()
