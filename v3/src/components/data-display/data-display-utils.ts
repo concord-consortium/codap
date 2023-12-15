@@ -88,9 +88,6 @@ export interface IMatchCirclesProps {
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, pixiPoints,
-    pointRadius, pointColor, pointStrokeColor } = props
-  const allCaseData = dataConfiguration.joinedCaseDataArrays
   // TODO PIXI: remove old SVG code
   //   caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
   //   circles = selectCircles(dotsElement, id)
@@ -118,9 +115,16 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   //     }
   //   })
 
-  // TODO PIXI: add animation
-  // TODO PIXI: props.startAnimation() -> what does this do?
   // TODO PIXI: add interactivity from the code above
+  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor } = props
+  const allCaseData = dataConfiguration.joinedCaseDataArrays
+
+  if (!pixiPoints) {
+    return
+  }
+
+  startAnimation()
+
   pixiPoints?.matchPointsToData(allCaseData, {
     radius: pointRadius,
     fill: pointColor,
