@@ -279,7 +279,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const numOfKeys = Object.keys(cellKey).length
       let matchedValCount = 0
       Object.keys(cellKey).forEach(key => {
-        if (cellKey[key] === caseData[key].toString()) matchedValCount++
+        if (cellKey[key] === caseData[key]) matchedValCount++
       })
       return matchedValCount === numOfKeys
     },
@@ -287,7 +287,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const casesInPlot = new Map<string, ICase>()
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
-          const caseData = self.dataset?.getCase(id)
+          const caseData = self.dataset?.getCase(id, { numeric: false })
           const caseAlreadyMatched = casesInPlot.has(id)
           if (caseData && !caseAlreadyMatched) {
             casesInPlot.set(caseData.__id__, caseData)

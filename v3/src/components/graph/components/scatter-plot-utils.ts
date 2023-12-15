@@ -68,7 +68,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
         // If the line has a category and it does not match the categorical legend value,
         // do not render squares.
         if (category && legendValue !== category && legendType === "categorical") return
-        const fullCaseData = dataset?.getCase(caseData.__id__)
+        const fullCaseData = dataset?.getCase(caseData.__id__, { numeric: false })
         if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
           const square = residualSquare(slope, intercept, caseData.__id__)
           if (!isFinite(square.x) || !isFinite(square.y)) return

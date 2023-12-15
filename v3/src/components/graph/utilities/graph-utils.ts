@@ -510,7 +510,7 @@ export const calculateSumOfSquares = ({ cellKey, dataConfig, intercept, slope }:
   const yAttrID = dataConfig?.attributeID("y") ?? ""
   let sumOfSquares = 0
   caseData?.forEach((datum: any) => {
-    const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__)
+    const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__, { numeric: false })
     if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
       const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? NaN
       const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? NaN
