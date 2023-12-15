@@ -23,7 +23,7 @@ export function useInitGraphLayout(model?: IGraphContentModel) {
         (Object.keys(repetitions) as AxisPlace[]).forEach((place: AxisPlace) => {
           layout.getAxisMultiScale(place)?.setRepetitions(repetitions[place] ?? 0)
         })
-      }, { name: "useInitGraphLayout repetitions" }, dataConfiguration
+      }, { name: "useInitGraphLayout repetitions", fireImmediately: true }, dataConfiguration
     )
   }, [layout, model])
 
