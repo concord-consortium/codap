@@ -94,7 +94,7 @@ export class PixiPoints {
 
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
-    // However, I believe than in most practical cases, we will only have a few points removed, so this is approach is
+    // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
     // probably better.
     const newIDs = new Set(caseData.map(data => data.caseID))
     const currentIDs = new Set<string>()
