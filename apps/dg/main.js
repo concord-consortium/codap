@@ -435,7 +435,8 @@ DG.main = function main() {
         "name": "googleDrive",
         "mimeType": "application/json",
         "clientId": DG.get('googleDriveClientID'),
-        "apiKey": DG.get('googleDriveAPIKey')
+        "apiKey": DG.get('googleDriveAPIKey'),
+        "appId": DG.get('googleDriveAppId'),
       });
      }
     if (DG.cfmConfigurationOverride) {
