@@ -1,10 +1,8 @@
-import {LatLngBounds, latLngBounds, Polygon} from 'leaflet'
+import {LatLngBounds, latLngBounds} from 'leaflet'
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {IDataSet} from "../../../models/data/data-set"
 import {kLatNames, kLongNames, kPolygonNames} from "../map-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
-
 
 // A dataset has point data if it has both a latitude and longitude attribute; i.e. an attribute whose name
 // is in kLatNames and an attribute whose name is in kLongNames
@@ -137,37 +135,4 @@ export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
     southWest = {lat: center.lat - newLatDelta / 2, lng: center.lng - newLngDelta / 2},
     northEast = {lat: center.lat + newLatDelta / 2, lng: center.lng + newLngDelta / 2}
   return latLngBounds([southWest, northEast])
-}
-
-/**
- * Fits the map bounds to the data in the given layers, some of which are point layers and some of which are polygon
- * layers.
- * @param layers
- * @param leafletMap
- */
-export const fitMapBoundsToData = (layers: IDataDisplayLayerModel[], leafletMap: any) => {
-  let overallBounds: LatLngBounds | undefined = undefined
-
-  const applyBounds = (bounds: LatLngBounds | undefined) => {
-    if (bounds) {
-      if (overallBounds) {
-        overallBounds.extend(bounds)
-      } else {
-        overallBounds = bounds
-      }
-    }
-  }
-  // Wait for leaflet to render the map before fitting the bounds
-  // Todo: See if we can instead wait for notification that the map is ready
-  setTimeout(() => {
-    layers.forEach((layer: any) => {
-      applyBounds(getLatLongBounds(layer.dataConfiguration))
-    })
-    leafletMap.eachLayer(function (iLayer: Polygon) {
-      iLayer.getBounds && applyBounds(iLayer.getBounds())
-    })
-    if (overallBounds) {
-      leafletMap.fitBounds(expandLatLngBounds(overallBounds, 1.1), {animate: true})
-    }
-  }, 100)
 }

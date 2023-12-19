@@ -157,7 +157,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     refreshPolygonStyles()
   }, 10)
 
-// Actions in the dataset can trigger need point updates
+  // Actions in the dataset can trigger need to update polygons
   useEffect(function setupResponsesToDatasetActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
@@ -171,18 +171,21 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     }
   }, [dataset, refreshPolygons, refreshPolygonStyles])
 
-// Changes in layout require repositioning polygons
+  // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
-    const disposer = reaction(
-      () => [layout.tileWidth, layout.tileHeight, layout.getComputedBounds('legend')?.height],
+    return reaction(
+      () => {
+        const { contentWidth, contentHeight } = layout
+        const { center, zoom } = mapModel.leafletMapState
+        return { contentWidth, contentHeight, center, zoom }
+      },
       () => {
         refreshPolygons(false)
-      }, {name: "MapPolygonLayer.respondToLayoutChanges", equals: comparer.structural}
+      }, {name: "MapPolygonLayer.respondToLayoutChanges", equals: comparer.structural, fireImmediately: true}
     )
-    return () => disposer()
-  }, [layout, refreshPolygons])
+  }, [layout, mapModel.leafletMapState, refreshPolygons])
 
-// Changes in legend attribute require repositioning polygons
+  // Changes in legend attribute require repositioning polygons
   useEffect(function setupResponsesToLayoutChanges() {
     const disposer = reaction(
       () => [dataConfiguration.attributeID('legend')],
@@ -192,17 +195,6 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     )
     return () => disposer()
   }, [dataConfiguration, refreshPolygons])
-
-// respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
-  useEffect(function setupReactionToDisplayChangeCount() {
-    const disposer = reaction(
-      () => [mapModel.displayChangeCount],
-      () => {
-        refreshPolygons(false)
-      }
-    )
-    return () => disposer()
-  }, [layout, mapModel.displayChangeCount, refreshPolygons])
 
   useEffect(function setupResponseToChangeInNumberOfCases() {
     return mstReaction(

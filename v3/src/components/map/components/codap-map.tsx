@@ -14,7 +14,6 @@ import {MapInterior} from "./map-interior"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {DroppableMapArea} from "./droppable-map-area"
 import {IDataSet} from "../../../models/data/data-set"
-import {mstAutorun} from "../../../utilities/mst-autorun"
 
 import 'leaflet/dist/leaflet.css'
 import "./map.scss"
@@ -29,6 +28,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
     interiorSvgRef = useRef<SVGSVGElement>(null),
+    prevMapSize = useRef<{ width: number, height: number, legend: number }>({ width: 0, height: 0, legend: 0 }),
     forceUpdate = useForceUpdate()
 
   // trigger an additional render once references have been fulfilled
@@ -43,18 +43,25 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     handleChangeLegendAttribute(dataSet, attrId)
   }, [handleChangeLegendAttribute])
 
+  // Leaflet's invalidateSize() reads the current size of the map container <div> and then
+  // caches the resulting size. Therefore, it must be called _after_ the <div> has changed
+  // its size, rather than, for instance, after the layout has changed but before the change
+  // has been rendered to the DOM.
   useEffect(() => {
-    let prevLegendHeight = layout.tileHeight - layout.contentHeight
-    return mstAutorun(function invalidateLeafletMapSize() {
-      // trigger autorun if map or legend layout change
-      const legendHeight = layout.tileHeight - layout.contentHeight
-      // animate on legend change, not tile resize
-      const animate = legendHeight !== prevLegendHeight
-      // invalidate leaflet map when layout changes
-      mapModel?.leafletMap?.invalidateSize(animate)
-      prevLegendHeight = legendHeight
-    }, {name: "CodapMap.invalidateLeafletMapSize"}, mapModel)
-  }, [layout, mapModel])
+    const mapBounds = interiorSvgRef.current?.getBoundingClientRect()
+    if (mapBounds) {
+      const { width: prevWidth, height: prevHeight, legend: prevLegend } = prevMapSize.current
+      const width = Math.round(mapBounds.width)
+      const height = Math.round(mapBounds.height)
+      const legend = Math.round(layout.tileHeight - layout.contentHeight)
+      // if the size of the map has changed, let leaflet know about it
+      if (width !== prevWidth || height !== prevHeight || legend !== prevLegend) {
+        mapModel.leafletMapState.adjustMapView({ invalidateSize: true, animate: legend !== prevLegend })
+        // remember the current sizes for comparison
+        prevMapSize.current = { width, height, legend }
+      }
+    }
+  }) // no dependencies so it runs after every render
 
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">

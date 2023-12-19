@@ -41,10 +41,7 @@ export const MapInspector = ({tile, show}: ITileInspectorPanelProps) => {
   }
 
   const handleMapRescale = () => {
-    mapModel?.applyUndoableAction(
-      () => mapModel.rescale(),
-      "DG.Undo.map.fitBounds",
-      "DG.Redo.map.fitBounds")
+    mapModel?.rescale("DG.Undo.map.fitBounds", "DG.Redo.map.fitBounds")
   }
 
   const renderRulerButton = () => {
