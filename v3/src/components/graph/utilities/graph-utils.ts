@@ -324,16 +324,16 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     const pixiRenderer = pixiPointsRef?.current
     if (pixiRenderer) {
       pixiRenderer.transition(getAnimationEnabled() ? transitionDuration : 0, () => {
-        pixiRenderer.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata, idx: number) => {
+        pixiRenderer.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
           const { caseID, plotNum } = metadata
-          pixiRenderer.setPointStyle(idx, {
+          pixiRenderer.setPointStyle(point, {
             radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
             fill: lookupLegendColor(metadata),
             stroke: getLegendColor && dataset?.isCaseSelected(caseID) ? defaultSelectedStroke : pointStrokeColor,
             strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
               ? defaultSelectedStrokeWidth : defaultStrokeWidth
           })
-          pixiRenderer.setPointPosition(idx, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+          pixiRenderer.setPointPosition(point, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
         }, { selectedOnly })
       })
     }

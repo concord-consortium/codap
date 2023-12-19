@@ -29,8 +29,7 @@ export class PixiPoints {
   ticker = new PIXI.Ticker()
   tickerStopTimeoutId: number | undefined
 
-  pointMetadata: IPixiPointMetadata[] = []
-  pointIdToIndex = new Map<string, number>()
+  pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
   textures = new Map<string, PIXI.Texture>()
 
   activeTransitions = 0
@@ -127,16 +126,28 @@ export class PixiPoints {
     return texture
   }
 
+  getMetadata(sprite: PIXI.Sprite) {
+    const metadata = this.pointMetadata.get(sprite)
+    if (!metadata) {
+      throw new Error('Sprite not found in pointMetadata')
+    }
+    return metadata
+  }
+
   resize(width: number, height: number) {
     this.renderer.resize(width, height)
     this.rerender()
   }
 
-  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
-    // This map will get invalid because of point removal.
-    this.pointIdToIndex.clear()
-    const texture = this.getPointTexture(style)
+  getNewSprite(texture: PIXI.Texture) {
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    sprite.zIndex = DEFAULT_Z_INDEX
+    return sprite
+  }
 
+  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
+    const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
     // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
@@ -145,12 +156,12 @@ export class PixiPoints {
     const currentIDs = new Set<string>()
     for (let i = this.points.length - 1; i >= 0; i--) {
       const point = this.points[i]
-      const { caseID } = this.pointMetadata[i]
+      const { caseID } = this.getMetadata(point)
       if (!newIDs.has(caseID)) {
+        this.pointMetadata.delete(point)
         // Note that .destroy() call will also remove the point from the stage children array, so we don't have to
         // do that manually (e.g. using .removeChild()).
         point.destroy()
-        this.pointMetadata.splice(i, 1)
       } else {
         currentIDs.add(caseID)
       }
@@ -163,70 +174,63 @@ export class PixiPoints {
     for (let i = 0; i < caseData.length; i++) {
       const { caseID, plotNum } = caseData[i]
       if (!currentIDs.has(caseID)) {
-        const sprite = new PIXI.Sprite(texture)
+        const sprite = this.getNewSprite(texture)
         this.stage.addChild(sprite)
-        sprite.anchor.set(0.5)
-        sprite.zIndex = DEFAULT_Z_INDEX
-        this.pointMetadata.push({ caseID, plotNum, style })
-        this.pointIdToIndex.set(caseID, this.pointMetadata.length - 1)
+        this.pointMetadata.set(sprite, { caseID, plotNum, style })
       }
     }
 
     // Process existing points.
     for (let i = 0; i < oldPointsCount; i++) {
-      // Update pointIdToIndex map and style/texture (if needed).
-      this.pointIdToIndex.set(this.pointMetadata[i].caseID, i)
       const point = this.points[i]
       if (point.texture !== texture) {
         point.texture = texture
-        this.pointMetadata[i].style = style
+        const metadata = this.getMetadata(point)
+        metadata.style = style
       }
     }
   }
 
-  forEachPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata, index: number) => void,
-    { selectedOnly = false } = {}) {
+  forEachPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void, { selectedOnly = false } = {}) {
     for (let i = 0; i < this.points.length; i++) {
       const point = this.points[i]
-      const metadata = this.pointMetadata[i]
+      const metadata = this.getMetadata(point)
       if (selectedOnly && point.zIndex !== RAISED_Z_INDEX) {
         continue
       }
-      callback(point, metadata, i)
+      callback(point, metadata)
     }
   }
 
-  forEachSelectedPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata, index: number) => void) {
+  forEachSelectedPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void) {
     for (let i = 0; i < this.points.length; i++) {
       const point = this.points[i]
       if (point.zIndex === RAISED_Z_INDEX) {
-        const metadata = this.pointMetadata[i]
-        callback(point, metadata, i)
+        const metadata = this.getMetadata(point)
+        callback(point, metadata)
       }
     }
   }
 
-  setPointStyle(index: number, style: Partial<IPixiPointStyle>) {
-    const newStyle = { ...this.pointMetadata[index]?.style ?? {}, ...style }
-    this.pointMetadata[index].style = newStyle
+  setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
+    const metadata = this.getMetadata(point)
+    const newStyle = { ...metadata.style, ...style }
+    metadata.style = newStyle
     const texture = this.getPointTexture(newStyle)
-    const point = this.points[index]
     if (point.texture !== texture) {
       point.texture = texture
     }
   }
 
-  setPointPosition(index: number, x: number, y: number) {
-    const point = this.points[index]
+  setPointPosition(point: PIXI.Sprite, x: number, y: number) {
     if (this.currentTransition) {
-      this.currentTransition.setTargetPosition(index, x, y)
+      this.currentTransition.setTargetPosition(point, x, y)
     } else {
       point.position.set(x, y)
     }
   }
 
-  setPointRaised(index: number, value: boolean) {
-    const point = this.points[index]
+  setPointRaised(point: PIXI.Sprite, value: boolean) {
     point.zIndex = value ? RAISED_Z_INDEX : DEFAULT_Z_INDEX
   }
 

@@ -173,7 +173,7 @@ export function setPointSelection(props: ISetPointSelection) {
   if (!pixiRenderer) {
     return
   }
-  pixiRenderer.forEachPoint((point, metadata, index) => {
+  pixiRenderer.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
     const isSelectedAndLegendIsPresent = isSelected && legendID
@@ -193,9 +193,9 @@ export function setPointSelection(props: ISetPointSelection) {
       strokeWidth: isSelectedAndLegendIsPresent ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
-    pixiRenderer.setPointStyle(index, style)
+    pixiRenderer.setPointStyle(point, style)
     // TODO PIXI: is this enough? Or should be raised to a separate layer?
-    pixiRenderer.setPointRaised(index, isSelected)
+    pixiRenderer.setPointRaised(point, isSelected)
   })
 }
 
