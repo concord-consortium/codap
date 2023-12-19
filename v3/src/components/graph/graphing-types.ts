@@ -1,4 +1,5 @@
-import {IPixiPointsRef, IDotsRef} from "../data-display/data-display-types"
+import { IDotsRef } from "../data-display/data-display-types"
+import { IPixiPointsRef } from "./utilities/pixi-points"
 
 export interface PlotProps {
   dotsRef: IDotsRef

@@ -3,9 +3,9 @@ import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, us
 import {drag, select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
-import {IPixiPointsRef, rTreeRect} from "../../data-display/data-display-types"
+import {rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
-import {IPixiPointMetadata, PixiPoints} from "../utilities/pixi-points"
+import {IPixiPointMetadata, IPixiPointsRef, PixiPoints} from "../utilities/pixi-points"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"

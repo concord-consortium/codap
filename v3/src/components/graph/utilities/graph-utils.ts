@@ -1,10 +1,10 @@
 import {extent, format} from "d3"
 import {isInteger} from "lodash"
 import * as PIXI from "pixi.js"
-import {IPixiPointMetadata} from "./pixi-points"
+import {IPixiPointMetadata, IPixiPointsRef} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
-import {IPixiPointsRef, IDotsRef, Point, transitionDuration} from "../../data-display/data-display-types"
+import {IDotsRef, Point, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}

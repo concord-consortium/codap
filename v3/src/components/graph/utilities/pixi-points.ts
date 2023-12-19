@@ -1,9 +1,14 @@
 import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
 import { PixiTransition } from "./pixi-transition"
+import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 1
+const MAX_SPRITE_SCALE = 2
+
+export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
+
 export interface IPixiPointMetadata {
   caseID: string
   plotNum: number
@@ -23,9 +28,20 @@ export class PixiPoints {
     resolution: window.devicePixelRatio,
     autoDensity: true,
     backgroundAlpha: 0,
-    antialias: true
+    antialias: true,
+    // `passive` is more performant and will be used by default in the future Pixi.JS versions
+    eventMode: "passive",
+    eventFeatures: {
+      move: true,
+      click: true,
+      // disables the global move events which can be very expensive in large scenes
+      globalMove: false,
+      wheel: false
+    }
   })
   stage = new PIXI.Container()
+  pointsContainer = new PIXI.Container()
+  background = new PIXI.Sprite(PIXI.Texture.EMPTY)
   ticker = new PIXI.Ticker()
   tickerStopTimeoutId: number | undefined
 
@@ -35,8 +51,12 @@ export class PixiPoints {
   activeTransitions = 0
   currentTransition?: PixiTransition
 
+  pointerEventsDisabled = false
+
   constructor() {
     this.ticker.add(() => this.renderer.render(this.stage))
+    this.stage.addChild(this.background)
+    this.stage.addChild(this.pointsContainer)
   }
 
   get canvas() {
@@ -44,7 +64,7 @@ export class PixiPoints {
   }
 
   get points() {
-    return this.stage.children as PIXI.Sprite[]
+    return this.pointsContainer.children as PIXI.Sprite[]
   }
 
   get pointsCount() {
@@ -82,23 +102,26 @@ export class PixiPoints {
     }
   }
 
+  resize(width: number, height: number) {
+    this.renderer.resize(width, height)
+    this.background.width = width
+    this.background.height = height
+    this.rerender()
+  }
+
   transition(duration: number, callback: () => void) {
-    if (this.currentTransition) {
-      this.currentTransition.destroy()
-      this.currentTransition.onFinishCallback?.()
-    }
     if (duration === 0) {
       callback()
       return
     }
     this.currentTransition = new PixiTransition(duration, this.points)
     this.currentTransition.onFinish(() => {
-      this.currentTransition = undefined
       this.stopRenderLoop()
     })
     callback()
     this.startRenderLoop()
     this.currentTransition.play()
+    this.currentTransition = undefined
   }
 
   textureKey(style: IPixiPointStyle) {
@@ -120,7 +143,12 @@ export class PixiPoints {
     graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
     graphics.drawCircle(0, 0, radius)
     graphics.endFill()
-    const texture = this.renderer.generateTexture(graphics)
+    const texture = this.renderer.generateTexture(graphics, {
+      // A trick to make sprites/textures look still sharp when they"re scaled up (e.g. during hover effect).
+      // The default resolution is `devicePixelRatio`, so if we multiply it by `MAX_SPRITE_SCALE`, we can scale
+      // sprites up to `MAX_SPRITE_SCALE` without losing sharpness.
+      resolution: devicePixelRatio * MAX_SPRITE_SCALE
+    })
     this.textures.set(key, texture)
     this.cleanupUnusedTextures()
     return texture
@@ -129,20 +157,27 @@ export class PixiPoints {
   getMetadata(sprite: PIXI.Sprite) {
     const metadata = this.pointMetadata.get(sprite)
     if (!metadata) {
-      throw new Error('Sprite not found in pointMetadata')
+      throw new Error("Sprite not found in pointMetadata")
     }
     return metadata
-  }
-
-  resize(width: number, height: number) {
-    this.renderer.resize(width, height)
-    this.rerender()
   }
 
   getNewSprite(texture: PIXI.Texture) {
     const sprite = new PIXI.Sprite(texture)
     sprite.anchor.set(0.5)
     sprite.zIndex = DEFAULT_Z_INDEX
+    sprite.eventMode = "static"
+    sprite.cursor = "pointer"
+    sprite.on("pointerover", () => {
+      this.transition(transitionDuration, () => {
+        this.setPointScale(sprite, hoverRadiusFactor)
+      })
+    })
+    sprite.on("pointerleave", () => {
+      this.transition(transitionDuration, () => {
+        this.setPointScale(sprite, 1)
+      })
+    })
     return sprite
   }
 
@@ -175,7 +210,7 @@ export class PixiPoints {
       const { caseID, plotNum } = caseData[i]
       if (!currentIDs.has(caseID)) {
         const sprite = this.getNewSprite(texture)
-        this.stage.addChild(sprite)
+        this.pointsContainer.addChild(sprite)
         this.pointMetadata.set(sprite, { caseID, plotNum, style })
       }
     }
@@ -227,6 +262,14 @@ export class PixiPoints {
       this.currentTransition.setTargetPosition(point, x, y)
     } else {
       point.position.set(x, y)
+    }
+  }
+
+  setPointScale(point: PIXI.Sprite, scale: number) {
+    if (this.currentTransition) {
+      this.currentTransition.setTargetScale(point, scale)
+    } else {
+      point.scale.set(scale)
     }
   }
 
