@@ -144,7 +144,7 @@ export class PixiPoints {
     graphics.drawCircle(0, 0, radius)
     graphics.endFill()
     const texture = this.renderer.generateTexture(graphics, {
-      // A trick to make sprites/textures look still sharp when they"re scaled up (e.g. during hover effect).
+      // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
       // The default resolution is `devicePixelRatio`, so if we multiply it by `MAX_SPRITE_SCALE`, we can scale
       // sprites up to `MAX_SPRITE_SCALE` without losing sharpness.
       resolution: devicePixelRatio * MAX_SPRITE_SCALE
