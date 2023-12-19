@@ -1,8 +1,7 @@
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
-import {
-  IDotsRef, IPixiPointsRef, axisPlaceToAttrRole, graphPlaceToAttrRole
-} from "../../data-display/data-display-types"
+import {IDotsRef, axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
+import {IPixiPointsRef} from "../utilities/pixi-points"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"

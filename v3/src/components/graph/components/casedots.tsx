@@ -2,7 +2,7 @@ import {randomUniform, select} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {CaseData} from "../../data-display/d3-types"
-import {IDotsRef, IPixiPointsRef} from "../../data-display/data-display-types"
+import {IDotsRef} from "../../data-display/data-display-types"
 import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
@@ -11,6 +11,7 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
+import {IPixiPointsRef} from "../utilities/pixi-points"
 
 export const CaseDots = function CaseDots(props: {
   dotsRef: IDotsRef,

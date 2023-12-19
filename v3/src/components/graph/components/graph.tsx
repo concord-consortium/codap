@@ -3,7 +3,7 @@ import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
-import {GraphAttrRole, IPixiPointsRef, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
+import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -37,6 +37,7 @@ import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display
 import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
+import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
 
 import "./graph.scss"
@@ -229,13 +230,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           <svg ref={plotAreaSVGRef} className="plot-area-svg">
 
             <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
-            <foreignObject
-              ref={pixiContainerRef}
-              x={0} y={0} width="100%" height="100%"
-              // TODO PIXI: remove this to handle mouse events later, find a solution so that we can support
-              // background events too
-              style={{ pointerEvents: "none" }}
-            />
+            <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%" style={{pointerEvents: "none"}}/>
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>

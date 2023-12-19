@@ -2,10 +2,8 @@ import React from "react"
 import {DotsElt} from "./d3-types"
 import {AxisPlace} from "../axis/axis-types"
 import {GraphPlace} from "../axis-graph-shared"
-import {PixiPoints} from "../graph/utilities/pixi-points"
 
 export type IDotsRef = React.MutableRefObject<DotsElt>
-export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
 
 export type Point = { x: number, y: number }
 export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
