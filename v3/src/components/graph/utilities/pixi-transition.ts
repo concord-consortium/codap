@@ -21,20 +21,20 @@ export class PixiTransition {
   points: PIXI.Sprite[] = []
   onFinishCallback?: () => void
 
-  targetProp: Partial<Record<SupportedPropKey, SupportedPropValue[]>> = {}
-  startProp: Partial<Record<SupportedPropKey, SupportedPropValue[]>> = {}
+  targetProp: Partial<Record<SupportedPropKey, Map<PIXI.Sprite, SupportedPropValue>>> = {}
+  startProp: Partial<Record<SupportedPropKey, Map<PIXI.Sprite, SupportedPropValue>>> = {}
 
   constructor(duration: number, points: PIXI.Sprite[]) {
     this.duration = duration
     this.points = points
   }
 
-  setTargetPosition(index: number, x: number, y: number) {
-    this.setTargetXyProp("position", index, x, y)
+  setTargetPosition(point: PIXI.Sprite, x: number, y: number) {
+    this.setTargetXyProp("position", point, x, y)
   }
 
-  setTargetScale(index: number, scale: number) {
-    this.setTargetXyProp("scale", index, scale, scale)
+  setTargetScale(point: PIXI.Sprite, scale: number) {
+    this.setTargetXyProp("scale", point, scale, scale)
   }
 
   play() {
@@ -86,27 +86,28 @@ export class PixiTransition {
     }
   }
 
-  setTargetXyProp(propKey: SupportedPropKey, index: number, x: number, y: number) {
+  setTargetXyProp(propKey: SupportedPropKey, point: PIXI.Sprite, x: number, y: number) {
     let targetProp = this.targetProp[propKey]
     let startProp = this.startProp[propKey]
     if (!targetProp || !startProp) {
-      targetProp = this.targetProp[propKey] = new Array(this.points.length)
-      startProp = this.startProp[propKey] = new Array(this.points.length)
+      targetProp = this.targetProp[propKey] = new Map()
+      startProp = this.startProp[propKey] = new Map()
     }
-    targetProp[index] = { x, y }
-    startProp[index] = { x: this.points[index][propKey].x, y: this.points[index][propKey].y }
+    targetProp.set(point, { x, y })
+    startProp.set(point, { x: point[propKey].x, y: point[propKey].y })
   }
 
   xyTransition(propKey: SupportedPropKey, factor: number) {
-    for (let i = 0; i < this.points.length; i++) {
-      const target = this.targetProp[propKey]?.[i]
-      const start = this.startProp[propKey]?.[i]
-      if (!target || !start) {
-        continue // nothing to do for this point
-      }
+    const targetProp = this.targetProp[propKey]
+    const startProp = this.startProp[propKey]
+    if (!targetProp || !startProp) {
+      return
+    }
+    for (const [point, target] of targetProp.entries()) {
+      const start = startProp.get(point) as SupportedPropValue
       const newX = start.x + factor * (target.x - start.x)
       const newY = start.y + factor * (target.y - start.y)
-      this.points[i][propKey].set(newX, newY)
+      point[propKey].set(newX, newY)
     }
   }
 }
