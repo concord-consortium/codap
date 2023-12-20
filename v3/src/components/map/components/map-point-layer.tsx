@@ -101,7 +101,8 @@ export const MapPointLayer = function MapPointLayer(props: {
         .style('stroke-width', (aCaseData: CaseData) =>
           (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-        .on('end', refreshPointSelection)
+        // this calls refreshPointSelection for _each_ point, e.g. 858 times for the four seals data
+        // .on('end', refreshPointSelection)
     }
   }, 10)
 
@@ -122,26 +123,19 @@ export const MapPointLayer = function MapPointLayer(props: {
     }
   }, [dataset, refreshPoints, refreshPointSelection])
 
-  // Changes in layout require repositioning points
+  // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
-    const disposer = reaction(
-      () => [layout.tileWidth, layout.tileHeight, layout.getComputedBounds('legend')],
+    return reaction(
+      () => {
+        const { contentWidth, contentHeight } = layout
+        const { center, zoom } = mapModel.leafletMapState
+        return { contentWidth, contentHeight, center, zoom }
+      },
       () => {
         refreshPoints(false)
-      }, {name: "MapPointLayout.respondToLayoutChanges", equals: comparer.structural}
+      }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
     )
-    return () => disposer()
-  }, [layout, refreshPoints])
-
-  // respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
-  useEffect(function setupReactionToDisplayChangeCount() {
-    const disposer = mstReaction(
-      () => mapModel.displayChangeCount,
-      () => refreshPoints(false),
-      {name: "MapModel.setupReactionToDisplayChangeCount"}, mapModel
-    )
-    return () => disposer()
-  }, [layout, mapModel, refreshPoints])
+  }, [layout, mapModel.leafletMapState, refreshPoints])
 
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {

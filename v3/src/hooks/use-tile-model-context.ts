@@ -15,5 +15,5 @@ export const useTileModelContext = () => {
     uiState.setFocusedTile(tile?.id)
   }, [tile])
 
-  return { tile, isTileSelected, selectTile }
+  return { tile, tileId: tile?.id, isTileSelected, selectTile }
 }
