@@ -1,16 +1,22 @@
+import {MenuItem, MenuList} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import { MenuItem, MenuList } from "@chakra-ui/react"
+import {isAlive} from "mobx-state-tree"
 import React from "react"
-import { ITileModel } from "../../../../models/tiles/tile-model"
+import {ITileContentModel} from "../../../../models/tiles/tile-content"
+import {ITileModel} from "../../../../models/tiles/tile-model"
 import t from "../../../../utilities/translation/translate"
-import {isMapContentModel} from "../../models/map-content-model"
+import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
 
 interface IProps {
   tile?: ITileModel
 }
 
+function isAliveMapContentModel(model?: ITileContentModel): model is IMapContentModel {
+  return !!model && isAlive(model) && isMapContentModel(model)
+}
+
 export const HideShowMenuList = observer(({tile}: IProps) => {
-  const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
+  const mapModel = isAliveMapContentModel(tile?.content) ? tile?.content : undefined
   const numSelected = mapModel?.numSelected() ?? 0
   const numUnselected = mapModel?.numUnselected() ?? 0
   const numHidden = mapModel?.numHidden() ?? 0
