@@ -101,7 +101,8 @@ export const MapPointLayer = function MapPointLayer(props: {
         .style('stroke-width', (aCaseData: CaseData) =>
           (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-        .on('end', refreshPointSelection)
+        // this calls refreshPointSelection for _each_ point, e.g. 858 times for the four seals data
+        // .on('end', refreshPointSelection)
     }
   }, 10)
 
