@@ -544,6 +544,7 @@ export const DataConfigurationModel = types
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()
       self.actionHandlerDisposer = undefined
+      self.clearCasesCache()
       self.clearFilteredCases()
       if (data) {
         self.actionHandlerDisposer = onAnyAction(data, self.handleDataSetAction)
