@@ -4,7 +4,7 @@ import { PixiTransition } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
 
 const DEFAULT_Z_INDEX = 0
-const RAISED_Z_INDEX = 1
+const RAISED_Z_INDEX = 100
 const MAX_SPRITE_SCALE = 2
 
 export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
@@ -62,6 +62,8 @@ export class PixiPoints {
     this.ticker.add(() => this.renderer.render(this.stage))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
+    // Enable zIndex support
+    this.pointsContainer.sortableChildren = true
   }
 
   get canvas() {
