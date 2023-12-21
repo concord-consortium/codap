@@ -13,6 +13,9 @@ export const CountAdornmentModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "cell"),
   })
   .views(self => ({
+    countValue(cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
+      return dataConfig?.subPlotCases(cellKey)?.length ?? 0
+    },
     percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
       const divisor = self.percentType === "row"
         ? dataConfig?.rowCases(cellKey).length ?? 0
