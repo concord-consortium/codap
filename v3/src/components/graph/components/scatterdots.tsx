@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
+import t from "../../../utilities/translation/translate"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
@@ -196,12 +197,19 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   const handleConnectingLinesHover = useCallback((
     event: MouseEvent, caseIDs: string[], parentAttrName?: string, parentAttrValue?: string
-    ) => {
+  ) => {
+    // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
+    // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
+    // localization for this. When a parent attribute is present, the tool tip should look like:
+    //   <category attribute name>: <category>
+    //   with <number of points> points (<collection name>) on this line
+    // And when a parent attribute is not present, the tool tip should look like:
+    //   <number of points> points (<collection name>) on this line
+    if (!parentAttrName || !parentAttrValue) return // For now, do nothing if these are undefined
     const caseIdCount = caseIDs?.length ?? 0
     const datasetName = dataset?.name ?? ""
-    const parentAttrPart = `${parentAttrName}: ${parentAttrValue}<br />with `
-    const countPart = `${caseIdCount} points (${datasetName}) on this line`
-    const dataTipContent = `${parentAttrName ? parentAttrPart : ""}${countPart}`
+    const vars = [parentAttrName, parentAttrValue, caseIdCount, datasetName]
+    const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
   }, [dataTip, dataset?.name])
 
@@ -246,11 +254,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       const allLineCaseIds: Record<string, string[]> = {}
       const yAttrCount = dataConfiguration?.yAttributeIDs?.length ?? 0
       connectingLines.forEach((lineDescription: IConnectingLineDescription) => {
-        const parentAttrValue = parentAttrID ? importValueToString(lineDescription.caseData[parentAttrID]) : undefined
+        const parentAttrValue = parentAttrID ? String(lineDescription.caseData[parentAttrID]) : undefined
         const groupKey = yAttrCount > 1
           ? lineDescription.plotNum
           : parentAttrValues && parentAttrValue
-            ? parentAttrValues.indexOf(parentAttrValue)
+            ? parentAttrValue
             : 0
 
         if (dataConfiguration?.isCaseInSubPlot(cellKey, lineDescription.caseData)) {
@@ -264,7 +272,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       // For each group of lines, draw a path using the lines' coordinates
       for (const [linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
         const allLineCoords = cases.map((l) => l.lineCoords)
-        const lineCaseIds = allLineCaseIds[linesIndex]
+        const lineCaseIds = allLineCaseIds[primaryAttrValue]
         const allCasesSelected = lineCaseIds?.every(caseID => dataConfiguration?.selection.includes(caseID))
         const legendID = dataConfiguration?.attributeID("legend")
         const color = parentAttrID && legendID
@@ -394,7 +402,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   useEffect(function renderConnectingLines() {
     return autorun(() => {
       refreshConnectingLines()
-    }, { name: "ScatterDots.renderSquares" })
+    }, { name: "ScatterDots.renderConnectingLines" })
   }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
 
   usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})

@@ -56,14 +56,10 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     const xValue = getXCoord(caseID)
     const yValue = getYCoord(caseID, plotNum)
     if (isFinite(xValue) && isFinite(yValue)) {
-      const caseData = dataset?.getCase(caseID)
+      const caseData = dataset?.getCase(caseID, { numeric: false })
       if (caseData) {
         const lineCoords: [number, number] = [xValue, yValue]
-        return {
-          caseData,
-          lineCoords,
-          plotNum
-        }
+        return { caseData, lineCoords, plotNum }
       }
     }
   }
@@ -72,12 +68,10 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     const lineDescriptions: IConnectingLineDescription[] = []
     const dataset = dataConfiguration?.dataset
     dataset?.cases.forEach(c => {
-      const line = connectingLine(c.__id__, 0)
-      line && lineDescriptions.push(line)
-      const y2line = yAttrIDs[1] && connectingLine(c.__id__, 1)
-      y2line && lineDescriptions.push(y2line)
-      const yRightLine = yAttrIDs[2] && connectingLine(c.__id__, 2)
-      yRightLine && lineDescriptions.push(yRightLine)
+      yAttrIDs.forEach((_yAttrID, plotNum) => {
+        const line = connectingLine(c.__id__, plotNum)
+        line && lineDescriptions.push(line)
+      })
     })
     return lineDescriptions
   }
