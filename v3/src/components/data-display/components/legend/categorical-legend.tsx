@@ -269,8 +269,9 @@ export const CategoricalLegend = observer(
     useEffect(function respondToCategorySetsChange() {
       return mstReaction(
         () => {
+          const categories = dataConfiguration?.categoryArrayForAttrRole('legend')
           const numHidden = dataConfiguration?.hiddenCases.length
-          return dataConfiguration?.categoryArrayForAttrRole('legend')
+          return { categories, numHidden }
         },
         () => {
           setDesiredExtent(layerIndex, computeDesiredExtent())

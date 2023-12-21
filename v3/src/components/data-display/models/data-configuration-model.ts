@@ -574,6 +574,11 @@ export const DataConfigurationModel = types
           equals: comparer.structural
         }
       ))
+      // invalidate caches when hiddenCases changes
+      addDisposer(self, reaction(
+        () => self.hiddenCases.length,
+        count => self._invalidateCases()
+      ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
       self.dataset = dataset
@@ -592,12 +597,10 @@ export const DataConfigurationModel = types
       self._setAttributeType(role, type, plotNumber)
     },
     addNewHiddenCases(hiddenCases: string[]) {
-      self.hiddenCases.replace(self.hiddenCases.concat(hiddenCases))
-      self._invalidateCases()
+      self.hiddenCases.push(...hiddenCases)
     },
     clearHiddenCases() {
       self.hiddenCases.replace([])
-      self._invalidateCases()
     }
   }))
   .actions(self => ({
