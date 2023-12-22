@@ -2,7 +2,7 @@ import {select} from "d3"
 import {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IDataSet} from "../../../models/data/data-set"
-import {IDotsRef, transitionDuration} from "../data-display-types"
+import {transitionDuration} from "../data-display-types"
 import {CaseData} from "../d3-types"
 import {getCaseTipText} from "../data-display-utils"
 import {RoleAttrIDPair} from "../models/data-configuration-model"
@@ -11,6 +11,7 @@ import {isGraphDataConfigurationModel} from "../../graph/models/graph-data-confi
 import {IGraphContentModel} from "../../graph/models/graph-content-model"
 import {IMapPointLayerModel} from "../../map/models/map-point-layer-model"
 import {useDataDisplayAnimation} from "./use-data-display-animation"
+import {IPixiPointsRef} from "../../graph/utilities/pixi-points"
 
 const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   .attr('data-testid', 'graph-point-data-tip')
@@ -19,12 +20,12 @@ const dataTip = d3tip().attr('class', 'graph-d3-tip')/*.attr('opacity', 0.8)*/
   })
 
 interface IUseDataTips {
-  dotsRef: IDotsRef,
+  pixiPointsRef?: IPixiPointsRef,
   dataset: IDataSet | undefined,
   displayModel: IGraphContentModel | IMapPointLayerModel,
 }
 
-export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
+export const useDataTips = ({dataset, displayModel}: IUseDataTips) => {
   const { isAnimating } = useDataDisplayAnimation(),
     hoverPointRadius = displayModel.getPointRadius('hover-drag'),
     pointRadius = displayModel.getPointRadius(),
@@ -73,11 +74,12 @@ export const useDataTips = ({dotsRef, dataset, displayModel}: IUseDataTips) => {
 
     // support disabling data tips via url parameter for jest tests
     if (urlParams.noDataTips === undefined) {
-      dotsRef.current && select(dotsRef.current)
-        .on('mouseover', showDataTip)
-        .on('mouseout', hideDataTip)
-        .call(dataTip)
+      // TODO PIXI: reimplement data tips
+      // dotsRef.current && select(dotsRef.current)
+      //   .on('mouseover', showDataTip)
+      //   .on('mouseout', hideDataTip)
+      //   .call(dataTip)
     }
-  }, [dotsRef, dataset, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
+  }, [dataset, yAttrIDs, hoverPointRadius, pointRadius, selectedPointRadius,
     displayModel.dataConfiguration.uniqueTipAttributes, isAnimating])
 }

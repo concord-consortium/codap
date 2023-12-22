@@ -27,13 +27,13 @@ export const MapPointLayer = function MapPointLayer(props: {
     layout = useDataDisplayLayout(),
     dotsRef = useRef<DotsElt>(null)
 
-  useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
+  useDataTips({dataset, displayModel: mapLayerModel})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
-      dotsRef, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
+      dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
       pointColor, pointStrokeColor
     })
   }, [pointDescription, mapLayerModel, dataConfiguration])
@@ -144,7 +144,6 @@ export const MapPointLayer = function MapPointLayer(props: {
     if (mapLayerModel && dataConfiguration && layout && dotsRef.current) {
       matchCirclesToData({
         dataConfiguration,
-        dotsElement: dotsRef.current,
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription?.pointColor,

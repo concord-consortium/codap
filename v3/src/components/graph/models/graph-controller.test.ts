@@ -56,9 +56,8 @@ describe("GraphController", () => {
     mockGetMetadata.mockImplementation(() => metadata)
     const layout = new GraphLayout()
     const graphController = new GraphController({ layout, instanceId })
-    const dotsRef = { current: {} } as any
     const pixiPointsRef = { current: {} } as any
-    graphController.setProperties({ graphModel, dotsRef, pixiPointsRef })
+    graphController.setProperties({ graphModel, pixiPointsRef })
     return { tree: _tree, model: graphModel, controller: graphController, data: dataSet }
   }
 
@@ -94,13 +93,13 @@ describe("GraphController", () => {
     _controller.handleAttributeAssignment("bottom", data.id, "bogusId")
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
-    _controller.setProperties({ graphModel: model, dotsRef: undefined as any, pixiPointsRef: undefined as any })
+    _controller.setProperties({ graphModel: model, pixiPointsRef: undefined as any })
     _controller.initializeGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
-    _controller.setProperties({ graphModel: model, dotsRef: {} as any, pixiPointsRef: undefined as any })
+    _controller.setProperties({ graphModel: model, pixiPointsRef: undefined as any })
     _controller.initializeGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()

@@ -3,7 +3,7 @@ import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
-import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
+import {GraphAttrRole, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -45,11 +45,10 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  dotsRef: IDotsRef
   pixiPointsRef: IPixiPointsRef
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, dotsRef, pixiPointsRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, pixiPointsRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
     {startAnimation} = useDataDisplayAnimation(),
@@ -162,10 +161,10 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  useDataTips({dotsRef, dataset, displayModel: graphModel})
+  useDataTips({pixiPointsRef, dataset, displayModel: graphModel})
 
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, dotsRef, pixiPointsRef},
+    const props = {xAttrID, yAttrID, pixiPointsRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -211,7 +210,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return droppables
   }
 
-  useGraphModel({dotsRef, graphModel, instanceId})
+  useGraphModel({pixiPointsRef, graphModel, instanceId})
 
   if (!isAlive(graphModel)) return null
 
@@ -228,11 +227,8 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef} className="plot-area-svg">
-
-            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
             <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%"/>
               {renderPlotComponent()}
-            </svg>
             <Marquee marqueeState={marqueeState}/>
           </svg>
 

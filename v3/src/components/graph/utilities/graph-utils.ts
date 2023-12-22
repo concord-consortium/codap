@@ -4,7 +4,7 @@ import * as PIXI from "pixi.js"
 import {IPixiPointMetadata, IPixiPointsRef} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
-import {IDotsRef, Point, transitionDuration} from "../../data-display/data-display-types"
+import {Point, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
@@ -250,7 +250,6 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 }
 
 export interface ISetPointSelection {
-  dotsRef: IDotsRef
   pixiPointsRef?: IPixiPointsRef
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
@@ -262,7 +261,6 @@ export interface ISetPointSelection {
 
 export interface ISetPointCoordinates {
   dataset?: IDataSet
-  dotsRef: IDotsRef
   pixiPointsRef: IPixiPointsRef
   selectedOnly?: boolean
   pointRadius: number
@@ -299,27 +297,7 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   }
 
   const setPoints = () => {
-    // TODO: Remove old SVG code
-    // if (theSelection?.size()) {
-    //   theSelection
-    //     .transition()
-    //     .duration(duration)
-    //     .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
-    //     .attr('cy', (aCaseData: CaseData) => {
-    //       return getScreenY(aCaseData.caseID, aCaseData.plotNum)
-    //     })
-    //     .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
-    //       ? selectedPointRadius : pointRadius)
-    //     .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
-    //     .style('stroke', (aCaseData: CaseData) =>
-    //       (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-    //         ? defaultSelectedStroke : pointStrokeColor)
-    //     .style('stroke-width', (aCaseData: CaseData) =>
-    //       (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-    //         ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-    // }
-
-    // TODO PIXI: Do we really need to calculate legend color here? If this function is called both while resizing
+    // Do we really need to calculate legend color here? If this function is called both while resizing
     // the graph and while updating legend colors, we could possibly split it into two different functions.
     const pixiRenderer = pixiPointsRef?.current
     if (pixiRenderer) {

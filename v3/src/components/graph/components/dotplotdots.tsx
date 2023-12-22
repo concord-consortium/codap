@@ -17,7 +17,7 @@ import {setPointCoordinates} from "../utilities/graph-utils"
 import {IPixiPointMetadata} from "../utilities/pixi-points"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
-  const {dotsRef, pixiPointsRef} = props,
+  const {pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -103,10 +103,10 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      pixiPointsRef, dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
+      pixiPointsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
       pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataConfiguration, dotsRef, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
+  }, [dataConfiguration, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -240,14 +240,14 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       setPointCoordinates({
         dataset, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
-        dotsRef, pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
+        pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
       })
     },
-    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef, pixiPointsRef,
+    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
       primaryIsBottom, pointColor, pointStrokeColor, isAnimating])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <></>

@@ -7,7 +7,6 @@ import {
 } from "../../utilities/color-utils"
 import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
-import {DotsElt} from "./d3-types"
 import {
   hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
   pointRadiusSelectionAddend, Rect, rTreeRect
@@ -78,7 +77,6 @@ export function handleClickOnCase(event: MouseEvent, caseID: string, dataset?: I
 
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
-  dotsElement: DotsElt
   pointRadius: number
   pointColor: string
   pointStrokeColor: string
@@ -88,37 +86,8 @@ export interface IMatchCirclesProps {
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  // TODO PIXI: remove old SVG code
-  //   caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
-  //   circles = selectCircles(dotsElement, id)
-  // if (!circles) return
-  // startAnimation()
-  // circles
-  //   .data(allCaseData, caseDataKeyFunc)
-  //   .join(
-  //     (enter) =>
-  //       enter.append('circle')
-  //         .attr('class', `graph-dot ${id}`)
-  //         .property('id', (d: CaseData) => `${instanceId}_${d.caseID}`),
-  //     (update) =>
-  //       update.attr('r', pointRadius)
-  //         .style('fill', pointColor)
-  //         .style('stroke', pointStrokeColor)
-  //         .style('stroke-width', defaultStrokeWidth)
-  //   )
-  // dotsElement && select(dotsElement).on('click',
-  //   (event: MouseEvent) => {
-  //     const target = select(event.target as SVGSVGElement)
-  //     if (target.node()?.nodeName === 'circle') {
-  //       handleClickOnCase(event, (target.datum() as CaseData).caseID, dataConfiguration.dataset)
-  //       event.stopPropagation()
-  //     }
-  //   })
-
-  // TODO PIXI: add interactivity from the code above
   const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor } = props
   const allCaseData = dataConfiguration.joinedCaseDataArrays
-
   if (!pixiPoints) {
     return
   }
@@ -140,35 +109,6 @@ export function setPointSelection(props: ISetPointSelection) {
     pointColor, pointStrokeColor, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
-
-  // TODO PIXI: remove SVG code
-  // First set the class based on selection
-  // dots
-  //   .classed('graph-dot-highlighted', (aCaseData: CaseData) => !!dataset?.isCaseSelected(aCaseData.caseID))
-  //   // Then set properties to defaults w/o selection
-  //   .attr('r', pointRadius)
-  //   .style('stroke', pointStrokeColor)
-  //   .style('fill', (aCaseData: CaseData) => {
-  //     return legendID
-  //       ? dataConfiguration?.getLegendColorForCase(aCaseData.caseID)
-  //       : aCaseData.plotNum && getPointColorAtIndex
-  //         ? getPointColorAtIndex(aCaseData.plotNum) : pointColor
-  //   })
-  //   .style('stroke-width', defaultStrokeWidth)
-  //   .style('stroke-opacity', defaultStrokeOpacity)
-
-  // const selectedDots = selectDots(dotsRef.current, true)
-  // // How we deal with this depends on whether there is a legend or not
-  // if (legendID) {
-  //   selectedDots?.style('stroke', defaultSelectedStroke)
-  //     .style('stroke-width', defaultSelectedStrokeWidth)
-  //     .style('stroke-opacity', defaultSelectedStrokeOpacity)
-  // } else {
-  //   selectedDots?.style('fill', defaultSelectedColor)
-  // }
-  // selectedDots?.attr('r', selectedPointRadius)
-  //   .raise()
-
   const pixiRenderer = pixiPointsRef?.current
   if (!pixiRenderer) {
     return
@@ -194,7 +134,6 @@ export function setPointSelection(props: ISetPointSelection) {
       strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
     pixiRenderer.setPointStyle(point, style)
-    // TODO PIXI: is this enough? Or should be raised to a separate layer?
     pixiRenderer.setPointRaised(point, isSelected)
   })
 }
