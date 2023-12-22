@@ -6,6 +6,8 @@ import t from "../../../../../utilities/translation/translate"
 import { INumericAxisModel } from "../../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../../axis/models/axis-layout-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
+import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
+import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
 import { IBoxPlotAdornmentModel } from "./box-plot-adornment-model"
 import { ILabel, IRange, IValue } from "../univariate-measure-adornment-types"
 import { UnivariateMeasureAdornmentHelper } from "../univariate-measure-adornment-helper"
@@ -38,17 +40,12 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
   const layout = useAxisLayoutContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
+  const { cellCounts } = useAdornmentCells(model, cellKey)
   const helper = useMemo(() => {
     return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
   }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
-  const xAttrId = dataConfig?.attributeID("x")
-  const yAttrId = dataConfig?.attributeID("y")
-  const xAttrType = dataConfig?.attributeType("x")
-  const yAttrType = dataConfig?.attributeType("y")
   const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
-  const cellCounts = useMemo(() => {
-    return model.cellCount(layout, xAttrType, yAttrType)
-  }, [layout, model, xAttrType, yAttrType])
   const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
   const boxPlotOffset = 5
   const secondaryAxisX = plotWidth / cellCounts.x / 2 - boxPlotOffset

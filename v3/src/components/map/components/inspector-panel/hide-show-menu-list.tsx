@@ -1,42 +1,65 @@
-import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
+import {MenuItem, MenuList} from "@chakra-ui/react"
+import {observer} from "mobx-react-lite"
+import {isAlive} from "mobx-state-tree"
 import React from "react"
-import { useDataSetContext } from "../../../../hooks/use-data-set-context"
-import { ITileModel } from "../../../../models/tiles/tile-model"
+import {ITileContentModel} from "../../../../models/tiles/tile-content"
+import {ITileModel} from "../../../../models/tiles/tile-model"
 import t from "../../../../utilities/translation/translate"
+import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
 
 interface IProps {
   tile?: ITileModel
 }
 
-export const HideShowMenuList = ({tile}: IProps) => {
-  const data = useDataSetContext()
-  const toast = useToast()
-  // const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
-  const handleMenuItemClick = (menuItem: string) => {
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on ${menuItem}`,
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    })
-  }
+function isAliveMapContentModel(model?: ITileContentModel): model is IMapContentModel {
+  return !!model && isAlive(model) && isMapContentModel(model)
+}
 
-  const hideSelectedString = (data?.selectCases?.length ?? 0) === 1
+export const HideShowMenuList = observer(({tile}: IProps) => {
+  const mapModel = isAliveMapContentModel(tile?.content) ? tile?.content : undefined
+  const numSelected = mapModel?.numSelected() ?? 0
+  const numUnselected = mapModel?.numUnselected() ?? 0
+  const numHidden = mapModel?.numHidden() ?? 0
+
+  const hideSelectedString = numSelected === 1
                               ? t("DG.DataDisplayMenu.hideSelectedSing")
                               : t("DG.DataDisplayMenu.hideSelectedPlural")
-  const hideUnselectedString = data && (data.cases.length - data.selectCases.length) === 1
+  const hideUnselectedString = numUnselected === 1
                               ? t("DG.DataDisplayMenu.hideUnselectedSing")
                               : t("DG.DataDisplayMenu.hideUnselectedPlural")
 
+  const hideSelectedCases = () => {
+    mapModel?.applyUndoableAction(
+      () => mapModel?.hideSelectedCases(),
+      "DG.Undo.hideSelectedCases",
+      "DG.Redo.hideSelectedCases")
+  }
+
+  const hideUnselectedCases = () => {
+    mapModel?.applyUndoableAction(
+      () => mapModel?.hideUnselectedCases(),
+      "DG.Undo.hideUnselectedCases",
+      "DG.Redo.hideUnselectedCases")
+  }
+
+  const showAllCases = () => {
+    mapModel?.applyUndoableAction(
+      () => mapModel?.clearHiddenCases(),
+      "DG.Undo.showAllCases",
+      "DG.Redo.showAllCases")
+  }
+
   return (
     <MenuList data-testid="trash-menu-list">
-      <MenuItem onClick={()=>handleMenuItemClick("Hide selected cases")}>{hideSelectedString}</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Hide unselected cases")}>{hideUnselectedString}</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Show all cases")}>{t("DG.DataDisplayMenu.showAll")}</MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Display only selected cases")}>
-        {t("DG.DataDisplayMenu.displayOnlySelected")}
+      <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0}>
+        {hideSelectedString}
+      </MenuItem>
+      <MenuItem onClick={hideUnselectedCases} isDisabled={numUnselected === 0}>
+        {hideUnselectedString}
+      </MenuItem>
+      <MenuItem onClick={showAllCases} isDisabled={numHidden === 0}>
+        {t("DG.DataDisplayMenu.showAll")}
       </MenuItem>
     </MenuList>
   )
-}
+})

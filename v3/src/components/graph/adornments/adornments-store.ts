@@ -20,12 +20,16 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     type: "Adornments Store",
     adornments: types.array(AdornmentModelUnion),
     interceptLocked: false,
+    showConnectingLines: false,
     showMeasureLabels: false,
     showSquaresOfResiduals: false
   })
   .actions(self => ({
     toggleInterceptLocked() {
       self.interceptLocked = !self.interceptLocked
+    },
+    toggleShowConnectingLines() {
+      self.showConnectingLines = !self.showConnectingLines
     },
     toggleShowLabels() {
       self.showMeasureLabels = !self.showMeasureLabels
@@ -55,6 +59,7 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     getAdornmentsMenuItems(plotType: PlotTypes) {
       const registeredAdornments = getAdornmentTypes()
       const measureMenuItems: IMeasureMenuItem[] = []
+      let addedConnectingLines = false
       let addedInterceptLocked = false
       let addedShowMeasureLabels = false
       let addedShowSquaresOfResiduals = false
@@ -85,6 +90,19 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
           title,
           type
         })
+        // Add the Connecting Lines checkbox immediately after the Count/Percent checkbox(es). That setting will be used
+        // by the ScatterDots component to determine whether to show connecting lines.
+        if (
+          plotType === "scatterPlot" && registeredAdornment?.type === "Count" && !addedConnectingLines
+        ) {
+          measureMenuItems.push({
+            checked: self.showConnectingLines,
+            title: "DG.Inspector.graphConnectingLine",
+            type: "control",
+            clickHandler: self.toggleShowConnectingLines
+          })
+          addedConnectingLines = true
+        }
         // Add the Intercept Locked option checkbox immediately after the LSRL checkbox. Since the Intercept Locked
         // option isn't for activating an adornment, but rather for modifying the behavior of other adornments, it
         // doesn't have an associated registeredAdornment. So we need to add it like this.

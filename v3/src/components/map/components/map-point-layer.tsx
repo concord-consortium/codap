@@ -2,6 +2,7 @@ import {comparer, reaction} from "mobx"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import React, {useCallback, useEffect, useRef} from "react"
+import {useDebouncedCallback} from "use-debounce"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
@@ -29,6 +30,20 @@ export const MapPointLayer = function MapPointLayer(props: {
 
   useDataTips({dataset, displayModel: mapLayerModel})
 
+  const callMatchCirclesToData = useCallback(() => {
+    if (mapLayerModel && dataConfiguration && layout && dotsRef.current) {
+      matchCirclesToData({
+        dataConfiguration,
+        pointRadius: mapLayerModel.getPointRadius(),
+        instanceId: dataConfiguration.id,
+        pointColor: pointDescription?.pointColor,
+        pointStrokeColor: pointDescription?.pointStrokeColor,
+        startAnimation: mapModel.startAnimation
+      })
+    }
+  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation,
+    pointDescription?.pointColor, pointDescription?.pointStrokeColor])
+
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
@@ -38,8 +53,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     })
   }, [pointDescription, mapLayerModel, dataConfiguration])
 
-  const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-
+  const refreshPoints = useDebouncedCallback((selectedOnly: boolean) => {
     const lookupLegendColor = (aCaseData: CaseData) => {
         return dataConfiguration.attributeID('legend')
           ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
@@ -86,9 +100,10 @@ export const MapPointLayer = function MapPointLayer(props: {
         .style('stroke-width', (aCaseData: CaseData) =>
           (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
             ? defaultSelectedStrokeWidth : defaultStrokeWidth)
+        // this calls refreshPointSelection for _each_ point, e.g. 858 times for the four seals data
+        // .on('end', refreshPointSelection)
     }
-
-  }, [dataset, isAnimating, dataConfiguration, pointDescription, leafletMap])
+  }, 10)
 
   // Actions in the dataset can trigger need for point updates
   useEffect(function setupResponsesToDatasetActions() {
@@ -98,62 +113,53 @@ export const MapPointLayer = function MapPointLayer(props: {
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
-          refreshPointPositions(dataset.isCaching)
+          refreshPoints(dataset.isCaching)
         } else if (["addCases", "removeCases"].includes(action.name)) {
-          refreshPointPositions(false)
+          refreshPoints(false)
         }
       })
       return () => disposer()
     }
-  }, [dataset, refreshPointPositions, refreshPointSelection])
+  }, [dataset, refreshPoints, refreshPointSelection])
 
-  // Changes in layout require repositioning points
+  // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
-    const disposer = reaction(
-      () => [layout.tileWidth, layout.tileHeight, layout.getComputedBounds('legend')],
+    return reaction(
       () => {
-        refreshPointPositions(false)
-      }, { name: "MapPointLayout.respondToLayoutChanges", equals: comparer.structural }
+        const { contentWidth, contentHeight } = layout
+        const { center, zoom } = mapModel.leafletMapState
+        return { contentWidth, contentHeight, center, zoom }
+      },
+      () => {
+        refreshPoints(false)
+      }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
     )
-    return () => disposer()
-  }, [layout, refreshPointPositions])
-
-  // respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
-  useEffect(function setupReactionToDisplayChangeCount() {
-    const disposer = mstReaction(
-      () => mapModel.displayChangeCount,
-      () => refreshPointPositions(false),
-      { name: "MapModel.setupReactionToDisplayChangeCount" }, mapModel
-    )
-    return () => disposer()
-  }, [layout, mapModel, refreshPointPositions])
+  }, [layout, mapModel.leafletMapState, refreshPoints])
 
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
     const disposer = mstReaction(
-      () => dataConfiguration?.attributeID('legend'),
       () => {
-        refreshPointPositions(false)
-      }, { name: "setupResponseToLegendAttributeChange" }, dataConfiguration
+        return [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')]
+      },
+      () => {
+        refreshPoints(false)
+      }, {name: "setupResponseToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
-  }, [refreshPointPositions, dataConfiguration])
+  }, [refreshPoints, dataConfiguration])
 
-  useEffect(() => {
-    const startAnimation = mapModel.startAnimation
-    if (mapLayerModel && dataConfiguration && layout && dotsRef.current) {
-      matchCirclesToData({
-        dataConfiguration,
-        pointRadius: mapLayerModel.getPointRadius(),
-        instanceId: dataConfiguration.id,
-        pointColor: pointDescription?.pointColor,
-        pointStrokeColor: pointDescription?.pointStrokeColor,
-        startAnimation
-      })
-    }
-  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription])
+  useEffect(function setupResponseToChangeInNumberOfCases() {
+    return mstReaction(
+      () => dataConfiguration?.caseDataArray.length,
+      () => {
+        callMatchCirclesToData()
+        refreshPoints(false)
+      }, {name: "MapPointLayer.setupResponseToChangeInNumberOfCases", fireImmediately: true}, dataConfiguration
+    )
+  }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
   return (
-    <svg ref={dotsRef} ></svg>
+    <svg ref={dotsRef}></svg>
   )
 }

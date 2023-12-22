@@ -282,6 +282,19 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         if (cellKey[key] === caseData[key]) matchedValCount++
       })
       return matchedValCount === numOfKeys
+    },
+    get allPlottedCases() {
+      const casesInPlot = new Map<string, ICase>()
+      self.filteredCases?.forEach(aFilteredCases => {
+        aFilteredCases.caseIds.forEach((id) => {
+          const caseData = self.dataset?.getCase(id, { numeric: false })
+          const caseAlreadyMatched = casesInPlot.has(id)
+          if (caseData && !caseAlreadyMatched) {
+            casesInPlot.set(caseData.__id__, caseData)
+          }
+        })
+      })
+      return Array.from(casesInPlot.values())
     }
   }))
   .views(self => ({
@@ -289,14 +302,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         const casesInPlot = new Map<string, ICase>()
-        self.filteredCases?.forEach(aFilteredCases => {
-          aFilteredCases.caseIds.forEach((id) => {
-            const caseData = self.dataset?.getCase(id)
-            const caseAlreadyMatched = casesInPlot.has(id)
-            if (caseData && !caseAlreadyMatched && self.isCaseInSubPlot(cellKey, caseData)) {
-              casesInPlot.set(caseData.__id__, caseData)
-            }
-          })
+        self.allPlottedCases.forEach((caseData) => {
+          const caseAlreadyMatched = casesInPlot.has(caseData.__id__)
+          if (!caseAlreadyMatched && self.isCaseInSubPlot(cellKey, caseData)) {
+            casesInPlot.set(caseData.__id__, caseData)
+          }
         })
         return Array.from(casesInPlot.values())
       }

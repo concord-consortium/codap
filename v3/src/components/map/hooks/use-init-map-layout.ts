@@ -1,9 +1,11 @@
-import { useMemo } from "use-memo-one"
-import { DataDisplayLayout } from "../../data-display/models/data-display-layout"
-import { IMapContentModel } from "../models/map-content-model"
+import {useMemo} from "use-memo-one"
+import {DataDisplayLayout} from "../../data-display/models/data-display-layout"
+import {IMapContentModel} from "../models/map-content-model"
+import {kDefaultMapHeight, kDefaultMapWidth} from "../map-types"
 
 export function useInitMapLayout(model?: IMapContentModel) {
-  const layout = useMemo(() => new DataDisplayLayout(), [])
-
-  return layout
+  return useMemo(() => new DataDisplayLayout({
+    tileWidth: kDefaultMapWidth,
+    tileHeight: kDefaultMapHeight
+  }), [])
 }

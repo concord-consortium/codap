@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
 import {AttributeType} from "../../../../models/data/attribute"
 import {IDataSet} from "../../../../models/data/data-set"
-import {kPortalClassSelector} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
 import {GraphPlace} from "../../../axis-graph-shared"
 import {getStringBounds} from "../../../axis/axis-utils"
@@ -13,18 +12,12 @@ import vars from "../../../vars.scss"
 
 interface IAttributeLabelProps {
   onChangeAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
-  onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
-  onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
 export const LegendAttributeLabel =
-  function LegendAttributeLabel({
-                            onTreatAttributeAs,
-                            onRemoveAttribute, onChangeAttribute
-                          }: IAttributeLabelProps) {
+  function LegendAttributeLabel({ onChangeAttribute }: IAttributeLabelProps) {
     const dataConfiguration = useDataConfigurationContext(),
       labelRef = useRef<SVGGElement>(null),
-      parentElt = labelRef.current?.closest(kPortalClassSelector) as HTMLDivElement ?? null,
       className = 'attribute-label'
 
     const refreshLegendTitle = useCallback(() => {
@@ -34,7 +27,7 @@ export const LegendAttributeLabel =
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
         tX = axisGap,
-        tY = labelBounds.height / 2 + 2
+        tY = labelBounds.height / 2 + axisGap
       select(labelRef.current)
         .selectAll(`text.${className}`)
         .data([1])
@@ -48,6 +41,18 @@ export const LegendAttributeLabel =
               .attr('y', tY)
               .text(attributeName)
         )
+    }, [dataConfiguration])
+
+    const handleRemoveAttribute = useCallback(() => {
+      dataConfiguration?.applyUndoableAction(
+        () => dataConfiguration.setAttribute('legend', {attributeID: ''}),
+        "V3.Undo.legendAttributeRemove", "V3.Redo.legendAttributeRemove")
+    }, [dataConfiguration])
+
+    const handleTreatAttributeAs = useCallback((_place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
+      dataConfiguration?.applyUndoableAction(
+        () => dataConfiguration.setAttributeType('legend', treatAs),
+        "V3.Undo.attributeTreatAs", "V3.Redo.attributeTreatAs")
     }, [dataConfiguration])
 
     useEffect(function setupTitle() {
@@ -74,15 +79,14 @@ export const LegendAttributeLabel =
       }
     }, [labelRef, refreshLegendTitle])
 
-    return (
+    return dataConfiguration && (
       <AttributeLabel
         ref={labelRef}
         place={'legend'}
-        portal={parentElt}
         refreshLabel={refreshLegendTitle}
         onChangeAttribute={onChangeAttribute}
-        onRemoveAttribute={onRemoveAttribute}
-        onTreatAttributeAs={onTreatAttributeAs}
+        onRemoveAttribute={handleRemoveAttribute}
+        onTreatAttributeAs={handleTreatAttributeAs}
       />
     )
   }

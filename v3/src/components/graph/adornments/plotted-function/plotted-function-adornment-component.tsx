@@ -3,12 +3,14 @@ import { select } from "d3"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
-import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
 import { IPlottedFunctionAdornmentModel, isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { curveBasis } from "../../utilities/graph-utils"
 import { FormulaFn } from "./plotted-function-adornment-types"
 
@@ -18,21 +20,20 @@ interface IComputePointsOptions {
   formulaFunction: FormulaFn,
   min: number,
   max: number,
-  xCellCount: number,
-  yCellCount: number,
+  cellCounts: { x: number, y: number }
   gap: number,
   xScale: ScaleNumericBaseType,
   yScale: ScaleNumericBaseType
 }
 
 const computePoints = (options: IComputePointsOptions) => {
-  const { min, max, xCellCount, yCellCount, gap, xScale, yScale, formulaFunction } = options
+  const { min, max, cellCounts, gap, xScale, yScale, formulaFunction } = options
   const tPoints: Point[] = []
   for (let pixelX = min; pixelX <= max; pixelX += gap) {
-    const tX = xScale.invert(pixelX * xCellCount)
+    const tX = xScale.invert(pixelX * cellCounts.x)
     const tY = formulaFunction(tX)
     if (Number.isFinite(tY)) {
-      const pixelY = yScale(tY) / yCellCount
+      const pixelY = yScale(tY) / cellCounts.y
       tPoints.push({ x: pixelX, y: pixelY })
     }
   }
@@ -53,21 +54,9 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
   const {model, cellKey = {}, plotWidth, plotHeight, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
-  const layout = useAxisLayoutContext()
-  const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
-  const yScale = layout.getAxisScale("left") as ScaleNumericBaseType
-  const xAttrType = dataConfig?.attributeType("x")
-  const yAttrType = dataConfig?.attributeType("y")
-  const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
-  const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
-  const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
-  const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
-  const yCatSet = layout.getAxisMultiScale("left")?.categorySet
-  const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
-  const xCellCount = xCats.length * xSubAxesCount
-  const yCellCount = yCats.length * ySubAxesCount
-  const classFromKey = model.classNameFromKey(cellKey)
-  const instanceKey = model.instanceKey(cellKey)
+  const { xScale, yScale } = useAdornmentAttributes()
+  const { cellCounts, classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
+  const { xSubAxesCount } = useAdornmentCategories()
   const path = useRef("")
   const plottedFunctionRef = useRef<SVGGElement>(null)
 
@@ -79,7 +68,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
     const tPixelMax = xScale(xMax)
     const kPixelGap = 1
     const tPoints = computePoints({
-      formulaFunction, min: tPixelMin, max: tPixelMax, xCellCount, yCellCount, gap: kPixelGap, xScale, yScale
+      formulaFunction, min: tPixelMin, max: tPixelMax, cellCounts, gap: kPixelGap, xScale, yScale
     })
     if (tPoints.length === 0) return
     path.current = `M${tPoints[0].x},${tPoints[0].y},${curveBasis(tPoints)}`
@@ -90,7 +79,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
       .attr("data-testid", `plotted-function-path${classFromKey ? `-${classFromKey}` : ""}`)
       .attr("d", path.current)
 
-  }, [classFromKey, model, xCellCount, xScale, yCellCount, yScale])
+  }, [cellCounts, classFromKey, model, xScale, yScale])
 
   // Add the lines and their associated covers and labels
   const refreshValues = useCallback(() => {
