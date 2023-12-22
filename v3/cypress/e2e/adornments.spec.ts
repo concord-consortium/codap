@@ -572,4 +572,28 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=movable-line-squares]").should("not.exist")
     cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input").should("have.attr", "disabled")
   })
+
+  it("adds connecting lines to the plot when the Connecting Lines checkbox is checked", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Speed", "y")
+    graph.getDisplayValuesButton().click()
+    const inspectorPalette = graph.getInspectorPalette()
+    inspectorPalette.should("be.visible")
+    cy.get("[data-testid=adornment-checkbox-connecting-lines]").should("be.visible")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
+    cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
+    // Since the circle elements for the graph's case dots overlay the lines' path element in various places, we
+    // use force: true so we don't need to figure out exactly where to click.
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
+    cy.get("[data-testid=graph-dot-area-graph-1]").find("circle.graph-dot-highlighted").should("exist")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
+    cy.get("[data-testid=graph-dot-area-graph-1]").find("circle.graph-dot-highlighted").should("not.exist")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
+    cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
+  })
 })

@@ -60,6 +60,14 @@ describe("AdornmentsStore", () => {
     adornmentsStore.toggleShowLabels()
     expect(adornmentsStore.showMeasureLabels).toBe(false)
   })
+  it("can have its showConnectingLines property set", () => {
+    const adornmentsStore = AdornmentsStore.create()
+    expect(adornmentsStore.showConnectingLines).toBe(false)
+    adornmentsStore.toggleShowConnectingLines()
+    expect(adornmentsStore.showConnectingLines).toBe(true)
+    adornmentsStore.toggleShowConnectingLines()
+    expect(adornmentsStore.showConnectingLines).toBe(false)
+  })
   it("can have its showSquaresOfResiduals property set", () => {
     const adornmentsStore = AdornmentsStore.create()
     expect(adornmentsStore.showSquaresOfResiduals).toBe(false)
