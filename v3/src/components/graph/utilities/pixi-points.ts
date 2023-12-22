@@ -4,10 +4,12 @@ import { PixiTransition } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
 
 const DEFAULT_Z_INDEX = 0
-const RAISED_Z_INDEX = 1
+const RAISED_Z_INDEX = 100
 const MAX_SPRITE_SCALE = 2
 
 export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
+
+export type DragHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
 export interface IPixiPointMetadata {
   caseID: string
@@ -46,17 +48,22 @@ export class PixiPoints {
   tickerStopTimeoutId: number | undefined
 
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
+  caseIDToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
 
   activeTransitions = 0
   currentTransition?: PixiTransition
 
-  pointerEventsDisabled = false
+  onPointDragStart?: DragHandler
+  onPointDrag?: DragHandler
+  onPointDragEnd?: DragHandler
 
   constructor() {
     this.ticker.add(() => this.renderer.render(this.stage))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
+    // Enable zIndex support
+    this.pointsContainer.sortableChildren = true
   }
 
   get canvas() {
@@ -69,6 +76,10 @@ export class PixiPoints {
 
   get pointsCount() {
     return this.points.length
+  }
+
+  getPointByCaseId(caseId: string) {
+    return this.caseIDToPoint.get(caseId) as PIXI.Sprite
   }
 
   startRenderLoop() {
@@ -166,19 +177,58 @@ export class PixiPoints {
     const sprite = new PIXI.Sprite(texture)
     sprite.anchor.set(0.5)
     sprite.zIndex = DEFAULT_Z_INDEX
+    this.setupSpriteInteractivity(sprite)
+    return sprite
+  }
+
+  setupSpriteInteractivity(sprite: PIXI.Sprite) {
     sprite.eventMode = "static"
     sprite.cursor = "pointer"
-    sprite.on("pointerover", () => {
+
+    let draggingActive = false
+
+    const setHoverRadius = () => {
       this.transition(transitionDuration, () => {
         this.setPointScale(sprite, hoverRadiusFactor)
       })
-    })
-    sprite.on("pointerleave", () => {
+    }
+    const restoreDefaultRadius = () => {
       this.transition(transitionDuration, () => {
         this.setPointScale(sprite, 1)
       })
+    }
+
+    // Hover effect
+    sprite.on("pointerover", setHoverRadius)
+    sprite.on("pointerleave", () => {
+      if (!draggingActive) {
+        restoreDefaultRadius()
+      }
     })
-    return sprite
+
+    // Dragging
+    sprite.on("pointerdown", (pointerDownEvent: PointerEvent) => {
+      draggingActive = true
+      this.onPointDragStart?.(pointerDownEvent, sprite, this.getMetadata(sprite))
+      setHoverRadius()
+
+      const onDrag = (onDragEvent: PointerEvent) => {
+        if (draggingActive) {
+          this.onPointDrag?.(onDragEvent, sprite, this.getMetadata(sprite))
+        }
+      }
+
+      window.addEventListener("pointermove", onDrag)
+
+      window.addEventListener("pointerup", (pointerUpEvent: PointerEvent) => {
+        if (draggingActive) {
+          draggingActive = false
+          this.onPointDragEnd?.(pointerUpEvent, sprite, this.getMetadata(sprite))
+          restoreDefaultRadius()
+          window.removeEventListener("pointermove", onDrag)
+        }
+      })
+    })
   }
 
   matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
@@ -197,8 +247,10 @@ export class PixiPoints {
         // Note that .destroy() call will also remove the point from the stage children array, so we don't have to
         // do that manually (e.g. using .removeChild()).
         point.destroy()
+        this.caseIDToPoint.delete(caseID)
       } else {
         currentIDs.add(caseID)
+        this.caseIDToPoint.set(caseID, point)
       }
     }
 
@@ -212,6 +264,7 @@ export class PixiPoints {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
         this.pointMetadata.set(sprite, { caseID, plotNum, style })
+        this.caseIDToPoint.set(caseID, sprite)
       }
     }
 
@@ -224,6 +277,8 @@ export class PixiPoints {
         metadata.style = style
       }
     }
+
+    this.rerender()
   }
 
   forEachPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void, { selectedOnly = false } = {}) {
@@ -235,6 +290,7 @@ export class PixiPoints {
       }
       callback(point, metadata)
     }
+    this.rerender()
   }
 
   forEachSelectedPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void) {
@@ -245,6 +301,7 @@ export class PixiPoints {
         callback(point, metadata)
       }
     }
+    this.rerender()
   }
 
   setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
@@ -255,6 +312,7 @@ export class PixiPoints {
     if (point.texture !== texture) {
       point.texture = texture
     }
+    this.rerender()
   }
 
   setPointPosition(point: PIXI.Sprite, x: number, y: number) {
@@ -262,6 +320,7 @@ export class PixiPoints {
       this.currentTransition.setTargetPosition(point, x, y)
     } else {
       point.position.set(x, y)
+      this.rerender()
     }
   }
 
@@ -270,11 +329,13 @@ export class PixiPoints {
       this.currentTransition.setTargetScale(point, scale)
     } else {
       point.scale.set(scale)
+      this.rerender()
     }
   }
 
   setPointRaised(point: PIXI.Sprite, value: boolean) {
     point.zIndex = value ? RAISED_Z_INDEX : DEFAULT_Z_INDEX
+    this.rerender()
   }
 
   dispose() {

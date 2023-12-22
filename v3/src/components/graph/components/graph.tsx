@@ -230,7 +230,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
           <svg ref={plotAreaSVGRef} className="plot-area-svg">
 
             <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`}>
-            <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%" style={{pointerEvents: "none"}}/>
+            <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%"/>
               {renderPlotComponent()}
             </svg>
             <Marquee marqueeState={marqueeState}/>

@@ -12,27 +12,28 @@ import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import { DragHandler, PixiPoints } from "../utilities/pixi-points"
 
-interface IDragHandlers {
-  start: (event: MouseEvent) => void
-  drag: (event: MouseEvent) => void
-  end: (event: MouseEvent) => void
+export interface IPixiDragHandlers {
+  start: DragHandler
+  drag: DragHandler
+  end: DragHandler
 }
 
-export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) => {
+export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, drag, end}: IPixiDragHandlers) => {
   useEffect(() => {
-    if (target) {
-      target.addEventListener('mousedown', start)
-      target.addEventListener('mousemove', drag)
-      target.addEventListener('mouseup', end)
+    if (pixiPoints) {
+      pixiPoints.onPointDragStart = start
+      pixiPoints.onPointDrag = drag
+      pixiPoints.onPointDragEnd = end
       // On cleanup, remove event listeners
       return () => {
-        target.removeEventListener('mousedown', start)
-        target.removeEventListener('mousemove', drag)
-        target.removeEventListener('mouseup', end)
+        pixiPoints.onPointDragStart = undefined
+        pixiPoints.onPointDrag = undefined
+        pixiPoints.onPointDragEnd = undefined
       }
     }
-  }, [target, start, drag, end])
+  }, [pixiPoints, start, drag, end])
 }
 
 export interface IPlotResponderProps {
@@ -57,23 +58,20 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   /* This routine is frequently called many times in a row when something about the graph changes that requires
   * refreshing the plot's point positions. That, by itself, would be a reason to ensure that
-  * the actual refreshPointPositions function is only called once. But another, even more important reason is
-  * that there is no guarantee that when callRefreshPointPositions is invoked, the d3 points in the plot
-  * have been synced with the data configuration's notion of which cases are plottable. Delaying the actual
-  * plotting of points until the next event cycle ensures that the data configuration's filter process will
-  * have had a chance to take place. */
+  * the actual refreshPointPositions function is only called once.
+  */
   const timer = useRef<any>()
   const callRefreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (timer.current) {
       return
     }
-    timer.current = setTimeout(() => {
+    timer.current = requestAnimationFrame(() => {
       refreshPointPositionsRef.current(selectedOnly)
       timer.current = null
-    }, 10)
+    })
     return () => {
       if (timer.current) {
-        clearTimeout(timer.current)
+        cancelAnimationFrame(timer.current)
         timer.current = null
       }
     }
@@ -136,6 +134,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => dataConfiguration?.hiddenCases.length,
       () => {
+        // TODO PIXI: pass pixi points here
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
