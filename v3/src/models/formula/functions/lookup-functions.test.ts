@@ -13,6 +13,13 @@ describe("lookupByIndex", () => {
     expect(evaluate("lookupByIndex('Cats', 'PadColor', caseIndex)", 4)).toEqual("pink")
   })
 
+  it("can be executed in the aggregate context", () => {
+    expect(evaluate("mean(lookupByIndex('Mammals', 'LifeSpan', caseIndex))")).toBeCloseTo(24.85)
+    // This might look like it doesn't make sense, but it ensures that when a single value is returned, it doesn't
+    // cause an error when executed in the aggregate context.
+    expect(evaluate("mean(lookupByIndex('Mammals', 'LifeSpan', 1))")).toBeCloseTo(70)
+  })
+
   it("throws an error when number of arguments is wrong", () => {
     expect(() => evaluate("lookupByIndex('Mammals', 'LifeSpan')")).toThrow()
     expect(() => evaluate("lookupByIndex('Mammals', 'LifeSpan', 1, 2)")).toThrow()
@@ -44,6 +51,13 @@ describe("lookupByKey", () => {
     expect(evaluate("lookupByKey('Cats', 'Name', 'Weight', Mass)", 0)).toEqual("")
     expect(evaluate("lookupByKey('Cats', 'Name', 'Weight', Mass)", 18)).toEqual("Nancy Blue")
     expect(evaluate("lookupByKey('Cats', 'Name', 'Weight', Mass)", 19)).toEqual("Chubbs")
+  })
+
+  it("can be executed in the aggregate context", () => {
+    expect(evaluate("mean(lookupByKey('Mammals', 'LifeSpan', 'Mass', Mass))")).toBeCloseTo(21.85)
+    // This might look like it doesn't make sense, but it ensures that when a single value is returned, it doesn't
+    // cause an error when executed in the aggregate context.
+    expect(evaluate("mean(lookupByKey('Mammals', 'LifeSpan', 'Diet', 'meat'))")).toEqual(19)
   })
 
   it("throws an error when number of arguments is wrong", () => {

@@ -22,6 +22,11 @@ describe("mean", () => {
   it("ignores non-numeric values", () => {
     expect(evaluate("mean(Diet)")).toEqual(UNDEF_RESULT)
   })
+
+  it("supports single value argument", () => {
+    expect(evaluate("mean(1, true)")).toEqual(1)
+    expect(evaluate("mean(1, false)")).toEqual(UNDEF_RESULT)
+  })
 })
 
 describe("median", () => {
@@ -35,6 +40,11 @@ describe("median", () => {
 
   it("ignores non-numeric values", () => {
     expect(evaluate("median(Diet)")).toEqual(UNDEF_RESULT)
+  })
+
+  it("supports single value argument", () => {
+    expect(evaluate("median(1, true)")).toEqual(1)
+    expect(evaluate("median(1, false)")).toEqual(UNDEF_RESULT)
   })
 })
 
@@ -50,6 +60,11 @@ describe("mad", () => {
   it("ignores non-numeric values", () => {
     expect(evaluate("mad(Diet)")).toEqual(UNDEF_RESULT)
   })
+
+  it("supports single value argument", () => {
+    expect(evaluate("mad(1, true)")).toEqual(0)
+    expect(evaluate("mad(1, false)")).toEqual(UNDEF_RESULT)
+  })
 })
 
 describe("max", () => {
@@ -63,6 +78,11 @@ describe("max", () => {
 
   it("ignores non-numeric values", () => {
     expect(evaluate("max(Diet)")).toEqual(UNDEF_RESULT)
+  })
+
+  it("supports single value argument", () => {
+    expect(evaluate("max(1, true)")).toEqual(1)
+    expect(evaluate("max(1, false)")).toEqual(UNDEF_RESULT)
   })
 })
 
@@ -78,6 +98,11 @@ describe("min", () => {
   it("ignores non-numeric values", () => {
     expect(evaluate("min(Diet)")).toEqual(UNDEF_RESULT)
   })
+
+  it("supports single value argument", () => {
+    expect(evaluate("min(1, true)")).toEqual(1)
+    expect(evaluate("min(1, false)")).toEqual(UNDEF_RESULT)
+  })
 })
 
 describe("sum", () => {
@@ -92,6 +117,11 @@ describe("sum", () => {
   it("ignores non-numeric values", () => {
     expect(evaluate("sum(Diet)")).toEqual(UNDEF_RESULT)
   })
+
+  it("supports single value argument", () => {
+    expect(evaluate("sum(1, true)")).toEqual(1)
+    expect(evaluate("sum(1, false)")).toEqual(UNDEF_RESULT)
+  })
 })
 
 describe("count", () => {
@@ -102,6 +132,11 @@ describe("count", () => {
 
   it("supports filter expression", () => {
     expect(evaluate("count(Speed, Diet = 'plants')")).toBe(7)
+  })
+
+  it("supports single value argument", () => {
+    expect(evaluate("count(1, true)")).toEqual(1)
+    expect(evaluate("count(1, false)")).toEqual(0)
   })
 })
 

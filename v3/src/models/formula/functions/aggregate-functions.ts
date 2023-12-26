@@ -24,7 +24,13 @@ const aggregateFnWithFilterFactory = (fn: (values: number[]) => FValue) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     const [ expression, filter ] = args
     let expressionValues = evaluateNode(expression, scope)
-    const filterValues = !!filter && evaluateNode(filter, scope)
+    if (!Array.isArray(expressionValues)) {
+      expressionValues = [ expressionValues ]
+    }
+    let filterValues = !!filter && evaluateNode(filter, scope)
+    if (!!filter && !Array.isArray(filterValues)) {
+      filterValues = [ filterValues ]
+    }
     expressionValues = expressionValues.filter((v: FValue, i: number) =>
       // Numeric aggregate functions should ignore non-numeric values.
       isNumber(v) && (filterValues ? isValueTruthy(filterValues[i]) : true)
@@ -105,8 +111,15 @@ export const aggregateFunctions = {
         return cachedValue
       }
 
-      const filterValues = filter && evaluateNode(filter, scope)
-      const validExpressionValues = evaluateNode(expression, scope).filter((v: FValue, i: number) =>
+      let expressionValues = evaluateNode(expression, scope)
+      if (!Array.isArray(expressionValues)) {
+        expressionValues = [ expressionValues ]
+      }
+      let filterValues = filter && evaluateNode(filter, scope)
+      if (filter && !Array.isArray(filterValues)) {
+        filterValues = [ filterValues ]
+      }
+      const validExpressionValues = expressionValues.filter((v: FValue, i: number) =>
         isValueTruthy(v) && (filter ? isValueTruthy(filterValues[i]) : true)
       )
       const result = validExpressionValues.length
