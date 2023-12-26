@@ -15,7 +15,6 @@ import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
-import {DotsElt} from '../../data-display/d3-types'
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {PixiPoints} from "../utilities/pixi-points"
 import "../register-adornment-types"
@@ -29,7 +28,6 @@ export const GraphComponent = observer(function GraphComponent({ tile }: ITileBa
   // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
   const { width, height } = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
-  const dotsRef = useRef<DotsElt>(null)
   const pixiPointsRef = useRef<PixiPoints>()
   // TODO PIXI: PJ: probably should be fixed and become a ref, as memoization is meant for performance optimization
   // and it's not guaranteed to be maintained across renders.
@@ -43,7 +41,7 @@ export const GraphComponent = observer(function GraphComponent({ tile }: ITileBa
     return () => pixiPointsRef.current?.dispose()
   }, [])
 
-  useGraphController({ graphController, graphModel, dotsRef, pixiPointsRef })
+  useGraphController({ graphController, graphModel, pixiPointsRef })
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setTileExtent(width, height)
@@ -76,7 +74,6 @@ export const GraphComponent = observer(function GraphComponent({ tile }: ITileBa
                 <Graph
                   graphController={graphController}
                   graphRef={graphRef}
-                  dotsRef={dotsRef}
                   pixiPointsRef={pixiPointsRef}
                 />
               </AxisProviderContext.Provider>

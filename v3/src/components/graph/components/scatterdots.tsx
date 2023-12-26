@@ -22,7 +22,7 @@ import {scatterPlotFuncs} from "./scatter-plot-utils"
 import { IPixiPointMetadata } from "../utilities/pixi-points"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
-  const {dotsRef, pixiPointsRef} = props,
+  const {pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -144,11 +144,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        dotsRef, pixiPointsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
+        pixiPointsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
-  }, [dataConfiguration, dotsRef, graphModel, pixiPointsRef])
+  }, [dataConfiguration, graphModel, pixiPointsRef])
 
   const refreshSquares = useCallback(() => {
 
@@ -193,13 +193,13 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, dotsRef, pixiPointsRef, pointRadius: pointRadiusRef.current,
+      dataset, pixiPointsRef, pointRadius: pointRadiusRef.current,
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, dotsRef, pixiPointsRef,
+  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPointsRef,
     isAnimating])
 
   const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
@@ -245,7 +245,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   }, [refreshSquares, showSquares])
 
   // TODO PIXI: pass pixi points here, adapt this hook?
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <>

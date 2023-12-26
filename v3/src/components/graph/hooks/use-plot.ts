@@ -6,13 +6,13 @@ import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {useCurrent} from "../../../hooks/use-current"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
+import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import { DragHandler, PixiPoints } from "../utilities/pixi-points"
+import { DragHandler, IPixiPointsRef, PixiPoints } from "../utilities/pixi-points"
 
 export interface IPixiDragHandlers {
   start: DragHandler
@@ -39,7 +39,7 @@ export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
 function isDefunctAxisModel(axisModel?: IAxisModel) {
@@ -47,7 +47,7 @@ function isDefunctAxisModel(axisModel?: IAxisModel) {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const { refreshPointPositions, refreshPointSelection, dotsRef} = props,
+  const { refreshPointPositions, refreshPointSelection, pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
@@ -140,14 +140,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          dotsElement: dotsRef.current,
+          pixiPoints: pixiPointsRef.current,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }, { name: "respondToHiddenCasesChange" }, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, dotsRef, graphModel, instanceId, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPointsRef, startAnimation])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
@@ -190,14 +190,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          dotsElement: dotsRef.current,
+          pixiPoints: pixiPointsRef.current,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }
     }) || (() => true)
     return () => disposer()
-  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPointsRef])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
