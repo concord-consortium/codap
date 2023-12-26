@@ -35,7 +35,9 @@ export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDepende
 
 export type FValue = string | number | boolean
 
-export type EvaluateFunc = (...args: FValue[]) => FValue | FValue[]
+export type EvaluateFunc = (...args: FValue[]) => FValue
+
+export type EvaluateFuncWithAggregateContextSupport = (...args: (FValue | FValue[])[]) => FValue | FValue[]
 
 export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]
 

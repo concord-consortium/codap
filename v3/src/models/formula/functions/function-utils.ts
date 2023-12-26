@@ -14,16 +14,7 @@ export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 // count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
 export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false
 
-export const equal = (a: any, b: any): boolean | boolean[] => {
-  if (Array.isArray(a) && Array.isArray(b)) {
-    return a.map((v, i) => equal(v, b[i])) as boolean[]
-  }
-  if (Array.isArray(a) && !Array.isArray(b)) {
-    return a.map((v) => equal(v, b)) as boolean[]
-  }
-  if (!Array.isArray(a) && Array.isArray(b)) {
-    return b.map((v) => equal(v, a)) as boolean[]
-  }
+export const equal = (a: any, b: any): boolean => {
   // Checks below might seem redundant once the data set cases start using typed values, but they are not.
   // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
   // values when possible, so that the comparison can be performed without forcing users to think about types.

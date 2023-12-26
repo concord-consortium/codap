@@ -1,6 +1,8 @@
 import { create, all, MathNode } from 'mathjs'
 import { FormulaMathJsScope } from '../formula-mathjs-scope'
-import { CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateRawFunc } from '../formula-types'
+import {
+  CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc, FValue
+} from '../formula-types'
 import { equal, evaluateNode } from './function-utils'
 import { arithmeticFunctions } from './arithmetic-functions'
 import { lookupFunctions } from './lookup-functions'
@@ -27,9 +29,32 @@ export const evaluateRawWithDefaultArg = (fn: EvaluateRawFunc, numOfRequiredArgu
   }
 }
 
-export const evaluateToEvaluateRaw = (fn: EvaluateFunc): EvaluateRawFunc => {
+export const evaluateToEvaluateRaw = (fn: EvaluateFuncWithAggregateContextSupport): EvaluateRawFunc => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     return fn(...(args.map(arg => evaluateNode(arg, scope))))
+  }
+}
+
+export const evaluateWithAggregateContextSupport = (fn: EvaluateFunc): EvaluateFuncWithAggregateContextSupport => {
+  // When regular function is called in aggregate context, its arguments will be arrays. The provided function needs to
+  // be called for each element of the array.
+  return (...args: (FValue | FValue[])[]) => {
+    // Precompute the check for array arguments and their indices.
+    const isArrayArg = args.map(Array.isArray)
+    const firstArrayArgIdx = isArrayArg.findIndex((isArr) => isArr)
+    // If no argument is an array, apply function directly.
+    if (firstArrayArgIdx < 0) {
+      return fn(...(args as FValue[]))
+    }
+    // Find the first array argument to determine the number of cases.
+    const firstArrayArg = args[firstArrayArgIdx] as FValue[]
+    // Map each element of the first array arg to a function call.
+    return firstArrayArg.map((_, idx) => {
+      const argsForCase = args.map((arg, argIdx) =>
+        isArrayArg[argIdx] ? (arg as FValue[])[idx] : arg
+      )
+      return fn(...(argsForCase as FValue[]))
+    })
   }
 }
 
@@ -65,7 +90,12 @@ export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
 // import the new function in the Mathjs namespace
 Object.keys(typedFnRegistry).forEach((key) => {
   const fn = typedFnRegistry[key]
-  let evaluateRaw = fn.evaluateRaw || (fn.evaluate && evaluateToEvaluateRaw(fn.evaluate))
+  let evaluateRaw = fn.evaluateRaw
+  if (!evaluateRaw && fn.evaluate) {
+    // Some simpler functions can be defined with evaluate function instead of evaluateRaw. In that case, we need to
+    // convert evaluate function to evaluateRaw function.
+    evaluateRaw = evaluateToEvaluateRaw(evaluateWithAggregateContextSupport(fn.evaluate))
+  }
   if (!fn.isOperator && !evaluateRaw) {
     throw new Error("evaluateRaw or evaluate function must be defined for non-operator functions")
   }
@@ -84,7 +114,7 @@ Object.keys(typedFnRegistry).forEach((key) => {
     (evaluateRaw as any).rawArgs = true
   }
   math.import({
-    [key]: evaluateRaw || fn.evaluateOperator
+    [key]: evaluateRaw || (fn.evaluateOperator && evaluateWithAggregateContextSupport(fn.evaluateOperator))
   }, {
     override: true // override functions already defined by mathjs
   })

@@ -1,6 +1,8 @@
 import { MathNode, SymbolNode, parse } from "mathjs"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw } from "./math"
+import {
+  evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport
+} from "./math"
 import { FValue } from "../formula-types"
 
 describe("evaluateRawWithAggregateContext", () => {
@@ -59,10 +61,35 @@ describe("evaluateToEvaluateRaw", () => {
     const args = [ parse("1"), parse("2") ]
     const mathjs = {}
     const scope = {}
-    const mockFn = jest.fn((a: FValue, b: FValue) => Number(a) + Number(b))
+    const mockFn = jest.fn((a: FValue | FValue[], b: FValue | FValue[]) => Number(a) + Number(b))
 
     const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, scope as any as FormulaMathJsScope)
     expect(mockFn).toHaveBeenCalledWith(1, 2)
+    expect(res).toEqual(3)
+  })
+})
+
+describe("evaluateWithAggregateContextSupport", () => {
+  it("should call provided function for each element of the array argument", () => {
+    const args = [ [ 1, 2 ], [ 3, 4 ] ]
+    const mockFn = jest.fn((a: FValue, b: FValue) => Number(a) + Number(b))
+    const res = evaluateWithAggregateContextSupport(mockFn)(...args)
+    expect(mockFn).toHaveBeenCalledTimes(2)
+    expect(res).toEqual([ 4, 6 ])
+  })
+
+  it("should support mix of array and single value arguments", () => {
+    const mockFn = jest.fn((a: FValue, b: FValue) => Number(a) + Number(b))
+    let res = evaluateWithAggregateContextSupport(mockFn)(...[ [ 1, 2 ], 3 ])
+    expect(mockFn).toHaveBeenCalledTimes(2)
+    expect(res).toEqual([ 4, 5 ])
+
+    res = evaluateWithAggregateContextSupport(mockFn)(...[ 1, [ 2, 3 ] ])
+    expect(mockFn).toHaveBeenCalledTimes(4)
+    expect(res).toEqual([ 3, 4 ])
+
+    res = evaluateWithAggregateContextSupport(mockFn)(...[ 1, 2 ])
+    expect(mockFn).toHaveBeenCalledTimes(5)
     expect(res).toEqual(3)
   })
 })
