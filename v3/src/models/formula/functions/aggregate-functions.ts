@@ -1,11 +1,11 @@
 import { MathNode, mad, max, mean, median, min, sum } from "mathjs"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { FValue } from "../formula-types"
+import { FValue, FValueOrArray } from "../formula-types"
 import { UNDEF_RESULT, evaluateNode, isNumber, isValueTruthy } from "./function-utils"
 
 // Almost every aggregate function can be cached in the same way.
 export const cachedAggregateFnFactory =
-(fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValue | FValue[]) => {
+(fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValueOrArray) => {
   return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
     const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseAggregateGroupId()}`
     const cachedValue = scope.getCached(cacheKey)

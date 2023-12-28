@@ -3,7 +3,7 @@ import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import {
   evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport
 } from "./math"
-import { FValue } from "../formula-types"
+import { FValue, FValueOrArray } from "../formula-types"
 
 describe("evaluateRawWithAggregateContext", () => {
   it("should call provided function within withAggregateContext", () => {
@@ -61,7 +61,7 @@ describe("evaluateToEvaluateRaw", () => {
     const args = [ parse("1"), parse("2") ]
     const mathjs = {}
     const scope = {}
-    const mockFn = jest.fn((a: FValue | FValue[], b: FValue | FValue[]) => Number(a) + Number(b))
+    const mockFn = jest.fn((a: FValueOrArray, b: FValueOrArray) => Number(a) + Number(b))
 
     const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, scope as any as FormulaMathJsScope)
     expect(mockFn).toHaveBeenCalledWith(1, 2)

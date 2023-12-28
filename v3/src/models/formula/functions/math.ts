@@ -1,7 +1,8 @@
 import { create, all, MathNode } from 'mathjs'
 import { FormulaMathJsScope } from '../formula-mathjs-scope'
 import {
-  CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc, FValue
+  CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc, FValue,
+  FValueOrArray
 } from '../formula-types'
 import { equal, evaluateNode } from './function-utils'
 import { arithmeticFunctions } from './arithmetic-functions'
@@ -38,7 +39,7 @@ export const evaluateToEvaluateRaw = (fn: EvaluateFuncWithAggregateContextSuppor
 export const evaluateWithAggregateContextSupport = (fn: EvaluateFunc): EvaluateFuncWithAggregateContextSupport => {
   // When regular function is called in aggregate context, its arguments will be arrays. The provided function needs to
   // be called for each element of the array.
-  return (...args: (FValue | FValue[])[]) => {
+  return (...args: (FValueOrArray)[]) => {
     // Precompute the check for array arguments and their indices.
     const isArrayArg = args.map(Array.isArray)
     const firstArrayArgIdx = isArrayArg.findIndex((isArr) => isArr)
