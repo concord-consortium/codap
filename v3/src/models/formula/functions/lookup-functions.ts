@@ -1,6 +1,6 @@
 import { ConstantNode, MathNode } from "mathjs"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { DisplayNameMap, ILookupDependency } from "../formula-types"
+import { DisplayNameMap, FValue, ILookupDependency } from "../formula-types"
 import { rmCanonicalPrefix } from "../utils/name-mapping-utils"
 import { UNDEF_RESULT, equal, evaluateNode } from "./function-utils"
 import { isConstantStringNode } from "../utils/mathjs-utils"
@@ -44,7 +44,7 @@ export const lookupFunctions = {
         }
       })
       const { dataSetId, attrId } = lookupFunctions.lookupByIndex.getDependency(args)
-      const zeroBasedIndex = evaluateNode(args[2], scope) - 1
+      const indexArg = evaluateNode(args[2], scope)
       const dataSet = scope.getDataSet(dataSetId)
       if (!dataSet) {
         throw new Error(t("DG.Formula.LookupDataSetError.description", { vars: [ dataSetId ] }))
@@ -52,7 +52,15 @@ export const lookupFunctions = {
       if (!dataSet.attrFromID(attrId)) {
         throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ attrId, dataSet.name || "" ] }))
       }
-      return dataSet.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
+      // lookupByIndex can be executed in aggregate context, so we need to handle array arguments.
+      const fn = (index: number) => {
+        const zeroBasedIndex = index - 1
+        return dataSet.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
+      }
+      if (Array.isArray(indexArg)) {
+        return indexArg.map(fn)
+      }
+      return fn(indexArg)
     }
   },
 
@@ -95,7 +103,7 @@ export const lookupFunctions = {
         }
       })
       const { dataSetId, attrId, keyAttrId } = lookupFunctions.lookupByKey.getDependency(args)
-      const keyAttrValue = evaluateNode(args[3], scope)
+      const keyAttrValueArg = evaluateNode(args[3], scope)
       const dataSet: IDataSet | undefined = scope.getDataSet(dataSetId)
       if (!dataSet) {
         throw new Error(t("DG.Formula.LookupDataSetError.description", { vars: [ dataSetId ] }))
@@ -106,13 +114,20 @@ export const lookupFunctions = {
       if (!dataSet.attrFromID(keyAttrId)) {
         throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ keyAttrId, dataSet.name || "" ] }))
       }
-      for (const c of dataSet.cases) {
-        const val = dataSet.getValue(c.__id__, keyAttrId)
-        if (equal(val, keyAttrValue)) {
-          return dataSet.getValue(c.__id__, attrId) || UNDEF_RESULT
+      // lookupByKey can be executed in aggregate context, so we need to handle array arguments.
+      const fn = (keyAttrValue: FValue) => {
+        for (const c of dataSet.cases) {
+          const val = dataSet.getValue(c.__id__, keyAttrId)
+          if (equal(val, keyAttrValue)) {
+            return dataSet.getValue(c.__id__, attrId) || UNDEF_RESULT
+          }
         }
+        return UNDEF_RESULT
       }
-      return UNDEF_RESULT
+      if (Array.isArray(keyAttrValueArg)) {
+        return keyAttrValueArg.map(fn)
+      }
+      return fn(keyAttrValueArg)
     },
   },
 }

@@ -64,18 +64,6 @@ describe("equal", () => {
     expect(equal("true", false)).toBe(false)
     expect(equal(true, 1)).toBe(false)
   })
-
-  it("should support array arguments", () => {
-    expect(equal([1, 2], [1, 2])).toEqual([true, true])
-    expect(equal([1, 2], [1, 3])).toEqual([true, false])
-    expect(equal([1, 2], [2, 1])).toEqual([false, false])
-
-    expect(equal([1, 2], 1)).toEqual([true, false])
-    expect(equal(1, [1, 2])).toEqual([true, false])
-
-    expect(equal([1, 2], "1")).toEqual([true, false])
-    expect(equal("1", [1, 2])).toEqual([true, false])
-  })
 })
 
 describe("evaluateNode", () => {
