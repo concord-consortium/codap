@@ -104,6 +104,11 @@ export class PixiTransition {
       return
     }
     for (const [point, target] of targetProp.entries()) {
+      if (point.destroyed) {
+        // This might happen if user deletes a case while transition is still occurring.
+        targetProp.delete(point)
+        continue
+      }
       const start = startProp.get(point) as SupportedPropValue
       const newX = start.x + factor * (target.x - start.x)
       const newY = start.y + factor * (target.y - start.y)
