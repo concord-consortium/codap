@@ -35,12 +35,12 @@ export interface IPixiPointStyle {
 
 // PixiPoints layer can be setup to distribute events from background to elements laying underneath.
 export interface IBackgroundEventDistributionOptions {
-  elementToHide: HTMLElement // element which should be hidden to obtain element laying underneath
+  elementToHide: HTMLElement | SVGElement // element which should be hidden to obtain element laying underneath
   interactiveElClassName?: string // class name of elements that should receive passed events
 }
 
 export interface IPixiPointsOptions {
-  resizeTo: HTMLElement,
+  resizeTo: HTMLElement
   backgroundEventDistribution?: IBackgroundEventDistributionOptions
 }
 

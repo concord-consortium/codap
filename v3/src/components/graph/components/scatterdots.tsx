@@ -267,6 +267,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .append("path")
           .data([allLineCoords])
           .attr("d", d => curve(d))
+          .classed("interactive-graph-element", true) // for dots canvas event passing
           .classed("selected", allCasesSelected)
           .on("click", (e) => handleConnectingLinesClick(e, lineCaseIds))
           .on("mouseover", (e) => handleConnectingLinesHover(e, lineCaseIds, parentAttrName, primaryAttrValue))
