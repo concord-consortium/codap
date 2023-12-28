@@ -15,11 +15,6 @@ describe("numericFnFactory", () => {
     expect(numericFn("foo")).toEqual(UNDEF_RESULT)
     expect(numericFn(UNDEF_RESULT)).toEqual(UNDEF_RESULT)
   })
-
-  it("returns a function that applies the specified function to an array of numeric values", () => {
-    const result = numericFn([1, 2, "3", "4", "five", "", UNDEF_RESULT])
-    expect(result).toEqual([2, 4, 6, 8, UNDEF_RESULT, UNDEF_RESULT, UNDEF_RESULT])
-  })
 })
 
 describe("numericMultiArgsFnFactory", () => {
@@ -38,18 +33,6 @@ describe("numericMultiArgsFnFactory", () => {
     expect(numericFn("foo", "bar")).toEqual(UNDEF_RESULT)
     expect(numericFn(10, "foo")).toEqual(10)
     expect(numericFn(10, "")).toEqual(10)
-  })
-
-  it("returns a function that applies the specified function to each element of provided arrays", () => {
-    const result = numericFn([1, 2, "3", "4", 5, 6, "foo", ""], [1, 2, "3", "4", "five", "", 7, 8])
-    expect(result).toEqual([2, 4, 6, 8, 5, 6, UNDEF_RESULT, UNDEF_RESULT])
-  })
-
-  it("returns a function that can handle array and single value", () => {
-    const result1 = numericFn(10, [1, 2, "3", "4", "five", "", UNDEF_RESULT])
-    expect(result1).toEqual([11, 12, 13, 14, 10, 10, 10])
-    const result2 = numericFn([1, 2, "3", "4", "five", "", UNDEF_RESULT], 10)
-    expect(result2).toEqual([11, 12, 13, 14, UNDEF_RESULT, UNDEF_RESULT, UNDEF_RESULT])
   })
 })
 

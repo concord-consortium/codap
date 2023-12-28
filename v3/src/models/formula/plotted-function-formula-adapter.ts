@@ -10,7 +10,9 @@ import { DEBUG_FORMULAS } from "../../lib/debug"
 import {
   FormulaFn, kPlottedFunctionType
 } from "../../components/graph/adornments/plotted-function/plotted-function-adornment-types"
-import { BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata } from "./base-graph-formula-adapter"
+import {
+  BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata, getDefaultArgument
+} from "./base-graph-formula-adapter"
 import type { IFormulaContext } from "./formula-manager"
 import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
 
@@ -70,10 +72,15 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       const compiledFormula = math.compile(formula.canonical)
       const extraScope = new Map()
       formulaScope.setExtraScope(extraScope)
-      // Plotted function lets users use special "x" symbol that is resolved to the currently plotted graph X-axis
-      // value. The graph will do the rendering itself, so it expects a function that takes a single argument ("x").
       return (x: number) => {
+        // Plotted function lets users use special "x" symbol that is resolved to the currently plotted graph X-axis
+        // value. The graph will do the rendering itself, so it expects a function that takes a single argument ("x").
         extraScope.set(X_ARG_SYMBOL, x)
+        // Plotted function should also support use of the x-axis attribute name as a dummy variable. For example,
+        // with mammals, in a scatterplot with Speed on the y-axis and Sleep on the x-axis, the formula `Sleep * Sleep`
+        // should be valid. `getDefaultArgument` will return the name of the x-axis attribute, which is "Sleep" in this
+        // case.
+        extraScope.set(getDefaultArgument(this.getGraphContentModel(extraMetadata)), x)
         try {
           return compiledFormula.evaluate(formulaScope)
         } catch (e: any) {
