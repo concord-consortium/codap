@@ -12,12 +12,12 @@ import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import { DragHandler, IPixiPointsRef, PixiPoints } from "../utilities/pixi-points"
+import { PixiPointEventHandler, IPixiPointsRef, PixiPoints } from "../utilities/pixi-points"
 
 export interface IPixiDragHandlers {
-  start: DragHandler
-  drag: DragHandler
-  end: DragHandler
+  start: PixiPointEventHandler
+  drag: PixiPointEventHandler
+  end: PixiPointEventHandler
 }
 
 export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, drag, end}: IPixiDragHandlers) => {
@@ -108,7 +108,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => dataConfiguration?.hiddenCases.length,
       () => {
-        // TODO PIXI: pass pixi points here
+        if (!pixiPointsRef.current) {
+          return
+        }
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
@@ -158,6 +160,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {
     const disposer = dataConfiguration?.onAction(action => {
+      if (!pixiPointsRef.current) {
+        return
+      }
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
         matchCirclesToData({
           dataConfiguration,

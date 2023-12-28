@@ -91,7 +91,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     })
   }, [dataConfiguration, dataset, stopAnimation])
 
-  const onDrag = useCallback((event: MouseEvent) => {
+  const onDrag = useCallback((event: PointerEvent) => {
     const xAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
     const xAttrID = dataConfiguration?.attributeID('x') ?? ''
     if (dragID !== '') {

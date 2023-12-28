@@ -19,7 +19,7 @@ export class PixiTransition {
   isFinished = false
   frameId: number | undefined
   points: PIXI.Sprite[] = []
-  onFinishCallback?: () => void
+  onEndCallback?: () => void
 
   targetProp: Partial<Record<SupportedPropKey, Map<PIXI.Sprite, SupportedPropValue>>> = {}
   startProp: Partial<Record<SupportedPropKey, Map<PIXI.Sprite, SupportedPropValue>>> = {}
@@ -40,7 +40,7 @@ export class PixiTransition {
   play() {
     const transitionProps = Object.keys(this.targetProp) as SupportedPropKey[]
     if (transitionProps.length === 0) {
-      this.handleOnFinish()
+      this.handleOnEnd()
       return
     }
 
@@ -61,22 +61,22 @@ export class PixiTransition {
         time = performance.now() - startTime
       } else {
         this.frameId = undefined
-        this.handleOnFinish()
+        this.handleOnEnd()
       }
     }
 
     transitionFrame()
   }
 
-  handleOnFinish() {
-    this.onFinishCallback?.()
+  handleOnEnd() {
+    this.onEndCallback?.()
     this.isFinished = true
   }
 
-  onFinish(callback: () => void) {
-    this.onFinishCallback = callback
+  onEnd(callback: () => void) {
+    this.onEndCallback = callback
     if (this.isFinished) {
-      this.onFinishCallback?.()
+      this.onEndCallback?.()
     }
   }
 

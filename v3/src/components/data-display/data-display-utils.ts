@@ -61,7 +61,7 @@ export function getCaseTipText(caseID: string, attributeIDs: string[], dataset?:
   return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
 }
 
-export function handleClickOnCase(event: MouseEvent, caseID: string, dataset?: IDataSet) {
+export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
   if (!caseIsSelected) {
@@ -82,15 +82,12 @@ export interface IMatchCirclesProps {
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
-  pixiPoints?: PixiPoints
+  pixiPoints: PixiPoints
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor } = props
   const allCaseData = dataConfiguration.joinedCaseDataArrays
-  if (!pixiPoints) {
-    return
-  }
 
   startAnimation()
 
