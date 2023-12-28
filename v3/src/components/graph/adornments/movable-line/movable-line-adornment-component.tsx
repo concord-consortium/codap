@@ -3,8 +3,6 @@ import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {drag, select, Selection} from "d3"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
-import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
@@ -13,6 +11,9 @@ import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
 import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { Point } from "../../../data-display/data-display-types"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
 import "./movable-line-adornment-component.scss"
 
@@ -55,18 +56,16 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
-  const layout = useAxisLayoutContext()
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
-  const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
+  const { xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
+  const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
+  const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const xRange = xScale.range()
-  const yScale = layout.getAxisScale("left") as ScaleNumericBaseType
   const yRange = yScale.range()
   const kTolerance = 4 // pixels to snap to horizontal or vertical
   const kHandleSize = 12
   const interceptLocked = adornmentsStore?.interceptLocked
-  const instanceKey = model.instanceKey(cellKey)
-  const classFromKey = model.classNameFromKey(cellKey)
   const {equationContainerClass, equationContainerSelector} = equationContainer(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const [lineObject, setLineObject] = useState<ILine>({})
@@ -80,17 +79,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   // height, which won't work when there are multiple subplots.
   xScaleRef.current.range([0, plotWidth])
   yScaleRef.current.range([plotHeight, 0])
-
-  // get attributes for use in equation
-  const allAttributes = dataConfig?.dataset?.attributes
-  const xAttrId = dataConfig?.attributeID("x") || ""
-  const yAttrId = dataConfig?.attributeID("y") || ""
-  const xAttr = allAttributes?.find(attr => attr.id === xAttrId)
-  const yAttr = allAttributes?.find(attr => attr.id === yAttrId)
-  const xAttrName = xAttr?.name ?? ""
-  const yAttrName = yAttr?.name ?? ""
-  const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
-  const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
 
   const refreshEquation = useCallback((slope: number, intercept: number) => {
     const lineModel = model.lines.get(instanceKey)
@@ -194,7 +182,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     if (interceptLocked) return
     const lineParams = model.lines?.get(instanceKey)
     const slope = lineParams?.slope || 0
-    const intercept = lineParams?.intercept || 0
     const tWorldX = xScaleRef.current.invert(event.x)
     const tWorldY = yScaleRef.current.invert(event.y)
 
@@ -215,7 +202,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const {domain: yDomain} = yAxis
     pointsOnAxes.current = lineToAxisIntercepts(slope, newIntercept, xDomain, yDomain)
     updateLine()
-    refreshEquation(slope, intercept)
+    refreshEquation(slope, newIntercept)
 
     // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
     // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.

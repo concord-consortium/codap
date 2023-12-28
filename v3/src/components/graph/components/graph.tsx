@@ -145,7 +145,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     dataset && graphModel.applyUndoableAction(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
-    }, "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
+    }, "V3.Undo.attributeTreatAs", "V3.Redo.attributeTreatAs")
   }, [dataset, graphController, graphModel])
 
   // respond to assignment of new attribute ID
@@ -226,9 +226,9 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
           {renderGraphAxes()}
 
-          <svg ref={plotAreaSVGRef} className="plot-area-svg">
+          <svg ref={plotAreaSVGRef}>
             <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%"/>
-              {renderPlotComponent()}
+            {renderPlotComponent()}
             <Marquee marqueeState={marqueeState}/>
           </svg>
 
@@ -241,8 +241,6 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         <MultiLegend
           divElt={graphRef.current}
           onDropAttribute={handleChangeAttribute}
-          onRemoveAttribute={handleRemoveAttribute}
-          onTreatAttributeAs={handleTreatAttrAs}
         />
         {renderDroppableAddAttributes()}
         <Adornments/>

@@ -2,6 +2,13 @@ import { ScaleBand, ScaleLinear } from "d3"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { ILineDescription, ISquareOfResidual } from "../adornments/shared-adornment-types"
+import { ICase } from "../../../models/data/data-set-types"
+
+export interface IConnectingLineDescription {
+  caseData: ICase
+  lineCoords: [number, number]
+  plotNum: number
+}
 
 export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraphDataConfigurationModel) {
   const { dataset: data, yAttributeIDs: yAttrIDs = [], hasY2Attribute, numberOfPlots = 1 } = dataConfiguration || {}
@@ -44,6 +51,31 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return { xValue, yValue, xCoord, yCoord, rightCoord, color }
   }
 
+  function connectingLine(caseID: string, plotNum: number) {
+    const dataset = dataConfiguration?.dataset
+    const xValue = getXCoord(caseID)
+    const yValue = getYCoord(caseID, plotNum)
+    if (isFinite(xValue) && isFinite(yValue)) {
+      const caseData = dataset?.getCase(caseID, { numeric: false })
+      if (caseData) {
+        const lineCoords: [number, number] = [xValue, yValue]
+        return { caseData, lineCoords, plotNum }
+      }
+    }
+  }
+
+  function connectingLinesForCases() {
+    const lineDescriptions: IConnectingLineDescription[] = []
+    const dataset = dataConfiguration?.dataset
+    dataset?.cases.forEach(c => {
+      yAttrIDs.forEach((_yAttrID, plotNum) => {
+        const line = connectingLine(c.__id__, plotNum)
+        line && lineDescriptions.push(line)
+      })
+    })
+    return lineDescriptions
+  }
+
   function residualSquare(slope: number, intercept: number, caseID: string, plotNum = 0): ISquareOfResidual {
     const { xValue, xCoord, yCoord, rightCoord, color } = getCaseCoords(caseID)
     const yScale = y2Scale && plotNum === numberOfPlots - 1 ? y2Scale : y1Scale
@@ -68,7 +100,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
         // If the line has a category and it does not match the categorical legend value,
         // do not render squares.
         if (category && legendValue !== category && legendType === "categorical") return
-        const fullCaseData = dataset?.getCase(caseData.__id__)
+        const fullCaseData = dataset?.getCase(caseData.__id__, { numeric: false })
         if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
           const square = residualSquare(slope, intercept, caseData.__id__)
           if (!isFinite(square.x) || !isFinite(square.y)) return
@@ -79,5 +111,5 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return squares
   }
 
-  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquaresForLines }
+  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquaresForLines, connectingLinesForCases }
 }

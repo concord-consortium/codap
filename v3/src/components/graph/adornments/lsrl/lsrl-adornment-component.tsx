@@ -4,8 +4,6 @@ import { drag, select, Selection } from "d3"
 import t from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
-import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
-import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts,
@@ -13,6 +11,9 @@ import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercept
 import { ILSRLAdornmentModel, ILSRLInstance } from "./lsrl-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
+import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 
 import "./lsrl-adornment-component.scss"
 
@@ -47,29 +48,11 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
   const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
-  const layout = useAxisLayoutContext()
   const adornmentsStore = graphModel?.adornmentsStore
   const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
-  const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
-  const yScale = layout.getAxisScale("left") as ScaleNumericBaseType
-  const xAttrType = dataConfig?.attributeType("x")
-  const yAttrType = dataConfig?.attributeType("y")
-  const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
-  const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
-  const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
-  const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
-  const yCatSet = layout.getAxisMultiScale("left")?.categorySet
-  const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
-  const xCellCount = xCats.length * xSubAxesCount
-  const yCellCount = yCats.length * ySubAxesCount
-  const allAttributes = dataConfig?.dataset?.attributes
-  const xAttrId = dataConfig?.attributeID("x") || ""
-  const yAttrId = dataConfig?.attributeID("y") || ""
-  const xAttr = allAttributes?.find(attr => attr.id === xAttrId)
-  const yAttr = allAttributes?.find(attr => attr.id === yAttrId)
-  const xAttrName = xAttr?.name ?? ""
-  const yAttrName = yAttr?.name ?? ""
-  const classFromKey = model.classNameFromKey(cellKey)
+  const { xAttrId, yAttrId, xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
+  const { cellCounts, classFromKey } = useAdornmentCells(model, cellKey)
+  const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const showConfidenceBands = model.showConfidenceBands
   const interceptLocked = adornmentsStore?.interceptLocked
   const { equationContainerClass, equationContainerSelector } = equationContainer(model, cellKey, containerId)
@@ -190,7 +173,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     let upperPath = ""
     let lowerPath = ""
     const { upperPoints, lowerPoints } = model.confidenceBandsPoints(
-      tPixelMin, tPixelMax, xCellCount, yCellCount, kPixelGap, caseValues, xScale, yScale, cellKey, lineIndex
+      tPixelMin, tPixelMax, cellCounts.x, cellCounts.y, kPixelGap, caseValues, xScale, yScale, cellKey, lineIndex
     )
     if (upperPoints.length > 0) {
       // Accomplish spline interpolation
@@ -200,7 +183,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
     const combinedPath = `${upperPath}${lowerPath.replace("M", "L")}Z`
 
     return { upperPath, lowerPath, combinedPath }
-  }, [cellKey, model, xCellCount, xScale, yCellCount, yScale])
+  }, [cellCounts, cellKey, model, xScale, yScale])
 
   const updateConfidenceBands = useCallback((lineIndex: number, line: ILSRLInstance) => {
     if (!dataConfig || !showConfidenceBands) return

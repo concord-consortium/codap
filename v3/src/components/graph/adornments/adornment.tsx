@@ -6,7 +6,7 @@ import { useGraphContentModelContext } from "../hooks/use-graph-content-model-co
 import { useSubplotExtent } from "../hooks/use-subplot-extent"
 import { INumericAxisModel } from "../../axis/models/axis-model"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
-import {transitionDuration} from "../../data-display/data-display-types"
+import { transitionDuration } from "../../data-display/data-display-types"
 
 import "./adornment.scss"
 

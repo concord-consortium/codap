@@ -4,7 +4,6 @@ import t from "../../../utilities/translation/translate"
 import {GraphPlace} from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute"
@@ -32,14 +31,14 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 
 export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
-  const data = useDataSetContext()
-  const dataConfig = useDataConfigurationContext()
+  const dataConfiguration = useDataConfigurationContext()
+  const data = dataConfiguration?.dataset
   const role = graphPlaceToAttrRole[place]
-  const attrId = dataConfig?.attributeID(role) || ''
+  const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
   const attribute = attrId ? data?.attrFromID(attrId) : null
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
-  const treatAs = dataConfig?.attributeType(role) === "numeric" ? "categorical" : "numeric"
+  const treatAs = dataConfiguration?.attributeType(role) === "numeric" ? "categorical" : "numeric"
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
   const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
@@ -58,9 +57,9 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
-            <div className="codap-graph-attribute-label" ref={setDragNodeRef}
+            <div className="attribute-label-menu" ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
-                data-testid={`codap-graph-attribute-label-${place}`}>
+                data-testid={`attribute-label-menu-${place}`}>
               <MenuButton style={buttonStyle} data-testid="axis-legend-attribute-button">{attribute?.name}</MenuButton>
               <MenuList>
                 { data?.attributes?.map((attr) => {

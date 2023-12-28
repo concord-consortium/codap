@@ -75,12 +75,12 @@ export const AxisElements = {
       case "X":
       case "x":
       default:
-        return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-bottom]")
+        return this.getGraphTile().find("[data-testid=attribute-label-menu-bottom]")
       case "Y":
       case "y":
-        return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-left]")
+        return this.getGraphTile().find("[data-testid=attribute-label-menu-left]")
       case "legend":
-        return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-legend]")
+        return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
     }
   },
   getAttributeFromAttributeMenu(axis) {

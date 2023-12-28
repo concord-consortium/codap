@@ -1,6 +1,8 @@
 import {comparer, reaction} from "mobx"
 import {onAnyAction} from "../../../utilities/mst-utils"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import React, {useCallback, useEffect} from "react"
+import {useDebouncedCallback} from "use-debounce"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
@@ -60,105 +62,102 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     })
   }, [dataset, dataConfiguration, mapLayerModel.features])
 
-  const refreshPolygons = useCallback((selectedOnly: boolean) => {
-      if (!dataset) return
+  const refreshPolygons = useDebouncedCallback((selectedOnly: boolean) => {
+    if (!dataset) return
+    const
+      stashFeature = (caseID: string, jsonObject: GeoJsonObject, caseIndex: number, error: string) => {
 
-      const
-        stashFeature = (caseID: string, jsonObject: GeoJsonObject, caseIndex: number, error: string) => {
+        let infoPopup: Popup | null
 
-          let infoPopup: Popup | null
+        const handleClick = (iEvent: LeafletMouseEvent) => {
+            const mouseEvent = iEvent.originalEvent
+            handleClickOnCase(mouseEvent, caseID, dataset)
+            mouseEvent.stopPropagation()
+          },
 
-          const handleClick = (iEvent: LeafletMouseEvent) => {
-              const mouseEvent = iEvent.originalEvent
-              handleClickOnCase(mouseEvent, caseID, dataset)
-              mouseEvent.stopPropagation()
-            },
-
-            handleMouseover = () => {
-              const tFeature = mapLayerModel.features[caseIndex],
-                attrIDsToUse = (dataConfiguration.uniqueTipAttributes ?? [])
-                  .map(aPair => aPair.attributeID),
-                tipText = getCaseTipText(caseID, attrIDsToUse, dataset)
-              infoPopup = popup({
-                  closeButton: false,
-                  autoPan: false,
-                  offset: point(0, -20)
-                },
-                tFeature)
-              infoPopup.setContent(tipText)
-              setTimeout(() => {
-                if (infoPopup) {
-                  tFeature.bindPopup(infoPopup).openPopup()
-                }
-              }, transitionDuration)
-            },
-
-            handleMouseout = () => {
-              infoPopup?.close()
-              infoPopup = null
-            }
-
-          if (!jsonObject) {
-            console.log(`MapPolygonLayer.refreshPolygons: error: ${error}`)
-            return
-          }
-          mapLayerModel.features[caseIndex] = geoJSON(jsonObject, {
-            style() {
-              return {
-                fillColor: kMapAreaNoLegendColor,
-                fillOpacity: kMapAreaNoLegendUnselectedOpacity,
-                smoothFactor: 2
+          handleMouseover = () => {
+            const tFeature = mapLayerModel.features[caseIndex],
+              attrIDsToUse = (dataConfiguration.uniqueTipAttributes ?? [])
+                .map(aPair => aPair.attributeID),
+              tipText = getCaseTipText(caseID, attrIDsToUse, dataset)
+            infoPopup = popup({
+                closeButton: false,
+                autoPan: false,
+                offset: point(0, -20)
+              },
+              tFeature)
+            infoPopup.setContent(tipText)
+            setTimeout(() => {
+              if (infoPopup) {
+                tFeature.bindPopup(infoPopup).openPopup()
               }
-            },
-            caseID // Stashes reference in features[iIndex].options.caseID
-          } as PolygonLayerOptions)
-            .on('click', handleClick) // unable to use 'mousedown' for unknown reason
-            .on('mouseover', handleMouseover)
-            .on('mouseout', handleMouseout)
-            .addTo(leafletMap)
-        }
+            }, transitionDuration)
+          },
 
-      const
-        polygonId = boundaryAttributeFromDataSet(dataset),
-        // Keep track of which features are already on the map so that we can delete ones that no longer have
-        // corresponding cases in the dataset
-        featuresToRemove = mapLayerModel.features.map((feature) => {
-          return (feature.options as PolygonLayerOptions).caseID
-        })
-      dataConfiguration.caseDataArray.forEach((aCaseData, caseIndex) => {
-        const notAlreadyStashed = mapLayerModel.features.findIndex((feature) => {
-          return (feature.options as PolygonLayerOptions).caseID === aCaseData.caseID
-        }) === -1
-        if (notAlreadyStashed) {
-          const
-            polygon = safeJsonParse(dataset.getStrValue(aCaseData.caseID, polygonId))
-          if (polygon) {
-            stashFeature(aCaseData.caseID, polygon, caseIndex, '')
+          handleMouseout = () => {
+            infoPopup?.close()
+            infoPopup = null
           }
-        } else {  // This case has an already stashed feature. Remove it from the list of current features
-          // so that its corresponding feature won't be deleted below
-          const featureID = (mapLayerModel.features[caseIndex].options as PolygonLayerOptions).caseID,
-            featureIndex = featuresToRemove.indexOf(featureID)
-          featuresToRemove.splice(featureIndex, 1)
-        }
-      })
-      // Delete features that no longer have corresponding cases in the dataset
-      featuresToRemove.forEach((featureID) => {
-        const featureIndex = mapLayerModel.features.findIndex((feature) => {
-          return (feature.options as PolygonLayerOptions).caseID === featureID
-        })
-        if (featureIndex >= 0) {
-          leafletMap.removeLayer(mapLayerModel.features[featureIndex])
-          mapLayerModel.features.splice(featureIndex, 1)
-        }
-      })
-      // Now that we're sure we have the right polygon features, update their styles
-      refreshPolygonStyles()
-    }, [dataset, mapLayerModel.features, dataConfiguration.caseDataArray, dataConfiguration.uniqueTipAttributes,
-    refreshPolygonStyles, leafletMap]
-  )
 
-// Actions in the dataset can trigger need point updates
+        if (!jsonObject) {
+          console.log(`MapPolygonLayer.refreshPolygons: error: ${error}`)
+          return
+        }
+        mapLayerModel.features[caseIndex] = geoJSON(jsonObject, {
+          style() {
+            return {
+              fillColor: kMapAreaNoLegendColor,
+              fillOpacity: kMapAreaNoLegendUnselectedOpacity,
+              smoothFactor: 2
+            }
+          },
+          caseID // Stashes reference in features[iIndex].options.caseID
+        } as PolygonLayerOptions)
+          .on('click', handleClick) // unable to use 'mousedown' for unknown reason
+          .on('mouseover', handleMouseover)
+          .on('mouseout', handleMouseout)
+          .addTo(leafletMap)
+      }
+
+    const
+      polygonId = boundaryAttributeFromDataSet(dataset),
+      // Keep track of which features are already on the map so that we can delete ones that no longer have
+      // corresponding cases in the dataset
+      featuresToRemove = mapLayerModel.features.map((feature) => {
+        return (feature.options as PolygonLayerOptions).caseID
+      })
+    dataConfiguration.caseDataArray.forEach((aCaseData, caseIndex) => {
+      const notAlreadyStashed = mapLayerModel.features.findIndex((feature) => {
+        return (feature.options as PolygonLayerOptions).caseID === aCaseData.caseID
+      }) === -1
+      if (notAlreadyStashed) {
+        const
+          polygon = safeJsonParse(dataset.getStrValue(aCaseData.caseID, polygonId))
+        if (polygon) {
+          stashFeature(aCaseData.caseID, polygon, caseIndex, '')
+        }
+      } else {  // This case has an already stashed feature. Remove it from the list of current features
+        // so that its corresponding feature won't be deleted below
+        const featureID = (mapLayerModel.features[caseIndex].options as PolygonLayerOptions).caseID,
+          featureIndex = featuresToRemove.indexOf(featureID)
+        featuresToRemove.splice(featureIndex, 1)
+      }
+    })
+    // Delete features that no longer have corresponding cases in the dataset
+    featuresToRemove.forEach((featureID) => {
+      const featureIndex = mapLayerModel.features.findIndex((feature) => {
+        return (feature.options as PolygonLayerOptions).caseID === featureID
+      })
+      if (featureIndex >= 0) {
+        leafletMap.removeLayer(mapLayerModel.features[featureIndex])
+        mapLayerModel.features.splice(featureIndex, 1)
+      }
+    })
+    // Now that we're sure we have the right polygon features, update their styles
+    refreshPolygonStyles()
+  }, 10)
+
+  // Actions in the dataset can trigger need to update polygons
   useEffect(function setupResponsesToDatasetActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
@@ -172,18 +171,21 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     }
   }, [dataset, refreshPolygons, refreshPolygonStyles])
 
-// Changes in layout require repositioning polygons
+  // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
-    const disposer = reaction(
-      () => [layout.tileWidth, layout.tileHeight, layout.getComputedBounds('legend')?.height],
+    return reaction(
+      () => {
+        const { contentWidth, contentHeight } = layout
+        const { center, zoom } = mapModel.leafletMapState
+        return { contentWidth, contentHeight, center, zoom }
+      },
       () => {
         refreshPolygons(false)
-      }, { name: "MapPolygonLayer.respondToLayoutChanges", equals: comparer.structural }
+      }, {name: "MapPolygonLayer.respondToLayoutChanges", equals: comparer.structural, fireImmediately: true}
     )
-    return () => disposer()
-  }, [layout, refreshPolygons])
+  }, [layout, mapModel.leafletMapState, refreshPolygons])
 
-// Changes in legend attribute require repositioning polygons
+  // Changes in legend attribute require repositioning polygons
   useEffect(function setupResponsesToLayoutChanges() {
     const disposer = reaction(
       () => [dataConfiguration.attributeID('legend')],
@@ -194,16 +196,14 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     return () => disposer()
   }, [dataConfiguration, refreshPolygons])
 
-// respond to change in mapContentModel.displayChangeCount triggered by user action in leaflet
-  useEffect(function setupReactionToDisplayChangeCount() {
-    const disposer = reaction(
-      () => [mapModel.displayChangeCount],
+  useEffect(function setupResponseToChangeInNumberOfCases() {
+    return mstReaction(
+      () => dataConfiguration?.caseDataArray.length,
       () => {
         refreshPolygons(false)
-      }
+      }, {name: "MapPointLayer.setupResponseToChangeInNumberOfCases", fireImmediately: true}, dataConfiguration
     )
-    return () => disposer()
-  }, [layout, mapModel.displayChangeCount, refreshPolygons])
+  }, [dataConfiguration, refreshPolygons])
 
   return (
     <></>

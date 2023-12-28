@@ -1,4 +1,4 @@
-import {select} from "d3"
+import {select, Selection} from "d3"
 import {useEffect} from "react"
 import {tip as d3tip} from "d3-v6-tip"
 import {IDataSet} from "../../../models/data/data-set"
@@ -36,14 +36,14 @@ export const useDataTips = ({dataset, displayModel}: IUseDataTips) => {
 
   useEffect(() => {
 
-    function okToTransition(target: any) {
+    function okToTransition(target: Selection<SVGGeometryElement, unknown, null, undefined>) {
       return !isAnimating() && target.node()?.nodeName === 'circle' && dataset &&
         !target.property('isDragging')
     }
 
     function showDataTip(event: MouseEvent) {
       const roleAttrIDPairs: RoleAttrIDPair[] = displayModel.dataConfiguration.uniqueTipAttributes ?? [],
-        target = select(event.target as SVGSVGElement)
+        target = select(event.target as SVGGeometryElement)
       if (okToTransition(target)) {
         target.transition().duration(transitionDuration).attr('r', hoverPointRadius)
         const caseID = (target.datum() as CaseData).caseID,
@@ -61,12 +61,12 @@ export const useDataTips = ({dataset, displayModel}: IUseDataTips) => {
     }
 
     function hideDataTip(event: MouseEvent) {
-      const target = select(event.target as SVGSVGElement)
+      const target = select(event.target as SVGGeometryElement)
       dataTip.hide()
       if (okToTransition(target)) {
-        const caseID = (select(event.target as SVGSVGElement).datum() as CaseData).caseID,
+        const caseID = (select(event.target as SVGGeometryElement).datum() as CaseData).caseID,
           isSelected = dataset?.isCaseSelected(caseID)
-        select(event.target as SVGSVGElement)
+        select(event.target as SVGGeometryElement)
           .transition().duration(transitionDuration)
           .attr('r', isSelected ? selectedPointRadius : pointRadius)
       }

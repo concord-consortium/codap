@@ -18,7 +18,7 @@ export const LegendElements = {
     return this.getLegend().find("[data-testid=legend-categories]>svg rect")
   },
   getLegendAttributeMenu() {
-    return this.getGraphTile().find("[data-testid=codap-graph-attribute-label-legend]")
+    return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
   },
   getAttributeFromLegendMenu() {
     return this.getLegendAttributeMenu().parent()

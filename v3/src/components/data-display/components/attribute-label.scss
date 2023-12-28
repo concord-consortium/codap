@@ -1,0 +1,7 @@
+@import "../../vars.scss";
+
+.attribute-label {
+  fill: blue !important;
+  text-decoration: underline;
+  font: $label-font !important;
+}

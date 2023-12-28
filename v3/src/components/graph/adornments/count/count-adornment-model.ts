@@ -15,10 +15,10 @@ export const CountAdornmentModel = AdornmentModel
   .views(self => ({
     percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
       const divisor = self.percentType === "row"
-        ? dataConfig?.rowCases(cellKey)?.length ?? 0
+        ? dataConfig?.rowCases(cellKey).length ?? 0
         : self.percentType === "column"
-          ? dataConfig?.columnCases(cellKey)?.length ?? 0
-          : dataConfig?.subPlotCases(cellKey)?.length ?? 0
+          ? dataConfig?.columnCases(cellKey).length ?? 0
+          : dataConfig?.allPlottedCases.length ?? 0
       const percentValue = casesInPlot / divisor
       return isFinite(percentValue) ? percentValue : 0
     }

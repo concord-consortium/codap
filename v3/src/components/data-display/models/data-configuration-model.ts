@@ -246,21 +246,11 @@ export const DataConfigurationModel = types
         }
       },
       /**
-       * Todo: This method is inefficient since it has to go through all the cases in the graph to determine
-       * which categories are present. It should be replaced by some sort of functionality that allows
-       * caching of the categories that have been determined to be valid.
        * @param role
        * @param emptyCategoryArray
        */
       categoryArrayForAttrRole(role: AttrRole, emptyCategoryArray = ['__main__']): string[] {
-        let categoryArray: string[] = []
-        if (self.metadata) {
-          const attributeID = self.attributeID(role) || ''
-          const categorySet = self.metadata.getCategorySet(attributeID)
-          const validValues: Set<string> = new Set(this.valuesForAttrRole(role))
-          categoryArray = (categorySet?.values || emptyCategoryArray)
-            .filter((aValue: string) => validValues.has(aValue))
-        }
+        let categoryArray = Array.from(new Set(this.valuesForAttrRole(role)))
         if (categoryArray.length === 0) {
           categoryArray = emptyCategoryArray
         }
@@ -394,7 +384,7 @@ export const DataConfigurationModel = types
     {
       placeCanHaveZeroExtent(place: GraphPlace) {
         return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
-          self.attributeID(graphPlaceToAttrRole[place]) === ''
+          !self.attributeID(graphPlaceToAttrRole[place])
       },
       // GraphDataConfigurationModel overrides this. Here we only have to worry about the 'legend' role.
       placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
@@ -503,6 +493,7 @@ export const DataConfigurationModel = types
       self.filteredCases.forEach((aFilteredCases) => {
         aFilteredCases.invalidateCases()
       })
+      self.clearCasesCache()
     },
     _addNewFilteredCases() {
       if (self.dataset) {
@@ -544,6 +535,7 @@ export const DataConfigurationModel = types
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()
       self.actionHandlerDisposer = undefined
+      self.clearCasesCache()
       self.clearFilteredCases()
       if (data) {
         self.actionHandlerDisposer = onAnyAction(data, self.handleDataSetAction)
@@ -567,7 +559,10 @@ export const DataConfigurationModel = types
       // respond to change of legend attribute
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
-        () => self.invalidateQuantileScale(),
+        () => {
+          self.invalidateQuantileScale()
+          self.clearCasesCache()
+        },
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
       ))
       // Invalidate cache when selection changes.
@@ -578,6 +573,11 @@ export const DataConfigurationModel = types
           name: "DataConfigurationModel.afterCreate.reaction [allCasesForCategoryAreSelected invalidate cache]",
           equals: comparer.structural
         }
+      ))
+      // invalidate caches when hiddenCases changes
+      addDisposer(self, reaction(
+        () => self.hiddenCases.length,
+        count => self._invalidateCases()
       ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
@@ -597,12 +597,10 @@ export const DataConfigurationModel = types
       self._setAttributeType(role, type, plotNumber)
     },
     addNewHiddenCases(hiddenCases: string[]) {
-      self.hiddenCases.replace(self.hiddenCases.concat(hiddenCases))
-      self._invalidateCases()
+      self.hiddenCases.push(...hiddenCases)
     },
     clearHiddenCases() {
       self.hiddenCases.replace([])
-      self._invalidateCases()
     }
   }))
   .actions(self => ({

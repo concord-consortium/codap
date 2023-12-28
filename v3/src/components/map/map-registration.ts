@@ -1,6 +1,7 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import {kMapTileClass, kMapTileType} from "./map-defs"
+import {kDefaultMapHeight, kDefaultMapWidth} from "./map-types"
 import MapIcon from "../../assets/icons/icon-map.svg"
 import {createMapContentModel, MapContentModel} from "./models/map-content-model"
 import {MapComponentTitleBar} from "./components/map-component-title-bar"
@@ -28,6 +29,6 @@ registerTileComponentInfo({
     labelKey: "DG.ToolButtonData.mapButton.title",
     hintKey: "DG.ToolButtonData.mapButton.toolTip"
   },
-  defaultWidth: 300,
-  defaultHeight: 300
+  defaultWidth: kDefaultMapWidth,
+  defaultHeight: kDefaultMapHeight
 })

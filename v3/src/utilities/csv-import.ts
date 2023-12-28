@@ -5,11 +5,11 @@ type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
 
 export function importCsvFile(file: File | null, onComplete: (results: CsvParseResult, aFile: any) => void) {
-  parse(file, { header: true, complete: onComplete })
+  parse(file, { comments: "#", header: true, complete: onComplete })
 }
 
 export function downloadCsvFile(dataUrl: string, onComplete: (results: CsvParseResult, aFile: any) => void) {
-  parse(dataUrl, { download: true, header: true, complete: onComplete })
+  parse(dataUrl, { download: true, comments: "#", header: true, complete: onComplete })
 }
 
 export function convertParsedCsvToDataSet(results: CsvParseResult, filename: string) {
