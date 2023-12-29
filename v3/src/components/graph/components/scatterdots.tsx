@@ -124,9 +124,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   }, [layout, dataConfiguration, dataset, dragID])
 
   const onDragEnd = useCallback(() => {
-    dataset?.endCaching()
-    appState.endPerformance()
-
     if (dragID !== '') {
       setDragID(() => '')
       if (didDrag.current) {
@@ -146,6 +143,10 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
         didDrag.current = false
       }
     }
+    // These calls are moved to the end to ensure that transitions are not broken by all the points being
+    // repositioned (default behavior when caching and perf mode is disabled).
+    dataset?.endCaching()
+    appState.endPerformance()
   }, [dataConfiguration, dataset, dragID, startAnimation])
 
   usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})

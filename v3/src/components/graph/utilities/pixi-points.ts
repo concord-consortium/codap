@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
-import { PixiTransition } from "./pixi-transition"
+import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
 
 const DEFAULT_Z_INDEX = 0
@@ -72,8 +72,9 @@ export class PixiPoints {
 
   resizeObserver?: ResizeObserver
 
-  activeTransitions = 0
-  currentTransition?: PixiTransition
+  currentlySetupTransition?: PixiTransition
+  targetProp: TransitionPropMap = {}
+  startProp: TransitionPropMap = {}
 
   onPointClick?: PixiPointEventHandler
   onPointDragStart?: PixiPointEventHandler
@@ -81,7 +82,7 @@ export class PixiPoints {
   onPointDragEnd?: PixiPointEventHandler
 
   constructor(options?: IPixiPointsOptions) {
-    this.ticker.add(() => this.renderer.render(this.stage))
+    this.ticker.add(this.tick.bind(this))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
     // Enable zIndex support
@@ -114,46 +115,112 @@ export class PixiPoints {
     return this.points.length
   }
 
-  getPointByCaseId(caseId: string) {
-    return this.caseIDToPoint.get(caseId) as PIXI.Sprite
+  get anyTransitionActive() {
+    return PixiTransition.anyTransitionActive(this.targetProp)
   }
 
-  startRenderLoop() {
-    if (this.activeTransitions === 0) {
-      this.ticker.start()
-    }
-    this.activeTransitions += 1
-  }
-
-  stopRenderLoop() {
-    this.activeTransitions -= 1
-    if (this.activeTransitions === 0) {
+  tick() {
+    if (this.anyTransitionActive) {
+      PixiTransition.transitionStep(this.targetProp, this.startProp)
+    } else {
+      // The only reason for ticket to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
     }
-  }
-
-  rerender() {
-    // This function is currently used only by resize() and it uses render loop to avoid rendering in the main thread.
-    if (this.activeTransitions) {
-       // rendering loop is already running
-      return
-    }
-    window.clearTimeout(this.tickerStopTimeoutId)
-    this.tickerStopTimeoutId = window.setTimeout(() => {
-      if (!this.activeTransitions) {
-        this.ticker.stop()
-      }
-    }, 250)
-    if (!this.ticker.started) {
-      this.ticker.start()
-    }
+    this.renderer.render(this.stage)
   }
 
   resize(width: number, height: number) {
     this.renderer.resize(width, height)
     this.background.width = width
     this.background.height = height
-    this.rerender()
+    this.startRendering()
+  }
+
+  startRendering() {
+    if (!this.ticker.started) {
+      this.ticker.start()
+    }
+  }
+
+  forEachPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void, { selectedOnly = false } = {}) {
+    for (let i = 0; i < this.points.length; i++) {
+      const point = this.points[i]
+      const metadata = this.getMetadata(point)
+      if (selectedOnly && point.zIndex !== RAISED_Z_INDEX) {
+        continue
+      }
+      callback(point, metadata)
+    }
+    this.startRendering()
+  }
+
+  forEachSelectedPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void) {
+    for (let i = 0; i < this.points.length; i++) {
+      const point = this.points[i]
+      if (point.zIndex === RAISED_Z_INDEX) {
+        const metadata = this.getMetadata(point)
+        callback(point, metadata)
+      }
+    }
+    this.startRendering()
+  }
+
+  // This method should be used instead of directly setting the position of the point sprite, as it handles transitions.
+  setPointPosition(point: PIXI.Sprite, x: number, y: number) {
+    this.setPointXyProperty("position", point, x, y)
+  }
+
+  // This method should be used instead of directly setting the scale of the point sprite, as it handles transitions.
+  setPointScale(point: PIXI.Sprite, scale: number) {
+    this.setPointXyProperty("scale", point, scale, scale)
+  }
+
+  setPointXyProperty(prop: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
+    if (this.currentlySetupTransition) {
+      this.setTargetXyProp(prop, point, x, y)
+    } else {
+      // Cancel any ongoing transition for this point and simply set the new position immediately.
+      const targetProp = this.targetProp[prop]
+      if (targetProp?.has(point)) {
+        targetProp.delete(point)
+      }
+      point[prop].set(x, y)
+      this.startRendering()
+    }
+  }
+
+  setTargetXyProp(propKey: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
+    if (!this.currentlySetupTransition) {
+      return
+    }
+    let targetProp = this.targetProp[propKey]
+    let startProp = this.startProp[propKey]
+    if (!targetProp || !startProp) {
+      targetProp = this.targetProp[propKey] = new Map()
+      startProp = this.startProp[propKey] = new Map()
+    }
+    targetProp.set(point, { x, y, transition: this.currentlySetupTransition })
+    startProp.set(point, { x: point[propKey].x, y: point[propKey].y, transition: this.currentlySetupTransition })
+  }
+
+  setPointRaised(point: PIXI.Sprite, value: boolean) {
+    point.zIndex = value ? RAISED_Z_INDEX : DEFAULT_Z_INDEX
+    this.startRendering()
+  }
+
+  setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
+    const metadata = this.getMetadata(point)
+    const newStyle = { ...metadata.style, ...style }
+    metadata.style = newStyle
+    const texture = this.getPointTexture(newStyle)
+    if (point.texture !== texture) {
+      point.texture = texture
+    }
+    this.startRendering()
+  }
+
+  getPointByCaseId(caseId: string) {
+    return this.caseIDToPoint.get(caseId) as PIXI.Sprite
   }
 
   transition(callback: () => void, options: { duration: number, onEnd?: () => void }) {
@@ -162,23 +229,30 @@ export class PixiPoints {
       callback()
       return
     }
-    this.currentTransition = new PixiTransition(duration, this.points)
-    this.currentTransition.onEnd(() => {
-      this.stopRenderLoop()
-      onEnd?.()
-    })
+    this.currentlySetupTransition = new PixiTransition(duration, onEnd)
     callback()
-    this.startRenderLoop()
-    this.currentTransition.play()
-    this.currentTransition = undefined
+    this.currentlySetupTransition = undefined
+    this.startRendering()
+  }
+
+  getMetadata(sprite: PIXI.Sprite) {
+    const metadata = this.pointMetadata.get(sprite)
+    if (!metadata) {
+      throw new Error("Sprite not found in pointMetadata")
+    }
+    return metadata
+  }
+
+  getNewSprite(texture: PIXI.Texture) {
+    const sprite = new PIXI.Sprite(texture)
+    sprite.anchor.set(0.5)
+    sprite.zIndex = DEFAULT_Z_INDEX
+    this.setupSpriteInteractivity(sprite)
+    return sprite
   }
 
   textureKey(style: IPixiPointStyle) {
     return JSON.stringify(style)
-  }
-
-  cleanupUnusedTextures() {
-    // TODO PIXI
   }
 
   getPointTexture(style: IPixiPointStyle): PIXI.Texture {
@@ -203,20 +277,8 @@ export class PixiPoints {
     return texture
   }
 
-  getMetadata(sprite: PIXI.Sprite) {
-    const metadata = this.pointMetadata.get(sprite)
-    if (!metadata) {
-      throw new Error("Sprite not found in pointMetadata")
-    }
-    return metadata
-  }
-
-  getNewSprite(texture: PIXI.Texture) {
-    const sprite = new PIXI.Sprite(texture)
-    sprite.anchor.set(0.5)
-    sprite.zIndex = DEFAULT_Z_INDEX
-    this.setupSpriteInteractivity(sprite)
-    return sprite
+  cleanupUnusedTextures() {
+    // TODO PIXI
   }
 
   setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions) {
@@ -320,8 +382,7 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle, options?: { onClick?: PixiPointEventHandler }) {
-    const noop = () => undefined
+  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
     const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
@@ -341,9 +402,6 @@ export class PixiPoints {
       } else {
         currentIDs.add(caseID)
         this.caseIDToPoint.set(caseID, point)
-        point.on("click", !options?.onClick ? noop : (event: PIXI.FederatedPointerEvent) => {
-          options.onClick?.(event, point, this.getMetadata(point))
-        })
       }
     }
 
@@ -358,9 +416,6 @@ export class PixiPoints {
         this.pointsContainer.addChild(sprite)
         this.pointMetadata.set(sprite, { caseID, plotNum, style })
         this.caseIDToPoint.set(caseID, sprite)
-        sprite.on("pointerdown", !options?.onClick ? noop : (event: PIXI.FederatedPointerEvent) => {
-          options.onClick?.(event, sprite, this.getMetadata(sprite))
-        })
       }
     }
 
@@ -372,69 +427,9 @@ export class PixiPoints {
         const metadata = this.getMetadata(point)
         metadata.style = style
       }
-      point.on("pointerdown", !options?.onClick ? noop : (event: PIXI.FederatedPointerEvent) => {
-        options.onClick?.(event, point, this.getMetadata(point))
-      })
     }
 
-    this.rerender()
-  }
-
-  forEachPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void, { selectedOnly = false } = {}) {
-    for (let i = 0; i < this.points.length; i++) {
-      const point = this.points[i]
-      const metadata = this.getMetadata(point)
-      if (selectedOnly && point.zIndex !== RAISED_Z_INDEX) {
-        continue
-      }
-      callback(point, metadata)
-    }
-    this.rerender()
-  }
-
-  forEachSelectedPoint(callback: (point: PIXI.Sprite, metadata: IPixiPointMetadata) => void) {
-    for (let i = 0; i < this.points.length; i++) {
-      const point = this.points[i]
-      if (point.zIndex === RAISED_Z_INDEX) {
-        const metadata = this.getMetadata(point)
-        callback(point, metadata)
-      }
-    }
-    this.rerender()
-  }
-
-  setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
-    const metadata = this.getMetadata(point)
-    const newStyle = { ...metadata.style, ...style }
-    metadata.style = newStyle
-    const texture = this.getPointTexture(newStyle)
-    if (point.texture !== texture) {
-      point.texture = texture
-    }
-    this.rerender()
-  }
-
-  setPointPosition(point: PIXI.Sprite, x: number, y: number) {
-    if (this.currentTransition) {
-      this.currentTransition.setTargetPosition(point, x, y)
-    } else {
-      point.position.set(x, y)
-      this.rerender()
-    }
-  }
-
-  setPointScale(point: PIXI.Sprite, scale: number) {
-    if (this.currentTransition) {
-      this.currentTransition.setTargetScale(point, scale)
-    } else {
-      point.scale.set(scale)
-      this.rerender()
-    }
-  }
-
-  setPointRaised(point: PIXI.Sprite, value: boolean) {
-    point.zIndex = value ? RAISED_Z_INDEX : DEFAULT_Z_INDEX
-    this.rerender()
+    this.startRendering()
   }
 
   dispose() {
