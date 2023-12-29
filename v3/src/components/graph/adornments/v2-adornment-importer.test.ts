@@ -27,6 +27,7 @@ describe("V2AdornmentImporter", () => {
   const graphs = v2Document.components.filter(c => c.type === "DG.GraphView")
   const emptyGraph = graphs.find(g => g.componentStorage?.title === "Empty")
   const countGraph = graphs.find(g => g.componentStorage?.title === "Count/Percent")
+  const connectingLinesGraph = graphs.find(g => g.componentStorage?.title === "Connecting Lines")
   const univariateMeasureGraph = graphs.find(g => g.componentStorage?.title === "Univariate Measures")
   const plottedAndMovableValuesGraph = graphs.find(g => g.componentStorage?.title === "Plotted and Movable Values")
   const movablePointLineLSRLGraph = graphs.find(g => g.componentStorage?.title === "Movable Point, Line, LSRL")
@@ -65,6 +66,17 @@ describe("V2AdornmentImporter", () => {
     expect(countAdornment.showCount).toBe(true)
     expect(countAdornment.showPercent).toBe(true)
     expect(countAdornment.percentType).toBe("cell")
+  })
+
+  it("imports graphs with Connecting Lines adornments", () => {
+    const { _links_: links, plotModels } = connectingLinesGraph?.componentStorage as ICodapV2GraphStorage
+    const contextId = links.context.id
+    const { data } = v2Document.getDataAndMetadata(contextId)
+    const adornmentStore = v2AdornmentImporter({
+      data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
+    })
+    expect(adornmentStore).toBeDefined()
+    expect(adornmentStore.showConnectingLines).toBe(true)
   })
 
   it("imports graphs with Univariate Measure adornments", () => {

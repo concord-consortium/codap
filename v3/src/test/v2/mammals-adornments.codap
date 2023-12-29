@@ -1,5 +1,5 @@
 {
-  "name": "Mammals",
+  "name": "mammals-adornments",
   "guid": 1,
   "id": 1,
   "components": [
@@ -48,7 +48,7 @@
           }
         ],
         "currentItemIndex": 0,
-        "isVisible": false,
+        "isVisible": true,
         "name": "Mammals Sample Guide",
         "userSetTitle": false,
         "cannotClose": false
@@ -738,6 +738,106 @@
         "top": 310,
         "isVisible": true,
         "right": 915,
+        "bottom": 610
+      },
+      "savedHeight": null
+    },
+    {
+      "type": "DG.GraphView",
+      "guid": 48,
+      "id": 48,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 2
+          },
+          "hiddenCases": [],
+          "xColl": {
+            "type": "DG.Collection",
+            "id": 3
+          },
+          "xAttr": {
+            "type": "DG.Attribute",
+            "id": 9
+          },
+          "yColl": {
+            "type": "DG.Collection",
+            "id": 3
+          },
+          "yAttr": {
+            "type": "DG.Attribute",
+            "id": 6
+          }
+        },
+        "displayOnlySelected": false,
+        "legendRole": 0,
+        "legendAttributeType": 0,
+        "numberOfLegendQuantiles": 5,
+        "legendQuantilesAreLocked": false,
+        "pointColor": "#e6805b",
+        "strokeColor": "white",
+        "pointSizeMultiplier": 1,
+        "transparency": 0.85,
+        "strokeTransparency": 0.4,
+        "strokeSameAsFill": false,
+        "isTransparent": false,
+        "plotBackgroundColor": null,
+        "plotBackgroundOpacity": 1,
+        "plotBackgroundImage": null,
+        "plotBackgroundImageLockInfo": null,
+        "xRole": 1,
+        "xAttributeType": 1,
+        "yRole": 4,
+        "yAttributeType": 1,
+        "y2Role": 0,
+        "y2AttributeType": 0,
+        "topRole": 0,
+        "topAttributeType": 0,
+        "rightRole": 0,
+        "rightAttributeType": 0,
+        "xAxisClass": "DG.CellLinearAxisModel",
+        "xLowerBound": -1,
+        "xUpperBound": 23,
+        "yAxisClass": "DG.CellLinearAxisModel",
+        "yLowerBound": -5,
+        "yUpperBound": 95,
+        "y2AxisClass": "DG.AxisModel",
+        "topAxisClass": "DG.CellAxisModel",
+        "rightAxisClass": "DG.CellAxisModel",
+        "plotModels": [
+          {
+            "plotModelStorage": {
+              "verticalAxisIsY2": false,
+              "adornments": {
+                "plottedCount": {
+                  "isVisible": false,
+                  "enableMeasuresForSelection": false,
+                  "isShowingCount": false,
+                  "isShowingPercent": false,
+                  "percentKind": 1
+                },
+                "connectingLine": {
+                  "isVisible": true,
+                  "enableMeasuresForSelection": false
+                }
+              }
+            },
+            "plotClass": "DG.ScatterPlotModel"
+          }
+        ],
+        "title": "Connecting Lines",
+        "userSetTitle": true,
+        "cannotClose": false
+      },
+      "layout": {
+        "width": 300,
+        "height": 300,
+        "zIndex": 172,
+        "left": 920,
+        "top": 310,
+        "isVisible": true,
+        "right": 1220,
         "bottom": 610
       },
       "savedHeight": null
@@ -1658,8 +1758,8 @@
   "globalValues": [],
   "appName": "DG",
   "appVersion": "2.0",
-  "appBuildNum": "0687",
+  "appBuildNum": "0688",
   "lang": "en",
-  "idCount": 47,
+  "idCount": 48,
   "metadata": {}
 }
