@@ -22,6 +22,9 @@ export function useGraphModel(props: IProps) {
     startAnimation = graphModel.startAnimation
 
   const callMatchCirclesToData = useCallback(() => {
+    if (!pixiPointsRef.current) {
+      return
+    }
     dataConfig && matchCirclesToData({
       dataConfiguration: dataConfig,
       pixiPoints: pixiPointsRef.current,

@@ -7,9 +7,17 @@ const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
 const MAX_SPRITE_SCALE = 2
 
+// Anything lying beneath the PixiJS canvas, expecting events to be passed through, must utilize only these specified
+// events. Others are currently not supported.
+export enum PixiBackgroundPassThroughEvent {
+  Click = "click",
+  MouseOver = "mouseover",
+  MouseOut = "mouseout"
+}
+
 export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
 
-export type DragHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
+export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
 export interface IPixiPointMetadata {
   caseID: string
@@ -23,6 +31,17 @@ export interface IPixiPointStyle {
   stroke: string
   strokeWidth: number
   strokeOpacity?: number
+}
+
+// PixiPoints layer can be setup to distribute events from background to elements laying underneath.
+export interface IBackgroundEventDistributionOptions {
+  elementToHide: HTMLElement // element which should be hidden to obtain element laying underneath
+  interactiveElClassName?: string // class name of elements that should receive passed events
+}
+
+export interface IPixiPointsOptions {
+  resizeTo: HTMLElement,
+  backgroundEventDistribution?: IBackgroundEventDistributionOptions
 }
 
 export class PixiPoints {
@@ -51,19 +70,36 @@ export class PixiPoints {
   caseIDToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
 
+  resizeObserver?: ResizeObserver
+
   activeTransitions = 0
   currentTransition?: PixiTransition
 
-  onPointDragStart?: DragHandler
-  onPointDrag?: DragHandler
-  onPointDragEnd?: DragHandler
+  onPointClick?: PixiPointEventHandler
+  onPointDragStart?: PixiPointEventHandler
+  onPointDrag?: PixiPointEventHandler
+  onPointDragEnd?: PixiPointEventHandler
 
-  constructor() {
+  constructor(options?: IPixiPointsOptions) {
     this.ticker.add(() => this.renderer.render(this.stage))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
     // Enable zIndex support
     this.pointsContainer.sortableChildren = true
+
+    if (options?.backgroundEventDistribution) {
+      this.setupBackgroundEventDistribution(options.backgroundEventDistribution)
+    }
+
+    if (options?.resizeTo) {
+      this.resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect
+          this.resize(width, height)
+        }
+      })
+      this.resizeObserver.observe(options.resizeTo)
+    }
   }
 
   get canvas() {
@@ -120,14 +156,16 @@ export class PixiPoints {
     this.rerender()
   }
 
-  transition(duration: number, callback: () => void) {
+  transition(callback: () => void, options: { duration: number, onEnd?: () => void }) {
+    const { duration, onEnd } = options
     if (duration === 0) {
       callback()
       return
     }
     this.currentTransition = new PixiTransition(duration, this.points)
-    this.currentTransition.onFinish(() => {
+    this.currentTransition.onEnd(() => {
       this.stopRenderLoop()
+      onEnd?.()
     })
     callback()
     this.startRenderLoop()
@@ -181,6 +219,53 @@ export class PixiPoints {
     return sprite
   }
 
+  setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions) {
+    const { elementToHide, interactiveElClassName } = options
+
+    const getElementUnderCanvas = (event: PIXI.FederatedPointerEvent) => {
+      const originalPointerEvents = elementToHide.style.pointerEvents
+      elementToHide.style.pointerEvents = "none"
+      const elementUnderneath = document.elementFromPoint(event.clientX, event.clientY)
+      elementToHide.style.pointerEvents = originalPointerEvents
+      return !interactiveElClassName || elementUnderneath?.classList.contains(interactiveElClassName)
+        ? elementUnderneath : null
+    }
+
+    // Note that background event handling attempts to pass the event to the element beneath the cursor,
+    // as if the canvas background were transparent. This facilitates the passing of events to other map layers.
+    this.background.eventMode = "static"
+
+    // Click event redistribution.
+    this.background.on("click", (event: PIXI.FederatedPointerEvent) => {
+      const elementUnderneath = getElementUnderCanvas(event)
+      // Dispatch the same event to the element under the cursor.
+      if (elementUnderneath) {
+        elementUnderneath.dispatchEvent(new MouseEvent("click", event))
+      }
+    })
+
+    // Handle mousemove events by dispatching mouseover/mouseout events to the elements beneath the cursor.
+    let mouseoverElement: Element | undefined
+    this.background.on("mousemove", (event: PIXI.FederatedPointerEvent) => {
+      const elementUnderneath = getElementUnderCanvas(event)
+      if (elementUnderneath != null && elementUnderneath === mouseoverElement) {
+        // This might seem redundant, but sometimes it's necessary to avoid conflicts with other interactive Pixi
+        // elements (like points/dots).
+        this.canvas.style.cursor = "pointer"
+        return
+      }
+      if (elementUnderneath) {
+        elementUnderneath.dispatchEvent(new MouseEvent("mouseover", event))
+        this.canvas.style.cursor = "pointer"
+        mouseoverElement = elementUnderneath
+      } else if (mouseoverElement) {
+        this.canvas.style.cursor = ""
+        mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
+        mouseoverElement = undefined
+      }
+    })
+  }
+
   setupSpriteInteractivity(sprite: PIXI.Sprite) {
     sprite.eventMode = "static"
     sprite.cursor = "pointer"
@@ -188,14 +273,14 @@ export class PixiPoints {
     let draggingActive = false
 
     const setHoverRadius = () => {
-      this.transition(transitionDuration, () => {
+      this.transition(() => {
         this.setPointScale(sprite, hoverRadiusFactor)
-      })
+      }, { duration: transitionDuration })
     }
     const restoreDefaultRadius = () => {
-      this.transition(transitionDuration, () => {
+      this.transition(() => {
         this.setPointScale(sprite, 1)
-      })
+      }, { duration: transitionDuration })
     }
 
     // Hover effect
@@ -206,8 +291,12 @@ export class PixiPoints {
       }
     })
 
+    sprite.on("click", (clickEvent: PIXI.FederatedPointerEvent) => {
+      this.onPointClick?.(clickEvent, sprite, this.getMetadata(sprite))
+    })
+
     // Dragging
-    sprite.on("pointerdown", (pointerDownEvent: PointerEvent) => {
+    sprite.on("pointerdown", (pointerDownEvent: PIXI.FederatedPointerEvent) => {
       draggingActive = true
       this.onPointDragStart?.(pointerDownEvent, sprite, this.getMetadata(sprite))
       setHoverRadius()
@@ -231,7 +320,8 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
+  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle, options?: { onClick?: PixiPointEventHandler }) {
+    const noop = () => undefined
     const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
@@ -251,6 +341,9 @@ export class PixiPoints {
       } else {
         currentIDs.add(caseID)
         this.caseIDToPoint.set(caseID, point)
+        point.on("click", !options?.onClick ? noop : (event: PIXI.FederatedPointerEvent) => {
+          options.onClick?.(event, point, this.getMetadata(point))
+        })
       }
     }
 
@@ -265,6 +358,9 @@ export class PixiPoints {
         this.pointsContainer.addChild(sprite)
         this.pointMetadata.set(sprite, { caseID, plotNum, style })
         this.caseIDToPoint.set(caseID, sprite)
+        sprite.on("pointerdown", !options?.onClick ? noop : (event: PIXI.FederatedPointerEvent) => {
+          options.onClick?.(event, sprite, this.getMetadata(sprite))
+        })
       }
     }
 
@@ -276,6 +372,9 @@ export class PixiPoints {
         const metadata = this.getMetadata(point)
         metadata.style = style
       }
+      point.on("pointerdown", !options?.onClick ? noop : (event: PIXI.FederatedPointerEvent) => {
+        options.onClick?.(event, point, this.getMetadata(point))
+      })
     }
 
     this.rerender()
@@ -343,5 +442,6 @@ export class PixiPoints {
     this.renderer.destroy()
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
+    this.resizeObserver?.disconnect()
   }
 }

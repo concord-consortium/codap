@@ -20,6 +20,7 @@ import {
   kMapAreaWithLegendSelectedBorderColor, PolygonLayerOptions
 }
   from "../map-types"
+import { PixiBackgroundPassThroughEvent } from "../../graph/utilities/pixi-points"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
@@ -71,7 +72,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
         const handleClick = (iEvent: LeafletMouseEvent) => {
             const mouseEvent = iEvent.originalEvent
-            handleClickOnCase(mouseEvent, caseID, dataset)
+            handleClickOnCase(mouseEvent as PointerEvent, caseID, dataset)
             mouseEvent.stopPropagation()
           },
 
@@ -113,9 +114,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           },
           caseID // Stashes reference in features[iIndex].options.caseID
         } as PolygonLayerOptions)
-          .on('click', handleClick) // unable to use 'mousedown' for unknown reason
-          .on('mouseover', handleMouseover)
-          .on('mouseout', handleMouseout)
+          .on(PixiBackgroundPassThroughEvent.Click, handleClick)
+          .on(PixiBackgroundPassThroughEvent.MouseOver, handleMouseover)
+          .on(PixiBackgroundPassThroughEvent.MouseOut, handleMouseout)
           .addTo(leafletMap)
       }
 

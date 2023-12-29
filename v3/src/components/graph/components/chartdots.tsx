@@ -78,10 +78,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      pointColor, pointStrokeColor, dataConfiguration,
+      pixiPointsRef, pointColor, pointStrokeColor, dataConfiguration,
       pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataConfiguration, graphModel, pointColor, pointStrokeColor])
+  }, [dataConfiguration, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryRole is the bottom just to help understand the naming

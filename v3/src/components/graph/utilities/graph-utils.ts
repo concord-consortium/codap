@@ -250,7 +250,7 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 }
 
 export interface ISetPointSelection {
-  pixiPointsRef?: IPixiPointsRef
+  pixiPointsRef: IPixiPointsRef
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
   selectedPointRadius: number,
@@ -299,21 +299,21 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   const setPoints = () => {
     // Do we really need to calculate legend color here? If this function is called both while resizing
     // the graph and while updating legend colors, we could possibly split it into two different functions.
-    const pixiRenderer = pixiPointsRef?.current
-    if (pixiRenderer) {
-      pixiRenderer.transition(getAnimationEnabled() ? transitionDuration : 0, () => {
-        pixiRenderer.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    const pixiPoints = pixiPointsRef?.current
+    if (pixiPoints) {
+      pixiPoints.transition(() => {
+        pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
           const { caseID, plotNum } = metadata
-          pixiRenderer.setPointStyle(point, {
+          pixiPoints.setPointStyle(point, {
             radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
             fill: lookupLegendColor(metadata),
             stroke: getLegendColor && dataset?.isCaseSelected(caseID) ? defaultSelectedStroke : pointStrokeColor,
             strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
               ? defaultSelectedStrokeWidth : defaultStrokeWidth
           })
-          pixiRenderer.setPointPosition(point, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+          pixiPoints.setPointPosition(point, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
         }, { selectedOnly })
-      })
+      }, { duration: getAnimationEnabled() ? transitionDuration : 0 })
     }
   }
 
