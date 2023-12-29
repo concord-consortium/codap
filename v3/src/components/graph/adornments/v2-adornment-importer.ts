@@ -133,6 +133,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   const v2Adornments = plotModelStorage.adornments
   const showSquaresOfResiduals = plotModelStorage.areSquaresVisible
   const showMeasureLabels = plotModelStorage.showMeasureLabels
+  let showConnectingLines = false
   const v3Adornments = []
   let interceptLocked = false
 
@@ -149,6 +150,12 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       type: kCountType
     }
     v3Adornments.push(countAdornmentImport)
+  }
+
+  // CONNECTING LINES
+  const connectingLinesAdornment = v2Adornments.connectingLine
+  if (connectingLinesAdornment?.isVisible) {
+    showConnectingLines = true
   }
 
   // MOVABLE POINT
@@ -343,6 +350,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     type: "Adornments Store",
     adornments: v3Adornments,
     interceptLocked,
+    showConnectingLines,
     showMeasureLabels,
     showSquaresOfResiduals
   }

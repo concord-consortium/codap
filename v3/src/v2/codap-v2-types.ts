@@ -143,6 +143,11 @@ interface ICodapV2CountAdornment {
   percentKind: number
 }
 
+interface ICodapV2ConectingLinesAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+}
+
 interface ICodapV2MovableValueAdornment {
   isVisible: boolean
   enableMeasuresForSelection: boolean
@@ -196,9 +201,10 @@ interface ICodapV2PlottedValueAdornment {
   expression: string
 }
 
-type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2MovableValueAdornment | ICodapV2MeanAdornment |
-                         ICodapV2MedianAdornment | ICodapV2StDevAdornment | ICodapV2MadAdornment |
-                         ICodapV2PlottedFunctionAdornment | ICodapV2PlottedValueAdornment | ICodapV2BoxPlotAdornment
+type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2ConectingLinesAdornment | ICodapV2MovableValueAdornment |
+                         ICodapV2MeanAdornment | ICodapV2MedianAdornment | ICodapV2StDevAdornment |
+                         ICodapV2MadAdornment | ICodapV2PlottedFunctionAdornment | ICodapV2PlottedValueAdornment |
+                         ICodapV2BoxPlotAdornment
 
 interface ICodapV2MovablePointStorage {
   isVisible: boolean
