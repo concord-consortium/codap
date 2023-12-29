@@ -156,7 +156,7 @@ export const MapPointLayer = function MapPointLayer(props: {
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
-          refreshPoints(dataset.isCaching)
+          refreshPoints(dataset.isCaching())
         } else if (["addCases", "removeCases"].includes(action.name)) {
           refreshPoints(false)
         }
