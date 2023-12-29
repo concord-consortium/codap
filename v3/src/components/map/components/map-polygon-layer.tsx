@@ -93,11 +93,17 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
                 tFeature.bindPopup(infoPopup).openPopup()
               }
             }, transitionDuration)
+            // Manual cursor setup is necessary when there's also the map points layer that uses PixiJS canvas.
+            // In that case, the events are redistributed from canvas and the only way to have hover cursor is to use
+            // mouseover and mouseout events.
+            leafletMap.getContainer().style.cursor = "pointer"
           },
 
           handleMouseout = () => {
             infoPopup?.close()
             infoPopup = null
+            // Manual cursor setup is necessary when there's also the map points layer that uses PixiJS canvas.
+            leafletMap.getContainer().style.cursor = ""
           }
 
         if (!jsonObject) {

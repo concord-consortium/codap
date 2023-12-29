@@ -12,7 +12,8 @@ const MAX_SPRITE_SCALE = 2
 export enum PixiBackgroundPassThroughEvent {
   Click = "click",
   MouseOver = "mouseover",
-  MouseOut = "mouseout"
+  MouseOut = "mouseout",
+  PointerDown = "pointerdown",
 }
 
 export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
@@ -282,15 +283,14 @@ export class PixiPoints {
   }
 
   setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions) {
-    const { elementToHide, interactiveElClassName } = options
+    const { elementToHide } = options
 
     const getElementUnderCanvas = (event: PIXI.FederatedPointerEvent) => {
       const originalPointerEvents = elementToHide.style.pointerEvents
       elementToHide.style.pointerEvents = "none"
       const elementUnderneath = document.elementFromPoint(event.clientX, event.clientY)
       elementToHide.style.pointerEvents = originalPointerEvents
-      return !interactiveElClassName || elementUnderneath?.classList.contains(interactiveElClassName)
-        ? elementUnderneath : null
+      return elementUnderneath
     }
 
     // Note that background event handling attempts to pass the event to the element beneath the cursor,
@@ -306,22 +306,35 @@ export class PixiPoints {
       }
     })
 
+    this.background.on("pointerdown", (event: PIXI.FederatedPointerEvent) => {
+      const elementUnderneath = getElementUnderCanvas(event)
+      // Dispatch the same event to the element under the cursor.
+      if (elementUnderneath) {
+        elementUnderneath.dispatchEvent(new PointerEvent("pointerdown", event))
+      }
+    })
+
     // Handle mousemove events by dispatching mouseover/mouseout events to the elements beneath the cursor.
     let mouseoverElement: Element | undefined
     this.background.on("mousemove", (event: PIXI.FederatedPointerEvent) => {
       const elementUnderneath = getElementUnderCanvas(event)
-      if (elementUnderneath != null && elementUnderneath === mouseoverElement) {
-        // This might seem redundant, but sometimes it's necessary to avoid conflicts with other interactive Pixi
-        // elements (like points/dots).
-        this.canvas.style.cursor = "pointer"
+      if (elementUnderneath && elementUnderneath === mouseoverElement) {
+        // Mouse moving over the same element, no need to do anything.
         return
       }
       if (elementUnderneath) {
+        if (mouseoverElement && mouseoverElement !== elementUnderneath) {
+          mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
+        }
         elementUnderneath.dispatchEvent(new MouseEvent("mouseover", event))
-        this.canvas.style.cursor = "pointer"
         mouseoverElement = elementUnderneath
       } else if (mouseoverElement) {
-        this.canvas.style.cursor = ""
+        mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
+        mouseoverElement = undefined
+      }
+    })
+    this.background.on("mouseout", (event: PIXI.FederatedPointerEvent) => {
+      if (mouseoverElement) {
         mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
         mouseoverElement = undefined
       }
@@ -369,16 +382,18 @@ export class PixiPoints {
         }
       }
 
-      window.addEventListener("pointermove", onDrag)
-
-      window.addEventListener("pointerup", (pointerUpEvent: PointerEvent) => {
+      const onDragEnd = (pointerUpEvent: PointerEvent) => {
         if (draggingActive) {
           draggingActive = false
           this.onPointDragEnd?.(pointerUpEvent, sprite, this.getMetadata(sprite))
           restoreDefaultRadius()
           window.removeEventListener("pointermove", onDrag)
+          window.removeEventListener("pointerup", onDragEnd)
         }
-      })
+      }
+
+      window.addEventListener("pointermove", onDrag)
+      window.addEventListener("pointerup", onDragEnd)
     })
   }
 

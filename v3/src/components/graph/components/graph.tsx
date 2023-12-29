@@ -67,8 +67,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
     pixiPointsRef.current.setupBackgroundEventDistribution({
-      elementToHide: pixiContainerRef.current,
-      interactiveElClassName: "interactive-graph-element"
+      elementToHide: pixiContainerRef.current
     })
   }
 

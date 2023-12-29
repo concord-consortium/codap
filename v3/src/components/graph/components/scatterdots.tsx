@@ -21,7 +21,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
-import {IPixiPointMetadata} from "../utilities/pixi-points"
+import {IPixiPointMetadata, PixiBackgroundPassThroughEvent} from "../utilities/pixi-points"
 import {useDataDisplayModelContext} from "../../data-display/hooks/use-data-display-model"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
@@ -180,9 +180,12 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       return `<p>${d}</p>`
     })
 
-  const handleConnectingLinesHover = useCallback((
+  const handleConnectingLinesMouseOver = useCallback((
     event: MouseEvent, caseIDs: string[], parentAttrName?: string, parentAttrValue?: string
   ) => {
+    if (pixiPointsRef.current) {
+      pixiPointsRef.current.canvas.style.cursor = "pointer"
+    }
     // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
     // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
     // localization for this. When a parent attribute is present, the tool tip should look like:
@@ -196,7 +199,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     const vars = [parentAttrName, parentAttrValue, caseIdCount, datasetName]
     const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.name])
+  }, [dataTip, dataset?.name, pixiPointsRef])
+
+  const handleConnectingLinesMouseOut = useCallback(() => {
+    if (pixiPointsRef.current) {
+      pixiPointsRef.current.canvas.style.cursor = ""
+    }
+    dataTip.hide()
+  }, [dataTip, pixiPointsRef])
 
   const connectingLinesCleanUp = useCallback(() => {
     connectingLinesActivatedRef.current = showConnectingLines
@@ -270,9 +280,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .attr("d", d => curve(d))
           .classed("interactive-graph-element", true) // for dots canvas event passing
           .classed("selected", allCasesSelected)
-          .on("click", (e) => handleConnectingLinesClick(e, lineCaseIds))
-          .on("mouseover", (e) => handleConnectingLinesHover(e, lineCaseIds, parentAttrName, primaryAttrValue))
-          .on("mouseout", dataTip.hide)
+          .on(PixiBackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
+          .on(PixiBackgroundPassThroughEvent.MouseOver, (e) =>
+            handleConnectingLinesMouseOver(e, lineCaseIds, parentAttrName, primaryAttrValue)
+          )
+          .on(PixiBackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
           .call(dataTip)
           .attr("fill", "none")
           .attr("stroke", color)
@@ -285,8 +297,9 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .on("end", connectingLinesCleanUp)
       }
     })
-  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset, graphModel.pointDescription,
-      handleConnectingLinesClick, handleConnectingLinesHover, layout, showConnectingLines])
+  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
+    handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
+    showConnectingLines])
 
   const refreshSquares = useCallback(() => {
 

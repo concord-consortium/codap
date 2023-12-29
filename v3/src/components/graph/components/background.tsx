@@ -1,11 +1,11 @@
 import {autorun} from "mobx"
 import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
-import {drag, select, color, range} from "d3"
+import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
 import {rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
-import {IPixiPointMetadata, IPixiPointsRef, PixiPoints} from "../utilities/pixi-points"
+import {IPixiPointMetadata, IPixiPointsRef, PixiBackgroundPassThroughEvent, PixiPoints} from "../utilities/pixi-points"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
@@ -55,20 +55,23 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
-  const onDragStart = useCallback((event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
-      const {computedBounds} = layout,
-        plotBounds = computedBounds.plot
+  const onDragStart = useCallback((event: PointerEvent) => {
+      // plotBounds.left and plotBounds.top used to be subtracted from startX and startY. But it seems to be no longer
+      // necessary after dragging is reimplemented without D3. Leaving these lines here just in case some bugs appear.
+      // const {computedBounds} = layout
+      // const plotBounds = computedBounds.plot
       appState.beginPerformance()
       selectionTree.current = prepareTree(pixiPointsRef.current)
-      startX.current = event.x - plotBounds.left
-      startY.current = event.y - plotBounds.top
+      const targetRect = (event.target as HTMLElement).getBoundingClientRect()
+      startX.current = event.x - targetRect.left
+      startY.current = event.y - targetRect.top
       width.current = 0
       height.current = 0
-      if (!event.sourceEvent.shiftKey) {
+      if (!event.shiftKey) {
         dataset.current?.setSelectedCases([])
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [dataset, layout, marqueeState, pixiPointsRef]),
+    }, [dataset, marqueeState, pixiPointsRef]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -98,11 +101,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
       selectionTree.current = null
       appState.endPerformance()
-    }, [marqueeState]),
-    dragBehavior = useMemo(() => drag<SVGRectElement, number>()
-      .on("start", onDragStart)
-      .on("drag", onDrag)
-      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
+    }, [marqueeState])
 
   useEffect(() => {
     return autorun(() => {
@@ -120,7 +119,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         groupElement = bgRef.current
       select(groupElement)
         // clicking on the background deselects all cases
-        .on('click', (event) => {
+        .on(PixiBackgroundPassThroughEvent.Click, (event) => {
           if (!event.shiftKey) {
             dataset.current?.selectAll(false)
           }
@@ -136,9 +135,34 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .attr('y', d => cellHeight * row(d))
         .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
         .style('fill-opacity', isTransparent ? 0 : 1)
-        .call(dragBehavior)
+        .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
+          // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
+          // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementations
+          // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
+          // are attached to window directly (recommended way anyway).
+          let draggingActive = true
+          const prevXY = { x: pointerDownEvent.x, y: pointerDownEvent.y }
+          onDragStart(pointerDownEvent)
+          const onDragHandler = (onDragEvent: PointerEvent) => {
+            if (draggingActive) {
+              onDrag({ dx: onDragEvent.x - prevXY.x, dy: onDragEvent.y - prevXY.y })
+              prevXY.x = onDragEvent.x
+              prevXY.y = onDragEvent.y
+            }
+          }
+          const onDragEndHandler = (pointerUpEvent: PointerEvent) => {
+            if (draggingActive) {
+              draggingActive = false
+              onDragEnd()
+              window.removeEventListener("pointermove", onDragHandler)
+              window.removeEventListener("pointerup", onDragEndHandler)
+            }
+          }
+          window.addEventListener("pointermove", onDragHandler)
+          window.addEventListener("pointerup", onDragEndHandler)
+        })
     }, { name: "Background.autorun" })
-  }, [bgRef, dataset, dragBehavior, graphModel, layout])
+  }, [bgRef, dataset, graphModel, layout, onDrag, onDragEnd, onDragStart])
 
   return (
     <g ref={bgRef}/>
