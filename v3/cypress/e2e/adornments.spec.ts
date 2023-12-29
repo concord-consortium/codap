@@ -588,10 +588,8 @@ context("Graph adornments", () => {
     // use force: true so we don't need to figure out exactly where to click.
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
-    cy.get("[data-testid=graph-dot-area-graph-1]").find("circle.graph-dot-highlighted").should("exist")
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
-    cy.get("[data-testid=graph-dot-area-graph-1]").find("circle.graph-dot-highlighted").should("not.exist")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
     cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")

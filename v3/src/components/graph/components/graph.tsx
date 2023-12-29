@@ -66,6 +66,10 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
+    pixiPointsRef.current.setupBackgroundEventDistribution({
+      elementToHide: pixiContainerRef.current,
+      interactiveElClassName: "interactive-graph-element"
+    })
   }
 
   useEffect(function handleFilteredCasesLengthChange() {
@@ -227,8 +231,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           {renderGraphAxes()}
 
           <svg ref={plotAreaSVGRef}>
-            <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%"/>
             {renderPlotComponent()}
+            <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%"/>
             <Marquee marqueeState={marqueeState}/>
           </svg>
 
