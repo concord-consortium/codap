@@ -1,5 +1,40 @@
 # Changelog
 
+## Version 3.0.0-pre.1471 - January 2, 2024
+
+### Features/Improvements
+- PT-186556758: Compare various rendering methods in a test repository (e.g. SVG vs D3 vs Canvas/3D, impact of MobX, etc.)
+- PT-186548730: Add MST caching helper for multi args methods and cache expensive methods in data configuration model
+- PT-181939990: On a scatterplot movable lines and least squares lines can have their **intercepts locked**
+- PT-186547994: Optimize methods used to retrieve dataset case values
+- PT-181940029: The **Squares of Residuals** option shows a square for each point
+- PT-186521999: Maps show a legend for each layer with a legend attribute
+- PT-186510502: User can drop an attribute on a map to color points or boundaries
+- PT-186647000: Eyeball icon for map component allows hiding and showing of cases
+- PT-186437311: Evaluate plotted function adornment formula
+- PT-186641108: Map inspector rescale button brings all map data into view
+- PT-186631176: Try to reimplement basic graph features using PixiJS as the points renderer instead of D3 SVG
+- PT-186479532: Add automated tests of function utils and "other" functions (random, pickRandom, etc.)
+- PT-186305230: Graphs with > 20K cases perform well
+- PT-181922446: A scatterplot can have **Connecting Lines** between the points
+- PT-186637668: PixiJS graph: Implement sprite-caseID matching and points animations/transitions
+- PT-186645440: PixiJS graph: add point hover effect
+- PT-186691239: PixiJS graph: avoid excessive CPU workload caused by the Pixi render loop
+
+### Bug Fixes
+- PT-186580777: Full length of movable line is not returned and it doesn't span entire graph area after the plot is split and unsplit
+- PT-186682759: Percent values in subplots not correct
+- PT-185577446: Graphs with subplots not rendered correctly on import
+- PT-186016145: Treating numeric attribute to categorical should update count and percent adornments correctly
+- PT-186648806: Legend is not responding to cases being hidden
+- PT-186485885: Some functions don't work within aggregate context (e.g. `mean(lookupByIndex("Mammals", "LifeSpan", caseIndex))`, `mean(if(LifeSpan < 30, 1, 2))`)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   72714 bytes |                            0.12% |
+|  index.js | 3499653 bytes |                            0.65% |
+
 ## Version 3.0.0-pre.1455 - December 4, 2023
 
 ### Features/Improvements
