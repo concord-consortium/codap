@@ -188,13 +188,18 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const value = model.measureValue(attrId, cellKey, dataConfig)
       if (value === undefined || isNaN(value)) return
 
+      const primaryAttrId = dataConfig?.primaryAttributeID
+      const primaryAttr = primaryAttrId ? dataConfig?.dataset?.attrFromID(primaryAttrId) : undefined
+      const primaryAttrUnits = primaryAttr?.units
       const { coords, coverClass, coverId, displayRange, displayValue, lineClass, lineId, measureRange, plotValue } =
         helper.adornmentSpecs(attrId, dataConfig, value, isVertical.current, cellCounts)
 
       const translationVars = [
         `${(measureRange.min || measureRange.min === 0) && displayRange ? `${displayRange}` : `${displayValue}`}`
       ]
-      const textContent = `${t(model.labelTitle, { vars: translationVars })}`
+      const valueContent = `${t(model.labelTitle, { vars: translationVars })}`
+      const unitContent = `${primaryAttrUnits ? ` ${primaryAttrUnits}` : ""}`
+      const textContent = `${valueContent}${unitContent}`
 
       // Add the main value line
       const lineSpecs = {
