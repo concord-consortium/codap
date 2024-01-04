@@ -21,7 +21,6 @@ import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
-import { importValueToString } from "../../../models/data/attribute"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const {dotsRef} = props,

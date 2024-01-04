@@ -125,9 +125,137 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   title: string
 }
 
+interface ICodapV2Coordinates {
+  x: number
+  y: number
+}
+
+interface ICodapV2ProportionCoordinates {
+  proportionX: number
+  proportionY: number
+}
+
+interface ICodapV2ValueModel {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  values: Record<string, number>
+}
+
+interface ICodapV2CountAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  isShowingCount: boolean
+  isShowingPercent: boolean
+  percentKind: number
+}
+
+interface ICodapV2ConectingLinesAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+}
+
+interface ICodapV2MovableValueAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  isShowingCount: boolean
+  isShowingPercent: boolean
+  valueModels: ICodapV2ValueModel[]
+}
+
+interface ICodapV2MeanAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  equationCoordsArray: ICodapV2ProportionCoordinates[]
+}
+
+interface ICodapV2MedianAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  equationCoordsArray: ICodapV2ProportionCoordinates[]
+}
+
+interface ICodapV2StDevAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  equationCoordsArray: ICodapV2ProportionCoordinates[]
+}
+
+interface ICodapV2MadAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  equationCoordsArray: ICodapV2ProportionCoordinates[]
+}
+
+interface ICodapV2BoxPlotAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  equationCoordsArray: ICodapV2ProportionCoordinates[]
+  showOutliers: boolean
+  showICI: boolean
+}
+
+interface ICodapV2PlottedFunctionAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  adornmentKey: string
+  expression: string
+}
+
+interface ICodapV2PlottedValueAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  adornmentKey: string
+  expression: string
+}
+
+type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2ConectingLinesAdornment | ICodapV2MovableValueAdornment |
+                         ICodapV2MeanAdornment | ICodapV2MedianAdornment | ICodapV2StDevAdornment |
+                         ICodapV2MadAdornment | ICodapV2PlottedFunctionAdornment | ICodapV2PlottedValueAdornment |
+                         ICodapV2BoxPlotAdornment
+
+interface ICodapV2MovablePointStorage {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  coordinates: ICodapV2Coordinates
+}
+
+interface ICodapV2MovableLineStorage {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  isInterceptLocked: boolean
+  equationCoords: ICodapV2Coordinates | null
+  intercept: number
+  slope: number
+  isVertical: boolean
+  xIntercept: number
+}
+
+interface ICodapV2LSRL {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  isInterceptLocked: boolean
+  equationCoords: ICodapV2Coordinates | null,
+  showConfidenceBands: boolean
+}
+
+interface ICodapV2MultipleLSRLsStorage {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  showSumSquares: boolean
+  isInterceptLocked: boolean
+  showConfidenceBands: boolean
+  lsrls: ICodapV2LSRL[]
+}
+
 export interface ICodapV2PlotStorage {
   verticalAxisIsY2: boolean
-  adornments: Record<string, any>
+  adornments: ICodapV2Adornment
+  areSquaresVisible: boolean
+  isLSRLVisible: boolean
+  movableLineStorage: ICodapV2MovableLineStorage
+  movablePointStorage: ICodapV2MovablePointStorage
+  multipleLSRLsStorage: ICodapV2MultipleLSRLsStorage
+  showMeasureLabels: boolean
 }
 
 export interface ICodapV2PlotModel {

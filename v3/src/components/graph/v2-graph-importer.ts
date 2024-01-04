@@ -11,11 +11,12 @@ import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
+import { v2AdornmentImporter } from "./adornments/v2-adornment-importer"
 
 export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
   if (!isV2GraphComponent(v2Component)) return
 
-  const {title = "", _links_: links} = v2Component.componentStorage
+  const {title = "", _links_: links, plotModels} = v2Component.componentStorage
   type TLinksKey = keyof typeof links
   const contextId = links.context.id
   const {data, metadata} = v2Document.getDataAndMetadata(contextId)
@@ -116,8 +117,17 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   }
   const plotType = plotChoices[axes.bottom?.type ?? "empty"][axes.left?.type ?? "empty"]
 
+  // configure adornmentsStore
+  const adornmentImporterProps = {
+    data, plotModels,
+    attributeDescriptions: _attributeDescriptions,
+    yAttributeDescriptions: _yAttributeDescriptions
+  }
+  const adornmentsStore = v2AdornmentImporter(adornmentImporterProps)
+
   const content: IGraphContentModelSnapshot = {
     type: kGraphTileType,
+    adornmentsStore,
     axes,
     plotType,
     layers: [{

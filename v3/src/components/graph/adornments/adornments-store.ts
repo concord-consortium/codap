@@ -162,4 +162,4 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
     },
   }))
 
-export interface IAdornmentsController extends Instance<typeof AdornmentsStore> {}
+export interface IAdornmentsStore extends Instance<typeof AdornmentsStore> {}
