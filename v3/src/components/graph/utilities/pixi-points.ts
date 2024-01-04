@@ -123,7 +123,7 @@ export class PixiPoints {
     if (this.anyTransitionActive) {
       PixiTransition.transitionStep(this.targetProp, this.startProp)
     } else {
-      // The only reason for ticket to run is to handle ongoing transitions. If there are no transitions, we can stop.
+      // The only reason for ticker to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
     }
     this.renderer.render(this.stage)
