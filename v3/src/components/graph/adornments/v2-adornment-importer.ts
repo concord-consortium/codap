@@ -82,17 +82,17 @@ const instanceKey = (props: IInstanceKeyProps) => {
 }
 
 const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
-  // TODO: The code below is largely a copy of GraphDataConfigurationModel's getAllCellKeys view. It would be better
-  // to utilize that view instead of duplicating code here. There isn't a straightforward way to do that as part of
-  // the import process. We'd need to first add the associated graph data configuration to the MobX state tree of the
-  // V3 document we're creating to get accurate data from the view. That would require temporarily adding the data
-  // config to the tree before importing the graph and adornments so we could access the view, and then removing it 
-  // before completing the import.
+  // TODO: The code below duplicates code in GraphDataConfigurationModel's getCategoriesOptions and getAllCellKeys
+  // views. It would be better to utilize those views instead but there isn't a straightforward way to do that as
+  // part of the import process. We'd need to first add the associated graph data configuration to the MobX state
+  // tree of the V3 document we're creating to get accurate data from the view. That would require temporarily adding
+  // the data config to the tree before importing the graph and adornments so we could access the view, and then
+  // removing it before completing the import.
   const { data, attributeDescriptions, yAttributeDescriptions } = props
   if (!data || !attributeDescriptions || !yAttributeDescriptions) return ["{}"]
   const { attributeID: xAttrId, type: xAttrType } = attributeDescriptions.x ?? { attributeID: null, type: null }
   const { attributeID: topAttrId } = attributeDescriptions.topSplit ?? { attributeID: null }
-  const { attributeID: rightAttrId } = attributeDescriptions.rightCat ?? { attributeID: null }
+  const { attributeID: rightAttrId } = attributeDescriptions.rightSplit ?? { attributeID: null }
   const { attributeID: yAttrId, type: yAttrType } = yAttributeDescriptions.y ?? { attributeID: null }
   const xAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === xAttrId)
   const xCats = xAttr && xAttrType !== "numeric" ? [...new Set(xAttr.strValues)] as string[] : [""]
@@ -110,20 +110,20 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   const rowCount = rightCatCount * yCatCount
   const totalCount = rowCount * columnCount
   const instanceKeys: string[] = []
-    for (let i = 0; i < totalCount; ++i) {
-      const cellKeyProps = {
-        index: i,
-        xAttrId: xAttr?.id,
-        yAttrId: yAttr?.id,
-        topAttrId: topAttr?.id,
-        rightAttrId: rightAttr?.id,
-        xCats,
-        yCats,
-        topCats,
-        rightCats
-      }
-      instanceKeys.push(instanceKey(cellKeyProps))
+  for (let i = 0; i < totalCount; ++i) {
+    const cellKeyProps = {
+      index: i,
+      xAttrId: xAttr?.id,
+      yAttrId: yAttr?.id,
+      topAttrId: topAttr?.id,
+      rightAttrId: rightAttr?.id,
+      xCats,
+      yCats,
+      topCats,
+      rightCats
     }
+    instanceKeys.push(instanceKey(cellKeyProps))
+  }
   return instanceKeys
 }
 
