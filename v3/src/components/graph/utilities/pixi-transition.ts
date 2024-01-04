@@ -45,14 +45,14 @@ export class PixiTransition {
 
       for (const [point, target] of targetProp.entries()) {
         const transition = target.transition
-        const factor = transition.getFactor(now)
+        const progress = transition.getProgress(now)
         if (!point.destroyed) {
           const start = startProp.get(point) as TransitionTarget
-          const newX = start.x + factor * (target.x - start.x)
-          const newY = start.y + factor * (target.y - start.y)
+          const newX = start.x + progress * (target.x - start.x)
+          const newY = start.y + progress * (target.y - start.y)
           point[propKey].set(newX, newY)
         }
-        if (factor === 1 || point.destroyed) {
+        if (progress === 1 || point.destroyed) {
           targetProp.delete(point)
           startProp.delete(point)
           finishedTransitions.add(transition)
@@ -70,7 +70,7 @@ export class PixiTransition {
     this.onEndCallback = onEndCallback
   }
 
-  getFactor(now: number) {
+  getProgress(now: number) {
     const time = now - this.startTime
     const timeRatio = Math.min(1, time / this.duration)
     return defaultInterpolation(timeRatio)
