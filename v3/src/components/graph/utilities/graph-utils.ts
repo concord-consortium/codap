@@ -10,6 +10,8 @@ import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth,
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
+import { GraphLayout } from "../models/graph-layout"
+import t from "../../../utilities/translation/translate"
 
 /**
  * Utility routines having to do with graph entities
@@ -159,32 +161,6 @@ export function lineToAxisIntercepts(iSlope: number, iIntercept: number,
   }
 }
 
-interface IEquationString {
-  slope: number
-  intercept: number
-  attrNames: {x: string, y: string}
-  sumOfSquares?: number
-}
-
-export function equationString({ slope, intercept, attrNames, sumOfSquares }: IEquationString) {
-  const float = format(".3~r")
-  const floatSumOfSquares = format(",.0f")
-  if (isFinite(slope) && slope !== 0) {
-    const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
-    const interceptString = intercept === 0
-      ? ""
-      : intercept > 0
-        ? ` + ${float(intercept)}`
-        : ` ${float(intercept)}`
-    const squaresPart = isFiniteNumber(sumOfSquares)
-      ? `<br />Sum of squares = ${floatSumOfSquares(sumOfSquares)}`
-      : ""
-    return `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString}${interceptString}${squaresPart}`
-  } else {
-    return `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${float(intercept)}`
-  }
-}
-
 export function valueLabelString(value: number) {
   const float = format('.4~r')
   return float(value)
@@ -198,48 +174,190 @@ export function percentString(value: number) {
   }).format(value)
 }
 
-interface ILsrlEquationString {
-  attrNames: {x: string, y: string}
-  caseValues: Point[]
-  color?: string
-  showConfidenceBands?: boolean
+function roundToSignificantDigits(value: number, sigDigits: number) {
+  if (isNaN(value) || value === 0) {
+    return { roundedValue: value, decPlaces: 0 }
+  }
+
+  const sign = value < 0 ? -1 : 1
+  value = Math.abs(value)
+
+  // Get the value in the range 10^(iSigDigits-1) to 10^iSigDigits.
+  const lower = Math.pow(10, sigDigits - 1)
+  const upper = lower * 10
+  let adjustedPlaces = 0
+  while (value > upper) {
+    value = value / 10
+    adjustedPlaces++
+  }
+  while (value < lower) {
+    value = value * 10
+    adjustedPlaces--
+  }
+
+  let newValue = Math.floor(value)
+  if (value - newValue > 0.5) {
+    newValue++
+  }
+
+  let counter = adjustedPlaces
+  while (counter < 0) {
+    newValue = newValue / 10
+    counter++
+  }
+
+  if (adjustedPlaces < 0) {
+    newValue = Number(newValue.toFixed(-adjustedPlaces))
+  }
+
+  while (counter > 0) {
+    newValue = newValue * 10
+    counter--
+  }
+
+  const roundedValue = sign * newValue
+  const decPlaces = -adjustedPlaces
+
+  return { roundedValue, decPlaces }
+}
+
+export function findNeededFractionDigits(slope: number, intercept: number, layout: GraphLayout) {
+  const xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
+  const yScale = layout.getAxisScale("left") as ScaleNumericBaseType
+  const xDomain = xScale.domain()
+  const yDomain = yScale.domain()
+  const kMaxDigits = 12  // Never try for more than this
+  let currCoords: IAxisIntercepts = {pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}}
+  let trialCoords: IAxisIntercepts = {pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}}
+  let tGreatestDiff = 0
+  let interceptDigits = 2
+  let slopeDigits = (slope < 0.001 && slope !== 0) ? Math.abs(Math.floor(Math.log10(Math.abs(slope)))) + 1 : 3
+
+  function convertToScreen(iWorldPts: IAxisIntercepts) {
+    return {
+      pt1: { x: xScale(iWorldPts.pt1.x), y: yScale(iWorldPts.pt1.y) },
+      pt2: { x: xScale(iWorldPts.pt2.x), y: yScale(iWorldPts.pt2.y) }
+    }
+  }
+
+  function greatestDiff() {
+    return Math.max(
+      Math.abs(trialCoords.pt1.x - currCoords.pt1.x),
+      Math.abs(trialCoords.pt1.y - currCoords.pt1.y),
+      Math.abs(trialCoords.pt2.x - currCoords.pt2.x),
+      Math.abs(trialCoords.pt2.y - currCoords.pt2.y)
+    )
+  }
+
+  if (!isFiniteNumber(slope) || !isFiniteNumber(intercept)) {
+    return { slopeDigits: 0, interceptDigits: 0 }
+  }
+
+  currCoords = convertToScreen(lineToAxisIntercepts(slope, intercept, xDomain, yDomain))
+
+  function computeDigits(digits: number, isSlope: boolean) {
+    do {
+      const roundedValue = roundToSignificantDigits(isSlope ? slope : intercept, digits).roundedValue
+      const slopeValue = isSlope ? roundedValue : slope
+      const interceptValue = isSlope ? intercept : roundedValue
+      trialCoords = convertToScreen(lineToAxisIntercepts(slopeValue, interceptValue, xDomain, yDomain))
+      tGreatestDiff = greatestDiff()
+      if (tGreatestDiff > 1.0) {
+        digits += 1
+      }
+    } while (tGreatestDiff > 1.0 && digits < kMaxDigits)
+    return digits
+  }
+
+  interceptDigits = computeDigits(interceptDigits, false)
+  slopeDigits = computeDigits(slopeDigits, true)
+
+  // So far we've computed the number of significant digits needed. But we need to return
+  // the number of fractional digits.
+  if (Math.abs(slope) > 1) {
+    slopeDigits = Math.max(0, slopeDigits - Math.floor(Math.log(Math.abs(slope)) / Math.LN10) - 1)
+  }
+  if (Math.abs(intercept) > 1) {
+    interceptDigits = Math.max(0, interceptDigits - Math.floor(Math.log(Math.abs(intercept)) / Math.LN10) - 1)
+  }
+
+  return { slopeDigits, interceptDigits }
+}
+
+function formatEquationValue(value: number, digits: number) {
+  const exponent = `e${digits}`
+  const roundedValue = Math.round(parseFloat(`${value}${exponent}`))
+  // Use D3's format() to add comma separators to the value.
+  return format(",")(Number(`${roundedValue}e-${digits}`))
+}
+
+interface IEquationString {
+  attrNames: { x: string, y: string }
   intercept: number
-  interceptLocked?: boolean
-  rSquared?: number
+  layout: GraphLayout
   slope: number
   sumOfSquares?: number
 }
 
-export const lsrlEquationString = (
-  { slope, intercept, attrNames, caseValues, showConfidenceBands, rSquared, color,
-  interceptLocked=false, sumOfSquares }: ILsrlEquationString
-) => {
-  const float = format(".3~r")
-  const floatIntercept = format(".1~f")
-  const floatSeSlope = format(".3~f")
-  const linearRegression = leastSquaresLinearRegression(caseValues, interceptLocked)
-  const floatSumOfSquares = format(",.0f")
-  const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
-  const seSlope = Math.sqrt((sse / count - 2) / xSumSquaredDeviations)
+export function equationString({ slope, intercept, attrNames, sumOfSquares, layout }: IEquationString) {
+  const slopeIsFinite = isFinite(slope) && slope !== 0
+  const neededFractionDigits = findNeededFractionDigits(slopeIsFinite ? slope : 0, intercept, layout)
+  const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits)
+  const formattedSlope = slopeIsFinite ? formatEquationValue(slope, neededFractionDigits.slopeDigits) : 0
+  const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
+  const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
-  const interceptString = intercept === 0
-    ? ""
-    : intercept >= 0
-      ? `+ ${floatIntercept(intercept)}`
-      : ` ${floatIntercept(intercept)}`
-  const equationPart = isFinite(slope) && slope !== 0
-    ? `<em>${attrNames.y}</em> = ${float(slope)} ${xAttrString} ${interceptString}`
-    : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${floatIntercept(intercept)}`
-  const seSlopePart = showConfidenceBands && !interceptLocked
-    ? `<br />SE<sub>slope</sub> = ${floatSeSlope(seSlope)}`
-    : ""
+  const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
   const squaresPart = isFiniteNumber(sumOfSquares)
-    ? `<br />Sum of squares = ${floatSumOfSquares(sumOfSquares)}`
+    ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
-  const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${float(rSquared)}`
+
+  return slopeIsFinite
+    ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}${squaresPart}`
+    : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
+}
+
+interface ILsrlEquationString {
+  attrNames: { x: string, y: string }
+  caseValues: Point[]
+  color?: string
+  intercept: number
+  interceptLocked?: boolean
+  layout: GraphLayout
+  rSquared?: number
+  showConfidenceBands?: boolean
+  slope: number
+  sumOfSquares?: number
+}
+
+export const lsrlEquationString = (props: ILsrlEquationString) => {
+  const { slope, intercept, attrNames, caseValues, showConfidenceBands, rSquared, color, interceptLocked=false,
+          sumOfSquares, layout } = props
+  const linearRegression = leastSquaresLinearRegression(caseValues, interceptLocked)
+  const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
+  const seSlope = Math.sqrt((sse / (count - 2)) / xSumSquaredDeviations)
+  const slopeIsFinite = isFinite(slope) && slope !== 0
+  const neededFractionDigits = findNeededFractionDigits(slopeIsFinite ? slope : 0, intercept, layout)
+  const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits)
+  const formattedSlope = formatEquationValue(slope, neededFractionDigits.slopeDigits)
+  const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, sumOfSquares && sumOfSquares > 100 ? 0 : 3)
+  const formattedRSquared = formatEquationValue(rSquared || 0, 3)
+  const formattedSeSlope = formatEquationValue(seSlope, 3)
+  const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
+  const interceptString = intercept !== 0 ? ` ${intercept > 0 ? "+" : ""} ${formattedIntercept}` : ""
+  const equationPart = slopeIsFinite
+    ? `<em>${attrNames.y}</em> = ${formattedSlope} ${xAttrString}${interceptString}`
+    : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
+  const seSlopePart = showConfidenceBands && !interceptLocked ? `<br />SE<sub>slope</sub> = ${formattedSeSlope}` : ""
+  const squaresPart = isFiniteNumber(sumOfSquares)
+    ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
+    : ""
+  const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${formattedRSquared}`
   const style = color ? ` style="color: ${color}"` : ""
+
   return `<span${style}>${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}</span>`
 }
+
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
                                attrID: string, scale: ScaleNumericBaseType) {

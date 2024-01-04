@@ -14,6 +14,7 @@ import { Point } from "../../../data-display/data-display-types"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
+import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 
 import "./movable-line-adornment-component.scss"
 
@@ -55,6 +56,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const layout = useGraphLayoutContext()
   const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
@@ -88,7 +90,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const sumOfSquares = dataConfig && showSumSquares
       ? calculateSumOfSquares({ cellKey, dataConfig, intercept, slope })
       : undefined
-    const string = equationString({slope, intercept, attrNames, sumOfSquares})
+    const string = equationString({slope, intercept, attrNames, sumOfSquares, layout})
     const equation = select(equationContainerSelector).select("p")
 
     select(equationContainerSelector)
@@ -107,8 +109,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       equation.style("left", `${left}px`)
               .style("top", `${top}px`)
     }
-  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, model, plotHeight, plotWidth, showSumSquares,
-      xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
+  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight,
+      plotWidth, showSumSquares, xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
 
   
   const breakPointCoords = useCallback((
