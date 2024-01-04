@@ -517,9 +517,9 @@ test("Caching mode", () => {
   // const bId = ds.cases[1].__id__
   // const cId = ds.cases[2].__id__
 
-  expect(ds.isCaching).toBe(false)
+  expect(ds.isCaching()).toBe(false)
   ds.beginCaching()
-  expect(ds.isCaching).toBe(true)
+  expect(ds.isCaching()).toBe(true)
 
   const actionHandler = jest.fn()
   const snapshotHandler = jest.fn()
@@ -533,7 +533,7 @@ test("Caching mode", () => {
   expect(ds.getNumeric(aId, numAttrID)).toBe(-1)
 
   ds.endCaching(true)
-  expect(ds.isCaching).toBe(false)
+  expect(ds.isCaching()).toBe(false)
 })
 
 test("snapshot processing", () => {

@@ -144,7 +144,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
-          callRefreshPointPositions(dataset.isCaching)
+          callRefreshPointPositions(dataset.isCaching())
           // TODO: handling of add/remove cases was added specifically for the case plot.
           // Bill has expressed a desire to refactor the case plot to behave more like the
           // other plots, which already handle removal of cases (and perhaps addition of cases?)

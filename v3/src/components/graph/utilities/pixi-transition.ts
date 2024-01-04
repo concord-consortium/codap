@@ -10,109 +10,73 @@ const defaultInterpolation = smoother
 // const smooth2: Interpolation = (x: number) => smooth(smooth(x))
 // const pow2out: Interpolation = (x: number) => Math.pow(x - 1, 2) * (-1) + 1
 
-export type SupportedPropKey = "position" | "scale"
-export type SupportedPropValue = { x: number, y: number }
+export type TransitionProp = "position" | "scale"
+
+export type TransitionTarget = { x: number, y: number, transition: PixiTransition }
+
+export type TransitionPropMap = Partial<Record<TransitionProp, Map<PIXI.Sprite, TransitionTarget>>>
 
 export class PixiTransition {
+  startTime = performance.now()
   duration = 0
-  time = 0
-  isFinished = false
-  frameId: number | undefined
-  points: PIXI.Sprite[] = []
   onEndCallback?: () => void
 
-  targetProp: Partial<Record<SupportedPropKey, Map<PIXI.Sprite, SupportedPropValue>>> = {}
-  startProp: Partial<Record<SupportedPropKey, Map<PIXI.Sprite, SupportedPropValue>>> = {}
-
-  constructor(duration: number, points: PIXI.Sprite[]) {
-    this.duration = duration
-    this.points = points
-  }
-
-  setTargetPosition(point: PIXI.Sprite, x: number, y: number) {
-    this.setTargetXyProp("position", point, x, y)
-  }
-
-  setTargetScale(point: PIXI.Sprite, scale: number) {
-    this.setTargetXyProp("scale", point, scale, scale)
-  }
-
-  play() {
-    const transitionProps = Object.keys(this.targetProp) as SupportedPropKey[]
-    if (transitionProps.length === 0) {
-      this.handleOnEnd()
-      return
-    }
-
-    let time = 0
-    const duration = this.duration
-    const startTime = performance.now()
-
-    const transitionFrame = () => {
-      const timeRatio = Math.min(1, time / duration)
-      const factor = defaultInterpolation(timeRatio)
-
-      transitionProps.forEach(propKey => {
-        this.xyTransition(propKey, factor)
-      })
-
-      if (time < duration) {
-        this.frameId = requestAnimationFrame(transitionFrame)
-        time = performance.now() - startTime
-      } else {
-        this.frameId = undefined
-        this.handleOnEnd()
+  static anyTransitionActive(targetProps: TransitionPropMap) {
+    const transitionProps = Object.keys(targetProps) as TransitionProp[]
+    for (const propName of transitionProps) {
+      if (targetProps[propName]?.size) {
+        return true
       }
     }
+    return false
+  }
 
-    transitionFrame()
+  static transitionStep(targetProps: TransitionPropMap, startProps: TransitionPropMap) {
+    const now = performance.now()
+    const finishedTransitions = new Set<PixiTransition>()
+    const transitionProps = Object.keys(targetProps) as TransitionProp[]
+
+    transitionProps.forEach(propKey => {
+      const targetProp = targetProps[propKey]
+      const startProp = startProps[propKey]
+      if (!targetProp || !startProp) {
+        return
+      }
+
+      for (const [point, target] of targetProp.entries()) {
+        const transition = target.transition
+        const progress = transition.getProgress(now)
+        if (!point.destroyed) {
+          const start = startProp.get(point) as TransitionTarget
+          const newX = start.x + progress * (target.x - start.x)
+          const newY = start.y + progress * (target.y - start.y)
+          point[propKey].set(newX, newY)
+        }
+        if (progress === 1 || point.destroyed) {
+          targetProp.delete(point)
+          startProp.delete(point)
+          finishedTransitions.add(transition)
+        }
+      }
+    })
+
+    for (const transition of finishedTransitions) {
+      transition.handleOnEnd()
+    }
+  }
+
+  constructor(duration: number, onEndCallback?: () => void) {
+    this.duration = duration
+    this.onEndCallback = onEndCallback
+  }
+
+  getProgress(now: number) {
+    const time = now - this.startTime
+    const timeRatio = Math.min(1, time / this.duration)
+    return defaultInterpolation(timeRatio)
   }
 
   handleOnEnd() {
     this.onEndCallback?.()
-    this.isFinished = true
-  }
-
-  onEnd(callback: () => void) {
-    this.onEndCallback = callback
-    if (this.isFinished) {
-      this.onEndCallback?.()
-    }
-  }
-
-  destroy() {
-    if (this.frameId) {
-      cancelAnimationFrame(this.frameId)
-    }
-  }
-
-  setTargetXyProp(propKey: SupportedPropKey, point: PIXI.Sprite, x: number, y: number) {
-    let targetProp = this.targetProp[propKey]
-    let startProp = this.startProp[propKey]
-    if (!targetProp || !startProp) {
-      targetProp = this.targetProp[propKey] = new Map()
-      startProp = this.startProp[propKey] = new Map()
-    }
-    targetProp.set(point, { x, y })
-    startProp.set(point, { x: point[propKey].x, y: point[propKey].y })
-  }
-
-  xyTransition(propKey: SupportedPropKey, factor: number) {
-    const targetProp = this.targetProp[propKey]
-    const startProp = this.startProp[propKey]
-    if (!targetProp || !startProp) {
-      return
-    }
-    for (const [point, target] of targetProp.entries()) {
-      if (point.destroyed) {
-        // This might happen if user deletes a case while transition is still occurring.
-        targetProp.delete(point)
-        continue
-      }
-      const start = startProp.get(point) as SupportedPropValue
-      const newX = start.x + factor * (target.x - start.x)
-      const newY = start.y + factor * (target.y - start.y)
-      point[propKey].set(newX, newY)
-    }
   }
 }
