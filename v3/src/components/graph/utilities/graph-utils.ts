@@ -249,7 +249,7 @@ export function findNeededFractionDigits(slope: number, intercept: number, layou
     )
   }
 
-  if (isNaN(slope) || isNaN(intercept) || !slope || !intercept) {
+  if (!isFiniteNumber(slope) || !isFiniteNumber(intercept)) {
     return { slopeDigits: 0, interceptDigits: 0 }
   }
 
