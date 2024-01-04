@@ -1,5 +1,5 @@
 import {autorun} from "mobx"
-import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
