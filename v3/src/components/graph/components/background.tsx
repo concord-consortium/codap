@@ -137,7 +137,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .style('fill-opacity', isTransparent ? 0 : 1)
         .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
           // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
-          // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementations
+          // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
           // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
           // are attached to window directly (recommended way anyway).
           let draggingActive = true
