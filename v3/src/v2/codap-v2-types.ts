@@ -135,6 +135,12 @@ interface ICodapV2ProportionCoordinates {
   proportionY: number
 }
 
+interface ICodapV2ValueModel {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  values: Record<string, number>
+}
+
 interface ICodapV2CountAdornment {
   isVisible: boolean
   enableMeasuresForSelection: boolean
@@ -153,8 +159,9 @@ interface ICodapV2MovableValueAdornment {
   enableMeasuresForSelection: boolean
   isShowingCount: boolean
   isShowingPercent: boolean
-  valueModels: Record<string, number>[] // ??
+  valueModels: ICodapV2ValueModel[]
 }
+
 interface ICodapV2MeanAdornment {
   isVisible: boolean
   enableMeasuresForSelection: boolean
@@ -240,29 +247,14 @@ interface ICodapV2MultipleLSRLsStorage {
   lsrls: ICodapV2LSRL[]
 }
 
-interface ICodapV2ValueModel {
-  isVisible: boolean
-  enableMeasuresForSelection: boolean
-  values: Record<string, number>
-}
-
-interface ICodapV2MultipleMovableValuesStorage {
-  isVisible: boolean
-  enableMeasuresForSelection: boolean
-  isShowingCount: boolean
-  isShowingPercent: boolean
-  valueModels: ICodapV2ValueModel[]
-}
-
 export interface ICodapV2PlotStorage {
   verticalAxisIsY2: boolean
-  adornments: ICodapV2Adornment // Record<string, any>
+  adornments: ICodapV2Adornment
   areSquaresVisible: boolean
   isLSRLVisible: boolean
   movableLineStorage: ICodapV2MovableLineStorage
   movablePointStorage: ICodapV2MovablePointStorage
   multipleLSRLsStorage: ICodapV2MultipleLSRLsStorage
-  multipleMovableValues: ICodapV2MultipleMovableValuesStorage
   showMeasureLabels: boolean
 }
 
