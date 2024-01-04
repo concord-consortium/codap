@@ -159,15 +159,17 @@ export const DataSet = types.model("DataSet", {
   pseudoCaseMap: new Map<string, CaseGroup>(),
   transactionCount: 0
 }))
-.views(self => {
+.volatile(() => {
   let cachingCount = 0
   const caseCache = new Map<string, ICase>()
   return {
-    get isCaching() {
-      return cachingCount > 0
-    },
     get caseCache() {
       return caseCache
+    },
+    isCaching() {
+      // Do not use getter here, as the result would be cached and not updated when cachingCount changes.
+      // Note that it also happens for volatile properties, not only views.
+      return cachingCount > 0
     },
     clearCache() {
       caseCache.clear()
@@ -676,7 +678,7 @@ export const DataSet = types.model("DataSet", {
         return index != null ? this.getValueAtIndex(index, attributeID) : undefined
       },
       getValueAtIndex(index: number, attributeID: string) {
-          if (self.isCaching) {
+          if (self.isCaching()) {
             const caseID = self.cases[index]?.__id__
             const cachedCase = self.caseCache.get(caseID)
             if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
@@ -696,7 +698,7 @@ export const DataSet = types.model("DataSet", {
         return index != null ? this.getStrValueAtIndex(index, attributeID) : ""
       },
       getStrValueAtIndex(index: number, attributeID: string) {
-        if (self.isCaching) {
+        if (self.isCaching()) {
           const caseID = self.cases[index]?.__id__
           const cachedCase = self.caseCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
@@ -716,7 +718,7 @@ export const DataSet = types.model("DataSet", {
         return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
       },
       getNumericAtIndex(index: number, attributeID: string) {
-        if (self.isCaching) {
+        if (self.isCaching()) {
           const caseID = self.cases[index]?.__id__
           const cachedCase = self.caseCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
@@ -918,7 +920,7 @@ export const DataSet = types.model("DataSet", {
                         ? ungroupedCases
                         : cases
         const before = getCases(_cases.map(({ __id__ }) => __id__))
-        if (self.isCaching) {
+        if (self.isCaching()) {
           // update the cases in the cache
           _cases.forEach(aCase => {
             const cached = self.caseCache.get(aCase.__id__)
