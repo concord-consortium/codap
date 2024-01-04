@@ -42,9 +42,7 @@ export const MapPointLayer = function MapPointLayer(props: {
       // PixiPoints background should redistribute events to the geoJSON polygons that lie underneath.
       backgroundEventDistribution: {
         // Element that needs to be "hidden" to obtain another element at the current cursor position.
-        elementToHide: pixiContainerRef.current,
-        // This is the class name of the leaflet map's interactive objects like geoJSON polygons.
-        interactiveElClassName: "leaflet-interactive"
+        elementToHide: pixiContainerRef.current
       }
     })
     return () => pixiPointsRef.current?.dispose()
@@ -68,7 +66,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
   }
 
-  useDataTips({dataset, displayModel: mapLayerModel})
+  useDataTips({pixiPointsRef, dataset, displayModel: mapLayerModel})
 
   const callMatchCirclesToData = useCallback(() => {
     if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
