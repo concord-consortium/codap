@@ -19,6 +19,7 @@ import { ILSRLAdornmentModel, LSRLAdornmentModel } from "./lsrl/lsrl-adornment-m
 
 export const kGraphAdornmentsClass = "graph-adornments-grid"
 export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
+export const kDefaultFontSize = 12
 
 const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
   switch (adornmentSnap.type) {

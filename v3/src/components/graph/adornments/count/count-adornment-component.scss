@@ -1,7 +1,8 @@
 .graph-count {
-  font-size: 12px;
   line-height: 1;
   position: absolute;
   right: 3px;
   top: 2px;
+  white-space: nowrap;
+  width: calc(100% - 3px);
 }

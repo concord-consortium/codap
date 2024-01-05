@@ -44,6 +44,13 @@ describe("AdornmentsStore", () => {
     expect(adornmentsStore).toBeDefined()
     expect(adornmentsStore.type).toEqual("Adornments Store")
   })
+
+  it("can have its defaultFontSize property set", () => {
+    const adornmentsStore = AdornmentsStore.create()
+    expect(adornmentsStore.defaultFontSize).toBe(12)
+    adornmentsStore.setDefaultFontSize(14)
+    expect(adornmentsStore.defaultFontSize).toBe(14)
+  })
   it("can have its interceptLocked property set", () => {
     const adornmentsStore = AdornmentsStore.create()
     expect(adornmentsStore.interceptLocked).toBe(false)
