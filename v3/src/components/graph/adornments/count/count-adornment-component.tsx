@@ -26,7 +26,7 @@ export const CountAdornment = observer(function CountAdornment({model, cellKey}:
     return autorun(() => {
       prf.begin("CountAdornment.autorun")
       // set showPercent to false if attributes change to a configuration that doesn't support percent
-      const shouldShowPercentOption = dataConfig ? dataConfig.categoricalAttrCount > 0 : false
+      const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount
       if (!shouldShowPercentOption && model?.showPercent) {
         model.setShowPercent(false)
       }
