@@ -25,15 +25,8 @@ export const CountAdornment = observer(function CountAdornment({model, cellKey}:
   useEffect(() => {
     return autorun(() => {
       prf.begin("CountAdornment.autorun")
-      const shouldShowPercentOption = dataConfig ? dataConfig.categoricalAttrCount > 0 : false
-      const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
-
-      // set percentType to 'cell' if attributes change to a configuration that doesn't support 'row' or 'column'
-      if (!shouldShowPercentTypeOptions && model?.percentType !== "cell") {
-        model.setPercentType("cell")
-      }
-
       // set showPercent to false if attributes change to a configuration that doesn't support percent
+      const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount
       if (!shouldShowPercentOption && model?.showPercent) {
         model.setShowPercent(false)
       }
