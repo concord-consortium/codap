@@ -73,7 +73,8 @@ export class PixiPoints {
 
   resizeObserver?: ResizeObserver
 
-  currentlySetupTransition?: PixiTransition
+  // It's the currently installed/configured transition, not necessarily that it's actively transitioning.
+  currentTransition?: PixiTransition
   targetProp: TransitionPropMap = {}
   startProp: TransitionPropMap = {}
 
@@ -177,7 +178,7 @@ export class PixiPoints {
   }
 
   setPointXyProperty(prop: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
-    if (this.currentlySetupTransition) {
+    if (this.currentTransition) {
       this.setTargetXyProp(prop, point, x, y)
     } else {
       // Cancel any ongoing transition for this point and simply set the new position immediately.
@@ -191,7 +192,7 @@ export class PixiPoints {
   }
 
   setTargetXyProp(propKey: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
-    if (!this.currentlySetupTransition) {
+    if (!this.currentTransition) {
       return
     }
     let targetProp = this.targetProp[propKey]
@@ -200,8 +201,8 @@ export class PixiPoints {
       targetProp = this.targetProp[propKey] = new Map()
       startProp = this.startProp[propKey] = new Map()
     }
-    targetProp.set(point, { x, y, transition: this.currentlySetupTransition })
-    startProp.set(point, { x: point[propKey].x, y: point[propKey].y, transition: this.currentlySetupTransition })
+    targetProp.set(point, { x, y, transition: this.currentTransition })
+    startProp.set(point, { x: point[propKey].x, y: point[propKey].y, transition: this.currentTransition })
   }
 
   setPointRaised(point: PIXI.Sprite, value: boolean) {
@@ -230,9 +231,9 @@ export class PixiPoints {
       callback()
       return
     }
-    this.currentlySetupTransition = new PixiTransition(duration, onEnd)
+    this.currentTransition = new PixiTransition(duration, onEnd)
     callback()
-    this.currentlySetupTransition = undefined
+    this.currentTransition = undefined
     this.startRendering()
   }
 
