@@ -49,7 +49,8 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
     this.setFormulaError(formulaContext, extraMetadata, "")
     graphCellKeys.forEach(cellKey => {
       const instanceKey = adornment.instanceKey(cellKey)
-      const cases = dataConfig.subPlotCases(cellKey)
+      const caseIds = dataConfig.subPlotCases(cellKey)
+      const cases = caseIds.map(id => dataConfig.dataset?.getCase(id, { numeric: true }) || { __id__: id })
       const formulaFunction = this.computeFormula(formulaContext, extraMetadata, cases)
       if (!adornment.plottedFunctions.get(instanceKey)) {
         adornment.addPlottedFunction(formulaFunction, instanceKey)

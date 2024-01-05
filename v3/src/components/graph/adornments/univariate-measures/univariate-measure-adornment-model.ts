@@ -3,7 +3,7 @@ import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
-import { ICase } from "../../../../models/data/data-set-types"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 
 export const MeasureInstance = types.model("MeasureInstance", {
   labelCoords: types.maybe(PointModel)
@@ -39,9 +39,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const dataset = dataConfig?.dataset
       const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues: number[] = []
-      casesInPlot.forEach((c: ICase) => {
-        const caseValue = Number(dataset?.getValue(c.__id__, attrId))
-        if (Number.isFinite(caseValue)) {
+      casesInPlot.forEach(caseId => {
+        const caseValue = dataset?.getNumeric(caseId, attrId)
+        if (isFiniteNumber(caseValue)) {
           caseValues.push(caseValue)
         }
       })

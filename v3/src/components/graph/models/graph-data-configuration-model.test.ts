@@ -24,7 +24,9 @@ describe("DataConfigurationModel", () => {
     tree.data.addAttribute({ id: "yId", name: "y" })
     tree.metadata.setData(tree.data)
     tree.data.addCases(toCanonical(tree.data, [
-      { __id__: "c1", n: "n1", x: 1, y: 1 }, { __id__: "c2", x: 2 }, { __id__: "c3", n: "n3", y: 3 }
+      { __id__: "c1", n: "n1", x: 1, y: 1 },
+      { __id__: "c2", x: 2 },
+      { __id__: "c3", n: "n3", y: 3 }
     ]))
   })
 
@@ -284,11 +286,36 @@ describe("DataConfigurationModel", () => {
   it("returns an array of cases in a plot", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
-    expect(config.subPlotCases({})).toEqual([
-      {"__id__": "c1", "nId": "n1", "xId": "1", "yId": "1"},
-      {"__id__": "c2", "nId": "", "xId": "2", "yId": ""},
-      {"__id__": "c3", "nId": "n3", "xId": "", "yId": "3"}
-    ])
+    expect(config.allPlottedCases()).toEqual(["c1", "c2", "c3"])
+    expect(config.subPlotCases({})).toEqual(["c1", "c2", "c3"])
+    expect(config.rowCases({})).toEqual(["c1", "c2", "c3"])
+    expect(config.columnCases({})).toEqual(["c1", "c2", "c3"])
+
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.allPlottedCases()).toEqual(["c1", "c2"])
+    expect(config.subPlotCases({})).toEqual(["c1", "c2"])
+    expect(config.rowCases({})).toEqual(["c1", "c2"])
+    expect(config.columnCases({})).toEqual(["c1", "c2"])
+
+    config.setAttribute("y", { attributeID: "yId" })
+    expect(config.allPlottedCases()).toEqual(["c1"])
+    expect(config.subPlotCases({})).toEqual(["c1"])
+    expect(config.rowCases({})).toEqual(["c1"])
+    expect(config.columnCases({})).toEqual(["c1"])
+
+    config.setAttribute("topSplit", { attributeID: "nId" })
+    expect(config.allPlottedCases()).toEqual(["c1"])
+    expect(config.subPlotCases({})).toEqual(["c1"])
+    expect(config.rowCases({})).toEqual(["c1"])
+    expect(config.columnCases({})).toEqual([])
+    expect(config.columnCases({ nId: "n1" })).toEqual(["c1"])
+
+    config.setAttribute("x")
+    expect(config.allPlottedCases()).toEqual(["c1", "c3"])
+    expect(config.subPlotCases({})).toEqual(["c1", "c3"])
+    expect(config.rowCases({})).toEqual(["c1", "c3"])
+    expect(config.columnCases({})).toEqual([])
+    expect(config.columnCases({ nId: "n1" })).toEqual(["c1"])
   })
 
   it("can create cell key", () => {

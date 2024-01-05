@@ -2,9 +2,8 @@ import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-
 import {comparer, reaction} from "mobx"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {ICase} from "../../../models/data/data-set-types"
 import {typedId} from "../../../utilities/js-utils"
-import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
+import {cachedFnFactory, cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
@@ -283,86 +282,66 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       })
       return matchedValCount === numOfKeys
     },
-    get allPlottedCases() {
-      const casesInPlot = new Map<string, ICase>()
+    allPlottedCases: cachedFnFactory(() => {
+      const casesInPlot = new Set<string>()
       self.filteredCases?.forEach(aFilteredCases => {
         aFilteredCases.caseIds.forEach((id) => {
-          const caseData = self.dataset?.getCase(id, { numeric: false })
-          const caseAlreadyMatched = casesInPlot.has(id)
-          if (caseData && !caseAlreadyMatched) {
-            casesInPlot.set(caseData.__id__, caseData)
-          }
+          casesInPlot.add(id)
         })
       })
-      return Array.from(casesInPlot.values())
-    }
+      return Array.from(casesInPlot)
+    })
   }))
   .views(self => ({
     subPlotCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const casesInPlot = new Map<string, ICase>()
-        self.allPlottedCases.forEach((caseData) => {
-          const caseAlreadyMatched = casesInPlot.has(caseData.__id__)
-          if (!caseAlreadyMatched && self.isCaseInSubPlot(cellKey, caseData)) {
-            casesInPlot.set(caseData.__id__, caseData)
-          }
+        return self.allPlottedCases().filter((caseId) => {
+          const caseData = self.dataset?.getCase(caseId, { numeric: false }) || { __id__: caseId }
+          return self.isCaseInSubPlot(cellKey, caseData)
         })
-        return Array.from(casesInPlot.values())
       }
     }),
     rowCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const casesInRow: ICase[] = []
         const leftAttrID = self.attributeID("y")
         const leftAttrType = self.attributeType("y")
         const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
         const rightAttrID = self.attributeID("rightSplit")
         const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
-        self.filteredCases?.forEach(aFilteredCases => {
-          aFilteredCases.caseIds.forEach(id => {
-            const caseData = self.dataset?.getCase(id)
-            if (!caseData) return
+        return self.allPlottedCases().filter(caseId => {
+          const caseData = self.dataset?.getCase(caseId)
+          if (!caseData) return false
 
-            const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
-              (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
-            const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
+          const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
+            (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
+          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
 
-            if (isLeftMatch && isRightMatch) {
-              casesInRow.push(caseData)
-            }
-          })
+          return isLeftMatch && isRightMatch
         })
-        return casesInRow
       }
     }),
     columnCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const casesInCol: ICase[] = []
         const bottomAttrID = self.attributeID("x")
         const bottomAttrType = self.attributeType("x")
         const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
         const topAttrID = self.attributeID("topSplit")
         const topValue = topAttrID ? cellKey[topAttrID] : ""
 
-        self.filteredCases?.forEach(aFilteredCases => {
-          aFilteredCases.caseIds.forEach(id => {
-            const caseData = self.dataset?.getCase(id)
-            if (!caseData) return
+        return self.allPlottedCases().filter(caseId => {
+          const caseData = self.dataset?.getCase(caseId)
+          if (!caseData) return false
 
-            const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
-              (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
-            const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
+          const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
+            (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
+          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
 
-            if (isBottomMatch && isTopMatch) {
-              casesInCol.push(caseData)
-            }
-          })
+          return isBottomMatch && isTopMatch
         })
-        return casesInCol
       }
     })
   }))
@@ -496,6 +475,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .actions(self => ({
     clearGraphSpecificCasesCache() {
+      self.allPlottedCases.invalidate()
       self.subPlotCases.invalidateAll()
       self.rowCases.invalidateAll()
       self.columnCases.invalidateAll()
