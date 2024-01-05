@@ -58,7 +58,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     layout = useGraphLayoutContext(),
     xScale = layout.getAxisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),
-    plotAreaSVGRef = useRef<SVGSVGElement>(null),
+    plotArea1Ref = useRef<SVGGElement>(null),
+    plotArea2Ref = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
@@ -88,15 +89,21 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
       const plotBounds = layout.getComputedBounds('plot')
-      select(plotAreaSVGRef.current)
-        .attr('x', plotBounds?.left || 0)
-        .attr('y', plotBounds?.top || 0)
-        .attr('width', layout.plotWidth)
-        .attr('height', layout.plotHeight)
+      const x = plotBounds?.left || 0
+      const y = plotBounds?.top || 0
+      const translate = `translate(${x}, ${y})`
+      // Note that this division into plotArea1 and plotArea2 SVG group elements, along with the separate handling of
+      // the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign element
+      // content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is to use
+      // the X and Y attributes of the foreignElement tag itself. See:
+      // https://www.pivotaltracker.com/story/show/186784214
+      select(plotArea1Ref.current).attr('transform', translate)
+      select(plotArea2Ref.current).attr('transform', translate)
+      select(pixiContainerRef.current).attr('x', x).attr('y', y) // translate won't work in Safari!
 
       pixiPointsRef.current?.resize(layout.plotWidth, layout.plotHeight)
     }
-  }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale, pixiPointsRef])
+  }, [dataset, layout, layout.plotHeight, layout.plotWidth, xScale, pixiPointsRef])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
@@ -228,12 +235,22 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           />
 
           {renderGraphAxes()}
-
-          <svg ref={plotAreaSVGRef}>
+          {/*
+            Note that this division into plotArea1 and plotArea2 SVG group elements, along with the separate handling of
+            the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign
+            element content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is
+            to use the X and Y attributes of the foreignElement tag itself. See:
+            https://www.pivotaltracker.com/story/show/186784214
+          */}
+          <g ref={plotArea1Ref}>
+            {/* Components rendered below the dots/points should be added to this group. */}
             {renderPlotComponent()}
-            <foreignObject ref={pixiContainerRef} x={0} y={0} width="100%" height="100%"/>
+          </g>
+          <foreignObject ref={pixiContainerRef} width="100%" height="100%"/>
+          <g ref={plotArea2Ref}>
+            {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
-          </svg>
+          </g>
 
           <DroppablePlot
             graphElt={graphRef.current}
