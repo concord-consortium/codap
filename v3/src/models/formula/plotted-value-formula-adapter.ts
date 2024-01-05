@@ -45,7 +45,8 @@ export class PlottedValueFormulaAdapter extends BaseGraphFormulaAdapter {
 
     graphCellKeys.forEach(cellKey => {
       const instanceKey = adornment.instanceKey(cellKey)
-      const cases = dataConfig.subPlotCases(cellKey)
+      const caseIds = dataConfig.subPlotCases(cellKey)
+      const cases = caseIds.map(id => dataConfig.dataset?.getCase(id, { numeric: true }) || { __id__: id })
       const value = Number(this.computeFormula(formulaContext, extraMetadata, cases))
       if (!adornment.measures.get(instanceKey)) {
         adornment.addMeasure(value, instanceKey)

@@ -21,6 +21,8 @@ export const CountAdornment = observer(function CountAdornment({model, cellKey}:
   const casesInPlot = dataConfig?.subPlotCases(cellKey)?.length ?? 0
   const percent = model.percentValue(casesInPlot, cellKey, dataConfig)
   const displayPercent = model.showCount ? ` (${percentString(percent)})` : percentString(percent)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const rerenderOnCasesChange = dataConfig?.casesChangeCount
 
   useEffect(() => {
     return autorun(() => {

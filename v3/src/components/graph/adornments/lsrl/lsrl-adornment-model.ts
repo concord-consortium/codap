@@ -3,7 +3,6 @@ import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
 import { kLSRLType } from "./lsrl-adornment-types"
-import { ICase } from "../../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { ILineDescription } from "../shared-adornment-types"
@@ -70,10 +69,10 @@ export const LSRLAdornmentModel = AdornmentModel
     const legendAttrId = dataConfig?.attributeID("legend")
     const casesInPlot = dataConfig.subPlotCases(cellKey)
     const caseValues: Point[] = []
-    casesInPlot.forEach((c: ICase) => {
-      const caseValueX = dataset?.getNumeric(c.__id__, xAttrId)
-      const caseValueY = dataset?.getNumeric(c.__id__, yAttrId)
-      const caseValueLegend = dataset?.getValue(c.__id__, legendAttrId)
+    casesInPlot.forEach(caseId => {
+      const caseValueX = dataset?.getNumeric(caseId, xAttrId)
+      const caseValueY = dataset?.getNumeric(caseId, yAttrId)
+      const caseValueLegend = dataset?.getValue(caseId, legendAttrId)
       const isValidX = caseValueX && Number.isFinite(caseValueX)
       const isValidY = caseValueY && Number.isFinite(caseValueY)
       const categoryMatch = cat === "__main__" || caseValueLegend === cat
