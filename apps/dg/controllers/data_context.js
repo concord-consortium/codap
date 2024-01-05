@@ -2489,6 +2489,13 @@ DG.DataContext = SC.Object.extend((function () // closure
         var row = [];
         attribIDs.forEach(function (iAttrID) {
           var caseValue = iCase.getValue(iAttrID);
+          // export boundary data as GeoJSON
+          if (caseValue && typeof caseValue === "object") {
+            if (typeof caseValue.jsonBoundaryObject === "object") {
+              caseValue = caseValue.jsonBoundaryObject;
+            }
+            caseValue = JSON.stringify(caseValue);
+          }
           row.push(escape(caseValue));
         });
         rows.push(row.join(columnDelimiter)); // append each line of data to the output
