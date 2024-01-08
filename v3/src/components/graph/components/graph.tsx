@@ -96,10 +96,15 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       // the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign element
       // content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is to use
       // the X and Y attributes of the foreignElement tag itself. See:
-      // https://www.pivotaltracker.com/story/show/186784214
-      select(plotArea1Ref.current).attr('transform', translate)
-      select(plotArea2Ref.current).attr('transform', translate)
-      select(pixiContainerRef.current).attr('x', x).attr('y', y) // translate won't work in Safari!
+      // - https://www.pivotaltracker.com/story/show/186784214
+      // - https://bugs.webkit.org/show_bug.cgi?id=219978
+      // - https://github.com/bkrem/react-d3-tree/issues/284
+      select(plotArea1Ref.current).attr("transform", translate)
+      select(plotArea2Ref.current).attr("transform", translate)
+      select(pixiContainerRef.current)
+        .attr("x", x).attr("y", y) // translate won't work in Safari!
+        .attr("width", `${layout.plotWidth}px`)
+        .attr("height", `${layout.plotHeight}px`)
 
       pixiPointsRef.current?.resize(layout.plotWidth, layout.plotHeight)
     }
@@ -240,13 +245,15 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
             the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign
             element content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is
             to use the X and Y attributes of the foreignElement tag itself. See:
-            https://www.pivotaltracker.com/story/show/186784214
+            - https://www.pivotaltracker.com/story/show/186784214
+            - https://bugs.webkit.org/show_bug.cgi?id=219978
+            - https://github.com/bkrem/react-d3-tree/issues/284
           */}
           <g ref={plotArea1Ref}>
             {/* Components rendered below the dots/points should be added to this group. */}
             {renderPlotComponent()}
           </g>
-          <foreignObject ref={pixiContainerRef} width="100%" height="100%"/>
+          <foreignObject ref={pixiContainerRef} />
           <g ref={plotArea2Ref}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
