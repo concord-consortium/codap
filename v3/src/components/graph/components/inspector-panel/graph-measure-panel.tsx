@@ -18,7 +18,9 @@ interface IProps {
   setShowPalette: (palette: string | undefined) => void
 }
 
-export const GraphMeasurePalette = observer(({tile, panelRect, buttonRect, setShowPalette}: IProps) => {
+export const GraphMeasurePalette = observer(function GraphMeasurePalette({
+  tile, panelRect, buttonRect, setShowPalette
+}: IProps) {
   const toast = useToast()
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const measures = graphModel ? graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType) : undefined

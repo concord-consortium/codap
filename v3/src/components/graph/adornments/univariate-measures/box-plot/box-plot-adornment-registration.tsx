@@ -10,7 +10,7 @@ import { useGraphContentModelContext } from "../../../hooks/use-graph-content-mo
 import { BoxPlotAdornmentComponent } from "./box-plot-adornment-component"
 import { observer } from "mobx-react-lite"
 
-const Controls = observer(() => {
+const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<IBoxPlotAdornmentModel>(kBoxPlotType)
