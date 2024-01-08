@@ -345,6 +345,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     })
   }))
+  .views(self => ({
+    casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>) {
+      return self.subPlotCases(cellKey)?.filter(caseId => {
+        const caseValue = self.dataset?.getNumeric(caseId, attrId)
+        if (caseValue && caseValue >= min && caseValue <= max) {
+          return caseId
+        }
+      })
+    }
+  }))
   .views(self => (
     {
       /**
