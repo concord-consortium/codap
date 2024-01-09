@@ -1,7 +1,7 @@
 import { Instance, types } from "mobx-state-tree"
 import { IAdornmentContentInfo, getAdornmentContentInfo, getAdornmentTypes } from "./adornment-content-info"
 import { IAdornmentComponentInfo, getAdornmentComponentInfo } from "./adornment-component-info"
-import { AdornmentModelUnion, IMeasure, PlotTypes, measures } from "./adornment-types"
+import { AdornmentModelUnion, IMeasure, PlotTypes, kDefaultFontSize, measures } from "./adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
 import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
@@ -19,12 +19,16 @@ interface IMeasureMenuItem {
 export const AdornmentsStore = types.model("AdornmentsStore", {
     type: "Adornments Store",
     adornments: types.array(AdornmentModelUnion),
+    defaultFontSize: kDefaultFontSize,
     interceptLocked: false,
     showConnectingLines: false,
     showMeasureLabels: false,
     showSquaresOfResiduals: false
   })
   .actions(self => ({
+    setDefaultFontSize(fontSize: number) {
+      self.defaultFontSize = fontSize
+    },
     toggleInterceptLocked() {
       self.interceptLocked = !self.interceptLocked
     },
