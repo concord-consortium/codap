@@ -222,11 +222,11 @@ html, body {
     width: 97% !important;
 }
 
-.navBar .modal-dialog .tabbed-panel .buttons {
+// .navBar .modal-dialog .tabbed-panel .buttons {
     /* buttons should be flush right in the dialog */
-    position: relative;
-    float: right;
-}
+    // position: relative;
+    // float: right;
+// }
 
 .navBar .sc-view {
     color: white;
