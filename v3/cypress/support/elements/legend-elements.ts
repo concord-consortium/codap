@@ -2,25 +2,40 @@ export const LegendElements = {
   getGraphTile() {
     return cy.get(".codap-graph")
   },
-  getLegend() {
-    return this.getGraphTile().find("[data-testid=graph] [data-testid=legend-component]")
+  getMapTile() {
+    return cy.get(".codap-map")
   },
-  getLegendName() {
-    return this.getLegend().find("[data-testid=attribute-label]")
+  getLegend(legendType = "graph") {
+    switch(legendType) {
+      case "map":
+        return this.getMapTile().find("[data-testid=legend-component]")
+      case "graph":
+      default:
+        return this.getGraphTile().find("[data-testid=legend-component]")
+    }
   },
-  getCategoricalLegendCategories() {
-    return this.getLegend().find("[data-testid=legend-key]")
+  getLegendName(legendType = "graph") {
+    return this.getLegend(legendType).find("[data-testid=attribute-label]")
   },
-  getCategoricalLegendCategory(name) {
-    return this.getCategoricalLegendCategories().contains(name)
+  getCategoricalLegendCategories(legendType = "graph") {
+    return this.getLegend(legendType).find("[data-testid=legend-key]")
   },
-  getNumericalLegendCategories() {
-    return this.getLegend().find("[data-testid=legend-categories]>svg rect")
+  getCategoricalLegendCategory(name, legendType = "graph") {
+    return this.getCategoricalLegendCategories(legendType).contains(name)
   },
-  getLegendAttributeMenu() {
-    return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
+  getNumericLegendCategories(legendType = "graph") {
+    return this.getLegend(legendType).find("[data-testid=legend-categories]>svg rect")
   },
-  getAttributeFromLegendMenu() {
-    return this.getLegendAttributeMenu().parent()
+  getLegendAttributeMenu(legendType = "graph") {
+    switch(legendType) {
+      case "map":
+        return this.getMapTile().find("[data-testid=attribute-label-menu-legend]")
+      case "graph":
+      default:
+        return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
+    }
+  },
+  getAttributeFromLegendMenu(legendType = "graph") {
+    return this.getLegendAttributeMenu(legendType).parent()
   }
 }

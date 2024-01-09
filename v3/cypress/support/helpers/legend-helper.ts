@@ -4,49 +4,87 @@ export const LegendHelper = {
   verifyLegendDoesNotExist() {
     le.getLegend().should("not.exist")
   },
-  verifyLegendLabel(name) {
-    le.getLegendName().should("have.text", name)
+  verifyLegendLabel(name, legendType = "graph") {
+    le.getLegendName(legendType).should("have.text", name)
   },
-  verifyCategoricalLegend() {
-    le.getCategoricalLegendCategories().should("exist")
+  verifyCategoricalLegend(num, legendType = "graph") {
+    le.getCategoricalLegendCategories(legendType).should("exist")
+    le.getCategoricalLegendCategories(legendType).should("have.length", num)
   },
-  verifyNumericLegend() {
-    le.getNumericalLegendCategories().should("exist")
+  verifyNumericLegend(legendType = "graph") {
+    le.getNumericLegendCategories(legendType).should("exist")
   },
-  selectCategoryNameForCategoricalLegend(name) {
-    le.getCategoricalLegendCategory(name).click()
+  selectCategoryNameForCategoricalLegend(name, legendType = "graph") {
+    le.getCategoricalLegendCategory(name, legendType).click()
   },
-  selectCategoryColorForCategoricalLegend(name) {
-    le.getCategoricalLegendCategory(name).parent().find("rect").click()
+  selectCategoryColorForCategoricalLegend(name, legendType = "graph") {
+    le.getCategoricalLegendCategory(name, legendType).parent().find("rect").click()
   },
-  unselectCategoricalLegendCategory() {
-    le.getGraphTile().find(".graph-background").eq(0).then($subject => {
-      cy.clickToUnselect($subject, { delay: 100 })
-    })
+  unselectLegendCategory(legendType = "graph") {
+    switch(legendType) {
+      case "map":
+        le.getMapTile().find(".map-dot-area").eq(0).click({force:true})
+        break
+      case "graph":
+      default:
+        le.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
+        break
+    }
   },
-  verifyLegendCategorySelected(name) {
-    le.getCategoricalLegendCategory(name).parent().find("rect").should("have.class", "legend-rect-selected")
+  verifyCategoricalLegendKeySelected(name, num, legendType = "graph") {
+    le.getCategoricalLegendCategory(name, legendType).parent().find("rect").should("have.class", "legend-rect-selected")
+    switch(legendType) {
+      case "map":
+        le.getMapTile().find(".map-dot-area circle.graph-dot-highlighted").should("have.length", num)
+        break
+      case "graph":
+      default:
+        le.getGraphTile().find(".graph-dot-area circle.graph-dot-highlighted").should("have.length", num)
+        break
+    }
   },
-  verifyNoLegendCategorySelectedForCategoricalLegend() {
-    le.getCategoricalLegendCategories().each($category => {
+  verifyNumericLegendKeySelected(num, legendType = "graph") {
+    le.getNumericLegendCategories(legendType).should("have.class", "legend-rect-selected")
+    switch(legendType) {
+      case "map":
+        le.getMapTile().find(".map-dot-area circle.graph-dot-highlighted").should("have.length", num)
+        break
+      case "graph":
+        le.getGraphTile().find(".graph-dot-area circle.graph-dot-highlighted").should("have.length", num)
+        break
+    }
+  },
+  verifyNoLegendCategorySelectedForCategoricalLegend(legendType = "graph") {
+    le.getCategoricalLegendCategories(legendType).each($category => {
       cy.wrap($category).find("rect").should("not.have.class", "legend-rect-selected")
     })
+    switch(legendType) {
+      case "map":
+        le.getMapTile().find(".map-dot-area circle.graph-dot-highlighted").should("have.length", 0)
+        break
+      case "graph":
+        le.getGraphTile().find(".graph-dot-area circle.graph-dot-highlighted").should("have.length", 0)
+        break
+    }
   },
-  verifyNoLegendCategorySelectedForNumericLegend() {
-    le.getNumericalLegendCategories().then($categories => {
-      $categories.forEach($category => {
-        cy.wrap($category).should("not.have.class", "legend-rect-selected")
-      })
+  verifyNoLegendCategorySelectedForNumericLegend(legendType = "graph") {
+    le.getNumericLegendCategories(legendType).each($category => {
+      cy.wrap($category).should("not.have.class", "legend-rect-selected")
     })
+    switch(legendType) {
+      case "map":
+        le.getMapTile().find(".map-dot-area circle.graph-dot-highlighted").should("have.length", 0)
+        break
+      case "graph":
+        le.getGraphTile().find(".graph-dot-area circle.graph-dot-highlighted").should("have.length", 0)
+        break
+    }
   },
-  selectNumericalLegendCategory(index) {
-    le.getNumericalLegendCategories().eq(index).click()
+  selectNumericLegendCategory(index, legendType = "graph") {
+    le.getNumericLegendCategories(legendType).eq(index).click()
   },
-  unselectNumericalLegendCategory() {
-    le.getGraphTile().find(".graph-dot-area").click()
-  },
-  verifyLegendQuintileSelected(index) {
-    le.getNumericalLegendCategories().eq(index).should("have.class", "legend-rect-selected")
+  verifyLegendQuintileSelected(index, legendType = "graph") {
+    le.getNumericLegendCategories(legendType).eq(index).should("have.class", "legend-rect-selected")
   },
   dragAttributeToPlot(name) {
     cy.dragAttributeToTarget("table", name, "graph_plot")
@@ -54,14 +92,14 @@ export const LegendHelper = {
   dragAttributeToLegend(name) {
     cy.dragAttributeToTarget("table", name, "legend")
   },
-  openLegendMenu() {
-    le.getLegendAttributeMenu().click()
+  openLegendMenu(legendType = "graph") {
+    le.getLegendAttributeMenu(legendType).click()
   },
-  addAttributeToLegeend(name) {
-    le.getAttributeFromLegendMenu().contains(name).click()
+  addAttributeToLegend(name, legendType = "graph") {
+    le.getAttributeFromLegendMenu(legendType).contains(name).click()
   },
-  removeAttributeFromLegend(name) {
-    le.getAttributeFromLegendMenu().contains(`Remove Legend: ${name}`).click()
+  removeAttributeFromLegend(name, legendType = "graph") {
+    le.getAttributeFromLegendMenu(legendType).contains(`Remove Legend: ${name}`).click()
   },
   treatLegendAttributeAsCategorical() {
     le.getAttributeFromLegendMenu().contains("Treat as Categorical").click()

@@ -2,6 +2,7 @@ export const ComponentElements = {
   tooltips: {
     tableToolShelfIcon: "Open a case table for each data set(ctrl-alt-t)",
     graphToolShelfIcon: "Make a graph (ctrl-alt-g)",
+    mapToolShelfIcon: "Make a map",
     sliderToolShelfIcon: "Make a slider (ctrl-alt-s)",
     calculatorToolShelfIcon: "Open/close the calculator (ctrl-alt-c)",
     minimizeComponent: "Minimize or expand this Component",
@@ -13,6 +14,13 @@ export const ComponentElements = {
     graphDisplayConfigButton: "Configure the display differently",
     graphDisplayStylesButton: "Change the appearance of the display",
     graphCameraButton: "Save the image",
+    mapZoomInButton: "Zoom in",
+    mapZoomOutButton: "Zoom out",
+    mapResizeButton: "Rescale display to show all the data",
+    mapHideShowButton: "Show all cases or hide selected/unselected cases",
+    mapDisplayValuesButton: "Change what is shown along with the points",
+    mapDisplayConfigButton: "Change the appearance of the map layers",
+    mapCameraButton: "Save the image",
     tableSwitchCaseCard: "Switch to case card view of the data",
     tableDatasetInfoButton: "Display information about dataset",
     tableResizeButton: "Resize all columns to fit data",
@@ -38,6 +46,9 @@ export const ComponentElements = {
       case "data-summary":
         el = ".codap-data-summary"
         break
+      case "map":
+        el = ".codap-map"
+        break
     }
     return cy.get(el)
   },
@@ -55,6 +66,9 @@ export const ComponentElements = {
         break
       case "table":
         el = "[data-testid=tool-shelf-button-table]"
+        break
+      case "map":
+        el = "[data-testid=tool-shelf-button-Map]"
         break
     }
     return cy.get(el)

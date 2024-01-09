@@ -6,7 +6,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
   const el = {
     tableHeader: ".codap-data-summary .data-attributes .draggable-attribute",
     tableColumnHeader:
-      `.codap-case-table [data-testid="codap-attribute-button ${target}"]`,
+      `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
     caseCardHeader: ".react-data-card-attribute",
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
@@ -16,7 +16,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
     x_axis_label: ".codap-graph .axis-legend-attribute-menu.bottom .chakra-menu__menu-button",
     y_axis: ".codap-graph .droppable-axis.droppable-svg.left",
     y_axis_label: ".codap-graph .axis-legend-attribute-menu.left .chakra-menu__menu-button",
-    mapTile: ".dg.leaflet-container",
+    mapTile: ".codap-map .leaflet-container",
     newCollection: ".collection-table-spacer.parentMost",
     prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
   }
@@ -29,7 +29,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
       source_el = el.tableHeader
       break
     case ("attribute"):
-      source_el = el.tableHeader
+      source_el = el.tableColumnHeader
       break
     case ("card"):
       source_el = el.caseCardHeader

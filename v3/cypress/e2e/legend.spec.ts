@@ -35,7 +35,7 @@ context("Test legend with various attribute types", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[8])
     lh.verifyLegendLabel(arrayOfAttributes[7])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[7].values.length)
     ah.openAxisAttributeMenu("x")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "x")
     lh.openLegendMenu()
@@ -46,7 +46,7 @@ context("Test legend with various attribute types", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[8])
     lh.verifyLegendLabel(arrayOfAttributes[7])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[7].values.length)
     ah.openAxisAttributeMenu("y")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "y")
     lh.openLegendMenu()
@@ -57,7 +57,7 @@ context("Test legend with various attribute types", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
     lh.verifyLegendLabel(arrayOfAttributes[7])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[7].values.length)
     ah.openAxisAttributeMenu("x")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "x")
     lh.openLegendMenu()
@@ -68,7 +68,7 @@ context("Test legend with various attribute types", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("y", arrayOfAttributes[2])
     lh.verifyLegendLabel(arrayOfAttributes[7])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[7].values.length)
     ah.openAxisAttributeMenu("y")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "y")
     lh.openLegendMenu()
@@ -132,14 +132,14 @@ context("Test drawing legend on existing legend", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
     lh.verifyLegendLabel(arrayOfAttributes[7])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[7].values.length)
     lh.dragAttributeToLegend(arrayOfAttributes[8]) // Diet => plot area
     lh.verifyLegendLabel(arrayOfAttributes[8])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[8].values.length)
     ah.openAxisAttributeMenu("x")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "x")
     lh.verifyLegendLabel(arrayOfAttributes[8])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[8].values.length)
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[8])
   })
@@ -152,11 +152,11 @@ context("Test drawing legend on existing legend", () => {
     // Temporarily changing this because of #184764820
     lh.dragAttributeToPlot(arrayOfAttributes[8]) // Diet => plot area
     lh.verifyLegendLabel(arrayOfAttributes[8])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[8].values.length)
     ah.openAxisAttributeMenu("y")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "y")
     lh.verifyLegendLabel(arrayOfAttributes[8])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[8].values.length)
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[8])
   })
@@ -165,7 +165,7 @@ context("Test drawing legend on existing legend", () => {
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     ah.verifyAxisLabel("x", arrayOfAttributes[2])
     lh.verifyLegendLabel(arrayOfAttributes[7])
-    lh.verifyCategoricalLegend()
+    lh.verifyCategoricalLegend(arrayOfValues[7].values.length)
     lh.dragAttributeToLegend(arrayOfAttributes[3]) // Height => plot area
     lh.verifyLegendLabel(arrayOfAttributes[3])
     lh.verifyNumericLegend()
@@ -205,21 +205,38 @@ context("Test selecting and selecting categories in legend", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "x") // Diet => x-axis
     lh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     lh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
-    lh.verifyLegendCategorySelected(arrayOfValues[7].values[0])
+    lh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0], 1)
     lh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[1])
-    lh.verifyLegendCategorySelected(arrayOfValues[7].values[1])
+    lh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[1], 24)
     lh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[2])
-    lh.verifyLegendCategorySelected(arrayOfValues[7].values[2])
+    lh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[2], 2)
     lh.selectCategoryColorForCategoricalLegend(arrayOfValues[7].values[0])
-    lh.verifyLegendCategorySelected(arrayOfValues[7].values[0])
+    lh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0], 1)
     lh.selectCategoryColorForCategoricalLegend(arrayOfValues[7].values[1])
-    lh.verifyLegendCategorySelected(arrayOfValues[7].values[1])
+    lh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[1], 24)
     lh.selectCategoryColorForCategoricalLegend(arrayOfValues[7].values[2])
-    lh.verifyLegendCategorySelected(arrayOfValues[7].values[2])
-    // lh.unselectCategoricalLegendCategory() //This doesn't work, will need to make this work
-    // lh.verifyNoLegendCategorySelectedForCategoricalLegend()
+    lh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[2], 2)
+
+    lh.unselectLegendCategory()
+    lh.verifyNoLegendCategorySelectedForCategoricalLegend()
     lh.openLegendMenu()
     lh.removeAttributeFromLegend(arrayOfAttributes[7])
+    ah.openAxisAttributeMenu("x")
+    ah.removeAttributeFromAxis(arrayOfAttributes[8], "x")
+  })
+  it("will select and unselect keys in numeric legend with categorical x axis", () => {
+    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "x") // Diet => x-axis
+    lh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+    lh.selectNumericLegendCategory(0)
+    lh.verifyNumericLegendKeySelected(6)
+    lh.selectNumericLegendCategory(1)
+    lh.verifyNumericLegendKeySelected(3)
+
+    lh.unselectLegendCategory()
+    lh.verifyNoLegendCategorySelectedForNumericLegend()
+
+    lh.openLegendMenu()
+    lh.removeAttributeFromLegend(arrayOfAttributes[3])
     ah.openAxisAttributeMenu("x")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "x")
   })
