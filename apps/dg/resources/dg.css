@@ -228,6 +228,11 @@ html, body {
     // float: right;
 // }
 
+.tabbed-panel .workspace-tab-component .dialogTab .provider-message  {
+    color: #000;
+    font-size: 12px;
+}
+
 .navBar .sc-view {
     color: white;
     font-family: 'Montserrat-Regular', sans-serif;
