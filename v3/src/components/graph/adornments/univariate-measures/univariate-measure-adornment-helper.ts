@@ -7,6 +7,17 @@ import { isBoxPlotAdornment } from "./box-plot/box-plot-adornment-model"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { valueLabelString } from "../../utilities/graph-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import { kMeanType } from "./mean/mean-adornment-types"
+import { kMedianType } from "./median/median-adornment-types"
+import { IAdornmentsStore } from "../adornments-store"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
+
+interface IBlocksOtherMeasure {
+  adornmentsStore: IAdornmentsStore
+  attrId: string
+  dataConfig: IDataConfigurationModel
+  isVertical: boolean
+}
 
 export class UnivariateMeasureAdornmentHelper {
   cellKey: Record<string, string>
@@ -197,5 +208,23 @@ export class UnivariateMeasureAdornmentHelper {
       measureRange,
       plotValue
     }
+  }
+
+  blocksOtherMeasure(props: IBlocksOtherMeasure) {
+    const affectedMeasureTypes = [kMeanType, kMedianType]
+    if (!affectedMeasureTypes.includes(this.model.type)) return false
+    const { adornmentsStore, attrId, dataConfig, isVertical } = props
+    const thisMeasureValue = this.model.measureValue(attrId, this.cellKey, dataConfig)
+    if (!isFiniteNumber(thisMeasureValue)) return false
+    const scale = isVertical ? this.xScale : this.yScale
+    const otherMeasureType = this.model.type === kMeanType ? kMedianType : kMeanType
+    const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
+    const isBlockingOtherMeasure = activeUnivariateMeasures?.find((measure: IUnivariateMeasureAdornmentModel) => {
+        if (measure.type !== otherMeasureType) return false
+        const otherMeasureValue = measure.measureValue(attrId, this.cellKey, dataConfig)
+        return otherMeasureValue && Math.abs(scale(otherMeasureValue) - scale(thisMeasureValue)) < 2
+      }
+    )
+    return isBlockingOtherMeasure
   }
 }
