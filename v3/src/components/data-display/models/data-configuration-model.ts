@@ -251,6 +251,7 @@ export const DataConfigurationModel = types
        * @param emptyCategoryArray
        */
       categoryArrayForAttrRole(role: AttrRole, emptyCategoryArray = ['__main__']): string[] {
+        this.valuesForAttrRole.invalidateAll()
         let categoryArray = Array.from(new Set(this.valuesForAttrRole(role)))
         if (categoryArray.length === 0) {
           categoryArray = emptyCategoryArray
