@@ -111,7 +111,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"],
       Map: ["DG.Undo.map.create", "DG.Redo.map.create"]
     }
-    const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType]
+    const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType] || []
     document?.content?.applyUndoableAction(() => {
       document?.content?.createOrShowTile?.(tileType)
     }, undoStringKey, redoStringKey)

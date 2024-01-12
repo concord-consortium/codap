@@ -19,6 +19,8 @@ import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
+import { kPluginTileType } from "./plugin/plugin-defs"
+import { isPluginModel } from "./plugin/plugin-model"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -44,11 +46,17 @@ export const App = observer(function App() {
     appState.setDocument(document)
   }, [])
 
+  const handleUrlDrop = useCallback((url: string) => {
+    const plugin = appState.document.content?.createOrShowTile(kPluginTileType)
+    isPluginModel(plugin?.content) && plugin?.content.setUrl(url)
+  }, [])
+
   useDropHandler({
     selector: "#app",
     onImportDataSet: handleImportDataSet,
     onImportV2Document: importV2Document,
-    onImportV3Document: handleImportV3Document
+    onImportV3Document: handleImportV3Document,
+    onHandleUrlDrop: handleUrlDrop
   })
 
   useEffect(() => {

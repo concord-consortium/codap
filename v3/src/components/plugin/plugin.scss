@@ -1,0 +1,9 @@
+.codap-plugin {
+  width: 100%;
+  height: calc(100% - 25px);
+
+  .codap-plugin-iframe {
+    width: 100%;
+    height: 100%;
+  }
+}

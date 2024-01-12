@@ -1,22 +1,24 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-// import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { PlaceholderTileComponent } from "../tiles/placeholder/placeholder-tile"
+import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ComponentTitleBar } from "../component-title-bar"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
+import { kPluginTileType } from "./plugin-defs"
+import { PluginModel } from "./plugin-model"
+import { PluginComponent } from "./plugin-component"
 
 export const kPluginIdPrefix = "PLUG"
 
-// registerTileContentInfo({
-//   type: "CodapPlugin",
-//   prefix: kPluginIdPrefix,
-//   modelClass: PluginModel,
-//   defaultContent: () => createPluginModel()
-// })
+registerTileContentInfo({
+  type: kPluginTileType,
+  prefix: kPluginIdPrefix,
+  modelClass: PluginModel,
+  defaultContent: () => PluginModel.create()
+})
 
 registerTileComponentInfo({
   type: "CodapPlugin",
   TitleBar: ComponentTitleBar,
-  Component: PlaceholderTileComponent,
+  Component: PluginComponent,
   tileEltClass: "codap-plugin",
   Icon: PluginsIcon,
   shelf: {

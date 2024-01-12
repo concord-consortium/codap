@@ -30,8 +30,11 @@ export interface IDropHandler {
   onImportDataSet?: (data: IDataSet) => void
   onImportV2Document?: (document: CodapV2Document) => void
   onImportV3Document?: (document: IDocumentModelSnapshot) => void
+  onHandleUrlDrop?: (url: string) => void
 }
-export const useDropHandler = ({ selector, onImportDataSet, onImportV2Document, onImportV3Document }: IDropHandler) => {
+export const useDropHandler = ({
+  selector, onImportDataSet, onImportV2Document, onImportV3Document, onHandleUrlDrop
+}: IDropHandler) => {
   const eltRef = useRef<HTMLElement | null>(null)
 
   useEffect(function installListeners() {
@@ -62,9 +65,10 @@ export const useDropHandler = ({ selector, onImportDataSet, onImportV2Document, 
       if (event.dataTransfer?.items) {
         // Use DataTransferItemList interface to access the file(s)
         for (let i = 0; i < event.dataTransfer.items.length; i++) {
+          const item = event.dataTransfer.items[i]
           // If dropped items aren't files, reject them
-          if (event.dataTransfer.items[i].kind === 'file') {
-            const file = event.dataTransfer.items[i].getAsFile()
+          if (item.kind === 'file') {
+            const file = item.getAsFile()
             const nameParts = file?.name.toLowerCase().split(".")
             const extension = nameParts?.length ? nameParts[nameParts.length - 1] : ""
             switch (extension) {
@@ -78,6 +82,14 @@ export const useDropHandler = ({ selector, onImportDataSet, onImportV2Document, 
                 importCsvFile(file, onCompleteCsvImport)
                 break
             }
+          }
+          else if (item.kind === "string" && item.type === "text/uri-list") {
+            item.getAsString(url => {
+              if (url) {
+                const result = /di=(.+)/.exec(url)
+                onHandleUrlDrop?.(result?.[1] || url)
+              }
+            })
           }
         }
       }
@@ -104,7 +116,7 @@ export const useDropHandler = ({ selector, onImportDataSet, onImportV2Document, 
       eltRef.current?.removeEventListener('dragover', dragOverHandler)
       eltRef.current?.removeEventListener('drop', dropHandler)
     }
-  }, [onImportDataSet, onImportV2Document, onImportV3Document, selector])
+  }, [onHandleUrlDrop, onImportDataSet, onImportV2Document, onImportV3Document, selector])
 
   // return element to which listeners were attached; useful for tests
   return eltRef.current
