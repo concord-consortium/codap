@@ -1,0 +1,24 @@
+import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { kWebViewTileType } from "./web-view-defs"
+import { WebViewModel } from "./web-view-model"
+import { WebViewComponent } from "./web-view"
+import { WebViewTitleBar } from "./web-view-title-bar"
+
+export const kWebViewIdPrefix = "WEBVIEW"
+
+registerTileContentInfo({
+  type: kWebViewTileType,
+  prefix: kWebViewIdPrefix,
+  modelClass: WebViewModel,
+  defaultContent: () => WebViewModel.create()
+})
+
+registerTileComponentInfo({
+  type: "CodapWebView",
+  TitleBar: WebViewTitleBar,
+  Component: WebViewComponent,
+  tileEltClass: "codap-web-view",
+  defaultWidth: 300,
+  defaultHeight: 300
+})

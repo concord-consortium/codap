@@ -1,0 +1,9 @@
+.codap-web-view {
+  width: 100%;
+  height: calc(100% - 25px);
+
+  .codap-web-view-iframe {
+    width: 100%;
+    height: 100%;
+  }
+}

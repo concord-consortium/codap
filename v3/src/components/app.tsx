@@ -19,8 +19,8 @@ import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
-import { kPluginTileType } from "./plugin/plugin-defs"
-import { isPluginModel } from "./plugin/plugin-model"
+import { kWebViewTileType } from "./web-view/web-view-defs"
+import { isWebViewModel } from "./web-view/web-view-model"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -47,8 +47,8 @@ export const App = observer(function App() {
   }, [])
 
   const handleUrlDrop = useCallback((url: string) => {
-    const plugin = appState.document.content?.createOrShowTile(kPluginTileType)
-    isPluginModel(plugin?.content) && plugin?.content.setUrl(url)
+    const plugin = appState.document.content?.createOrShowTile(kWebViewTileType)
+    isWebViewModel(plugin?.content) && plugin?.content.setUrl(url)
   }, [])
 
   useDropHandler({
