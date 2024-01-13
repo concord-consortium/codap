@@ -223,9 +223,9 @@ html, body {
 }
 
 // .navBar .modal-dialog .tabbed-panel .buttons {
-    /* buttons should be flush right in the dialog */
-    // position: relative;
-    // float: right;
+//     /* buttons should be flush right in the dialog */
+//     position: relative;
+//     float: right;
 // }
 
 .tabbed-panel .workspace-tab-component .dialogTab .provider-message  {
