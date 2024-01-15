@@ -44,7 +44,7 @@ export interface IAxisModel extends Instance<typeof AxisModel> {
 export const EmptyAxisModel = AxisModel
   .named("EmptyAxisModel")
   .props({
-    type: "empty",
+    type: types.optional(types.literal("empty"), "empty"),
     min: 0,
     max: 0
   })
@@ -58,7 +58,7 @@ export function isEmptyAxisModel(axisModel?: IAxisModel): axisModel is IEmptyAxi
 export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
   .props({
-    type: "categorical",
+    type: types.optional(types.literal("categorical"), "categorical"),
     scale: "band"
   })
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
@@ -71,7 +71,7 @@ export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICa
 export const NumericAxisModel = AxisModel
   .named("NumericAxisModel")
   .props({
-    type: "numeric",
+    type: types.optional(types.literal("numeric"), "numeric"),
     scale: types.optional(types.enumeration([...ScaleTypes]), "linear"),
     min: types.number,
     max: types.number
@@ -119,16 +119,7 @@ export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumeri
   return !!axisModel?.isNumeric
 }
 
-const axisTypeDispatcher = (axisSnap: any) => {
-  switch (axisSnap.type) {
-    case "categorical": return CategoricalAxisModel
-    case "numeric": return NumericAxisModel
-    default: return EmptyAxisModel
-  }
-}
-
-export const AxisModelUnion = types.union({ dispatcher: axisTypeDispatcher },
-  EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
+export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
 export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel
 export type IAxisModelSnapshotUnion =
   IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot | INumericAxisModelSnapshot

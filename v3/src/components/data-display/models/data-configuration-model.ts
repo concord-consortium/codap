@@ -50,7 +50,8 @@ export const DataConfigurationModel = types
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: [] as FilteredCases[],
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
-    pointsNeedUpdating: false
+    pointsNeedUpdating: false,
+    casesChangeCount: 0
   }))
   .views(self => ({
     get isEmpty() {
@@ -418,6 +419,8 @@ export const DataConfigurationModel = types
     clearCasesCache() {
       self.valuesForAttrRole.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
+      // increment observable change count
+      ++self.casesChangeCount
     }
   }))
   .actions(self => ({

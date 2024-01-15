@@ -217,7 +217,7 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
       .should(
         "contain.html",
-        "<span><em>Speed</em> = −0.00142 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933</span>"
+        "<span><em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009</span>"
       )
     cy.get("*[data-testid=lsrl-confidence-band]").should("exist").should("not.have.attr", "d")
     cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("not.have.attr", "d")
@@ -231,7 +231,7 @@ context("Graph adornments", () => {
       .should(
         "contain.html",
         // eslint-disable-next-line max-len
-        "<span><em>Speed</em> = −0.00142 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.00933<br>SE<sub>slope</sub> = 0.003</span>"
+        "<span><em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009<br>SE<sub>slope</sub> = 0.003</span>"
       )
     // TODO: Test that mousing over equation highlights the line and vice versa
     // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are

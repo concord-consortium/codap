@@ -24,7 +24,12 @@ module.exports = {
     react: {
       pragma: "React",
       version: "detect"
-    }
+    },
+    "componentWrapperFunctions": [
+      // The name of any function used to wrap components, e.g. Mobx `observer` function.
+      // If this isn't set, components wrapped by these functions will be skipped.
+      "observer"
+    ]
   },
   ignorePatterns: [
     "dist/", "node_modules/"

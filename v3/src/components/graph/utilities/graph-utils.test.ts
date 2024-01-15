@@ -2,33 +2,38 @@ import {ptInRect} from "../../data-display/data-display-utils"
 import {equationString, getScreenCoord, lineToAxisIntercepts, lsrlEquationString, valueLabelString} from "./graph-utils"
 import {DataSet, toCanonical} from "../../../models/data/data-set"
 import {scaleLinear} from "d3"
+import { GraphLayout } from "../models/graph-layout"
 
 describe("equationString", () => {
+  const layout = new GraphLayout()
+  const attrNames = {x: "Lifespan", y: "Speed"}
   it("should return a valid equation for a given slope and intercept", () => {
-    expect(equationString({slope: 1, intercept: 0, attrNames: {x: "Lifespan", y: "Speed"}}))
+    expect(equationString({slope: 1, intercept: 0, attrNames, layout}))
       .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
   })
   it("should return an equation containing only the y attribute when the slope is 0", () => {
-    expect(equationString({slope: 0, intercept: 1, attrNames: {x: "Lifespan", y: "Speed"}}))
+    expect(equationString({slope: 0, intercept: 1, attrNames, layout}))
       .toBe('<em>Speed</em> = 1')
   })
   it("should return an equation containing only the x attribute when the slope is Infinity", () => {
-    expect(equationString({slope: Infinity, intercept: 1, attrNames: {x: "Lifespan", y: "Speed"}}))
+    expect(equationString({slope: Infinity, intercept: 1, attrNames, layout}))
       .toBe('<em>Lifespan</em> = 1')
   })
 })
 
 describe("lsrlEquationString", () => {
+  const layout = new GraphLayout()
+  const attrNames = {x: "Lifespan", y: "Speed"}
   it("should return a valid equation for a given slope and intercept", () => {
-    expect(lsrlEquationString({caseValues: [], slope: 1, intercept: 0, attrNames: {x: "Lifespan", y: "Speed"}}))
-      .toBe('<span><em>Speed</em> = 1 (<em>Lifespan</em>) </span>')
+    expect(lsrlEquationString({caseValues: [], slope: 1, intercept: 0, attrNames, layout}))
+      .toBe('<span><em>Speed</em> = 1 (<em>Lifespan</em>)</span>')
   })
   it("should return an equation containing only the y attribute when the slope is 0", () => {
-    expect(lsrlEquationString({caseValues: [], slope: 0, intercept: 1, attrNames: {x: "Lifespan", y: "Speed"}}))
+    expect(lsrlEquationString({caseValues: [], slope: 0, intercept: 1, attrNames, layout}))
       .toBe('<span><em>Speed</em> = 1</span>')
   })
   it("should return an equation containing only the x attribute when the slope is Infinity", () => {
-    expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames: {x: "Lifespan", y: "Speed"}}))
+    expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames, layout}))
       .toBe('<span><em>Lifespan</em> = 1</span>')
   })
 })

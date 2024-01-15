@@ -14,6 +14,7 @@ import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-con
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
+import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 
 import "./lsrl-adornment-component.scss"
 
@@ -48,6 +49,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
   const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const layout = useGraphLayoutContext()
   const adornmentsStore = graphModel?.adornmentsStore
   const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const { xAttrId, yAttrId, xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
@@ -141,7 +143,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
       const attrNames = {x: xAttrName, y: yAttrName}
       const string = lsrlEquationString({
-        attrNames, caseValues, color, intercept, interceptLocked, rSquared, showConfidenceBands, slope, sumOfSquares
+        attrNames, caseValues, color, intercept, interceptLocked, rSquared,
+        showConfidenceBands, slope, sumOfSquares, layout
       })
       const equation = equationDiv.select(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`)
       equation.html(string)
@@ -160,9 +163,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
           .style("top", `${top}px`)
       }
     }
-  }, [cellKey, dataConfig, equationContainerSelector, getLines, interceptLocked, model, plotHeight, plotWidth,
-      showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId, yAttrName, yScale,
-      ySubAxesCount])
+  }, [cellKey, dataConfig, equationContainerSelector, getLines, interceptLocked, layout, model, plotHeight,
+      plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId,
+      yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], lineIndex: number) => {
     const xMin = xScale.domain()[0]

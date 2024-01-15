@@ -146,9 +146,6 @@ export class GraphController {
         dataConfig.setPrimaryRole(primaryRole)
         graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
       }
-      if (dataConfig.attributeID(graphAttributeRole) !== attrID) {
-        dataConfig.setAttribute(graphAttributeRole, {attributeID: attrID})
-      }
     }
 
     const setupAxis = (place: AxisPlace) => {
