@@ -211,9 +211,7 @@ export class PixiPoints {
   }
 
   setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
-    const metadata = this.getMetadata(point)
-    const newStyle = { ...metadata.style, ...style }
-    metadata.style = newStyle
+    const newStyle = this.updatePointStyle(point, style)
     const texture = this.getPointTexture(newStyle)
     if (point.texture !== texture) {
       point.texture = texture
@@ -255,6 +253,21 @@ export class PixiPoints {
 
   textureKey(style: IPixiPointStyle) {
     return JSON.stringify(style)
+  }
+
+  updatePointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
+    Object.keys(style).forEach((key: any) => {
+      // Sometimes, client code might provide empty strings as style values. This means that the given property
+      // should not be changed from its current value.
+      const styleAny = style as any
+      if (styleAny[key] == null || styleAny[key] === "") {
+        delete styleAny[key]
+      }
+    })
+    const metadata = this.getMetadata(point)
+    const newStyle = { ...metadata.style, ...style }
+    metadata.style = newStyle
+    return newStyle
   }
 
   getPointTexture(style: IPixiPointStyle): PIXI.Texture {
