@@ -57,6 +57,12 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
   .views(self => ({
     isShowingAdornment(type: string) {
       return !!self.adornments.find(a => a.type === type)?.isVisible
+    },
+    get activeBannerCount() {
+      return self.adornments.filter(adornment => {
+        if (!adornment.isVisible) return false
+        return getAdornmentComponentInfo(adornment.type)?.BannerComponent
+      }).length
     }
   }))
   .views(self => ({

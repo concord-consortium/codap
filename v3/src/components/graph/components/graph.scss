@@ -111,6 +111,7 @@
 
   &.active {
     border: 5px solid rgb(255, 216, 102);
+    z-index: 10;
   }
 
   &.over {
