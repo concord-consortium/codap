@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
-import { ICountAdornmentModel, IRegionCount } from "./count-adornment-model"
+import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
@@ -23,7 +23,7 @@ interface IProps {
 export const CountAdornment = observer(function CountAdornment({ model, cellKey, plotWidth }: IProps) {
   prf.begin("CountAdornment.render")
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
-  const { xAttrId, yAttrId, xScale, yScale } = useAdornmentAttributes()
+  const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel?.adornmentsStore
@@ -38,8 +38,12 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
   const defaultFontSize = graphModel.adornmentsStore.defaultFontSize
   let fontSize = defaultFontSize
   const prevCellWidth = useRef(plotWidth)
-  const subPlotRegionBoundaries = useRef(adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? [])
-  const displayCount = useRef(<div>{textContent}</div>)
+  const subPlotRegionBoundaries = useMemo(
+    () => adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? [],
+    [adornmentsStore, instanceKey, scale]
+  )
+  const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries)
+  const [displayCount, setDisplayCount] = useState(<div>{textContent}</div>)
 
   const resizeText = useCallback(() => {
     const minFontSize = 3
@@ -64,38 +68,35 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
     // will have two regions, one from the axis' min value to the movable value, and another from the movable value
     // to the axis' max value.
 
-    if (subPlotRegionBoundaries.current.length < 3 || graphModel.plotType !== "dotPlot") {
+    if (subPlotRegionBoundariesRef.current.length < 3 || graphModel.plotType !== "dotPlot") {
       // If there are no movable values present, we just show a single case count.
-      displayCount.current = <div>{textContent}</div>
+      setDisplayCount(<div>{textContent}</div>)
       return
     }
 
-    const regionCountParams = {
-      attrId: primaryAttrRole === "x" ? xAttrId : yAttrId,
+    const regionCountParams: IRegionCountParams = {
       cellKey,
       dataConfig,
-      primaryAttrRole,
       scale,
-      subPlotRegionBoundaries: subPlotRegionBoundaries.current,
+      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current,
     }
     const counts: IRegionCount[] = model.regionCounts(regionCountParams)
     const className = primaryAttrRole === "x" ? "sub-count x-axis" : "sub-count y-axis"
-    displayCount.current = (
+    setDisplayCount(
       <>
         {counts.map((c, i) => {
           const style = primaryAttrRole === "x"
             ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
             : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
-          const regionPercent = percentString(c.value / casesInPlot)
+          const regionPercent = percentString(c.count / casesInPlot)
           const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
-          const regionTextContent = `${model.showCount ? c.value : ""}${model.showPercent ? regionDisplayPercent : ""}`
+          const regionTextContent = `${model.showCount ? c.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
 
           return <div key={`count-instance-${i}`} className={className} style={style}>{regionTextContent}</div>
         })}
       </>
     )
-  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, model, primaryAttrRole, scale, textContent, xAttrId,
-      yAttrId])
+  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, model, primaryAttrRole, scale, textContent])
 
   useEffect(function resizeTextOnCellWidthChange() {
     return mstAutorun(() => {
@@ -108,7 +109,7 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
     return mstReaction(
       () => adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? [],
       (boundaries: number[]) => {
-        subPlotRegionBoundaries.current = boundaries
+        subPlotRegionBoundariesRef.current = boundaries
         plotCaseCounts()
       },
     { name: "CountAdornment.refreshSubPlotRegionBoundaries" }, model)
@@ -138,7 +139,7 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
       data-testid={`graph-count${classFromKey ? `-${classFromKey}` : ""}`}
       style={{fontSize: `${fontSize}px`}}
     >
-      {displayCount.current}
+      {displayCount}
     </div>
   )
 })

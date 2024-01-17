@@ -7,16 +7,14 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 
 export interface IRegionCount {
   bottomOffset: number
+  count: number
   height: number
   leftOffset: number
-  value: number
   width: number
 }
-interface IRegionCountParams {
-  attrId: string
+export interface IRegionCountParams {
   cellKey: Record<string, string>
   dataConfig?: IGraphDataConfigurationModel
-  primaryAttrRole: "x" | "y"
   scale: ScaleNumericBaseType
   subPlotRegionBoundaries: number[]
 }
@@ -45,7 +43,10 @@ export const CountAdornmentModel = AdornmentModel
       return isFinite(percentValue) ? percentValue : 0
     },
     regionCounts(props: IRegionCountParams) {
-      const { attrId, cellKey, dataConfig, primaryAttrRole, scale, subPlotRegionBoundaries } = props
+      const { cellKey, dataConfig, scale, subPlotRegionBoundaries } = props
+      const primaryAttrRole = dataConfig?.primaryRole ?? "x"
+      const attrId = dataConfig?.attributeID(primaryAttrRole)
+      if (!attrId) return []
       let prevWidth = 0
       let prevHeight = 0
       const counts: IRegionCount[] = []
@@ -56,14 +57,14 @@ export const CountAdornmentModel = AdornmentModel
         const pixelMin = scale(lowerBoundary)
         const pixelMax = scale(upperBoundary)
         const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey) ?? []
-        const value = casesInRange.length
+        const count = casesInRange.length
         const width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
         const height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
         const leftOffset = prevWidth
         const bottomOffset = prevHeight
         prevWidth += width
         prevHeight += height
-        counts.push({ bottomOffset, height, leftOffset, value, width })
+        counts.push({ bottomOffset, height, leftOffset, count, width })
       }
   
       return counts
