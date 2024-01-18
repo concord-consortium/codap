@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
+import { useDeepCompareMemo } from "use-deep-compare"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -19,8 +20,9 @@ interface IProps {
   plotWidth: number
 }
 
-export const CountAdornment = observer(function CountAdornment({ model, cellKey, plotWidth }: IProps) {
+export const CountAdornment = observer(function CountAdornment({ model, cellKey: _cellKey, plotWidth }: IProps) {
   prf.begin("CountAdornment.render")
+  const cellKey = useDeepCompareMemo(() => _cellKey, [_cellKey])
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
