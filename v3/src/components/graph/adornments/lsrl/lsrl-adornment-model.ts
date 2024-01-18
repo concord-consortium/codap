@@ -8,7 +8,7 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { ILineDescription } from "../shared-adornment-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 
-interface ILSRLLine {
+interface ILSRLine {
   category?: string
   equationCoords?: Point
   intercept?: number
@@ -140,12 +140,12 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  updateLines(line: ILSRLLine, key="", index?: number) {
+  updateLines(line: ILSRLine, key="", index?: number) {
     const { category, equationCoords, intercept, rSquared, sdResiduals, slope } = line
     const existingLines = self.lines.get(key)
     const newLines = existingLines ? [...existingLines] : []
     // Remove any pre-existing line in newLines at specified index, otherwise we can end up with duplicates.
-    isFiniteNumber(index) && newLines.splice(index, 1)
+    ;(index != null) && newLines.splice(index, 1)
     const newLine = LSRLInstance.create(line)
     newLine.setCategory(category)
     newLine.setIntercept(intercept)
