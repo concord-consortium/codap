@@ -74,6 +74,12 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
       const movableValues = self.adornments.find(a => a.type === kMovableValueType)?.valuesForKey(key) ?? []
       const sortedBoundaryValues = [axisMin, ...movableValues, axisMax].sort((a: number, b: number) => a - b)
       return sortedBoundaryValues
+    },
+    get activeBannerCount() {
+      return self.adornments.filter(adornment => {
+        if (!adornment.isVisible) return false
+        return getAdornmentComponentInfo(adornment.type)?.BannerComponent
+      }).length
     }
   }))
   .views(self => ({
