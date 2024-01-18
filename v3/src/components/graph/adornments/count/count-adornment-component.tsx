@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { mstReaction } from "../../../../utilities/mst-reaction"
 import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
@@ -105,22 +104,13 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
     }, { name: "CountAdornmentComponent.resizeTextOnCellWidthChange" }, model)
   }, [model, plotWidth, resizeText])
 
-  useEffect(function refreshSubPlotRegionBoundaries() {
-    return mstReaction(
-      () => adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? [],
-      (boundaries: number[]) => {
-        subPlotRegionBoundariesRef.current = boundaries
-        plotCaseCounts()
-      },
-    { name: "CountAdornment.refreshSubPlotRegionBoundaries" }, model)
-  }, [adornmentsStore, instanceKey, model, plotCaseCounts, scale])
-
-  useEffect(function refreshPlotCaseCounts() {
+  useEffect(function refreshBoundariesAndCaseCounts() {
     return mstAutorun(
       () => {
+        subPlotRegionBoundariesRef.current = adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
         plotCaseCounts()
-    }, { name: "Count.refreshPlotCaseCounts" }, model)
-  }, [dataConfig, instanceKey, model, plotCaseCounts])
+      }, { name: "Count.refreshBoundariesAndCaseCounts" }, model)
+  }, [adornmentsStore, instanceKey, model, plotCaseCounts, scale])
 
   useEffect(function refreshShowPercentOption() {
     return mstAutorun(
