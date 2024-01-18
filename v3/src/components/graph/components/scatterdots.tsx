@@ -21,6 +21,7 @@ import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { transitionDuration } from "../../data-display/data-display-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const {dotsRef} = props,
@@ -214,20 +215,10 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   const connectingLinesCleanUp = useCallback(() => {
     connectingLinesActivatedRef.current = showConnectingLines
-    // TODO: The point size needs to be made smaller when Connecting Lines are activated, and then revert to the
-    // original size when Connecting Lines are deactivated. The below makes this happen, but the rescaling should
-    // really occur in a smooth transition while the lines are fading in/out, not instantly after the lines are
-    // done fading.
-    const pointSizeMultiplier = dataDisplayModel?.pointDescription.pointSizeMultiplier
-    if (showConnectingLines && pointSizeMultiplier > .5) {
-      dataDisplayModel?.pointDescription.setPointSizeMultiplier(.5)
-    } else if (!showConnectingLines) {
-      dataDisplayModel?.pointDescription.setPointSizeMultiplier(1)
-    }
     if (!showConnectingLines) {
       select(connectingLinesRef.current).selectAll("path").remove()
     }
-  }, [dataDisplayModel?.pointDescription, showConnectingLines])
+  }, [showConnectingLines])
 
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
@@ -278,6 +269,15 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           ? graphModel.pointDescription.pointColorAtIndex(linesIndex)
           : graphModel.pointDescription.pointColorAtIndex(0)
 
+        // Decrease point size when Connecting Lines are activated so the lines are easier to see, and
+        // revert to original point size when Connecting Lines are deactivated.
+        // const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier
+        // if (showConnectingLines && pointSizeMultiplier > .5) {
+        //   graphModel.pointDescription.setPointSizeMultiplier(.5)
+        // } else if (!showConnectingLines) {
+        //   graphModel.pointDescription.setPointSizeMultiplier(1)
+        // }
+
         connectingLinesArea
           .append("path")
           .data([allLineCoords])
@@ -293,12 +293,12 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .style("cursor", "pointer")
           .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
           .transition()
-          .duration(1000)
+          .duration(transitionDuration)
           .style("opacity", showConnectingLines ? 1 : 0)
           .on("end", connectingLinesCleanUp)
       }
     })
-  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset, graphModel.pointDescription,
+  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
       handleConnectingLinesClick, handleConnectingLinesHover, layout, showConnectingLines])
 
   const refreshSquares = useCallback(() => {

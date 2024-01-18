@@ -7,7 +7,7 @@ import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel} from "./models/data-configuration-model"
 import {CaseData, DotsElt, selectCircles, selectDots} from "./d3-types"
 import {hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
-  pointRadiusSelectionAddend, Rect, rTreeRect} from "./data-display-types"
+  pointRadiusSelectionAddend, Rect, rTreeRect, transitionDuration} from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
@@ -79,6 +79,24 @@ export interface IMatchCirclesProps {
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
+}
+
+export interface IResizeCirclesProps {
+  dataConfig: IDataConfigurationModel
+  dotsElement: DotsElt
+  graphModel?: any
+  pointSizeMultiplier: number
+  useTransition?: boolean
+}
+
+export function resizeCircles(props: IResizeCirclesProps) {
+  const { dataConfig, dotsElement, graphModel, pointSizeMultiplier, useTransition } = props
+  const id = dataConfig.id
+  const newPointRadius = computePointRadius(dataConfig.caseDataArray.length, pointSizeMultiplier, "normal")
+  selectCircles(dotsElement, id)?.transition()
+    .duration(useTransition ? transitionDuration : 0)
+    .attr('r', newPointRadius)
+    .on("end", () => graphModel?.pointDescription.setPointSizeMultiplier(pointSizeMultiplier))
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {

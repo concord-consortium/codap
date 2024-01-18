@@ -7,7 +7,7 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import {useDebouncedCallback} from "use-debounce"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
-import {matchCirclesToData} from "../../data-display/data-display-utils"
+import {matchCirclesToData, resizeCircles} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
@@ -57,6 +57,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   const callRefreshPointPositions = useDebouncedCallback((selectedOnly: boolean) => {
     refreshPointPositions(selectedOnly)
   })
+
+  // respond to connecting lines being activated
+  useEffect(function respondToConnectingLinesChange() {
+    return mstReaction(
+      () => graphModel.adornmentsStore.showConnectingLines,
+      (showConnectingLines) => {
+        const pointSizeMultiplier = showConnectingLines ? .5 : 1
+        resizeCircles({
+           dataConfig: dataConfiguration,
+           graphModel,
+           pointSizeMultiplier,
+           dotsElement: dotsRef.current,
+           useTransition: true
+        })
+      }, {name: "usePlotResponders.respondToConnectingLinesChange"}, graphModel
+    )
+  }, [callRefreshPointPositions, dataConfiguration, dotsRef, graphModel, instanceId, startAnimation])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
