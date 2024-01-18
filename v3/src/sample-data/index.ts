@@ -5,8 +5,9 @@ import catsCsv from "./cats.csv"
 import coastersCsv from "./roller-coasters.csv"
 import mammalsCsv from "./mammals.csv"
 import fourCsv from "./four.csv"
+import dstCsv from "./dst.csv"
 
-export const sampleData = ["Abalone", "Cats", "Coasters", "Mammals", "Four"] as const
+export const sampleData = ["Abalone", "Cats", "Coasters", "Mammals", "Four", "DST"] as const
 export type SampleType = typeof sampleData[number]
 
 const sampleMap: Record<SampleType, string> = {
@@ -14,7 +15,8 @@ const sampleMap: Record<SampleType, string> = {
   Cats: catsCsv,
   Coasters: coastersCsv,
   Four: fourCsv,
-  Mammals: mammalsCsv
+  Mammals: mammalsCsv,
+  DST: dstCsv
 }
 
 export function importSample(sample: SampleType): Promise<IDataSet> {
