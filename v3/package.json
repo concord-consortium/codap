@@ -195,6 +195,7 @@
     "type-fest": "^4.6.0",
     "ulid": "^2.3.0",
     "use-debounce": "^10.0.0",
+    "use-deep-compare": "^1.2.1",
     "use-memo-one": "^1.1.3"
   }
 }

@@ -128,6 +128,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .data(range(numRows * numCols))
         .join('rect')
         .attr('class', 'plot-cell-background')
+        .attr('data-testid', 'plot-cell-background')
         .attr('transform', transform)
         .attr('width', cellWidth)
         .attr('height', cellHeight)

@@ -1,6 +1,7 @@
 import { LSRLAdornmentModel, LSRLInstance } from "./lsrl-adornment-model"
 
 const mockLSRLInstanceProps1 = {
+  equationCoords: {x: 1, y: 1},
   intercept: 1,
   interceptLocked: false,
   rSquared: 1,
@@ -8,6 +9,7 @@ const mockLSRLInstanceProps1 = {
   slope: 1
 }
 const mockLSRLInstanceProps2 = {
+  equationCoords: {x: 1, y: 1},
   intercept: 2,
   interceptLocked: false,
   rSquared: 2,

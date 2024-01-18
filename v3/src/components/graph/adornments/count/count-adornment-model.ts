@@ -3,6 +3,21 @@ import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kCountType } from "./count-adornment-types"
 import { withUndoRedoStrings } from "../../../../models/history/codap-undo-types"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
+import { ScaleNumericBaseType } from "../../../axis/axis-types"
+
+export interface IRegionCount {
+  bottomOffset: number
+  count: number
+  height: number
+  leftOffset: number
+  width: number
+}
+export interface IRegionCountParams {
+  cellKey: Record<string, string>
+  dataConfig?: IGraphDataConfigurationModel
+  scale: ScaleNumericBaseType
+  subPlotRegionBoundaries: number[]
+}
 
 export const CountAdornmentModel = AdornmentModel
   .named("CountAdornmentModel")
@@ -10,7 +25,7 @@ export const CountAdornmentModel = AdornmentModel
     type: types.optional(types.literal(kCountType), kCountType),
     showCount: false,
     showPercent: false,
-    percentType: types.optional(types.enumeration(["cell", "column", "row"]), "cell"),
+    percentType: types.optional(types.enumeration(["cell", "column", "row"]), "cell")
   })
   .views(self => ({
     percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
@@ -26,6 +41,33 @@ export const CountAdornmentModel = AdornmentModel
           : dataConfig?.allPlottedCases().length ?? 0
       const percentValue = casesInPlot / divisor
       return isFinite(percentValue) ? percentValue : 0
+    },
+    regionCounts(props: IRegionCountParams) {
+      const { cellKey, dataConfig, scale, subPlotRegionBoundaries } = props
+      const primaryAttrRole = dataConfig?.primaryRole ?? "x"
+      const attrId = dataConfig?.attributeID(primaryAttrRole)
+      if (!attrId) return []
+      let prevWidth = 0
+      let prevHeight = 0
+      const counts: IRegionCount[] = []
+  
+      for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
+        const lowerBoundary = subPlotRegionBoundaries[i]
+        const upperBoundary = subPlotRegionBoundaries[i + 1]
+        const pixelMin = scale(lowerBoundary)
+        const pixelMax = scale(upperBoundary)
+        const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey) ?? []
+        const count = casesInRange.length
+        const width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
+        const height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
+        const leftOffset = prevWidth
+        const bottomOffset = prevHeight
+        prevWidth += width
+        prevHeight += height
+        counts.push({ bottomOffset, height, leftOffset, count, width })
+      }
+  
+      return counts
     }
   }))
   .actions(self => ({

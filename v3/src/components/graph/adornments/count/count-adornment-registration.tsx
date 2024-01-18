@@ -14,7 +14,7 @@ const Controls = () => {
   const dataConfig = useGraphDataConfigurationContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
-  const shouldShowPercentOption = dataConfig?.categoricalAttrCount ? dataConfig?.categoricalAttrCount > 0 : false
+  const shouldShowPercentOption = dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions
   const shouldShowPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)
   const [percentTypeValue, setPercentTypeValue] = useState(
