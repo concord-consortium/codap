@@ -1,13 +1,15 @@
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { ICountAdornmentModel } from "./count-adornment-model"
+import { useDeepCompareMemo } from "use-deep-compare"
+import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { percentString } from "../../utilities/graph-utils"
 import { prf } from "../../../../utilities/profiler"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { kDefaultFontSize } from "../adornment-types"
 
 import "./count-adornment-component.scss"
@@ -18,11 +20,16 @@ interface IProps {
   plotWidth: number
 }
 
-export const CountAdornment = observer(function CountAdornment({ model, cellKey, plotWidth }: IProps) {
+export const CountAdornment = observer(function CountAdornment({ model, cellKey: _cellKey, plotWidth }: IProps) {
   prf.begin("CountAdornment.render")
-  const { classFromKey } = useAdornmentCells(model, cellKey)
+  const cellKey = useDeepCompareMemo(() => _cellKey, [_cellKey])
+  const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
+  const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
   const graphModel = useGraphContentModelContext()
+  const adornmentsStore = graphModel?.adornmentsStore
+  const primaryAttrRole = dataConfig?.primaryRole ?? "x"
+  const scale = primaryAttrRole === "x" ? xScale : yScale
   const casesInPlot = dataConfig?.subPlotCases(cellKey)?.length ?? 0
   const percent = model.percentValue(casesInPlot, cellKey, dataConfig)
   const displayPercent = model.showCount ? ` (${percentString(percent)})` : percentString(percent)
@@ -32,6 +39,12 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
   const defaultFontSize = graphModel.adornmentsStore.defaultFontSize
   let fontSize = defaultFontSize
   const prevCellWidth = useRef(plotWidth)
+  const subPlotRegionBoundaries = useMemo(
+    () => adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? [],
+    [adornmentsStore, instanceKey, scale]
+  )
+  const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries)
+  const [displayCount, setDisplayCount] = useState(<div>{textContent}</div>)
 
   const resizeText = useCallback(() => {
     const minFontSize = 3
@@ -50,6 +63,42 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
     }
   }, [defaultFontSize, fontSize, graphModel.adornmentsStore, plotWidth, textContent])
 
+  const plotCaseCounts = useCallback(() => {
+    // If there are movable values present, we need to show the case count within each sub-plot region defined by the
+    // movable values and the min and max of the primary axis. For example, if there is one movable value, the sub-plot
+    // will have two regions, one from the axis' min value to the movable value, and another from the movable value
+    // to the axis' max value.
+
+    if (subPlotRegionBoundariesRef.current.length < 3 || graphModel.plotType !== "dotPlot") {
+      // If there are no movable values present, we just show a single case count.
+      setDisplayCount(<div>{textContent}</div>)
+      return
+    }
+
+    const regionCountParams: IRegionCountParams = {
+      cellKey,
+      dataConfig,
+      scale,
+      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current,
+    }
+    const counts: IRegionCount[] = model.regionCounts(regionCountParams)
+    const className = primaryAttrRole === "x" ? "sub-count x-axis" : "sub-count y-axis"
+    setDisplayCount(
+      <>
+        {counts.map((c, i) => {
+          const style = primaryAttrRole === "x"
+            ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
+            : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
+          const regionPercent = percentString(c.count / casesInPlot)
+          const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
+          const regionTextContent = `${model.showCount ? c.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
+
+          return <div key={`count-instance-${i}`} className={className} style={style}>{regionTextContent}</div>
+        })}
+      </>
+    )
+  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, model, primaryAttrRole, scale, textContent])
+
   useEffect(function resizeTextOnCellWidthChange() {
     return mstAutorun(() => {
       resizeText()
@@ -57,17 +106,24 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
     }, { name: "CountAdornmentComponent.resizeTextOnCellWidthChange" }, model)
   }, [model, plotWidth, resizeText])
 
-  useEffect(() => {
-    return mstAutorun(function setShowPercentOption() {
-      prf.begin("CountAdornment.autorun")
-      // set showPercent to false if attributes change to a configuration that doesn't support percent
-      const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount
-      if (!shouldShowPercentOption && model?.showPercent) {
-        model.setShowPercent(false)
-      }
-      prf.end("CountAdornment.autorun")
-    }, { name: "CountAdornmentComponent.setShowPercentOption" }, model)
-  }, [dataConfig, model])
+  useEffect(function refreshBoundariesAndCaseCounts() {
+    return mstAutorun(
+      () => {
+        subPlotRegionBoundariesRef.current = adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
+        plotCaseCounts()
+      }, { name: "Count.refreshBoundariesAndCaseCounts" }, model)
+  }, [adornmentsStore, instanceKey, model, plotCaseCounts, scale])
+
+  useEffect(function refreshShowPercentOption() {
+    return mstAutorun(
+      () => {
+        // set showPercent to false if attributes change to a configuration that doesn't support percent
+        const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions
+        if (!shouldShowPercentOption && model?.showPercent) {
+          model.setShowPercent(false)
+        }
+     }, { name: "CountAdornment.refreshPercentOption"}, model)
+  }, [adornmentsStore.subPlotsHaveRegions, dataConfig, model])
   prf.end("CountAdornment.render")
   return (
     <div
@@ -75,7 +131,7 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey,
       data-testid={`graph-count${classFromKey ? `-${classFromKey}` : ""}`}
       style={{fontSize: `${fontSize}px`}}
     >
-      {textContent}
+      {displayCount}
     </div>
   )
 })

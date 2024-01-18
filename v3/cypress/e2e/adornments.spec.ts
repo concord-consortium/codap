@@ -538,6 +538,21 @@ context("Graph adornments", () => {
     // cy.get(".movable-value-label").should("have.length", 0)
     // cy.get(".movable-value-fill").should("have.length", 0)
   })
+
+  it("renders Count adornment count per region defined by Movable Values", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-count-count]").click()
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get(".sub-count").should("have.length", 0)
+    cy.get("[data-testid=adornment-button-movable-value]").click()
+    cy.get("[data-testid=adornment-button-movable-value--add]").click()
+    cy.get(".sub-count").should("have.length", 2)
+    cy.get("[data-testid=adornment-button-movable-value]").click()
+    cy.get("[data-testid=adornment-button-movable-value--add]").click()
+    cy.get(".sub-count").should("have.length", 3)
+  })
   it("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")

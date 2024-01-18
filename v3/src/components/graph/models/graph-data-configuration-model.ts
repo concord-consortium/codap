@@ -10,6 +10,7 @@ import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnaps
   from "../../data-display/models/data-configuration-model"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -344,6 +345,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         })
       }
     })
+  }))
+  .views(self => ({
+    casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>) {
+      return self.subPlotCases(cellKey)?.filter(caseId => {
+        const caseValue = self.dataset?.getNumeric(caseId, attrId)
+        if (isFiniteNumber(caseValue) && caseValue >= min && caseValue <= max) {
+          return caseId
+        }
+      })
+    }
   }))
   .views(self => (
     {
