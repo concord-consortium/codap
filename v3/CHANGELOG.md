@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-pre.1492 - January 19, 2024
+
+### Features/Improvements
+- PT-186681717: **Plotted Value** should show units
+- PT-181914458: Count/percent labels change their font size to fit within their allocated space
+- PT-186683021: Adornments in exported V2 documents should be rendered when those documents are imported into V3
+- PT-186016085: Percentage adornment sub-category should be remembered when changing attributes
+- PT-186150345: Show both mean and median adornment values when hovered over a line that represents both values
+- PT-185940746: Separate *counts* should display for each region defined by **movable values**
+- PT-186035970: Graph adornment elements outside plot should not cover other elements
+
+### Bug Fixes
+- PT-186513124: Count adornment does not immediately update when case data modified
+- PT-186822118: *Percent* values not always correct
+- PT-186834980: Least Squares Line doesn't retain its equation box custom location upon graph resize or import
+- PT-186751983: Fix dataset caching
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   73112 bytes |                            0.55% |
+|  index.js | 3514822 bytes |                            0.43% |
+
 ## Version 3.0.0-pre.1471 - January 2, 2024
 
 ### Features/Improvements
