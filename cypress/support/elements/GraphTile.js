@@ -137,8 +137,22 @@ class GraphTile {
     turnOnRulerTool(tool) {
         cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});
     }
+    turnOnRulerMeasuresOfSpread(tool) {
+      cy.get('.dg-inspector-picker').contains('Measures of Spread').click()
+      cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20})
+      cy.get('.dg-graph-'+tool+'-check').should('have.class', 'sel')
+      cy.get('.dg-inspector-back').click()
+      cy.get('.dg-inspector-picker').contains('Measures of Spread').should('be.visible')
+    }
     turnOffRulerTool(tool){ //same as turnOnRulerTool but here for test clarity
-        cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20});
+      cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20})
+    }
+    turnOffRulerMeasuresOfSpread(tool) {
+      cy.get('.dg-inspector-picker').contains('Measures of Spread').click()
+      cy.get('.dg-graph-'+tool+'-check').click({animationDistanceThreshold: 20})
+      cy.get('.dg-graph-'+tool+'-check').should('not.have.class', 'sel')
+      cy.get('.dg-inspector-back').click()
+      cy.get('.dg-inspector-picker').contains('Measures of Spread').should('be.visible')
     }
     getMovableValueButton(){
         return cy.get('.dg-movable-value-button')
