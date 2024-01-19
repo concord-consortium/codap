@@ -4,31 +4,22 @@ import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import t from "../../../../utilities/translation/translate"
 import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { measureText } from "../../../../hooks/use-measure-text"
+import { IAdornmentComponentProps } from "../adornment-component-info"
 import { ILabel, IValue } from "./univariate-measure-adornment-types"
 import { UnivariateMeasureAdornmentHelper } from "./univariate-measure-adornment-helper"
 import { UnivariateMeasureAdornmentBaseComponent } from "./univariate-measure-adornment-base-component"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
-interface IProps {
-  cellKey: Record<string, string>
-  containerId?: string
-  model: IUnivariateMeasureAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
 export const UnivariateMeasureAdornmentSimpleComponent = observer(
-  function UnivariateMeasureAdornmentSimpleComponent (props: IProps) {
-    const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+  function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
+    const {cellKey={}, containerId, plotHeight, plotWidth, xAxis, yAxis} = props
+    const model = props.model as IUnivariateMeasureAdornmentModel
     const layout = useAxisLayoutContext()
     const graphModel = useGraphContentModelContext()
     const dataConfig = useGraphDataConfigurationContext()

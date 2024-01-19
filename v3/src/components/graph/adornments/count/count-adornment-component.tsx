@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { getAxisDomains } from "../adornment-utils"
 import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
@@ -10,22 +12,13 @@ import { prf } from "../../../../utilities/profiler"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { kDefaultFontSize } from "../adornment-types"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
 
 import "./count-adornment-component.scss"
 
-interface IProps {
-  cellKey: Record<string, string>
-  model: ICountAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
-export const CountAdornment = observer(function CountAdornment(props: IProps) {
+export const CountAdornment = observer(function CountAdornment(props: IAdornmentComponentProps) {
   prf.begin("CountAdornment.render")
-  const { model, cellKey, plotHeight, plotWidth, xAxis, yAxis } = props
+  const { cellKey, plotHeight, plotWidth, xAxis, yAxis } = props
+  const model = props.model as ICountAdornmentModel
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
@@ -112,11 +105,7 @@ export const CountAdornment = observer(function CountAdornment(props: IProps) {
   useEffect(function refreshBoundariesAndCaseCounts() {
     return mstAutorun(
       () => {
-        // We observe changes to the axis domains within the autorun by extracting them from the axes below.
-        // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-        // from triggering a reinstall of the autorun.
-        const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-        const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+        getAxisDomains(xAxis, yAxis)
         subPlotRegionBoundariesRef.current = adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
         plotCaseCounts()
       }, { name: "Count.refreshBoundariesAndCaseCounts" }, model)

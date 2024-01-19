@@ -2,17 +2,17 @@ import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
 import t from "../../../../../utilities/translation/translate"
+import { IAdornmentBannerComponentProps } from "../../adornment-component-info"
 import { EditFormulaModal } from "./edit-formula-modal"
 import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 
 import "./plotted-value-adornment-banner.scss"
 
-interface IProps {
-  model: IPlottedValueAdornmentModel
-}
-
-export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornmentBanner({ model }: IProps) {
+export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornmentBanner(
+  props: IAdornmentBannerComponentProps
+) {
+  const model = props.model as IPlottedValueAdornmentModel
   const graphModel = useGraphContentModelContext()
   const { expression, error } = model
   const formulaModal = useDisclosure()
