@@ -3,16 +3,16 @@ import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
 import t from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
+import { IAdornmentBannerComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 
 import "./plotted-function-adornment-banner.scss"
 
-interface IProps {
-  model: IPlottedFunctionAdornmentModel
-}
-
-export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionAdornmentBanner({ model }: IProps) {
+export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionAdornmentBanner(
+  props: IAdornmentBannerComponentProps
+) {
+  const model = props.model as IPlottedFunctionAdornmentModel
   const graphModel = useGraphContentModelContext()
   const { expression, error } = model
   const formulaModal = useDisclosure()

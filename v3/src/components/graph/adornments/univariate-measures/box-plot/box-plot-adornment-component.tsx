@@ -3,11 +3,11 @@ import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import t from "../../../../../utilities/translation/translate"
-import { INumericAxisModel } from "../../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../../axis/models/axis-layout-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
 import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
+import { IAdornmentComponentProps } from "../../adornment-component-info"
 import { IBoxPlotAdornmentModel } from "./box-plot-adornment-model"
 import { ILabel, IRange, IValue } from "../univariate-measure-adornment-types"
 import { UnivariateMeasureAdornmentHelper } from "../univariate-measure-adornment-helper"
@@ -26,18 +26,9 @@ interface IBoxPlotValue extends IValue {
   upperOutliersCovers?: Selection<SVGRectElement, number, SVGGElement | null, unknown>
 }
 
-interface IProps {
-  cellKey: Record<string, string>
-  containerId?: string
-  model: IBoxPlotAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
-export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IProps) {
-  const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
+  const {cellKey={}, containerId, plotHeight, plotWidth, xAxis, yAxis} = props
+  const model = props.model as IBoxPlotAdornmentModel
   const layout = useAxisLayoutContext()
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()

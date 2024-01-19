@@ -5,9 +5,10 @@ import t from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { Point } from "../../../data-display/data-display-types"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts,
          lsrlEquationString } from "../../utilities/graph-utils"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { getAxisDomains } from "../adornment-utils"
 import { ILSRLAdornmentModel, ILSRLInstance } from "./lsrl-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -35,18 +36,9 @@ interface ILineObject {
   range?: Selection<SVGPathElement, unknown, null, undefined>
 }
 
-interface IProps {
-  containerId: string
-  model: ILSRLAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  cellKey: Record<string, string>
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
-export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
-  const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
+export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentComponentProps) {
+  const {containerId, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
+  const model = props.model as ILSRLAdornmentModel
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
@@ -220,8 +212,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       const lineObj = lineObjectsRef.current[lineIndex]
       const line = lines[lineIndex]
       const { slope, intercept } = line
-      const { domain: xDomain } = xAxis
-      const { domain: yDomain } = yAxis
+      const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       if (!slope || !intercept) continue
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
@@ -261,8 +252,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
         ? dataConfig?.getLegendColorForCategory(lineCategory)
         : undefined
       const { slope, intercept } = lines[lineIndex]
-      const { domain: xDomain } = xAxis
-      const { domain: yDomain } = yAxis
+      const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       if (slope == null || intercept == null) continue
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
@@ -296,7 +286,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
       catColor && lineObj?.line?.style("stroke", catColor)
       catColor && lineObj?.confidenceBandCurve?.style("stroke", catColor)
       catColor && lineObj?.confidenceBandShading?.style("fill", catColor)
-    
+
       // Add the equation box for the line to the equation container
       const equationP = equationDiv
         .append("p")
@@ -347,11 +337,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IProps) {
   useEffect(function refreshAxisChange() {
     return mstAutorun(
       () => {
-        // We observe changes to the axis domains within the autorun by extracting them from the axes below.
-        // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-        // from triggering a reinstall of the autorun.
-        const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-        const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+        getAxisDomains()
         graphModel.getUpdateCategoriesOptions()
         buildElements()
       }, { name: "LSRLAdornmentComponent.refreshAxisChange" }, model)
