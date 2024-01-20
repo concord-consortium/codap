@@ -79,33 +79,17 @@ export interface IMatchCirclesProps {
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
-}
-
-export interface IResizeCirclesProps {
-  dataConfig: IDataConfigurationModel
-  dotsElement: DotsElt
-  graphModel?: any
-  pointSizeMultiplier: number
-  useTransition?: boolean
-}
-
-export function resizeCircles(props: IResizeCirclesProps) {
-  const { dataConfig, dotsElement, graphModel, pointSizeMultiplier, useTransition } = props
-  const id = dataConfig.id
-  const newPointRadius = computePointRadius(dataConfig.caseDataArray.length, pointSizeMultiplier, "normal")
-  selectCircles(dotsElement, id)?.transition()
-    .duration(useTransition ? transitionDuration : 0)
-    .attr('r', newPointRadius)
-    .on("end", () => graphModel?.pointDescription.setPointSizeMultiplier(pointSizeMultiplier))
+  animateChange?: boolean // default false
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const {dataConfiguration, startAnimation, instanceId,
-      dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
+      dotsElement, pointRadius, pointColor, pointStrokeColor, animateChange} = props,
     id = dataConfiguration.id,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
     caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
-    circles = selectCircles(dotsElement, id)
+    circles = selectCircles(dotsElement, id),
+    duration = animateChange ? transitionDuration : 0
   if (!circles) return
   startAnimation()
   circles
@@ -116,7 +100,9 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .attr('class', `graph-dot ${id}`)
           .property('id', (d: CaseData) => `${instanceId}_${d.caseID}`),
       (update) =>
-        update.attr('r', pointRadius)
+        update
+          .transition().duration(duration)
+          .attr('r', pointRadius)
           .style('fill', pointColor)
           .style('stroke', pointStrokeColor)
           .style('stroke-width', defaultStrokeWidth)

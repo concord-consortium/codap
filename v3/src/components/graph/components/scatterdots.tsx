@@ -271,12 +271,13 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
         // Decrease point size when Connecting Lines are activated so the lines are easier to see, and
         // revert to original point size when Connecting Lines are deactivated.
-        // const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier
-        // if (showConnectingLines && pointSizeMultiplier > .5) {
-        //   graphModel.pointDescription.setPointSizeMultiplier(.5)
-        // } else if (!showConnectingLines) {
-        //   graphModel.pointDescription.setPointSizeMultiplier(1)
-        // }
+        const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier,
+          animateChange = true
+        if (showConnectingLines && pointSizeMultiplier > .5) {
+          graphModel.pointDescription.setPointSizeMultiplier(.5, animateChange)
+        } else if (!showConnectingLines) {
+          graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
+        }
 
         connectingLinesArea
           .append("path")
