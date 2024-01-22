@@ -213,13 +213,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     dataTip.show(dataTipContent, event.target)
   }, [dataTip, dataset?.name])
 
-  const connectingLinesCleanUp = useCallback(() => {
-    connectingLinesActivatedRef.current = showConnectingLines
-    if (!showConnectingLines) {
-      select(connectingLinesRef.current).selectAll("path").remove()
-    }
-  }, [showConnectingLines])
-
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const connectingLinesArea = select(connectingLinesRef.current)
@@ -296,11 +289,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .transition()
           .duration(transitionDuration)
           .style("opacity", showConnectingLines ? 1 : 0)
-          .on("end", connectingLinesCleanUp)
+          .on("end", () => {
+            connectingLinesActivatedRef.current = showConnectingLines
+            !showConnectingLines && select(connectingLinesRef.current).selectAll("path").remove()
+          })
       }
     })
-  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
-      handleConnectingLinesClick, handleConnectingLinesHover, layout, showConnectingLines])
+  }, [dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription, handleConnectingLinesClick,
+      handleConnectingLinesHover, layout, showConnectingLines])
 
   const refreshSquares = useCallback(() => {
 
