@@ -340,7 +340,7 @@ describe("DataConfigurationModel", () => {
     }
     config.attributeID = (role: string) => mockData.id[role]
     config.attributeType = (role: string) => mockData.type[role]
-    config.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+    ;(config as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
 
     const cellKey = config.cellKey(0)
     expect(cellKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
@@ -351,7 +351,7 @@ describe("DataConfigurationModel", () => {
     let mockData: Record<string, Record<string, any>>
     config.attributeID = (role: string) => mockData.id[role]
     config.attributeType = (role: string) => mockData.type[role]
-    config.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+    ;(config as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
 
     // For a graph with no categorical attributes
     mockData = {
