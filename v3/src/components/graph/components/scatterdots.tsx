@@ -20,7 +20,6 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 import { transitionDuration } from "../../data-display/data-display-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
@@ -30,7 +29,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     dataConfiguration = useGraphDataConfigurationContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
-    dataDisplayModel = useDataDisplayModelContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
     selectedPointRadiusRef = useRef(0),
