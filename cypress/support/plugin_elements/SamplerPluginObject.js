@@ -1,6 +1,6 @@
 class SamplerPlugin{
     getSamplerPlugin(){
-        return cy.getPluginIframe().find('#tabs #tab-sampler')
+        return cy.getPluginIframe().find('#tabs #tab-devices')
     }
 }
 export default SamplerPlugin

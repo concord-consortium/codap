@@ -34,9 +34,7 @@ context('will test graph ruler functions', ()=>{
             graph.getCountAdorn().should('have.length',hash.length)
             graph.turnOnRulerTool('plottedMean')
             graph.turnOnRulerTool('plottedMedian')
-            graph.expandMeasuresOfSpread()
-                graph.turnOnRulerTool('plottedStDev')
-                graph.collapseMesuresOfSpread()
+                graph.turnOnRulerMeasuresOfSpread('plottedStDev')
                 graph.turnOnRulerTool('plottedBoxPlot')
                 graph.turnOnRulerTool('plottedValue')
                 graph.getMovableValueButton().click();
@@ -50,9 +48,7 @@ context('will test graph ruler functions', ()=>{
                 graph.getCountAdorn().should('not.be.visible')
                 graph.turnOffRulerTool('plottedMean')
                 graph.turnOffRulerTool('plottedMedian')
-                graph.expandMeasuresOfSpread()
-                graph.turnOffRulerTool('plottedStDev')
-                graph.collapseMesuresOfSpread()
+                graph.turnOffRulerMeasuresOfSpread('plottedStDev')
                 graph.turnOffRulerTool('plottedBoxPlot')
                 graph.turnOffRulerTool('plottedValue')
                 graph.getMovableValueButton().click();
@@ -101,9 +97,7 @@ context('will test graph ruler functions', ()=>{
             graph.clickRulerTool();
             graph.turnOnRulerTool('plottedMean')
             graph.turnOnRulerTool('plottedMedian')
-            graph.expandMeasuresOfSpread()
-            graph.turnOnRulerTool('plottedStDev')
-            graph.collapseMesuresOfSpread()
+            graph.turnOnRulerMeasuresOfSpread('plottedStDev')
             graph.turnOnRulerTool('plottedBoxPlot')
             graph.turnOnRulerTool('plottedValue')
             if (idx===0) {
@@ -120,9 +114,7 @@ context('will test graph ruler functions', ()=>{
             graph.clickRulerTool({force:true});//have to click ruler twice to open panel
             graph.turnOffRulerTool('plottedMean')
             graph.turnOffRulerTool('plottedMedian')
-            graph.expandMeasuresOfSpread()
-            graph.turnOffRulerTool('plottedStDev')
-            graph.collapseMesuresOfSpread()
+            graph.turnOffRulerMeasuresOfSpread('plottedStDev')
             graph.turnOffRulerTool('plottedBoxPlot')
             graph.turnOffRulerTool('plottedValue')
             graph.getMovableValueButton().click();
