@@ -27,13 +27,10 @@ export const Adornments = observer(function Adornments() {
   const { left, top, width, height } = layout.computedBounds.plot
 
   useEffect(function handleAdornmentBannerCountChange() {
-    // TODO: This works fine except when there is an attribute on the top split, in which case the banners will
-    // still overlap the top split elements in the graph. Fixing that will require changes to GraphLayout that 
-    // allow Adornments to tell it space is needed for any active banners.
     return mstAutorun(() => {
       const bannerCount = graphModel.adornmentsStore.activeBannerCount
       const bannersHeight = bannerCount * kGraphAdornmentsBannerHeight
-      layout.setDesiredExtent("top", bannersHeight)
+      layout.setDesiredExtent("banners", bannersHeight)
       }, { name: "Graph.handleAdornmentBannerCountChange" }, graphModel
     )
   }, [graphModel, layout])

@@ -346,7 +346,7 @@ context("Graph adornments", () => {
     movablePointCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds plotted function UI to graph when Plotted Value checkbox is checked", () => {
+  it("adds plotted function UI to graph when Plotted Function checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Mass", "y")

@@ -1,5 +1,5 @@
 import {action, computed, makeObservable, observable} from "mobx"
-import {GraphPlace} from "../../axis-graph-shared"
+import {GraphExtentsPlace, GraphPlace} from "../../axis-graph-shared"
 
 export const kDefaultTileWidth = 300
 export const kDefaultTileHeight = 300
@@ -21,7 +21,7 @@ export class DataDisplayLayout {
   @observable tileHeight = kDefaultTileHeight
   @observable isTileExtentInitialized = false
   // desired/required size of child elements
-  @observable desiredExtents: Map<GraphPlace, number> = new Map()
+  @observable desiredExtents: Map<GraphExtentsPlace, number> = new Map()
 
   constructor(tileSize?: ITileSize) {
     if (tileSize) {
