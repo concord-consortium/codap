@@ -8,6 +8,7 @@ interface ITileSize {
   tileHeight: number
 }
 
+export type GraphExtentsPlace = GraphPlace | "banners"
 
 export interface Bounds {
   left: number
@@ -21,7 +22,7 @@ export class DataDisplayLayout {
   @observable tileHeight = kDefaultTileHeight
   @observable isTileExtentInitialized = false
   // desired/required size of child elements
-  @observable desiredExtents: Map<GraphPlace, number> = new Map()
+  @observable desiredExtents: Map<GraphExtentsPlace, number> = new Map()
 
   constructor(tileSize?: ITileSize) {
     if (tileSize) {
@@ -56,7 +57,6 @@ export class DataDisplayLayout {
   /**
    * We assume that all the desired extents have been set so that we can compute new bounds.
    * We set the computedBounds only once at the end so there should be only one notification to respond to.
-   * Todo: Eventually there will be additional room set aside at the top for formulas
    */
   @computed get computedBounds() {
     const {desiredExtents, tileWidth, tileHeight} = this,
