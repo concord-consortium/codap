@@ -179,13 +179,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
           top: bannersHeight + topAxisHeight,
           width: rightAxisWidth,
           height: plotHeight
-        },
-        yPlus: {
-          left: 0,
-          top: bannersHeight + topAxisHeight,
-          width: leftAxisWidth,
-          height: plotHeight
-        } // This value is not used
+        }
       }
     return newBounds
   }
