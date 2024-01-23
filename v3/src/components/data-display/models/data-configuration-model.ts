@@ -526,7 +526,7 @@ export const DataConfigurationModel = types
       })
     },
     handleDataSetAction(actionCall: ISerializedActionCall) {
-      const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
+      const cacheClearingActions = ["setCaseValues", "addCases", "removeCases", "removeAttribute"]
       if (cacheClearingActions.includes(actionCall.name)) {
         self.clearCasesCache()
       }
