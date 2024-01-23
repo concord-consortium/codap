@@ -68,7 +68,7 @@ DG.functionRegistry.registerAggregates((function () {
       computeResults: function (iContext, iEvalContext, iInstance) {
         DG.ObjectMap.forEach(iInstance.caches,
             function (iKey, iCache) {
-              iInstance.results[iKey] = DG.MathUtilities.linRegrSESlope(iCache);
+              iInstance.results[iKey] = DG.MathUtilities.linRegrSESlopeAndIntercept(iCache).seSlope;
             });
         return this.queryCache(iContext, iEvalContext, iInstance);
       }

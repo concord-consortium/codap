@@ -110,6 +110,9 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
           tAverageModel.recomputeValueIfNeeded();
           this.updateSymbols(iAnimate);
         }
+        // If my plotView has a plottedNormalAdorn and gaussianFitEnabled, update it too
+        var tPlottedNormalAdorn = this.getPath('parentView.parentView.plottedNormalAdorn');
+        (DG.get('gaussianFitEnabled') && tPlottedNormalAdorn) && tPlottedNormalAdorn.doDraw();
       },
 
       // Subclasses will override if desired
@@ -393,7 +396,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend(
         var tValueAndUnits = this.valueAndUnitsStrings(axisValue, this.titleResource);
         if (!tValueAndUnits.valueString)
           return '';
-        if (this.get('showMeasuresLabel')) {
+        if (this.get('showMeasureLabels')) {
           var tHTML = '<p style = "color:%@;">%@ %@</p>',
               tUnitsSpan = '<span style = "color:grey;">%@</span>'.loc(tValueAndUnits.unitsString);
           return tHTML.loc(this.symStroke, tValueAndUnits.valueString, tUnitsSpan);
@@ -434,7 +437,7 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend(DG.LineLabe
           } else {
             this.destroyEquationViews();
           }
-          this.notifyPropertyChange('showMeasuresLabel');
+          this.notifyPropertyChange('showMeasureLabels');
         }.observes('model.plotModel.showMeasureLabels'),
 
         /**
@@ -574,12 +577,13 @@ DG.PlottedSimpleAverageAdornment = DG.PlottedAverageAdornment.extend(DG.LineLabe
 
         updateEquation: function (iIndex) {
           if (this.getPath('showMeasureLabels')) {
-            var tIsHorizontal = this.getPath('parentView.primaryAxisView.orientation') === DG.GraphTypes.EOrientation.kHorizontal,
+            var tIsHorizontal = this.getPath('parentView.primaryAxisView.orientation') ===
+                                DG.GraphTypes.EOrientation.kHorizontal,
                 tValuesArray = this.getPath('model.values'),
                 tNumValues = tValuesArray && tValuesArray.length,
                 tCenterWorld = tValuesArray[iIndex][this.centerKey],
                 tStat = tValuesArray[iIndex][this.statisticKey],
-                tTitleString = this.titleString(tStat, tValuesArray[iIndex][this.spreadKey]),
+                tTitleString = this.titleString(tStat, tValuesArray[iIndex]),
                 tCellWidth = this.getPath('parentView.secondaryAxisView.fullCellWidth'),
                 tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
                 tEquationView = this.get('equationViews')[iIndex],
@@ -728,9 +732,9 @@ DG.PlottedMedianAdornment = DG.PlottedSimpleAverageAdornment.extend(
       titleResource: 'DG.PlottedAverageAdornment.medianValueTitle',
       /** {String} resource string for this.titleString() */
       //titleFraction: 0.1,   /** {Number} fraction-from-top for placement of average=123 text */
-      hoverColor: "rgba(255, 0, 0, 0.3)",
+      hoverColor: "rgba(193, 0, 32, 0.3)",
       /** color of line when mouse over cover line */
-      symStroke: '#F00',
+      symStroke: '#C10020',
       symStrokeWidth: 1.5
 
       /**
@@ -820,7 +824,7 @@ DG.PlottedDevAdornment = DG.PlottedSimpleAverageAdornment.extend(
        * @param iSpreadValue
        */
       getTextPositionOnAxis: function (iCenterValue, iSpreadValue) {
-        return iCenterValue + 2 * iSpreadValue + 2; // text going to the right of the shading
+        return iCenterValue + iSpreadValue; // text going to the right of the shading
       }
 
     });
@@ -863,20 +867,37 @@ DG.PlottedStErrAdornment = DG.PlottedSimpleAverageAdornment.extend(
      centerKey: 'mean', /** {String} key to relevant center point in this.model.values[i][centerKey] */
      spreadKey: 'sterr', /** {String} key to relevant spread value in this.model.values[i][width] */
      titleResource: 'DG.PlottedAverageAdornment.stErrValueTitle', /** {String} resource string for this.titleString() */
-     hoverColor: "rgba(255, 48, 0, 0.3)", /** color of line when mouse over cover line */
+     hoverColor: "rgba(246, 118, 142, 0.3)", /** color of line when mouse over cover line */
      bgStroke: '#FFb280',
      bgStrokeWidth: 0.5,
      bgFill: '#FFb280',
-     symStroke: '#F30',
+     symStroke: '#F6768E',
      offsetFromEdge: 10,
      tickLength: 6,
      modelPropertiesToObserve: [ ['numberOfStdErrs', 'updateToModel'] ],
 
+     /**
+      * Override so we can side effect plotted normal adornment
+      * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
+      */
+     updateToModel: function (iAnimate) {
+       sc_super();
+       // If my plotView has a plottedNormalAdorn and gaussianFitEnabled, update it too
+       var tPlottedNormalAdorn = this.getPath('parentView.plottedNormalAdorn'),
+           tIsHistogram = this.getPath('model.plotModel.dotsAreFused');
+       DG.get('gaussianFitEnabled') === 'yes' && tPlottedNormalAdorn && tIsHistogram &&
+          tPlottedNormalAdorn.updateToModel();
+     },
+
      getValueString: function (stdErr, titleResource) {
        var tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
           tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group(''),
-          tNumStdErrs = this.getPath('model.numberOfStdErrs');
-       return titleResource.loc(tNumStdErrs, tNumFormat(tNumStdErrs * stdErr));
+          tNumStdErrs = this.getPath('model.numberOfStdErrs'),
+          tNumStdErrsString = tNumStdErrs === 1 ? '' : String(tNumStdErrs);
+       return this.get('showMeasureLabels')
+              ? titleResource.loc(tNumStdErrsString, '<sub style="vertical-align: sub">', '</sub>',
+                  tNumFormat(tNumStdErrs * stdErr))
+              : titleResource.loc(tNumStdErrsString, '', '', tNumFormat(tNumStdErrs * stdErr));
      },
 
      /**
@@ -977,16 +998,43 @@ DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
      centerKey: 'mean', /** {String} key to relevant center point in this.model.values[i][centerKey] */
      spreadKey: 'stdev', /** {String} key to relevant spread value in this.model.values[i][width] */
      amplitudeKey: 'amplitude', /** {String} key to relevant amplitude value in this.model.values[i][amplitude] */
-     hoverColor: "rgba(51,0,255,0.3)", /** color of line when mouse over cover line */
+     hoverColor: "rgba(0, 125, 52,0.3)", /** color of line when mouse over cover line */
      bgStroke: '#FFb280',
      bgStrokeWidth: 0.5,
      // bgFill: '#FFb280',
-     symStroke: '#3300FF',
+     symStroke: '#007D34',
      symStrokeWidth: 1,
      offsetFromEdge: 10,
 
      /**
-      * Create the path string for the line going from mean - stErr to mean + stErr with 5 pixel end bars.
+      * @returns {false|number} false if gaussian fit is not enabled, otherwise the number of standard errors
+      */
+     numStdErrors: function () {
+       var tPlotModel = this.getPath('model.plotModel'),
+           tStdErrorModel = tPlotModel.getAdornmentModel('plottedStErr'),
+           tNumStdErrs = tStdErrorModel && tStdErrorModel.get('numberOfStdErrs');
+       return DG.get('gaussianFitEnabled')==='yes' && tPlotModel.get('dotsAreFused') &&
+              tStdErrorModel && tStdErrorModel.get('isVisible') && tNumStdErrs;
+     },
+
+     /**
+      * @returns {false|number} false if gaussian fit is not enabled, otherwise the stadard error times the
+      * number of standard errors
+      */
+     stdErrorValue: function (count, sd) {
+       var tPlotModel = this.getPath('model.plotModel'),
+           tStdErrorModel = tPlotModel.getAdornmentModel('plottedStErr'),
+           tNumStdErrs = tStdErrorModel && tStdErrorModel.get('numberOfStdErrs'),
+           tStdErrorValue = tNumStdErrs && tNumStdErrs * sd / Math.sqrt(count);
+       return DG.get('gaussianFitEnabled')==='yes' && tPlotModel.get('dotsAreFused') &&
+              tStdErrorModel && tStdErrorModel.get('isVisible') && tStdErrorValue;
+     },
+
+     /**
+      * Create the path string for
+      *   - the normal curve
+      *   - the line from the peak to the axis
+      *   - the line segment representing one standard deviation on each side of the mean
       * @param p {x,y,width,cellHeight} of reference point, (.x,.y)
       * @param iIsHorizontal {Boolean} true for horizontal orientation, false for vertical
       * @return {String} The path for the normal curve
@@ -1004,9 +1052,11 @@ DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
 
          var sqrtTwoPi = Math.sqrt(2 * Math.PI),
           tParentPlotView = this.get('parentView'),
-          tIsHistogram = tParentPlotView.getPath('model.dotsAreFused'),
+          tIsHistogram = this.getPath('model.plotModel.dotsAreFused'),
           tNumericAxisView = tParentPlotView.get('primaryAxisView'),
           tCountAxisView = tParentPlotView.get('secondaryAxisView'),
+          tCountAxisFunc = tIsHistogram ? tCountAxisView.dataToCoordinate.bind(tCountAxisView)
+                                        : countToScreenCoordFromDotPlot,
           tRadius = tParentPlotView.calcPointRadius(),
           tOverlap = tParentPlotView.get('overlap'),
           tBinWidth = tIsHistogram ? tParentPlotView.getPath('model.width')
@@ -1014,10 +1064,17 @@ DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
           tPixelMin = tNumericAxisView.get(iIsHorizontal ? 'pixelMin' : 'pixelMax'),
           tPixelMax = tNumericAxisView.get(iIsHorizontal ? 'pixelMax' : 'pixelMin'),
           tPath = '',
+          tMeanSegment = '',
+          tMeanSegmentPixelLength,
+          tSDSegment = '',
+          tSDSegmentPixelLength,
+          tSESegment = '',
+          tSESegmentPixelLength,
           tCount = p.count,
           tMu = p.center,
           tSigma = p.spread,
           tAmplitude = p.amplitude || (1 / (tSigma * sqrtTwoPi) * tCount * tBinWidth),
+          tStdErrorValue = this.stdErrorValue( tCount, tSigma),
           tNumeric, tCountValue, tPixelCount,
           tPoints = [],
           kPixelGap = 1,
@@ -1026,8 +1083,7 @@ DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
          tNumeric = tNumericAxisView.coordinateToData( tPixelNumeric);
          tCountValue = normal( tNumeric);
          if( DG.isFinite( tCountValue)) {
-           tPixelCount = tIsHistogram ? tCountAxisView.dataToCoordinate( tCountValue)
-                                      : countToScreenCoordFromDotPlot( tCountValue);
+           tPixelCount = tCountAxisFunc( tCountValue);
            tPoint = iIsHorizontal ? {left: tPixelNumeric, top: tPixelCount} : {left: tPixelCount, top: tPixelNumeric};
            tPoints.push( tPoint);
          }
@@ -1036,7 +1092,26 @@ DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
          // Accomplish spline interpolation
          tPath = 'M' + tPoints[0].left + ',' + tPoints[0].top + DG.SvgScene.curveBasis( tPoints);
        }
-       return tPath;
+       tMeanSegmentPixelLength = tCountAxisFunc(normal(tMu)) - tCountAxisFunc(0);
+       tMeanSegment = iIsHorizontal ? 'M%@,%@ v%@'.fmt( tNumericAxisView.dataToCoordinate(tMu),
+          tCountAxisFunc(0), tMeanSegmentPixelLength) :
+          'M%@,%@ h%@'.fmt( tCountAxisFunc(0), tNumericAxisView.dataToCoordinate(tMu),
+             tMeanSegmentPixelLength);
+       tSDSegmentPixelLength = tNumericAxisView.dataToCoordinate(tMu + tSigma) -
+                               tNumericAxisView.dataToCoordinate(tMu - tSigma);
+       tSDSegment = iIsHorizontal ? ' M%@,%@ h%@'.fmt( tNumericAxisView.dataToCoordinate(tMu - tSigma),
+            tCountAxisFunc(normal(tMu - tSigma)), tSDSegmentPixelLength) :
+            ' M%@,%@ v%@'.fmt( tCountAxisFunc(normal(tMu - tSigma)),
+               tNumericAxisView.dataToCoordinate(tMu - tSigma), tSDSegmentPixelLength);
+        if (tStdErrorValue) {
+          tSESegmentPixelLength = tNumericAxisView.dataToCoordinate(tMu + tStdErrorValue) -
+                                  tNumericAxisView.dataToCoordinate(tMu - tStdErrorValue);
+          tSESegment = iIsHorizontal ? ' M%@,%@ h%@'.fmt( tNumericAxisView.dataToCoordinate(tMu - tStdErrorValue),
+                tCountAxisFunc(normal(tMu - tStdErrorValue)), tSESegmentPixelLength) :
+                ' M%@,%@ v%@'.fmt( tCountAxisFunc(normal(tMu - tStdErrorValue)),
+                   tNumericAxisView.dataToCoordinate(tMu - tStdErrorValue), tSESegmentPixelLength);
+        }
+       return tPath + tMeanSegment + tSDSegment + tSESegment;
      },
 
      /**
@@ -1050,22 +1125,63 @@ DG.PlottedNormalAdornment = DG.PlottedSimpleAverageAdornment.extend(
      },
 
      /**
+      * Return a string to be displayed to user to show numeric value with rounding and units
+      * @returns {{valueString:string, unitsString:string}}
+      * @param count
+      * @param stdDev
+      * @param numStdErrors
+      * @param titleResource
+      */
+     standardErrorAndUnitsStrings: function (count, stdDev, numStdErrors, titleResource, useSubscript) {
+       var tNumStdErrorsString = numStdErrors === 1 ? '' : String(numStdErrors),
+           tStdError = stdDev / Math.sqrt(count),
+           tUnits = this.getPath('parentView.primaryAxisView.model.firstAttributeUnit'),
+           tPrecision = DG.PlotUtilities.findFractionDigitsForAxis(this.getPath('parentView.primaryAxisView')),
+           tNumFormat = DG.Format.number().fractionDigits(0, tPrecision).group(''),
+           tStdErrorsFormatted = tNumFormat(numStdErrors * tStdError),
+           tValueString = useSubscript
+              ? titleResource.loc(tNumStdErrorsString, '<sub style="vertical-align: sub">', '</sub>', tStdErrorsFormatted)
+              : titleResource.loc(tNumStdErrorsString, '', '', tStdErrorsFormatted);
+       return {valueString: tValueString, unitsString: tUnits};
+     },
+
+     /**
       * @return {String} title string to show when hovering over curve
       */
      titleString: function (mean, valueObject) {
-       var tStdev = typeof valueObject === 'object' ? valueObject.stdev : valueObject,
+       var kGaussianFitEnabled = DG.get('gaussianFitEnabled')==='yes',
+          tIsHistogram = this.getPath('model.plotModel.dotsAreFused'),
+          tShowMeasureLabels = this.get('showMeasureLabels'),
+          tPrefix = kGaussianFitEnabled && tIsHistogram ? "DG.Inspector.graphPlottedGaussianFit".loc() : "",
+          tStdev = typeof valueObject === 'object' ? valueObject.stdev : valueObject,
           tMeanValueAndUnits = this.valueAndUnitsStrings(mean, this.titleResource),
-           tStdevValueAndUnits = this.valueAndUnitsStrings(tStdev,
-              'DG.PlottedAverageAdornment.stDevValueTitle');
+          tStdevValueAndUnits = this.valueAndUnitsStrings(tStdev,
+              'DG.PlottedAverageAdornment.stDevValueTitle'),
+          tStdErrValue = this.stdErrorValue(valueObject.count, valueObject.stdev);
+      var tStdErrValueAndUnits = tStdErrValue
+                                 ? this.standardErrorAndUnitsStrings(valueObject.count, valueObject.stdev,
+                                    this.numStdErrors(), 'DG.PlottedAverageAdornment.stErrValueTitle',
+                                    tShowMeasureLabels)
+                                 : { valueString: '', unitsString: ''};
        if (!tMeanValueAndUnits.valueString)
          return '';
-       if (this.get('showMeasuresLabel')) {
-         var tHTML = '<p style = "color:%@;">%@ %@</p>',
-            tUnitsSpan = '<span style = "color:grey;">%@</span>'.loc(tMeanValueAndUnits.unitsString);
-         return tHTML.loc(this.symStroke, tMeanValueAndUnits.valueString, tUnitsSpan);
+       if (tShowMeasureLabels) {
+         tPrefix = '<p style="text-decoration-line: underline">' + tPrefix + '</p>';
+         var tHTML = '<div style = "color:%@;">%@</div>',
+            tUnitsSpan = '<span style = "color:grey;">%@</span>'.loc(tMeanValueAndUnits.unitsString),
+            tMeanHtmlString = '<p>%@ %@</p>'.loc(tMeanValueAndUnits.valueString, tUnitsSpan),
+            tSDHtmlString = '<p>%@ %@</p>'.loc(tStdevValueAndUnits.valueString, tUnitsSpan),
+            tStdErrHtmlString = tStdErrValue
+                                ? ('<p>%@ %@</p>'.loc(tStdErrValueAndUnits.valueString, tUnitsSpan))
+                                : '';
+         return tHTML.loc(this.symStroke, tPrefix + tMeanHtmlString + tSDHtmlString + tStdErrHtmlString, tUnitsSpan);
        } else {
-         return tMeanValueAndUnits.valueString + ' ' + tMeanValueAndUnits.unitsString + ', ' +
-            tStdevValueAndUnits.valueString + ' ' + tStdevValueAndUnits.unitsString;
+         if (kGaussianFitEnabled)
+            tPrefix = tPrefix + ': ';
+         return tPrefix + tMeanValueAndUnits.valueString + ' ' + tMeanValueAndUnits.unitsString + ', ' +
+                tStdevValueAndUnits.valueString + ' ' + tStdevValueAndUnits.unitsString +
+                (tStdErrValue ? ', ' + tStdErrValueAndUnits.valueString + ' ' +
+                tStdErrValueAndUnits.unitsString : '');
        }
      },
 

@@ -81,6 +81,7 @@ DG.LineLabelMixin =
           // Don't change the alignment unless the current alignment no longer works
           switch( tAlign) {
             case 'start':
+            case 'middle':
               tBackgrndAnchor.x = tValueCoord + 2;
               if( tTextBox.width + kPadding < tPaper.width - tValueCoord) {
                 tTextAnchor.x = tValueCoord + kPadding;

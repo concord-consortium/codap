@@ -452,7 +452,7 @@ DG = SC.Application.create((function () // closure
       if (value !== undefined) {
         this._gaussianFitEnabled = value;
       }
-      return this._gaussianFitEnabled || getUrlParameter('gaussian', undefined);
+      return this._gaussianFitEnabled || getUrlParameter('gaussianFit', undefined);
     }.property(),
 
     /**

@@ -45,15 +45,6 @@ DG.InspectorPickerPane = SC.PickerPane.extend(
         DG.set('inspectorPicker', this);
         this.set('removeTarget', this);
       },
-      popup: function () {
-        var kLeading = 5,
-            tHeight = 0;
-        this.getPath('contentView.childViews').forEach(function (iView) {
-          tHeight += iView.frame().height + kLeading;
-        });
-        this.adjust('height', tHeight);
-        sc_super();
-      },
       click: function (evt) {
         var tSubPane = this.get('subPane');
         if( this.get('subPane')) {

@@ -599,90 +599,81 @@ DG.UnivariateAdornmentBaseModel = DG.UnivariatePlotModel.extend(
           tMultipleMovable.set('axisModel', this.get('primaryAxisModel'));
       },
 
+      createStdErrorOption: function() {
+        function isStdErrVisible() {
+          return this_.isAdornmentVisible('plottedStErr');
+        }
+
+        var this_ = this,
+           kMargin = 20,
+           kLeading = 5,
+           kPadding = 5,
+           kRowHeight = 20,
+           tStdErrModel = this.getAdornmentModel('plottedStErr'),
+           tNumStdErrs = tStdErrModel ? tStdErrModel.get('numberOfStdErrs') : 1,
+           tLabel = tNumStdErrs === 1 ? 'DG.Inspector.graphPlottedStErr'.loc()
+                                      : pluralize('DG.Inspector.graphPlottedStErr'.loc()),
+           tShowStdErrCheckbox = SC.CheckboxView.create( {
+             layout: {left: 0, top: 3, height: kRowHeight, width: 25 },
+             localize: true,
+             flowSpacing: { left: kMargin, top: kLeading },
+             title: '',
+             value: this.isAdornmentVisible('plottedStErr'),
+             classNames: 'dg-graph-plottedStErr-check dg-ruler-check'.w(),
+             valueDidChange: function () {
+               this_.togglePlottedStErr();
+               tNumberEditField.set('isEnabled', isStdErrVisible());
+             }.observes('value')
+           }),
+           tNumberEditField = SC.TextFieldView.create({
+             layout: { height: kRowHeight + kLeading, width : 50 },
+             isEnabled: isStdErrVisible(),
+             flowSpacing: { left: 0, top: 0 },
+             supportsAutoResize: true,
+             type: 'number',
+             value: tNumStdErrs,
+             maxLength: 5,
+             valueDidChange: function () {
+               var tProposedValue = Number(this.get('value'));
+               if( DG.isFinite( tProposedValue)) {
+                 if (tProposedValue >= 0)
+                   this_.setNumStdErrs(tProposedValue);
+                 else
+                   this.set('value', tNumStdErrs);
+               }
+             }.observes('value')
+           }),
+           tLabelView = SC.LabelView.create({
+             layout: { height: kRowHeight, width : 100 },
+             value: tLabel,
+             localize: true
+           });
+        this.invokeLater( function() {
+          document.getElementById(tNumberEditField.get('layerId')).style.background = 'white';
+        }, 100);
+        return SC.View.create( SC.FlowedLayout,
+           {
+             layoutDirection: SC.LAYOUT_HORIZONTAL,
+             isResizable: false,
+             isClosable: false,
+             layout: {left: 0, height: kRowHeight + kLeading},
+             defaultFlowSpacing: {left: kPadding, top: kLeading},
+             shouldResizeWidth: false,
+             canWrap: false,
+             flowSpacing: {left: 0},
+             init: function() {
+               sc_super();
+               this.appendChild( tShowStdErrCheckbox);
+               this.appendChild(tNumberEditField);
+               this.appendChild(tLabelView);
+             }
+           });
+      },
+
       checkboxDescriptions: function () {
         var this_ = this,
-            tShowLabelsCheckbox = [];
-
-        function createBoxPlotToggle() {
-          var kMargin = 20,
-              kLeading = 5,
-              kRowHeight = 20,
-             tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot'),
-             kIciEnabled = DG.get('informalConfidenceIntervalEnabled')==='yes' ||
-                           (tBoxPlotModel && this_.getAdornmentModel('plottedBoxPlot').get('showICI')),
-              tShowOutliersCheckbox = SC.CheckboxView.create( {
-                layout: { height: kRowHeight },
-                localize: true,
-                flowSpacing: { left: kMargin },
-                title: 'DG.Inspector.graphBoxPlotShowOutliers',
-                value: this_.getAdornmentModel('plottedBoxPlot') ?
-                    this_.getAdornmentModel('plottedBoxPlot').get('showOutliers') : false,
-                classNames: 'dg-graph-boxPlotShowOutliers-check'.w(),
-                valueDidChange: function () {
-                  this_.toggleShowOutliers();
-                }.observes('value')
-              }),
-             tShowIciCheckbox = SC.CheckboxView.create( {
-               layout: { height: kRowHeight },
-               localize: true,
-               flowSpacing: { left: kMargin },
-               title: 'DG.Inspector.graphBoxPlotShowICI',
-               value: tBoxPlotModel ? tBoxPlotModel.get('showICI') : false,
-               classNames: 'dg-graph-boxPlotShowICI-check'.w(),
-               valueDidChange: function () {
-                 this_.toggleShowICI();
-               }.observes('value')
-             }),
-              tBoxPlotCheckbox = SC.CheckboxView.create( {
-                layout: { height: kRowHeight },
-                localize: true,
-                title: 'DG.Inspector.graphPlottedBoxPlot',
-                value: this_.isAdornmentVisible('plottedBoxPlot'),
-                classNames: 'dg-graph-plottedBoxPlot-check'.w(),
-                valueDidChange: function () {
-                  this_.togglePlottedBoxPlot();
-                  tShowOutliersCheckbox.set('isEnabled', isBoxPlotVisible());
-                  tShowIciCheckbox.set('isEnabled', isBoxPlotVisible());
-                }.observes('value')
-              });
-
-          function isBoxPlotVisible() {
-            return this_.isAdornmentVisible('plottedBoxPlot');
-          }
-
-          var tComposite =  SC.View.create( SC.FlowedLayout,
-              {
-                layoutDirection: SC.LAYOUT_VERTICAL,
-                isResizable: false,
-                isClosable: false,
-                layout: {height: 2 * (kRowHeight + kLeading)},
-                defaultFlowSpacing: {bottom: kLeading},
-                canWrap: false,
-                align: SC.ALIGN_TOP,
-                // layout: {right: 22},
-                boxplot: null,
-                showOutliers: null,
-                init: function() {
-                  sc_super();
-                  tShowOutliersCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
-                  this.appendChild( tBoxPlotCheckbox);
-                  this.appendChild(tShowOutliersCheckbox);
-                  if( kIciEnabled) {
-                    tShowIciCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
-                    this.appendChild(tShowIciCheckbox);
-                  }
-                }
-              });
-          return tComposite;
-        }
-
-        function createSpreadCheckboxChoices() {
-          return SC.ButtonView.create({
-            layout: { width: 150, height: 24, centerX: -70, centerY: 0 },
-            title: 'DG.Inspector.graphSpreadOptions',
-            localize: true,
-          });
-        }
+            tShowLabelsCheckbox = [],
+            kRowHeight = 20;
 
         function toggleShowMeasureLabels() {
           var tString = this_.get('showMeasureLabels') ? 'hide' : 'show';
@@ -708,189 +699,230 @@ DG.UnivariateAdornmentBaseModel = DG.UnivariatePlotModel.extend(
             }
           }));
         }
+
+        function createRadioGroupWithControls( iTitle, iVisibilityProperty, iControls) {
+          var tGroupView = DG.RulerGroupView.create( {
+            title: iTitle.loc(),
+            visibilityStateProperty: iVisibilityProperty,
+          });
+          iControls.forEach( function( iDesc) {
+            if( iDesc.control) {
+              tGroupView.appendChild(iDesc.control);
+            }
+            else {
+              iDesc.classNames.push('dg-ruler-check');
+              iDesc.layout = { height: kRowHeight };
+              iDesc.localize = true;
+              tGroupView.appendChild(SC.CheckboxView.create(iDesc));
+            }
+          }.bind( this));
+          tGroupView.syncChildViewVisibility();
+          return tGroupView;
+        }
+
+        function createBoxPlotToggle() {
+          var kMargin = 20,
+              kLeading = 5,
+              kRowHeight = 20,
+             tBoxPlotModel = this_.getAdornmentModel('plottedBoxPlot'),
+             kIciEnabled = DG.get('informalConfidenceIntervalEnabled')==='yes' ||
+                           (tBoxPlotModel && this_.getAdornmentModel('plottedBoxPlot').get('showICI')),
+              tShowOutliersCheckbox = SC.CheckboxView.create( {
+                layout: { height: kRowHeight },
+                localize: true,
+                flowSpacing: { left: 2 * kMargin },
+                title: 'DG.Inspector.graphBoxPlotShowOutliers',
+                value: this_.getAdornmentModel('plottedBoxPlot') ?
+                    this_.getAdornmentModel('plottedBoxPlot').get('showOutliers') : false,
+                classNames: 'dg-graph-boxPlotShowOutliers-check'.w(),
+                valueDidChange: function () {
+                  this_.toggleShowOutliers();
+                }.observes('value')
+              }),
+             tShowIciCheckbox = SC.CheckboxView.create( {
+               layout: { height: kRowHeight },
+               localize: true,
+               flowSpacing: { left: 2 * kMargin },
+               title: 'DG.Inspector.graphBoxPlotShowICI',
+               value: tBoxPlotModel ? tBoxPlotModel.get('showICI') : false,
+               classNames: 'dg-graph-boxPlotShowICI-check'.w(),
+               valueDidChange: function () {
+                 this_.toggleShowICI();
+               }.observes('value')
+             }),
+              tBoxPlotCheckbox = SC.CheckboxView.create( {
+                layout: { left: kMargin, height: kRowHeight },
+                localize: true,
+                title: 'DG.Inspector.graphPlottedBoxPlot',
+                value: this_.isAdornmentVisible('plottedBoxPlot'),
+                classNames: 'dg-graph-plottedBoxPlot-check'.w(),
+                valueDidChange: function () {
+                  this_.togglePlottedBoxPlot();
+                  tShowOutliersCheckbox.set('isEnabled', isBoxPlotVisible());
+                  tShowIciCheckbox.set('isEnabled', isBoxPlotVisible());
+                }.observes('value')
+              });
+
+          function isBoxPlotVisible() {
+            return this_.isAdornmentVisible('plottedBoxPlot');
+          }
+
+          var tComposite =  SC.View.create( SC.FlowedLayout,
+              {
+                layoutDirection: SC.LAYOUT_VERTICAL,
+                isResizable: false,
+                isClosable: false,
+                layout: {left: kMargin, height: 2 * (kRowHeight + kLeading)},
+                defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                canWrap: false,
+                align: SC.ALIGN_TOP,
+                // layout: {right: 22},
+                boxplot: null,
+                showOutliers: null,
+                init: function() {
+                  sc_super();
+                  tShowOutliersCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
+                  this.appendChild( tBoxPlotCheckbox);
+                  this.appendChild(tShowOutliersCheckbox);
+                  if( kIciEnabled) {
+                    tShowIciCheckbox.set('isEnabled', this_.isAdornmentVisible('plottedBoxPlot'));
+                    this.appendChild(tShowIciCheckbox);
+                  }
+                }
+              });
+          return tComposite;
+        }
+
+        function createMeasuresOfCenterGroup() {
+          return createRadioGroupWithControls('DG.Inspector.graphCenterOptions', 'measuresOfCenter',
+          [{
+              title: 'DG.Inspector.graphPlottedMean',
+              value: this_.isAdornmentVisible('plottedMean'),
+              classNames: 'dg-graph-plottedMean-check'.w(),
+              valueDidChange: function () {
+              this_.togglePlottedMean();
+            }.observes('value')
+           },
+            {
+              title: 'DG.Inspector.graphPlottedMedian',
+              value: this_.isAdornmentVisible('plottedMedian'),
+              classNames: 'dg-graph-plottedMedian-check'.w(),
+              valueDidChange: function () {
+                this_.togglePlottedMedian();
+              }.observes('value')
+            }
+          ]);
+        }
+
+        function createMeasuresOfSpreadGroup() {
+          return createRadioGroupWithControls('DG.Inspector.graphSpreadOptions', 'measuresOfSpread',
+          [
+            {
+              title: 'DG.Inspector.graphPlottedStDev',
+              value: this_.isAdornmentVisible('plottedStDev'),
+              classNames: 'dg-graph-plottedStDev-check'.w(),
+              valueDidChange: function () {
+                this_.togglePlottedStDev();
+              }.observes('value')
+            },
+            {
+              control: this_.createStdErrorOption()
+            },
+            {
+              title: 'DG.Inspector.graphPlottedMeanAbsDev',
+              value: this_.isAdornmentVisible('plottedMad'),
+              classNames: 'dg-graph-plottedMad-check'.w(),
+              valueDidChange: function () {
+                this_.togglePlottedMad();
+              }.observes('value')
+            }
+          ]);
+        }
+
+        function createBoxPlotAndNormalCurveGroup() {
+          var kGaussianFitEnabled = DG.get('gaussianFitEnabled')==='yes',
+              tDotsAreFused = this_.get('dotsAreFused'),
+              groupTitle = kGaussianFitEnabled && tDotsAreFused ? 'DG.Inspector.graphBoxPlotGaussianFitOptions'
+                       : 'DG.Inspector.graphBoxPlotNormalCurveOptions';
+          return createRadioGroupWithControls(groupTitle.loc(), 'boxPlotAndNormalCurve',
+          [
+            {
+              control: createBoxPlotToggle()
+            },
+            {
+              title: (tDotsAreFused && kGaussianFitEnabled) ? 'DG.Inspector.graphPlottedGaussianFit'
+                                                                        :'DG.Inspector.graphPlottedNormal',
+              value: this_.isAdornmentVisible('plottedNormal'),
+              classNames: 'dg-graph-plottedNormal-check'.w(),
+              valueDidChange: function () {
+                this_.togglePlottedNormal();
+              }.observes('value')
+            }
+          ]);
+        }
+
+        function createOtherValuesGroup() {
+          var kMargin = 20,
+              kLeading = 5;
+          return createRadioGroupWithControls('DG.Inspector.graphOtherValuesOptions', 'otherValues',
+             [
+               {
+                 title: 'DG.Inspector.graphPlottedValue',
+                 value: this_.isAdornmentVisible('plottedValue'),
+                 classNames: 'dg-graph-plottedValue-check'.w(),
+                 valueDidChange: function () {
+                   this_.togglePlotValue();
+                 }.observes('value')
+               },
+               {
+                 control: SC.ButtonView.create({
+                   classNames: 'dg-movable-value-button'.w(),
+                   defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                   themeName: 'capsule',
+                   title: 'DG.Inspector.graphAdd',
+                   localize: YES,
+                   action: this_.addMovableValue.bind(this_),
+                 })
+               },
+               {
+                 control: SC.ButtonView.create({
+                   classNames: 'dg-movable-value-button',
+                   defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                   title: 'DG.Inspector.graphRemove',
+                   themeName: 'capsule',
+                   localize: YES,
+                   action: this_.removeMovableValue.bind(this_),
+                 })
+               }
+             ]);
+        }
+
         if( !SC.platform.touch) { // We don't show this option on a touch system
           tShowLabelsCheckbox.push(
-              {
-                title: 'DG.Inspector.showLabels',
-                value: this_.get('showMeasureLabels'),
-                classNames: 'dg-graph-showLabels-check'.w(),
-                valueDidChange: function () {
-                  toggleShowMeasureLabels();
-                }.observes('value')
-              }
+             {
+               title: 'DG.Inspector.showLabels',
+               value: this_.get('showMeasureLabels'),
+               classNames: 'dg-graph-showLabels-check'.w(),
+               valueDidChange: function () {
+                 toggleShowMeasureLabels();
+               }.observes('value')
+             }
           );
         }
 
         return sc_super().concat(tShowLabelsCheckbox.concat([
-          {
-            title: 'DG.Inspector.graphPlottedMean',
-            value: this_.isAdornmentVisible('plottedMean'),
-            classNames: 'dg-graph-plottedMean-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlottedMean();
-            }.observes('value')
-          },
-          {
-            title: 'DG.Inspector.graphPlottedMedian',
-            value: this_.isAdornmentVisible('plottedMedian'),
-            classNames: 'dg-graph-plottedMedian-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlottedMedian();
-            }.observes('value')
-          },
-          {
-            control: createSpreadCheckboxChoices(),
-            action: 'showHideSpreadsSubPane'
-          },
-          {
-            control: createBoxPlotToggle()
-          },
-          {
-            title: 'DG.Inspector.graphPlottedValue',
-            value: this_.isAdornmentVisible('plottedValue'),
-            classNames: 'dg-graph-plottedValue-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlotValue();
-            }.observes('value')
-          }
+          { control: createMeasuresOfCenterGroup() },
+          { control: createMeasuresOfSpreadGroup() },
+          { control: createBoxPlotAndNormalCurveGroup() },
+          { control: createOtherValuesGroup() }
         ]));
       }.property(),
 
-      lastValueControls: function () {
-        var tControls = sc_super(),
-            kRowHeight = 23,
-            kButtonWidth = 120,
-            tButton = SC.PopupButtonView.create({
-              layout: {height: kRowHeight, width: kButtonWidth},
-              title: 'DG.Inspector.graphMovableValue'.loc(),
-              classNames: 'dg-movable-value-button',
-              menu: SC.MenuPane.extend({
-                layout: {width: 100},
-                items: [
-                  {
-                    title: 'DG.Inspector.graphAdd'.loc(),
-                    target: this,
-                    action: function() {
-                      this.addMovableValue();
-                    }
-                  },
-                  {
-                    title: 'DG.Inspector.graphRemove'.loc(),
-                    target: this,
-                    action: function() {
-                      this.removeMovableValue();
-                    }
-                  },
-                ]
-              })
-            });
-
-        tControls.push( tButton);
-        return tControls;
-      }.property(),
-
-      createStdErrorOption: function() {
-        function isStdErrVisible() {
-          return this_.isAdornmentVisible('plottedStErr');
-        }
-
-        var this_ = this,
-           kMargin = 20,
-           kLeading = 5,
-           kPadding = 5,
-           kRowHeight = 20,
-           tStdErrModel = this.getAdornmentModel('plottedStErr'),
-           tNumStdErrs = tStdErrModel ? tStdErrModel.get('numberOfStdErrs') : 1,
-           tLabel = tNumStdErrs === 1 ? 'DG.Inspector.graphPlottedStErr'.loc()
-           : pluralize('DG.Inspector.graphPlottedStErr'.loc()),
-           tShowStdErrCheckbox = SC.CheckboxView.create( {
-             layout: {left: 0, top: 3, height: kRowHeight, width: 25 },
-             localize: true,
-             flowSpacing: { left: kMargin, top: kLeading },
-             title: '',
-             value: this.isAdornmentVisible('plottedStErr'),
-             classNames: 'dg-graph-plottedStErr-check'.w(),
-             valueDidChange: function () {
-               this_.togglePlottedStErr();
-               tNumberEditField.set('isEnabled', isStdErrVisible());
-             }.observes('value')
-           }),
-           tNumberEditField = SC.TextFieldView.create({
-             layout: { height: kRowHeight + kLeading, width : 50 },
-             isEnabled: isStdErrVisible(),
-             flowSpacing: { left: 0, top: 0 },
-             supportsAutoResize: true,
-             type: 'number',
-             value: tNumStdErrs,
-             maxLength: 5,
-             valueDidChange: function () {
-               var tProposedValue = Number(this.get('value'));
-               if( DG.isFinite( tProposedValue) && tProposedValue > 0) {
-                 this_.setNumStdErrs(tProposedValue);
-               }
-             }.observes('value')
-           }),
-           tLabelView = SC.LabelView.create({
-             layout: { height: kRowHeight, width : 100 },
-             value: tLabel,
-             localize: true
-           });
-        this.invokeLater( function() {
-          document.getElementById(tNumberEditField.get('layerId')).style.background = 'white';
-        }, 100);
-         return SC.View.create( SC.FlowedLayout,
-           {
-             layoutDirection: SC.LAYOUT_HORIZONTAL,
-             isResizable: false,
-             isClosable: false,
-             layout: {left: 0, height: kRowHeight + kLeading},
-             defaultFlowSpacing: {left: kPadding, top: kLeading},
-             shouldResizeWidth: false,
-             canWrap: false,
-             flowSpacing: {left: 0},
-             init: function() {
-               sc_super();
-               this.appendChild( tShowStdErrCheckbox);
-               this.appendChild(tNumberEditField);
-               this.appendChild(tLabelView);
-             }
-           });
-      },
-
-      spreadCheckboxDescriptions: function () {
-        var this_ = this,
-            kGaussianFitEnabled = DG.get('gaussianFitEnabled')==='yes';
-
-        return [
-          {
-            title: 'DG.Inspector.graphPlottedStDev',
-            value: this_.isAdornmentVisible('plottedStDev'),
-            classNames: 'dg-graph-plottedStDev-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlottedStDev();
-            }.observes('value')
-          },
-          {
-            control: this_.createStdErrorOption()
-          },
-          {
-            title: (this_.get('dotsAreFused') && kGaussianFitEnabled) ? 'DG.Inspector.graphPlottedGaussianFit'
-                                             :'DG.Inspector.graphPlottedNormal',
-            value: this_.isAdornmentVisible('plottedNormal'),
-            classNames: 'dg-graph-plottedNormal-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlottedNormal();
-            }.observes('value')
-          },
-          {
-            title: 'DG.Inspector.graphPlottedMeanAbsDev',
-            value: this_.isAdornmentVisible('plottedMad'),
-            classNames: 'dg-graph-plottedMad-check'.w(),
-            valueDidChange: function () {
-              this_.togglePlottedMad();
-            }.observes('value')
-          }
-        ];
-      }.property(),
-
     });
+
+DG.UnivariateAdornmentBaseModel.rulerState = {
+  measuresOfCenter: true, // is visible by default
+  measuresOfSpread: false, // not visible by default
+  boxPlotAndNormalCurve: false, // not visible by default
+  otherValues: false, // not visible by default
+};

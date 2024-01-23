@@ -17,6 +17,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
+/* global tinycolor */
 
 sc_require('components/graph/adornments/twoD_line_adornment');
 sc_require('components/graph/utilities/plot_utilities');
@@ -69,16 +70,19 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
   equationString: function() {
     var tResult = sc_super(),
         kRSquared = '<p style = "color:%@;">r<sup>2</sup> = %@</p>',
-        kSeSlope = '<p style = "color:%@;">SE<sub style="vertical-align: sub">slope</sub> = %@</p>';
+        kSeSlope = '<p style = "color:%@;">&sigma;<sub style="vertical-align: sub">slope</sub> = %@</p>',
+        kSeIntercept = '<p style = "color:%@;">&sigma;<sub style="vertical-align: sub">intercept</sub> = %@</p>';
     if( !this.getPath('model.isInterceptLocked')) {
       var tColor = this.get('equationColor'),
           tFormat = DG.Format.number().fractionDigits(0, 3),
           tRSquared = this.getPath('model.rSquared'),
           tRSquaredString = SC.none(tRSquared) ? '' : tFormat(tRSquared),
           tSeSlope = this.getPath('model.seSlope'),
-          tSeSlopeString = SC.none(tSeSlope) ? '' : kSeSlope.loc(tColor, tFormat(tSeSlope));
+          tSeSlopeString = SC.none(tSeSlope) ? '' : kSeSlope.loc(tColor, tFormat(tSeSlope)),
+          tSeIntercept = this.getPath('model.seIntercept'),
+          tSeInterceptString = SC.none(tSeIntercept) ? '' : kSeIntercept.loc(tColor, tFormat(tSeIntercept));
 
-      tResult = tResult + kRSquared.loc(tColor, tRSquaredString) + tSeSlopeString +
+      tResult = tResult + kRSquared.loc(tColor, tRSquaredString) + tSeSlopeString + tSeInterceptString +
           this.get('sumResidSquaredString');
     }
     return tResult;
@@ -110,9 +114,10 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
        tDataTipLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
        tAdornmentLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kAdornments],
        tLayerForShading = this.getPath('paperSource.layerManager')[DG.LayerNames.kConnectingLines],
-       tLineColor = this.get('lineColor');
+       tLineColor = this.get('lineColor'),
+       tCurveColor = tinycolor(tLineColor).lighten(10).toHexString();
     this.confidenceBandCurve = tPaper.path( 'M,0,0')
-                                     .attr({ stroke: tLineColor, 'stroke-opacity': 0 });
+                                     .attr({ stroke: tCurveColor, 'stroke-opacity': 0, 'stroke-dasharray': '- ' });
     this.confidenceBandCurve.animatable = true;
     this.confidenceBandCurveCover = tPaper.path( 'M,0,0')
                                 .attr({ stroke: tLineColor, 'stroke-opacity': 0.001, 'stroke-width': 6 });

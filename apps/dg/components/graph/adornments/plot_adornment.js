@@ -196,6 +196,7 @@ DG.PlotAdornment = SC.Object.extend(
     this.myElements.forEach(function (iElement) {
       iElement.show();
       if (iElement.animatable) {
+        iElement.stop();
         iElement.animate({'stroke-opacity': tStrokeOpacity, opacity: tOpacity},
             DG.PlotUtilities.kDefaultAnimationTime, '<>');
       }
@@ -205,6 +206,7 @@ DG.PlotAdornment = SC.Object.extend(
   hideElements: function () {
     this.myElements.forEach(function (iElement) {
       if (iElement.animatable) {
+        iElement.stop();
         iElement.animate({'stroke-opacity': 0, opacity: 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
             function () {
               iElement.hide();

@@ -391,7 +391,9 @@ DG.MathUtilities = {
    * Returns an object that has the slope and intercept
    * @param iValues {[{x: {Number}, y: {Number}}]}
    * @param iInterceptLocked {Boolean}
-   * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sse: { Number}}}
+   * @returns {{count: {Number}, xMean: {Number}, xSumSquaredDeviations: { Number},
+   *         slope: {Number}, intercept: {Number}, sse: {Number}, mse: {Number},
+   *         rSquared: {Number}, sdResiduals: {Number} }}
    */
   leastSquaresLinearRegression: function (iValues, iInterceptLocked) {
     var tSlopeIntercept = {
@@ -436,17 +438,20 @@ DG.MathUtilities = {
   },
 
   /**
-   * Returns the standard error of the slope of the lsrl fitting the coordinates
-   * Note that we do not compute standard error for the situation in which the intercept is locked.
+   * Returns the standard errors of the slope and intercept of the lsrl fitting the coordinates
+   * Note that we do not compute standard errors for the situation in which the intercept is locked.
    * @param iCoords {[{x: {Number}, y: {Number}}]}
-   * @returns {Number}
+   * @returns {seSlope:number, seIntercept:number}
    */
-  linRegrSESlope: function (iCoords) {
-    var tResult = NaN,
+  linRegrSESlopeAndIntercept: function (iCoords) {
+    var tResult = { seSlope: NaN, seIntercept: NaN },
        tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression(iCoords, false);
     if (tSlopeIntercept.count > 1) {
-      tResult = Math.sqrt((tSlopeIntercept.sse / (tSlopeIntercept.count - 2)) /
+      tResult.seSlope = Math.sqrt((tSlopeIntercept.sse / (tSlopeIntercept.count - 2)) /
                           tSlopeIntercept.xSumSquaredDeviations);
+      tResult.seIntercept = Math.sqrt(tSlopeIntercept.sse / (tSlopeIntercept.count - 2)) *
+          Math.sqrt(1 / tSlopeIntercept.count + Math.pow(tSlopeIntercept.xMean, 2) /
+              tSlopeIntercept.xSumSquaredDeviations);
     }
     return tResult;
   },

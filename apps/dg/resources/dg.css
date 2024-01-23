@@ -356,6 +356,15 @@ html, body {
     background-color: rgba(231, 231, 231, 0.70);
 }
 
+.dg-disclosure{
+    cursor: pointer;
+}
+
+.dg-ruler-check {
+    left: 17px !important;
+    height: 20px !important;
+}
+
 .dg-insert-cases-dialog .dg-inspector-picker-icon {
     background-color: #01879E;
     padding: 4px 5px 5px 5px;
@@ -1246,6 +1255,17 @@ body.dg .sc-view.dg-doc-background {
 .dg-graph-adornment-movable {
     stroke: steelblue;
     fill: steelblue;
+}
+
+.dg-movable-value-button {
+    width: max-content !important;
+    height: 20px;
+    margin-left: 19px;
+    cursor: pointer;
+}
+
+.dg-movable-value-button label {
+    cursor: pointer;
 }
 
 .dg-selected-info-view {

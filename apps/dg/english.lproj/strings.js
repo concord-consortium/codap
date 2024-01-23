@@ -814,9 +814,9 @@ SC.stringsFor("en", {
     // DG.PlottedAverageAdornment
     "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@", // "mean=123.456"
     "DG.PlottedAverageAdornment.medianValueTitle": "median=%@", // "median=123.456"
-    "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "±1 SD, 123.456"
-    "DG.PlottedAverageAdornment.stErrValueTitle": "±%@ SE, %@", // "±1 SE, 123.456"
-    "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@", // "±1 MAD, 123.456"
+    "DG.PlottedAverageAdornment.stDevValueTitle": "SD=%@", // "SD=123.456"
+    "DG.PlottedAverageAdornment.stErrValueTitle": "%@ SE%@mean%@=%@", // "2 SE=123.456" 2nd & 3rd args for subscripting
+    "DG.PlottedAverageAdornment.madValueTitle": "MAD=%@", // "MAD=123.456"
     "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
     "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
     "DG.PlottedCountAdornment.title": "%@ %@, %@%", // "12 cases, 50%"
@@ -981,14 +981,18 @@ SC.stringsFor("en", {
     "DG.Inspector.graphPlottedFunction": "Plotted Function",
     "DG.Inspector.graphSquares": "Squares of Residuals",
     "DG.Inspector.graphLSRL": "Least Squares Line",
-    "DG.Inspector.graphLSRLSlopeCI": "Show Confidence Bands",
+    "DG.Inspector.graphLSRLSlopeCI": "Show Fit Uncertainty",
     "DG.Inspector.graphMovableValue": "Movable Value",
-    "DG.Inspector.graphAdd": "Add",
-    "DG.Inspector.graphRemove": "Remove",
+    "DG.Inspector.graphAdd": "Add Movable Value",
+    "DG.Inspector.graphRemove": "Remove Movable Value",
     "DG.Inspector.showLabels": "Show Measure Labels",
     "DG.Inspector.graphPlottedMean": "Mean",
     "DG.Inspector.graphPlottedMedian": "Median",
+    "DG.Inspector.graphCenterOptions": "Measures of Center",
     "DG.Inspector.graphSpreadOptions": "Measures of Spread",
+    "DG.Inspector.graphBoxPlotNormalCurveOptions": "Box Plot and Normal Curve",
+    "DG.Inspector.graphBoxPlotGaussianFitOptions": "Box Plot and Gaussian Fit",
+    "DG.Inspector.graphOtherValuesOptions": "Plotted and Movable Values",
     "DG.Inspector.graphPlottedStDev": "Standard Deviation",
     "DG.Inspector.graphPlottedStErr": "Standard Error",
     "DG.Inspector.graphPlottedNormal": "Normal Curve",

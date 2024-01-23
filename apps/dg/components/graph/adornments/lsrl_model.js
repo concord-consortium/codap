@@ -51,6 +51,11 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
        */
       seSlope: null,
 
+     /**
+       * @property {Number}
+       */
+      seIntercept: null,
+
       getCoordinates: function() {
         var tCoordinates = sc_super(),
            tCategoryName = this.get('categoryName');
@@ -80,9 +85,12 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
       recomputeSlopeAndIntercept: function () {
         var tInterceptIsLocked = this.get('isInterceptLocked'),
             tCoordinates = this.getCoordinates(),
-            tSlopeIntercept, tSeSlope;
+            tSlopeIntercept, tSeSlope, tSeIntercept;
         tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);
-        tSeSlope = this.get('showConfidenceBands') ? DG.MathUtilities.linRegrSESlope( tCoordinates) : null;
+        tSeSlope = this.get('showConfidenceBands') ? DG.MathUtilities.linRegrSESlopeAndIntercept( tCoordinates).seSlope
+                                                   : null;
+        tSeIntercept = this.get('showConfidenceBands')
+                          ? DG.MathUtilities.linRegrSESlopeAndIntercept( tCoordinates).seIntercept : null;
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||
             isNaN(tSlopeIntercept.intercept) && isNaN( this.get('intercept'))) {
           return; // not covered by setIfChanged
@@ -97,6 +105,7 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
           this.setIfChanged('xSumSquaredDeviations', tSlopeIntercept.xSumSquaredDeviations);
           this.setIfChanged('rSquared', tSlopeIntercept.rSquared);
           this.setIfChanged('seSlope', tSeSlope);
+          this.setIfChanged('seIntercept', tSeIntercept);
           this.setIfChanged('isVertical', !isFinite(tSlopeIntercept.slope));
           this.setIfChanged('xIntercept', null);
           this.computeSumSquaresResiduals();
