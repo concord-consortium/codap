@@ -7,7 +7,7 @@ import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel} from "./models/data-configuration-model"
 import {CaseData, DotsElt, selectCircles, selectDots} from "./d3-types"
 import {hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
-  pointRadiusSelectionAddend, Rect, rTreeRect} from "./data-display-types"
+  pointRadiusSelectionAddend, Rect, rTreeRect, transitionDuration} from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
@@ -79,15 +79,17 @@ export interface IMatchCirclesProps {
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
+  animateChange?: boolean // default false
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const {dataConfiguration, startAnimation, instanceId,
-      dotsElement, pointRadius, pointColor, pointStrokeColor} = props,
+      dotsElement, pointRadius, pointColor, pointStrokeColor, animateChange} = props,
     id = dataConfiguration.id,
     allCaseData = dataConfiguration.joinedCaseDataArrays,
     caseDataKeyFunc = (d: CaseData) => `${d.plotNum}-${d.caseID}`,
-    circles = selectCircles(dotsElement, id)
+    circles = selectCircles(dotsElement, id),
+    duration = animateChange ? transitionDuration : 0
   if (!circles) return
   startAnimation()
   circles
@@ -98,7 +100,9 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
           .attr('class', `graph-dot ${id}`)
           .property('id', (d: CaseData) => `${instanceId}_${d.caseID}`),
       (update) =>
-        update.attr('r', pointRadius)
+        update
+          .transition().duration(duration)
+          .attr('r', pointRadius)
           .style('fill', pointColor)
           .style('stroke', pointStrokeColor)
           .style('stroke-width', defaultStrokeWidth)

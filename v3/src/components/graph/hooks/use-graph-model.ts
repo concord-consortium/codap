@@ -27,9 +27,11 @@ export function useGraphModel(props: IProps) {
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+      animateChange: graphModel.pointDescription.animateChange,
       dotsElement: dotsRef.current,
       startAnimation, instanceId
     })
+    graphModel.pointDescription.clearAnimateChange()
   }, [dataConfig, graphModel, dotsRef, startAnimation, instanceId])
 
   // respond to change in plotType
