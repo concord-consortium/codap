@@ -57,7 +57,6 @@ export class DataDisplayLayout {
   /**
    * We assume that all the desired extents have been set so that we can compute new bounds.
    * We set the computedBounds only once at the end so there should be only one notification to respond to.
-   * Todo: Eventually there will be additional room set aside at the top for formulas
    */
   @computed get computedBounds() {
     const {desiredExtents, tileWidth, tileHeight} = this,
