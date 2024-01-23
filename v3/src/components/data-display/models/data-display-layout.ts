@@ -1,5 +1,5 @@
 import {action, computed, makeObservable, observable} from "mobx"
-import {GraphExtentsPlace, GraphPlace} from "../../axis-graph-shared"
+import {GraphPlace} from "../../axis-graph-shared"
 
 export const kDefaultTileWidth = 300
 export const kDefaultTileHeight = 300
@@ -8,6 +8,7 @@ interface ITileSize {
   tileHeight: number
 }
 
+export type GraphExtentsPlace = GraphPlace | "banners"
 
 export interface Bounds {
   left: number

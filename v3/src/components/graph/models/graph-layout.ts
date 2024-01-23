@@ -1,9 +1,9 @@
 import {action, computed, makeObservable, observable, override} from "mobx"
 import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
-import {GraphExtentsPlace, isVertical} from "../../axis-graph-shared"
+import {isVertical} from "../../axis-graph-shared"
 import {IAxisLayout} from "../../axis/models/axis-layout-context"
 import {MultiScale} from "../../axis/models/multi-scale"
-import {Bounds, DataDisplayLayout} from "../../data-display/models/data-display-layout"
+import {Bounds, DataDisplayLayout, GraphExtentsPlace} from "../../data-display/models/data-display-layout"
 
 export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // actual measured sizes of axis elements
