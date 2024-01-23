@@ -11,7 +11,6 @@ import {AttributeLabel} from "../../data-display/components/attribute-label"
 import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {useTileModelContext} from "../../../hooks/use-tile-model-context"
 import {getStringBounds} from "../../axis/axis-utils"
-import { GraphExtentsPlace } from "../../data-display/models/data-display-layout"
 
 import vars from "../../vars.scss"
 
@@ -65,7 +64,7 @@ export const GraphAttributeLabel =
 
     const refreshAxisTitle = useCallback(() => {
       const {labelFont, className, visibility} = getClickHereCue(),
-        bounds = layout.getComputedBounds(place as GraphExtentsPlace),
+        bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
         label = getLabel(),

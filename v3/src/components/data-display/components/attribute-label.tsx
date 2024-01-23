@@ -7,7 +7,6 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { useDataDisplayLayout } from "../hooks/use-data-display-layout"
 import { AxisOrLegendAttributeMenu } from "../../axis/components/axis-or-legend-attribute-menu"
 import { AttributeType } from "../../../models/data/attribute"
-import { GraphExtentsPlace } from "../models/data-display-layout"
 
 import "./attribute-label.scss"
 
@@ -30,7 +29,7 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
   useEffect(() => {
     return autorun(() => {
       // accessing layout triggers autorun on change
-      const bounds = layout.getComputedBounds(place as GraphExtentsPlace)
+      const bounds = layout.getComputedBounds(place)
       const layoutBounds = JSON.stringify(bounds)
       // trigger re-render on layout position change
       setLayoutBounds(layoutBounds)

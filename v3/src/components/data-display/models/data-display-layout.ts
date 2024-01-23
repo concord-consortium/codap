@@ -8,7 +8,7 @@ interface ITileSize {
   tileHeight: number
 }
 
-export type GraphExtentsPlace = Exclude<GraphPlace | "banners", "yPlus">
+export type GraphExtentsPlace = GraphPlace | "banners"
 
 export interface Bounds {
   left: number
@@ -40,11 +40,11 @@ export class DataDisplayLayout {
     return this.tileHeight - this.getDesiredExtent('legend')
   }
 
-  getDesiredExtent(place: GraphExtentsPlace) {
+  getDesiredExtent(place: GraphPlace) {
     return this.desiredExtents.get(place) ?? 0
   }
 
-  @action setDesiredExtent(place: GraphExtentsPlace, extent: number) {
+  @action setDesiredExtent(place: GraphPlace, extent: number) {
     this.desiredExtents.set(place, extent)
   }
 
@@ -61,13 +61,13 @@ export class DataDisplayLayout {
   @computed get computedBounds() {
     const {desiredExtents, tileWidth, tileHeight} = this,
       legendHeight = desiredExtents.get('legend') ?? 0,
-      newBounds: Partial<Record<GraphExtentsPlace, Bounds>> = {
+      newBounds: Partial<Record<GraphPlace, Bounds>> = {
         legend: {left: 6, top: tileHeight - legendHeight, width: tileWidth - 6, height: legendHeight},
       }
     return newBounds
   }
 
-  getComputedBounds(place: GraphExtentsPlace) {
+  getComputedBounds(place: GraphPlace) {
     return this.computedBounds[place]
   }
 }
