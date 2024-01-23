@@ -31,6 +31,7 @@ export function useGraphModel(props: IProps) {
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+      animateChange: graphModel.pointDescription.animateChange,
       startAnimation, instanceId
     })
   }, [dataConfig, pixiPointsRef, graphModel, startAnimation, instanceId])

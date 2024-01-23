@@ -22,7 +22,7 @@ import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
 import {IPixiPointMetadata, PixiBackgroundPassThroughEvent} from "../utilities/pixi-points"
-import {useDataDisplayModelContext} from "../../data-display/hooks/use-data-display-model"
+import { transitionDuration } from "../../data-display/data-display-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const {pixiPointsRef} = props,
@@ -31,7 +31,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     dataConfiguration = useGraphDataConfigurationContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
-    dataDisplayModel = useDataDisplayModelContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
     selectedPointRadiusRef = useRef(0),
@@ -208,23 +207,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     dataTip.hide()
   }, [dataTip, pixiPointsRef])
 
-  const connectingLinesCleanUp = useCallback(() => {
-    connectingLinesActivatedRef.current = showConnectingLines
-    // TODO: The point size needs to be made smaller when Connecting Lines are activated, and then revert to the
-    // original size when Connecting Lines are deactivated. The below makes this happen, but the rescaling should
-    // really occur in a smooth transition while the lines are fading in/out, not instantly after the lines are
-    // done fading.
-    const pointSizeMultiplier = dataDisplayModel?.pointDescription.pointSizeMultiplier
-    if (showConnectingLines && pointSizeMultiplier > .5) {
-      dataDisplayModel?.pointDescription.setPointSizeMultiplier(.5)
-    } else if (!showConnectingLines) {
-      dataDisplayModel?.pointDescription.setPointSizeMultiplier(1)
-    }
-    if (!showConnectingLines) {
-      select(connectingLinesRef.current).selectAll("path").remove()
-    }
-  }, [dataDisplayModel?.pointDescription, showConnectingLines])
-
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const connectingLinesArea = select(connectingLinesRef.current)
@@ -274,6 +256,16 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           ? graphModel.pointDescription.pointColorAtIndex(linesIndex)
           : graphModel.pointDescription.pointColorAtIndex(0)
 
+        // Decrease point size when Connecting Lines are activated so the lines are easier to see, and
+        // revert to original point size when Connecting Lines are deactivated.
+        const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier,
+          animateChange = true
+        if (showConnectingLines && pointSizeMultiplier > .5) {
+          graphModel.pointDescription.setPointSizeMultiplier(.5, animateChange)
+        } else if (!showConnectingLines) {
+          graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
+        }
+
         connectingLinesArea
           .append("path")
           .data([allLineCoords])
@@ -292,12 +284,15 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .style("cursor", "pointer")
           .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
           .transition()
-          .duration(1000)
+          .duration(transitionDuration)
           .style("opacity", showConnectingLines ? 1 : 0)
-          .on("end", connectingLinesCleanUp)
+          .on("end", () => {
+            connectingLinesActivatedRef.current = showConnectingLines
+            !showConnectingLines && select(connectingLinesRef.current).selectAll("path").remove()
+          })
       }
     })
-  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
+  }, [dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
     handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
     showConnectingLines])
 

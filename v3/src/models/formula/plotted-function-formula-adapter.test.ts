@@ -32,7 +32,7 @@ const getTestEnv = () => {
   }
   dataConfig.attributeID = (role: string) => mockData.id[role]
   dataConfig.attributeType = (role: string) => mockData.type[role]
-  dataConfig.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+  ;(dataConfig as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
 
   const graphContentModel = {
     id: "fake-graph-content-model-id",

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { useDeepCompareMemo } from "use-deep-compare"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { getAxisDomains } from "../adornment-utils"
 import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
@@ -14,15 +15,10 @@ import { kDefaultFontSize } from "../adornment-types"
 
 import "./count-adornment-component.scss"
 
-interface IProps {
-  cellKey: Record<string, string>
-  model: ICountAdornmentModel
-  plotWidth: number
-}
-
-export const CountAdornment = observer(function CountAdornment({ model, cellKey: _cellKey, plotWidth }: IProps) {
+export const CountAdornment = observer(function CountAdornment(props: IAdornmentComponentProps) {
   prf.begin("CountAdornment.render")
-  const cellKey = useDeepCompareMemo(() => _cellKey, [_cellKey])
+  const { cellKey, plotHeight, plotWidth, xAxis, yAxis } = props
+  const model = props.model as ICountAdornmentModel
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
@@ -109,10 +105,11 @@ export const CountAdornment = observer(function CountAdornment({ model, cellKey:
   useEffect(function refreshBoundariesAndCaseCounts() {
     return mstAutorun(
       () => {
+        getAxisDomains(xAxis, yAxis)
         subPlotRegionBoundariesRef.current = adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
         plotCaseCounts()
       }, { name: "Count.refreshBoundariesAndCaseCounts" }, model)
-  }, [adornmentsStore, instanceKey, model, plotCaseCounts, scale])
+  }, [adornmentsStore, instanceKey, model, plotCaseCounts, plotHeight, plotWidth, scale, xAxis, yAxis])
 
   useEffect(function refreshShowPercentOption() {
     return mstAutorun(
