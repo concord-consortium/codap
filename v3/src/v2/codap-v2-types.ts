@@ -386,3 +386,12 @@ export interface ICodapV2DocumentJson {
   lang?: string
   idCount?: number
 }
+
+export function isCodapV2Document(content: unknown): content is ICodapV2DocumentJson {
+  if (!content || typeof content !== "object") return false
+  const hasV2AppName = "appName" in content && content.appName === "DG"
+  const hasNoAppName = !("appName" in content) || !content.appName
+  return ((hasV2AppName || hasNoAppName) &&
+          "components" in content && Array.isArray(content.components) &&
+          "contexts" in content && Array.isArray(content.contexts))
+}

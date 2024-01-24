@@ -7,9 +7,11 @@
   generally be MobX-observable.
  */
 import { action, computed, makeObservable, observable } from "mobx"
+import { getSnapshot } from "mobx-state-tree"
 import { createCodapDocument } from "./codap/create-codap-document"
 import { gDataBroker } from "./data/data-broker"
 import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
+import { serializeDocument } from "./document/serialize-document"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
 
@@ -35,6 +37,10 @@ class AppState {
   @computed
   get document() {
     return this.currentDocument
+  }
+
+  getDocumentSnapshot() {
+    return serializeDocument(this.currentDocument, doc => getSnapshot(doc))
   }
 
   @action
