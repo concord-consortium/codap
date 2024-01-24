@@ -1,6 +1,6 @@
 import {ScaleBand} from "d3"
 import React, {useCallback} from "react"
-import {CaseData, selectDots} from "../../data-display/d3-types"
+import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
@@ -15,7 +15,7 @@ import {setPointCoordinates} from "../utilities/graph-utils"
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
 
 export const ChartDots = function ChartDots(props: PlotProps) {
-  const {dotsRef} = props,
+  const {pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
@@ -78,10 +78,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      pointColor, pointStrokeColor, dotsRef, dataConfiguration,
+      pixiPointsRef, pointColor, pointStrokeColor, dataConfiguration,
       pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
+  }, [dataConfiguration, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryRole is the bottom just to help understand the naming
@@ -100,7 +100,6 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       extraSecCatsArray: string[] = (dataConfiguration && extraSecondaryAttrRole)
         ? Array.from(dataConfiguration.categoryArrayForAttrRole(extraSecondaryAttrRole)) : [],
       pointDiameter = 2 * graphModel.getPointRadius(),
-      selection = selectDots(dotsRef.current, selectedOnly),
       primOrdinalScale = layout.getAxisScale(primaryAxisPlace) as ScaleBand<string>,
       secOrdinalScale = layout.getAxisScale(secondaryAxisPlace) as ScaleBand<string>,
       extraPrimOrdinalScale = layout.getAxisScale(extraPrimaryAxisPlace) as ScaleBand<string>,
@@ -116,8 +115,6 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         { cell: { p: number, s: number, ep: number, es: number }, numSoFar: number }>>>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
-
-    if (!selection) return
 
     const computeCellParams = () => {
         primCatsArray.forEach((primeCat, i) => {
@@ -211,14 +208,14 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
-      dotsRef, selectedOnly, pointColor, pointStrokeColor,
+      pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, dotsRef,
+  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, pixiPointsRef,
     extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor, isAnimating,
     primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <></>

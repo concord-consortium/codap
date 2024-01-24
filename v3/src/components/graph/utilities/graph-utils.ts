@@ -1,8 +1,10 @@
 import {extent, format} from "d3"
 import {isInteger} from "lodash"
+import * as PIXI from "pixi.js"
+import {IPixiPointMetadata, IPixiPointsRef} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
-import {CaseData, selectDots} from "../../data-display/d3-types"
-import {IDotsRef, Point, transitionDuration} from "../../data-display/data-display-types"
+import {CaseData} from "../../data-display/d3-types"
+import {Point, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
@@ -366,7 +368,7 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 }
 
 export interface ISetPointSelection {
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
   selectedPointRadius: number,
@@ -377,7 +379,7 @@ export interface ISetPointSelection {
 
 export interface ISetPointCoordinates {
   dataset?: IDataSet
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number
@@ -392,11 +394,10 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
-    dataset, dotsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor, pointColor,
-    getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled
+    dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor,
+    pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled
   } = props
-  const duration = getAnimationEnabled() ? transitionDuration : 0
-  const theSelection = selectDots(dotsRef.current, selectedOnly)
+
 
   const lookupLegendColor = (caseData: CaseData): string => {
     const { caseID } = caseData
@@ -414,23 +415,23 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   }
 
   const setPoints = () => {
-    if (theSelection?.size()) {
-      theSelection
-        .transition()
-        .duration(duration)
-        .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
-        .attr('cy', (aCaseData: CaseData) => {
-          return getScreenY(aCaseData.caseID, aCaseData.plotNum)
-        })
-        .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
-          ? selectedPointRadius : pointRadius)
-        .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
-        .style('stroke', (aCaseData: CaseData) =>
-          (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStroke : pointStrokeColor)
-        .style('stroke-width', (aCaseData: CaseData) =>
-          (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
+    // Do we really need to calculate legend color here? If this function is called both while resizing
+    // the graph and while updating legend colors, we could possibly split it into two different functions.
+    const pixiPoints = pixiPointsRef?.current
+    if (pixiPoints) {
+      pixiPoints.transition(() => {
+        pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+          const { caseID, plotNum } = metadata
+          pixiPoints.setPointStyle(point, {
+            radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
+            fill: lookupLegendColor(metadata),
+            stroke: getLegendColor && dataset?.isCaseSelected(caseID) ? defaultSelectedStroke : pointStrokeColor,
+            strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
+              ? defaultSelectedStrokeWidth : defaultStrokeWidth
+          })
+          pixiPoints.setPointPosition(point, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+        }, { selectedOnly })
+      }, { duration: getAnimationEnabled() ? transitionDuration : 0 })
     }
   }
 

@@ -1,11 +1,12 @@
-import {max, range, ScaleBand, ScaleLinear, select} from "d3"
+import {max, range, ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useRef, useState} from "react"
+import * as PIXI from "pixi.js"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
+import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {appState} from "../../../models/app-state"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -13,9 +14,10 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {setPointCoordinates} from "../utilities/graph-utils"
+import {IPixiPointMetadata} from "../utilities/pixi-points"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
-  const {dotsRef} = props,
+  const {pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -29,101 +31,82 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     [dragID, setDragID] = useState(''),
     currPos = useRef(0),
     didDrag = useRef(false),
-    target = useRef<any>(),
     selectedDataObjects = useRef<Record<string, number>>({})
 
-  const onDragStart = useCallback((event: any) => {
-      target.current = select(event.target as SVGSVGElement)
-      const aCaseData: CaseData = target.current.node().__data__
-      if (!aCaseData) return
-      dataset?.beginCaching()
-      didDrag.current = false
-      const tItsID: string = aCaseData.caseID
-      if (target.current.node()?.nodeName === 'circle') {
-        stopAnimation() // We don't want to animate points until end of drag
-        appState.beginPerformance()
-        target.current
-          .property('isDragging', true)
-          .transition()
-          .attr('r', graphModel.getPointRadius('hover-drag'))
-        setDragID(() => tItsID)
-        currPos.current = primaryIsBottom ? event.clientX : event.clientY
+  const onDragStart = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    dataset?.beginCaching()
+    didDrag.current = false
+    const tItsID: string = metadata.caseID
+    stopAnimation() // We don't want to animate points until end of drag
+    appState.beginPerformance()
+    setDragID(() => tItsID)
+    currPos.current = primaryIsBottom ? event.clientX : event.clientY
+    handleClickOnCase(event, tItsID, dataset)
+    // Record the current values, so we can change them during the drag and restore them when done
+    const {selection} = dataConfiguration || {}
+    const primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? ''
+    selection?.forEach(anID => {
+      const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
+      if (itsValue != null) {
+        selectedDataObjects.current[anID] = itsValue
+      }
+    })
+  }, [dataset, stopAnimation, primaryIsBottom, dataConfiguration])
 
-        handleClickOnCase(event, tItsID, dataset)
-        // Record the current values, so we can change them during the drag and restore them when done
-        const {selection} = dataConfiguration || {},
-          primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? ''
+  const onDrag = useCallback((event: PointerEvent) => {
+    const primaryPlace = primaryIsBottom ? 'bottom' : 'left'
+    const primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number> | undefined
+    if (primaryAxisScale && dragID) {
+      const newPos = primaryIsBottom ? event.clientX : event.clientY
+      const deltaPixels = newPos - currPos.current
+      const primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? ''
+      currPos.current = newPos
+      if (deltaPixels !== 0) {
+        didDrag.current = true
+        const delta = Number(primaryAxisScale.invert(deltaPixels)) - Number(primaryAxisScale.invert(0))
+        const caseValues: ICase[] = []
+        const {selection} = dataConfiguration || {}
         selection?.forEach(anID => {
-          const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
-          if (itsValue != null) {
-            selectedDataObjects.current[anID] = itsValue
+          const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
+          if (isFinite(currValue)) {
+            caseValues.push({__id__: anID, [primaryAttrID]: currValue + delta})
           }
         })
+        caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID])
       }
-    }, [dataset, stopAnimation, graphModel, primaryIsBottom, dataConfiguration]),
+    }
+  }, [dataset, dragID, primaryIsBottom, dataConfiguration, layout, primaryAttrRole])
 
-    onDrag = useCallback((event: MouseEvent) => {
-      const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
-        primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number> | undefined
-      if (primaryAxisScale && dragID) {
-        const newPos = primaryIsBottom ? event.clientX : event.clientY,
-          deltaPixels = newPos - currPos.current,
-          primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? ''
-        currPos.current = newPos
-        if (deltaPixels !== 0) {
-          didDrag.current = true
-          const delta = Number(primaryAxisScale.invert(deltaPixels)) -
-              Number(primaryAxisScale.invert(0)),
-            caseValues: ICase[] = [],
-            {selection} = dataConfiguration || {}
-          selection?.forEach(anID => {
-            const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
-            if (isFinite(currValue)) {
-              caseValues.push({__id__: anID, [primaryAttrID]: currValue + delta})
-            }
+  const onDragEnd = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    dataset?.endCaching()
+    appState.endPerformance()
+
+    if (dragID !== '') {
+      setDragID('')
+      if (didDrag.current) {
+        const caseValues: ICase[] = []
+        const {selection} = dataConfiguration || {}
+        selection?.forEach(anID => {
+          caseValues.push({
+            __id__: anID,
+            [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
           })
-          caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID])
-        }
+        })
+        startAnimation() // So points will animate back to original positions
+        caseValues.length && dataset?.setCaseValues(caseValues)
+        didDrag.current = false
       }
-    }, [dataset, dragID, primaryIsBottom, dataConfiguration, layout, primaryAttrRole]),
+    }
+  }, [dataset, dragID, dataConfiguration, startAnimation, primaryAttrRole])
 
-    onDragEnd = useCallback(() => {
-      dataset?.endCaching()
-      appState.endPerformance()
-
-      if (dragID !== '') {
-        target.current
-          .classed('dragging', false)
-          .property('isDragging', false)
-          .transition()
-          .attr('r', graphModel.getPointRadius('select'))
-        setDragID('')
-        target.current = null
-
-        if (didDrag.current) {
-          const caseValues: ICase[] = [],
-            {selection} = dataConfiguration || {}
-          selection?.forEach(anID => {
-            caseValues.push({
-              __id__: anID,
-              [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
-            })
-          })
-          startAnimation() // So points will animate back to original positions
-          caseValues.length && dataset?.setCaseValues(caseValues)
-          didDrag.current = false
-        }
-      }
-    }, [dataset, dragID, graphModel, dataConfiguration, startAnimation, primaryAttrRole])
-
-  useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      dotsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
+      pixiPointsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
       pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataConfiguration, dotsRef, graphModel, pointColor, pointStrokeColor])
+  }, [dataConfiguration, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -257,14 +240,14 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       setPointCoordinates({
         dataset, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
-        dotsRef, selectedOnly, pointColor, pointStrokeColor,
+        pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
       })
     },
-    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, dotsRef,
+    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
       primaryIsBottom, pointColor, pointStrokeColor, isAnimating])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <></>

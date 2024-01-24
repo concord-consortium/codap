@@ -19,7 +19,12 @@ export function useMapModel() {
     },
     "click": () => {
       mapModel.layers.forEach((layer) => {
-        layer.dataConfiguration.dataset?.setSelectedCases([])
+        // TODO PIXI: I had to temporarily comment this out because it was breaking point or polygon selection,
+        // as it was immediately de-selecting the point or polygon that was just selected.
+        // The core problem is in the PixiJS event handling system - it seems it's impossible to stop propagation
+        // of an event to the parent container, so the event is always handled by the map too, even if hit test of the
+        // point was successful. I think the easiest way to fix this is to find another way to delete the selection.
+        // layer.dataConfiguration.dataset?.setSelectedCases([])
       })
     }
   })

@@ -6,39 +6,40 @@ import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {useDebouncedCallback} from "use-debounce"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {GraphAttrRoles, IDotsRef} from "../../data-display/data-display-types"
+import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import { PixiPointEventHandler, IPixiPointsRef, PixiPoints } from "../utilities/pixi-points"
 
-interface IDragHandlers {
-  start: (event: MouseEvent) => void
-  drag: (event: MouseEvent) => void
-  end: (event: MouseEvent) => void
+export interface IPixiDragHandlers {
+  start: PixiPointEventHandler
+  drag: PixiPointEventHandler
+  end: PixiPointEventHandler
 }
 
-export const useDragHandlers = (target: any, {start, drag, end}: IDragHandlers) => {
+export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, drag, end}: IPixiDragHandlers) => {
   useEffect(() => {
-    if (target) {
-      target.addEventListener('mousedown', start)
-      target.addEventListener('mousemove', drag)
-      target.addEventListener('mouseup', end)
+    if (pixiPoints) {
+      pixiPoints.onPointDragStart = start
+      pixiPoints.onPointDrag = drag
+      pixiPoints.onPointDragEnd = end
       // On cleanup, remove event listeners
       return () => {
-        target.removeEventListener('mousedown', start)
-        target.removeEventListener('mousemove', drag)
-        target.removeEventListener('mouseup', end)
+        pixiPoints.onPointDragStart = undefined
+        pixiPoints.onPointDrag = undefined
+        pixiPoints.onPointDragEnd = undefined
       }
     }
-  }, [target, start, drag, end])
+  }, [pixiPoints, start, drag, end])
 }
 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
 function isDefunctAxisModel(axisModel?: IAxisModel) {
@@ -46,7 +47,7 @@ function isDefunctAxisModel(axisModel?: IAxisModel) {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const {refreshPointPositions, refreshPointSelection, dotsRef} = props,
+  const { refreshPointPositions, refreshPointSelection, pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
@@ -107,19 +108,22 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => dataConfiguration?.hiddenCases.length,
       () => {
+        if (!pixiPointsRef.current) {
+          return
+        }
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          dotsElement: dotsRef.current,
+          pixiPoints: pixiPointsRef.current,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, dotsRef, graphModel, instanceId, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPointsRef, startAnimation])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
@@ -156,20 +160,23 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {
     const disposer = dataConfiguration?.onAction(action => {
+      if (!pixiPointsRef.current) {
+        return
+      }
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          dotsElement: dotsRef.current,
+          pixiPoints: pixiPointsRef.current,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }
     }) || (() => true)
     return () => disposer()
-  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, dotsRef, instanceId])
+  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPointsRef])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
