@@ -29,16 +29,17 @@ export const CountAdornmentModel = AdornmentModel
   })
   .views(self => ({
     percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
-      // Percent type options are only available when there are exactly two categorial attributes on perpendicular
+      // Percent type options are only available when there are two or more categorial attributes on perpendicular
       // axes, which creates a grid of subplots with multiple rows and columns. When percent type options are not
-      // available, we default to the "cell" percent type (i.e. use `dataConfig?.allPlottedCases.length ?? 0` as
+      // available, we default to the "cell" percent type (i.e. use `dataConfig?.cellCases.length ?? 0` as
       // the divisor)
-      const hasPercentTypeOptions = dataConfig?.hasExactlyTwoPerpendicularCategoricalAttrs
+      const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
+      const hasPercentTypeOptions = categoricalAttrCount > 1
       const divisor = hasPercentTypeOptions && self.percentType === "row"
         ? dataConfig?.rowCases(cellKey).length ?? 0
         : hasPercentTypeOptions && self.percentType === "column"
           ? dataConfig?.columnCases(cellKey).length ?? 0
-          : dataConfig?.allPlottedCases().length ?? 0
+          : dataConfig?.cellCases(cellKey).length ?? 0
       const percentValue = casesInPlot / divisor
       return isFinite(percentValue) ? percentValue : 0
     },

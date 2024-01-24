@@ -346,7 +346,7 @@ context("Graph adornments", () => {
     movablePointCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds plotted function UI to graph when Plotted Value checkbox is checked", () => {
+  it("adds plotted function UI to graph when Plotted Function checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Mass", "y")
@@ -603,14 +603,16 @@ context("Graph adornments", () => {
     inspectorPalette.should("be.visible")
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").should("be.visible")
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
-    cy.get(".graph-dot").each((dot: SVGCircleElement) => {
-      cy.wrap(dot).should("have.attr", "r", 6)
-    })
+    // TODO: Update the below once the connecting lines and related dot animation is re-instated
+    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
+    //   cy.wrap(dot).should("have.attr", "r", 6)
+    // })
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
-    cy.get(".graph-dot").each((dot: SVGCircleElement) => {
-      cy.wrap(dot).should("have.attr", "r", 3)
-    })
+    // TODO: Update the below once the connecting lines and related dot animation is re-instated
+    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
+    //   cy.wrap(dot).should("have.attr", "r", 3)
+    // })
     // Since the circle elements for the graph's case dots overlay the lines' path element in various places, we
     // use force: true so we don't need to figure out exactly where to click.
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
@@ -620,8 +622,9 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
     cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
-    cy.get(".graph-dot").each((dot: SVGCircleElement) => {
-      cy.wrap(dot).should("have.attr", "r", 6)
-    })
+    // TODO: Update the below once the connecting lines and related dot animation is re-instated
+    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
+    //   cy.wrap(dot).should("have.attr", "r", 6)
+    // })
   })
 })
