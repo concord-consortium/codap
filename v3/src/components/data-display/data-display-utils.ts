@@ -90,6 +90,8 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
           animateChange } = props
   const allCaseData = dataConfiguration.joinedCaseDataArrays
+  // TODO: restore animation configuration ability
+  const duration = animateChange ? transitionDuration : 0 // eslint-disable-line @typescript-eslint/no-unused-vars
 
   startAnimation()
 

@@ -41,6 +41,8 @@ export const useDataTips = ({dataset, displayModel}: IUseDataTips) => {
         !target.property('isDragging')
     }
 
+    // TODO PIXI: reimplement data tips
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function showDataTip(event: MouseEvent) {
       const roleAttrIDPairs: RoleAttrIDPair[] = displayModel.dataConfiguration.uniqueTipAttributes ?? [],
         target = select(event.target as SVGGeometryElement)
@@ -60,6 +62,8 @@ export const useDataTips = ({dataset, displayModel}: IUseDataTips) => {
       }
     }
 
+    // TODO PIXI: reimplement data tips
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function hideDataTip(event: MouseEvent) {
       const target = select(event.target as SVGGeometryElement)
       dataTip.hide()
