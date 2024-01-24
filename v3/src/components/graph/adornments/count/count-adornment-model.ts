@@ -15,6 +15,8 @@ export interface IRegionCount {
 export interface IRegionCountParams {
   cellKey: Record<string, string>
   dataConfig?: IGraphDataConfigurationModel
+  plotHeight: number
+  plotWidth: number
   scale: ScaleNumericBaseType
   subPlotRegionBoundaries: number[]
 }
@@ -44,19 +46,29 @@ export const CountAdornmentModel = AdornmentModel
       return isFinite(percentValue) ? percentValue : 0
     },
     regionCounts(props: IRegionCountParams) {
-      const { cellKey, dataConfig, scale, subPlotRegionBoundaries } = props
+      const { cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries } = props
       const primaryAttrRole = dataConfig?.primaryRole ?? "x"
       const attrId = dataConfig?.attributeID(primaryAttrRole)
       if (!attrId) return []
       let prevWidth = 0
       let prevHeight = 0
       const counts: IRegionCount[] = []
+      // Set scale copy range. The scale copy is used when computing the coordinates of each region's upper and lower
+      // boundaries. We modify the range of the scale copy to match the sub plot's width and height so they are computed
+      // correctly. The original scales use the entire plot's width and height, which won't work when there are multiple
+      // subplots.
+      const scaleCopy = scale.copy()
+      if (primaryAttrRole === "x") {
+        scaleCopy.range([0, plotWidth])
+      } else {
+        scaleCopy.range([plotHeight, 0])
+      }
   
       for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
         const lowerBoundary = subPlotRegionBoundaries[i]
         const upperBoundary = subPlotRegionBoundaries[i + 1]
-        const pixelMin = scale(lowerBoundary)
-        const pixelMax = scale(upperBoundary)
+        const pixelMin = scaleCopy(lowerBoundary)
+        const pixelMax = scaleCopy(upperBoundary)
         const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey) ?? []
         const count = casesInRange.length
         const width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0

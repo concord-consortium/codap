@@ -74,6 +74,8 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     const regionCountParams: IRegionCountParams = {
       cellKey,
       dataConfig,
+      plotHeight,
+      plotWidth,
       scale,
       subPlotRegionBoundaries: subPlotRegionBoundariesRef.current,
     }
@@ -93,7 +95,8 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         })}
       </>
     )
-  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, model, primaryAttrRole, scale, textContent])
+  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, model, plotHeight, plotWidth, primaryAttrRole,
+      scale, textContent])
 
   useEffect(function resizeTextOnCellWidthChange() {
     return mstAutorun(() => {
