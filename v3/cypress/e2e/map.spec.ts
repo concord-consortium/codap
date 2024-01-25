@@ -1,5 +1,6 @@
 import { MapTileElements as map } from "../support/elements/map-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { MapLegendHelper as mlh } from "../support/helpers/map-legend-helper"
 
@@ -24,23 +25,23 @@ context("Map UI", () => {
     cy.log("updates map title")
 
     cfm.openLocalDoc(filename1)
-    c.createFromToolshelf("map")
+    c.clickIconFromToolshelf("map")
     c.getComponentTitle("map").should("have.text", componentName)
     c.changeComponentTitle("map", newComponentName)
     c.getComponentTitle("map").should("have.text", newComponentName)
     
     cy.log("creates maps with new component name")
-    c.createFromToolshelf("map")
+    c.clickIconFromToolshelf("map")
 
     c.getComponentTitle("map").should("contain", componentName)
     c.getComponentTitle("map", 1).should("contain", componentName)
   })
   it("checks all map tooltips", () => {
     cfm.openLocalDoc(filename1)
-    c.createFromToolshelf("map")
+    c.clickIconFromToolshelf("map")
     c.selectTile("map", 0)
 
-    c.getToolShelfIcon("map").then($element => {
+    toolbar.getToolShelfIcon("map").then($element => {
       c.checkToolTip($element, c.tooltips.mapToolShelfIcon)
     })
     c.getMinimizeButton("map").then($element => {
