@@ -32,16 +32,6 @@ export const MapTileElements = {
   getZoomOutButton() {
     return this.getMapTile().find(".leaflet-control-zoom-out")
   },
-  getMapPoints() {
-    return this.getMapTile().find(".map-dot-area circle.graph-dot")
-  },
-  getMapBoundaries() {
-    return this.getMapTile().find(".leaflet-interactive")
-  },
-  selectMapPoint(pointIndex) {
-    this.getMapTile().find(".map-dot-area circle.graph-dot").eq(pointIndex).click({force:true})
-    this.getMapTile().find(".map-dot-area circle.graph-dot").last().should("have.class", "graph-dot-highlighted")
-  },
   getHideSelectedCases() {
     return c.getInspectorPanel().find("[data-testid=hide-selected-cases]")
   },

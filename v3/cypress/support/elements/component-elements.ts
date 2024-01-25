@@ -103,6 +103,7 @@ export const ComponentElements = {
     return this.getToolshelfSelector(component)
   },
   selectTile(component, index = 0) {
+    cy.get(".codap-container").click("bottom")
     this.getComponentTile(component, index).click()
   },
   checkComponentDoesNotExist(component) {
