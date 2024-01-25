@@ -86,12 +86,14 @@ context("Map UI", () => {
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[1], 67)
 
     // TODO: unselecting by clicking away in map doesn't work
+    // PT bug - #186747322
     // Uncomment the below two lines once it's fixed
     // mlh.unselectLegendCategory()
     // mlh.verifyNoLegendCategorySelectedForCategoricalLegend()
 
     // TODO: This drag legend doesn't work for maps
-    // Uncomment line 95 and remove lines 96, 97 once it starts working
+    // PT bug - #186834245
+    // Uncomment the next line and remove the two after it
     // cy.dragAttributeToTarget("table", arrayOfAttributes[1], "map")
     mlh.openLegendMenu()
     mlh.addAttributeToLegend("Top_Speed")
@@ -103,6 +105,7 @@ context("Map UI", () => {
     mlh.verifyNumericLegendKeySelected(29)
 
     // TODO: unselecting by clicking away in map doesn't work
+    // PT bug - #186747322
     // Uncomment the below two lines once it's fixed
     // mlh.unselectLegendCategory()
     // mlh.verifyNoLegendCategorySelectedForNumericLegend()
@@ -157,7 +160,8 @@ context("Map UI", () => {
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[0], 0)
 
     // TODO: unselecting by clicking away in map doesn't work
-    // Uncomment the below two lines once it's fixed
+    // PT bug - #186747322
+    // Uncomment the below six lines once it's fixed
     // mlh.unselectLegendCategory()
     // mlh.verifyNoLegendCategorySelectedForCategoricalLegend()
     // map.selectHideShowButton()
@@ -166,8 +170,10 @@ context("Map UI", () => {
     // map.getShowAllCases().should("be.disabled")
 
     // map.selectHideUnselectedCases()
-    //This should be 0, but it's currently 1. Once fixed, this should be updated.
-    // mlh.verifyCategoricalLegend(arrayOfValues[0].values.length-1)
+    // TODO: This should be 0, but it's currently 1. 
+    // Once fixed, this should be updated.
+    // PT bug - #186916697
+    // mlh.verifyCategoricalLegend(1)
   })
   it("checks legend attribute menu", () => {
     cfm.openLocalDoc(filename2)
