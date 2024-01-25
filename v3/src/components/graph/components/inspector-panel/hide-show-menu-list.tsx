@@ -65,22 +65,24 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   return (
     <MenuList data-testid="trash-menu-list">
-      <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled}>
+      <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled} data-testid="hide-selected-cases">
         {hideSelectedString}
       </MenuItem>
-      <MenuItem onClick={hideUnselectedCases} isDisabled={hideUnselectedIsDisabled}>
+      <MenuItem onClick={hideUnselectedCases} isDisabled={hideUnselectedIsDisabled} data-testid="hide-unselected-cases">
         {hideUnselectedString}
       </MenuItem>
-      <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled}>
+      <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
         {t("DG.DataDisplayMenu.showAll")}
       </MenuItem>
-      <MenuItem onClick={() => handleMenuItemClick("Display only selected cases")}>
+      <MenuItem onClick={() => handleMenuItemClick("Display only selected cases")} data-testid="display-selected-cases">
         {t("DG.DataDisplayMenu.displayOnlySelected")}
       </MenuItem>
-      <MenuItem onClick={() => graphModel?.setShowParentToggles(!graphModel?.showParentToggles)}>
+      <MenuItem onClick={() => graphModel?.setShowParentToggles(!graphModel?.showParentToggles)}
+       data-testid="show-parent-toggles">
         {parentToggleString}
       </MenuItem>
-      <MenuItem onClick={() => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection)}>
+      <MenuItem onClick={() => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection)}
+       data-testid="show-selection-measures">
         {measuresForSelectionString}
       </MenuItem>
     </MenuList>

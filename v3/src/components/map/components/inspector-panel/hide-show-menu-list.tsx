@@ -51,13 +51,13 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   return (
     <MenuList data-testid="trash-menu-list">
-      <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0}>
+      <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
         {hideSelectedString}
       </MenuItem>
-      <MenuItem onClick={hideUnselectedCases} isDisabled={numUnselected === 0}>
+      <MenuItem onClick={hideUnselectedCases} isDisabled={numUnselected === 0} data-testid="hide-unselected-cases">
         {hideUnselectedString}
       </MenuItem>
-      <MenuItem onClick={showAllCases} isDisabled={numHidden === 0}>
+      <MenuItem onClick={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
         {t("DG.DataDisplayMenu.showAll")}
       </MenuItem>
     </MenuList>

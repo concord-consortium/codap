@@ -1,9 +1,9 @@
-export const LegendElements = {
-  getGraphTile() {
-    return cy.get(".codap-graph")
+export const MapLegendElements = {
+  getMapTile() {
+    return cy.get(".codap-map")
   },
   getLegend() {
-    return this.getGraphTile().find("[data-testid=graph] [data-testid=legend-component]")
+    return this.getMapTile().find("[data-testid=legend-component]")
   },
   getLegendName() {
     return this.getLegend().find("[data-testid=attribute-label]")
@@ -14,11 +14,11 @@ export const LegendElements = {
   getCategoricalLegendCategory(name) {
     return this.getCategoricalLegendCategories().contains(name)
   },
-  getNumericalLegendCategories() {
+  getNumericLegendCategories() {
     return this.getLegend().find("[data-testid=legend-categories]>svg rect")
   },
   getLegendAttributeMenu() {
-    return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
+    return this.getMapTile().find("[data-testid=attribute-label-menu-legend]")
   },
   getAttributeFromLegendMenu() {
     return this.getLegendAttributeMenu().parent()

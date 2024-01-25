@@ -57,9 +57,9 @@ context("case table ui", () => {
       // table.getColumnHeaderTooltip().should("contain", `${name} : ${description}`)
     })
     // it("verify attribute reorder within a collection", () => {
-    // });
+    // })
     // it("verify index column cannot be reordered", () => {
-    // });
+    // })
   })
 
   describe("case table header attribute menu", () => {
