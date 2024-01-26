@@ -18,6 +18,6 @@ export const ToolbarElements = {
     return cy.get(`[data-testid="tool-shelf-table-${dataset}"] .tool-shelf-menu-trash-icon`)
   },
   getConfirmDeleteDatasetModal() {
-    return cy.get(`[data-testid="Delete Data Set-button"]`)
+    return cy.get(`[data-testid=delete-data-set-button-delete]`)
   }
 }
