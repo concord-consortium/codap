@@ -14,16 +14,10 @@ context("codap toolbar", () => {
   it("will open a new table", () => {
     c.clickIconFromToolshelf("table")
     toolbar.getNewCaseTable().click()
-    table.getCollection().should("be.visible");
+    table.getCollection().should("be.visible")
     c.getComponentTitle("table").should("have.text", "New Dataset")
     c.clickIconFromToolshelf("table")
     toolbar.getDatasetListedInToolshelf("New Dataset").should("be.visible")
-  })
-  it("will open a new table", () => {
-    c.clickIconFromToolshelf("table")
-    toolbar.getNewCaseTable().click()
-    table.getCollection().should("be.visible");
-    c.getComponentTitle("table").should("have.text", "New Dataset")
   })
   it("will open a graph", () => {
     c.clickIconFromToolshelf("graph")
@@ -32,17 +26,17 @@ context("codap toolbar", () => {
   })
   it("will open a map", () => {
     c.clickIconFromToolshelf("map")
-    map.getMapTile().should("be.visible");
+    map.getMapTile().should("be.visible")
     c.getComponentTitle("map").should("have.text", "Map")
   })
   it("will open a slider", () => {
     c.clickIconFromToolshelf("slider")
-    slider.getSliderTile().should("be.visible");
+    slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
   })
   it("will open a calculator", () => {
-    c.clickIconFromToolshelf("calculator")
-    calculator.getCalculatorTile().should("be.visible");
+    c.clickIconFromToolshelf("calc")
+    calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
   it("will delete an existing table", () => {

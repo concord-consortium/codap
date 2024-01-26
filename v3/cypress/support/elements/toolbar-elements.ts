@@ -1,24 +1,6 @@
 export const ToolbarElements = {
   getToolshelfSelector(component) {
-    let el = ""
-    switch (component) {
-      case "graph":
-        el = "[data-testid=tool-shelf-button-Graph]"
-        break
-      case "slider":
-        el = "[data-testid=tool-shelf-button-Slider]"
-        break
-      case "calculator":
-        el = "[data-testid=tool-shelf-button-Calc]"
-        break
-      case "table":
-        el = "[data-testid=tool-shelf-button-table]"
-        break
-      case "map":
-        el = "[data-testid=tool-shelf-button-Map]"
-        break
-    }
-    return cy.get(el)
+    return cy.get(`[data-testid=tool-shelf-button-${component}]`)
   },
   getToolShelfIcon(component) {
     return this.getToolshelfSelector(component)

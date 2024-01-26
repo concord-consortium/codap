@@ -31,28 +31,7 @@ export const ComponentElements = {
     tableAttributesButton: "Make new attributes. Export case data."
   },
   getComponentSelector(component) {
-    let el = ""
-    switch (component) {
-      case "graph":
-        el = ".codap-graph"
-        break
-      case "slider":
-        el = ".codap-slider"
-        break
-      case "calculator":
-        el = ".codap-component.calculator"
-        break
-      case "table":
-        el = ".codap-case-table"
-        break
-      case "data-summary":
-        el = ".codap-data-summary"
-        break
-      case "map":
-        el = ".codap-map"
-        break
-    }
-    return cy.get(el)
+    return cy.get(`.codap-component[data-testid$=${component}]`)
   },
   getComponentTile(component, index = 0) {
     return this.getComponentSelector(component).then(element => {
