@@ -188,7 +188,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} className={`delete-data-set-button-${b.className}`} size="xs" variant="ghost" ml="5"
-                  onClick={b.onClick} data-testid={`${b.label}-button`}>
+                  onClick={b.onClick} data-testid={`delete-data-set-button-${b.className}`}>
                 {b.label}
               </Button>
             </Tooltip>

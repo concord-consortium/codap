@@ -1,3 +1,5 @@
+import { ToolbarElements as toolbar } from "./toolbar-elements"
+
 export const ComponentElements = {
   tooltips: {
     tableToolShelfIcon: "Open a case table for each data set(ctrl-alt-t)",
@@ -29,49 +31,7 @@ export const ComponentElements = {
     tableAttributesButton: "Make new attributes. Export case data."
   },
   getComponentSelector(component) {
-    let el = ""
-    switch (component) {
-      case "graph":
-        el = ".codap-graph"
-        break
-      case "slider":
-        el = ".codap-slider"
-        break
-      case "calculator":
-        el = ".codap-component.calculator"
-        break
-      case "table":
-        el = ".codap-case-table"
-        break
-      case "data-summary":
-        el = ".codap-data-summary"
-        break
-      case "map":
-        el = ".codap-map"
-        break
-    }
-    return cy.get(el)
-  },
-  getToolshelfSelector(component) {
-    let el = ""
-    switch (component) {
-      case "graph":
-        el = "[data-testid=tool-shelf-button-Graph]"
-        break
-      case "slider":
-        el = "[data-testid=tool-shelf-button-Slider]"
-        break
-      case "calculator":
-        el = "[data-testid=tool-shelf-button-Calc]"
-        break
-      case "table":
-        el = "[data-testid=tool-shelf-button-table]"
-        break
-      case "map":
-        el = "[data-testid=tool-shelf-button-Map]"
-        break
-    }
-    return cy.get(el)
+    return cy.get(`.codap-component[data-testid$=${component}]`)
   },
   getComponentTile(component, index = 0) {
     return this.getComponentSelector(component).then(element => {
@@ -96,11 +56,8 @@ export const ComponentElements = {
   checkToolTip(element, tooltipText) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)
   },
-  createFromToolshelf(component) {
-    this.getToolShelfIcon(component).click()
-  },
-  getToolShelfIcon(component) {
-    return this.getToolshelfSelector(component)
+  clickIconFromToolshelf(component) {
+    toolbar.getToolShelfIcon(component).click()
   },
   selectTile(component, index = 0) {
     cy.get(".codap-container").click("bottom")
