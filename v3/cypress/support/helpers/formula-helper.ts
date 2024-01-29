@@ -4,98 +4,53 @@ import { SliderTileElements as slider } from "../elements/slider-tile"
 import { CfmElements as cfm } from "../elements/cfm"
 
 export const FormulaHelper = {
-  stepExecutor(step) {
-    cy.log(`Step: ${step.name}`)
-    switch (step.name) {
-      case "visitURL":
-        this.visitURL(step)
-        break
-      case "importFile":
-        this.importFile(step)
-        break
-      case "addNewAttribute":
-        this.addNewAttribute(step)
-        break
-      case "renameAttribute":
-        this.renameAttribute(step)
-        break
-      case "deleteAttribute":
-        this.deleteAttribute(step)
-        break
-      case "addFormula":
-        this.addFormula(step)
-        break
-      case "editFormula":
-        this.editFormula(step)
-        break
-      case "verifyValues":
-        this.verifyValues(step)
-        break
-      case "checkFormulaExists":
-        this.checkFormulaExists(step)
-        break
-      case "createNewDataset":
-        this.createNewDataset(step)
-        break
-      case "insertCases":
-        this.insertCases(step)
-        break
-      case "changeSliderVariableName":
-        this.changeSliderVariableName(step)
-        break
-      case "changeSliderValue":
-        this.changeSliderValue(step)
-        break
-      case "deleteSlider":
-        this.deleteSlider(step)
-        break
-    }
-  },
-  visitURL(step) {
-    const queryParams = step.queryParams || ""
+  visitURL(queryParams = "") {
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)
   },
-  importFile(step) {
-    cfm.openLocalDoc(step.file)
+  importFile(file: string) {
+    cfm.openLocalDoc(file)
     cy.wait(1000)
   },
-  addNewAttribute(step) {
-    table.addNewAttribute(step.collectionIndex || 1)
+  addNewAttribute(collectionIndex = 1) {
+    table.addNewAttribute(collectionIndex)
   },
-  renameAttribute(step) {
-    table.renameAttribute(step.currentAttributeName, step.newAttributeName, step.collectionIndex || 1)
+  renameAttribute(currentAttributeName: string, newAttributeName: string, collectionIndex = 1) {
+    table.renameAttribute(currentAttributeName, newAttributeName, collectionIndex)
   },
-  deleteAttribute(step) {
-    table.deleteAttrbute(step.attributeName, step.collectionIndex || 1)
+  deleteAttribute(attributeName: string, collectionIndex = 1) {
+    table.deleteAttrbute(attributeName, collectionIndex)
   },
-  addFormula(step) {
-    table.addFormula(step.attributeName, step.formula, step.collectionIndex || 1)
+  addFormula(attributeName: string, formula: string, collectionIndex = 1) {
+    table.addFormula(attributeName, formula, collectionIndex)
   },
-  verifyValues(step) {
-    table.verifyFormulaValues(step.attributeName, step.values, step.collectionIndex || 1)
+  verifyValues(attributeName: string, values: object, collectionIndex = 1) {
+    table.verifyFormulaValues(attributeName, values, collectionIndex)
   },
-  checkFormulaExists(step) {
-    table.checkFormulaExists(step.attributeName, step.formula, step.collectionIndex || 1)
+  checkFormulaExists(attributeName: string, formula: string, collectionIndex = 1) {
+    table.checkFormulaExists(attributeName, formula, collectionIndex)
   },
-  editFormula(step) {
-    table.editFormula(step.attributeName, step.formula, step.collectionIndex || 1)
+  editFormula(attributeName: string, formula: string, collectionIndex = 1) {
+    table.editFormula(attributeName, formula, collectionIndex)
   },
-  createNewDataset(step) {
+  createNewDataset() {
     table.createNewDataset()
   },
-  insertCases(step) {
-    table.openIndexMenuForRow(step.rowIndex)
-    table.insertCases(step.numOfCases, "after")
+  insertCases(rowIndex: number, numOfCases: number) {
+    table.openIndexMenuForRow(rowIndex)
+    table.insertCases(numOfCases, "after")
   },
-  changeSliderVariableName(step) {
-    slider.changeVariableName(step.sliderVariableName)
+  changeSliderVariableName(sliderVariableName: string) {
+    slider.changeVariableName(sliderVariableName)
   },
-  changeSliderValue(step) {
-    slider.changeVariableValue(step.sliderValue)
+  changeSliderValue(sliderValue: string) {
+    slider.changeVariableValue(sliderValue)
   },
-  deleteSlider(step) {
+  addSlider() {
+    c.getIconFromToolshelf("slider").click()
+  },
+  deleteSlider() {
     c.closeComponent("slider")
   }
 }
