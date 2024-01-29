@@ -59,7 +59,7 @@ context("Formula Engine", () => {
       fh.deleteSlider()
       fh.checkFormulaExists("b", "count(a) + v2")
     })
-    it.only("Add slider after using it in formula", () => {
+    it("Add slider after using it in formula", () => {
       fh.visitURL("?sample=four")
       fh.addFormula("b", "count(a) + v1")
       fh.verifyValues("b", [
