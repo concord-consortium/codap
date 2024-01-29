@@ -1,5 +1,35 @@
 # Changelog
 
+## Version 3.0.0-pre.1502 - January 29, 2024
+
+### Features/Improvements
+- PT-186631176: Try to reimplement basic graph features using PixiJS as the points renderer instead of D3 SVG
+- PT-186637668: PixiJS graph: Implement sprite-caseID matching and points animations/transitions
+- PT-186645440: PixiJS graph: add point hover effect
+- PT-186691239: PixiJS graph: avoid excessive CPU workload caused by the Pixi render loop
+- PT-186717142: PixiJS graph: Basic dragging behavior
+- PT-186730431: PixiJS map layer: reimplement map dots using PixiJS layerI 
+- PT-186725312: PixiJS graph: reimplement marquee selection
+- PT-186726231: Automation for Map component
+- PT-185315423: Automation for toolshelf menu
+- PT-186762653: Case dot size should animate smoothly when Connecting Lines are activated/deactivated
+- PT-186864009: Adornments should tell GraphLayout how much space is needed for adornment banners
+
+### Bug Fixes
+- PT-186751807: PixiJS graph: redo the transition system for better support of concurrent transitions and user actions
+- PT-186747821: PixiJS graph: fix a bug that occurs when a case is deleted during graph transition
+- PT-186747801: PixiJS graph: fix interaction with connecting lines
+- PT-186789144: Percent adornment should show subcategories with split plots
+- PT-186784214: PixiJS: fix graph rendering in Safari (incorrect offset)
+- PT-186828354: Legend Attributes with missing values causes a crash
+- PT-186874564: Counts wrong when there are multiple count instances and a top split
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |   72902 bytes |                           -0.28% |
+|  index.js | 3987833 bytes |                           13.46% |
+
 ## Version 3.0.0-pre.1492 - January 19, 2024
 
 ### Features/Improvements
