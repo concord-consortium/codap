@@ -25,20 +25,20 @@ context("Map UI", () => {
     cy.log("updates map title")
 
     cfm.openLocalDoc(filename1)
-    c.clickIconFromToolshelf("map")
+    c.getIconFromToolshelf("map").click()
     c.getComponentTitle("map").should("have.text", componentName)
     c.changeComponentTitle("map", newComponentName)
     c.getComponentTitle("map").should("have.text", newComponentName)
     
     cy.log("creates maps with new component name")
-    c.clickIconFromToolshelf("map")
+    c.getIconFromToolshelf("map").click()
 
     c.getComponentTitle("map").should("contain", componentName)
     c.getComponentTitle("map", 1).should("contain", componentName)
   })
   it("checks all map tooltips", () => {
     cfm.openLocalDoc(filename1)
-    c.clickIconFromToolshelf("map")
+    c.getIconFromToolshelf("map").click()
     c.selectTile("map", 0)
 
     toolbar.getToolShelfIcon("map").then($element => {

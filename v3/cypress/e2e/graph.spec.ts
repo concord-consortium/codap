@@ -49,23 +49,23 @@ context("Graph UI", () => {
     c.getComponentTitle("graph").should("have.text", newCollectionName)
   })
   it("creates graphs with new collection name", () => {
-    c.clickIconFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
 
     c.getComponentTitle("graph").should("contain", collectionName)
     c.getComponentTitle("graph", 1).should("contain", collectionName)
 
-    c.clickIconFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph", 2).should("contain", collectionName)
   })
   it("creates graphs with new collection names when existing ones are closed", () => {
     c.closeComponent("graph")
     c.checkComponentDoesNotExist("graph")
-    c.clickIconFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph").should("contain", collectionName)
 
     c.closeComponent("graph")
     c.checkComponentDoesNotExist("graph")
-    c.clickIconFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph").should("contain", collectionName)
   })
   it("checks all graph tooltips", () => {
