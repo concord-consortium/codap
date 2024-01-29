@@ -26,10 +26,10 @@ context("Data summary UI", () => {
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
 
-    c.clickIconFromToolshelf("calc")
+    c.getIconFromToolshelf("calc").click()
     c.checkComponentDoesNotExist("calculator")
 
-    c.clickIconFromToolshelf("calc")
+    c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", calculatorName)
   })
@@ -42,7 +42,7 @@ context("Data summary UI", () => {
     c.closeComponent("calculator")
     c.checkComponentDoesNotExist("calculator")
 
-    c.clickIconFromToolshelf("calc")
+    c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", calculatorName)
   })

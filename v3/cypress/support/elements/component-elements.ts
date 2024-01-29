@@ -56,8 +56,8 @@ export const ComponentElements = {
   checkToolTip(element, tooltipText) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)
   },
-  clickIconFromToolshelf(component) {
-    toolbar.getToolShelfIcon(component).click()
+  getIconFromToolshelf(component) {
+    return toolbar.getToolShelfIcon(component)
   },
   selectTile(component, index = 0) {
     cy.get(".codap-container").click("bottom")
