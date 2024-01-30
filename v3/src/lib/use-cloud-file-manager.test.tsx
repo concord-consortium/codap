@@ -23,7 +23,7 @@ jest.mock("../lib/cfm-utils", () => ({
 }))
 
 describe("useCloudFileManager", () => {
-  it("works", () => {
+  it("instantiates the CFM and renders the menu bar under the specified parent", () => {
     render(<div id="container-div" data-testid="container-div"/>)
     const containerDiv = screen.getByTestId("container-div")
     expect(containerDiv).toBeInTheDocument()
@@ -33,5 +33,9 @@ describe("useCloudFileManager", () => {
       cfm = useCloudFileManager({ appOrMenuElemId: "container-div" })
     })
     expect(cfm).toBeDefined()
+    // eslint-disable-next-line testing-library/no-node-access
+    expect(containerDiv.getElementsByClassName("view")[0]).toBeInTheDocument()
+    // eslint-disable-next-line testing-library/no-node-access
+    expect(containerDiv.getElementsByClassName("menu-bar")[0]).toBeInTheDocument()
   })
 })
