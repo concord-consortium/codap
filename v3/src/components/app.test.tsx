@@ -1,3 +1,4 @@
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { act, render, screen } from "@testing-library/react"
 import React from "react"
 import { IDropHandler } from "../hooks/use-drop-handler"
@@ -7,6 +8,25 @@ import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
+
+let cfm: CloudFileManager | undefined
+let spySetMenuBarInfo: jest.SpyInstance | undefined
+
+jest.mock("../lib/cfm-utils", () => ({
+  createCloudFileManager() {
+    // suppress warning about not being instantiated in an iframe
+    jestSpyConsole("warn", () => {
+      cfm = new CloudFileManager()
+    })
+    // suppress warnings about setting state outside of act()
+    spySetMenuBarInfo = jest.spyOn(cfm!.client._ui, "setMenuBarInfo")
+    spySetMenuBarInfo.mockImplementation(() => null)
+    return cfm!
+  },
+  wrapCfmCallback(callbackFn: () => void) {
+    callbackFn()
+  }
+}))
 
 // mock the `ToolShelf` component because it generates warnings:
 //  Warning: An update to ToolShelf inside a test was not wrapped in act(...).
@@ -32,27 +52,33 @@ jest.mock("../hooks/use-drop-handler", () => ({
 
 describe("App component", () => {
 
+  afterEach(() => {
+    spySetMenuBarInfo?.mockRestore()
+    spySetMenuBarInfo = undefined
+    cfm = undefined
+  })
+
   it("should render the App component with no data", () => {
     render(<App/>)
-    expect(screen.getByTestId("app")).toBeInTheDocument()
+    expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
   it("should render the App component with no data and dashboard", () => {
     setUrlParams("?dashboard&noDataTips")
     render(<App/>)
-    expect(screen.getByTestId("app")).toBeInTheDocument()
+    expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
   it("should render the App component with mammals data", () => {
     setUrlParams("?sample=mammals&noDataTips")
     render(<App/>)
-    expect(screen.getByTestId("app")).toBeInTheDocument()
+    expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
   it("should render the App component with mammals data and dashboard", () => {
     setUrlParams("?sample=mammals&dashboard&noDataTips")
     render(<App/>)
-    expect(screen.getByTestId("app")).toBeInTheDocument()
+    expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
   it("should render the App component with mammals data and profiling", () => {
@@ -63,7 +89,7 @@ describe("App component", () => {
     const mockConsole = jest.spyOn(console, "log").mockImplementation(() => null)
     prf.report()
     mockConsole.mockRestore()
-    expect(screen.getByTestId("app")).toBeInTheDocument()
+    expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
   it("should import a data set", () => {

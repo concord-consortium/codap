@@ -197,6 +197,19 @@ module.exports = (env, argv) => {
               }
             }
           ]
+        },
+        {
+          test: /@concord-consortium\/cloud-file-manager\/dist\/css\/app\.css$/,
+          loader: require.resolve('string-replace-loader'),
+          options: {
+            multiple: [
+              { // disable `body` styles
+                search: "}body{",
+                replace: "}#CC-disable-body-styles{",
+                strict: true  // fail build if replacement not performed
+              }
+            ]
+          }
         }
       ]
     },
@@ -204,7 +217,7 @@ module.exports = (env, argv) => {
       alias: {
         'mobx-state-tree': '@concord-consortium/mobx-state-tree'
       },
-      extensions: [ '.ts', '.tsx', '.js', 'json5' ],
+      extensions: [ '.ts', '.tsx', '.js', '.json5' ],
       fallback: {
         // required for react-data-grid/React 17
         // cf. https://github.com/adazzle/react-data-grid/issues/2787#issuecomment-1071978035
