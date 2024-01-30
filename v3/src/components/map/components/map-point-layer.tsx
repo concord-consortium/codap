@@ -14,11 +14,11 @@ import {
 import {transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
+import { DataTip } from "../../data-display/components/data-tip"
 
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel
@@ -65,8 +65,6 @@ export const MapPointLayer = function MapPointLayer(props: {
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
     pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
   }
-
-  useDataTips({pixiPointsRef, dataset, displayModel: mapLayerModel})
 
   const callMatchCirclesToData = useCallback(() => {
     if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
@@ -201,6 +199,9 @@ export const MapPointLayer = function MapPointLayer(props: {
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
   return (
-    <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+    <>
+      <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+      <DataTip dataset={dataset} displayModel={mapLayerModel} pixiPointsRef={pixiPointsRef}/>
+    </>
   )
 }

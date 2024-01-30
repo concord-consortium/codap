@@ -34,11 +34,11 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
+import { DataTip } from "../../data-display/components/data-tip"
 
 import "./graph.scss"
 
@@ -176,8 +176,6 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  useDataTips({pixiPointsRef, dataset, displayModel: graphModel})
-
   const renderPlotComponent = () => {
     const props = {xAttrID, yAttrID, pixiPointsRef},
       typeToPlotComponentMap = {
@@ -271,6 +269,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
+        <DataTip dataset={dataset} displayModel={graphModel} pixiPointsRef={pixiPointsRef}/>
       </div>
     </GraphDataConfigurationContext.Provider>
   )
