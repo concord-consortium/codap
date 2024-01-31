@@ -63,6 +63,7 @@ module.exports = {
     "eol-last": "warn",
     "eqeqeq": ["error", "smart"],
     "eslint-comments/no-unused-disable": "off",   // enabled in .eslintrc.build.js
+    "eslint-comments/no-unlimited-disable": "off",
     "func-call-spacing": "off", // superseded by @typescript-eslint/func-call-spacing
     "import/no-cycle": "warn",
     "import/no-extraneous-dependencies": "warn",

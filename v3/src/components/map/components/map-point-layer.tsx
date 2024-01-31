@@ -19,6 +19,7 @@ import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
+import { MapHeatMap } from "./heatmap/map-heatmap"
 
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel
@@ -201,6 +202,9 @@ export const MapPointLayer = function MapPointLayer(props: {
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
   return (
-    <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+    <>
+      <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%", opacity: 0}}/>
+      <MapHeatMap mapLayerModel={mapLayerModel} />
+    </>
   )
 }
