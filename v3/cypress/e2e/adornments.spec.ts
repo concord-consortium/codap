@@ -60,6 +60,8 @@ context("Graph adornments", () => {
     cy.wait(250)
     percentCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+    toolbar.getUndoTool()
+    // this line of code appears to be the unstable part of test
   })
   it("adds mean adornment to graph when Mean checkbox is checked", () => {
     c.selectTile("graph", 0)
