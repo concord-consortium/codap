@@ -11,7 +11,7 @@ export const ToolbarElements = {
   getNewCaseTableFromClipboard() {
     return cy.get("[data-testid=tool-shelf-table-new]")
   },
-  getDatasetListedInToolshelf(dataset) { 
+  getDatasetListedInToolshelf(dataset) {
     return cy.get(`[data-testid="tool-shelf-table-${dataset}"]`)
   },
   getDeleteCaseTable(dataset) {
@@ -19,5 +19,11 @@ export const ToolbarElements = {
   },
   getConfirmDeleteDatasetModal() {
     return cy.get(`[data-testid=delete-data-set-button-delete]`)
-  }
+  },
+  getUndoTool() {
+    return cy.get('[data-testid="tool-shelf-button-undo"]')
+ },
+ getRedoTool() {
+    return cy.get('[data-testid="tool-shelf-button-redo]')
+ }
 }
