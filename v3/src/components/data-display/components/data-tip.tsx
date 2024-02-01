@@ -2,11 +2,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from "react
 import * as PIXI from "pixi.js"
 import { computePosition, offset, useFloating } from "@floating-ui/react"
 import { IDataSet } from "../../../models/data/data-set"
-import { IGraphContentModel } from "../../graph/models/graph-content-model"
-import { IMapPointLayerModel } from "../../map/models/map-point-layer-model"
-import { isGraphDataConfigurationModel } from "../../graph/models/graph-data-configuration-model"
 import { IPixiPointMetadata, IPixiPointsRef } from "../../graph/utilities/pixi-points"
-import { RoleAttrIDPair } from "../models/data-configuration-model"
 import { getCaseTipText } from "../data-display-utils"
 import { urlParams } from "../../../utilities/url-params"
 
@@ -14,13 +10,13 @@ import "./data-tip.scss"
 
 export interface IDataTipProps {
   dataset?: IDataSet
-  displayModel: IGraphContentModel | IMapPointLayerModel
+  getTipAttrs: (plotNum: number) => string[]
   pixiPointsRef: IPixiPointsRef
 }
 
 interface IDataTipHelperProps {
   dataset?: IDataSet
-  displayModel: IGraphContentModel | IMapPointLayerModel
+  getTipAttrs: (plotNum: number) => string[]
   metadata: IPixiPointMetadata
 }
 
@@ -44,24 +40,13 @@ const createVirtualElement = (pixiPointsRef: IPixiPointsRef, sprite: PIXI.Sprite
   }
 }
 
-const getAttrIDsToUse = (props: IDataTipHelperProps) => {
-  const {displayModel, metadata } = props
-  const dataConfig = displayModel.dataConfiguration
-  const roleAttrIDPairs: RoleAttrIDPair[] = dataConfig.uniqueTipAttributes ?? []
-  const yAttrIDs = isGraphDataConfigurationModel(dataConfig) ? dataConfig.yAttributeIDs : undefined
-  return roleAttrIDPairs.filter(aPair => metadata.plotNum > 0 || aPair.role !== 'rightNumeric')
-    .map(aPair => metadata.plotNum === 0 ? aPair.attributeID : aPair.role === 'y'
-      ? (yAttrIDs?.[metadata.plotNum] ?? '') : aPair.attributeID)
-}
-
 const tipText = (props: IDataTipHelperProps) => {
-  const {dataset, displayModel, metadata} = props
+  const {dataset, getTipAttrs, metadata} = props
   const caseID = metadata.caseID
-  const attrIDsToUse = getAttrIDsToUse({displayModel, metadata})
-  return getCaseTipText(caseID, attrIDsToUse, dataset)
+  return getCaseTipText(caseID, getTipAttrs(metadata.plotNum), dataset)
 }
 
-export const DataTip = ({ dataset, displayModel, pixiPointsRef }: IDataTipProps) => {
+export const DataTip = ({ dataset, getTipAttrs, pixiPointsRef }: IDataTipProps) => {
   const tipTextLines = useRef<string[]>([])
   const [isTipOpen, setIsTipOpen] = useState(false)
   const { context, refs, floatingStyles } = useFloating({open: isTipOpen, onOpenChange: setIsTipOpen})
@@ -82,7 +67,7 @@ export const DataTip = ({ dataset, displayModel, pixiPointsRef }: IDataTipProps)
   const showDataTip = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
     event.stopPropagation()
     // Get the text to display in the data tip
-    const tipTextString = tipText({dataset, metadata, displayModel})
+    const tipTextString = tipText({dataset, metadata, getTipAttrs})
     tipTextLines.current = tipTextString.split("<br>")
     // Create the virtual element to use as a reference for positioning the data tip
     const virtualElement = createVirtualElement(pixiPointsRef, sprite)

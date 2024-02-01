@@ -28,6 +28,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {isSetAttributeIDAction} from "../models/graph-content-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
+import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
@@ -38,7 +39,6 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
-import { DataTip } from "../../data-display/components/data-tip"
 
 import "./graph.scss"
 
@@ -225,6 +225,15 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   useGraphModel({pixiPointsRef, graphModel, instanceId})
 
+  const getTipAttrs = useCallback((plotNum: number) => {
+    const dataConfig = graphModel.dataConfiguration
+    const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
+    const yAttrIDs = dataConfig.yAttributeIDs
+    return roleAttrIDPairs.filter(aPair => plotNum > 0 || aPair.role !== 'rightNumeric')
+      .map(aPair => plotNum === 0 ? aPair.attributeID : aPair.role === 'y'
+        ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID)
+  }, [graphModel.dataConfiguration])
+
   if (!isAlive(graphModel)) return null
 
   return (
@@ -269,7 +278,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
-        <DataTip dataset={dataset} displayModel={graphModel} pixiPointsRef={pixiPointsRef}/>
+        <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
       </div>
     </GraphDataConfigurationContext.Provider>
   )

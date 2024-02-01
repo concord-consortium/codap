@@ -7,6 +7,7 @@ import {useDebouncedCallback} from "use-debounce"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
+import {DataTip} from "../../data-display/components/data-tip"
 import {CaseData} from "../../data-display/d3-types"
 import {
   computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
@@ -18,7 +19,6 @@ import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
-import { DataTip } from "../../data-display/components/data-tip"
 
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel
@@ -198,10 +198,17 @@ export const MapPointLayer = function MapPointLayer(props: {
     )
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
+  const getTipAttrs = useCallback((plotNum: number) => {
+    const dataConfig = mapLayerModel.dataConfiguration
+    const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
+    return roleAttrIDPairs.filter(aPair => plotNum > 0 || aPair.role !== 'rightNumeric')
+      .map(aPair => aPair.attributeID)
+  }, [mapLayerModel.dataConfiguration])
+
   return (
     <>
       <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
-      <DataTip dataset={dataset} displayModel={mapLayerModel} pixiPointsRef={pixiPointsRef}/>
+      <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
     </>
   )
 }
