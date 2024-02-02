@@ -7,6 +7,7 @@ import {useDebouncedCallback} from "use-debounce"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
+import {DataTip} from "../../data-display/components/data-tip"
 import {CaseData} from "../../data-display/d3-types"
 import {
   computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
@@ -14,7 +15,6 @@ import {
 import {transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -65,8 +65,6 @@ export const MapPointLayer = function MapPointLayer(props: {
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
     pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
   }
-
-  useDataTips({pixiPointsRef, dataset, displayModel: mapLayerModel})
 
   const callMatchCirclesToData = useCallback(() => {
     if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
@@ -200,7 +198,17 @@ export const MapPointLayer = function MapPointLayer(props: {
     )
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
+  const getTipAttrs = useCallback((plotNum: number) => {
+    const dataConfig = mapLayerModel.dataConfiguration
+    const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
+    return roleAttrIDPairs.filter(aPair => plotNum > 0 || aPair.role !== 'rightNumeric')
+      .map(aPair => aPair.attributeID)
+  }, [mapLayerModel.dataConfiguration])
+
   return (
-    <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+    <>
+      <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+      <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
+    </>
   )
 }

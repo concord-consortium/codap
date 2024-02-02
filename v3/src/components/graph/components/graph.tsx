@@ -28,13 +28,13 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {isSetAttributeIDAction} from "../models/graph-content-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
+import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsRef} from "../utilities/pixi-points"
@@ -176,8 +176,6 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  useDataTips({pixiPointsRef, dataset, displayModel: graphModel})
-
   const renderPlotComponent = () => {
     const props = {xAttrID, yAttrID, pixiPointsRef},
       typeToPlotComponentMap = {
@@ -227,6 +225,15 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   useGraphModel({pixiPointsRef, graphModel, instanceId})
 
+  const getTipAttrs = useCallback((plotNum: number) => {
+    const dataConfig = graphModel.dataConfiguration
+    const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
+    const yAttrIDs = dataConfig.yAttributeIDs
+    return roleAttrIDPairs.filter(aPair => plotNum > 0 || aPair.role !== 'rightNumeric')
+      .map(aPair => plotNum === 0 ? aPair.attributeID : aPair.role === 'y'
+        ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID)
+  }, [graphModel.dataConfiguration])
+
   if (!isAlive(graphModel)) return null
 
   return (
@@ -271,6 +278,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
+        <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
       </div>
     </GraphDataConfigurationContext.Provider>
   )

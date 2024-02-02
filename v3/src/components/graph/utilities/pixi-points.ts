@@ -78,6 +78,8 @@ export class PixiPoints {
   targetProp: TransitionPropMap = {}
   startProp: TransitionPropMap = {}
 
+  onPointOver?: PixiPointEventHandler
+  onPointLeave?: PixiPointEventHandler
   onPointClick?: PixiPointEventHandler
   onPointDragStart?: PixiPointEventHandler
   onPointDrag?: PixiPointEventHandler
@@ -361,22 +363,30 @@ export class PixiPoints {
 
     let draggingActive = false
 
-    const setHoverRadius = () => {
+    const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
       this.transition(() => {
         this.setPointScale(sprite, hoverRadiusFactor)
       }, { duration: transitionDuration })
+      if (!draggingActive) {
+        this.onPointOver?.(pointerEvent, sprite, this.getMetadata(sprite))
+      } else {
+        this.onPointLeave?.(pointerEvent, sprite, this.getMetadata(sprite))
+      }
     }
-    const restoreDefaultRadius = () => {
+    const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
       this.transition(() => {
         this.setPointScale(sprite, 1)
       }, { duration: transitionDuration })
+      this.onPointLeave?.(pointerEvent, sprite, this.getMetadata(sprite))
     }
 
     // Hover effect
-    sprite.on("pointerover", setHoverRadius)
-    sprite.on("pointerleave", () => {
+    sprite.on("pointerover", (pointerEvent: PIXI.FederatedPointerEvent) => {
+      handlePointerOver(pointerEvent)
+    })
+    sprite.on("pointerleave", (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (!draggingActive) {
-        restoreDefaultRadius()
+        handlePointerLeave(pointerEvent)
       }
     })
 
@@ -388,7 +398,6 @@ export class PixiPoints {
     sprite.on("pointerdown", (pointerDownEvent: PIXI.FederatedPointerEvent) => {
       draggingActive = true
       this.onPointDragStart?.(pointerDownEvent, sprite, this.getMetadata(sprite))
-      setHoverRadius()
 
       const onDrag = (onDragEvent: PointerEvent) => {
         if (draggingActive) {
@@ -400,7 +409,6 @@ export class PixiPoints {
         if (draggingActive) {
           draggingActive = false
           this.onPointDragEnd?.(pointerUpEvent, sprite, this.getMetadata(sprite))
-          restoreDefaultRadius()
           window.removeEventListener("pointermove", onDrag)
           window.removeEventListener("pointerup", onDragEnd)
         }

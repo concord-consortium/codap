@@ -1,0 +1,17 @@
+.data-tip {
+  background-color: rgba(251, 251, 176, 0.7);
+  border-radius: 4px;
+  box-shadow: 0 4px 20px 4px rgba(0, 20, 60, .1), 0 4px 80px -8px rgba(0, 20, 60, .2);
+  color: #203d5d;
+  display: inline-block;
+  font-size: small;
+  left: 0;
+  line-height: 1.2;
+  padding: 5px;
+  pointer-events: none !important;
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  width: max-content;
+  z-index: 9999;
+}
