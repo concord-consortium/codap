@@ -1,13 +1,13 @@
 'use strict'
 
+const os = require('os')
 const path = require('path')
+const Dotenv = require('dotenv-webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
-const fs = require('fs')
-const os = require('os')
 
 // DEPLOY_PATH is set by the s3-deploy-action its value will be:
 // `branch/[branch-name]/` or `version/[tag-name]/`
@@ -15,18 +15,11 @@ const os = require('os')
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
 const DEPLOY_PATH = process.env.DEPLOY_PATH
 
-// create an empty configuration file if it doesn't already exist
-try {
-  fs.writeFileSync(".env.json", "{\n}\n", { flag: "wx" })
-}
-catch (e) {
-  // ignore errors
-}
-
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
 
   const webpackPlugins = [
+    new Dotenv(),
     new MiniCssExtractPlugin({
       filename: devMode ? 'assets/[name].css' : 'assets/[name].[contenthash].css',
     }),
@@ -118,15 +111,7 @@ module.exports = (env, argv) => {
           exclude: path.join(__dirname, 'node_modules'),
         } : {},
         {
-          test: path.join(__dirname, '.env.json'),
-          type: 'asset/resource',
-          generator: {
-            filename: '[name][ext]'
-          }
-        },
-        {
           test: /\.json5$/,
-          exclude: path.join(__dirname, '.env.json'),
           loader: 'json5-loader'
         },
         {

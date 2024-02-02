@@ -9,31 +9,12 @@ import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import t from "../utilities/translation/translate"
 
-// eslint-disable-next-line import/no-unresolved
-import envJsonUrl from "../../.env.json"
-
-type Env = Record<string, string | Record<string, string>>
-
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
   const cfm = useMemo(() => createCloudFileManager(), [])
 
   useEffect(function initCfm() {
-
-    async function getEnv() {
-      let envJson: Env = {}
-
-      try {
-        const _env = await fetch(envJsonUrl as any)
-        envJson = await _env.json()
-      }
-      catch (e) {
-        console.error("Error retrieving environment!")
-      }
-
-      return envJson
-    }
 
     const _options: CFMAppOptions = {
       ui: {
@@ -142,24 +123,24 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
       ...options.current
     }
 
-    getEnv().then(env => {
-      // only enable Google Drive if configuration is available and origin is ssl or localhost
-      if (env?.gd && typeof env.gd === "object" &&
-          (document.location.protocol === 'https:' ||
-          document.location.hostname === 'localhost' ||
-          document.location.hostname === '127.0.0.1')) {
-        _options.providers?.splice(1, 0, {
-          name: "googleDrive",
-          mimeType: "application/json",
-          ...env.gd
-        })
-      }
-
-      cfm.init(_options)
-
-      clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
-        return handleCFMEvent(cfm.client, event)
+    // only enable Google Drive if configuration is available and origin is ssl or localhost
+    if (process.env.GOOGLE_DRIVE_APP_ID &&
+        (document.location.protocol === 'https:' ||
+        document.location.hostname === 'localhost' ||
+        document.location.hostname === '127.0.0.1')) {
+      _options.providers?.splice(1, 0, {
+        name: "googleDrive",
+        mimeType: "application/json",
+        clientId: process.env.GOOGLE_DRIVE_CLIENT_ID,
+        apiKey: process.env.GOOGLE_DRIVE_API_KEY,
+        appId: process.env.GOOGLE_DRIVE_APP_ID
       })
+    }
+
+    cfm.init(_options)
+
+    clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
+      return handleCFMEvent(cfm.client, event)
     })
 
   }, [cfm])

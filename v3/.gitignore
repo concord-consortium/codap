@@ -4,8 +4,7 @@ dist
 node_modules
 npm-error.log
 .DS_Store
-.env.json
-.env.*.json
+.env*
 .eslintcache
 .eslintcache.build
 .nyc_output

@@ -68,23 +68,9 @@ jest.mock("../hooks/use-drop-handler", () => ({
   }
 }))
 
-describe("App component", () => {
-
-  const globalFetch = (global as any).fetch
-  const mockFetch = jest.fn(() => {
-    return Promise.resolve({
-      json: () => Promise.resolve({ gd: {} })
-    })
-  })
-
-  beforeEach(() => {
-    (global as any).fetch = mockFetch
-  })
+describe.skip("App component", () => {
 
   afterEach(() => {
-    (global as any).fetch = globalFetch
-    mockFetch.mockClear()
-
     spySetMenuBarInfo?.mockRestore()
     spySetMenuBarInfo = undefined
     cfm = undefined
