@@ -106,17 +106,20 @@ export const MapHeatMap = ({mapLayerModel}: {mapLayerModel: IMapPointLayerModel}
     for (const caseID of allCaseIDs) {
       const value = dataset.getNumeric(caseID, valueId) || 0
       maxRef.current = Math.max(maxRef.current, value)
+
+      if (dataset.isCaseSelected(caseID)) {
+        const long = dataset.getNumeric(caseID, longId) || 0
+        const lat = dataset.getNumeric(caseID, latId) || 0
+        const point = leafletMap.latLngToContainerPoint([lat, long])
+        dataRef.current.push({point, value})
+      }
+      /*
       const date = dataset.getStrValue(caseID, dateId)
       if (date !== "2023-04-01") {
         continue
       }
-      const long = dataset.getNumeric(caseID, longId) || 0
-      const lat = dataset.getNumeric(caseID, latId) || 0
-      const point = leafletMap.latLngToContainerPoint([lat, long])
-      dataRef.current.push({point, value})
+      */
     }
-
-    console.log(dataRef.current)
 
     drawHeatmap()
   }, 10)
