@@ -9,7 +9,7 @@ import {
 } from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-model"
 
 import { getFormulaManager } from "../tiles/tile-environment"
-import { DEBUG_FORMULAS } from "../../lib/debug"
+import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
 import {
   kPlottedValueType
 } from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-types"
@@ -60,10 +60,7 @@ export class PlottedValueFormulaAdapter extends BaseGraphFormulaAdapter {
     formulaContext: IFormulaContext, extraMetadata: IPlottedValueFormulaExtraMetadata, childMostCases: ICase[]
   ) {
     const { formula } = formulaContext
-    if (DEBUG_FORMULAS) {
-      // eslint-disable-next-line no-console
-      console.log(`[plotted value formula] recalculate "${formula.canonical}"`)
-    }
+    debugLog(DEBUG_FORMULAS, `[plotted value formula] recalculate "${formula.canonical}"`)
     const formulaScope = this.getMathJSScope(formulaContext, extraMetadata, childMostCases)
     try {
       const compiledFormula = math.compile(formula.canonical)
