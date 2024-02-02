@@ -3,6 +3,7 @@ import {useMapEvents, useMap} from "react-leaflet"
 import {useMapModelContext} from "./use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {kDefaultMapZoomForGeoLocation} from "../map-types"
+import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 
 export function useMapModel() {
   const leafletMap = useMap(),
@@ -15,7 +16,7 @@ export function useMapModel() {
 
   useMapEvents({
     "layeradd": () => {
-      console.log('onLayerAdd')
+      debugLog(DEBUG_MAP, 'onLayerAdd')
     },
     "click": () => {
       mapModel.layers.forEach((layer) => {

@@ -13,7 +13,7 @@ import { observeDatasetHierarchyChanges } from "./formula-observers"
 import type {
   IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "./formula-manager"
-import { DEBUG_FORMULAS } from "../../lib/debug"
+import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
 
 const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"
 
@@ -139,10 +139,8 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
       return
     }
 
-    if (DEBUG_FORMULAS) {
-      // eslint-disable-next-line no-console
-      console.log(`[attr formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
-    }
+    debugLog(DEBUG_FORMULAS,
+            `[attr formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
 
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
     const collectionIndex = dataSet.getCollectionIndex(collectionId || "")

@@ -5,6 +5,7 @@ import React, {useCallback, useEffect} from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import {useMap} from "react-leaflet"
+import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {getCaseTipText, handleClickOnCase} from "../../data-display/data-display-utils"
@@ -107,7 +108,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           }
 
         if (!jsonObject) {
-          console.log(`MapPolygonLayer.refreshPolygons: error: ${error}`)
+          debugLog(DEBUG_MAP, `MapPolygonLayer.refreshPolygons: error: ${error}`)
           return
         }
         mapLayerModel.features[caseIndex] = geoJSON(jsonObject, {
