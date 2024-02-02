@@ -3,21 +3,19 @@ import { getSnapshot } from "mobx-state-tree"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
-import { createCloudFileManager } from "./cfm-utils"
+import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import t from "../utilities/translation/translate"
 
-
-const googleDriveClientID = "891260722961-81f8ic8tddobbh66p1j7nenr42hb93u1.apps.googleusercontent.com"
-const googleDriveAPIKey = "AIzaSyDici8Bs9pd6-dSxheNPTpnJlcR4YuGGQQ"
-const googleDriveAppId = "891260722961"
-
-export function useCloudFileManager(options: CFMAppOptions) {
+export function useCloudFileManager(optionsArg: CFMAppOptions) {
+  const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
-  const cfm = useMemo(() => {
-    const _cfm = createCloudFileManager()
+  const cfm = useMemo(() => createCloudFileManager(), [])
+
+  useEffect(function initCfm() {
+
     const _options: CFMAppOptions = {
       ui: {
         // menuBar: {
@@ -72,7 +70,7 @@ export function useCloudFileManager(options: CFMAppOptions) {
         if (container && !root.current) {
           root.current = createRoot(container)
         }
-        root.current?.render(content)
+        renderRoot(root.current, content)
       },
       appSetsWindowTitle: true, // CODAP takes responsibility for the window title
       wrapFileContent: false,
@@ -122,30 +120,29 @@ export function useCloudFileManager(options: CFMAppOptions) {
         "localFile",
         //"localStorage"
       ],
-      ...options
+      ...options.current
     }
 
-    // only enable Google Drive if origin is ssl or localhost
-    if (document.location.protocol === 'https:' ||
+    // only enable Google Drive if configuration is available and origin is ssl or localhost
+    if (process.env.GOOGLE_DRIVE_APP_ID &&
+        (document.location.protocol === 'https:' ||
         document.location.hostname === 'localhost' ||
-        document.location.hostname === '127.0.0.1') {
+        document.location.hostname === '127.0.0.1')) {
       _options.providers?.splice(1, 0, {
         name: "googleDrive",
         mimeType: "application/json",
-        clientId: googleDriveClientID,
-        apiKey: googleDriveAPIKey,
-        appId: googleDriveAppId
+        clientId: process.env.GOOGLE_DRIVE_CLIENT_ID,
+        apiKey: process.env.GOOGLE_DRIVE_API_KEY,
+        appId: process.env.GOOGLE_DRIVE_APP_ID
       })
     }
 
-    _cfm.init(_options)
-    return _cfm
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    cfm.init(_options)
 
-  useEffect(() => {
-    cfm.clientConnect(function cfmEventCallback(event: CloudFileManagerClientEvent) {
+    clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
       return handleCFMEvent(cfm.client, event)
     })
+
   }, [cfm])
 
   return cfm

@@ -53,6 +53,7 @@
   },
   "scripts": {
     "start": "webpack serve --no-https",
+    "start:clean": "npm run clean:cache && npm start",
     "start:secure": "webpack serve",
     "start:secure:no-certs": "webpack serve --no-https-request-cert",
     "build": "npm-run-all lint:build build:webpack",
@@ -128,6 +129,7 @@
     "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.8.1",
     "cypress": "^13.6.2",
+    "dotenv-webpack": "^8.0.1",
     "eslint": "^8.52.0",
     "eslint-config-react": "^1.1.7",
     "eslint-import-resolver-typescript": "^3.6.1",

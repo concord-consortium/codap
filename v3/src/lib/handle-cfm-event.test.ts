@@ -1,4 +1,5 @@
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
+import { getSnapshot } from "mobx-state-tree"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { appState } from "../models/app-state"
@@ -67,7 +68,7 @@ describe("handleCFMEvent", () => {
     const cfmEvent = {
       type: "openedFile",
       data: {
-        content: v3Document
+        content: getSnapshot(v3Document)
       }
     } as CloudFileManagerClientEvent
     const spy = jest.spyOn(appState, "setDocument")
