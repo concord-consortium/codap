@@ -34,6 +34,7 @@ export function useGraphModel(props: IProps) {
       animateChange: graphModel.pointDescription.animateChange,
       startAnimation, instanceId
     })
+    graphModel.pointDescription.clearAnimateChange()
   }, [dataConfig, pixiPointsRef, graphModel, startAnimation, instanceId])
 
   // respond to change in plotType

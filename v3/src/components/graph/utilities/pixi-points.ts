@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
+import { computePointRadius } from "../../data-display/data-display-utils"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
@@ -294,6 +295,12 @@ export class PixiPoints {
     return texture
   }
 
+  getCurrentPointRadius() {
+    // TODO: Is passing 1 the right thing to do here?
+    const pointRadius = computePointRadius(this.pointsCount, 1, "normal")
+    return pointRadius
+  }
+
   cleanupUnusedTextures() {
     // TODO PIXI
   }
@@ -419,8 +426,11 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
-    const texture = this.getPointTexture(style)
+  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle, animateChange = false) {
+    // If change should be animated, we will modify the point radius with a transition after modifying everything else.
+    const currentRadius = this.getCurrentPointRadius()
+    const newStyle = { ...style, radius: animateChange ? currentRadius : style.radius }
+    const texture = this.getPointTexture(newStyle)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
     // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
@@ -451,7 +461,7 @@ export class PixiPoints {
       if (!currentIDs.has(caseID)) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { caseID, plotNum, style })
+        this.pointMetadata.set(sprite, { caseID, plotNum, style: newStyle })
         this.caseIDToPoint.set(caseID, sprite)
       }
     }
@@ -462,9 +472,16 @@ export class PixiPoints {
       if (point.texture !== texture) {
         point.texture = texture
         const metadata = this.getMetadata(point)
-        metadata.style = style
+        metadata.style = newStyle
       }
     }
+
+    // If we're animating the change, we need to transition the point scale.
+    animateChange && this.points.forEach((point) => {
+      this.transition(() => {
+        this.setPointScale(point, style.radius / currentRadius)
+      }, { duration: transitionDuration })
+    })
 
     this.startRendering()
   }

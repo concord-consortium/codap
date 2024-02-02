@@ -209,6 +209,17 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
+
+    // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
+    // revert to original point size when Connecting Lines are deactivated.
+    const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier
+    const animateChange = true
+    if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
+      graphModel.pointDescription.setPointSizeMultiplier(pointSizeMultiplier * .5, animateChange)
+    } else if (!showConnectingLines) {
+      graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
+    }
+
     const connectingLinesArea = select(connectingLinesRef.current)
     const curve = line().curve(curveLinear)
     const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
@@ -255,16 +266,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
         const color = parentAttrID && legendID
           ? graphModel.pointDescription.pointColorAtIndex(linesIndex)
           : graphModel.pointDescription.pointColorAtIndex(0)
-
-        // Decrease point size when Connecting Lines are activated so the lines are easier to see, and
-        // revert to original point size when Connecting Lines are deactivated.
-        const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier,
-          animateChange = true
-        if (showConnectingLines && pointSizeMultiplier > .5) {
-          graphModel.pointDescription.setPointSizeMultiplier(.5, animateChange)
-        } else if (!showConnectingLines) {
-          graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
-        }
 
         connectingLinesArea
           .append("path")
