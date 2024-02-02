@@ -11,16 +11,16 @@ jobs:
     name: Build and Run Jest Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: snow-actions/sparse-checkout@v1.1.0
+      - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: v3/node_modules/.cache/webpack/
           key: ${{ github.head_ref || github.ref_name }}-webpack-build
@@ -51,14 +51,14 @@ jobs:
         # containers: [1]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - uses: actions/cache@v3
+        uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: v3/node_modules/.cache/webpack/
           key: ${{ github.head_ref || github.ref_name }}-webpack-build
           restore-keys: |
             main-webpack-build
-      - uses: cypress-io/github-action@v5
+      - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
           start: npm start
@@ -95,8 +95,8 @@ jobs:
       - cypress
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
       - name: Install Dependencies
@@ -106,12 +106,24 @@ jobs:
           # skip installing cypress since it isn't needed for just building
           # This decreases the deploy time quite a bit
           CYPRESS_INSTALL_BINARY: 0
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: v3/node_modules/.cache/webpack/
           key: ${{ github.head_ref || github.ref_name }}-webpack-build
           restore-keys: |
             main-webpack-build
+      - name: Configure Environment
+        working-directory: v3
+        run: |
+          cat <<EOF > .env.json
+          {
+            "gd": {
+              "clientId": "${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}",
+              "apiKey": "${{ secrets.GOOGLE_DRIVE_API_KEY }}",
+              "appId": "${{ secrets.GOOGLE_DRIVE_APP_ID }}"
+            }
+          }
+          EOF
       - uses: concord-consortium/s3-deploy-action@v1
         with:
           bucket: models-resources

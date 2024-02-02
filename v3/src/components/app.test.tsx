@@ -1,6 +1,7 @@
-import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
+import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { act, render, screen } from "@testing-library/react"
-import React from "react"
+import React, { ReactNode } from "react"
+import { Root } from "react-dom/client"
 import { IDropHandler } from "../hooks/use-drop-handler"
 import { appState } from "../models/app-state"
 import { DataSet } from "../models/data/data-set"
@@ -12,21 +13,38 @@ import { App } from "./app"
 let cfm: CloudFileManager | undefined
 let spySetMenuBarInfo: jest.SpyInstance | undefined
 
-jest.mock("../lib/cfm-utils", () => ({
-  createCloudFileManager() {
-    // suppress warning about not being instantiated in an iframe
-    jestSpyConsole("warn", () => {
-      cfm = new CloudFileManager()
-    })
-    // suppress warnings about setting state outside of act()
-    spySetMenuBarInfo = jest.spyOn(cfm!.client._ui, "setMenuBarInfo")
-    spySetMenuBarInfo.mockImplementation(() => null)
-    return cfm!
-  },
-  wrapCfmCallback(callbackFn: () => void) {
-    callbackFn()
+jest.mock("../lib/cfm-utils", () => {
+  const cfmUtils = jest.requireActual("../lib/cfm-utils")
+
+  return {
+    createCloudFileManager() {
+      // suppress warning about not being instantiated in an iframe
+      jestSpyConsole("warn", () => {
+        cfm = cfmUtils.createCloudFileManager()
+      })
+      // suppress warnings about setting state outside of act()
+      spySetMenuBarInfo = jest.spyOn(cfm!.client._ui, "setMenuBarInfo")
+      spySetMenuBarInfo.mockImplementation(() => null)
+      return cfm!
+    },
+    renderRoot(root: Root | undefined, content: ReactNode) {
+      // eslint-disable-next-line testing-library/no-unnecessary-act
+      act(() => {
+        cfmUtils.renderRoot(root, content)
+      })
+    },
+    clientConnect(_cfm: CloudFileManager, handler: (event: CloudFileManagerClientEvent) => void) {
+      act(() => {
+        cfmUtils.clientConnect(_cfm, handler)
+      })
+    },
+    wrapCfmCallback(callbackFn: () => void) {
+      act(() => {
+        cfmUtils.wrapCfmCallback(callbackFn)
+      })
+    }
   }
-}))
+})
 
 // mock the `ToolShelf` component because it generates warnings:
 //  Warning: An update to ToolShelf inside a test was not wrapped in act(...).
@@ -52,7 +70,21 @@ jest.mock("../hooks/use-drop-handler", () => ({
 
 describe("App component", () => {
 
+  const globalFetch = (global as any).fetch
+  const mockFetch = jest.fn(() => {
+    return Promise.resolve({
+      json: () => Promise.resolve({ gd: {} })
+    })
+  })
+
+  beforeEach(() => {
+    (global as any).fetch = mockFetch
+  })
+
   afterEach(() => {
+    (global as any).fetch = globalFetch
+    mockFetch.mockClear()
+
     spySetMenuBarInfo?.mockRestore()
     spySetMenuBarInfo = undefined
     cfm = undefined

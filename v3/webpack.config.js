@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const fs = require('fs')
 const os = require('os')
 
 // DEPLOY_PATH is set by the s3-deploy-action its value will be:
@@ -14,6 +15,13 @@ const os = require('os')
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
 const DEPLOY_PATH = process.env.DEPLOY_PATH
 
+// create an empty configuration file if it doesn't already exist
+try {
+  fs.writeFileSync(".env.json", "{\n}\n", { flag: "wx" })
+}
+catch (e) {
+  // ignore errors
+}
 
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
@@ -110,7 +118,15 @@ module.exports = (env, argv) => {
           exclude: path.join(__dirname, 'node_modules'),
         } : {},
         {
+          test: path.join(__dirname, '.env.json'),
+          type: 'asset/resource',
+          generator: {
+            filename: '[name][ext]'
+          }
+        },
+        {
           test: /\.json5$/,
+          exclude: path.join(__dirname, '.env.json'),
           loader: 'json5-loader'
         },
         {
@@ -134,20 +150,20 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.(csv)$/,
-          type: 'asset',
+          type: 'asset/resource',
           generator: {
             filename: 'assets/data/[name].[contenthash:6][ext]'
           }
         },
         {
-          test: /\.(woff|woff2|eot|ttf)$/,
-          type: 'asset',
+          test: /\.(eot|otf|ttf|woff|woff2)$/,
+          type: 'asset/resource',
           generator: {
             filename: 'assets/fonts/[name].[contenthash:6][ext]'
           }
         },
         {
-          test: /\.(png)$/,
+          test: /\.(gif|png)$/,
           type: 'asset',
           generator: {
             filename: 'assets/images/[name].[contenthash:6][ext]'
@@ -157,7 +173,7 @@ module.exports = (env, argv) => {
           test: /\.nosvgo\.svg$/i,
           loader: '@svgr/webpack',
           options: {
-            svgo: false,
+            svgo: false
           }
         },
         {
@@ -168,6 +184,9 @@ module.exports = (env, argv) => {
               // Do not apply SVGR import in CSS files.
               issuer: /\.(css|scss|less)$/,
               type: 'asset',
+              generator: {
+                filename: 'assets/images/[name].[contenthash:6][ext]'
+              }
             },
             {
               issuer: /\.tsx?$/,
