@@ -151,26 +151,26 @@ describe("CollectionGroups", () => {
     // move attr "a" to a new collection
     data.moveAttributeToNewCollection("aId")
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
-    const aCases = data.getCasesForCollection(data.collections[0]!.id)
+    const aCases = data.getCasesForCollection(data.collections[0].id)
     expect(data.getCasesForAttributes(["aId"])).toEqual(aCases)
     // move attr "b" to a new collection (parent to collection with "a")
-    data.moveAttributeToNewCollection("bId", data.collections[0]!.id)
+    data.moveAttributeToNewCollection("bId", data.collections[0].id)
     expect(attributesByCollection()).toEqual([["bId"], ["aId"], ["cId"]])
     expect(data.collections.length).toBe(2)
     // move attr "a" from its collection to the collection with "b",
     // leaving only the one collection with "a" and "b"
-    data.setCollectionForAttribute("aId", { collection: data.collections[0]!.id, before: "bId" })
+    data.setCollectionForAttribute("aId", { collection: data.collections[0].id, before: "bId" })
     expect(data.collections.length).toBe(1)
     expect(attributesByCollection()).toEqual([["aId", "bId"], ["cId"]])
     // move attr "b" to a new collection (child to collection with "a")
     data.moveAttributeToNewCollection("bId")
     expect(data.collections.length).toBe(2)
     expect(attributesByCollection()).toEqual([["aId"], ["bId"], ["cId"]])
-    const bCases = data.getCasesForCollection(data.collections[1]!.id)
+    const bCases = data.getCasesForCollection(data.collections[1].id)
     expect(data.isCaseSelected(bCases[0].__id__)).toBe(false)
     // move attr "c" to collection with "b", leaving no un-grouped attributes
     // the child-most collection is then removed, leaving those attributes un-grouped
-    data.setCollectionForAttribute("cId", { collection: data.collections[1]!.id })
+    data.setCollectionForAttribute("cId", { collection: data.collections[1].id })
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     expect(data.collections.length).toBe(1)
     expect(data.collections[0].attributes.length).toBe(1)
