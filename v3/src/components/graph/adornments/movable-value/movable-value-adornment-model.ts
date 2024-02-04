@@ -61,7 +61,7 @@ export const MovableValueAdornmentModel = AdornmentModel
   .actions(self => ({
     addValue(aValue?: number) {
       self.values.forEach((values, key) => {
-        const newValue = !aValue ? self.newValue(key) : aValue
+        const newValue = !aValue ? self.newValue(`${key}`) : aValue
         const newValues = [...values]
         newValues.push(newValue)
         self.values.set(key, newValues)

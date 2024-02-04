@@ -97,7 +97,7 @@
     "report-dir": "coverage-cypress"
   },
   "overrides": {
-    "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree@5.1.8-cc.2"
+    "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree"
   },
   "devDependencies": {
     "@cypress/code-coverage": "^3.12.19",
@@ -118,7 +118,7 @@
     "@types/lodash": "^4.14.202",
     "@types/papaparse": "^5.3.14",
     "@types/pluralize": "^0.0.33",
-    "@types/react": "^18.2.51",
+    "@types/react": "^18.2.52",
     "@types/react-dom": "^18.2.18",
     "@types/rtree": "^1.4.30",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
@@ -177,9 +177,9 @@
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@concord-consortium/cloud-file-manager": "^2.0.0-pre.1",
-    "@concord-consortium/mobx-state-tree": "5.1.8-cc.2",
+    "@concord-consortium/mobx-state-tree": "^5.4.0-cc.1",
     "@dnd-kit/core": "^6.1.0",
-    "@floating-ui/react": "^0.26.8",
+    "@floating-ui/react": "^0.26.9",
     "clsx": "^2.1.0",
     "d3": "^7.8.5",
     "d3-format": "^3.1.0",
@@ -195,7 +195,7 @@
     "papaparse": "^5.4.1",
     "pixi.js": "~7.3.3",
     "pluralize": "^8.0.0",
-    "query-string": "^8.1.0",
+    "query-string": "^8.2.0",
     "react": "^18.2.0",
     "react-data-grid": "7.0.0-beta.42",
     "react-dom": "^18.2.0",
