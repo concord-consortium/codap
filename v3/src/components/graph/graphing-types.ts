@@ -14,6 +14,9 @@ export interface InternalizedData {
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
+export const PointDisplayTypes = ["points", "bars", "bins"]
+export type PointDisplayType = typeof PointDisplayTypes[number]
+
 export const kAxisTickLength = 4,
   kAxisGap = 2
 

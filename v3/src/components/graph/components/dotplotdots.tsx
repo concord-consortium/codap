@@ -20,13 +20,14 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
-    dataConfiguration = useGraphDataConfigurationContext(),
+    dataConfig = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    primaryAttrRole = dataConfiguration?.primaryRole ?? 'x',
+    primaryAttrRole = dataConfig?.primaryRole ?? 'x',
     primaryIsBottom = primaryAttrRole === 'x',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
+    pointDisplayType = graphModel.pointDisplayType,
     // Used for tracking drag events
     [dragID, setDragID] = useState(''),
     currPos = useRef(0),
@@ -43,15 +44,15 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     currPos.current = primaryIsBottom ? event.clientX : event.clientY
     handleClickOnCase(event, tItsID, dataset)
     // Record the current values, so we can change them during the drag and restore them when done
-    const {selection} = dataConfiguration || {}
-    const primaryAttrID = dataConfiguration?.attributeID(dataConfiguration?.primaryRole ?? 'x') ?? ''
+    const {selection} = dataConfig || {}
+    const primaryAttrID = dataConfig?.attributeID(dataConfig?.primaryRole ?? 'x') ?? ''
     selection?.forEach(anID => {
       const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
       if (itsValue != null) {
         selectedDataObjects.current[anID] = itsValue
       }
     })
-  }, [dataset, stopAnimation, primaryIsBottom, dataConfiguration])
+  }, [dataset, stopAnimation, primaryIsBottom, dataConfig])
 
   const onDrag = useCallback((event: PointerEvent) => {
     const primaryPlace = primaryIsBottom ? 'bottom' : 'left'
@@ -59,13 +60,13 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     if (primaryAxisScale && dragID) {
       const newPos = primaryIsBottom ? event.clientX : event.clientY
       const deltaPixels = newPos - currPos.current
-      const primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? ''
+      const primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? ''
       currPos.current = newPos
       if (deltaPixels !== 0) {
         didDrag.current = true
         const delta = Number(primaryAxisScale.invert(deltaPixels)) - Number(primaryAxisScale.invert(0))
         const caseValues: ICase[] = []
-        const {selection} = dataConfiguration || {}
+        const {selection} = dataConfig || {}
         selection?.forEach(anID => {
           const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
           if (isFinite(currValue)) {
@@ -75,7 +76,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         caseValues.length && dataset?.setCaseValues(caseValues, [primaryAttrID])
       }
     }
-  }, [dataset, dragID, primaryIsBottom, dataConfiguration, layout, primaryAttrRole])
+  }, [dataset, dragID, primaryIsBottom, dataConfig, layout, primaryAttrRole])
 
   const onDragEnd = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
     dataset?.endCaching()
@@ -85,11 +86,11 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       setDragID('')
       if (didDrag.current) {
         const caseValues: ICase[] = []
-        const {selection} = dataConfiguration || {}
+        const {selection} = dataConfig || {}
         selection?.forEach(anID => {
           caseValues.push({
             __id__: anID,
-            [dataConfiguration?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
+            [dataConfig?.attributeID(primaryAttrRole) ?? '']: selectedDataObjects.current[anID]
           })
         })
         startAnimation() // So points will animate back to original positions
@@ -97,16 +98,17 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         didDrag.current = false
       }
     }
-  }, [dataset, dragID, dataConfiguration, startAnimation, primaryAttrRole])
+  }, [dataset, dragID, dataConfig, startAnimation, primaryAttrRole])
 
   usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
-    dataConfiguration && setPointSelection({
-      pixiPointsRef, dataConfiguration, pointRadius: graphModel.getPointRadius(),
-      pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select')
+    dataConfig && setPointSelection({
+      pixiPointsRef, dataConfiguration: dataConfig, pointRadius: graphModel.getPointRadius(),
+      pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select'),
+      pointDisplayType
     })
-  }, [dataConfiguration, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
+  }, [dataConfig, graphModel, pixiPointsRef, pointColor, pointStrokeColor, pointDisplayType])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -119,12 +121,12 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
         secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
         extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
-        primaryAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
-        extraPrimaryAttrID = dataConfiguration?.attributeID(extraPrimaryRole) ?? '',
+        primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? '',
+        extraPrimaryAttrID = dataConfig?.attributeID(extraPrimaryRole) ?? '',
         numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1),
         pointDiameter = 2 * graphModel.getPointRadius(),
-        secondaryAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? '',
-        extraSecondaryAttrID = dataConfiguration?.attributeID(extraSecondaryRole) ?? '',
+        secondaryAttrID = dataConfig?.attributeID(secondaryAttrRole) ?? '',
+        extraSecondaryAttrID = dataConfig?.attributeID(extraSecondaryRole) ?? '',
         secondaryRangeIndex = primaryIsBottom ? 0 : 1,
         secondaryMax = Number(secondaryAxisScale.range()[secondaryRangeIndex]),
         secondaryAxisExtent = Math.abs(Number(secondaryAxisScale.range()[0] -
@@ -138,7 +140,9 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         binMap: Record<string, {
           category: string, extraCategory: string,
           extraPrimaryCategory: string, indexInBin: number
-        }> = {}
+        }> = {},
+        plotWidth = layout.getAxisLength("bottom"),
+        plotHeight = layout.getAxisLength("left")
       let overlap = 0
 
       function computeBinPlacements() {
@@ -150,7 +154,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           bins: Record<string, Record<string, Record<string, string[][]>>> = {}
 
         if (primaryAxisScale) {
-          dataConfiguration?.caseDataArray.forEach((aCaseData: CaseData) => {
+          dataConfig?.caseDataArray.forEach((aCaseData: CaseData) => {
             const anID = aCaseData.caseID,
               numerator = primaryAxisScale(dataset?.getNumeric(anID, primaryAttrID) ?? -1) /
                 numExtraPrimaryBands,
@@ -211,41 +215,84 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           }
         }
 
-      const
-        // Note that we can get null for either or both of the next two functions. It just means that we have
-        // a circle for the case, but we're not plotting it.
-        getPrimaryScreenCoord = (anID: string) => {
-          const primaryCoord = primaryAxisScale(dataset?.getNumeric(anID, primaryAttrID) ?? -1) /
-              numExtraPrimaryBands,
-            extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID),
-            extraPrimaryCoord = extraPrimaryValue
-              ? extraPrimaryAxisScale(extraPrimaryValue ?? '__main__') ?? 0
-              : 0
-          return primaryCoord + extraPrimaryCoord
-        },
-        getSecondaryScreenCoord = (anID: string) => {
-          const secondaryCat = binMap[anID].category,
-            extraSecondaryCat = binMap[anID].extraCategory,
-            indexInBin = binMap[anID].indexInBin,
-            onePixelOffset = primaryIsBottom ? -1 : 1 // Separate circles from axis line by 1 pixel
-          return binMap[anID]
-            ? computeSecondaryCoord({secondaryCat, extraSecondaryCat, indexInBin}) + onePixelOffset
-            : null
-        },
-        getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
-        getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord,
-        getLegendColor = dataConfiguration?.attributeID('legend')
-          ? dataConfiguration?.getLegendColorForCase : undefined
+      const computePrimaryCoord = (anID: string) => {
+        const primaryCoord = primaryAxisScale(dataset?.getNumeric(anID, primaryAttrID) ?? -1) / numExtraPrimaryBands
+        const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
+        const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? '__main__') ?? 0 : 0
+        return { primaryCoord, extraPrimaryCoord }
+      }
+
+      const getSubPlotDetails = (anID: string) => {
+        const subPlotKey = dataset?.subPlotKey(anID, secondaryAttrID, extraSecondaryAttrID, extraPrimaryAttrID) ?? {}
+        const casesInCategory = dataConfig?.subPlotCases(subPlotKey) ?? []
+        const caseIndex = casesInCategory.findIndex((id) => id === anID)
+        return { subPlotKey, casesInCategory, caseIndex }
+      }
+    
+      const getBarStaticDimension = (anID: string) => {
+        // This function determines how much space is available for each bar on the non-primary axis
+        // by dividing the length of the non-primary axis by the number of cases in the plot.
+        const { casesInCategory } = getSubPlotDetails(anID)
+        const dimension = primaryIsBottom ? plotHeight : plotWidth
+        return casesInCategory.length ? dimension / numExtraSecondaryBands / casesInCategory.length : 0
+      }
+    
+      const getBarValueDimension = (anID: string) => {
+        const { primaryCoord } = computePrimaryCoord(anID)
+        // If primaryIsBottom, we simply return the primaryCoord as the width. We can't use the value returned
+        // by getPrimaryScreenCoord because it adds the extraPrimaryCoord value.
+        // If primaryIsBottom is false, we return the absolute value of the difference between the plotHeight divided
+        // by the number of extra primary bands and the primaryCoord -- primaryCoord is essentially the top of
+        // the bar, and we need to return the height from there to the bottom of the plot.
+        return primaryIsBottom
+          ? primaryCoord
+          : Math.abs(plotHeight / numExtraPrimaryBands - primaryCoord)
+      }
+
+      const getBarPositionInSubPlot = (anID: string) => {
+        const barDimension = getBarStaticDimension(anID)
+        const { caseIndex } = getSubPlotDetails(anID)
+        const { extraCategory: extraSecondaryCat } = binMap[anID]
+        const extraCoord = !!extraSecondaryCat && extraSecondaryCat !== '__main__'
+          ? (extraSecondaryAxisScale(extraSecondaryCat) ?? 0) : 0
+        return caseIndex >= 0 ? caseIndex * barDimension + extraCoord : 0
+      }
+
+      const getPrimaryScreenCoord = (anID: string) => {
+        const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(anID)
+        return primaryCoord + extraPrimaryCoord
+      }
+    
+      const getSecondaryScreenCoord = (anID: string) => {
+        // For bar graphs, the secondary coordinate will be determined simply by the order of the cases in the dataset,
+        // not by any value the cases possess.
+        if (pointDisplayType === "bars") return getBarPositionInSubPlot(anID)
+
+        const { category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin } = binMap[anID]
+        const onePixelOffset = primaryIsBottom ? -1 : 1
+        return binMap[anID]
+          ? computeSecondaryCoord({ secondaryCat, extraSecondaryCat, indexInBin }) + onePixelOffset
+          : null
+      }
+      
+      const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
+      const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
+      const getWidth = primaryIsBottom ? getBarValueDimension : getBarStaticDimension
+      const getHeight = primaryIsBottom ? getBarStaticDimension : getBarValueDimension
+      
+      const getLegendColor = dataConfig?.attributeID('legend')
+        ? dataConfig?.getLegendColorForCase : undefined
 
       setPointCoordinates({
         dataset, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
-        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
+        getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
+        pointDisplayType, getWidth, getHeight, barOrientation: primaryIsBottom ? "horizontal" : "vertical"
       })
     },
-    [graphModel, dataConfiguration, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
-      primaryIsBottom, pointColor, pointStrokeColor, isAnimating])
+    [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
+      primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
 
   usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
 

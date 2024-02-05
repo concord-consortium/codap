@@ -349,8 +349,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPointsRef,
-    isAnimating])
+  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPointsRef, isAnimating])
 
   const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
     const pixiPoints = pixiPointsRef.current

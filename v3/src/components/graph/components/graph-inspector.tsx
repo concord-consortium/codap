@@ -14,6 +14,7 @@ import { t } from "../../../utilities/translation/translate"
 import {useDndContext} from "@dnd-kit/core"
 import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
+import { DisplayConfigPanel } from "./inspector-panel/display-config-panel"
 
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
@@ -24,6 +25,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
+  const showDisplayConfig = graphModel?.plotType === "dotPlot"
 
   useEffect(() => {
     !show && setShowPalette(undefined)
@@ -35,6 +37,10 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
 
   const handleRulerButton = () => {
     setShowPalette(showPalette === "measure" ? undefined : "measure")
+  }
+
+  const handleConfigButton = () => {
+    setShowPalette(showPalette === "config" ? undefined : "config")
   }
 
   const handleBrushButton = () => {
@@ -79,10 +85,12 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
                        testId={"graph-display-values-button"}>
         <ValuesIcon/>
       </InspectorButton>
-      <InspectorButton tooltip={t("DG.Inspector.displayConfiguration.toolTip")} showMoreOptions={true}
+      {showDisplayConfig &&
+        <InspectorButton tooltip={t("DG.Inspector.displayConfiguration.toolTip")} showMoreOptions={true}
+                       onButtonClick={handleConfigButton} setButtonRef={setButtonRef}
                        testId={"graph-display-config-button"}>
-        <BarChartIcon/>
-      </InspectorButton>
+          <BarChartIcon/>
+        </InspectorButton>}
       <InspectorButton tooltip={t("DG.Inspector.displayStyles.toolTip")} showMoreOptions={true}
                        onButtonClick={handleBrushButton} setButtonRef={setButtonRef}
                        testId={"graph-display-styles-button"}>
@@ -92,12 +100,16 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
                        testId={"graph-camera-button"}>
         <CameraIcon/>
       </InspectorButton>
-      {showPalette === "format" &&
-         <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
-                             panelRect={panelRect} buttonRect={buttonRect}/>}
       {showPalette === "measure" &&
-         <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
-                              panelRect={panelRect} buttonRect={buttonRect}/>}
+        <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
+                             panelRect={panelRect} buttonRect={buttonRect}/>}
+
+      {showPalette === "config" &&
+        <DisplayConfigPanel tile={tile} setShowPalette={setShowPalette}
+                            panelRect={panelRect} buttonRect={buttonRect}/>}
+      {showPalette === "format" &&
+        <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
+                            panelRect={panelRect} buttonRect={buttonRect}/>}
     </InspectorPanel>
   )
 })

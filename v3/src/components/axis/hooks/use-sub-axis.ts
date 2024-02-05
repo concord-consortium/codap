@@ -14,6 +14,7 @@ import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
   getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
+import { useGraphContentModelContext } from "../../graph/hooks/use-graph-content-model-context"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -32,6 +33,7 @@ export const useSubAxis = ({
                              subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
+    graphModel = useGraphContentModelContext(),
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
@@ -93,9 +95,13 @@ export const useSubAxis = ({
         },
         renderNumericAxis = () => {
           select(subAxisElt).selectAll('*').remove()
-          const numericScale = d3Scale as unknown as ScaleLinear<number, number>,
-            axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9')),
-            duration = isAnimating() ? transitionDuration : 0
+          const numericScale = d3Scale as unknown as ScaleLinear<number, number>
+          // When displaying bars, set the domain to [0, 100], otherwise use the default.
+          if (graphModel.pointDisplayType === "bars") {
+            numericScale.domain([0, 100])
+          }
+          const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
+          const duration = isAnimating() ? transitionDuration : 0
           if (!axisIsVertical && numericScale.ticks) {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
           }

@@ -58,10 +58,12 @@ export class GraphController {
     if (graphModel && pixiPointsRef?.current) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
-        pointRadius = graphModel.getPointRadius()
+        pointRadius = graphModel.getPointRadius(),
+        pointDisplayType = graphModel.pointDisplayType,
+        startAnimation = graphModel.startAnimation
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, pixiPoints: pixiPointsRef.current,
-        pointRadius, startAnimation: graphModel.startAnimation, instanceId, pointColor, pointStrokeColor
+        dataConfiguration, pixiPoints: pixiPointsRef.current, pointDisplayType,
+        pointRadius, startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }
   }

@@ -14,6 +14,7 @@ import { isFiniteNumber } from "../../../utilities/math-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { t } from "../../../utilities/translation/translate"
+import { PointDisplayType } from "../graphing-types"
 
 /**
  * Utility routines having to do with graph entities
@@ -374,10 +375,12 @@ export interface ISetPointSelection {
   selectedPointRadius: number,
   pointColor: string,
   pointStrokeColor: string,
+  pointDisplayType?: PointDisplayType,
   getPointColorAtIndex?: (index: number) => string
 }
 
 export interface ISetPointCoordinates {
+  barOrientation?: string
   dataset?: IDataSet
   pixiPointsRef: IPixiPointsRef
   selectedOnly?: boolean
@@ -385,17 +388,20 @@ export interface ISetPointCoordinates {
   selectedPointRadius: number
   pointColor: string
   pointStrokeColor: string
+  pointDisplayType?: PointDisplayType
   getPointColorAtIndex?: (index: number) => string
   getScreenX: ((anID: string) => number | null)
   getScreenY: ((anID: string, plotNum?:number) => number | null)
   getLegendColor?: ((anID: string) => string)
   getAnimationEnabled: () => boolean
+  getWidth?: (anID: string) => number | null
+  getHeight?: (anID: string, plotNum?:number) => number | null
 }
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
-    dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor,
-    pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled
+    barOrientation, dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor,
+    pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled, getWidth, getHeight
   } = props
 
 
@@ -419,6 +425,9 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     // the graph and while updating legend colors, we could possibly split it into two different functions.
     const pixiPoints = pixiPointsRef?.current
     if (pixiPoints) {
+      if (barOrientation) {
+        pixiPoints.barOrientation = barOrientation
+      }
       pixiPoints.transition(() => {
         pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
           const { caseID, plotNum } = metadata
@@ -427,7 +436,11 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
             fill: lookupLegendColor(metadata),
             stroke: getLegendColor && dataset?.isCaseSelected(caseID) ? defaultSelectedStroke : pointStrokeColor,
             strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
-              ? defaultSelectedStrokeWidth : defaultStrokeWidth
+              ? defaultSelectedStrokeWidth : defaultStrokeWidth,
+            // Points are circles by default but can be changed to bars, so we need to set a width and height. If
+            // getWidth and getHeight are not provided, we use pointRadius * 2 for these values.
+            width: getWidth?.(caseID) ?? pointRadius * 2,
+            height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
           })
           pixiPoints.setPointPosition(point, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
         }, { selectedOnly })
