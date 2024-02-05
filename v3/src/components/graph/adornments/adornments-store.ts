@@ -90,8 +90,8 @@ export const AdornmentsStore = types.model("AdornmentsStore", {
       let addedInterceptLocked = false
       let addedShowMeasureLabels = false
       let addedShowSquaresOfResiduals = false
-      measures[plotType].map((measure: IMeasure) => {
-        const { title, type } = measure
+      measures[plotType].map((measureOrGroup: IMeasure) => {
+        const { title, type } = measureOrGroup
         const checked = self.isShowingAdornment(type)
         const registeredAdornment = registeredAdornments.find(a => a.type === type)
         const isUnivariateMeasure = registeredAdornment?.parentType === "Univariate Measure"
