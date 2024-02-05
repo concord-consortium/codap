@@ -97,7 +97,7 @@ export const LSRLAdornmentModel = AdornmentModel
       linesArray.forEach(line => {
         const { category, intercept, slope } = line
         if (!isFiniteNumber(intercept) || !isFiniteNumber(slope)) return
-        const cellKey = JSON.parse(key)
+        const cellKey = JSON.parse(`${key}`)
         lineDescriptions.push({ category, cellKey, intercept, slope })
       })
     })
