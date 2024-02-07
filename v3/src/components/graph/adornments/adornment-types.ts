@@ -64,10 +64,12 @@ export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel
   IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
 
 export type PlotTypes = "casePlot" | "dotChart" | "dotPlot" | "scatterPlot"
+export type RulerStateKey = "measuresOfCenter" | "measuresOfSpread" | "boxPlotAndNormalCurve" | "otherValues" | ""
 
 export interface IMeasure {
   title: string
   type: string
+  rulerStateKey?: RulerStateKey
   items?: IMeasure[]  // for groups
 }
 
@@ -80,30 +82,35 @@ export type ParentAdornmentType = typeof ParentAdornmentTypes[number]
 
 export const measures: IMeasures = {
   "casePlot": [
-    { title: "DG.Inspector.graphCount", type: "Count" }
+    {title: "DG.Inspector.graphCount", type: "Count"}
   ],
   "dotChart": [
-    { title: "DG.Inspector.graphCount", type: "Count" }
+    {title: "DG.Inspector.graphCount", type: "Count"}
   ],
-  "dotPlot":  [
-    { title: "DG.Inspector.graphCount", type: "Count" },
-    { title: "DG.Inspector.graphCenterOptions", type: "Group", items: [
-        { title: "DG.Inspector.graphPlottedMean", type: "Mean" },
-        { title: "DG.Inspector.graphPlottedMedian", type: "Median" },
+  "dotPlot": [
+    {title: "DG.Inspector.graphCount", type: "Count"},
+    {
+      title: "DG.Inspector.graphCenterOptions", type: "Group", rulerStateKey: 'measuresOfCenter', items: [
+        {title: "DG.Inspector.graphPlottedMean", type: "Mean"},
+        {title: "DG.Inspector.graphPlottedMedian", type: "Median"},
       ]
     },
-    { title: "DG.Inspector.graphSpreadOptions", type: "Group", items: [
-        { title: "DG.Inspector.graphPlottedStDev", type: "Standard Deviation" },
-        { title: "DG.Inspector.graphPlottedMeanAbsDev", type: "Mean Absolute Deviation" },
+    {
+      title: "DG.Inspector.graphSpreadOptions", type: "Group", rulerStateKey: 'measuresOfSpread', items: [
+        {title: "DG.Inspector.graphPlottedStDev", type: "Standard Deviation"},
+        {title: "DG.Inspector.graphPlottedMeanAbsDev", type: "Mean Absolute Deviation"},
       ]
     },
-    { title: "DG.Inspector.graphBoxPlotNormalCurveOptions", type: "Group", items: [
-        { title: "DG.Inspector.graphPlottedBoxPlot", type: "Box Plot" },
+    {
+      title: "DG.Inspector.graphBoxPlotNormalCurveOptions", type: "Group", rulerStateKey: 'boxPlotAndNormalCurve',
+      items: [
+        {title: "DG.Inspector.graphPlottedBoxPlot", type: "Box Plot"},
       ]
     },
-    { title: "DG.Inspector.graphOtherValuesOptions", type: "Group", items: [
-        { title: "DG.Inspector.graphPlottedValue", type: "Plotted Value" },
-        { title: "DG.Inspector.graphMovableValue", type: "Movable Value" }
+    {
+      title: "DG.Inspector.graphOtherValuesOptions", type: "Group", rulerStateKey: 'otherValues', items: [
+        {title: "DG.Inspector.graphPlottedValue", type: "Plotted Value"},
+        {title: "DG.Inspector.graphMovableValue", type: "Movable Value"}
       ]
     },
   ],

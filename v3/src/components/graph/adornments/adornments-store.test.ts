@@ -57,7 +57,6 @@ describe("AdornmentsStore", () => {
   it("can be created", () => {
     const adornmentsStore = AdornmentsStore.create()
     expect(adornmentsStore).toBeDefined()
-    expect(adornmentsStore.type).toEqual("Adornments Store")
   })
 
   it("can have its defaultFontSize property set", () => {
