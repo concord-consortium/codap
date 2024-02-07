@@ -6,7 +6,7 @@ const helpers = createMultiStyleConfigHelpers(["menu", "list", "item"])
 export const Menu = helpers.defineMultiStyleConfig({
   baseStyle: {
     menu: {
-      font: `"Montserrat-Regular", sans-serif`,
+      font: `"Montserrat", sans-serif`,
       boxShadow: "md",
       rounded: "md",
       flexDirection: "column",
