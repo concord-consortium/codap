@@ -16,9 +16,10 @@ import {transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
-import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
+import {PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
+import { IPixiPointMetadata } from "../../graph/utilities/pixi-types"
 
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel

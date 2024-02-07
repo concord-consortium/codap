@@ -11,7 +11,8 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
-import {IPixiPointMetadata, IPixiPointsRef} from "../utilities/pixi-points"
+import {IPixiPointsRef} from "../utilities/pixi-points"
+import { IPixiPointMetadata } from "../utilities/pixi-types"
 
 export const CaseDots = function CaseDots(props: {
   pixiPointsRef: IPixiPointsRef

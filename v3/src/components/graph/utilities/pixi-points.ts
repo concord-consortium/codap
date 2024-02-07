@@ -2,11 +2,7 @@ import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
-import { computePointRadius } from "../../data-display/data-display-utils"
-
-const DEFAULT_Z_INDEX = 0
-const RAISED_Z_INDEX = 100
-const MAX_SPRITE_SCALE = 2
+import { DEFAULT_Z_INDEX, IPixiPointMetadata, IPixiPointStyle, MAX_SPRITE_SCALE, RAISED_Z_INDEX } from "./pixi-types"
 
 // Anything lying beneath the PixiJS canvas, expecting events to be passed through, must utilize only these specified
 // events. Others are currently not supported.
@@ -20,20 +16,6 @@ export enum PixiBackgroundPassThroughEvent {
 export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
-
-export interface IPixiPointMetadata {
-  caseID: string
-  plotNum: number
-  style: IPixiPointStyle
-}
-
-export interface IPixiPointStyle {
-  radius: number
-  fill: string
-  stroke: string
-  strokeWidth: number
-  strokeOpacity?: number
-}
 
 // PixiPoints layer can be setup to distribute events from background to elements laying underneath.
 export interface IBackgroundEventDistributionOptions {
@@ -78,6 +60,8 @@ export class PixiPoints {
   currentTransition?: PixiTransition
   targetProp: TransitionPropMap = {}
   startProp: TransitionPropMap = {}
+  targetStyleProp: TransitionPropMap = {}
+  startStyleProp: TransitionPropMap = {}
 
   onPointOver?: PixiPointEventHandler
   onPointLeave?: PixiPointEventHandler
@@ -121,12 +105,15 @@ export class PixiPoints {
   }
 
   get anyTransitionActive() {
-    return PixiTransition.anyTransitionActive(this.targetProp)
+    const activeReg = PixiTransition.anyTransitionActive(this.targetProp)
+    const activeStyle = PixiTransition.anyTransitionActive(this.targetStyleProp)
+    return activeReg || activeStyle
   }
 
   tick() {
     if (this.anyTransitionActive) {
       PixiTransition.transitionStep(this.targetProp, this.startProp)
+      PixiTransition.transitionStep(this.targetStyleProp, this.startStyleProp, this.renderer)
     } else {
       // The only reason for ticker to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
@@ -181,6 +168,9 @@ export class PixiPoints {
   }
 
   setPointXyProperty(prop: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
+    if (prop !== "position" && prop !== "scale") {
+      return
+    }
     if (this.currentTransition) {
       this.setTargetXyProp(prop, point, x, y)
     } else {
@@ -195,7 +185,7 @@ export class PixiPoints {
   }
 
   setTargetXyProp(propKey: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
-    if (!this.currentTransition) {
+    if (!this.currentTransition || (propKey !== "position" && propKey !== "scale")) {
       return
     }
     let targetProp = this.targetProp[propKey]
@@ -206,6 +196,20 @@ export class PixiPoints {
     }
     targetProp.set(point, { x, y, transition: this.currentTransition })
     startProp.set(point, { x: point[propKey].x, y: point[propKey].y, transition: this.currentTransition })
+  }
+  setTargetStyle(point: PIXI.Sprite, newStyle: IPixiPointStyle, style: IPixiPointStyle) {
+    if (!this.currentTransition) {
+      return
+    }
+    const propKey = "style"
+    let targetStyleProp = this.targetStyleProp[propKey]
+    let startStyleProp = this.startStyleProp[propKey]
+    if (!targetStyleProp || !startStyleProp) {
+      targetStyleProp = this.targetStyleProp[propKey] = new Map()
+      startStyleProp = this.startStyleProp[propKey] = new Map()
+    }
+    targetStyleProp.set(point, { style: newStyle, transition: this.currentTransition, })
+    startStyleProp.set(point, { style, transition: this.currentTransition })
   }
 
   setPointRaised(point: PIXI.Sprite, value: boolean) {
@@ -282,7 +286,7 @@ export class PixiPoints {
     const graphics = new PIXI.Graphics()
     graphics.beginFill(fill)
     graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
-    graphics.drawCircle(0, 0, radius)
+    graphics.drawRoundedRect(0, 0, radius * 2, radius * 2, radius)
     graphics.endFill()
     const texture = this.renderer.generateTexture(graphics, {
       // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
@@ -293,12 +297,6 @@ export class PixiPoints {
     this.textures.set(key, texture)
     this.cleanupUnusedTextures()
     return texture
-  }
-
-  getCurrentPointRadius() {
-    // TODO: Is passing 1 the right thing to do here?
-    const pointRadius = computePointRadius(this.pointsCount, 1, "normal")
-    return pointRadius
   }
 
   cleanupUnusedTextures() {
@@ -427,10 +425,11 @@ export class PixiPoints {
   }
 
   matchPointsToData(caseData: CaseData[], style: IPixiPointStyle, animateChange = false) {
-    // If change should be animated, we will modify the point radius with a transition after modifying everything else.
-    const currentRadius = this.getCurrentPointRadius()
-    const newStyle = { ...style, radius: animateChange ? currentRadius : style.radius }
-    const texture = this.getPointTexture(newStyle)
+    // If the changes should be animated, we will use the current texture and animate the style changes later.
+    // Otherwise, we create a new texture with the new style and apply it immediately.
+    // TODO: Is there a better way to get the current style?
+    const currentStyle = this.points[0] ? this.getMetadata(this.points[0]).style : style
+    const texture = animateChange ? this.getPointTexture(currentStyle) : this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
     // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
@@ -461,7 +460,7 @@ export class PixiPoints {
       if (!currentIDs.has(caseID)) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { caseID, plotNum, style: newStyle })
+        this.pointMetadata.set(sprite, { caseID, plotNum, style: animateChange ? currentStyle : style })
         this.caseIDToPoint.set(caseID, sprite)
       }
     }
@@ -472,15 +471,16 @@ export class PixiPoints {
       if (point.texture !== texture) {
         point.texture = texture
         const metadata = this.getMetadata(point)
-        metadata.style = newStyle
+        metadata.style = animateChange ? currentStyle : style
       }
     }
 
-    // If we're animating the change, we need to transition the point scale.
+    // If we're animating the change, we need to transition the point style/texture changes
     animateChange && this.points.forEach((point) => {
       this.transition(() => {
-        this.setPointScale(point, style.radius / currentRadius)
+        this.setTargetStyle(point, style, currentStyle)
       }, { duration: transitionDuration })
+      this.getMetadata(point).style = style
     })
 
     this.startRendering()

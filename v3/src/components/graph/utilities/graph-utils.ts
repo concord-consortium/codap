@@ -1,7 +1,7 @@
 import {extent, format} from "d3"
 import {isInteger} from "lodash"
 import * as PIXI from "pixi.js"
-import {IPixiPointMetadata, IPixiPointsRef} from "./pixi-points"
+import {IPixiPointsRef} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, transitionDuration} from "../../data-display/data-display-types"
@@ -14,6 +14,7 @@ import { isFiniteNumber } from "../../../utilities/math-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import t from "../../../utilities/translation/translate"
+import { IPixiPointMetadata } from "./pixi-types"
 
 /**
  * Utility routines having to do with graph entities
