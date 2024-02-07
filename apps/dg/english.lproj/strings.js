@@ -1154,6 +1154,8 @@ SC.stringsFor("en", {
     "DG.plugin.Sampler.title": "Sampler",
     "DG.plugin.Sampler.description": "Create random datasets from scratch or existing datasets.",
     "DG.plugin.Sampler.tab.sampler": "Sampler",
+    "DG.plugin.Sampler.tab.devices": "Model",
+    "DG.plugin.Sampler.tab.measures": "Measures",
     "DG.plugin.Sampler.tab.options": "Options",
     "DG.plugin.Sampler.tab.about": "About",
     "DG.plugin.Sampler.top-bar.run": "START",
