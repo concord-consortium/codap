@@ -25,16 +25,15 @@ export function useGraphModel(props: IProps) {
     if (!pixiPointsRef.current) {
       return
     }
+
     dataConfig && matchCirclesToData({
       dataConfiguration: dataConfig,
       pixiPoints: pixiPointsRef.current,
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-      animateChange: graphModel.pointDescription.animateChange,
       startAnimation, instanceId
     })
-    graphModel.pointDescription.clearAnimateChange()
   }, [dataConfig, pixiPointsRef, graphModel, startAnimation, instanceId])
 
   // respond to change in plotType

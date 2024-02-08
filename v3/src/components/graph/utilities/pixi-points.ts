@@ -2,7 +2,6 @@ import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
-import { computePointRadius } from "../../data-display/data-display-utils"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
@@ -180,6 +179,14 @@ export class PixiPoints {
     this.setPointXyProperty("scale", point, scale, scale)
   }
 
+  setAllPointsScale(scale: number, duration: number) {
+    return this.transition(() => {
+      this.points.forEach(point => {
+        this.setPointScale(point, scale)
+      })
+    }, { duration })
+  }
+
   setPointXyProperty(prop: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
     if (this.currentTransition) {
       this.setTargetXyProp(prop, point, x, y)
@@ -226,16 +233,18 @@ export class PixiPoints {
     return this.caseIDToPoint.get(caseId) as PIXI.Sprite
   }
 
-  transition(callback: () => void, options: { duration: number, onEnd?: () => void }) {
-    const { duration, onEnd } = options
+  transition(callback: () => void, options: { duration: number }) {
+    const { duration } = options
     if (duration === 0) {
       callback()
-      return
+      return Promise.resolve()
     }
-    this.currentTransition = new PixiTransition(duration, onEnd)
-    callback()
-    this.currentTransition = undefined
-    this.startRendering()
+    return new Promise<void>(resolve => {
+      this.currentTransition = new PixiTransition(duration, () => resolve())
+      callback()
+      this.currentTransition = undefined
+      this.startRendering()
+    })
   }
 
   getMetadata(sprite: PIXI.Sprite) {
@@ -293,12 +302,6 @@ export class PixiPoints {
     this.textures.set(key, texture)
     this.cleanupUnusedTextures()
     return texture
-  }
-
-  getCurrentPointRadius() {
-    // TODO: Is passing 1 the right thing to do here?
-    const pointRadius = computePointRadius(this.pointsCount, 1, "normal")
-    return pointRadius
   }
 
   cleanupUnusedTextures() {
@@ -426,11 +429,8 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle, animateChange = false) {
-    // If change should be animated, we will modify the point radius with a transition after modifying everything else.
-    const currentRadius = this.getCurrentPointRadius()
-    const newStyle = { ...style, radius: animateChange ? currentRadius : style.radius }
-    const texture = this.getPointTexture(newStyle)
+  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
+    const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
     // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
@@ -461,7 +461,7 @@ export class PixiPoints {
       if (!currentIDs.has(caseID)) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { caseID, plotNum, style: newStyle })
+        this.pointMetadata.set(sprite, { caseID, plotNum, style })
         this.caseIDToPoint.set(caseID, sprite)
       }
     }
@@ -472,16 +472,14 @@ export class PixiPoints {
       if (point.texture !== texture) {
         point.texture = texture
         const metadata = this.getMetadata(point)
-        metadata.style = newStyle
+        metadata.style = style
       }
     }
 
-    // If we're animating the change, we need to transition the point scale.
-    animateChange && this.points.forEach((point) => {
-      this.transition(() => {
-        this.setPointScale(point, style.radius / currentRadius)
-      }, { duration: transitionDuration })
-    })
+    // Before rendering, reset the scale for all points. This may be necessary if the scale was modified
+    // during a transition immediately before matchPointsToData is called. For example, when the Connecting
+    // Lines graph adornment is activated or deactivated.
+    this.setAllPointsScale(1, 0)
 
     this.startRendering()
   }

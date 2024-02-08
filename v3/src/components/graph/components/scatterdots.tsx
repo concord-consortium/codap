@@ -42,7 +42,9 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
-    plotNumRef = useRef(0)
+    plotNumRef = useRef(0),
+    pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier,
+    origPointSizeMultiplier = useRef(pointSizeMultiplier)
 
   // The Squares of Residuals option is controlled by the AdornmentsStore, so we need to watch for changes to that store
   // and call refreshSquares when the option changes. The squares are rendered in connection with the Movable Line and
@@ -207,18 +209,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     dataTip.hide()
   }, [dataTip, pixiPointsRef])
 
-  const refreshConnectingLines = useCallback(() => {
+  const refreshConnectingLines = useCallback(async () => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
-
-    // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
-    // revert to original point size when Connecting Lines are deactivated.
-    const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier
-    const animateChange = true
-    if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
-      graphModel.pointDescription.setPointSizeMultiplier(pointSizeMultiplier * .5, animateChange)
-    } else if (!showConnectingLines) {
-      graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
-    }
 
     const connectingLinesArea = select(connectingLinesRef.current)
     const curve = line().curve(curveLinear)
@@ -293,9 +285,20 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           })
       }
     })
+    // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
+    // revert to original point size when Connecting Lines are deactivated.
+    if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
+      origPointSizeMultiplier.current = pointSizeMultiplier
+      await pixiPointsRef.current?.setAllPointsScale(.5, transitionDuration)
+      graphModel.pointDescription.setPointSizeMultiplier(pointSizeMultiplier * .5)
+    } else if (!showConnectingLines) {
+      const scaleFactor = origPointSizeMultiplier.current / pointSizeMultiplier
+      await pixiPointsRef.current?.setAllPointsScale(scaleFactor, transitionDuration)
+      graphModel.pointDescription.setPointSizeMultiplier(origPointSizeMultiplier.current)
+    }
   }, [dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
-    handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
-    showConnectingLines])
+      handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
+      showConnectingLines, pointSizeMultiplier, connectingLinesActivatedRef, pixiPointsRef])
 
   const refreshSquares = useCallback(() => {
 

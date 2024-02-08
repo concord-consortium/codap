@@ -83,12 +83,10 @@ export interface IMatchCirclesProps {
   startAnimation: () => void
   instanceId: string | undefined
   pixiPoints: PixiPoints
-  animateChange?: boolean // default false
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
-          animateChange } = props
+  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor } = props
   const allCaseData = dataConfiguration.joinedCaseDataArrays
 
   startAnimation()
@@ -98,7 +96,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
     fill: pointColor,
     stroke: pointStrokeColor,
     strokeWidth: defaultStrokeWidth
-  }, animateChange)
+  })
 
   dataConfiguration.setPointsNeedUpdating(false)
 }
