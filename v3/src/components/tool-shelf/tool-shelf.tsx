@@ -79,7 +79,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       icon: <OptionsIcon className="icon-options"/>,
       label: t("DG.ToolButtonData.optionMenu.title"),
       hint: t("DG.ToolButtonData.optionMenu.toolTip"),
-      button: <OptionsShelfButton />
+      button: <OptionsShelfButton document={document} />
     },
     {
       icon: <HelpIcon className="icon-help"/>,
