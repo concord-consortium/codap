@@ -39,11 +39,12 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
   return (
     <CodapModal
       isOpen={isOpen}
-      onClose={closeModal}
+      modalHeight={"140px"}
       modalWidth={"350px"}
+      onClose={closeModal}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-header-title">
+        <div className="codap-header-title-simple">
           {t("DG.DocumentController.enterURLPrompt")}
         </div>
       </ModalHeader>

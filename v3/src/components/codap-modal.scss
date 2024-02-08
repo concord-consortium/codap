@@ -29,6 +29,13 @@ $header-height: 30px;
       line-height: $header-height;
     }
 
+    .codap-header-title-simple {
+      padding-left: 8px;
+      height: $header-height;
+      font-size: 12px;
+      line-height: $header-height;
+    }
+
     button {
       top: 0;
     }
