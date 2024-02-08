@@ -1,14 +1,9 @@
 import {
-  Button, FormControl, FormLabel, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
-  Textarea, Tooltip
+  Button, FormControl, Input, ModalBody, ModalFooter, ModalHeader, Tooltip
 } from "@chakra-ui/react"
 import React, { useState } from "react"
 import { CodapModal } from "../../codap-modal"
 import t from "../../../utilities/translation/translate"
-
-// TODO These should be translated strings
-const placeholderText = "URL";
-const okButtonText = "OK";
 
 interface IProps {
   currentValue?: string
@@ -29,15 +24,14 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
     onClose()
   }
 
-  const handleValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)
 
   const buttons = [{
-    // TODO These are the same as CODAP v2, but should they be separate from the attribute form?
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
     onClick: closeModal
   }, {
-    label: okButtonText,
+    label: t("V3.WebView.Modal.okBtnTitle"),
     tooltip: t("DG.DocumentController.enterViewWebPageOKTip"),
     onClick: applyValue
   }]
@@ -55,8 +49,7 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
       </ModalHeader>
       <ModalBody>
         <FormControl display="flex" flexDirection="column" data-testid="edit-formula-value-form">
-          <Textarea size="xs" value={value} onChange={handleValueChange}
-            placeholder={placeholderText}
+          <Input value={value} onChange={handleValueChange} placeholder={t("V3.WebView.Modal.PlaceholderText")}
             onKeyDown={(e) => e.stopPropagation()} data-testid="formula-value-input" />
         </FormControl>
       </ModalBody>

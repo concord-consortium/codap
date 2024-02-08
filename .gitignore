@@ -3,6 +3,7 @@
 .DS_Store
 nbproject
 .idea
+.env
 *.iml
 .deployDevCodaprc
 dist
