@@ -176,7 +176,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
-    "@concord-consortium/cloud-file-manager": "^2.0.0-pre.1",
+    "@concord-consortium/cloud-file-manager": "^2.0.0-pre.2",
     "@concord-consortium/mobx-state-tree": "^5.4.0-cc.1",
     "@dnd-kit/core": "^6.1.0",
     "@floating-ui/react": "^0.26.9",

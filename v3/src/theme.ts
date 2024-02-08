@@ -11,7 +11,7 @@ export const theme = extendTheme({
   },
   fonts: {
     // CODAP v2 default font stack
-    body: "Montserrat-Regular, sans-serif",
+    body: "Montserrat, sans-serif",
   },
   fontSizes: {
     md: "12px"
