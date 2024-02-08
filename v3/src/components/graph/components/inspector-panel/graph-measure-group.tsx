@@ -8,6 +8,7 @@ import {isGraphContentModel} from "../../models/graph-content-model"
 import {GraphContentModelContext} from "../../hooks/use-graph-content-model-context"
 import {GraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {IGroupItem} from "../../adornments/adornments-store-utils"
+import {uiState} from "../../../../models/ui-state"
 
 import "./point-format-panel.scss"
 import './measure-panel.scss'
@@ -24,14 +25,13 @@ export const GraphMeasureGroup = observer(function GraphMeasureGroup({
   if (!isGraphContentModel(graphModel)) {
     return null
   }
-  const adornmentsStore = graphModel.adornmentsStore
-  const itemsAreVisibile = adornmentsStore.getVisibility(measureGroup.rulerStateKey)
+  const itemsAreVisibile = uiState.getRulerStateVisibility(measureGroup.rulerStateKey)
   const isOpenIcon = itemsAreVisibile
     ? <Icon as={GoTriangleDown} boxSize={5}/>
     : <Icon as={GoTriangleRight} boxSize={5}/>
 
   const toggleVisibility = () => {
-    adornmentsStore.toggleVisibility(measureGroup.rulerStateKey)
+    uiState.toggleRulerStateVisibility(measureGroup.rulerStateKey)
   }
 
   const renderMeasureItems = () => {

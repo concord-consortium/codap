@@ -10,16 +10,9 @@ import { MovableValueAdornment } from "./movable-value-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import t from "../../../../utilities/translation/translate"
 
-// Todo: The following import doesn't seem to have any effect on what is displayed in the UI
-// import '../../components/inspector-panel/measure-panel.scss'
-
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel.adornmentsStore
-  const buttonStyle = {
-    fontSize: '12px', 'font-weight': 400, 'background-color': '#eeeeee', height: '24px', 'justify-content': 'left',
-    width: 'fit-content'
-  }
 
   const handleAddMovableValue = () => {
     const existingAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
@@ -53,14 +46,12 @@ const Controls = () => {
   return (
     <Flex direction="column">
       <Button onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add"
-              className='measure-movable-value-button' variant='solid' size='sm'
-              style={buttonStyle}
+              className='measure-movable-value-button'/* variant='solid' size='sm'*/
       >
         {t('DG.Inspector.graphAdd')}
       </Button>
       <Button onClick={handleRemoveMovableValue} data-testid="adornment-button-movable-value--remove"
               className='measure-movable-value-button' variant='solid' size='sm'
-              style={buttonStyle}
       >
         {t('DG.Inspector.graphRemove')}
       </Button>

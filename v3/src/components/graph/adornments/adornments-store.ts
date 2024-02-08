@@ -1,5 +1,5 @@
-import {Instance, types} from "mobx-state-tree"
-import {PlotTypes, RulerStateKey} from "./adornment-types"
+import {Instance} from "mobx-state-tree"
+import {PlotTypes} from "./adornment-types"
 import {AdornmentsBaseStore} from "./adornments-base-store"
 import {getAdornmentsMenuItemsFromTheStore} from "./adornments-store-utils"
 
@@ -9,24 +9,7 @@ import {getAdornmentsMenuItemsFromTheStore} from "./adornments-store-utils"
  */
 export const AdornmentsStore = AdornmentsBaseStore
   .named("AdornmentsStore")
-  .props({
-    rulerState: types.map(types.boolean)
-})
-  .actions(self => ({
-    afterCreate() {
-      self.rulerState.set("measuresOfCenter", true)
-    },
-    setVisibility(key: RulerStateKey, visible: boolean) {
-      self.rulerState.set(key, visible)
-    },
-    toggleVisibility(key: RulerStateKey) {
-      self.rulerState.set(key, !self.rulerState.get(key))
-    }
-  }))
   .views(self => ({
-    getVisibility(key: RulerStateKey) {
-      return !!self.rulerState.get(key)
-    },
     getAdornmentsMenuItems(plotType: PlotTypes) {
       return getAdornmentsMenuItemsFromTheStore(self, plotType)
     },

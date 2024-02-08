@@ -12,9 +12,11 @@
   margin-left: 20px;
 }
 
-measure-movable-value-button {
+.measure-movable-value-button {
   font-size: 12px!important;
   font-weight: 400!important;
   background-color: #eeeeee!important;
-  height: 24px!important;
+  height: 20px!important;
+  width: fit-content;
+  margin-bottom: 5px;
 }
