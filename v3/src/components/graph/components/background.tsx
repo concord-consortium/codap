@@ -5,14 +5,13 @@ import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
 import {rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
-import {IPixiPointsRef, PixiBackgroundPassThroughEvent, PixiPoints} from "../utilities/pixi-points"
+import {IPixiPointMetadata, IPixiPointsRef, PixiBackgroundPassThroughEvent, PixiPoints} from "../utilities/pixi-points"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import { IPixiPointMetadata } from "../utilities/pixi-types"
 
 interface IProps {
   marqueeState: MarqueeState

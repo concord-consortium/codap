@@ -14,7 +14,7 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {setPointCoordinates} from "../utilities/graph-utils"
-import {IPixiPointMetadata} from "../utilities/pixi-types"
+import {IPixiPointMetadata} from "../utilities/pixi-points"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {pixiPointsRef} = props,

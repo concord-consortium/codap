@@ -21,9 +21,8 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
-import {PixiBackgroundPassThroughEvent} from "../utilities/pixi-points"
+import {IPixiPointMetadata, PixiBackgroundPassThroughEvent} from "../utilities/pixi-points"
 import { transitionDuration } from "../../data-display/data-display-types"
-import { IPixiPointMetadata } from "../utilities/pixi-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const {pixiPointsRef} = props,
@@ -217,7 +216,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     const animateChange = true
     if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
       graphModel.pointDescription.setPointSizeMultiplier(pointSizeMultiplier * .5, animateChange)
-    } else if (!showConnectingLines && pointSizeMultiplier < 1) {
+    } else if (!showConnectingLines) {
       graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
     }
 

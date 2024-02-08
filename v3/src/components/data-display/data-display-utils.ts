@@ -12,8 +12,7 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
-import { PixiPoints } from "../graph/utilities/pixi-points"
-import { IPixiPointStyle } from "../graph/utilities/pixi-types"
+import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
