@@ -16,7 +16,7 @@ import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
 import t from "../../utilities/translation/translate"
-import { OptionsShelfButton } from "./options-button"
+import { OptionsShelfButton } from "./options/options-button"
 
 import "./tool-shelf.scss"
 
