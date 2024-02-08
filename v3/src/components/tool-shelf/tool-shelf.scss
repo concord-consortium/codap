@@ -20,6 +20,12 @@ $deleteButton: #4B8ADD;
     background-color: $codap-tool-shelf-gray;
 
     .tool-shelf-button {
+      span {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+      }
+
       &.undo-button, &.redo-button {
         width: 34px;
       }
