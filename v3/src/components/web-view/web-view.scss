@@ -1,9 +1,40 @@
-.codap-web-view {
-  width: 100%;
+.codap-web-view-body {
+  background-color: white;
   height: calc(100% - 25px);
+  position: relative;
+  width: 100%;
 
-  .codap-web-view-iframe {
-    width: 100%;
+  .codap-web-view-backdrop {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    position: absolute;
+    transform: rotate(-30deg) translateY(35%);
+    width: 100%;
+    z-index: 0;
+
+    .codap-web-view-url {
+      color: white;
+      font-size: x-large;
+      text-shadow: -1px -1px 0 #888, 1px -1px 0 #888, -1px 1px 0 #888, 1px 1px 0 #888;
+    }
+
+    .codap-web-view-message {
+      color: gray;
+      font-size: small;
+    }
+  }
+
+  .codap-web-view-iframe-wrapper {
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 1;
+
+    .codap-web-view-iframe {
+      height: 100%;
+      width: 100%;
+    }
   }
 }
