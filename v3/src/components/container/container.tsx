@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import React, { useCallback } from "react"
+import { useDocumentContext } from "../../hooks/use-document-context"
 import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
-import { IDocumentContentModel } from "../../models/document/document-content"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -11,10 +11,8 @@ import { MosaicTileRowComponent } from "./mosaic-tile-row"
 
 import "./container.scss"
 
-interface IProps {
-  content?: IDocumentContentModel
-}
-export const Container: React.FC<IProps> = ({ content }) => {
+export const Container: React.FC = () => {
+  const content = useDocumentContext()?.content;
   const isScrollBehaviorAuto = urlParams.scrollBehavior === "auto"
   // TODO: handle the possibility of multiple rows
   const row = content?.getRowByIndex(0)
@@ -46,7 +44,7 @@ export const Container: React.FC<IProps> = ({ content }) => {
   return (
     <div className={classes} ref={setNodeRef}>
       {isMosaicTileRow(row) &&
-        <MosaicTileRowComponent content={content} row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
+        <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
       {isFreeTileRow(row) &&
         <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
     </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Menu, MenuButton, MenuItem, MenuList, Tag, useDisclosure } from "@chakra-ui/react"
 import OptionsIcon from "../../../assets/icons/icon-options.svg"
-import { IDocumentModel } from "../../../models/document/document"
+import { useDocumentContext } from "../../../hooks/use-document-context"
 import t from "../../../utilities/translation/translate"
 import { kWebViewTileType } from "../../web-view/web-view-defs"
 import { isWebViewModel } from "../../web-view/web-view-model"
@@ -9,10 +9,8 @@ import { WebViewUrlModal } from "../../web-view/web-view-url-modal"
 
 import "../tool-shelf.scss"
 
-interface IProps {
-  document?: IDocumentModel
-}
-export const OptionsShelfButton = ({ document }: IProps) => {
+export const OptionsShelfButton = () => {
+  const document = useDocumentContext();
   const formulaModal = useDisclosure()
   const [webViewModalIsOpen, setWebViewModalIsOpen] = useState(false)
 

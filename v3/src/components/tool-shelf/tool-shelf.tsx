@@ -3,7 +3,6 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
-import { IDocumentModel } from "../../models/document/document"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
@@ -14,6 +13,7 @@ import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import OptionsIcon from "../../assets/icons/icon-options.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
+import { useDocumentContext } from "../../hooks/use-document-context"
 import { DEBUG_UNDO } from "../../lib/debug"
 import t from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options/options-button"
@@ -32,10 +32,8 @@ interface IRightButtonEntry {
   isDisabled?: () => boolean
   onClick?: () => void
 }
-interface IProps {
-  document?: IDocumentModel
-}
-export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
+export const ToolShelf = observer(function ToolShelf() {
+  const document = useDocumentContext();
   const toast = useToast()
   const labelToast = (entry: IRightButtonEntry) => toast({
     title: `"${entry.label}" button clicked`,
@@ -79,7 +77,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       icon: <OptionsIcon className="icon-options"/>,
       label: t("DG.ToolButtonData.optionMenu.title"),
       hint: t("DG.ToolButtonData.optionMenu.toolTip"),
-      button: <OptionsShelfButton document={document} />
+      button: <OptionsShelfButton />
     },
     {
       icon: <HelpIcon className="icon-help"/>,

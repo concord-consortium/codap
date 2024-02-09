@@ -1,7 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { IDocumentContentModel } from "../../models/document/document-content"
 import { IMosaicTileRow, IMosaicTileNode } from "../../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -14,16 +13,15 @@ import "./mosaic-tile-row.scss"
  */
 interface IMosaicTileRowProps {
   row: IMosaicTileRow
-  content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
   onCloseTile: (tileId: string) => void
 }
 export const MosaicTileRowComponent = observer(function MosaicTileRowComponent(
-  { content, row, getTile, onCloseTile }: IMosaicTileRowProps) {
+  { row, getTile, onCloseTile }: IMosaicTileRowProps) {
   return (
     <div className="mosaic-tile-row tile-row">
       {row &&
-        <MosaicNodeOrTileComponent content={content} row={row} nodeOrTileId={row.root}
+        <MosaicNodeOrTileComponent row={row} nodeOrTileId={row.root}
           getTile={getTile} onCloseTile={onCloseTile} />}
     </div>
   )
@@ -54,7 +52,6 @@ interface IExtentProps {
 interface INodeOrTileProps extends IExtentProps {
   row: IMosaicTileRow
   nodeOrTileId: string
-  content?: IDocumentContentModel
   getTile: (tileId: string) => ITileModel | undefined
   onCloseTile: (tileId: string) => void
 }
@@ -100,12 +97,11 @@ export const MosaicNodeComponent = observer(
  */
 interface IMosaicTileProps extends IExtentProps {
   tile: ITileModel
-  content?: IDocumentContentModel
   onCloseTile: (tileId: string) => void
 }
 export const MosaicTileComponent = observer(
   function MosaicTileComponent(
-  { content, tile, direction, pctExtent, onCloseTile }: IMosaicTileProps) {
+  { tile, direction, pctExtent, onCloseTile }: IMosaicTileProps) {
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
