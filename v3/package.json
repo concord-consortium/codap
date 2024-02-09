@@ -199,7 +199,6 @@
     "react": "^18.2.0",
     "react-data-grid": "7.0.0-beta.42",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.0.1",
     "react-leaflet": "^4.2.1",
     "react-resize-detector": "^10.0.1",
     "rtree": "^1.4.2",

@@ -1,9 +1,5 @@
 import { action, makeObservable, observable } from "mobx"
-
-export type RulerStateKey = "measuresOfCenter" | "measuresOfSpread" | "boxPlotAndNormalCurve" | "otherValues" | ""
-type RulerState = {
-  [key in RulerStateKey]: boolean
-}
+import { RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
   UIState represents globally accessible user-interface state that is not undoable, is not
@@ -20,8 +16,7 @@ export class UIState {
     measuresOfCenter: true,
     measuresOfSpread: false,
     boxPlotAndNormalCurve: false,
-    otherValues: false,
-    "": false
+    otherValues: false
   }
 
   constructor() {

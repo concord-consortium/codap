@@ -1,6 +1,5 @@
 import React from "react"
 import {Button, Icon, Flex} from "@chakra-ui/react"
-import {GoTriangleDown, GoTriangleRight} from "react-icons/go"
 import {observer} from "mobx-react-lite"
 import t from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
@@ -9,24 +8,25 @@ import {GraphContentModelContext} from "../../hooks/use-graph-content-model-cont
 import {GraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {IGroupItem} from "../../adornments/adornments-store-utils"
 import {uiState} from "../../../../models/ui-state"
+import GoTriangleDown from "../../../../assets/icons/github-octicons/triangle-down.svg"
+import GoTriangleRight from "../../../../assets/icons/github-octicons/triangle-right.svg"
 
-import "./point-format-panel.scss"
-import './measure-panel.scss'
+import './graph-measure-group.scss'
 
 interface IProps {
   tile?: ITileModel
   measureGroup: IGroupItem
 }
 
-export const GraphMeasureGroup = observer(function GraphMeasureGroup({
-                                                                       tile, measureGroup
-                                                                     }: IProps) {
+export const GraphMeasureGroup = observer(
+  function GraphMeasureGroup({ tile, measureGroup }: IProps)
+{
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   if (!isGraphContentModel(graphModel)) {
     return null
   }
-  const itemsAreVisibile = uiState.getRulerStateVisibility(measureGroup.rulerStateKey)
-  const isOpenIcon = itemsAreVisibile
+  const itemsAreVisible = uiState.getRulerStateVisibility(measureGroup.rulerStateKey)
+  const isOpenIcon = itemsAreVisible
     ? <Icon as={GoTriangleDown} boxSize={5}/>
     : <Icon as={GoTriangleRight} boxSize={5}/>
 
@@ -35,7 +35,7 @@ export const GraphMeasureGroup = observer(function GraphMeasureGroup({
   }
 
   const renderMeasureItems = () => {
-    if (itemsAreVisibile) {
+    if (itemsAreVisible) {
       const theItems = measureGroup.menuItems.map(measure => {
         const {componentInfo, componentContentInfo, title} = measure
         const titleSlug = t(title).replace(/ /g, "-").toLowerCase()

@@ -1,17 +1,15 @@
 import React from "react"
-import {Box, Checkbox, Flex, FormControl} from "@chakra-ui/react"
-import {observer} from "mobx-react-lite"
+import { Box, Checkbox, Flex, FormControl } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import t from "../../../../utilities/translation/translate"
-import {ITileModel} from "../../../../models/tiles/tile-model"
-import {isGraphContentModel} from "../../models/graph-content-model"
-import {GraphContentModelContext} from "../../hooks/use-graph-content-model-context"
-import {GraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
-import {InspectorPalette} from "../../../inspector-panel"
+import { ITileModel } from "../../../../models/tiles/tile-model"
+import { isGraphContentModel } from "../../models/graph-content-model"
+import { GraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { GraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
+import { InspectorPalette } from "../../../inspector-panel"
+import { isGroupItem, isMeasureMenuItem } from "../../adornments/adornments-store-utils"
+import { GraphMeasureGroup } from "./graph-measure-group"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
-
-import "./point-format-panel.scss"
-import {isGroupItem, isMeasureMenuItem} from "../../adornments/adornments-store-utils"
-import {GraphMeasureGroup} from "./graph-measure-group"
 
 interface IProps {
   tile?: ITileModel
@@ -21,15 +19,15 @@ interface IProps {
 }
 
 export const GraphMeasurePalette = observer(function GraphMeasurePalette({
-                                                                           tile, panelRect, buttonRect, setShowPalette
-                                                                         }: IProps) {
-  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const measures = graphModel ? graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType) : undefined
+  tile, panelRect, buttonRect, setShowPalette
+}: IProps) {
+  const graphModel = isGraphContentModel(tile?.content) ? tile.content : undefined
+  const measures = graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType)
 
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
-      Icon={<ValuesIcon/>}
+      Icon={<ValuesIcon />}
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}

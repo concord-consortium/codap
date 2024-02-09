@@ -1,6 +1,7 @@
 import {getAdornmentContentInfo, getAdornmentTypes, IAdornmentContentInfo} from "./adornment-content-info"
 import {getAdornmentComponentInfo, IAdornmentComponentInfo} from "./adornment-component-info"
-import {IMeasure, measures, PlotTypes, RulerStateKey} from "./adornment-types"
+import {PlotTypes} from "./adornment-types"
+import {IMeasure, measures, RulerStateKey} from "./adornment-ui-types"
 import {kMovableLineType} from "./movable-line/movable-line-adornment-types"
 import {kLSRLType} from "./lsrl/lsrl-adornment-types"
 import {IAdornmentsBaseStore} from "./adornments-base-store"
@@ -151,4 +152,3 @@ export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore
 
   return measureMenuItems
 }
-
