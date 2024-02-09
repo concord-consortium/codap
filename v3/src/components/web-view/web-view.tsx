@@ -1,3 +1,4 @@
+import { observer } from "mobx-react-lite"
 import React from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isWebViewModel } from "./web-view-model"
@@ -5,7 +6,7 @@ import t from "../../utilities/translation/translate"
 
 import "./web-view.scss"
 
-export const WebViewComponent = ({ tile }: ITileBaseProps) => {
+export const WebViewComponent = observer(function WebViewComponent({ tile }: ITileBaseProps) {
   const webViewModel = tile?.content
   if (!isWebViewModel(webViewModel)) return null
 
@@ -20,4 +21,4 @@ export const WebViewComponent = ({ tile }: ITileBaseProps) => {
       </div>
     </div>
   )
-}
+})

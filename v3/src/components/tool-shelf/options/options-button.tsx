@@ -5,7 +5,7 @@ import { IDocumentModel } from "../../../models/document/document"
 import t from "../../../utilities/translation/translate"
 import { kWebViewTileType } from "../../web-view/web-view-defs"
 import { isWebViewModel } from "../../web-view/web-view-model"
-import { WebViewUrlModal } from "./web-view-url-modal"
+import { WebViewUrlModal } from "../../web-view/web-view-url-modal"
 
 import "../tool-shelf.scss"
 
@@ -33,7 +33,7 @@ export const OptionsShelfButton = ({ document }: IProps) => {
   const handleSetWebViewUrlAccept = (url: string) => {
     document?.content?.applyUndoableAction(() => {
       const tile = document?.content?.createOrShowTile?.(kWebViewTileType)
-      isWebViewModel(tile?.content) && tile?.content.setUrl(url);
+      isWebViewModel(tile?.content) && tile?.content.setUrl(url)
     }, "DG.Undo.webView.show", "DG.Redo.webView.show")
   }
   return (
@@ -57,7 +57,8 @@ export const OptionsShelfButton = ({ document }: IProps) => {
         <WebViewUrlModal
           isOpen={formulaModal.isOpen}
           onAccept={handleSetWebViewUrlAccept}
-          onClose={handleSetWebViewUrlClose} />
+          onClose={handleSetWebViewUrlClose}
+        />
       }
     </>
   )
