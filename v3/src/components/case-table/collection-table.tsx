@@ -1,3 +1,4 @@
+import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
@@ -8,14 +9,17 @@ import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { mstReaction } from "../../utilities/mst-reaction"
 
-import styles from "./case-table-shared.scss"
 import "react-data-grid/lib/styles.css"
+import styles from "./case-table-shared.scss"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 
@@ -28,12 +32,14 @@ interface IProps {
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const { onMount, onNewCollectionDrop, onTableScroll, onScrollClosestRowIntoView } = props
   const data = useDataSetContext()
+  const metadata = useCaseMetadata()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
+  const forceUpdate = useForceUpdate()
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element ?? undefined
@@ -73,6 +79,42 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [collectionId, collectionTableModel, onTableScroll])
 
+  // column widths passed to RDG
+  const columnWidths = useRef<Map<string, number>>(new Map())
+
+  // respond to column width changes in shared metadata (e.g. undo/redo)
+  useEffect(() => {
+    return metadata && mstReaction(
+      () => {
+        const newColumnWidths = new Map<string, number>()
+        columns.forEach(column => {
+          const width = metadata?.columnWidths.get(column.key) ?? column.width
+          if (width != null && typeof width === "number") {
+            newColumnWidths.set(column.key, width)
+          }
+        })
+        return newColumnWidths
+      },
+      newColumnWidths => {
+        columnWidths.current = newColumnWidths
+        forceUpdate()
+      },
+      { name: "CollectionTable.updateColumnWidths", fireImmediately: true, equals: comparer.structural },
+      metadata)
+  }, [columns, forceUpdate, metadata])
+
+  // respond to column width changes from RDG
+  const handleColumnResize = useCallback(
+    function handleColumnResize(idx: number, width: number, isComplete?: boolean | undefined) {
+      const attrId = columns[idx].key
+      columnWidths.current.set(attrId, width)
+      if (isComplete) {
+        metadata?.applyUndoableAction(() => {
+          metadata.columnWidths.set(attrId, width)
+        }, "DG.Undo.caseTable.resizeOneColumn", "DG.Redo.caseTable.resizeOneColumn")
+      }
+    }, [columns, metadata])
+
   const rows = collectionTableModel?.rows
   if (!data || !rows) return null
 
@@ -84,6 +126,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid"
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          columnWidths={columnWidths.current} onColumnResize={handleColumnResize}
           onCellClick={handleCellClick} onRowsChange={handleRowsChange} onScroll={handleGridScroll}/>
       </div>
     </div>
