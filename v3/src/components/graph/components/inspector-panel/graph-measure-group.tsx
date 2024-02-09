@@ -25,13 +25,13 @@ export const GraphMeasureGroup = observer(
   if (!isGraphContentModel(graphModel)) {
     return null
   }
-  const itemsAreVisible = uiState.getRulerStateVisibility(measureGroup.rulerStateKey)
+  const itemsAreVisible = measureGroup.rulerStateKey && uiState.getRulerStateVisibility(measureGroup.rulerStateKey)
   const isOpenIcon = itemsAreVisible
     ? <Icon as={GoTriangleDown} boxSize={5}/>
     : <Icon as={GoTriangleRight} boxSize={5}/>
 
   const toggleVisibility = () => {
-    uiState.toggleRulerStateVisibility(measureGroup.rulerStateKey)
+    measureGroup.rulerStateKey && uiState.toggleRulerStateVisibility(measureGroup.rulerStateKey)
   }
 
   const renderMeasureItems = () => {

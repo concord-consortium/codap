@@ -23,7 +23,7 @@ export function isMeasureMenuItem(item: IMeasureMenuItem | IGroupItem): item is 
 export interface IGroupItem {
   title: string
   type: string
-  rulerStateKey: RulerStateKey
+  rulerStateKey: RulerStateKey | undefined
   menuItems: IMeasureMenuItem[]
 }
 
@@ -35,7 +35,7 @@ export type MeasureMenuItemArray = Array<IMeasureMenuItem | IGroupItem>
 
 export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore, plotType: PlotTypes) {
 
-  function constructMeasureItem(measure: IMeasure) {
+  function constructMeasureItem(measure: IMeasure): IMeasureMenuItem {
     return {
       title: measure.title,
       type: measure.type,
@@ -45,13 +45,13 @@ export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore
     }
   }
 
-  function constructGroupItem(group: IMeasure) {
+  function constructGroupItem(group: IMeasure): IGroupItem {
     return {
       title: group.title,
       type: group.type,
-      rulerStateKey: group.rulerStateKey || "",
+      rulerStateKey: group.rulerStateKey,
       menuItems: group.items?.map(constructMeasureItem) || []
-    } as IGroupItem
+    }
   }
 
   // Add the Show Measure Labels option checkbox immediately before the first group item. Note that group

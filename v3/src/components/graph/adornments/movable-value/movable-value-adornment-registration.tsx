@@ -36,13 +36,7 @@ const Controls = () => {
       kMovableValueUndoRemoveKey, kMovableValueRedoRemoveKey
     )
   }
-  /**
-   * Todo: The two buttons are problematic wrt style.
-   * 1. The className is not being applied to the buttons.
-   * 2. The font-weight defined in buttonStyle is not being applied to the buttons.
-   * 3. There should be a space between the two buttons.
-   * Note that moving this code to the GraphMeasureGroup component doesn't solve the problem.
-   */
+
   return (
     <Flex direction="column">
       <Button onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add"
