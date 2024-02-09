@@ -1083,8 +1083,8 @@ SC.stringsFor("es", {
               "DG.Undo.graph.hidePlottedNormal": "Undo hiding normal curve",
               "DG.Redo.graph.showPlottedNormal": "Redo showing normal curve",
               "DG.ScatterPlotModel.LSRLCIBandInfo": "Shaded regions shows the range\n in which the true regression line\n lies at 95% confidence level.",
-              "DG.PlottedAverageAdornment.stErrValueTitle": "±%@ SE, %@",
-              "DG.Inspector.graphLSRLSlopeCI": "Show Confidence Bands",
+              "DG.PlottedAverageAdornment.stErrValueTitle": "%@ SE%@mean%@=%@",
+              "DG.Inspector.graphLSRLSlopeCI": "Show Fit Uncertainty",
               "DG.Inspector.graphSpreadOptions": "Measures of Spread",
               "DG.Inspector.graphPlottedStErr": "Standard Error",
               "DG.Inspector.graphPlottedNormal": "Normal Curve",
@@ -1095,5 +1095,11 @@ SC.stringsFor("es", {
               "DG.Redo.legend.unlockQuantiles": "Redo unlocking legend color bins",
               "DG.Inspector.lockLegendQuantiles": "Lock legend color bins",
               "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change.",
-              "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI"
+              "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI",
+              "DG.plugin.Sampler.tab.devices": "Model",
+              "DG.plugin.Sampler.tab.measures": "Measures",
+              "DG.Inspector.graphCenterOptions": "Measures of Center",
+              "DG.Inspector.graphBoxPlotNormalCurveOptions": "Box Plot and Normal Curve",
+              "DG.Inspector.graphBoxPlotGaussianFitOptions": "Box Plot and Gaussian Fit",
+              "DG.Inspector.graphOtherValuesOptions": "Plotted and Movable Values"
 });

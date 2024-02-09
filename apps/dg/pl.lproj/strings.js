@@ -1095,5 +1095,11 @@ SC.stringsFor("pl", {
               "DG.Redo.legend.unlockQuantiles": "Ponów odblokowanie legendy pojemników kolorów",
               "DG.Inspector.lockLegendQuantiles": "Blokuj legendę pojemników kolorów",
               "DG.Inspector.lockLegendQuantilesTooltip": "Jeśli zaznaczone, pojemniki kolorów nie zmienią się, gdy zmienią się wartości.",
-              "DG.Inspector.graphBoxPlotShowICI": "Pokaż nieformalny CI"
+              "DG.Inspector.graphBoxPlotShowICI": "Pokaż nieformalny CI",
+              "DG.plugin.Sampler.tab.devices": "Model",
+              "DG.plugin.Sampler.tab.measures": "Measures",
+              "DG.Inspector.graphCenterOptions": "Measures of Center",
+              "DG.Inspector.graphBoxPlotNormalCurveOptions": "Box Plot and Normal Curve",
+              "DG.Inspector.graphBoxPlotGaussianFitOptions": "Box Plot and Gaussian Fit",
+              "DG.Inspector.graphOtherValuesOptions": "Plotted and Movable Values"
 });
