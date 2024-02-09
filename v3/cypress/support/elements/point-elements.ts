@@ -42,18 +42,6 @@ export const PointElements = {
       return $style.substring($style.indexOf("stroke:") + 1, $style.indexOf(")"))
     })
   },
-  verifyPointIsSelected(index) {
-    this.getPointOnGraph(index).invoke("attr", "class").should("contain", "graph-dot-highlighted")
-    this.getPointColor(index).should("contain", "rgb(70, 130, 180)")
-  },
-  verifyPointIsSelectedFromLegend(index) {
-    this.getPointOnGraph(index).invoke("attr", "class").should("contain", "graph-dot-highlighted")
-    this.getPointStroke(index).should("contain", "rgb(255, 0, 0)")
-  },
-  verifyHighlightedPoint(tooltip) {
-    this.getGraphTile().find("[data-testid=graph-dot].graph-dot-highlighted").click()
-    cy.get("[data-testid=graph-point-data-tip]").should("have.text", tooltip)
-  },
   verifyGraphPointDataToolTip(tooltip) {
     cy.get("[data-testid=graph-point-data-tip]").should("have.text", tooltip)
   }

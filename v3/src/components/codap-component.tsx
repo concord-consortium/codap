@@ -45,7 +45,7 @@ export const CodapComponent = observer(function CodapComponent({
   const classes = clsx("codap-component", tileEltClass, { minimized: isMinimized })
   return (
     <TileModelContext.Provider value={tile}>
-      <div className={classes} key={tile.id}
+      <div className={classes} key={tile.id} data-testid={tileEltClass}
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
         <Component tile={tile} isMinimized={isMinimized} />

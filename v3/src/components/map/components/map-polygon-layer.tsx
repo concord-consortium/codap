@@ -5,6 +5,7 @@ import React, {useCallback, useEffect} from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import {useMap} from "react-leaflet"
+import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {getCaseTipText, handleClickOnCase} from "../../data-display/data-display-utils"
@@ -20,6 +21,7 @@ import {
   kMapAreaWithLegendSelectedBorderColor, PolygonLayerOptions
 }
   from "../map-types"
+import { PixiBackgroundPassThroughEvent } from "../../graph/utilities/pixi-points"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
@@ -71,7 +73,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
         const handleClick = (iEvent: LeafletMouseEvent) => {
             const mouseEvent = iEvent.originalEvent
-            handleClickOnCase(mouseEvent, caseID, dataset)
+            handleClickOnCase(mouseEvent as PointerEvent, caseID, dataset)
             mouseEvent.stopPropagation()
           },
 
@@ -92,15 +94,21 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
                 tFeature.bindPopup(infoPopup).openPopup()
               }
             }, transitionDuration)
+            // Manual cursor setup is necessary when there's also the map points layer that uses PixiJS canvas.
+            // In that case, the events are redistributed from canvas and the only way to have hover cursor is to use
+            // mouseover and mouseout events.
+            leafletMap.getContainer().style.cursor = "pointer"
           },
 
           handleMouseout = () => {
             infoPopup?.close()
             infoPopup = null
+            // Manual cursor setup is necessary when there's also the map points layer that uses PixiJS canvas.
+            leafletMap.getContainer().style.cursor = ""
           }
 
         if (!jsonObject) {
-          console.log(`MapPolygonLayer.refreshPolygons: error: ${error}`)
+          debugLog(DEBUG_MAP, `MapPolygonLayer.refreshPolygons: error: ${error}`)
           return
         }
         mapLayerModel.features[caseIndex] = geoJSON(jsonObject, {
@@ -113,9 +121,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           },
           caseID // Stashes reference in features[iIndex].options.caseID
         } as PolygonLayerOptions)
-          .on('click', handleClick) // unable to use 'mousedown' for unknown reason
-          .on('mouseover', handleMouseover)
-          .on('mouseout', handleMouseout)
+          .on(PixiBackgroundPassThroughEvent.Click, handleClick)
+          .on(PixiBackgroundPassThroughEvent.MouseOver, handleMouseover)
+          .on(PixiBackgroundPassThroughEvent.MouseOut, handleMouseout)
           .addTo(leafletMap)
       }
 

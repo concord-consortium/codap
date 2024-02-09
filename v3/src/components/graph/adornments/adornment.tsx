@@ -1,10 +1,10 @@
 import React from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { useDeepCompareMemo } from "use-deep-compare"
 import { IAdornmentModel } from "./adornment-models"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { useSubplotExtent } from "../hooks/use-subplot-extent"
-import { INumericAxisModel } from "../../axis/models/axis-model"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
 import { transitionDuration } from "../../data-display/data-display-types"
 
@@ -15,7 +15,8 @@ interface IProps {
   cellKey: Record<string, string>
 }
 
-export const Adornment = observer(function Adornment({adornment, cellKey}: IProps) {
+export const Adornment = observer(function Adornment({adornment, cellKey: _cellKey}: IProps) {
+  const cellKey = useDeepCompareMemo(() => _cellKey, [_cellKey])
   const graphModel = useGraphContentModelContext()
   const { subPlotWidth, subPlotHeight } = useSubplotExtent()
   const classFromCellKey = adornment.classNameFromKey(cellKey)
@@ -51,8 +52,8 @@ export const Adornment = observer(function Adornment({adornment, cellKey}: IProp
         model={adornment}
         plotHeight={subPlotHeight}
         plotWidth={subPlotWidth}
-        xAxis={graphModel.getAxis('bottom') as INumericAxisModel}
-        yAxis={graphModel.getAxis('left') as INumericAxisModel}
+        xAxis={graphModel.getNumericAxis('bottom')}
+        yAxis={graphModel.getNumericAxis('left')}
       />
     </div>
   )

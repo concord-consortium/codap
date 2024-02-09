@@ -4,31 +4,22 @@ import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import t from "../../../../utilities/translation/translate"
 import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { Point } from "../../../data-display/data-display-types"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { measureText } from "../../../../hooks/use-measure-text"
+import { IAdornmentComponentProps } from "../adornment-component-info"
 import { ILabel, IValue } from "./univariate-measure-adornment-types"
 import { UnivariateMeasureAdornmentHelper } from "./univariate-measure-adornment-helper"
 import { UnivariateMeasureAdornmentBaseComponent } from "./univariate-measure-adornment-base-component"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
-interface IProps {
-  cellKey: Record<string, string>
-  containerId?: string
-  model: IUnivariateMeasureAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
 export const UnivariateMeasureAdornmentSimpleComponent = observer(
-  function UnivariateMeasureAdornmentSimpleComponent (props: IProps) {
-    const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+  function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
+    const {cellKey={}, containerId, plotHeight, plotWidth, xAxis, yAxis} = props
+    const model = props.model as IUnivariateMeasureAdornmentModel
     const layout = useAxisLayoutContext()
     const graphModel = useGraphContentModelContext()
     const dataConfig = useGraphDataConfigurationContext()
@@ -44,6 +35,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const valueRef = useRef<SVGGElement>(null)
     const valueObjRef = useRef<IValue>({})
     const labelRef = useRef<HTMLDivElement>(null)
+    const isBlockingOtherMeasure = dataConfig &&
+      helper.blocksOtherMeasure({adornmentsStore, attrId, dataConfig, isVertical: isVertical.current})
 
     const highlightCovers = useCallback((highlight: boolean) => {
       const covers = selectAll(`#${helper.measureSlug}-${containerId} .${helper.measureSlug}-cover`)
@@ -60,7 +53,15 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const tip = select(`#${tipId}`)
       tip.classed("visible", visible)
       highlightCovers(visible)
-    }, [highlightCovers])
+      if (isBlockingOtherMeasure) {
+        const containerNode: Element = select(`#${containerId}`).node() as Element
+        const parentContainer = containerNode.parentNode as Element
+        const blockedMeasureTips = select(parentContainer).selectAll(`.show-on-overlap-hover`).filter((d, i, nodes) => {
+          return (nodes[i] as SVGTextElement).id !== tipId
+        })
+        blockedMeasureTips.classed("visible offset", visible)
+      }
+    }, [containerId, highlightCovers, isBlockingOtherMeasure])
 
     const handleMoveLabel = useCallback((event: { x: number, y: number, dx: number, dy: number }, labelId: string) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -142,7 +143,11 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       const selection = select(valueRef.current)
       const textId = helper.generateIdString("tip")
-      const textClass = clsx("measure-tip", `${helper.measureSlug}-tip`)
+      const textClass = clsx(
+        "measure-tip",
+        `${helper.measureSlug}-tip`,
+        { "show-on-overlap-hover": isBlockingOtherMeasure }
+      )
       const textTipWidth = measureText(textContent, "10px Lato, sans-serif")
       const lineOffset = 5
       const topOffset = plotHeight / cellCounts.y * .25 // 25% of the height of the subplot
@@ -181,7 +186,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => toggleTextTip(textId, true))
         .on("mouseout", () => toggleTextTip(textId, false))
 
-    }, [cellCounts, helper, plotHeight, plotWidth, toggleTextTip])
+    }, [cellCounts, helper, isBlockingOtherMeasure, plotHeight, plotWidth, toggleTextTip])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance, valueObj: IValue, labelObj: ILabel) => {
       if (!attrId || !dataConfig) return
@@ -258,7 +263,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       if (measure) {
         addAdornmentElements(measure, valueObjRef.current, newLabelObj)
       }
-    }, [model, helper.instanceKey, labelRef, addAdornmentElements])
+    }, [addAdornmentElements, helper.instanceKey, model])
 
     return (
       <UnivariateMeasureAdornmentBaseComponent

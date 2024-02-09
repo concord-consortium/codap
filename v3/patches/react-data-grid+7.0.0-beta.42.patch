@@ -1,0 +1,36 @@
+diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
+index b83667f..72b5c1c 100644
+--- a/node_modules/react-data-grid/lib/bundle.cjs
++++ b/node_modules/react-data-grid/lib/bundle.cjs
+@@ -3321,5 +3321,6 @@ exports.renderSortPriority = renderSortPriority;
+ exports.renderToggleGroup = renderToggleGroup;
+ exports.renderValue = renderValue;
+ exports.textEditor = textEditor;
++exports.textEditorClassname = textEditorClassname; // [CC]
+ exports.useRowSelection = useRowSelection;
+ //# sourceMappingURL=bundle.cjs.map
+diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
+index fa2eaab..d6f0c09 100644
+--- a/node_modules/react-data-grid/lib/bundle.js
++++ b/node_modules/react-data-grid/lib/bundle.js
+@@ -3302,5 +3302,6 @@ function textEditor({
+   });
+ }
+ 
+-export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, useRowSelection };
++// [CC] (patch-package) export textEditorClassname
++export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, textEditorClassname, useRowSelection };
+ //# sourceMappingURL=bundle.js.map
+diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
+index 3234d2e..9aef4df 100644
+--- a/node_modules/react-data-grid/lib/index.d.ts
++++ b/node_modules/react-data-grid/lib/index.d.ts
+@@ -438,6 +438,8 @@ export declare interface SortColumn {
+ 
+ export declare type SortDirection = 'ASC' | 'DESC';
+ 
++export declare const textEditorClassname: string; // [CC]
++
+ export declare function textEditor<TRow, TSummaryRow>({ row, column, onRowChange, onClose }: RenderEditCellProps<TRow, TSummaryRow>): JSX_2.Element;
+ 
+ export declare function ToggleGroup<R, SR>({ groupKey, isExpanded, tabIndex, toggleGroup }: RenderGroupCellProps<R, SR>): JSX_2.Element;

@@ -1,6 +1,7 @@
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
-import {IDotsRef, axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
+import {axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
+import {IPixiPointsRef} from "../utilities/pixi-points"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
@@ -25,12 +26,12 @@ interface IGraphControllerConstructorProps {
 
 interface IGraphControllerProps {
   graphModel: IGraphContentModel
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
 export class GraphController {
   graphModel?: IGraphContentModel
-  dotsRef?: IDotsRef
+  pixiPointsRef?: IPixiPointsRef
   layout: GraphLayout
   instanceId: string
   // tracks the currently configured attribute descriptions so that we know whether
@@ -44,7 +45,7 @@ export class GraphController {
 
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
-    this.dotsRef = props.dotsRef
+    this.pixiPointsRef = props.pixiPointsRef
     if (this.graphModel.dataConfiguration.dataset !== this.graphModel.dataset) {
       this.graphModel.dataConfiguration.setDataset(
         this.graphModel.dataset, this.graphModel.metadata)
@@ -53,13 +54,13 @@ export class GraphController {
   }
 
   callMatchCirclesToData() {
-    const {graphModel, dotsRef, instanceId} = this
-    if (graphModel && dotsRef?.current) {
+    const {graphModel, pixiPointsRef, instanceId} = this
+    if (graphModel && pixiPointsRef?.current) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius()
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, dotsElement: dotsRef.current,
+        dataConfiguration, pixiPoints: pixiPointsRef.current,
         pointRadius, startAnimation: graphModel.startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }
@@ -68,10 +69,9 @@ export class GraphController {
   // Called after restore from document or undo/redo, i.e. the models are all configured
   // appropriately but the scales and other non-serialized properties need to be synced.
   initializeGraph() {
-    const {graphModel, dotsRef, layout} = this,
+    const {graphModel, layout} = this,
       dataConfig = graphModel?.dataConfiguration
-    if (dataConfig && layout && dotsRef?.current &&
-        this.attrConfigForInitGraph !== dataConfig.attributeDescriptionsStr) {
+    if (dataConfig && layout && this.attrConfigForInitGraph !== dataConfig.attributeDescriptionsStr) {
       AxisPlaces.forEach((axisPlace: AxisPlace) => {
         const axisModel = graphModel.getAxis(axisPlace),
           attrRole = axisPlaceToAttrRole[axisPlace]

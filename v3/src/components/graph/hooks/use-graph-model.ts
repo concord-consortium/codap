@@ -1,20 +1,20 @@
 import {useCallback, useEffect} from "react"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {IDotsRef} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
+import {IPixiPointsRef} from "../utilities/pixi-points"
 import {IGraphContentModel, isGraphVisualPropsAction} from "../models/graph-content-model"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 
 interface IProps {
   graphModel: IGraphContentModel
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
   instanceId: string | undefined
 }
 
 export function useGraphModel(props: IProps) {
-  const {graphModel, dotsRef, instanceId} = props,
+  const {graphModel, instanceId, pixiPointsRef} = props,
     dataConfig = graphModel.dataConfiguration,
     yAxisModel = graphModel.getAxis('left'),
     yAttrID = graphModel.getAttributeID('y'),
@@ -22,15 +22,19 @@ export function useGraphModel(props: IProps) {
     startAnimation = graphModel.startAnimation
 
   const callMatchCirclesToData = useCallback(() => {
+    if (!pixiPointsRef.current) {
+      return
+    }
     dataConfig && matchCirclesToData({
       dataConfiguration: dataConfig,
+      pixiPoints: pixiPointsRef.current,
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-      dotsElement: dotsRef.current,
+      animateChange: graphModel.pointDescription.animateChange,
       startAnimation, instanceId
     })
-  }, [dataConfig, graphModel, dotsRef, startAnimation, instanceId])
+  }, [dataConfig, pixiPointsRef, graphModel, startAnimation, instanceId])
 
   // respond to change in plotType
   useEffect(function installPlotTypeAction() {

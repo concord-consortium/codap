@@ -1,3 +1,4 @@
+import { comparer } from "mobx"
 import { useEffect } from "react"
 import { useMemo } from "use-memo-one"
 import { mstReaction } from "../../../utilities/mst-reaction"
@@ -13,6 +14,7 @@ export function useInitGraphLayout(model?: IGraphContentModel) {
     const { dataConfiguration } = model || {}
     return mstReaction(
       () => {
+        dataConfiguration?.casesChangeCount // eslint-disable-line no-unused-expressions
         const repetitions: Partial<Record<AxisPlace, number>> = {}
         layout.axisScales.forEach((multiScale, place) => {
           repetitions[place] = dataConfiguration?.numRepetitionsForPlace(place) ?? 1
@@ -23,7 +25,9 @@ export function useInitGraphLayout(model?: IGraphContentModel) {
         (Object.keys(repetitions) as AxisPlace[]).forEach((place: AxisPlace) => {
           layout.getAxisMultiScale(place)?.setRepetitions(repetitions[place] ?? 0)
         })
-      }, { name: "useInitGraphLayout repetitions", fireImmediately: true }, dataConfiguration
+      },
+      { name: "useInitGraphLayout [repetitions]", fireImmediately: true, equals: comparer.structural },
+      dataConfiguration
     )
   }, [layout, model])
 

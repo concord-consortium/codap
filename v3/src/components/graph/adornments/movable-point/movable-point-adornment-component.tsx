@@ -3,7 +3,7 @@ import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
+import { IAdornmentComponentProps } from "../adornment-component-info"
 import { IMovablePointAdornmentModel } from "./movable-point-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
@@ -23,18 +23,9 @@ interface IPointObject {
   shadow?: Selection<SVGCircleElement, unknown, null, undefined>
 }
 
-interface IProps {
-  containerId?: string
-  model: IMovablePointAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  cellKey: Record<string, string>
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
-}
-
-export const MovablePointAdornment = observer(function MovablePointAdornment(props: IProps) {
-  const {model, plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props
+export const MovablePointAdornment = observer(function MovablePointAdornment(props: IAdornmentComponentProps) {
+  const {plotHeight, plotWidth, cellKey = {}, xAxis, yAxis} = props
+  const model = props.model as IMovablePointAdornmentModel
   const graphModel = useGraphContentModelContext()
   const { xAttrId, yAttrId, xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)

@@ -1,9 +1,30 @@
 import React from "react"
+import { AdornmentModel, IAdornmentModel } from "./adornment-models"
+import { INumericAxisModel } from "../../axis/models/axis-model"
+
+export interface IAdornmentComponentProps {
+  cellKey: Record<string, string>
+  containerId: string
+  model: IAdornmentModel
+  plotHeight: number
+  plotWidth: number
+  xAxis?: INumericAxisModel
+  yAxis?: INumericAxisModel
+}
+
+export interface IAdornmentControlsProps {
+  adornmentModel: typeof AdornmentModel
+}
+
+export interface IAdornmentBannerComponentProps {
+  model: IAdornmentModel
+}
+
 export interface IAdornmentComponentInfo {
   adornmentEltClass: string
-  Component: React.ComponentType<any> // TODO: Create and use IAdornmentComponentProps instead of any?
-  Controls: React.ComponentType<any> // TODO: Create and use IAdornmentControlsProps instead of any?
-  BannerComponent?: React.ComponentType<any> // TODO: Create and use IAdornmentBannerComponentProps instead of any?
+  Component: React.ComponentType<IAdornmentComponentProps>
+  Controls: React.ComponentType<IAdornmentControlsProps>
+  BannerComponent?: React.ComponentType<IAdornmentBannerComponentProps>
   labelKey: string
   order: number
   type: string

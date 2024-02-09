@@ -1,5 +1,5 @@
 import { CodapV2Document } from "./codap-v2-document"
-import { ICodapV2DocumentJson } from "./codap-v2-types"
+import { ICodapV2DocumentJson, isCodapV2Document } from "./codap-v2-types"
 
 const fs = require("fs")
 const path = require("path")
@@ -11,6 +11,7 @@ describe(`V2 "bogus-document.codap"`, () => {
 
   it("should warn on invalid document reference", () => {
     jestSpyConsole("warn", spy => {
+      expect(isCodapV2Document(bogusData)).toBe(false)
       const bogus = new CodapV2Document(bogusData)
       expect(bogus).toBeDefined()
       expect(spy).toHaveBeenCalledTimes(1)
@@ -25,6 +26,7 @@ describe(`V2 "calculator.codap"`, () => {
   const calculatorDoc = JSON.parse(calculatorJson) as ICodapV2DocumentJson
 
   it("should be importable", () => {
+    expect(isCodapV2Document(calculatorDoc)).toBe(true)
     expect(calculatorDoc.name).toBe("Calculator Sample")
     expect(calculatorDoc.components?.length).toBe(1)
     expect(calculatorDoc.contexts?.length).toBe(0)
@@ -49,6 +51,7 @@ describe(`V2 "mammals.codap"`, () => {
   const mammalsData = JSON.parse(mammalsJson) as ICodapV2DocumentJson
 
   it("should be importable", () => {
+    expect(isCodapV2Document(mammalsData)).toBe(true)
     expect(mammalsData.name).toBe("Mammals Sample")
     expect(mammalsData.components?.length).toBe(5)
     expect(mammalsData.contexts?.length).toBe(1)
@@ -85,6 +88,7 @@ describe(`V2 "24cats.codap"`, () => {
   const catsData = JSON.parse(catsJson) as ICodapV2DocumentJson
 
   it("should be importable", () => {
+    expect(isCodapV2Document(catsData)).toBe(true)
     expect(catsData.name).toBe("24cats")
     expect(catsData.components?.length).toBe(5)
     expect(catsData.contexts?.length).toBe(1)

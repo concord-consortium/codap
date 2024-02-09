@@ -48,7 +48,7 @@
   .axis-click-cue {
     fill: #999999 !important;
     font-size: 12px !important;
-    font-family: Montserrat-Regular, sans-serif !important;
+    font-family: Montserrat, sans-serif !important;
   }
 
   .grid .tick line {
@@ -78,18 +78,6 @@
   fill: white;
 }
 
-.graph-dot {
-  pointer-events: auto;
-  fill: rgba(230, 128, 91);
-  stroke: white;
-  cursor: pointer;
-  stroke-opacity: 0.4;
-  fill-opacity: 0.85;
-}
-
-.graph-dot-highlighted {
-  //fill: steelblue;
-}
 
 .graph-d3-tip {
   font-size: small;
@@ -111,6 +99,7 @@
 
   &.active {
     border: 5px solid rgb(255, 216, 102);
+    z-index: 10;
   }
 
   &.over {

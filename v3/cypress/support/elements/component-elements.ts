@@ -1,7 +1,10 @@
+import { ToolbarElements as toolbar } from "./toolbar-elements"
+
 export const ComponentElements = {
   tooltips: {
     tableToolShelfIcon: "Open a case table for each data set(ctrl-alt-t)",
     graphToolShelfIcon: "Make a graph (ctrl-alt-g)",
+    mapToolShelfIcon: "Make a map",
     sliderToolShelfIcon: "Make a slider (ctrl-alt-s)",
     calculatorToolShelfIcon: "Open/close the calculator (ctrl-alt-c)",
     minimizeComponent: "Minimize or expand this Component",
@@ -13,6 +16,13 @@ export const ComponentElements = {
     graphDisplayConfigButton: "Configure the display differently",
     graphDisplayStylesButton: "Change the appearance of the display",
     graphCameraButton: "Save the image",
+    mapZoomInButton: "Zoom in",
+    mapZoomOutButton: "Zoom out",
+    mapResizeButton: "Rescale display to show all the data",
+    mapHideShowButton: "Show all cases or hide selected/unselected cases",
+    mapDisplayValuesButton: "Change what is shown along with the points",
+    mapDisplayConfigButton: "Change the appearance of the map layers",
+    mapCameraButton: "Save the image",
     tableSwitchCaseCard: "Switch to case card view of the data",
     tableDatasetInfoButton: "Display information about dataset",
     tableResizeButton: "Resize all columns to fit data",
@@ -21,43 +31,7 @@ export const ComponentElements = {
     tableAttributesButton: "Make new attributes. Export case data."
   },
   getComponentSelector(component) {
-    let el = ""
-    switch (component) {
-      case "graph":
-        el = ".codap-graph"
-        break
-      case "slider":
-        el = ".codap-slider"
-        break
-      case "calculator":
-        el = ".codap-component.calculator"
-        break
-      case "table":
-        el = ".codap-case-table"
-        break
-      case "data-summary":
-        el = ".codap-data-summary"
-        break
-    }
-    return cy.get(el)
-  },
-  getToolshelfSelector(component) {
-    let el = ""
-    switch (component) {
-      case "graph":
-        el = "[data-testid=tool-shelf-button-Graph]"
-        break
-      case "slider":
-        el = "[data-testid=tool-shelf-button-Slider]"
-        break
-      case "calculator":
-        el = "[data-testid=tool-shelf-button-Calc]"
-        break
-      case "table":
-        el = "[data-testid=tool-shelf-button-table]"
-        break
-    }
-    return cy.get(el)
+    return cy.get(`.codap-component[data-testid$=${component}]`)
   },
   getComponentTile(component, index = 0) {
     return this.getComponentSelector(component).then(element => {
@@ -82,13 +56,11 @@ export const ComponentElements = {
   checkToolTip(element, tooltipText) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)
   },
-  createFromToolshelf(component) {
-    this.getToolShelfIcon(component).click()
-  },
-  getToolShelfIcon(component) {
-    return this.getToolshelfSelector(component)
+  getIconFromToolshelf(component) {
+    return toolbar.getToolShelfIcon(component)
   },
   selectTile(component, index = 0) {
+    cy.get(".codap-container").click("bottom")
     this.getComponentTile(component, index).click()
   },
   checkComponentDoesNotExist(component) {

@@ -1,36 +1,34 @@
 import {autorun} from "mobx"
-import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
-import {drag, select, color, range} from "d3"
+import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
-import {CaseData} from "../../data-display/d3-types"
+import * as PIXI from "pixi.js"
 import {rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
+import {IPixiPointMetadata, IPixiPointsRef, PixiBackgroundPassThroughEvent, PixiPoints} from "../utilities/pixi-points"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
 import {useCurrent} from "../../../hooks/use-current"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {InternalizedData} from "../graphing-types"
 
 interface IProps {
   marqueeState: MarqueeState
+  pixiPointsRef: IPixiPointsRef
 }
 
 type RTree = ReturnType<typeof RTreeLib>
-const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
+const prepareTree = (pixiPoints?: PixiPoints): RTree => {
     const selectionTree = RTreeLib(10)
-    select<HTMLDivElement, unknown>(areaSelector).selectAll<SVGCircleElement, InternalizedData>(circleSelector)
-      .each((datum: InternalizedData, index, groups) => {
-        const element: any = groups[index],
-          rect = {
-            x: Number(element.cx.baseVal.value),
-            y: Number(element.cy.baseVal.value),
-            w: 1, h: 1
-          }
-        selectionTree.insert(rect, (element.__data__ as CaseData).caseID)
-      })
+    pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      const rect = {
+        x: point.x,
+        y: point.y,
+        w: 1, h: 1
+      }
+      selectionTree.insert(rect, metadata.caseID)
+    })
     return selectionTree
   },
 
@@ -45,8 +43,7 @@ const prepareTree = (areaSelector: string, circleSelector: string): RTree => {
   }
 
 export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
-  const {marqueeState} = props,
-    instanceId = useInstanceIdContext() || 'background',
+  const {marqueeState, pixiPointsRef} = props,
     dataset = useCurrent(useDataSetContext()),
     layout = useGraphLayoutContext(),
     graphModel = useGraphContentModelContext(),
@@ -58,20 +55,23 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
-  const onDragStart = useCallback((event: { x: number; y: number; sourceEvent: { shiftKey: boolean } }) => {
-      const {computedBounds} = layout,
-        plotBounds = computedBounds.plot
+  const onDragStart = useCallback((event: PointerEvent) => {
+      // plotBounds.left and plotBounds.top used to be subtracted from startX and startY. But it seems to be no longer
+      // necessary after dragging is reimplemented without D3. Leaving these lines here just in case some bugs appear.
+      // const {computedBounds} = layout
+      // const plotBounds = computedBounds.plot
       appState.beginPerformance()
-      selectionTree.current = prepareTree(`.${instanceId}`, 'circle')
-      startX.current = event.x - plotBounds.left
-      startY.current = event.y - plotBounds.top
+      selectionTree.current = prepareTree(pixiPointsRef.current)
+      const targetRect = (event.target as HTMLElement).getBoundingClientRect()
+      startX.current = event.x - targetRect.left
+      startY.current = event.y - targetRect.top
       width.current = 0
       height.current = 0
-      if (!event.sourceEvent.shiftKey) {
+      if (!event.shiftKey) {
         dataset.current?.setSelectedCases([])
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [dataset, instanceId, layout, marqueeState]),
+    }, [dataset, marqueeState, pixiPointsRef]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0) {
@@ -101,11 +101,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
       marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
       selectionTree.current = null
       appState.endPerformance()
-    }, [marqueeState]),
-    dragBehavior = useMemo(() => drag<SVGRectElement, number>()
-      .on("start", onDragStart)
-      .on("drag", onDrag)
-      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
+    }, [marqueeState])
 
   useEffect(() => {
     return autorun(() => {
@@ -123,7 +119,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         groupElement = bgRef.current
       select(groupElement)
         // clicking on the background deselects all cases
-        .on('click', (event) => {
+        .on(PixiBackgroundPassThroughEvent.Click, (event) => {
           if (!event.shiftKey) {
             dataset.current?.selectAll(false)
           }
@@ -132,6 +128,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .data(range(numRows * numCols))
         .join('rect')
         .attr('class', 'plot-cell-background')
+        .attr('data-testid', 'plot-cell-background')
         .attr('transform', transform)
         .attr('width', cellWidth)
         .attr('height', cellHeight)
@@ -139,9 +136,34 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
         .attr('y', d => cellHeight * row(d))
         .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
         .style('fill-opacity', isTransparent ? 0 : 1)
-        .call(dragBehavior)
+        .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
+          // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
+          // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
+          // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
+          // are attached to window directly (recommended way anyway).
+          let draggingActive = true
+          const prevXY = { x: pointerDownEvent.x, y: pointerDownEvent.y }
+          onDragStart(pointerDownEvent)
+          const onDragHandler = (onDragEvent: PointerEvent) => {
+            if (draggingActive) {
+              onDrag({ dx: onDragEvent.x - prevXY.x, dy: onDragEvent.y - prevXY.y })
+              prevXY.x = onDragEvent.x
+              prevXY.y = onDragEvent.y
+            }
+          }
+          const onDragEndHandler = (pointerUpEvent: PointerEvent) => {
+            if (draggingActive) {
+              draggingActive = false
+              onDragEnd()
+              window.removeEventListener("pointermove", onDragHandler)
+              window.removeEventListener("pointerup", onDragEndHandler)
+            }
+          }
+          window.addEventListener("pointermove", onDragHandler)
+          window.addEventListener("pointerup", onDragEndHandler)
+        })
     }, { name: "Background.autorun" })
-  }, [bgRef, dataset, dragBehavior, graphModel, layout])
+  }, [bgRef, dataset, graphModel, layout, onDrag, onDragEnd, onDragStart])
 
   return (
     <g ref={bgRef}/>

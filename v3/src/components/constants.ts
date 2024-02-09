@@ -11,3 +11,5 @@ export const kTitleBarHeight = 25
 
 export const kDefaultTileWidth = 250
 export const kDefaultTileHeight = 250
+
+export const kCodapAppElementId = "codap-app-id"

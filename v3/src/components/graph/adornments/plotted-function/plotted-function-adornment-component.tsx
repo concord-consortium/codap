@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useRef } from "react"
 import { select } from "d3"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { Point } from "../../../data-display/data-display-types"
+import { IAdornmentComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel, isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -40,18 +40,11 @@ const computePoints = (options: IComputePointsOptions) => {
   return tPoints
 }
 
-interface IProps {
-  containerId?: string
-  model: IPlottedFunctionAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  cellKey: Record<string, string>
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
-}
-
-export const PlottedFunctionAdornmentComponent = observer(function PlottedFunctionAdornment(props: IProps) {
-  const {model, cellKey = {}, plotWidth, plotHeight, xAxis, yAxis} = props
+export const PlottedFunctionAdornmentComponent = observer(function PlottedFunctionAdornment(
+  props: IAdornmentComponentProps
+) {
+  const {cellKey = {}, plotWidth, plotHeight, xAxis, yAxis} = props
+  const model = props.model as IPlottedFunctionAdornmentModel
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const { xScale, yScale } = useAdornmentAttributes()

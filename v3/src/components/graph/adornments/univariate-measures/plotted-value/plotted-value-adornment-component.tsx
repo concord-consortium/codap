@@ -1,23 +1,13 @@
 import React, { useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { INumericAxisModel } from "../../../../axis/models/axis-model"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
-import { IPlottedValueAdornmentModel, isPlottedValueAdornment } from "./plotted-value-adornment-model"
+import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
+import { IAdornmentComponentProps } from "../../adornment-component-info"
 import { mstAutorun } from "../../../../../utilities/mst-autorun"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 
-interface IProps {
-  cellKey: Record<string, string>
-  containerId?: string
-  model: IPlottedValueAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
 export const PlottedValueComponent = observer(
-  function PlottedValueComponent (props: IProps) {
+  function PlottedValueComponent (props: IAdornmentComponentProps) {
     const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
     const graphModel = useGraphContentModelContext()
 

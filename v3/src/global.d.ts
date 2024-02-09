@@ -8,5 +8,6 @@ declare module "d3-v6-tip";
 declare namespace process {
   const env: {
     NODE_ENV: string; // e.g. "development" or "production"
+    [index: string]: string
   }
 }

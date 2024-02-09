@@ -1,8 +1,28 @@
 .graph-count {
+  font-size: 12px;
+  height: 100%;
   line-height: 1;
   position: absolute;
   right: 3px;
+  text-align: right;
   top: 2px;
   white-space: nowrap;
   width: calc(100% - 3px);
+
+  .sub-count {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+
+    &.x-axis {
+      height: auto;
+      top: 28px;
+    }
+    &.y-axis {
+      left: auto;
+      right: 3px;
+      width: auto;
+    }
+  }
 }

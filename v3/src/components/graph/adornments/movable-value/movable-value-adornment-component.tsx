@@ -3,8 +3,9 @@ import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
-import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {valueLabelString} from "../../utilities/graph-utils"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { getAxisDomains } from "../adornment-utils"
 import { IMovableValueAdornmentModel } from "./movable-value-adornment-model"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -19,19 +20,9 @@ interface IValueObject {
   rect?: Selection<SVGRectElement, unknown, null, undefined>
   valueLabel?: Selection<HTMLDivElement, unknown, HTMLElement, any>
 }
-interface IProps {
-  cellKey: Record<string, string>
-  containerId: string
-  model: IMovableValueAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  transform: string
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
-export const MovableValueAdornment = observer(function MovableValueAdornment(props: IProps) {
-  const {containerId, model, cellKey={}, transform, xAxis, yAxis} = props
+export const MovableValueAdornment = observer(function MovableValueAdornment(props: IAdornmentComponentProps) {
+  const {containerId, cellKey={}, xAxis, yAxis} = props
+  const model = props.model as IMovableValueAdornmentModel
   const layout = useAxisLayoutContext()
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
@@ -192,11 +183,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   // Refresh the value when the axis changes
   useEffect(function refreshAxisChange() {
     return autorun(() => {
-      // We observe changes to the axis domains within the autorun by extracting them from the axes below.
-      // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-      // from triggering a reinstall of the autorun.
-      const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-      const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+      getAxisDomains(xAxis, yAxis)
       isVertical.current = dataConfig?.attributeType("x") === "numeric"
       adjustAllValues()
       renderFills()
@@ -224,19 +211,16 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
 
         newValueObject.rect = selection.append("rect")
           .attr("class", `movable-value-rect ${orientationClass}`)
-          .attr("transform", transform)
           .attr("x", isVertical.current ? x1 - 3 : x1)
           .attr("y", isVertical.current ? y1 : y1 - 3)
         newValueObject.line = selection.append("line")
           .attr("class", `movable-value ${orientationClass}`)
-          .attr("transform", transform)
           .attr("x1", x1)
           .attr("y1", y1)
           .attr("x2", x2)
           .attr("y2", y2)
         newValueObject.cover = selection.append("line")
           .attr("class", `movable-value-cover ${orientationClass}`)
-          .attr("transform", transform)
           .attr("x1", isVertical.current ? x1 : x1 + 7)
           .attr("y1", y1)
           .attr("x2", x2)
@@ -252,7 +236,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
         renderFills()
       }
     }, { name: "MovableValue.createElements" })
-  }, [addDragHandlers, containerId, determineLineCoords, getValues, layout, renderFills, transform])
+  }, [addDragHandlers, containerId, determineLineCoords, getValues, layout, renderFills])
 
   return (
     <svg

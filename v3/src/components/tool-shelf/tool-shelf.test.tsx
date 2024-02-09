@@ -41,9 +41,9 @@ describe("Tool shelf", () => {
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
     document.setTitle("New Title")
-    await user.click(screen.getByTestId("tool-shelf-button-Undo"))
+    await user.click(screen.getByTestId("tool-shelf-button-undo"))
     expect(document.title).toBe("New Title")
-    await user.click(screen.getByTestId("tool-shelf-button-Redo"))
+    await user.click(screen.getByTestId("tool-shelf-button-redo"))
     expect(document.title).toBe("New Title")
   })
 
@@ -54,9 +54,9 @@ describe("Tool shelf", () => {
 
     document.treeMonitor?.enableMonitoring()
     document.setTitle("New Title")
-    await user.click(screen.getByTestId("tool-shelf-button-Undo"))
+    await user.click(screen.getByTestId("tool-shelf-button-undo"))
     expect(document.title).toBeUndefined()
-    await user.click(screen.getByTestId("tool-shelf-button-Redo"))
+    await user.click(screen.getByTestId("tool-shelf-button-redo"))
     expect(document.title).toBe("New Title")
     document.treeMonitor?.disableMonitoring()
   })

@@ -1,5 +1,6 @@
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 const collectionName = "Mammals"
 const newCollectionName = "Animals"
@@ -48,28 +49,28 @@ context("Graph UI", () => {
     c.getComponentTitle("graph").should("have.text", newCollectionName)
   })
   it("creates graphs with new collection name", () => {
-    c.createFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
 
     c.getComponentTitle("graph").should("contain", collectionName)
     c.getComponentTitle("graph", 1).should("contain", collectionName)
 
-    c.createFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph", 2).should("contain", collectionName)
   })
   it("creates graphs with new collection names when existing ones are closed", () => {
     c.closeComponent("graph")
     c.checkComponentDoesNotExist("graph")
-    c.createFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph").should("contain", collectionName)
 
     c.closeComponent("graph")
     c.checkComponentDoesNotExist("graph")
-    c.createFromToolshelf("graph")
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph").should("contain", collectionName)
   })
   it("checks all graph tooltips", () => {
     c.selectTile("graph", 0)
-    c.getToolShelfIcon("graph").then($element => {
+    toolbar.getToolShelfIcon("graph").then($element => {
       c.checkToolTip($element, c.tooltips.graphToolShelfIcon)
     })
     c.getMinimizeButton("graph").then($element => {

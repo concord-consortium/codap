@@ -53,7 +53,7 @@ export const MovableLineAdornmentModel = AdornmentModel
     self.lines.forEach((line, key) => {
       const { intercept, slope } = line.slopeAndIntercept
       if (!Number.isFinite(intercept) || !Number.isFinite(slope)) return
-      const cellKey = JSON.parse(key)
+      const cellKey = JSON.parse(`${key}`)
       lineDescriptions.push({ cellKey, intercept, slope })
     })
     return lineDescriptions

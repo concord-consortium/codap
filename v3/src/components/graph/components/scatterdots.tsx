@@ -1,3 +1,4 @@
+import * as PIXI from "pixi.js"
 import {ScaleLinear, curveLinear, line, select} from "d3"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {tip as d3tip} from "d3-v6-tip"
@@ -14,22 +15,22 @@ import {getScreenCoord, setPointCoordinates} from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {useDragHandlers, usePlotResponders} from "../hooks/use-plot"
+import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import {IPixiPointMetadata, PixiBackgroundPassThroughEvent} from "../utilities/pixi-points"
+import { transitionDuration } from "../../data-display/data-display-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
-  const {dotsRef} = props,
+  const {pixiPointsRef} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
-    dataDisplayModel = useDataDisplayModelContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
     pointRadiusRef = useRef(0),
     selectedPointRadiusRef = useRef(0),
@@ -40,7 +41,6 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     [dragID, setDragID] = useState(''),
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
-    target = useRef<any>(),
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
     plotNumRef = useRef(0)
 
@@ -67,113 +67,98 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
-  const onDragStart = useCallback((event: MouseEvent) => {
-      target.current = select(event.target as SVGSVGElement)
-      const aCaseData: CaseData = target.current.node().__data__
-      if (!aCaseData) return
-      dataset?.beginCaching()
-      secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
-      stopAnimation() // We don't want to animate points until end of drag
-      didDrag.current = false
-      const tItsID = aCaseData.caseID
-      plotNumRef.current = target.current.datum()?.plotNum ?? 0
-      if (target.current.node()?.nodeName === 'circle') {
-        appState.beginPerformance()
-        target.current
-          .property('isDragging', true)
-          .transition()
-          .attr('r', dragPointRadiusRef.current)
-        setDragID(tItsID)
-        currPos.current = {x: event.clientX, y: event.clientY}
+  const onDragStart = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    dataset?.beginCaching()
+    secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
+    stopAnimation() // We don't want to animate points until end of drag
+    didDrag.current = false
+    const tItsID = metadata.caseID
+    plotNumRef.current = metadata.plotNum
+    appState.beginPerformance()
+    setDragID(tItsID)
+    currPos.current = { x: event.clientX, y: event.clientY }
+    handleClickOnCase(event, tItsID, dataset)
+    // Record the current values, so we can change them during the drag and restore them when done
+    const { selection } = dataConfiguration || {}
+    const xAttrID = dataConfiguration?.attributeID('x') ?? ''
 
-        handleClickOnCase(event, tItsID, dataset)
-        // Record the current values, so we can change them during the drag and restore them when done
-        const {selection} = dataConfiguration || {},
-          xAttrID = dataConfiguration?.attributeID('x') ?? ''
+    selection?.forEach(anID => {
+      selectedDataObjects.current[anID] = {
+        x: dataset?.getNumeric(anID, xAttrID) ?? 0,
+        y: dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]) ?? 0
+      }
+    })
+  }, [dataConfiguration, dataset, stopAnimation])
+
+  const onDrag = useCallback((event: PointerEvent) => {
+    const xAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
+    const xAttrID = dataConfiguration?.attributeID('x') ?? ''
+    if (dragID !== '') {
+      const newPos = { x: event.clientX, y: event.clientY }
+      const dx = newPos.x - currPos.current.x
+      const dy = newPos.y - currPos.current.y
+      currPos.current = newPos
+      if (dx !== 0 || dy !== 0) {
+        didDrag.current = true
+        const deltaX = Number(xAxisScale.invert(dx)) - Number(xAxisScale.invert(0)),
+          deltaY = Number(yScaleRef.current?.invert(dy)) - Number(yScaleRef.current?.invert(0)),
+          caseValues: ICase[] = [],
+          { selection } = dataConfiguration || {}
         selection?.forEach(anID => {
-          selectedDataObjects.current[anID] = {
-            x: dataset?.getNumeric(anID, xAttrID) ?? 0,
-            y: dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]) ?? 0
-          }
-        })
-      }
-    }, [dataConfiguration, dataset, stopAnimation]),
-
-    onDrag = useCallback((event: MouseEvent) => {
-      const xAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
-        xAttrID = dataConfiguration?.attributeID('x') ?? ''
-      if (dragID !== '') {
-        const newPos = {x: event.clientX, y: event.clientY},
-          dx = newPos.x - currPos.current.x,
-          dy = newPos.y - currPos.current.y
-        currPos.current = newPos
-        if (dx !== 0 || dy !== 0) {
-          didDrag.current = true
-          const deltaX = Number(xAxisScale.invert(dx)) - Number(xAxisScale.invert(0)),
-            deltaY = Number(yScaleRef.current?.invert(dy)) - Number(yScaleRef.current?.invert(0)),
-            caseValues: ICase[] = [],
-            {selection} = dataConfiguration || {}
-          selection?.forEach(anID => {
-            const currX = Number(dataset?.getNumeric(anID, xAttrID)),
-              currY = Number(dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]))
-            if (isFinite(currX) && isFinite(currY)) {
-              caseValues.push({
-                __id__: anID,
-                [xAttrID]: currX + deltaX,
-                [secondaryAttrIDsRef.current[plotNumRef.current]]: currY + deltaY
-              })
-            }
-          })
-          caseValues.length &&
-          dataset?.setCaseValues(caseValues,
-            [xAttrID, secondaryAttrIDsRef.current[plotNumRef.current]])
-        }
-      }
-    }, [layout, dataConfiguration, dataset, dragID]),
-
-    onDragEnd = useCallback(() => {
-      dataset?.endCaching()
-      appState.endPerformance()
-
-      if (dragID !== '') {
-        target.current
-          .classed('dragging', false)
-          .property('isDragging', false)
-          .transition()
-          .attr('r', selectedPointRadiusRef.current)
-        setDragID(() => '')
-        target.current = null
-
-        if (didDrag.current) {
-          const caseValues: ICase[] = [],
-            {selection} = dataConfiguration || {},
-            xAttrID = dataConfiguration?.attributeID('x') ?? ''
-          selection?.forEach(anID => {
+          const currX = Number(dataset?.getNumeric(anID, xAttrID)),
+            currY = Number(dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]))
+          if (isFinite(currX) && isFinite(currY)) {
             caseValues.push({
               __id__: anID,
-              [xAttrID]: selectedDataObjects.current[anID].x,
-              [secondaryAttrIDsRef.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
+              [xAttrID]: currX + deltaX,
+              [secondaryAttrIDsRef.current[plotNumRef.current]]: currY + deltaY
             })
-          })
-          startAnimation() // So points will animate back to original positions
-          caseValues.length && dataset?.setCaseValues(caseValues,
+          }
+        })
+        caseValues.length &&
+          dataset?.setCaseValues(caseValues,
             [xAttrID, secondaryAttrIDsRef.current[plotNumRef.current]])
-          didDrag.current = false
-        }
       }
-    }, [dataConfiguration, dataset, dragID, startAnimation])
+    }
+  }, [layout, dataConfiguration, dataset, dragID])
 
-  useDragHandlers(dotsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  const onDragEnd = useCallback(() => {
+    if (dragID !== '') {
+      setDragID(() => '')
+      if (didDrag.current) {
+        const caseValues: ICase[] = [],
+          { selection } = dataConfiguration || {},
+          xAttrID = dataConfiguration?.attributeID('x') ?? ''
+        selection?.forEach(anID => {
+          caseValues.push({
+            __id__: anID,
+            [xAttrID]: selectedDataObjects.current[anID].x,
+            [secondaryAttrIDsRef.current[plotNumRef.current]]: selectedDataObjects.current[anID].y
+          })
+        })
+        startAnimation() // So points will animate back to original positions
+        caseValues.length && dataset?.setCaseValues(caseValues,
+          [xAttrID, secondaryAttrIDsRef.current[plotNumRef.current]])
+        didDrag.current = false
+      }
+    }
+    // These calls are moved to the end to ensure that transitions are not broken by all the points being
+    // repositioned (default behavior when caching and perf mode is disabled).
+    dataset?.endCaching()
+    appState.endPerformance()
+  }, [dataConfiguration, dataset, dragID, startAnimation])
+
+  usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        dotsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
+        pixiPointsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
-  }, [dataConfiguration, dotsRef, graphModel])
+  }, [dataConfiguration, graphModel, pixiPointsRef])
 
   const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
     const linesPath = event.target && select(event.target as HTMLElement)
@@ -194,9 +179,12 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       return `<p>${d}</p>`
     })
 
-  const handleConnectingLinesHover = useCallback((
+  const handleConnectingLinesMouseOver = useCallback((
     event: MouseEvent, caseIDs: string[], parentAttrName?: string, parentAttrValue?: string
   ) => {
+    if (pixiPointsRef.current) {
+      pixiPointsRef.current.canvas.style.cursor = "pointer"
+    }
     // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
     // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
     // localization for this. When a parent attribute is present, the tool tip should look like:
@@ -210,24 +198,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     const vars = [parentAttrName, parentAttrValue, caseIdCount, datasetName]
     const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.name])
+  }, [dataTip, dataset?.name, pixiPointsRef])
 
-  const connectingLinesCleanUp = useCallback(() => {
-    connectingLinesActivatedRef.current = showConnectingLines
-    // TODO: The point size needs to be made smaller when Connecting Lines are activated, and then revert to the
-    // original size when Connecting Lines are deactivated. The below makes this happen, but the rescaling should
-    // really occur in a smooth transition while the lines are fading in/out, not instantly after the lines are
-    // done fading.
-    const pointSizeMultiplier = dataDisplayModel?.pointDescription.pointSizeMultiplier
-    if (showConnectingLines && pointSizeMultiplier > .5) {
-      dataDisplayModel?.pointDescription.setPointSizeMultiplier(.5)
-    } else if (!showConnectingLines) {
-      dataDisplayModel?.pointDescription.setPointSizeMultiplier(1)
+  const handleConnectingLinesMouseOut = useCallback(() => {
+    if (pixiPointsRef.current) {
+      pixiPointsRef.current.canvas.style.cursor = ""
     }
-    if (!showConnectingLines) {
-      select(connectingLinesRef.current).selectAll("path").remove()
-    }
-  }, [dataDisplayModel?.pointDescription, showConnectingLines])
+    dataTip.hide()
+  }, [dataTip, pixiPointsRef])
 
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
@@ -278,14 +256,27 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           ? graphModel.pointDescription.pointColorAtIndex(linesIndex)
           : graphModel.pointDescription.pointColorAtIndex(0)
 
+        // Decrease point size when Connecting Lines are activated so the lines are easier to see, and
+        // revert to original point size when Connecting Lines are deactivated.
+        const pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier,
+          animateChange = true
+        if (showConnectingLines && pointSizeMultiplier > .5) {
+          graphModel.pointDescription.setPointSizeMultiplier(.5, animateChange)
+        } else if (!showConnectingLines) {
+          graphModel.pointDescription.setPointSizeMultiplier(1, animateChange)
+        }
+
         connectingLinesArea
           .append("path")
           .data([allLineCoords])
           .attr("d", d => curve(d))
+          .classed("interactive-graph-element", true) // for dots canvas event passing
           .classed("selected", allCasesSelected)
-          .on("click", (e) => handleConnectingLinesClick(e, lineCaseIds))
-          .on("mouseover", (e) => handleConnectingLinesHover(e, lineCaseIds, parentAttrName, primaryAttrValue))
-          .on("mouseout", dataTip.hide)
+          .on(PixiBackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
+          .on(PixiBackgroundPassThroughEvent.MouseOver, (e) =>
+            handleConnectingLinesMouseOver(e, lineCaseIds, parentAttrName, primaryAttrValue)
+          )
+          .on(PixiBackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
           .call(dataTip)
           .attr("fill", "none")
           .attr("stroke", color)
@@ -293,13 +284,17 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           .style("cursor", "pointer")
           .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
           .transition()
-          .duration(1000)
+          .duration(transitionDuration)
           .style("opacity", showConnectingLines ? 1 : 0)
-          .on("end", connectingLinesCleanUp)
+          .on("end", () => {
+            connectingLinesActivatedRef.current = showConnectingLines
+            !showConnectingLines && select(connectingLinesRef.current).selectAll("path").remove()
+          })
       }
     })
-  }, [connectingLinesCleanUp, dataConfiguration, dataTip, dataset, graphModel.pointDescription,
-      handleConnectingLinesClick, handleConnectingLinesHover, layout, showConnectingLines])
+  }, [dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
+    handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
+    showConnectingLines])
 
   const refreshSquares = useCallback(() => {
 
@@ -337,38 +332,38 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   }, [lsrl, movableLine, dataConfiguration, layout, instanceId])
 
-  const refreshPointPositionsD3 = useCallback((selectedOnly: boolean) => {
+  const refreshAllPointPositions = useCallback((selectedOnly: boolean) => {
 
     const {getXCoord: getScreenX, getYCoord: getScreenY} = scatterPlotFuncs(layout, dataConfiguration),
       {pointColor, pointStrokeColor} = graphModel.pointDescription,
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, dotsRef, pointRadius: pointRadiusRef.current,
+      dataset, pixiPointsRef, pointRadius: pointRadiusRef.current,
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
+  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPointsRef,
+    isAnimating])
 
-  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, dotsRef, isAnimating])
-
-  const refreshPointPositionsSVG = useCallback((selectedOnly: boolean) => {
+  const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
+    const pixiPoints = pixiPointsRef.current
+    if (!pixiPoints) {
+      return
+    }
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',
       {joinedCaseDataArrays, selection} = dataConfiguration || {},
       primaryAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
     const updateDot = (aCaseData: CaseData) => {
-      const caseId = aCaseData.caseID,
-        dot = dotsRef.current?.querySelector(`#${instanceId}_${caseId}`)
-      if (dot) {
-        const dotSvg = dot as SVGCircleElement
-        const x = primaryAxisScale && getScreenCoord(dataset, caseId, xAttrID, primaryAxisScale)
-        const y = yScaleRef.current &&
-          getScreenCoord(dataset, caseId, secondaryAttrIDsRef.current[aCaseData.plotNum], yScaleRef.current)
-        if (x != null && isFinite(x) && y != null && isFinite(y)) {
-          dotSvg.setAttribute("cx", `${x}`)
-          dotSvg.setAttribute("cy", `${y}`)
-        }
+      const caseId = aCaseData.caseID
+      const x = primaryAxisScale && getScreenCoord(dataset, caseId, xAttrID, primaryAxisScale)
+      const y = yScaleRef.current &&
+        getScreenCoord(dataset, caseId, secondaryAttrIDsRef.current[aCaseData.plotNum], yScaleRef.current)
+      if (x != null && isFinite(x) && y != null && isFinite(y)) {
+        const point = pixiPoints.getPointByCaseId(caseId)
+        pixiPoints.setPointPosition(point, x, y)
       }
     }
     if (selectedOnly) {
@@ -376,17 +371,17 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [layout, dataConfiguration, dataset, dotsRef, instanceId])
+  }, [pixiPointsRef, dataConfiguration, layout, dataset])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     refreshConnectingLines()
     if (appState.isPerformanceMode) {
-      refreshPointPositionsSVG(selectedOnly)
+      refreshPointPositionsPerfMode(selectedOnly)
     } else {
-      refreshPointPositionsD3(selectedOnly)
+      refreshAllPointPositions(selectedOnly)
     }
     showSquares && refreshSquares()
-  }, [refreshConnectingLines, showSquares, refreshSquares, refreshPointPositionsSVG, refreshPointPositionsD3])
+  }, [showSquares, refreshConnectingLines, refreshSquares, refreshPointPositionsPerfMode, refreshAllPointPositions])
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
@@ -404,7 +399,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     }, { name: "ScatterDots.renderConnectingLines" })
   }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
 
-  usePlotResponders({dotsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
 
   return (
     <>

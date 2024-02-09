@@ -223,41 +223,45 @@ export const DataConfigurationModel = types
       return allGraphCaseIds.filter((caseId: string) => !selection.has(caseId))
     }
   }))
-  .views(self => (
-    {
-      // Note that we have to go through each of the filteredCases in order to return all the values
-      valuesForAttrRole: cachedFnWithArgsFactory({
-        key: (role: AttrRole) => role,
-        calculate: (role: AttrRole) => {
-          const attrID = self.attributeID(role)
-          const dataset = self.dataset
-          const allCaseIDs = Array.from(self.allCaseIDs)
-          const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
-          return allValues.filter(aValue => aValue) as string[]
-        }
-      }),
-      numericValuesForAttrRole(role: AttrRole): number[] {
-        return this.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
-          .filter((aValue: number) => isFinite(aValue))
-      },
-      categorySetForAttrRole(role: AttrRole) {
-        if (self.metadata) {
-          const attributeID = self.attributeID(role) || ''
-          return self.metadata.getCategorySet(attributeID)
-        }
-      },
-      /**
-       * @param role
-       * @param emptyCategoryArray
-       */
-      categoryArrayForAttrRole(role: AttrRole, emptyCategoryArray = ['__main__']): string[] {
-        let categoryArray = Array.from(new Set(this.valuesForAttrRole(role)))
+  .views(self => ({
+    // Note that we have to go through each of the filteredCases in order to return all the values
+    valuesForAttrRole: cachedFnWithArgsFactory({
+      key: (role: AttrRole) => role,
+      calculate: (role: AttrRole) => {
+        const attrID = self.attributeID(role)
+        const dataset = self.dataset
+        const allCaseIDs = Array.from(self.allCaseIDs)
+        const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
+        return allValues.filter(aValue => aValue) as string[]
+      }
+    })
+  }))
+  .views(self => ({
+    numericValuesForAttrRole(role: AttrRole): number[] {
+      return self.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
+        .filter((aValue: number) => isFinite(aValue))
+    },
+    categorySetForAttrRole(role: AttrRole) {
+      if (self.metadata) {
+        const attributeID = self.attributeID(role) || ''
+        return self.metadata.getCategorySet(attributeID)
+      }
+    },
+    /**
+     * @param role
+     * @param emptyCategoryArray
+     */
+    categoryArrayForAttrRole: cachedFnWithArgsFactory({
+      key: (role: AttrRole, emptyCategoryArray = ['__main__']) => JSON.stringify({ role, emptyCategoryArray }),
+      calculate: (role: AttrRole, emptyCategoryArray = ['__main__']) => {
+        let categoryArray = Array.from(new Set(self.valuesForAttrRole(role)))
         if (categoryArray.length === 0) {
           categoryArray = emptyCategoryArray
         }
         return categoryArray
-      },
-    }))
+      }
+    })
+  }))
   .views(self => ({
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
       return (self.filteredCases[caseArrayNumber]?.caseIds || []).map(id => {
@@ -418,6 +422,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearCasesCache() {
       self.valuesForAttrRole.invalidateAll()
+      self.categoryArrayForAttrRole.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       // increment observable change count
       ++self.casesChangeCount
@@ -521,7 +526,7 @@ export const DataConfigurationModel = types
       })
     },
     handleDataSetAction(actionCall: ISerializedActionCall) {
-      const cacheClearingActions = ["setCaseValues", "addCases", "removeCases"]
+      const cacheClearingActions = ["setCaseValues", "addCases", "removeCases", "removeAttribute"]
       if (cacheClearingActions.includes(actionCall.name)) {
         self.clearCasesCache()
       }

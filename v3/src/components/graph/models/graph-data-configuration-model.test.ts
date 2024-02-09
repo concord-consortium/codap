@@ -288,34 +288,44 @@ describe("DataConfigurationModel", () => {
     config.setDataset(tree.data, tree.metadata)
     expect(config.allPlottedCases()).toEqual(["c1", "c2", "c3"])
     expect(config.subPlotCases({})).toEqual(["c1", "c2", "c3"])
+    expect(config.cellCases({})).toEqual(["c1", "c2", "c3"])
     expect(config.rowCases({})).toEqual(["c1", "c2", "c3"])
     expect(config.columnCases({})).toEqual(["c1", "c2", "c3"])
 
     config.setAttribute("x", { attributeID: "xId" })
     expect(config.allPlottedCases()).toEqual(["c1", "c2"])
     expect(config.subPlotCases({})).toEqual(["c1", "c2"])
+    expect(config.cellCases({})).toEqual(["c1", "c2"])
     expect(config.rowCases({})).toEqual(["c1", "c2"])
     expect(config.columnCases({})).toEqual(["c1", "c2"])
 
     config.setAttribute("y", { attributeID: "yId" })
     expect(config.allPlottedCases()).toEqual(["c1"])
     expect(config.subPlotCases({})).toEqual(["c1"])
+    expect(config.cellCases({})).toEqual(["c1"])
     expect(config.rowCases({})).toEqual(["c1"])
     expect(config.columnCases({})).toEqual(["c1"])
 
     config.setAttribute("topSplit", { attributeID: "nId" })
     expect(config.allPlottedCases()).toEqual(["c1"])
     expect(config.subPlotCases({})).toEqual(["c1"])
-    expect(config.rowCases({})).toEqual(["c1"])
+    expect(config.cellCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.rowCases({})).toEqual([])
+    expect(config.rowCases({ nId: "n1" })).toEqual(["c1"])
     expect(config.columnCases({})).toEqual([])
     expect(config.columnCases({ nId: "n1" })).toEqual(["c1"])
 
     config.setAttribute("x")
     expect(config.allPlottedCases()).toEqual(["c1", "c3"])
     expect(config.subPlotCases({})).toEqual(["c1", "c3"])
-    expect(config.rowCases({})).toEqual(["c1", "c3"])
+    expect(config.cellCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.cellCases({ nId: "n3" })).toEqual(["c3"])
+    expect(config.rowCases({})).toEqual([])
+    expect(config.rowCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.rowCases({ nId: "n3" })).toEqual(["c3"])
     expect(config.columnCases({})).toEqual([])
     expect(config.columnCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.columnCases({ nId: "n3" })).toEqual(["c3"])
   })
 
   it("can create cell key", () => {
@@ -340,7 +350,7 @@ describe("DataConfigurationModel", () => {
     }
     config.attributeID = (role: string) => mockData.id[role]
     config.attributeType = (role: string) => mockData.type[role]
-    config.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+    ;(config as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
 
     const cellKey = config.cellKey(0)
     expect(cellKey).toEqual({abc123: "pizza", def456: "red", ghi789: "small", jkl012: "new"})
@@ -351,7 +361,7 @@ describe("DataConfigurationModel", () => {
     let mockData: Record<string, Record<string, any>>
     config.attributeID = (role: string) => mockData.id[role]
     config.attributeType = (role: string) => mockData.type[role]
-    config.categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
+    ;(config as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
 
     // For a graph with no categorical attributes
     mockData = {

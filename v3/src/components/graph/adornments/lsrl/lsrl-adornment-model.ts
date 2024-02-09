@@ -8,6 +8,15 @@ import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { ILineDescription } from "../shared-adornment-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 
+interface ILSRLine {
+  category?: string
+  equationCoords?: Point
+  intercept?: number
+  rSquared?: number
+  slope?: number
+  sdResiduals?: number
+}
+
 export const LSRLInstance = types.model("LSRLInstance", {
   equationCoords: types.maybe(PointModel)
 })
@@ -88,7 +97,7 @@ export const LSRLAdornmentModel = AdornmentModel
       linesArray.forEach(line => {
         const { category, intercept, slope } = line
         if (!isFiniteNumber(intercept) || !isFiniteNumber(slope)) return
-        const cellKey = JSON.parse(key)
+        const cellKey = JSON.parse(`${key}`)
         lineDescriptions.push({ category, cellKey, intercept, slope })
       })
     })
@@ -131,20 +140,19 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  updateLines(
-    line: {category?: string, intercept?: number, rSquared?: number, slope?: number, sdResiduals?: number},
-    key="", index?: number
-  ) {
+  updateLines(line: ILSRLine, key="", index?: number) {
+    const { category, equationCoords, intercept, rSquared, sdResiduals, slope } = line
     const existingLines = self.lines.get(key)
     const newLines = existingLines ? [...existingLines] : []
     // Remove any pre-existing line in newLines at specified index, otherwise we can end up with duplicates.
-    index && newLines.splice(index, 1)
+    ;(index != null) && newLines.splice(index, 1)
     const newLine = LSRLInstance.create(line)
-    newLine.setCategory(line.category)
-    newLine.setIntercept(line.intercept)
-    newLine.setRSquared(line.rSquared)
-    newLine.setSlope(line.slope)
-    newLine.setSdResiduals(line.sdResiduals)
+    newLine.setCategory(category)
+    newLine.setIntercept(intercept)
+    newLine.setRSquared(rSquared)
+    newLine.setSlope(slope)
+    newLine.setSdResiduals(sdResiduals)
+    equationCoords && newLine.setEquationCoords(equationCoords)
     newLines.push(newLine)
     self.lines.set(key, newLines)
   },
@@ -165,15 +173,19 @@ export const LSRLAdornmentModel = AdornmentModel
     const { dataConfig, interceptLocked } = options
     const { xAttrId, yAttrId } = dataConfig.getCategoriesOptions()
     const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
-    self.lines.clear()
     dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
+      const lines = self.lines.get(instanceKey)
       for (let j = 0; j < legendCats.length; ++j) {
+        const existingLine = lines?.[j]
+        const equationCoords = existingLine?.equationCoords?.isValid()
+          ? { x: existingLine.equationCoords.x, y: existingLine.equationCoords.y }
+          : undefined
         const category = legendCats[j]
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, category
         )
-        self.updateLines({category, intercept, rSquared, slope, sdResiduals}, instanceKey, j)
+        self.updateLines({category, equationCoords, intercept, rSquared, slope, sdResiduals}, instanceKey, j)
       }
     })
   }
@@ -190,7 +202,11 @@ export const LSRLAdornmentModel = AdornmentModel
     const lines = self.lines.get(key)
     const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
     lines?.forEach((line, i) => {
-      if (!line?.isValid) {
+      const existingLine = lines?.[i]
+      const equationCoords = existingLine?.equationCoords?.isValid()
+        ? { x: existingLine.equationCoords.x, y: existingLine.equationCoords.y }
+        : undefined
+      if (!line.isValid) {
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCats[i]
         )
@@ -200,7 +216,7 @@ export const LSRLAdornmentModel = AdornmentModel
           !Number.isFinite(slope) ||
           !Number.isFinite(sdResiduals)
         ) return
-        self.updateLines({category: legendCats[i], intercept, rSquared, slope, sdResiduals}, key, i)
+        self.updateLines({category: legendCats[i], equationCoords, intercept, rSquared, slope, sdResiduals}, key, i)
       }
     })
     return lines

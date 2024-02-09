@@ -1,6 +1,7 @@
 import React, { useEffect } from "react"
 import { observer } from "mobx-react-lite"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
+import { getAxisDomains } from "../adornment-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { INumericAxisModel } from "../../../axis/models/axis-model"
@@ -15,8 +16,8 @@ interface IProps {
   model: IUnivariateMeasureAdornmentModel
   showLabel?: boolean
   valueRef: React.RefObject<SVGGElement>
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
+  xAxis?: INumericAxisModel
+  yAxis?: INumericAxisModel
   refreshValues: () => void
   setIsVertical: (isVertical: boolean) => void
 }
@@ -30,11 +31,7 @@ export const UnivariateMeasureAdornmentBaseComponent = observer(
     // Refresh values on axis changes
     useEffect(function refreshAxisChange() {
       return mstAutorun(() => {
-        // We observe changes to the axis domains within the autorun by extracting them from the axes below.
-        // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-        // from triggering a reinstall of the autorun.
-        const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-        const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+        getAxisDomains(xAxis, yAxis)
         setIsVertical(dataConfig?.attributeType("x") === "numeric")
         refreshValues()
       }, { name: "UnivariateMeasureAdornmentComponent.refreshAxisChange" }, model)

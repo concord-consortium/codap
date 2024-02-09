@@ -3,11 +3,12 @@ import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {drag, select, Selection} from "d3"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import {INumericAxisModel} from "../../../axis/models/axis-model"
 import {calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts,
         lineToAxisIntercepts} from "../../utilities/graph-utils"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { getAxisDomains } from "../adornment-utils"
 import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { Point } from "../../../data-display/data-display-types"
@@ -42,18 +43,9 @@ interface ILine {
   upper?: Selection<SVGLineElement, unknown, null, undefined>
 }
 
-interface IProps {
-  containerId: string
-  model: IMovableLineAdornmentModel
-  plotHeight: number
-  plotWidth: number
-  cellKey: Record<string, string>
-  xAxis: INumericAxisModel
-  yAxis: INumericAxisModel
-}
-
-export const MovableLineAdornment = observer(function MovableLineAdornment(props: IProps) {
-  const {containerId, model, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
+export const MovableLineAdornment = observer(function MovableLineAdornment(props: IAdornmentComponentProps) {
+  const {containerId, plotHeight, plotWidth, cellKey={}, xAxis, yAxis} = props
+  const model = props.model as IMovableLineAdornmentModel
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
@@ -112,7 +104,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight,
       plotWidth, showSumSquares, xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
 
-  
+
   const breakPointCoords = useCallback((
     pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number, _interceptLocked: boolean
   ) => {
@@ -200,15 +192,14 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     }
 
     const newIntercept = isFinite(slope) ? tWorldY - slope * tWorldX : tWorldX
-    const {domain: xDomain} = xAxis
-    const {domain: yDomain} = yAxis
+    const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
     pointsOnAxes.current = lineToAxisIntercepts(slope, newIntercept, xDomain, yDomain)
     updateLine()
     refreshEquation(slope, newIntercept)
 
     // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
     // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
-    // We don't want to save the values with every move of the line, but we do need to make the current values 
+    // We don't want to save the values with every move of the line, but we do need to make the current values
     // available to other clients of the model via the volatile props.
     if (isFinished) {
       const equationCoords = lineParams?.equationCoords
@@ -279,15 +270,14 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       lineObject.lower?.classed("negative-slope", newSlope < 0)
       lineObject.upper?.classed("negative-slope", newSlope < 0)
 
-      const {domain: xDomain} = xAxis
-      const {domain: yDomain} = yAxis
+      const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       pointsOnAxes.current = lineToAxisIntercepts(newSlope, newIntercept, xDomain, yDomain)
       updateLine()
       refreshEquation(newSlope, newIntercept)
 
       // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
       // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
-      // We don't want to save the values with every move of the line, but we do need to make the current values 
+      // We don't want to save the values with every move of the line, but we do need to make the current values
       // available to other clients of the model via the volatile props.
       if (isFinished) {
         model.setLine(
@@ -338,8 +328,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
 
       const slope = lineModel.slope
       const intercept = interceptLocked ? 0 : lineModel.intercept
-      const {domain: xDomain} = xAxis
-      const {domain: yDomain} = yAxis
+      const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
       updateLine()
       refreshEquation(slope, intercept)
@@ -433,11 +422,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   // Refresh values on axis changes
   useEffect(function refreshAxisChange() {
     return mstAutorun(() => {
-      // We observe changes to the axis domains within the autorun by extracting them from the axes below.
-      // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-      // from triggering a reinstall of the autorun.
-      const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
-      const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
+      getAxisDomains()
       updateLine()
       // Update scale copy ranges
       xScaleRef.current = xScale.copy()

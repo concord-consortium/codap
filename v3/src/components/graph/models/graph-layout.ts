@@ -1,9 +1,9 @@
 import {action, computed, makeObservable, observable, override} from "mobx"
 import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
-import {GraphPlace, isVertical} from "../../axis-graph-shared"
+import {isVertical} from "../../axis-graph-shared"
 import {IAxisLayout} from "../../axis/models/axis-layout-context"
 import {MultiScale} from "../../axis/models/multi-scale"
-import {Bounds, DataDisplayLayout} from "../../data-display/models/data-display-layout"
+import {Bounds, DataDisplayLayout, GraphExtentsPlace} from "../../data-display/models/data-display-layout"
 
 export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // actual measured sizes of axis elements
@@ -99,7 +99,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
     this.getAxisMultiScale(place)?.setLength(length)
   }
 
-  @override setDesiredExtent(place: GraphPlace, extent: number) {
+  @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
     this.desiredExtents.set(place, extent)
     this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }
@@ -119,32 +119,78 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   /**
    * We assume that all the desired extents have been set so that we can compute new bounds.
    * We set the computedBounds only once at the end so there should be only one notification to respond to.
-   * Todo: Eventually there will be additional room set aside at the top for formulas
    */
   @override get computedBounds() {
     const {desiredExtents, tileWidth, tileHeight} = this,
       topAxisHeight = desiredExtents.get('top') ?? 0,
+      bannersHeight = desiredExtents.get('banners') ?? 0,
       leftAxisWidth = desiredExtents.get('left') ?? 20,
       bottomAxisHeight = desiredExtents.get('bottom') ?? 20,
       legendHeight = desiredExtents.get('legend') ?? 0,
       v2AxisWidth = desiredExtents.get('rightNumeric') ?? 0,
       rightAxisWidth = desiredExtents.get('rightCat') ?? 0,
       plotWidth = tileWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
-      plotHeight = tileHeight - topAxisHeight - bottomAxisHeight - legendHeight,
-      newBounds: Record<GraphPlace, Bounds> = {
-        left: {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight},
-        top: {left: leftAxisWidth, top: 0, width: tileWidth - leftAxisWidth - rightAxisWidth, height: topAxisHeight},
-        plot: {left: leftAxisWidth, top: topAxisHeight, width: plotWidth, height: plotHeight},
-        bottom: {left: leftAxisWidth, top: topAxisHeight + plotHeight, width: plotWidth, height: bottomAxisHeight},
-        legend: {left: 6, top: tileHeight - legendHeight, width: tileWidth - 6, height: legendHeight},
-        rightNumeric: {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: v2AxisWidth, height: plotHeight},
-        rightCat: {left: leftAxisWidth + plotWidth, top: topAxisHeight, width: rightAxisWidth, height: plotHeight},
-        yPlus: {left: 0, top: topAxisHeight, width: leftAxisWidth, height: plotHeight} // This value is not used
+      plotHeight = tileHeight - bannersHeight - topAxisHeight - bottomAxisHeight - legendHeight,
+      newBounds: Record<GraphExtentsPlace, Bounds> = {
+        left: {
+          left: 0,
+          top: bannersHeight + topAxisHeight,
+          width: leftAxisWidth,
+          height: plotHeight
+        },
+        banners: {
+          left: leftAxisWidth,
+          top: 0,
+          width: tileWidth,
+          height: topAxisHeight
+        },
+        top: {
+          left: leftAxisWidth,
+          top: bannersHeight,
+          width: tileWidth - leftAxisWidth - rightAxisWidth,
+          height: topAxisHeight
+        },
+        plot: {
+          left: leftAxisWidth,
+          top: bannersHeight + topAxisHeight,
+          width: plotWidth,
+          height: plotHeight
+        },
+        bottom: {
+          left: leftAxisWidth,
+          top: bannersHeight + topAxisHeight + plotHeight,
+          width: plotWidth,
+          height: bottomAxisHeight
+        },
+        legend: {
+          left: 6,
+          top: tileHeight - legendHeight,
+          width: tileWidth - 6,
+          height: legendHeight
+        },
+        rightNumeric: {
+          left: leftAxisWidth + plotWidth,
+          top: bannersHeight + topAxisHeight,
+          width: v2AxisWidth,
+          height: plotHeight
+        },
+        rightCat: {
+          left: leftAxisWidth + plotWidth,
+          top: bannersHeight + topAxisHeight,
+          width: rightAxisWidth,
+          height: plotHeight
+        },
+        yPlus: {
+          left: 0,
+          top: bannersHeight + topAxisHeight,
+          width: leftAxisWidth,
+          height: plotHeight
+        } // This value is not used
       }
     return newBounds
   }
 
-  getComputedBounds(place: GraphPlace) {
+  getComputedBounds(place: GraphExtentsPlace) {
     return this.computedBounds[place]
   }
 }

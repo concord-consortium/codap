@@ -15,11 +15,11 @@ import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
-import {DotsElt} from '../../data-display/d3-types'
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
+import {PixiPoints} from "../utilities/pixi-points"
 import "../register-adornment-types"
 
-export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
+export const GraphComponent = observer(function GraphComponent({ tile }: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
@@ -27,14 +27,21 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const layout = useInitGraphLayout(graphModel)
   // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
-  const {width, height} = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
-  const dotsRef = useRef<DotsElt>(null)
+  const { width, height } = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
+  const pixiPointsRef = useRef<PixiPoints>()
+  // TODO PIXI: PJ: probably should be fixed and become a ref, as memoization is meant for performance optimization
+  // and it's not guaranteed to be maintained across renders.
   const graphController = useMemo(
-    () => new GraphController({layout, instanceId}),
+    () => new GraphController({ layout, instanceId }),
     [layout, instanceId]
   )
 
-  useGraphController({graphController, graphModel, dotsRef})
+  useEffect(() => {
+    pixiPointsRef.current = new PixiPoints()
+    return () => pixiPointsRef.current?.dispose()
+  }, [])
+
+  useGraphController({ graphController, graphModel, pixiPointsRef })
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setTileExtent(width, height)
@@ -48,7 +55,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
 
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
-  const {setNodeRef} = useDroppable({id: dropId})
+  const { setNodeRef } = useDroppable({ id: dropId })
   setNodeRef(graphRef.current ?? null)
 
   const { active } = useDndContext()
@@ -64,7 +71,11 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
           <AxisLayoutContext.Provider value={layout}>
             <GraphContentModelContext.Provider value={graphModel}>
               <AxisProviderContext.Provider value={graphModel}>
-                <Graph graphController={graphController} graphRef={graphRef} dotsRef={dotsRef} />
+                <Graph
+                  graphController={graphController}
+                  graphRef={graphRef}
+                  pixiPointsRef={pixiPointsRef}
+                />
               </AxisProviderContext.Provider>
               <AttributeDragOverlay activeDragId={overlayDragId} />
             </GraphContentModelContext.Provider>

@@ -1,5 +1,6 @@
 import { CalculatorTileElements as calc } from "../support/elements/calculator-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 const calculatorName = "Calculator"
 
@@ -25,10 +26,10 @@ context("Data summary UI", () => {
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
 
-    c.createFromToolshelf("calculator")
+    c.getIconFromToolshelf("calc").click()
     c.checkComponentDoesNotExist("calculator")
 
-    c.createFromToolshelf("calculator")
+    c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", calculatorName)
   })
@@ -41,13 +42,13 @@ context("Data summary UI", () => {
     c.closeComponent("calculator")
     c.checkComponentDoesNotExist("calculator")
 
-    c.createFromToolshelf("calculator")
+    c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", calculatorName)
   })
   it("checks all calculator tooltips", () => {
     c.selectTile("calculator")
-    c.getToolShelfIcon("calculator").then($element => {
+    toolbar.getToolShelfIcon("calc").then($element => {
       c.checkToolTip($element, c.tooltips.calculatorToolShelfIcon)
     })
     c.getMinimizeButton("calculator").then($element => {

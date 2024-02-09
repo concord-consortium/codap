@@ -1,4 +1,5 @@
 import {comparer, reaction} from "mobx"
+import * as PIXI from "pixi.js"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import React, {useCallback, useEffect, useRef} from "react"
@@ -6,13 +7,16 @@ import {useDebouncedCallback} from "use-debounce"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
-import {CaseData, DotsElt, selectDots} from "../../data-display/d3-types"
-import {computePointRadius, matchCirclesToData, setPointSelection} from "../../data-display/data-display-utils"
+import {DataTip} from "../../data-display/components/data-tip"
+import {CaseData} from "../../data-display/d3-types"
+import {
+  computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
+} from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
+import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 
@@ -26,15 +30,47 @@ export const MapPointLayer = function MapPointLayer(props: {
     {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
     layout = useDataDisplayLayout(),
-    dotsRef = useRef<DotsElt>(null)
+    pixiContainerRef = useRef<HTMLDivElement>(null),
+    pixiPointsRef = useRef<PixiPoints>()
 
-  useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
+  useEffect(() => {
+    if (!pixiContainerRef.current) {
+      return
+    }
+    pixiPointsRef.current = new PixiPoints({
+      resizeTo: pixiContainerRef.current,
+      // PixiPoints background should redistribute events to the geoJSON polygons that lie underneath.
+      backgroundEventDistribution: {
+        // Element that needs to be "hidden" to obtain another element at the current cursor position.
+        elementToHide: pixiContainerRef.current
+      }
+    })
+    return () => pixiPointsRef.current?.dispose()
+  }, [])
+
+  useEffect(() => {
+    if (!pixiPointsRef.current) {
+      return
+    }
+    pixiPointsRef.current.onPointClick = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset)
+      // TODO PIXI: this doesn't seem to work in pixi. Note that this click will be propagated to the map container
+      // and handled by its click handler (which will deselect the point). The current workaround is to disable
+      // point deselection on map click, but it needs to be addressed better.
+      event.stopPropagation()
+    }
+  }, [dataConfiguration.dataset])
+
+  if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
+    pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
+  }
 
   const callMatchCirclesToData = useCallback(() => {
-    if (mapLayerModel && dataConfiguration && layout && dotsRef.current) {
+    if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
       matchCirclesToData({
         dataConfiguration,
-        dotsElement: dotsRef.current,
+        pixiPoints: pixiPointsRef.current,
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription?.pointColor,
@@ -49,7 +85,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
-      dotsRef, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
+      pixiPointsRef, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
       pointColor, pointStrokeColor
     })
   }, [pointDescription, mapLayerModel, dataConfiguration])
@@ -74,36 +110,38 @@ export const MapPointLayer = function MapPointLayer(props: {
         return coords.y
       }
 
-    if (!dotsRef.current || !dataset) return
-    const
-      theSelection = selectDots(dotsRef.current, selectedOnly),
-      duration = isAnimating() ? transitionDuration : 0,
-      pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
-        pointDescription.pointSizeMultiplier),
-      selectedPointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
-        pointDescription.pointSizeMultiplier, 'select'),
-      {pointColor, pointStrokeColor} = pointDescription,
-      getLegendColor = dataConfiguration?.attributeID('legend')
-        ? dataConfiguration?.getLegendColorForCase : undefined,
-      {latId, longId} = latLongAttributesFromDataSet(dataset)
-    if (theSelection?.size()) {
-      theSelection
-        .attr('cx', (aCaseData: CaseData) => getScreenX(aCaseData.caseID))
-        .attr('cy', (aCaseData: CaseData) => getScreenY(aCaseData.caseID))
-        .transition()
-        .duration(duration)
-        .attr('r', (aCaseData: CaseData) => dataset?.isCaseSelected(aCaseData.caseID)
-          ? selectedPointRadius : pointRadius)
-        .style('fill', (aCaseData: CaseData) => lookupLegendColor(aCaseData))
-        .style('stroke', (aCaseData: CaseData) =>
-          (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStroke : pointStrokeColor)
-        .style('stroke-width', (aCaseData: CaseData) =>
-          (getLegendColor && dataset?.isCaseSelected(aCaseData.caseID))
-            ? defaultSelectedStrokeWidth : defaultStrokeWidth)
-        // this calls refreshPointSelection for _each_ point, e.g. 858 times for the four seals data
-        // .on('end', refreshPointSelection)
+    const pixiPoints = pixiPointsRef.current
+    if (!pixiPoints || !dataset) {
+      return
     }
+    const pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
+        pointDescription.pointSizeMultiplier)
+    const selectedPointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
+        pointDescription.pointSizeMultiplier, 'select')
+    const {pointColor, pointStrokeColor} = pointDescription
+    const getLegendColor = dataConfiguration?.attributeID('legend')
+        ? dataConfiguration?.getLegendColorForCase : undefined
+    const {latId, longId} = latLongAttributesFromDataSet(dataset)
+
+    pixiPoints.transition(() => {
+      pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+        const {caseID} = metadata
+        pixiPoints.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
+        pixiPoints.setPointStyle(point, {
+          radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
+          fill: lookupLegendColor(metadata),
+          stroke: getLegendColor && dataset?.isCaseSelected(caseID)
+            ? defaultSelectedStroke : pointStrokeColor,
+          strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
+            ? defaultSelectedStrokeWidth : defaultStrokeWidth
+         })
+      }, { selectedOnly })
+    }, {
+      duration: isAnimating() ? transitionDuration : 0,
+      onEnd: () => {
+        refreshPointSelection()
+      }
+    })
   }, 10)
 
   // Actions in the dataset can trigger need for point updates
@@ -160,7 +198,17 @@ export const MapPointLayer = function MapPointLayer(props: {
     )
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
+  const getTipAttrs = useCallback((plotNum: number) => {
+    const dataConfig = mapLayerModel.dataConfiguration
+    const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
+    return roleAttrIDPairs.filter(aPair => plotNum > 0 || aPair.role !== 'rightNumeric')
+      .map(aPair => aPair.attributeID)
+  }, [mapLayerModel.dataConfiguration])
+
   return (
-    <svg ref={dotsRef}></svg>
+    <>
+      <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+      <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
+    </>
   )
 }

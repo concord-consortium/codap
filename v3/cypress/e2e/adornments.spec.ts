@@ -346,16 +346,18 @@ context("Graph adornments", () => {
     movablePointCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it("adds plotted function UI to graph when Plotted Value checkbox is checked", () => {
+  it("adds plotted function UI to graph when Plotted Function checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Mass", "y")
+    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
     graph.getDisplayValuesButton().click()
     const inspectorPalette = graph.getInspectorPalette()
     inspectorPalette.should("be.visible")
     const plottedFunctionCheckbox = inspectorPalette.find("[data-testid=adornment-checkbox-plotted-function]")
     plottedFunctionCheckbox.should("be.visible")
     plottedFunctionCheckbox.click()
+    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 22\)/)
     cy.get("[data-testid=graph-adornments-banners]").should("exist")
     cy.get("[data-testid=plotted-function-control]").should("exist")
     cy.get("[data-testid=plotted-function-control-label]").should("exist")
@@ -370,6 +372,7 @@ context("Graph adornments", () => {
     cy.wait(250)
     plottedFunctionCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
   })
   it("allows adding a plotted function to the graph by entering a value into the plotted function UI", () => {
     c.selectTile("graph", 0)
@@ -396,12 +399,14 @@ context("Graph adornments", () => {
   it("adds plotted value UI to graph when Plotted Value checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
     graph.getDisplayValuesButton().click()
     const inspectorPalette = graph.getInspectorPalette()
     inspectorPalette.should("be.visible")
     const plottedValueCheckbox = inspectorPalette.find("[data-testid=adornment-checkbox-plotted-value]")
     plottedValueCheckbox.should("be.visible")
     plottedValueCheckbox.click()
+    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 22\)/)
     cy.get("[data-testid=graph-adornments-banners]").should("exist")
     cy.get("[data-testid=plotted-value-control]").should("exist")
     cy.get("[data-testid=plotted-value-control-label]").should("exist")
@@ -416,6 +421,7 @@ context("Graph adornments", () => {
     cy.wait(250)
     plottedValueCheckbox.click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
   })
   it("allows adding a plotted value to the graph by entering a value into the plotted value UI", () => {
     c.selectTile("graph", 0)
@@ -532,6 +538,21 @@ context("Graph adornments", () => {
     // cy.get(".movable-value-label").should("have.length", 0)
     // cy.get(".movable-value-fill").should("have.length", 0)
   })
+
+  it("renders Count adornment count per region defined by Movable Values", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-count-count]").click()
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get(".sub-count").should("have.length", 0)
+    cy.get("[data-testid=adornment-button-movable-value]").click()
+    cy.get("[data-testid=adornment-button-movable-value--add]").click()
+    cy.get(".sub-count").should("have.length", 2)
+    cy.get("[data-testid=adornment-button-movable-value]").click()
+    cy.get("[data-testid=adornment-button-movable-value--add]").click()
+    cy.get(".sub-count").should("have.length", 3)
+  })
   it("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
@@ -582,18 +603,28 @@ context("Graph adornments", () => {
     inspectorPalette.should("be.visible")
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").should("be.visible")
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
+    // TODO: Update the below once the connecting lines and related dot animation is re-instated
+    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
+    //   cy.wrap(dot).should("have.attr", "r", 6)
+    // })
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
+    // TODO: Update the below once the connecting lines and related dot animation is re-instated
+    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
+    //   cy.wrap(dot).should("have.attr", "r", 3)
+    // })
     // Since the circle elements for the graph's case dots overlay the lines' path element in various places, we
     // use force: true so we don't need to figure out exactly where to click.
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
-    cy.get("[data-testid=graph-dot-area-graph-1]").find("circle.graph-dot-highlighted").should("exist")
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
-    cy.get("[data-testid=graph-dot-area-graph-1]").find("circle.graph-dot-highlighted").should("not.exist")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
     cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
+    // TODO: Update the below once the connecting lines and related dot animation is re-instated
+    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
+    //   cy.wrap(dot).should("have.attr", "r", 6)
+    // })
   })
 })

@@ -50,6 +50,9 @@
     &.visible {
       display: block;
     }
+    &.offset {
+      transform: translate(0, 17px)
+    }
   }
 
   .measure-cover {

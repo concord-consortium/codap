@@ -83,7 +83,7 @@ export const TableTileElements = {
     this.getAttributeMenuItem(item).click({ force: true })
   },
   renameColumnName(newName) {
-    cy.get("[data-testid=column-name-input").type(newName)
+    cy.get("[data-testid=column-name-input]").type(newName)
   },
   // Edit Attribute Property Dialog
   enterAttributeName(name) {
@@ -146,15 +146,15 @@ export const TableTileElements = {
     cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show 1 Hidden Attribute").click()
   },
   createNewTableFromToolshelf() {
-    c.createFromToolshelf("table")
+    c.getIconFromToolshelf("table").click()
     cy.get("[data-testid=tool-shelf-table-new]").click()
   },
   createNewClipboardTableFromToolshelf() {
-    c.createFromToolshelf("table")
+    c.getIconFromToolshelf("table").click()
     cy.get("[data-testid=tool-shelf-table-new-clipboard]").click()
   },
   openExistingTableFromToolshelf(name) {
-    c.createFromToolshelf("table")
+    c.getIconFromToolshelf("table").click()
     cy.get(`[data-testid=tool-shelf-table-${name}]`).click()
   },
   getToggleCardView() {
@@ -294,7 +294,7 @@ export const TableTileElements = {
     }
   },
   createNewDataset() {
-    c.createFromToolshelf("table")
+    c.getIconFromToolshelf("table").click()
     cy.get("[data-testid=tool-shelf-table-new]").click()
   }
 }

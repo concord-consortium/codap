@@ -1,3 +1,12 @@
+import { INumericAxisModel } from "../../axis/models/axis-model"
+
+export function getAxisDomains(xAxis?: INumericAxisModel, yAxis?: INumericAxisModel) {
+  // establishes access to the specified axis domains for purposes of MobX observation
+  const { domain: xDomain = [0, 1] } = xAxis || {}
+  const { domain: yDomain = [0, 1] } = yAxis || {}
+  return { xDomain, yDomain }
+}
+
 export const updateCellKey = (cellKey: Record<string, string>, attrId: string, cat: string) => {
   const newCellKey = { ...cellKey }
   if (cat) {

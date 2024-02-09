@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom"
 import "jest-canvas-mock"
+import "jest-webgl-canvas-mock"
 import { isEqual, isEqualWith } from "lodash"
 import ResizeObserverPolyfill from "resize-observer-polyfill"
 

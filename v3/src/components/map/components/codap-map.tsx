@@ -1,6 +1,5 @@
 import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {clsx} from "clsx"
 import {LatLngExpression} from "leaflet"
 import {MapContainer, TileLayer} from "react-leaflet"
@@ -23,8 +22,7 @@ interface IProps {
 }
 
 export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
-  const instanceId = useInstanceIdContext(),
-    mapModel = useMapModelContext(),
+  const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
     interiorSvgRef = useRef<SVGSVGElement>(null),
@@ -69,9 +67,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
         <MapContainer center={kDefaultMapLocation as LatLngExpression} zoom={kDefaultMapZoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
           <TileLayer attribution={kMapAttribution} url={kMapUrl}/>
-          <svg ref={interiorSvgRef} className={`map-dot-area ${instanceId}`}>
-            <MapInterior/>
-          </svg>
+          <MapInterior/>
         </MapContainer>
       </div>
       <DroppableMapArea

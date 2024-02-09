@@ -10,6 +10,7 @@ import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnaps
   from "../../data-display/models/data-configuration-model"
 import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -302,6 +303,26 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         })
       }
     }),
+    cellCases: cachedFnWithArgsFactory({
+      key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
+      calculate: (cellKey: Record<string, string>) => {
+        const rightAttrID = self.attributeID("rightSplit")
+        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
+        const topAttrID = self.attributeID("topSplit")
+        const topAttrType = self.attributeType("topSplit")
+        const topValue = topAttrID ? cellKey[topAttrID] : ""
+
+        return self.allPlottedCases().filter(caseId => {
+          const caseData = self.dataset?.getCase(caseId)
+          if (!caseData) return false
+          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
+          const isTopMatch = !topAttrID || topAttrType !== "categorical" ||
+            (topAttrType === "categorical" && topValue === caseData[topAttrID])
+
+          return isRightMatch && isTopMatch
+        })
+      }
+    }),
     rowCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
@@ -310,6 +331,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
         const rightAttrID = self.attributeID("rightSplit")
         const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
+        const topAttrID = self.attributeID("topSplit")
+        const topValue = topAttrID ? cellKey[topAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
           const caseData = self.dataset?.getCase(caseId)
@@ -318,8 +341,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
             (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
           const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
+          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
 
-          return isLeftMatch && isRightMatch
+          return isLeftMatch && isRightMatch && isTopMatch
         })
       }
     }),
@@ -331,6 +355,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
         const topAttrID = self.attributeID("topSplit")
         const topValue = topAttrID ? cellKey[topAttrID] : ""
+        const rightAttrID = self.attributeID("rightSplit")
+        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
           const caseData = self.dataset?.getCase(caseId)
@@ -339,11 +365,22 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
             (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
           const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
+          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
 
-          return isBottomMatch && isTopMatch
+          return isBottomMatch && isTopMatch && isRightMatch
         })
       }
     })
+  }))
+  .views(self => ({
+    casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>) {
+      return self.subPlotCases(cellKey)?.filter(caseId => {
+        const caseValue = self.dataset?.getNumeric(caseId, attrId)
+        if (isFiniteNumber(caseValue) && caseValue >= min && caseValue <= max) {
+          return caseId
+        }
+      })
+    }
   }))
   .views(self => (
     {
@@ -479,6 +516,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.subPlotCases.invalidateAll()
       self.rowCases.invalidateAll()
       self.columnCases.invalidateAll()
+      self.cellCases.invalidateAll()
     }
   }))
   .actions(self => {

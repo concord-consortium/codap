@@ -6,7 +6,7 @@ import {
   isPlottedFunctionAdornment
 } from "../../components/graph/adornments/plotted-function/plotted-function-adornment-model"
 import { getFormulaManager } from "../tiles/tile-environment"
-import { DEBUG_FORMULAS } from "../../lib/debug"
+import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
 import {
   FormulaFn, kPlottedFunctionType
 } from "../../components/graph/adornments/plotted-function/plotted-function-adornment-types"
@@ -64,10 +64,7 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
     formulaContext: IFormulaContext, extraMetadata: IPlottedFunctionFormulaExtraMetadata, childMostCases: ICase[]
   ): FormulaFn {
     const { formula } = formulaContext
-    if (DEBUG_FORMULAS) {
-      // eslint-disable-next-line no-console
-      console.log(`[plotted function formula] recalculate "${formula.canonical}"`)
-    }
+    debugLog(DEBUG_FORMULAS, `[plotted function formula] recalculate "${formula.canonical}"`)
     const formulaScope = this.getMathJSScope(formulaContext, extraMetadata, childMostCases)
     try {
       const compiledFormula = math.compile(formula.canonical)

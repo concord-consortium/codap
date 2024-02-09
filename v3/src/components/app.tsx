@@ -3,8 +3,10 @@ import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "./codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
+import { kCodapAppElementId } from "./constants"
 import { importV2Document } from "./import-v2-document"
-import { MenuBar } from "./menu-bar/menu-bar"
+import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
+import { useCloudFileManager } from "../lib/use-cloud-file-manager"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
@@ -32,6 +34,10 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
 
+  useCloudFileManager({
+    appOrMenuElemId: kMenuBarElementId
+  })
+
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
       let sharedData: ISharedDataSet | undefined
@@ -52,7 +58,7 @@ export const App = observer(function App() {
   }, [])
 
   useDropHandler({
-    selector: "#app",
+    selector: `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportV2Document: importV2Document,
     onImportV3Document: handleImportV3Document,
@@ -98,7 +104,7 @@ export const App = observer(function App() {
   return (
     <CodapDndContext>
       <DocumentContext.Provider value={appState.document}>
-        <div className="app" data-testid="app">
+        <div className="codap-app" data-testid="codap-app">
           <MenuBar/>
           <ToolShelf />
           <Container />

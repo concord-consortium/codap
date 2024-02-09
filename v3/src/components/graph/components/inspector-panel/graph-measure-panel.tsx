@@ -48,7 +48,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
     >
       <Flex className="palette-form" direction="column">
         <Box className="form-title">Show ...</Box>
-        {graphModel && measures?.map((measure: Record<string, any>) => {
+        {graphModel && measures?.map(measure => {
           const { checked, clickHandler, componentInfo, componentContentInfo, disabled, title } = measure
           const titleSlug = t(title).replace(/ /g, "-").toLowerCase()
           if (componentInfo && componentContentInfo) {

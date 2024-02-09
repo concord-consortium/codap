@@ -4,7 +4,6 @@
  */
 import {reaction} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
-import {onAnyAction} from "../../../utilities/mst-utils"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
@@ -31,6 +30,7 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} fro
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import { getPlottedFunctionFormulaAdapter } from "../../../models/formula/plotted-function-formula-adapter"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -74,8 +74,7 @@ export const GraphContentModel = DataDisplayContentModel
   })
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
-    prevDataSetId: "",
-    disposeDataSetListener: undefined as (() => void) | undefined
+    prevDataSetId: ""
   }))
   .actions(self => ({
     addLayer(aLayer: IGraphPointLayerModel) {
@@ -137,22 +136,9 @@ export const GraphContentModel = DataDisplayContentModel
   .actions(self => ({
     afterCreate() {
       self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
-    },
-    setDataSetListener() {
-      const actionsAffectingCategories = [
-        "addCases", "removeAttribute", "removeCases", "setCaseValues"
-      ]
-      self.disposeDataSetListener?.()
-      self.disposeDataSetListener = self.dataset
-        ? onAnyAction(self.dataset, action => {
-          // TODO: check whether categories have actually changed before updating
-          if (actionsAffectingCategories.includes(action.name)) {
-            const updateCategoriesOptions = self.getUpdateCategoriesOptions()
-            self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-          }
-        })
-        : undefined
-    },
+    }
+  }))
+  .actions(self => ({
     afterAttachToDocument() {
       // Monitor our parents and update our shared model when we have a document parent
       addDisposer(self, reaction(() => {
@@ -183,12 +169,17 @@ export const GraphContentModel = DataDisplayContentModel
           })
         },
         {name: "sharedModelSetup", fireImmediately: true}))
+      // update adornments when case data changes
+      addDisposer(self, mstAutorun(function updateAdornments() {
+        self.dataConfiguration.casesChangeCount // eslint-disable-line no-unused-expressions
+        const updateCategoriesOptions = self.getUpdateCategoriesOptions()
+        self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+      }, { name: "GraphContentModel.afterAttachToDocument.updateAdornments" }, self.dataConfiguration))
     },
     beforeDestroy() {
       getFormulaAdapters(self).forEach(adapter => {
         adapter?.removeGraphContentModel(self.id)
       })
-      self.disposeDataSetListener?.()
     }
   }))
   .actions(self => ({
@@ -197,11 +188,6 @@ export const GraphContentModel = DataDisplayContentModel
         self.dataConfiguration.setDataset(self.dataset, self.metadata)
       } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
         self.dataConfiguration.setDataset(undefined, undefined)
-      }
-      const currDataSetId = self.dataConfiguration.dataset?.id ?? ""
-      if (self.prevDataSetId !== currDataSetId) {
-        self.setDataSetListener()
-        self.prevDataSetId = currDataSetId
       }
     }
   }))

@@ -3,7 +3,7 @@ import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
-import {GraphAttrRole, IDotsRef, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
+import {GraphAttrRole, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -28,15 +28,16 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {isSetAttributeIDAction} from "../models/graph-content-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../models/marquee-state"
+import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {useDataTips} from "../../data-display/hooks/use-data-tips"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
+import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
 
 import "./graph.scss"
@@ -44,10 +45,10 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  dotsRef: IDotsRef
+  pixiPointsRef: IPixiPointsRef
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, dotsRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, pixiPointsRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
     {startAnimation} = useDataDisplayAnimation(),
@@ -57,10 +58,19 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     layout = useGraphLayoutContext(),
     xScale = layout.getAxisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),
-    plotAreaSVGRef = useRef<SVGSVGElement>(null),
+    plotArea1Ref = useRef<SVGGElement>(null),
+    plotArea2Ref = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
+    pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
+
+  if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
+    pixiPointsRef.current.setupBackgroundEventDistribution({
+      elementToHide: pixiContainerRef.current
+    })
+  }
 
   useEffect(function handleFilteredCasesLengthChange() {
     return mstReaction(
@@ -79,13 +89,26 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
   useEffect(function setupPlotArea() {
     if (xScale && xScale?.length > 0) {
       const plotBounds = layout.getComputedBounds('plot')
-      select(plotAreaSVGRef.current)
-        .attr('x', plotBounds?.left || 0)
-        .attr('y', plotBounds?.top || 0)
-        .attr('width', layout.plotWidth)
-        .attr('height', layout.plotHeight)
+      const x = plotBounds?.left || 0
+      const y = plotBounds?.top || 0
+      const translate = `translate(${x}, ${y})`
+      // Note that this division into plotArea1 and plotArea2 SVG group elements, along with the separate handling of
+      // the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign element
+      // content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is to use
+      // the X and Y attributes of the foreignElement tag itself. See:
+      // - https://www.pivotaltracker.com/story/show/186784214
+      // - https://bugs.webkit.org/show_bug.cgi?id=219978
+      // - https://github.com/bkrem/react-d3-tree/issues/284
+      select(plotArea1Ref.current).attr("transform", translate)
+      select(plotArea2Ref.current).attr("transform", translate)
+      select(pixiContainerRef.current)
+        .attr("x", x).attr("y", y) // translate won't work in Safari!
+        .attr("width", `${layout.plotWidth}px`)
+        .attr("height", `${layout.plotHeight}px`)
+
+      pixiPointsRef.current?.resize(layout.plotWidth, layout.plotHeight)
     }
-  }, [dataset, plotAreaSVGRef, layout, layout.plotHeight, layout.plotWidth, xScale])
+  }, [dataset, layout, layout.plotHeight, layout.plotWidth, xScale, pixiPointsRef])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
@@ -153,10 +176,8 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  useDataTips({dotsRef, dataset, displayModel: graphModel})
-
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, dotsRef},
+    const props = {xAttrID, yAttrID, pixiPointsRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -202,7 +223,16 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
     return droppables
   }
 
-  useGraphModel({dotsRef, graphModel, instanceId})
+  useGraphModel({pixiPointsRef, graphModel, instanceId})
+
+  const getTipAttrs = useCallback((plotNum: number) => {
+    const dataConfig = graphModel.dataConfiguration
+    const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
+    const yAttrIDs = dataConfig.yAttributeIDs
+    return roleAttrIDPairs.filter(aPair => plotNum > 0 || aPair.role !== 'rightNumeric')
+      .map(aPair => plotNum === 0 ? aPair.attributeID : aPair.role === 'y'
+        ? (yAttrIDs?.[plotNum] ?? '') : aPair.attributeID)
+  }, [graphModel.dataConfiguration])
 
   if (!isAlive(graphModel)) return null
 
@@ -211,18 +241,30 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
       <div className={clsx(kGraphClass, kPortalClass)} ref={graphRef} data-testid="graph">
         <svg className='graph-svg' ref={svgRef}>
           <Background
-            marqueeState={marqueeState}
             ref={backgroundSvgRef}
+            marqueeState={marqueeState}
+            pixiPointsRef={pixiPointsRef}
           />
 
           {renderGraphAxes()}
-
-          <svg ref={plotAreaSVGRef}>
-            <svg ref={dotsRef} className={`graph-dot-area ${instanceId}`} data-testid={`graph-dot-area-${instanceId}`}>
-              {renderPlotComponent()}
-            </svg>
+          {/*
+            Note that this division into plotArea1 and plotArea2 SVG group elements, along with the separate handling of
+            the Pixi container, is due to a Safari-specific bug. Apparently, Safari renders the position of foreign
+            element content incorrectly if it or its parent is translated. The only workaround, as of January 2024, is
+            to use the X and Y attributes of the foreignElement tag itself. See:
+            - https://www.pivotaltracker.com/story/show/186784214
+            - https://bugs.webkit.org/show_bug.cgi?id=219978
+            - https://github.com/bkrem/react-d3-tree/issues/284
+          */}
+          <g ref={plotArea1Ref}>
+            {/* Components rendered below the dots/points should be added to this group. */}
+            {renderPlotComponent()}
+          </g>
+          <foreignObject ref={pixiContainerRef} />
+          <g ref={plotArea2Ref}>
+            {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
-          </svg>
+          </g>
 
           <DroppablePlot
             graphElt={graphRef.current}
@@ -236,6 +278,7 @@ export const Graph = observer(function Graph({graphController, graphRef, dotsRef
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
+        <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
       </div>
     </GraphDataConfigurationContext.Provider>
   )

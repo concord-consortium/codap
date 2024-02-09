@@ -1,6 +1,7 @@
 import { AdornmentsStore } from "./adornments-store"
 import * as contentInfo from "./adornment-content-info"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
+import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
 
 jest.spyOn(contentInfo, "getAdornmentTypes").mockReturnValue(
   [
@@ -22,6 +23,20 @@ const mockAdornment = {
   setVisibility: () => true,
   updateCategories: () => ({}),
   type: "Mock Adornment"
+}
+const mockMovableValueAdornment = {
+  cellCount: () => ({x: 1, y: 1}),
+  classNameFromKey: () => "mock-movable-value-adornment",
+  getAllCellKeys: () => ([]),
+  id: "ADRN123",
+  instanceKey: () => "mock-movable-value-adornment",
+  isUnivariateMeasure: false,
+  isVisible: false,
+  cellKey: () => ({}),
+  setVisibility: () => true,
+  updateCategories: () => ({}),
+  values: { "{}": [10] },
+  type: kMovableValueType
 }
 const mockUpdateCategoriesOptions = {
   rightCats: [],
@@ -115,5 +130,12 @@ describe("AdornmentsStore", () => {
     const mockCallback = jest.fn()
     adornmentsStore.updateAdornment(mockCallback)
     expect(mockCallback).toHaveBeenCalled()
+  })
+  it("returns a boolean indicating whether existing adornments create subregions within a plot", () => {
+    const adornmentsStore = AdornmentsStore.create()
+    expect(adornmentsStore.subPlotsHaveRegions).toBe(false)
+    adornmentsStore.addAdornment(mockMovableValueAdornment, mockUpdateCategoriesOptions)
+    adornmentsStore.showAdornment(adornmentsStore.adornments[0], kMovableValueType)
+    expect(adornmentsStore.subPlotsHaveRegions).toBe(true)
   })
 })

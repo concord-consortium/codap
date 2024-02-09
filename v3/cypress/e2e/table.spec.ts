@@ -1,5 +1,6 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 const numOfAttributes = 10
 const firstRowIndex = 2
@@ -57,9 +58,9 @@ context("case table ui", () => {
       // table.getColumnHeaderTooltip().should("contain", `${name} : ${description}`)
     })
     // it("verify attribute reorder within a collection", () => {
-    // });
+    // })
     // it("verify index column cannot be reordered", () => {
-    // });
+    // })
   })
 
   describe("case table header attribute menu", () => {
@@ -292,7 +293,7 @@ context("case table ui", () => {
     })
     it("checks all table tooltips", () => {
       c.selectTile("table", 0)
-      c.getToolShelfIcon("table").then($element => {
+      toolbar.getToolShelfIcon("table").then($element => {
         c.checkToolTip($element, c.tooltips.tableToolShelfIcon)
       })
       c.getMinimizeButton("table").then($element => {

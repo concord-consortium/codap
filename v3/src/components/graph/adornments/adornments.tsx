@@ -1,6 +1,7 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 import { kGraphAdornmentsClass } from "../graphing-types"
 import { Adornment } from "./adornment"
 import { getAdornmentContentInfo } from "./adornment-content-info"
@@ -12,16 +13,27 @@ import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-config
 import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
 import { updateCellKey } from "./adornment-utils"
+import { kGraphAdornmentsBannerHeight } from "./adornment-types"
 
 import "./adornments.scss"
 
 export const Adornments = observer(function Adornments() {
-  const graphModel = useGraphContentModelContext(),
-    dataConfig = useGraphDataConfigurationContext(),
-    instanceId = useInstanceIdContext(),
-    layout = useGraphLayoutContext(),
-    { isTileSelected } = useTileModelContext(),
-    adornments = graphModel.adornmentsStore.adornments
+  const graphModel = useGraphContentModelContext()
+  const dataConfig = useGraphDataConfigurationContext()
+  const instanceId = useInstanceIdContext()
+  const layout = useGraphLayoutContext()
+  const { isTileSelected } = useTileModelContext()
+  const adornments = graphModel.adornmentsStore.adornments
+  const { left, top, width, height } = layout.computedBounds.plot
+
+  useEffect(function handleAdornmentBannerCountChange() {
+    return mstAutorun(() => {
+      const bannerCount = graphModel.adornmentsStore.activeBannerCount
+      const bannersHeight = bannerCount * kGraphAdornmentsBannerHeight
+      layout.setDesiredExtent("banners", bannersHeight)
+      }, { name: "Graph.handleAdornmentBannerCountChange" }, graphModel
+    )
+  }, [graphModel, layout])
 
   if (!adornments?.length) return null
 
@@ -37,20 +49,20 @@ export const Adornments = observer(function Adornments() {
     )
   })
 
-  const xAttrId = dataConfig?.attributeID("x"),
-    xAttrType = dataConfig?.attributeType("x"),
-    xCatSet = layout.getAxisMultiScale('bottom').categorySet,
-    xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""],
-    yAttrId = dataConfig?.attributeID("y"),
-    yAttrType = dataConfig?.attributeType("y"),
-    yCatSet = layout.getAxisMultiScale("left").categorySet,
-    yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""],
-    topAttrId = dataConfig?.attributeID("topSplit"),
-    topCatSet = layout.getAxisMultiScale("top").categorySet,
-    topCats = topCatSet ? Array.from(topCatSet.values) : [""],
-    rightAttrId = dataConfig?.attributeID("rightSplit"),
-    rightCatSet = layout.getAxisMultiScale("rightCat").categorySet,
-    rightCats = rightCatSet ? Array.from(rightCatSet.values) : [""]
+  const xAttrId = dataConfig?.attributeID("x")
+  const xAttrType = dataConfig?.attributeType("x")
+  const xCatSet = layout.getAxisMultiScale('bottom').categorySet
+  const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
+  const yAttrId = dataConfig?.attributeID("y")
+  const yAttrType = dataConfig?.attributeType("y")
+  const yCatSet = layout.getAxisMultiScale("left").categorySet
+  const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
+  const topAttrId = dataConfig?.attributeID("topSplit")
+  const topCatSet = layout.getAxisMultiScale("top").categorySet
+  const topCats = topCatSet ? Array.from(topCatSet.values) : [""]
+  const rightAttrId = dataConfig?.attributeID("rightSplit")
+  const rightCatSet = layout.getAxisMultiScale("rightCat").categorySet
+  const rightCats = rightCatSet ? Array.from(rightCatSet.values) : [""]
 
   // When a graph contains multiple sub-plots, each adornment needs to be rendered once per sub-plot.
   // For placing the adornments, we build a CSS grid where each cell corresponds to a subplot of the
@@ -59,7 +71,6 @@ export const Adornments = observer(function Adornments() {
   // Inside each cell of the outer grid, we build an "inner grid" which is determined by the attributes
   // on the bottom and left axes.
   const outerGridCells: React.JSX.Element[] = []
-  const { left, top, width, height } = layout.computedBounds.plot
   const bottomRepetitions = dataConfig?.numRepetitionsForPlace('bottom') ?? 1
   const leftRepetitions = dataConfig?.numRepetitionsForPlace('left') ?? 1
   const outerGridStyle = {
