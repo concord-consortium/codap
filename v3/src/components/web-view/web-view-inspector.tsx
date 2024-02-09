@@ -2,6 +2,7 @@ import {useDisclosure} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
 import React, {useRef, useState} from "react"
 import MediaToolIcon from "../../assets/icons/icon-media-tool.svg"
+import { useDocumentContext } from "../../hooks/use-document-context"
 import t from "../../utilities/translation/translate"
 import {InspectorButton, InspectorPanel} from "../inspector-panel"
 import {ITileInspectorPanelProps} from "../tiles/tile-base-props"
@@ -11,6 +12,7 @@ import {isWebViewModel} from "./web-view-model"
 import "./web-view-inspector.scss"
 
 export const WebViewInspector = observer(function WebViewInspector({tile, show}: ITileInspectorPanelProps) {
+  const document = useDocumentContext();
   const webViewModel = isWebViewModel(tile?.content) ? tile?.content : undefined
   const panelRef = useRef<HTMLDivElement>()
   const formulaModal = useDisclosure()
@@ -31,9 +33,9 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    // document?.content?.applyUndoableAction(() => {
+    document?.content?.applyUndoableAction(() => {
       webViewModel?.setUrl(url)
-    // }, "DG.Undo.webView.show", "DG.Redo.webView.show")
+    }, "V3.Undo.webView.changeUrl", "V3.Redo.webView.changeUrl")
   }
 
   return (

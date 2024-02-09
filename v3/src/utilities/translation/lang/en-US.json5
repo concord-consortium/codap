@@ -21,6 +21,8 @@
     // V3 web view strings that are not present in V2 and will eventually require translation.
     "V3.WebView.Modal.PlaceholderText": "URL",
     "V3.WebView.Modal.okBtnTitle": "OK",
+    "V3.Undo.webView.changeUrl": "Undo changing webView's url",
+    "V3.Redo.webView.changeUrl": "Redo changing webView's url",
 
     // V3 formula strings that are not present in V2 and will eventually require translation.
     "V3.formula.error.invalidParentAttrRef": "invalid reference to parent attribute '%@' within aggregate function",
