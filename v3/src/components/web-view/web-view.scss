@@ -1,6 +1,7 @@
 .codap-web-view-body {
   background-color: white;
   height: calc(100% - 25px);
+  overflow: hidden;
   position: relative;
   width: 100%;
 
