@@ -19,5 +19,11 @@ export const ToolbarElements = {
   },
   getConfirmDeleteDatasetModal() {
     return cy.get(`[data-testid=delete-data-set-button-delete]`)
+  },
+  getOptionsButton() {
+    return cy.get(`[data-testid=tool-shelf-button-options]`)
+  },
+  getWebViewButton() {
+    return cy.get(`[data-testid=tool-shelf-button-web-view]`)
   }
 }

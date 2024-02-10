@@ -49,9 +49,9 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
         </div>
       </ModalHeader>
       <ModalBody>
-        <FormControl display="flex" flexDirection="column" data-testid="edit-formula-value-form">
+        <FormControl display="flex" flexDirection="column" data-testid="web-view-url-form">
           <Input value={value} onChange={handleValueChange} placeholder={t("V3.WebView.Modal.PlaceholderText")}
-            onKeyDown={(e) => e.stopPropagation()} data-testid="formula-value-input" />
+            onKeyDown={(e) => e.stopPropagation()} data-testid="web-view-url-input" />
         </FormControl>
       </ModalBody>
       <ModalFooter mt="-5">

@@ -5,6 +5,7 @@ import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { MapTileElements as map } from "../support/elements/map-tile"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { CalculatorTileElements as calculator } from "../support/elements/calculator-tile"
+import { WebViewTileElements } from "../support/elements/web-view-tile"
 
 context("codap toolbar", () => {
   beforeEach(function () {
@@ -38,5 +39,23 @@ context("codap toolbar", () => {
     c.getIconFromToolshelf("calc").click()
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
+  })
+  it('will display a webpage', ()=>{
+      var url='https://www.wikipedia.org'
+      let deleteUrl = ""
+      for (let i = 0; i < url.length; i++) deleteUrl += "{backspace}"
+      var url2=`${deleteUrl}https://en.wikipedia.org/wiki/Concord_Consortium`
+      toolbar.getOptionsButton().click()
+      toolbar.getWebViewButton().click()
+      WebViewTileElements.getUrlModal().should("exist")
+      WebViewTileElements.enterUrl(url)
+      cy.wait(8000)
+      WebViewTileElements.getUrlModal().should("not.exist")
+      WebViewTileElements.getIFrame().find(`.central-textlogo`).should("be.visible")
+      WebViewTileElements.getEditUrlButton().click()
+      WebViewTileElements.getUrlModal().should("exist")
+      WebViewTileElements.enterUrl(url2)
+      cy.wait(8000)
+      WebViewTileElements.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
 })
