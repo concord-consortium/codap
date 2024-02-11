@@ -105,7 +105,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // respond to column width changes from RDG
   const handleColumnResize = useCallback(
-    function handleColumnResize(idx: number, width: number, isComplete?: boolean | undefined) {
+    function handleColumnResize(idx: number, width: number, isComplete?: boolean) {
       const attrId = columns[idx].key
       columnWidths.current.set(attrId, width)
       if (isComplete) {
