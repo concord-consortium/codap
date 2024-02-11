@@ -65,7 +65,10 @@ export const GraphMeasureGroup = observer(
 
   return (
     <Flex direction="column">
-      <Button leftIcon={isOpenIcon} className='measure-group-button' variant='solid' size='sm' left={'-5px'}
+      <Button leftIcon={isOpenIcon}
+              className={'measure-group-button'}
+              data-testid={`adornment-toggle-${measureGroup.rulerStateKey}`}
+              variant='solid' size='sm' left={'-5px'}
               iconSpacing='0px' onClick={toggleVisibility}>
         {t(measureGroup.title)}
       </Button>

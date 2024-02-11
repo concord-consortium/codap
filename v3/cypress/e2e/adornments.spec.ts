@@ -202,9 +202,9 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     const inspectorPalette = graph.getInspectorPalette()
     inspectorPalette.should("be.visible")
-    const sdCheckbox = inspectorPalette.find("[data-testid=adornment-checkbox-standard-deviation]")
-    sdCheckbox.should("be.visible")
-    sdCheckbox.click()
+    inspectorPalette.find("[data-testid=adornment-toggle-measuresOfSpread]").click()
+    cy.wait(2000)
+    inspectorPalette.find("[data-testid=adornment-checkbox-standard-deviation]").click()
     cy.get("[data-testid=graph-adornments-grid]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]")
       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
@@ -223,7 +223,7 @@ context("Graph adornments", () => {
     // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are
     // multiple standard deviations)
     cy.wait(250)
-    sdCheckbox.click()
+    inspectorPalette.find("[data-testid=adornment-checkbox-standard-deviation]").click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
     // add tests for undo and redo for standard deviation checkbox
