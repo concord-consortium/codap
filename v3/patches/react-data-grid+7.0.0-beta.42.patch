@@ -1,36 +1,211 @@
 diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index b83667f..72b5c1c 100644
+index b83667f..63acb3b 100644
 --- a/node_modules/react-data-grid/lib/bundle.cjs
 +++ b/node_modules/react-data-grid/lib/bundle.cjs
-@@ -3321,5 +3321,6 @@ exports.renderSortPriority = renderSortPriority;
+@@ -770,7 +770,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
+       return hasChanges ? newMeasuredColumnWidths : measuredColumnWidths;
+     });
+   }
+-  function handleColumnResize(column, nextWidth) {
++  function handleColumnResize(column, nextWidth, isComplete = false) {
+     const {
+       key: resizingKey
+     } = column;
+@@ -799,7 +799,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
+       });
+       updateMeasuredWidths(columnsToMeasure);
+     });
+-    onColumnResize?.(column.idx, measuredWidth);
++    onColumnResize?.(column.idx, measuredWidth, isComplete);
+   }
+   return {
+     gridTemplateColumns,
+@@ -1371,6 +1371,7 @@ function HeaderCell({
+       left
+     } = headerCell.getBoundingClientRect();
+     const offset = isRtl ? event.clientX - left : right - event.clientX;
++    let lastWidth = 0;
+     function onPointerMove(event) {
+       const {
+         right,
+@@ -1378,10 +1379,14 @@ function HeaderCell({
+       } = headerCell.getBoundingClientRect();
+       const width = isRtl ? right + offset - event.clientX : event.clientX + offset - left;
+       if (width > 0) {
+-        onColumnResize(column, clampColumnWidth(width, column));
++        lastWidth = clampColumnWidth(width, column);
++        onColumnResize(column, lastWidth);
+       }
+     }
+     function onLostPointerCapture() {
++      if (lastWidth > 0) {
++        onColumnResize(column, lastWidth, true);
++      }
+       currentTarget.removeEventListener('pointermove', onPointerMove);
+       currentTarget.removeEventListener('lostpointercapture', onLostPointerCapture);
+     }
+@@ -1431,7 +1436,7 @@ function HeaderCell({
+     }
+   }
+   function onDoubleClick() {
+-    onColumnResize(column, 'max-content');
++    onColumnResize(column, 'max-content', true);
+   }
+   function handleFocus(event) {
+     onFocus?.(event);
+@@ -1991,6 +1996,7 @@ function DataGrid(props, ref) {
+     rowHeight: rawRowHeight,
+     headerRowHeight: rawHeaderRowHeight,
+     summaryRowHeight: rawSummaryRowHeight,
++    columnWidths: rawColumnWidths,
+     selectedRows,
+     onSelectedRowsChange,
+     sortColumns,
+@@ -2033,15 +2039,15 @@ function DataGrid(props, ref) {
+   const direction = rawDirection ?? 'ltr';
+   const [scrollTop, setScrollTop] = react.useState(0);
+   const [scrollLeft, setScrollLeft] = react.useState(0);
+-  const [resizedColumnWidths, setResizedColumnWidths] = react.useState(() => new Map());
++  const [resizedColumnWidths, setResizedColumnWidths] = react.useState(() => new Map(rawColumnWidths));
+   const [measuredColumnWidths, setMeasuredColumnWidths] = react.useState(() => new Map());
+   const [copiedCell, setCopiedCell] = react.useState(null);
+   const [isDragging, setDragging] = react.useState(false);
+   const [draggedOverRowIdx, setOverRowIdx] = react.useState(undefined);
+   const [scrollToPosition, setScrollToPosition] = react.useState(null);
+   const getColumnWidth = react.useCallback(column => {
+-    return resizedColumnWidths.get(column.key) ?? measuredColumnWidths.get(column.key) ?? column.width;
+-  }, [measuredColumnWidths, resizedColumnWidths]);
++    return rawColumnWidths?.get(column.key) ?? resizedColumnWidths.get(column.key) ?? measuredColumnWidths.get(column.key) ?? column.width;
++  }, [measuredColumnWidths, rawColumnWidths, resizedColumnWidths]);
+   const [gridRef, gridWidth, gridHeight] = useGridDimensions();
+   const {
+     columns,
+@@ -3321,5 +3327,6 @@ exports.renderSortPriority = renderSortPriority;
  exports.renderToggleGroup = renderToggleGroup;
  exports.renderValue = renderValue;
  exports.textEditor = textEditor;
-+exports.textEditorClassname = textEditorClassname; // [CC]
++exports.textEditorClassname = textEditorClassname;
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index fa2eaab..d6f0c09 100644
+index fa2eaab..ecccdf5 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
-@@ -3302,5 +3302,6 @@ function textEditor({
+@@ -766,7 +766,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
+       return hasChanges ? newMeasuredColumnWidths : measuredColumnWidths;
+     });
+   }
+-  function handleColumnResize(column, nextWidth) {
++  function handleColumnResize(column, nextWidth, isComplete = false) {
+     const {
+       key: resizingKey
+     } = column;
+@@ -795,7 +795,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
+       });
+       updateMeasuredWidths(columnsToMeasure);
+     });
+-    onColumnResize?.(column.idx, measuredWidth);
++    onColumnResize?.(column.idx, measuredWidth, isComplete);
+   }
+   return {
+     gridTemplateColumns,
+@@ -1367,6 +1367,7 @@ function HeaderCell({
+       left
+     } = headerCell.getBoundingClientRect();
+     const offset = isRtl ? event.clientX - left : right - event.clientX;
++    let lastWidth = 0;
+     function onPointerMove(event) {
+       const {
+         right,
+@@ -1374,10 +1375,14 @@ function HeaderCell({
+       } = headerCell.getBoundingClientRect();
+       const width = isRtl ? right + offset - event.clientX : event.clientX + offset - left;
+       if (width > 0) {
+-        onColumnResize(column, clampColumnWidth(width, column));
++        lastWidth = clampColumnWidth(width, column);
++        onColumnResize(column, lastWidth);
+       }
+     }
+     function onLostPointerCapture() {
++      if (lastWidth > 0) {
++        onColumnResize(column, lastWidth, true);
++      }
+       currentTarget.removeEventListener('pointermove', onPointerMove);
+       currentTarget.removeEventListener('lostpointercapture', onLostPointerCapture);
+     }
+@@ -1427,7 +1432,7 @@ function HeaderCell({
+     }
+   }
+   function onDoubleClick() {
+-    onColumnResize(column, 'max-content');
++    onColumnResize(column, 'max-content', true);
+   }
+   function handleFocus(event) {
+     onFocus?.(event);
+@@ -1987,6 +1992,7 @@ function DataGrid(props, ref) {
+     rowHeight: rawRowHeight,
+     headerRowHeight: rawHeaderRowHeight,
+     summaryRowHeight: rawSummaryRowHeight,
++    columnWidths: rawColumnWidths,
+     selectedRows,
+     onSelectedRowsChange,
+     sortColumns,
+@@ -2029,15 +2035,15 @@ function DataGrid(props, ref) {
+   const direction = rawDirection ?? 'ltr';
+   const [scrollTop, setScrollTop] = useState(0);
+   const [scrollLeft, setScrollLeft] = useState(0);
+-  const [resizedColumnWidths, setResizedColumnWidths] = useState(() => new Map());
++  const [resizedColumnWidths, setResizedColumnWidths] = useState(() => new Map(rawColumnWidths));
+   const [measuredColumnWidths, setMeasuredColumnWidths] = useState(() => new Map());
+   const [copiedCell, setCopiedCell] = useState(null);
+   const [isDragging, setDragging] = useState(false);
+   const [draggedOverRowIdx, setOverRowIdx] = useState(undefined);
+   const [scrollToPosition, setScrollToPosition] = useState(null);
+   const getColumnWidth = useCallback(column => {
+-    return resizedColumnWidths.get(column.key) ?? measuredColumnWidths.get(column.key) ?? column.width;
+-  }, [measuredColumnWidths, resizedColumnWidths]);
++    return rawColumnWidths?.get(column.key) ?? resizedColumnWidths.get(column.key) ?? measuredColumnWidths.get(column.key) ?? column.width;
++  }, [measuredColumnWidths, rawColumnWidths, resizedColumnWidths]);
+   const [gridRef, gridWidth, gridHeight] = useGridDimensions();
+   const {
+     columns,
+@@ -3302,5 +3308,5 @@ function textEditor({
    });
  }
  
 -export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, useRowSelection };
-+// [CC] (patch-package) export textEditorClassname
 +export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, textEditorClassname, useRowSelection };
  //# sourceMappingURL=bundle.js.map
 diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
-index 3234d2e..9aef4df 100644
+index 3234d2e..c973cf4 100644
 --- a/node_modules/react-data-grid/lib/index.d.ts
 +++ b/node_modules/react-data-grid/lib/index.d.ts
-@@ -438,6 +438,8 @@ export declare interface SortColumn {
+@@ -197,6 +197,10 @@ export declare interface DataGridProps<R, SR = unknown, K extends Key = Key> ext
+      * @default 35
+      */
+     summaryRowHeight?: Maybe<number>;
++    /**
++     * The client-managed width of each column in pixels
++     */
++    columnWidths?: ReadonlyMap<string, number>;
+     /**
+      * Feature props
+      */
+@@ -226,7 +230,7 @@ export declare interface DataGridProps<R, SR = unknown, K extends Key = Key> ext
+     /** Called when the grid is scrolled */
+     onScroll?: Maybe<(event: React.UIEvent<HTMLDivElement>) => void>;
+     /** Called when a column is resized */
+-    onColumnResize?: Maybe<(idx: number, width: number) => void>;
++    onColumnResize?: Maybe<(idx: number, width: number, isComplete?: boolean) => void>;
+     /** Called when a column is reordered */
+     onColumnsReorder?: Maybe<(sourceColumnKey: string, targetColumnKey: string) => void>;
+     /**
+@@ -440,6 +444,8 @@ export declare type SortDirection = 'ASC' | 'DESC';
  
- export declare type SortDirection = 'ASC' | 'DESC';
- 
-+export declare const textEditorClassname: string; // [CC]
-+
  export declare function textEditor<TRow, TSummaryRow>({ row, column, onRowChange, onClose }: RenderEditCellProps<TRow, TSummaryRow>): JSX_2.Element;
  
++export declare const textEditorClassname: string;
++
  export declare function ToggleGroup<R, SR>({ groupKey, isExpanded, tabIndex, toggleGroup }: RenderGroupCellProps<R, SR>): JSX_2.Element;
+ 
+ export declare const TreeDataGrid: <R, SR = unknown, K extends Key = Key>(props: TreeDataGridProps<R, SR, K> & RefAttributes<DataGridHandle>) => JSX.Element;
