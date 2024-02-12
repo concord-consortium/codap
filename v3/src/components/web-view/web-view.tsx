@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isWebViewModel } from "./web-view-model"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 import "./web-view.scss"
 

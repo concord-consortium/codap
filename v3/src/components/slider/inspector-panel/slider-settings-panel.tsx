@@ -5,7 +5,7 @@ import {Flex, FormControl, FormLabel, NumberDecrementStepper, NumberIncrementSte
 import {InspectorPalette} from "../../inspector-panel"
 import {ISliderModel} from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes} from "../slider-types"
-import t from "../../../utilities/translation/translate"
+import {t} from "../../../utilities/translation/translate"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
 
 import "./slider-settings-panel.scss"

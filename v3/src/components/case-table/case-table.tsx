@@ -12,7 +12,7 @@ import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
 import { prf } from "../../utilities/profiler"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 import "./case-table.scss"
 

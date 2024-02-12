@@ -4,7 +4,7 @@ import {isAlive} from "mobx-state-tree"
 import React from "react"
 import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
-import t from "../../../../utilities/translation/translate"
+import {t} from "../../../../utilities/translation/translate"
 import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
 
 interface IProps {

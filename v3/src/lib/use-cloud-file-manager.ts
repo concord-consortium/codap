@@ -7,7 +7,7 @@ import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
-import t from "../utilities/translation/translate"
+import { t } from "../utilities/translation/translate"
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)

@@ -1,7 +1,7 @@
 import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
 import { ILSRLAdornmentModel, LSRLAdornmentModel } from "./lsrl-adornment-model"

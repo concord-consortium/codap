@@ -1,7 +1,7 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { ITileModel } from "../../../../models/tiles/tile-model"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 
 interface IProps {
   tile?: ITileModel

@@ -1,7 +1,7 @@
 import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { getAdornmentContentInfo } from "./adornment-content-info"
 

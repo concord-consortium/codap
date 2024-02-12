@@ -2,7 +2,7 @@ import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { InsertCasesModal } from "./insert-cases-modal"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 interface IProps {
   caseId: string

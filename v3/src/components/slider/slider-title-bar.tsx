@@ -3,7 +3,7 @@ import React, { useCallback } from "react"
 import { observer } from "mobx-react-lite"
 import { ComponentTitleBar  } from "../component-title-bar"
 import { isAliveSafe } from "../../utilities/mst-utils"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { isSliderModel } from "./slider-model"
 

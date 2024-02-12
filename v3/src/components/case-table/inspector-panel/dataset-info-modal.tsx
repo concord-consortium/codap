@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea,
   Tooltip } from "@chakra-ui/react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 
 import "./dataset-info-modal.scss"

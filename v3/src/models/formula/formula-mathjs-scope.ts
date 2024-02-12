@@ -3,7 +3,7 @@ import { FValue } from "./formula-types"
 import type { IGlobalValueManager } from "../global/global-value-manager"
 import type { IDataSet } from "../data/data-set"
 import type { IValueType } from "../data/attribute"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import { CASE_INDEX_FAKE_ATTR_ID, globalValueIdToCanonical, localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const CACHE_ENABLED = true

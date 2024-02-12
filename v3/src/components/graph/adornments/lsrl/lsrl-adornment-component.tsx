@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { drag, select, Selection } from "d3"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { Point } from "../../../data-display/data-display-types"

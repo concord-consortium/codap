@@ -13,7 +13,7 @@ import { DataSet, IDataSet, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyUndoableAction } from "../history/apply-undoable-action"
 import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:

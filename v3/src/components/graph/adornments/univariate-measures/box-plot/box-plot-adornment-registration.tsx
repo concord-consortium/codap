@@ -1,6 +1,6 @@
 import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
-import t from "../../../../../utilities/translation/translate"
+import { t } from "../../../../../utilities/translation/translate"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./box-plot-adornment-model"

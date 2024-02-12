@@ -5,7 +5,7 @@ import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {

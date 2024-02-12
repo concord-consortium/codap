@@ -4,7 +4,7 @@ import {
 } from "@chakra-ui/react"
 import React, { useState } from "react"
 import { CodapModal } from "../../../../codap-modal"
-import t from "../../../../../utilities/translation/translate"
+import { t } from "../../../../../utilities/translation/translate"
 
 interface IProps {
   currentValue?: string

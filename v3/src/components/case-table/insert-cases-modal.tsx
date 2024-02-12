@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react"
 import { Button, FormControl, FormLabel, HStack, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
   NumberDecrementStepper, NumberIncrementStepper, NumberInput,
   NumberInputField, NumberInputStepper, Radio, RadioGroup, Tooltip } from "@chakra-ui/react"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 

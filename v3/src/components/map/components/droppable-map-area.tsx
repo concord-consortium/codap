@@ -5,7 +5,7 @@ import {getDragAttributeInfo, useDropHandler} from "../../../hooks/use-drag-drop
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {DroppableSvg} from "../../data-display/components/droppable-svg"
-import t from "../../../utilities/translation/translate"
+import {t} from "../../../utilities/translation/translate"
 
 interface IProps {
   mapElt: HTMLDivElement | null
