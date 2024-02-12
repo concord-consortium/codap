@@ -53,8 +53,8 @@ export const App = observer(function App() {
   }, [])
 
   const handleUrlDrop = useCallback((url: string) => {
-    const plugin = appState.document.content?.createOrShowTile(kWebViewTileType)
-    isWebViewModel(plugin?.content) && plugin?.content.setUrl(url)
+    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
+    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
   }, [])
 
   useDropHandler({

@@ -15,7 +15,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   const document = useDocumentContext()
   const webViewModel = isWebViewModel(tile?.content) ? tile?.content : undefined
   const panelRef = useRef<HTMLDivElement>()
-  const formulaModal = useDisclosure()
+  const webViewModal = useDisclosure()
   const [webViewModalIsOpen, setWebViewModalIsOpen] = useState(false)
 
   const handleModalOpen = (open: boolean) => {
@@ -23,12 +23,12 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   }
 
   const handleSetWebViewUrlOpen = () => {
-    formulaModal.onOpen()
+    webViewModal.onOpen()
     handleModalOpen(true)
   }
 
   const handleSetWebViewUrlClose = () => {
-    formulaModal.onClose()
+    webViewModal.onClose()
     handleModalOpen(false)
   }
 
@@ -53,7 +53,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
       { webViewModalIsOpen &&
         <WebViewUrlModal
           currentValue={webViewModel?.url}
-          isOpen={formulaModal.isOpen}
+          isOpen={webViewModal.isOpen}
           onAccept={handleSetWebViewUrlAccept}
           onClose={handleSetWebViewUrlClose}
         />
