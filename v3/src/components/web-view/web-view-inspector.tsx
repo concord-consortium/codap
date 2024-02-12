@@ -12,7 +12,7 @@ import {isWebViewModel} from "./web-view-model"
 import "./web-view-inspector.scss"
 
 export const WebViewInspector = observer(function WebViewInspector({tile, show}: ITileInspectorPanelProps) {
-  const document = useDocumentContext();
+  const document = useDocumentContext()
   const webViewModel = isWebViewModel(tile?.content) ? tile?.content : undefined
   const panelRef = useRef<HTMLDivElement>()
   const formulaModal = useDisclosure()

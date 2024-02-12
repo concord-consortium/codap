@@ -41,10 +41,10 @@ context("codap toolbar", () => {
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
   it('will display a webpage', ()=>{
-      var url='https://www.wikipedia.org'
+      const url='https://www.wikipedia.org'
       let deleteUrl = ""
       for (let i = 0; i < url.length; i++) deleteUrl += "{backspace}"
-      var url2=`${deleteUrl}https://en.wikipedia.org/wiki/Concord_Consortium`
+      const url2=`${deleteUrl}https://en.wikipedia.org/wiki/Concord_Consortium`
       toolbar.getOptionsButton().click()
       toolbar.getWebViewButton().click()
       WebViewTileElements.getUrlModal().should("exist")

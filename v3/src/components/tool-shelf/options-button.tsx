@@ -10,7 +10,7 @@ import { WebViewUrlModal } from "../web-view/web-view-url-modal"
 import "./tool-shelf.scss"
 
 export const OptionsShelfButton = () => {
-  const document = useDocumentContext();
+  const document = useDocumentContext()
   const formulaModal = useDisclosure()
   const [webViewModalIsOpen, setWebViewModalIsOpen] = useState(false)
 

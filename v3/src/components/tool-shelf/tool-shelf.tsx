@@ -33,7 +33,7 @@ interface IRightButtonEntry {
   onClick?: () => void
 }
 export const ToolShelf = observer(function ToolShelf() {
-  const document = useDocumentContext();
+  const document = useDocumentContext()
   const toast = useToast()
   const labelToast = (entry: IRightButtonEntry) => toast({
     title: `"${entry.label}" button clicked`,
