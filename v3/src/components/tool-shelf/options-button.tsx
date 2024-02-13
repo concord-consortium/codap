@@ -11,7 +11,7 @@ import "./tool-shelf.scss"
 
 export const OptionsShelfButton = () => {
   const document = useDocumentContext()
-  const formulaModal = useDisclosure()
+  const webViewModal = useDisclosure()
   const [webViewModalIsOpen, setWebViewModalIsOpen] = useState(false)
 
   const handleModalOpen = (open: boolean) => {
@@ -19,12 +19,12 @@ export const OptionsShelfButton = () => {
   }
 
   const handleSetWebViewUrlOpen = () => {
-    formulaModal.onOpen()
+    webViewModal.onOpen()
     handleModalOpen(true)
   }
 
   const handleSetWebViewUrlClose = () => {
-    formulaModal.onClose()
+    webViewModal.onClose()
     handleModalOpen(false)
   }
 
@@ -53,7 +53,7 @@ export const OptionsShelfButton = () => {
       </Menu>
       { webViewModalIsOpen &&
         <WebViewUrlModal
-          isOpen={formulaModal.isOpen}
+          isOpen={webViewModal.isOpen}
           onAccept={handleSetWebViewUrlAccept}
           onClose={handleSetWebViewUrlClose}
         />
