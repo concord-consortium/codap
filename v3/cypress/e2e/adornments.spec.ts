@@ -16,7 +16,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
   })
-  it.skip("adds a count to graph when Count checkbox is checked", () => {
+  it("adds a count to graph when Count checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Speed", "y")
@@ -48,17 +48,15 @@ context("Graph adornments", () => {
 
     toolbar.getUndoTool().click()
     cy.wait(250)
-    // not sure if this is the correct method, but the idea is that the Count should not be visible after an undo
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 0)
-
-    toolbar.getRedoTool().click()
-    cy.wait(250)
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")
+
+    toolbar.getRedoTool().click()
+    cy.wait(250)
+
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
   })
   it("adds a percent to graph when Percent checkbox is checked", () => {
