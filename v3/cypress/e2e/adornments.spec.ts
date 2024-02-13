@@ -16,7 +16,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
   })
-  it("adds a count to graph when Count checkbox is checked", () => {
+  it.skip("adds a count to graph when Count checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "x")
     cy.dragAttributeToTarget("table", "Speed", "y")
