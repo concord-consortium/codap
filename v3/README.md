@@ -79,13 +79,14 @@ To deploy a production release:
 
 1. Run `git log --reverse <last-version>...HEAD | grep '#'` to see a list of PR merges and stories that include PT ids in their message. Tag the PT stories based on this list as `3.0.0-pre.<new-version>`
 2. Update the version number in `package.json` and `package-lock.json`
-    - `npm version --no-git-tag-version [patch|minor|major]`
+    - `npm version --no-git-tag-version 3.0.0-pre.<new-version>`
 3. Create a new entry in `versions.md` with the new version and release date
 4. Create a new entry in `CHANGELOG.md` with a description of the new version
-5. Run `git log --pretty=oneline --reverse <last release tag>...HEAD | grep '#' | grep -v Merge` and add contents (after edits if needed to CHANGELOG.md)
+5. Create `v3-release-<version>` branch and stage versions.md, package.json and package-lock.json
+5. Run `npm run release-notes 3.0.0-pre.<new-version>` in the `dev-templates/scripts` repo.
 6. Run `npm run build`
 7. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`
-8. Create `v3-release-<version>` branch and commit changes, push to GitHub, create PR and merge
+8. Stage CHANGESLOG.md, Commit changes, push to GitHub, create PR and merge
 9. Checkout `main` and pull
 10. Make a new version tag using your local git client with the version number in the description (e.g., `git tag -a 3.0.0-pre.1085 -m "version 3.0.0-pre.1085"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.1085`)
 11. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., https://codap3.concord.org/version/3.0.0-pre.1085/) or alternatively QA the staged release in step 11

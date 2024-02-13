@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 3.0.0-pre.1515 - February 13, 2024
+
+### Features/Improvements
+- PT-186907568: Reimplement data tips after switch to Pixi.js
+- PT-186227281: Automation for Undo/Redo
+- PT-186986800: Case Table: column width changes should be undoable and serialized
+
+### Bug Fixes
+- PT-186945722: Bug: Google drive error with CFM
+- PT-186987479: Misalignment of Buttons in Google Drive Integration with CODAP V3
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  141727 bytes |                           94.41% |
+|  index.js | 5067172 bytes |                           27.07% |
+
 ## Version 3.0.0-pre.1502 - January 29, 2024
 
 ### Features/Improvements
