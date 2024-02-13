@@ -25,7 +25,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
-    interiorSvgRef = useRef<SVGSVGElement>(null),
+    interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({ width: 0, height: 0, legend: 0 }),
     forceUpdate = useForceUpdate()
 
@@ -46,7 +46,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   // its size, rather than, for instance, after the layout has changed but before the change
   // has been rendered to the DOM.
   useEffect(() => {
-    const mapBounds = interiorSvgRef.current?.getBoundingClientRect()
+    const mapBounds = interiorDivRef.current?.getBoundingClientRect()
     if (mapBounds) {
       const { width: prevWidth, height: prevHeight, legend: prevLegend } = prevMapSize.current
       const width = Math.round(mapBounds.width)
@@ -63,7 +63,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
 
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
-      <div className="leaflet-wrapper" style={{height: mapHeight}}>
+      <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
         <MapContainer center={kDefaultMapLocation as LatLngExpression} zoom={kDefaultMapZoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
           <TileLayer attribution={kMapAttribution} url={kMapUrl}/>
@@ -72,7 +72,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
       </div>
       <DroppableMapArea
         mapElt={mapRef.current}
-        targetElt={interiorSvgRef.current}
+        targetElt={interiorDivRef.current}
         onDropAttribute={handleChangeLegendAttribute}
       />
       <MultiLegend
