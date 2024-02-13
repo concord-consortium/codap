@@ -103,10 +103,10 @@ export const App = observer(function App() {
 
   return (
     <CodapDndContext>
-      <DocumentContext.Provider value={appState.document}>
+      <DocumentContext.Provider value={appState.document.content}>
         <div className="codap-app" data-testid="codap-app">
           <MenuBar/>
-          <ToolShelf/>
+          <ToolShelf document={appState.document}/>
           <Container/>
         </div>
       </DocumentContext.Provider>

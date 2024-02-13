@@ -33,7 +33,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    document?.content?.applyUndoableAction(() => {
+    document?.applyUndoableAction(() => {
       webViewModel?.setUrl(url)
     }, "V3.Undo.webView.changeUrl", "V3.Redo.webView.changeUrl")
   }

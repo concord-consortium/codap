@@ -13,8 +13,8 @@ import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 import OptionsIcon from "../../assets/icons/icon-options.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
-import { useDocumentContext } from "../../hooks/use-document-context"
 import { DEBUG_UNDO } from "../../lib/debug"
+import { IDocumentModel } from "../../models/document/document"
 import t from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
 
@@ -32,8 +32,11 @@ interface IRightButtonEntry {
   isDisabled?: () => boolean
   onClick?: () => void
 }
-export const ToolShelf = observer(function ToolShelf() {
-  const document = useDocumentContext()
+
+interface IProps {
+  document: IDocumentModel
+}
+export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toast = useToast()
   const labelToast = (entry: IRightButtonEntry) => toast({
     title: `"${entry.label}" button clicked`,

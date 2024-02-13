@@ -12,7 +12,7 @@ import { MosaicTileRowComponent } from "./mosaic-tile-row"
 import "./container.scss"
 
 export const Container: React.FC = () => {
-  const content = useDocumentContext()?.content
+  const content = useDocumentContext()
   const isScrollBehaviorAuto = urlParams.scrollBehavior === "auto"
   // TODO: handle the possibility of multiple rows
   const row = content?.getRowByIndex(0)

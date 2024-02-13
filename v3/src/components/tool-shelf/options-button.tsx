@@ -29,8 +29,8 @@ export const OptionsShelfButton = () => {
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    document?.content?.applyUndoableAction(() => {
-      const tile = document?.content?.createOrShowTile?.(kWebViewTileType)
+    document?.applyUndoableAction(() => {
+      const tile = document?.createOrShowTile?.(kWebViewTileType)
       isWebViewModel(tile?.content) && tile?.content.setUrl(url)
     }, "DG.Undo.webView.show", "DG.Redo.webView.show")
   }
