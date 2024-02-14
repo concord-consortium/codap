@@ -7,6 +7,7 @@
   position: relative;
   width: 100%;
 
+  // The backdrop is displayed behind the iframe and is mostly used as a loading error message
   .codap-web-view-backdrop {
     align-items: center;
     display: flex;
