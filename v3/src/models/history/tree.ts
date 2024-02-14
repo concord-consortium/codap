@@ -174,7 +174,15 @@ export const Tree = types.model("Tree", {
   handleSharedModelChanges: flow(function* handleSharedModelChanges(historyEntryId: string, exchangeId: string,
       call: any, sharedModelPath: string) {
 
-      const model = resolvePath(self, sharedModelPath)
+      let model: ISharedModel | undefined
+
+      try {
+        model = resolvePath(self, sharedModelPath)
+      }
+      catch {
+        console.warn("Tree.handleSharedModelChanges failed to find model at:", sharedModelPath)
+      }
+      if (!model) return
 
       // Note: the environment of the call will be undefined because the undoRecorder cleared
       // it out before calling this function
