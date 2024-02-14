@@ -28,7 +28,7 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { Formula } from "../formula/formula"
 import { typedId } from "../../utilities/js-utils"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import { withoutUndo } from "../history/without-undo"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 

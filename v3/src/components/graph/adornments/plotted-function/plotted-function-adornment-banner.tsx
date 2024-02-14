@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
 import { IAdornmentBannerComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"

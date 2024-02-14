@@ -15,7 +15,7 @@ import {
 import { InstanceIdContext, useNextInstanceId } from '../../hooks/use-instance-id-context'
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { prf } from "../../utilities/profiler"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 import "./data-summary.scss"
 

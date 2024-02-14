@@ -4,7 +4,7 @@ import {
   Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb,
   SliderTrack
 } from "@chakra-ui/react"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { missingColor } from "../../../../utilities/color-utils"
 import { ITileModel } from "../../../../models/tiles/tile-model"

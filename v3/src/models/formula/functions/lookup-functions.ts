@@ -4,7 +4,7 @@ import { DisplayNameMap, FValue, ILookupDependency } from "../formula-types"
 import { rmCanonicalPrefix } from "../utils/name-mapping-utils"
 import { UNDEF_RESULT, equal, evaluateNode } from "./function-utils"
 import { isConstantStringNode } from "../utils/mathjs-utils"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 import type { IDataSet } from "../../data/data-set"
 
 type LookupStringConstantArg = ConstantNode<string> | undefined

@@ -18,7 +18,7 @@ In CODAP, JSON files are added to `utilities/translation/lang` by the `strings:p
 
 Import the `translate` function found in `utilities/translation/translate.ts` in your module:
 ```
-import t from "../utils/translation/translate";
+import { t } from "../utils/translation/translate";
 ```
 
 Call the function using the translation key of the desired text:

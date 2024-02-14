@@ -14,7 +14,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 interface IColSpanProps {
   data?: IDataSet

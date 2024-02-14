@@ -5,7 +5,7 @@ import {
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { CodapModal } from "../../codap-modal"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 
 interface IProps {

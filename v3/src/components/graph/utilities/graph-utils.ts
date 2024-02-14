@@ -13,7 +13,7 @@ import {IDataConfigurationModel} from "../../data-display/models/data-configurat
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 
 /**
  * Utility routines having to do with graph entities

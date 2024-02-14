@@ -5,7 +5,7 @@ import { AttributeType, attributeTypes } from "../../../models/data/attribute"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { uniqueName } from "../../../utilities/js-utils"
 import { CodapModal } from "../../codap-modal"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 
 interface IProps {
   attributeId: string

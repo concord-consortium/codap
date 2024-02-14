@@ -10,7 +10,7 @@ import { uniqueName } from "../../utilities/js-utils"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 

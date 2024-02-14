@@ -6,7 +6,7 @@ import React, { useState } from "react"
 import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
-import t from "../utilities/translation/translate"
+import { t } from "../utilities/translation/translate"
 
 import "./component-title-bar.scss"
 

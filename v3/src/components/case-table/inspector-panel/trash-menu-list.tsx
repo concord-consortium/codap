@@ -1,7 +1,7 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 
 export const TrashMenuList = () => {
   const data = useDataSetContext()

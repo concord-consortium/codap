@@ -2,7 +2,7 @@ import { Box, Tag } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React from "react"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 
 export interface IToolShelfButtonProps {
   className?: string

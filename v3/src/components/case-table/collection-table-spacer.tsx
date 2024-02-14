@@ -8,7 +8,7 @@ import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-dro
 import { measureText } from "../../hooks/use-measure-text"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { CurvedSpline } from "./curved-spline"
 

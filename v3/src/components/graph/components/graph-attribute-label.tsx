@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {select} from "d3"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"

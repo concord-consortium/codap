@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import ValuesIcon from "../../assets/icons/icon-values.svg"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
-import t from "../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { isSliderModel } from "./slider-model"
 

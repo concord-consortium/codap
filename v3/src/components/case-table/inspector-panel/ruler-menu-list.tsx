@@ -2,7 +2,7 @@ import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { uniqueName } from "../../../utilities/js-utils"
-import t from "../../../utilities/translation/translate"
+import { t } from "../../../utilities/translation/translate"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()

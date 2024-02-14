@@ -1,6 +1,6 @@
 import React from "react"
 import {Box, Checkbox, Flex, FormControl, /*useToast*/} from "@chakra-ui/react"
-import t from "../../../../utilities/translation/translate"
+import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"

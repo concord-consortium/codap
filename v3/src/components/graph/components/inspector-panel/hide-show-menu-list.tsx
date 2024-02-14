@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import {MenuItem, MenuList, useToast} from "@chakra-ui/react"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 
 interface IProps {
   tile?: ITileModel

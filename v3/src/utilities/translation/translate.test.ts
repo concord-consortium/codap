@@ -1,4 +1,4 @@
-import t from "./translate"
+import { t } from "./translate"
 
 jest.mock("./lang/en-US.json5", () => ({
   HELLO: "Hello",

@@ -1,4 +1,4 @@
-import t from "./translate"
+import { t } from "./translate"
 
 jest.mock("../url-params", () => ({
   urlParams: { lang: "es-mx" }

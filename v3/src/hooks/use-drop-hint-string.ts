@@ -4,7 +4,7 @@ import {getDragAttributeInfo} from "./use-drag-drop"
 import {GraphPlace} from "../components/axis-graph-shared"
 import {GraphAttrRole, attrRoleToGraphPlace} from "../components/data-display/data-display-types"
 import {useDataConfigurationContext} from "../components/data-display/hooks/use-data-configuration-context"
-import t from "../utilities/translation/translate"
+import {t} from "../utilities/translation/translate"
 
 export interface IUseDropHintStringProps {
   role: GraphAttrRole

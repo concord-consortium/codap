@@ -79,7 +79,7 @@ interface ITranslateOptions {
   vars?: Record<string, VarValue> | Array<VarValue> // CODAP v2 uses positional replacement
 }
 
-export default function translate (key: string, options?: ITranslateOptions) {
+export function translate (key: string, options?: ITranslateOptions) {
   const lang = options?.lang || defaultLang
   const namedVars = Array.isArray(options?.vars) ? {} : options?.vars || {}
   const posVars = Array.isArray(options?.vars) ? options?.vars || [] : []
@@ -116,3 +116,5 @@ export default function translate (key: string, options?: ITranslateOptions) {
   }
   return translation.replace(varRegExp, replaceFn)
 }
+
+export const t = translate
