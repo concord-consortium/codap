@@ -1,7 +1,7 @@
 import React from "react"
 import {Button, Icon, Flex} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import t from "../../../../utilities/translation/translate"
+import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
 import {GraphContentModelContext} from "../../hooks/use-graph-content-model-context"

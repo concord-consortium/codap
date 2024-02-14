@@ -8,7 +8,7 @@ import { kMovableValueClass, kMovableValueLabelKey, kMovableValuePrefix, kMovabl
          kMovableValueUndoRemoveKey} from "./movable-value-adornment-types"
 import { MovableValueAdornment } from "./movable-value-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import t from "../../../../utilities/translation/translate"
+import { t } from "../../../../utilities/translation/translate"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
