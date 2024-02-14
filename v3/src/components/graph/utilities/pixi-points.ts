@@ -179,6 +179,14 @@ export class PixiPoints {
     this.setPointXyProperty("scale", point, scale, scale)
   }
 
+  setAllPointsScale(scale: number, duration = 0) {
+    return this.transition(() => {
+      this.points.forEach(point => {
+        this.setPointScale(point, scale)
+      })
+    }, { duration })
+  }
+
   setPointXyProperty(prop: TransitionProp, point: PIXI.Sprite, x: number, y: number) {
     if (this.currentTransition) {
       this.setTargetXyProp(prop, point, x, y)
@@ -225,16 +233,18 @@ export class PixiPoints {
     return this.caseIDToPoint.get(caseId) as PIXI.Sprite
   }
 
-  transition(callback: () => void, options: { duration: number, onEnd?: () => void }) {
-    const { duration, onEnd } = options
+  transition(callback: () => void, options: { duration: number }) {
+    const { duration } = options
     if (duration === 0) {
       callback()
-      return
+      return Promise.resolve()
     }
-    this.currentTransition = new PixiTransition(duration, onEnd)
-    callback()
-    this.currentTransition = undefined
-    this.startRendering()
+    return new Promise<void>(resolve => {
+      this.currentTransition = new PixiTransition(duration, () => resolve())
+      callback()
+      this.currentTransition = undefined
+      this.startRendering()
+    })
   }
 
   getMetadata(sprite: PIXI.Sprite) {
@@ -465,6 +475,11 @@ export class PixiPoints {
         metadata.style = style
       }
     }
+
+    // Before rendering, reset the scale for all points. This may be necessary if the scale was modified
+    // during a transition immediately before matchPointsToData is called. For example, when the Connecting
+    // Lines graph adornment is activated or deactivated.
+    this.setAllPointsScale(1)
 
     this.startRendering()
   }

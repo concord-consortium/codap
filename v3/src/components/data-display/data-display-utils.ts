@@ -9,7 +9,7 @@ import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {
   hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
-  pointRadiusSelectionAddend, Rect, rTreeRect, transitionDuration
+  pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
@@ -83,15 +83,11 @@ export interface IMatchCirclesProps {
   startAnimation: () => void
   instanceId: string | undefined
   pixiPoints: PixiPoints
-  animateChange?: boolean // default false
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
-          animateChange } = props
+  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor } = props
   const allCaseData = dataConfiguration.joinedCaseDataArrays
-  // TODO: restore animation configuration ability
-  const duration = animateChange ? transitionDuration : 0 // eslint-disable-line @typescript-eslint/no-unused-vars
 
   startAnimation()
 

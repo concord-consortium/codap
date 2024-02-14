@@ -90,7 +90,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     })
   }, [pointDescription, mapLayerModel, dataConfiguration])
 
-  const refreshPoints = useDebouncedCallback((selectedOnly: boolean) => {
+  const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const lookupLegendColor = (aCaseData: CaseData) => {
         return dataConfiguration.attributeID('legend')
           ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
@@ -123,7 +123,8 @@ export const MapPointLayer = function MapPointLayer(props: {
         ? dataConfiguration?.getLegendColorForCase : undefined
     const {latId, longId} = latLongAttributesFromDataSet(dataset)
 
-    pixiPoints.transition(() => {
+
+    await pixiPoints.transition(() => {
       pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
         const {caseID} = metadata
         pixiPoints.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
@@ -136,12 +137,8 @@ export const MapPointLayer = function MapPointLayer(props: {
             ? defaultSelectedStrokeWidth : defaultStrokeWidth
          })
       }, { selectedOnly })
-    }, {
-      duration: isAnimating() ? transitionDuration : 0,
-      onEnd: () => {
-        refreshPointSelection()
-      }
-    })
+    }, { duration: isAnimating() ? transitionDuration : 0 })
+    refreshPointSelection()
   }, 10)
 
   // Actions in the dataset can trigger need for point updates

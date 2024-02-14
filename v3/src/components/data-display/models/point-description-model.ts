@@ -8,9 +8,6 @@ export const PointDescriptionModel = types
     pointStrokeSameAsFill: false,
     pointSizeMultiplier: 1,
   })
-  .volatile(() => ({
-    animateChange: false,
-  }))
   .actions(self => ({
     setPointColor(color: string, plotIndex = 0) {
       self._pointColors[plotIndex] = color
@@ -21,12 +18,8 @@ export const PointDescriptionModel = types
     setPointStrokeSameAsFill(isSame: boolean) {
       self.pointStrokeSameAsFill = isSame
     },
-    setPointSizeMultiplier(multiplier: number, animateChange = false) {
+    setPointSizeMultiplier(multiplier: number) {
       self.pointSizeMultiplier = multiplier
-      self.animateChange = animateChange
-    },
-    clearAnimateChange() {
-      self.animateChange = false
     }
   }))
   .views(self => ({

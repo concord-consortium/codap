@@ -31,7 +31,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
 
   if (!graphModel) return null
-  const handlePointSizeMultiplierSetting = (val: any) => {
+  const handlePointSizeMultiplierSetting = (val: number) => {
     graphModel.pointDescription.setPointSizeMultiplier(val)
   }
   const handleTransparencySetting = (isTransparent: boolean) => {
