@@ -296,9 +296,9 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       await pixiPointsRef.current?.setAllPointsScale(scaleFactor, transitionDuration)
       graphModel.pointDescription.setPointSizeMultiplier(origPointSizeMultiplier.current)
     }
-  }, [dataConfiguration, dataTip, dataset?.collections, graphModel.pointDescription,
+  }, [dataConfiguration, dataset?.collections, dataTip, graphModel.pointDescription,
       handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
-      showConnectingLines, pointSizeMultiplier, connectingLinesActivatedRef, pixiPointsRef])
+      pixiPointsRef, pointSizeMultiplier, showConnectingLines])
 
   const refreshSquares = useCallback(() => {
 

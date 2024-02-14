@@ -179,7 +179,7 @@ export class PixiPoints {
     this.setPointXyProperty("scale", point, scale, scale)
   }
 
-  setAllPointsScale(scale: number, duration: number) {
+  setAllPointsScale(scale: number, duration = 0) {
     return this.transition(() => {
       this.points.forEach(point => {
         this.setPointScale(point, scale)
@@ -479,7 +479,7 @@ export class PixiPoints {
     // Before rendering, reset the scale for all points. This may be necessary if the scale was modified
     // during a transition immediately before matchPointsToData is called. For example, when the Connecting
     // Lines graph adornment is activated or deactivated.
-    this.setAllPointsScale(1, 0)
+    this.setAllPointsScale(1)
 
     this.startRendering()
   }
