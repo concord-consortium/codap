@@ -1,0 +1,22 @@
+.measure-group-button {
+  justify-content: left!important;
+  font-size: 12px!important;
+  font-weight: 400!important;
+  background-color: #eeeeee!important;
+  height: 24px!important;
+  padding-inline-start: 0!important;
+  border: none!important;
+}
+
+.measure-items {
+  margin-left: 20px;
+
+  .measure-movable-value-button {
+    font-size: 12px;
+    font-weight: 400;
+    background-color: #eeeeee;
+    height: 20px;
+    width: fit-content;
+    margin-bottom: 5px;
+  }
+}

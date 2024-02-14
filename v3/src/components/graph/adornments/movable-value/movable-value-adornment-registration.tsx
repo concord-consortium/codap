@@ -1,5 +1,5 @@
 import React from "react"
-import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
+import { Button, Flex } from "@chakra-ui/react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
 import { IMovableValueAdornmentModel, MovableValueAdornmentModel } from "./movable-value-adornment-model"
@@ -8,6 +8,7 @@ import { kMovableValueClass, kMovableValueLabelKey, kMovableValuePrefix, kMovabl
          kMovableValueUndoRemoveKey} from "./movable-value-adornment-types"
 import { MovableValueAdornment } from "./movable-value-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import t from "../../../../utilities/translation/translate"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -37,23 +38,18 @@ const Controls = () => {
   }
 
   return (
-    <Menu>
-      {({ isOpen }) => (
-        <>
-          <MenuButton isActive={isOpen} as={Button} size="xs" w="120px" data-testid="adornment-button-movable-value">
-            Movable Value
-          </MenuButton>
-          <MenuList data-testid="adornment-button-movable-value-list">
-            <MenuItem onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add">
-              Add
-            </MenuItem>
-            <MenuItem onClick={handleRemoveMovableValue} data-testid="adornment-button-movable-value--remove">
-              Remove
-            </MenuItem>
-          </MenuList>
-        </>
-      )}
-    </Menu>
+    <Flex direction="column">
+      <Button onClick={handleAddMovableValue} data-testid="adornment-button-movable-value--add"
+              className='measure-movable-value-button'/* variant='solid' size='sm'*/
+      >
+        {t('DG.Inspector.graphAdd')}
+      </Button>
+      <Button onClick={handleRemoveMovableValue} data-testid="adornment-button-movable-value--remove"
+              className='measure-movable-value-button' variant='solid' size='sm'
+      >
+        {t('DG.Inspector.graphRemove')}
+      </Button>
+    </Flex>
   )
 }
 
