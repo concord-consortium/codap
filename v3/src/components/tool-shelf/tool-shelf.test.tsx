@@ -2,7 +2,6 @@ import React from "react"
 import { userEvent } from '@testing-library/user-event'
 import { ToolShelf } from "./tool-shelf"
 import { render, screen } from "@testing-library/react"
-import { DocumentContext } from "../../hooks/use-document-context"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModel } from "../../models/document/document"
 
@@ -11,12 +10,8 @@ const libDebug = require("../../lib/debug")
 
 describe("Tool shelf", () => {
   const renderToolShelf = (doc?: IDocumentModel) => {
-    const codapDocument = doc ?? createCodapDocument()
-    render(
-      <DocumentContext.Provider value={codapDocument}>
-        <ToolShelf />
-      </DocumentContext.Provider>
-    )
+    const document = doc ?? createCodapDocument()
+    render(<ToolShelf document={document}/>)
   }
   it("renders successfully", () => {
     renderToolShelf()
@@ -37,29 +32,29 @@ describe("Tool shelf", () => {
 
   it("undo/redo buttons do nothing when not enabled", async () => {
     const user = userEvent.setup()
-    const codapDocument = createCodapDocument()
-    renderToolShelf(codapDocument)
+    const document = createCodapDocument()
+    renderToolShelf(document)
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
-    codapDocument.setTitle("New Title")
+    document.setTitle("New Title")
     await user.click(screen.getByTestId("tool-shelf-button-undo"))
-    expect(codapDocument.title).toBe("New Title")
+    expect(document.title).toBe("New Title")
     await user.click(screen.getByTestId("tool-shelf-button-redo"))
-    expect(codapDocument.title).toBe("New Title")
+    expect(document.title).toBe("New Title")
   })
 
   it("undo/redo buttons work as expected when enabled", async () => {
     const user = userEvent.setup()
-    const codapDocument = createCodapDocument()
-    renderToolShelf(codapDocument)
+    const document = createCodapDocument()
+    renderToolShelf(document)
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
-    codapDocument.treeMonitor?.enableMonitoring()
-    codapDocument.setTitle("New Title")
+    document.treeMonitor?.enableMonitoring()
+    document.setTitle("New Title")
     await user.click(screen.getByTestId("tool-shelf-button-undo"))
-    expect(codapDocument.title).toBeUndefined()
+    expect(document.title).toBeUndefined()
     await user.click(screen.getByTestId("tool-shelf-button-redo"))
-    expect(codapDocument.title).toBe("New Title")
-    codapDocument.treeMonitor?.disableMonitoring()
+    expect(document.title).toBe("New Title")
+    document.treeMonitor?.disableMonitoring()
   })
 })

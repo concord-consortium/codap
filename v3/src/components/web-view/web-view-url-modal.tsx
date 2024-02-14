@@ -1,7 +1,7 @@
 import {
   Button, FormControl, Input, ModalBody, ModalFooter, ModalHeader, Tooltip
 } from "@chakra-ui/react"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { CodapModal } from "../codap-modal"
 import { t } from "../../utilities/translation/translate"
 
@@ -13,6 +13,7 @@ interface IProps {
 }
 
 export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: IProps) => {
+  const inputRef = useRef<HTMLInputElement | null>(null)
   const [value, setValue] = useState(currentValue)
 
   const applyValue = () => {
@@ -25,6 +26,14 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
   }
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      closeModal()
+    } else if (e.key === "Enter") {
+      applyValue()
+    }
+  }
+  const focusInput = () => inputRef.current?.focus()
 
   const buttons = [{
     label: t("DG.AttrFormView.cancelBtnTitle"),
@@ -38,20 +47,34 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
 
   return (
     <CodapModal
+      closeOnOverlayClick={false}
       isOpen={isOpen}
       modalHeight={"140px"}
       modalWidth={"350px"}
+      onClick={focusInput}
       onClose={closeModal}
     >
-      <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
+      <ModalHeader
+        className="codap-modal-header"
+        data-testid="codap-modal-header"
+        fontSize="md"
+        h="30"
+      >
         <div className="codap-header-title-simple">
           {t("DG.DocumentController.enterURLPrompt")}
         </div>
       </ModalHeader>
       <ModalBody>
         <FormControl display="flex" flexDirection="column" data-testid="web-view-url-form">
-          <Input value={value} onChange={handleValueChange} placeholder={t("V3.WebView.Modal.PlaceholderText")}
-            onKeyDown={(e) => e.stopPropagation()} data-testid="web-view-url-input" />
+          <Input
+            data-testid="web-view-url-input"
+            onChange={handleValueChange}
+            onKeyDown={e => e.stopPropagation()}
+            onKeyUp={handleKeyUp}
+            placeholder={t("V3.WebView.Modal.PlaceholderText")}
+            ref={r => inputRef.current = r}
+            value={value}
+          />
         </FormControl>
       </ModalBody>
       <ModalFooter mt="-5">

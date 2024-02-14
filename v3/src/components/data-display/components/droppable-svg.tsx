@@ -19,7 +19,8 @@ export const DroppableSvg = ({
     className, portal, target, dropId, onIsActive, hintString }: IProps) => {
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
-  const style: CSSProperties = useOverlayBounds({ target, portal })
+  // zIndex is set to 2 to ensure that the droppable area is above the map content for maps
+  const style: CSSProperties = { zIndex: 2, ...useOverlayBounds({target, portal})}
   const classes = `droppable-svg ${className} ${isActive ? "active" : ""} ${isActive && isOver ? "over" : ""}`
 
   return portal && target && createPortal(

@@ -1,10 +1,13 @@
+@import "../vars.scss";
+
 .codap-web-view-body {
   background-color: white;
-  height: calc(100% - 25px);
+  height: calc(100% - $title-bar-height);
   overflow: hidden;
   position: relative;
   width: 100%;
 
+  // The backdrop is displayed behind the iframe and is mostly used as a loading error message
   .codap-web-view-backdrop {
     align-items: center;
     display: flex;

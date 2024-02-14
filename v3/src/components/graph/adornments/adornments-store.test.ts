@@ -57,7 +57,6 @@ describe("AdornmentsStore", () => {
   it("can be created", () => {
     const adornmentsStore = AdornmentsStore.create()
     expect(adornmentsStore).toBeDefined()
-    expect(adornmentsStore.type).toEqual("Adornments Store")
   })
 
   it("can have its defaultFontSize property set", () => {
@@ -105,8 +104,10 @@ describe("AdornmentsStore", () => {
     expect(adornmentsMenuItems?.length).toBeGreaterThan(0)
     expect(adornmentsMenuItems?.[0].title).toBe("DG.Inspector.graphCount")
     expect(adornmentsMenuItems?.[1].title).toBe("DG.Inspector.showLabels")
-    expect(adornmentsMenuItems?.[2].title).toBe("DG.Inspector.graphPlottedMean")
-    expect(adornmentsMenuItems?.[3].title).toBe("DG.Inspector.graphPlottedMedian")
+    expect(adornmentsMenuItems?.[2].title).toBe("DG.Inspector.graphCenterOptions")
+    expect(adornmentsMenuItems?.[3].title).toBe("DG.Inspector.graphSpreadOptions")
+    expect(adornmentsMenuItems?.[4].title).toBe("DG.Inspector.graphBoxPlotNormalCurveOptions")
+    expect(adornmentsMenuItems?.[5].title).toBe("DG.Inspector.graphOtherValuesOptions")
   })
   it("can add adornments", () => {
     const adornmentsStore = AdornmentsStore.create()

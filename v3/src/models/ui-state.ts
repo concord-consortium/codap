@@ -1,4 +1,5 @@
 import { action, makeObservable, observable } from "mobx"
+import { RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
   UIState represents globally accessible user-interface state that is not undoable, is not
@@ -9,6 +10,14 @@ export class UIState {
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
+  // rulerState is used by graph inspector to manage the visibility univariate measure groups
+  @observable
+  rulerState: RulerState = {
+    measuresOfCenter: true,
+    measuresOfSpread: false,
+    boxPlotAndNormalCurve: false,
+    otherValues: false
+  }
 
   constructor() {
     makeObservable(this)
@@ -25,6 +34,20 @@ export class UIState {
   @action
   setFocusedTile(tileId = "") {
     this.focusTileId = tileId
+  }
+
+  getRulerStateVisibility(key: RulerStateKey) {
+    return this.rulerState[key]
+  }
+
+  @action
+  setRulerStateVisibility(key: RulerStateKey, visible: boolean) {
+    this.rulerState[key] = visible
+  }
+
+  @action
+  toggleRulerStateVisibility(key: RulerStateKey) {
+    this.rulerState[key] = !this.rulerState[key]
   }
 }
 

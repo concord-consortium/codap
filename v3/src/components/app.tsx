@@ -15,7 +15,7 @@ import { IDocumentModelSnapshot } from "../models/document/document"
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
-import { DocumentContext } from "../hooks/use-document-context"
+import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
@@ -103,13 +103,13 @@ export const App = observer(function App() {
 
   return (
     <CodapDndContext>
-      <DocumentContext.Provider value={appState.document}>
+      <DocumentContentContext.Provider value={appState.document.content}>
         <div className="codap-app" data-testid="codap-app">
           <MenuBar/>
-          <ToolShelf/>
+          <ToolShelf document={appState.document}/>
           <Container/>
         </div>
-      </DocumentContext.Provider>
+      </DocumentContentContext.Provider>
     </CodapDndContext>
   )
 })

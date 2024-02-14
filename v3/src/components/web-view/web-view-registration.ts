@@ -6,7 +6,7 @@ import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
 import { WebViewTitleBar } from "./web-view-title-bar"
 
-export const kWebViewIdPrefix = "WEBVIEW"
+export const kWebViewIdPrefix = "WEBV"
 
 registerTileContentInfo({
   type: kWebViewTileType,
@@ -21,6 +21,6 @@ registerTileComponentInfo({
   Component: WebViewComponent,
   InspectorPanel: WebViewInspector,
   tileEltClass: "codap-web-view",
-  defaultWidth: 300,
-  defaultHeight: 300
+  defaultWidth: 600,
+  defaultHeight: 400
 })
