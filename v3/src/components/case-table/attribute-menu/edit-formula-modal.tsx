@@ -20,8 +20,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   const [formula, setFormula] = useState("")
 
   useEffect(() => {
-    setFormula(attribute?.formula.display || "")
-  }, [attribute?.formula.display])
+    setFormula(attribute?.formula?.display || "")
+  }, [attribute?.formula?.display])
 
   const applyFormula = () => {
     attribute?.setDisplayExpression(formula)

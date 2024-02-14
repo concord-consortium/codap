@@ -26,7 +26,7 @@
  */
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { Formula } from "../formula/formula"
+import { Formula, IFormula } from "../formula/formula"
 import { typedId } from "../../utilities/js-utils"
 import t from "../../utilities/translation/translate"
 import { withoutUndo } from "../history/without-undo"
@@ -60,7 +60,7 @@ export const Attribute = types.model("Attribute", {
   units: types.maybe(types.string),
   precision: types.maybe(types.number),
   editable: true,
-  formula: types.optional(Formula, () => Formula.create()),
+  formula: types.maybe(Formula),
   // simple array -- _not_ MST all the way down to the array elements
   // due to its frozen nature, clients should _not_ use `values` directly
   // volatile `strValues` and `numValues` can be accessed directly, but
@@ -68,9 +68,12 @@ export const Attribute = types.model("Attribute", {
   values: types.maybe(types.frozen<string[]>())
 })
 .preProcessSnapshot(snapshot => {
-  const { values: inValues, ...others } = snapshot
+  const { formula: inFormula, values: inValues, ...others } = snapshot
+  // don't import empty formulas
+  const formula = inFormula?.display?.length ? inFormula : undefined
+  // map all non-string values to strings
   const values = (inValues || []).map(v => importValueToString(v))
-  return { values, ...others }
+  return { formula, values, ...others }
 })
 .volatile(self => ({
   strValues: [] as string[],
@@ -101,8 +104,14 @@ export const Attribute = types.model("Attribute", {
     self.changeCount // eslint-disable-line no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }),
+  get hasFormula() {
+    return !!self.formula && !self.formula.empty
+  },
+  get hasValidFormula() {
+    return !!self.formula?.valid
+  },
   get shouldSerializeValues() {
-    return self.formula.empty
+    return !this.hasFormula
   }
 }))
 .actions(self => ({
@@ -177,7 +186,7 @@ export const Attribute = types.model("Attribute", {
     return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
   },
   get isEditable() {
-    return self.editable && self.formula.empty
+    return self.editable && !self.hasFormula
   },
   value(index: number) {
     return self.strValues[index]
@@ -219,10 +228,20 @@ export const Attribute = types.model("Attribute", {
     self.editable = editable
   },
   clearFormula() {
-    this.setDisplayExpression("")
+    self.formula = undefined
   },
   setDisplayExpression(displayFormula: string) {
-    self.formula.setDisplayExpression(displayFormula)
+    if (displayFormula) {
+      if (!self.formula) {
+        self.formula = Formula.create({ display: displayFormula })
+      }
+      else {
+        self.formula.setDisplayExpression(displayFormula)
+      }
+    }
+    else {
+      this.clearFormula()
+    }
   },
   addValue(value: IValueType = "", beforeIndex?: number) {
     const strValue = self.importValue(value)
@@ -284,3 +303,15 @@ export const Attribute = types.model("Attribute", {
 }))
 export interface IAttribute extends Instance<typeof Attribute> {}
 export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}
+
+export interface IAttributeWithFormula extends IAttribute {
+  formula: IFormula
+}
+
+export function isFormulaAttr(attr?: IAttribute): attr is IAttributeWithFormula {
+  return !!attr?.hasFormula
+}
+
+export function isValidFormulaAttr(attr?: IAttribute): attr is IAttributeWithFormula {
+  return !!attr?.hasValidFormula
+}

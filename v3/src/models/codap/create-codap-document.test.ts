@@ -82,18 +82,13 @@ describe("createCodapDocument", () => {
             dataSet: {
               attributes: [{
                 clientKey: "",
-                formula: {
-                  display: "",
-                  canonical: "",
-                  id: "test-7",
-                },
                 id: "test-6",
                 name: "a",
                 title: "",
                 editable: true,
                 values: ["1", "2", "3"]
               }],
-              cases: [{ __id__: "CASEorder-8" }, { __id__: "CASEorder-9" }, { __id__: "CASEorder-10" }],
+              cases: [{ __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }, { __id__: "CASEorder-9" }],
               collections: [],
               ungrouped: { id: "test-5", name: "", title: "" },
               id: "test-4",
