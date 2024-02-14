@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React from "react"
 import { Menu, MenuButton, MenuItem, MenuList, Tag, useDisclosure } from "@chakra-ui/react"
 import OptionsIcon from "../../assets/icons/icon-options.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
@@ -12,20 +12,13 @@ import "./tool-shelf.scss"
 export const OptionsShelfButton = () => {
   const documentContent = useDocumentContent()
   const webViewModal = useDisclosure()
-  const [webViewModalIsOpen, setWebViewModalIsOpen] = useState(false)
-
-  const handleModalOpen = (open: boolean) => {
-    setWebViewModalIsOpen(open)
-  }
 
   const handleSetWebViewUrlOpen = () => {
     webViewModal.onOpen()
-    handleModalOpen(true)
   }
 
   const handleSetWebViewUrlClose = () => {
     webViewModal.onClose()
-    handleModalOpen(false)
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
@@ -51,7 +44,7 @@ export const OptionsShelfButton = () => {
           </MenuItem>
         </MenuList>
       </Menu>
-      { webViewModalIsOpen &&
+      { webViewModal.isOpen &&
         <WebViewUrlModal
           isOpen={webViewModal.isOpen}
           onAccept={handleSetWebViewUrlAccept}
