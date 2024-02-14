@@ -9,7 +9,7 @@ import t from "../../../utilities/translation/translate"
 
 interface IProps {
   mapElt: HTMLDivElement | null
-  targetElt: SVGGElement | null
+  targetElt: HTMLDivElement | SVGGElement | null
   onDropAttribute: (dataSet: IDataSet, attrId: string) => void
 }
 
