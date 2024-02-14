@@ -32,7 +32,7 @@ export const OptionsShelfButton = () => {
     documentContent?.applyUndoableAction(() => {
       const tile = documentContent?.createOrShowTile?.(kWebViewTileType)
       isWebViewModel(tile?.content) && tile?.content.setUrl(url)
-    }, "DG.Undo.webView.show", "DG.Redo.webView.show")
+    }, "V3.Undo.webView.show", "V3.Redo.webView.show")
   }
   return (
     <>
