@@ -21,6 +21,6 @@ registerTileComponentInfo({
   Component: WebViewComponent,
   InspectorPanel: WebViewInspector,
   tileEltClass: "codap-web-view",
-  defaultWidth: 300,
-  defaultHeight: 300
+  defaultWidth: 600,
+  defaultHeight: 400
 })
