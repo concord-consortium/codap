@@ -5,7 +5,7 @@ import "./codap-modal.scss"
 
 interface IProps {
   children?: ReactNode
-  closeOnOverlayClick?: boolean // undefined treated as true to stay consistent with chakra default
+  closeOnOverlayClick?: boolean
   isOpen: boolean
   onClick?: () => void
   onClose: () => void
@@ -14,11 +14,11 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, closeOnOverlayClick, isOpen, onClick, onClose, modalWidth, modalHeight
+  children, closeOnOverlayClick=true, isOpen, onClick, onClose, modalWidth, modalHeight
 }: IProps, ref: React.LegacyRef<HTMLElement> | undefined) => {
   return (
     <Modal
-      closeOnOverlayClick={closeOnOverlayClick ?? true}
+      closeOnOverlayClick={closeOnOverlayClick}
       data-testid="codap-modal"
       isOpen={isOpen}
       onClose={onClose}
