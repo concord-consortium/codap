@@ -72,7 +72,7 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
             onKeyDown={e => e.stopPropagation()}
             onKeyUp={handleKeyUp}
             placeholder={t("V3.WebView.Modal.PlaceholderText")}
-            ref={r => inputRef.current = r}
+            ref={inputRef}
             value={value}
           />
         </FormControl>
