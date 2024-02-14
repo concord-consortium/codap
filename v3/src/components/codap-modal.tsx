@@ -1,23 +1,37 @@
-import { Modal,
-  ModalOverlay, ModalContent } from "@chakra-ui/react"
+import { Modal, ModalContent, ModalOverlay } from "@chakra-ui/react"
 import React, { ReactNode, forwardRef } from "react"
 
 import "./codap-modal.scss"
 
 interface IProps {
   children?: ReactNode
+  closeOnOverlayClick?: boolean
   isOpen: boolean
+  onClick?: () => void
   onClose: () => void
   modalWidth?: string
   modalHeight?: string
 }
 
-export const CodapModal = forwardRef(({ children, isOpen, onClose, modalWidth, modalHeight
+export const CodapModal = forwardRef(({
+  children, closeOnOverlayClick=true, isOpen, onClick, onClose, modalWidth, modalHeight
 }: IProps, ref: React.LegacyRef<HTMLElement> | undefined) => {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} data-testid="codap-modal" size="xs">
+    <Modal
+      closeOnOverlayClick={closeOnOverlayClick}
+      data-testid="codap-modal"
+      isOpen={isOpen}
+      onClose={onClose}
+      size="xs"
+    >
       <ModalOverlay />
-      <ModalContent ref={ref} className="codap-modal-content" w={modalWidth || "400px"} h={modalHeight || "500px"}>
+      <ModalContent
+        className="codap-modal-content"
+        h={modalHeight || "500px"}
+        onClick={onClick}
+        ref={ref}
+        w={modalWidth || "400px"}
+      >
         {children}
       </ModalContent>
     </Modal>

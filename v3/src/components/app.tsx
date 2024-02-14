@@ -15,12 +15,14 @@ import { IDocumentModelSnapshot } from "../models/document/document"
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
-import { DocumentContext } from "../hooks/use-document-context"
+import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
+import { kWebViewTileType } from "./web-view/web-view-defs"
+import { isWebViewModel } from "./web-view/web-view-model"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -50,11 +52,17 @@ export const App = observer(function App() {
     appState.setDocument(document)
   }, [])
 
+  const handleUrlDrop = useCallback((url: string) => {
+    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
+    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
+  }, [])
+
   useDropHandler({
     selector: `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportV2Document: importV2Document,
-    onImportV3Document: handleImportV3Document
+    onImportV3Document: handleImportV3Document,
+    onHandleUrlDrop: handleUrlDrop
   })
 
   useEffect(() => {
@@ -93,16 +101,15 @@ export const App = observer(function App() {
     initialize()
   }, [])
 
-  const documentContent = appState.document.content
   return (
     <CodapDndContext>
-      <DocumentContext.Provider value={documentContent}>
+      <DocumentContentContext.Provider value={appState.document.content}>
         <div className="codap-app" data-testid="codap-app">
           <MenuBar/>
           <ToolShelf document={appState.document}/>
-          <Container content={documentContent}/>
+          <Container/>
         </div>
-      </DocumentContext.Provider>
+      </DocumentContentContext.Provider>
     </CodapDndContext>
   )
 })

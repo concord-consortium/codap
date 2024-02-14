@@ -3,7 +3,6 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
-import { IDocumentModel } from "../../models/document/document"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
@@ -15,7 +14,9 @@ import OptionsIcon from "../../assets/icons/icon-options.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
+import { IDocumentModel } from "../../models/document/document"
 import t from "../../utilities/translation/translate"
+import { OptionsShelfButton } from "./options-button"
 
 import "./tool-shelf.scss"
 
@@ -27,11 +28,13 @@ interface IRightButtonEntry {
   icon: React.ReactElement
   label: string
   hint: string
+  button?: React.ReactElement
   isDisabled?: () => boolean
   onClick?: () => void
 }
+
 interface IProps {
-  document?: IDocumentModel
+  document: IDocumentModel
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toast = useToast()
@@ -76,7 +79,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       icon: <OptionsIcon className="icon-options"/>,
       label: t("DG.ToolButtonData.optionMenu.title"),
-      hint: t("DG.ToolButtonData.optionMenu.toolTip")
+      hint: t("DG.ToolButtonData.optionMenu.toolTip"),
+      button: <OptionsShelfButton />
     },
     {
       icon: <HelpIcon className="icon-help"/>,
@@ -111,7 +115,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"],
       Map: ["DG.Undo.map.create", "DG.Redo.map.create"]
     }
-    const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType]
+    const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType] || []
     document?.content?.applyUndoableAction(() => {
       document?.content?.createOrShowTile?.(tileType)
     }, undoStringKey, redoStringKey)
@@ -145,10 +149,14 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       <Spacer/>
       <Flex className="tool-shelf-right-buttons">
         {rightButtons.map(entry => {
-          const { className, icon, label, hint } = entry
-          return <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
+          const { className, icon, label, hint, button } = entry
+          return (
+            button
+              ? button
+              : <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
                     disabled={entry.isDisabled?.()} background="#ececec"
                     onClick={() => handleRightButtonClick(entry)} />
+          )
         })}
       </Flex>
     </Flex>

@@ -3,23 +3,26 @@ import { userEvent } from '@testing-library/user-event'
 import { ToolShelf } from "./tool-shelf"
 import { render, screen } from "@testing-library/react"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
+import { IDocumentModel } from "../../models/document/document"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
 
 describe("Tool shelf", () => {
-  it("renders successfully", () => {
-    const document = createCodapDocument()
+  const renderToolShelf = (doc?: IDocumentModel) => {
+    const document = doc ?? createCodapDocument()
     render(<ToolShelf document={document}/>)
+  }
+  it("renders successfully", () => {
+    renderToolShelf()
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
   })
 
   it("renders successfully when DEBUG_UNDO is set", () => {
     libDebug.DEBUG_UNDO = true
 
-    const document = createCodapDocument()
     jestSpyConsole("log", spy => {
-      render(<ToolShelf document={document}/>)
+      renderToolShelf()
       expect(spy).toHaveBeenCalledTimes(2)
     })
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
@@ -30,7 +33,7 @@ describe("Tool shelf", () => {
   it("undo/redo buttons do nothing when not enabled", async () => {
     const user = userEvent.setup()
     const document = createCodapDocument()
-    render(<ToolShelf document={document}/>)
+    renderToolShelf(document)
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
     document.setTitle("New Title")
@@ -43,7 +46,7 @@ describe("Tool shelf", () => {
   it("undo/redo buttons work as expected when enabled", async () => {
     const user = userEvent.setup()
     const document = createCodapDocument()
-    render(<ToolShelf document={document}/>)
+    renderToolShelf(document)
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
     document.treeMonitor?.enableMonitoring()

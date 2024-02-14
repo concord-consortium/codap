@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import React, { useCallback } from "react"
+import { useDocumentContent } from "../../hooks/use-document-content"
 import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
-import { IDocumentContentModel } from "../../models/document/document-content"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -11,26 +11,24 @@ import { MosaicTileRowComponent } from "./mosaic-tile-row"
 
 import "./container.scss"
 
-interface IProps {
-  content?: IDocumentContentModel
-}
-export const Container: React.FC<IProps> = ({ content }) => {
+export const Container: React.FC = () => {
+  const documentContent = useDocumentContent()
   const isScrollBehaviorAuto = urlParams.scrollBehavior === "auto"
   // TODO: handle the possibility of multiple rows
-  const row = content?.getRowByIndex(0)
-  const getTile = useCallback((tileId: string) => content?.getTile(tileId), [content])
+  const row = documentContent?.getRowByIndex(0)
+  const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
 
   const handleCloseTile = useCallback((tileId: string) => {
-    content?.applyUndoableAction(() => {
-      const manager = getSharedModelManager(content)
+    documentContent?.applyUndoableAction(() => {
+      const manager = getSharedModelManager(documentContent)
       const tile = getTile(tileId)
       const sharedModels = manager?.getTileSharedModels(tile?.content)
       sharedModels?.forEach(model => {
         manager?.removeTileSharedModel(tile?.content, model)
       })
-      tileId && content?.deleteTile(tileId)
+      tileId && documentContent?.deleteTile(tileId)
     }, "DG.Undo.component.close", "DG.Redo.component.close")
-  }, [content, getTile])
+  }, [documentContent, getTile])
 
   const { setNodeRef } = useContainerDroppable("codap-container", evt => {
     const dragTileId = getDragTileId(evt.active)
@@ -46,7 +44,7 @@ export const Container: React.FC<IProps> = ({ content }) => {
   return (
     <div className={classes} ref={setNodeRef}>
       {isMosaicTileRow(row) &&
-        <MosaicTileRowComponent content={content} row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
+        <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
       {isFreeTileRow(row) &&
         <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
     </div>

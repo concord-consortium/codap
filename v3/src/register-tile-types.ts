@@ -9,7 +9,7 @@ import "./components/slider/slider-registration"
 import "./components/calculator/calculator-registration"
 import "./components/text/text-registration"
 import "./components/map/map-registration"
-import "./components/plugin/plugin-registration"
+import "./components/web-view/web-view-registration"
 
 const gTileRegistration: Record<string, () => void> = {
   // "Table": () => Promise.all([
