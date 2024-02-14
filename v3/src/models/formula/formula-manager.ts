@@ -86,6 +86,15 @@ export class FormulaManager {
   }
 
   @action removeDataSet(dataSetId: string) {
+    // unregister all formulas associated with the removed DataSet
+    const formulasToUnregister: string[] = []
+    this.extraMetadata.forEach((extraMetadata, formulaId) => {
+      if (extraMetadata.dataSetId === dataSetId) {
+        formulasToUnregister.push(formulaId)
+      }
+    })
+    formulasToUnregister.forEach(formulaId => this.unregisterFormula(formulaId))
+
     this.dataSets.delete(dataSetId)
   }
 
