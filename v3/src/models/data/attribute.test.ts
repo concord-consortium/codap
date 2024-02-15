@@ -1,7 +1,9 @@
 import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
-import { Attribute, IAttributeSnapshot, importValueToString, kDefaultFormatStr } from "./attribute"
+import {
+  Attribute, IAttributeSnapshot, importValueToString, isFormulaAttr, isValidFormulaAttr, kDefaultFormatStr
+} from "./attribute"
 
 describe("Attribute", () => {
 
@@ -304,7 +306,7 @@ describe("Attribute", () => {
     expect(getSnapshot(x).values).toBeUndefined()
 
     const x2 = Attribute.create(xSnapshot)
-    expect(x2.formula.display).toBe("caseIndex * 2")
+    expect(x2.formula!.display).toBe("caseIndex * 2")
     expect(x2.values).toBeUndefined()
     expect(x2.strValues).toEqual([])
     expect(x2.numValues).toEqual([])
@@ -326,7 +328,7 @@ describe("Attribute", () => {
     expect(getSnapshot(x).values).toEqual(["2", "4", "6"])
 
     const x2 = Attribute.create(xSnapshot)
-    expect(x2.formula.display).toBe("caseIndex * 2")
+    expect(x2.formula!.display).toBe("caseIndex * 2")
     expect(x2.values).toEqual([])
     expect(x2.strValues).toEqual([])
     expect(x2.numValues).toEqual([])
@@ -334,16 +336,35 @@ describe("Attribute", () => {
 
   test("Attribute formulas", () => {
     const attr = Attribute.create({ name: "foo" })
-    expect(attr.formula.display).toBe("")
-    expect(attr.formula.canonical).toBe("")
+    expect(attr.formula).toBeUndefined()
     expect(attr.isEditable).toBe(true)
     attr.setDisplayExpression("2 * x")
-    expect(attr.formula.display).toBe("2 * x")
+    expect(attr.formula!.display).toBe("2 * x")
     expect(attr.isEditable).toBe(false)
     attr.clearFormula()
-    expect(attr.formula.display).toBe("")
-    expect(attr.formula.canonical).toBe("")
+    expect(attr.formula).toBeUndefined()
     expect(attr.isEditable).toBe(true)
+  })
+
+  test("isFormulaAttr and isValidFormulaAttr", () => {
+    expect(isFormulaAttr(undefined)).toBe(false)
+    expect(isValidFormulaAttr(undefined)).toBe(false)
+
+    const attr = Attribute.create({ name: "foo" })
+    expect(isFormulaAttr(attr)).toBe(false)
+    expect(isValidFormulaAttr(attr)).toBe(false)
+
+    attr.setDisplayExpression("1 + * 2")
+    expect(isFormulaAttr(attr)).toBe(true)
+    expect(isValidFormulaAttr(attr)).toBe(false)
+
+    attr.setDisplayExpression("1 + 2")
+    expect(isFormulaAttr(attr)).toBe(true)
+    expect(isValidFormulaAttr(attr)).toBe(true)
+
+    attr.setDisplayExpression("")
+    expect(isFormulaAttr(attr)).toBe(false)
+    expect(isValidFormulaAttr(attr)).toBe(false)
   })
 
   test("Attribute derivation", () => {

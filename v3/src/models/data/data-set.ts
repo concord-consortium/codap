@@ -466,7 +466,7 @@ export const DataSet = types.model("DataSet", {
         const newCollection = options?.collection ? getGroupedCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
         if (attribute && oldCollection !== newCollection) {
-          if (!attribute.formula.empty) {
+          if (attribute.hasFormula) {
             // If the attribute has a formula, we need to reset all the calculated values to blank values so that they
             // are not taken into account while calculating case grouping. After the grouping is done, the formula will
             // be re-evaluated, and the values will be updated to the correct values again.

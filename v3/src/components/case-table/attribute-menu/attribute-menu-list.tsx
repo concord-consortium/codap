@@ -25,7 +25,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const columnName = column.name as string
   const columnId = column.key
   const attribute = data?.attrFromID(columnId)
-  const rerandomizeDisabled = !attribute?.formula.isRandomFunctionPresent
+  const rerandomizeDisabled = !attribute?.formula?.isRandomFunctionPresent
 
   const handleMenuItemClick = (menuItem: string) => {
     toast({
@@ -74,7 +74,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   }
 
   const handleRerandomize = () => {
-    attribute?.formula.rerandomize()
+    attribute?.formula?.rerandomize()
   }
 
   const handleMenuKeyDown = (e: React.KeyboardEvent) => {

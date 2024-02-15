@@ -6,6 +6,7 @@ import { getFormulaDependencies } from "./utils/formula-dependency-utils"
 import {
   getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
 } from "./utils/collection-utils"
+import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseGroup, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
 import { IFormula } from "./formula"
@@ -33,13 +34,15 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     const result: ({ formula: IFormula, extraMetadata: IAttrFormulaExtraMetadata })[] = []
     this.api.getDatasets().forEach(dataSet => {
       dataSet.attributes.forEach(attr => {
-        result.push({
-          formula: attr.formula,
-          extraMetadata: {
-            dataSetId: dataSet.id,
-            attributeId: attr.id
-          }
-        })
+        if (isFormulaAttr(attr)) {
+          result.push({
+            formula: attr.formula,
+            extraMetadata: {
+              dataSetId: dataSet.id,
+              attributeId: attr.id
+            }
+          })
+        }
       })
     })
     return result
@@ -251,7 +254,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
         formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
       for (const dependency of localDatasetAttributeDependencies) {
         const dependencyAttribute = dataSet.attrFromID(dependency.attrId)
-        if (dependencyAttribute?.formula.valid) {
+        if (isValidFormulaAttr(dependencyAttribute)) {
           stack.push(dependencyAttribute.formula.id)
         }
       }
@@ -261,12 +264,12 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
       for (const dependency of lookupDependencies) {
         const externalDataSet = dataSets.get(dependency.dataSetId)
         const dependencyAttribute = externalDataSet?.attrFromID(dependency.attrId)
-        if (dependencyAttribute?.formula.valid) {
+        if (isValidFormulaAttr(dependencyAttribute)) {
           stack.push(dependencyAttribute.formula.id)
         }
         if (dependency.keyAttrId) {
           const dependencyKeyAttribute = externalDataSet?.attrFromID(dependency.keyAttrId)
-          if (dependencyKeyAttribute?.formula.valid) {
+          if (isValidFormulaAttr(dependencyKeyAttribute)) {
             stack.push(dependencyKeyAttribute.formula.id)
           }
         }
