@@ -24,10 +24,10 @@ context("Test graph plot transitions", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it.skip("populates title bar from sample data", () => {
+  it("populates title bar from sample data", () => {
     c.getComponentTitle("graph").should("contain", collectionName)
   })
-  it.skip("will add attributes to a graph and verify plot transitions are correct", () => {
+  it("will add attributes to a graph and verify plot transitions are correct", () => {
     cy.wrap(arrayOfPlots).each((hash, index, list) => {
       cy.dragAttributeToTarget("table", hash.attribute, hash.axis)
       cy.wait(2000)
@@ -43,7 +43,7 @@ context("Graph UI", () => {
     cy.wait(2500)
   })
 
-  it.skip("updates graph title", () => {
+  it("updates graph title", () => {
     c.getComponentTitle("graph").should("have.text", collectionName)
     c.changeComponentTitle("graph", newCollectionName)
     c.getComponentTitle("graph").should("have.text", newCollectionName)
