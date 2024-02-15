@@ -269,7 +269,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
         }
         if (dependency.keyAttrId) {
           const dependencyKeyAttribute = externalDataSet?.attrFromID(dependency.keyAttrId)
-        if (isValidFormulaAttr(dependencyKeyAttribute)) {
+          if (isValidFormulaAttr(dependencyKeyAttribute)) {
             stack.push(dependencyKeyAttribute.formula.id)
           }
         }
