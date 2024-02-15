@@ -1,4 +1,5 @@
 import React, {useRef, useEffect, useState} from "react"
+import {observer} from "mobx-react-lite"
 import {InspectorButton, InspectorMenu, InspectorPanel} from "../../inspector-panel"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
@@ -13,7 +14,6 @@ import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
 import {SaveImageMenuList} from "./inspector-panel/save-image-menu-list"
 import {MapMeasurePalette} from "./inspector-panel/map-measure-palette"
-import {observer} from "mobx-react-lite"
 
 
 export const MapInspector = observer(function MapInspector({tile, show}: ITileInspectorPanelProps) {
