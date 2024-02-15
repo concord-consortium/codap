@@ -3,7 +3,8 @@
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {reaction} from "mobx"
-import {addDisposer, IAnyStateTreeNode, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
+import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
@@ -29,8 +30,7 @@ import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment
 import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
-import { getPlottedFunctionFormulaAdapter } from "../../../models/formula/plotted-function-formula-adapter"
-import { mstAutorun } from "../../../utilities/mst-autorun"
+import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -114,8 +114,8 @@ export const GraphContentModel = DataDisplayContentModel
       return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
     },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
-                             dataset: IDataSet | undefined,
-                             attributeID: string | undefined): boolean {
+                                  dataset: IDataSet | undefined,
+                                  attributeID: string | undefined): boolean {
       return self.dataConfiguration.placeCanAcceptAttributeIDDrop(place, dataset, attributeID)
     }
   }))
@@ -175,7 +175,7 @@ export const GraphContentModel = DataDisplayContentModel
         self.dataConfiguration.casesChangeCount // eslint-disable-line no-unused-expressions
         const updateCategoriesOptions = self.getUpdateCategoriesOptions()
         self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-      }, { name: "GraphContentModel.afterAttachToDocument.updateAdornments" }, self.dataConfiguration))
+      }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
     },
     beforeDestroy() {
       getFormulaAdapters(self).forEach(adapter => {
@@ -270,7 +270,8 @@ export const GraphContentModel = DataDisplayContentModel
       return self.plotType !== 'casePlot' &&
         !AxisPlaces.find((axisPlace: AxisPlace) => {
           return isNumericAxisModel(self.getAxis(axisPlace))
-        }) }
+        })
+    }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyUndoableAction)
@@ -295,21 +296,3 @@ export function createGraphContentModel(snap?: IGraphContentModelSnapshot) {
   })
 }
 
-export interface SetAttributeIDAction extends ISerializedActionCall {
-  name: "setAttributeID"
-  args: [GraphAttrRole, string, string]
-}
-
-export function isSetAttributeIDAction(action: ISerializedActionCall): action is SetAttributeIDAction {
-  return action.name === "setAttributeID"
-}
-
-export interface SetGraphVisualPropsAction extends ISerializedActionCall {
-  name: "setGraphVisualProps"
-  args: [string | number | boolean]
-}
-
-export function isGraphVisualPropsAction(action: ISerializedActionCall): action is SetGraphVisualPropsAction {
-  return ['setPointColor', 'setPointStrokeColor', 'setPointStrokeSameAsFill', 'setPlotBackgroundColor',
-    'setPointSizeMultiplier', 'setIsTransparent'].includes(action.name)
-}

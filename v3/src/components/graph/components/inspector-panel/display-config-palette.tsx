@@ -8,7 +8,7 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { isPointDisplayType } from "../../graphing-types"
 
-import "./inspector-panel.scss"
+import "../../../data-display/inspector/inspector-panel.scss"
 
 interface IProps {
   tile?: ITileModel
@@ -16,7 +16,7 @@ interface IProps {
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void;
 }
-export const DisplayConfigPanel = observer(function DisplayConfigPanel(props: IProps) {
+export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const selectedConfig = graphModel?.pointDisplayType

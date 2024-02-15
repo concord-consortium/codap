@@ -13,6 +13,7 @@ import {
   computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
 import {transitionDuration} from "../../data-display/data-display-types"
+import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
@@ -195,6 +196,46 @@ export const MapPointLayer = function MapPointLayer(props: {
     )
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
+  // respond to visual item properties change
+  useEffect(function respondToDisplayItemVisualPropsAction() {
+    const disposer = onAnyAction(mapLayerModel, action => {
+      if (isDisplayItemVisualPropsAction(action)) {
+        callMatchCirclesToData()
+      }
+    })
+    return () => disposer()
+  }, [callMatchCirclesToData, mapLayerModel])
+
+  // respond to change in layer visibility
+  useEffect(function respondToLayerVisibilityChange() {
+    return mstReaction(() => {
+        return mapLayerModel.isVisible
+      },
+      (isVisible) => {
+        if (isVisible && pixiPointsRef.current?.isZeroSize) {
+          pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
+          callMatchCirclesToData()
+        }
+        else if (!isVisible && !pixiPointsRef.current?.isZeroSize) {
+          pixiPointsRef.current?.setZeroSize()
+        }
+      },
+      {name: "respondToLayerVisibilityChange"}, mapLayerModel
+    )
+  }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight])
+
+  // respond to point properties change
+  useEffect(function respondToPointVisualChange() {
+    return mstReaction(() => {
+        const { pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier } =
+          mapLayerModel.pointDescription
+        return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
+      },
+      () => callMatchCirclesToData(),
+      {name: "respondToPointVisualChange"}, mapLayerModel
+    )
+  }, [callMatchCirclesToData, mapLayerModel])
+
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = mapLayerModel.dataConfiguration
     const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
@@ -209,3 +250,4 @@ export const MapPointLayer = function MapPointLayer(props: {
     </>
   )
 }
+

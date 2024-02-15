@@ -1,6 +1,7 @@
 import {max, range, ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useCallback, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import * as PIXI from "pixi.js"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
@@ -324,6 +325,17 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
 
   usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+
+  // respond to point size change because we have to change the stacking
+  useEffect(function respondToGraphPointVisualAction() {
+    return mstReaction(() => {
+        const { pointSizeMultiplier } = graphModel.pointDescription
+        return pointSizeMultiplier
+      },
+      () => refreshPointPositions(false),
+      {name: "respondToGraphPointVisualAction"}, graphModel
+    )
+  }, [graphModel, refreshPointPositions])
 
   return (
     <></>

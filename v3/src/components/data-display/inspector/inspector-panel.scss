@@ -1,13 +1,13 @@
-@import "../../../vars.scss";
+@import "../../vars";
 
 .palette-form {
-  margin: 10px 20px 20px 20px;
+  margin: 0px 0px 10px 20px;
 }
 
 .palette-row {
   flex-direction: row;
   align-items: center;
-  height: 20px;
+  height: 20px!important;
   label {
     margin: 0;
   }

@@ -15,7 +15,6 @@ import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
 import {SaveImageMenuList} from "./inspector-panel/save-image-menu-list"
 import {MapMeasurePalette} from "./inspector-panel/map-measure-palette"
 import {MapLayersPalette} from "./inspector-panel/map-layers-palette"
-
 export const MapInspector = observer(function MapInspector({tile, show}: ITileInspectorPanelProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)

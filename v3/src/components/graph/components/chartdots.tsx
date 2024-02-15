@@ -1,5 +1,6 @@
 import {ScaleBand} from "d3"
-import React, {useCallback} from "react"
+import {mstReaction} from "../../../utilities/mst-reaction"
+import React, {useCallback, useEffect} from "react"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
@@ -216,6 +217,17 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
   usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+
+  // respond to point size change because we have to change the stacking
+  useEffect(function respondToGraphPointVisualAction() {
+    return mstReaction(() => {
+        const { pointSizeMultiplier } = graphModel.pointDescription
+        return pointSizeMultiplier
+      },
+      () => refreshPointPositions(false),
+      {name: "respondToGraphPointVisualAction"}, graphModel
+    )
+  }, [graphModel, refreshPointPositions])
 
   return (
     <></>
