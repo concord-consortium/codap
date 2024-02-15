@@ -5,6 +5,7 @@
 ### Features/Improvements
 - PT-186907568: Reimplement data tips after switch to Pixi.js
 - PT-186227281: Automation for Undo/Redo
+- PT-184210711: Basic file management via CFM, e.g. Open, Close, Save
 - PT-186986800: Case Table: column width changes should be undoable and serialized
 
 ### Bug Fixes
