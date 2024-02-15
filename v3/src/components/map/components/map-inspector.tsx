@@ -13,9 +13,10 @@ import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
 import {SaveImageMenuList} from "./inspector-panel/save-image-menu-list"
 import {MapMeasurePalette} from "./inspector-panel/map-measure-palette"
+import {observer} from "mobx-react-lite";
 
 
-export const MapInspector = ({tile, show}: ITileInspectorPanelProps) => {
+export const MapInspector = observer( function MapInspector({tile, show}: ITileInspectorPanelProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
@@ -56,6 +57,17 @@ export const MapInspector = ({tile, show}: ITileInspectorPanelProps) => {
     }
   }
 
+  const renderLayersButton = () => {
+    if (mapModel) {
+      return (
+        <InspectorButton tooltip={t("DG.Inspector.displayLayers.toolTip")} showMoreOptions={true}
+                         testId={"map-display-config-button"}>
+          <LayersIcon/>
+        </InspectorButton>
+      )
+    }
+  }
+
   if (mapModel && mapModel.layers.length > 0) {
     return (
       <InspectorPanel ref={panelRef} component="map" show={show} setShowPalette={setShowPalette}>
@@ -68,10 +80,7 @@ export const MapInspector = ({tile, show}: ITileInspectorPanelProps) => {
           <HideShowMenuList tile={tile}/>
         </InspectorMenu>
         {renderRulerButton()}
-        <InspectorButton tooltip={t("DG.Inspector.displayLayers.toolTip")} showMoreOptions={true}
-                         testId={"map-display-config-button"}>
-          <LayersIcon/>
-        </InspectorButton>
+        {renderLayersButton()}
         <InspectorMenu tooltip={t("DG.Inspector.makeImage.toolTip")}
                        icon={<CameraIcon/>} testId={"map-camera-button"} onButtonClick={handleClosePalette}>
           <SaveImageMenuList tile={tile}/>
@@ -87,4 +96,4 @@ export const MapInspector = ({tile, show}: ITileInspectorPanelProps) => {
       </InspectorPanel>
     )
   }
-}
+})

@@ -12,7 +12,7 @@ export interface PolygonLayerOptions extends GeoJSONOptions<any, GeoJSON.Geometr
 
 export const
   kDefaultMapWidth = 530,
-  kDefaultMapHeight = 440,
+  kDefaultMapHeight = 335,
   kMapAttribution = '&copy; <a href="https://static.arcgis.com/attribution/World_Topo_Map">USGS, NOAA</a>',
   kMapUrl = "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
 
