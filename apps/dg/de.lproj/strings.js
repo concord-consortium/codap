@@ -1105,11 +1105,6 @@ SC.stringsFor("de", {
               "DG.plugin.Sampler.measures.instructions": "Compute common measures for each sample using the template below.",
               "DG.plugin.Sampler.measures.select-measure": "Select a measure: ",
               "DG.plugin.Sampler.measures.add-measure": "Add Measure",
-              "DG.plugin.Sampler.measures.conditional_count": "Count",
-              "DG.plugin.Sampler.measures.conditional_count-formula": "count",
-              "DG.plugin.Sampler.measures.conditional_percentage": "Conditional percentage",
-              "DG.plugin.Sampler.measures.conditional_percentage-formula-pt-1": "100 * count",
-              "DG.plugin.Sampler.measures.conditional_percentage-formula-pt-2": " / count( )",
               "DG.plugin.Sampler.measures.mean": "Mean",
               "DG.plugin.Sampler.measures.mean-formula": "mean",
               "DG.plugin.Sampler.measures.conditional_mean": "Conditional mean",
@@ -1128,5 +1123,11 @@ SC.stringsFor("de", {
               "DG.plugin.Sampler.measures.difference_of_medians-formula-pt-2": " - median",
               "DG.plugin.Sampler.measures.conditional_sum": "Conditional sum",
               "DG.plugin.Sampler.measures.conditional_sum-formula": "sum",
-              "DG.plugin.Sampler.measures.measure-name-label": "Name the measure: "
+              "DG.plugin.Sampler.measures.select-formula": "Select a formula: ",
+              "DG.plugin.Sampler.measures.count": "Count",
+              "DG.plugin.Sampler.measures.count-formula": "count",
+              "DG.plugin.Sampler.measures.percent": "Percent",
+              "DG.plugin.Sampler.measures.percent-formula-pt-1": "100 * count",
+              "DG.plugin.Sampler.measures.percent-formula-pt-2": " / count( )",
+              "DG.plugin.Sampler.measures.measures-name-label": "Name the measure: "
 });
