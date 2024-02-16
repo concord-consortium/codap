@@ -52,11 +52,16 @@ context("Graph UI", () => {
     toolbar.getUndoTool().click()
     c.changeComponentTitle("graph", newCollectionName)
     c.getComponentTitle("graph").should("have.text", newCollectionName)
+    // TODO: add a check after undo to make sure the title has reverted to
+    // the Collection Name. Blocker: PT #187033159
 
     // use force:true so we don't have to worry about redo disabling
     toolbar.getRedoTool().click({force: true})
     c.changeComponentTitle("graph", newCollectionName)
     c.getComponentTitle("graph").should("have.text", newCollectionName)
+    // TODO: add a check after undo to make sure the title has reverted to
+    // the Collection Name. Blocker: PT #187033159
+
   })
   it("creates graphs with new collection name", () => {
 
