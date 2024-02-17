@@ -1257,7 +1257,7 @@ SC.stringsFor("en", {
     "DG.plugin.Sampler.measures.difference_of_medians-formula-pt-2": " - median",
     "DG.plugin.Sampler.measures.conditional_sum": "Conditional sum",
     "DG.plugin.Sampler.measures.conditional_sum-formula": "sum",
-    "DG.plugin.Sampler.measures.measures-name-label": "Name the measure: ",
+    "DG.plugin.Sampler.measures.name-label": "Name the measure: ",
     "DG.plugin.DrawTool.title": "Draw Tool",
     "DG.plugin.DrawTool.description": "Annotate an image.",
     "DG.plugin.MicrodataPortal.title": "Microdata Portal",
