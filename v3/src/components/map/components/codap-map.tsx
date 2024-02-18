@@ -1,10 +1,9 @@
 import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
-import {LatLngExpression} from "leaflet"
 import {MapContainer, TileLayer} from "react-leaflet"
 import {kPortalClass} from "../../data-display/data-display-types"
-import {kDefaultMapLocation, kDefaultMapZoom, kMapAttribution, kMapUrl} from "../map-types"
+import {kMapAttribution, kMapUrls} from "../map-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -27,7 +26,8 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     mapHeight = layout.contentHeight,
     interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({ width: 0, height: 0, legend: 0 }),
-    forceUpdate = useForceUpdate()
+    forceUpdate = useForceUpdate(),
+    mapURL = mapModel.baseMapLayerIsVisible ? kMapUrls[mapModel.baseMapLayerName as keyof typeof kMapUrls] : ''
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
@@ -64,9 +64,9 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
-        <MapContainer center={kDefaultMapLocation as LatLngExpression} zoom={kDefaultMapZoom} scrollWheelZoom={false}
+        <MapContainer center={mapModel.center} zoom={mapModel.zoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
-          <TileLayer attribution={kMapAttribution} url={kMapUrl}/>
+          <TileLayer attribution={kMapAttribution} url={mapURL}/>
           <MapInterior/>
         </MapContainer>
       </div>
