@@ -88,14 +88,23 @@ context("Graph UI", () => {
     graph.getDisplayValuesButton().then($element => {
       c.checkToolTip($element, c.tooltips.graphDisplayValuesButton)
     })
-    graph.getDisplayConfigButton().then($element => {
-      c.checkToolTip($element, c.tooltips.graphDisplayConfigButton)
-    })
     graph.getDisplayStylesButton().then($element => {
       c.checkToolTip($element, c.tooltips.graphDisplayStylesButton)
     })
     graph.getCameraButton().then($element => {
       c.checkToolTip($element, c.tooltips.graphCameraButton)
     })
+    // The display config button should not appear until the graph is configured to have a univariate plot,
+    // i.e. there is a single numeric attribute on either the bottom or left axis.
+    graph.getDisplayConfigButton().should("not.exist")
+    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.wait(500)
+    graph.getDisplayConfigButton().should("exist")
+    graph.getDisplayConfigButton().then($element => {
+      c.checkToolTip($element, c.tooltips.graphDisplayConfigButton)
+    })
+    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.wait(500)
+    graph.getDisplayConfigButton().should("not.exist")
   })
 })

@@ -11,6 +11,8 @@ import { isGroupItem, isMeasureMenuItem } from "../../adornments/adornments-stor
 import { GraphMeasureGroup } from "./graph-measure-group"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 
+import "./inspector-panel.scss"
+
 interface IProps {
   tile?: ITileModel
   panelRect?: DOMRect

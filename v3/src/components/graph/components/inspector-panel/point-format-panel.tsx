@@ -12,7 +12,7 @@ import {isGraphContentModel} from "../../models/graph-content-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 
-import "./point-format-panel.scss"
+import "./inspector-panel.scss"
 
 interface IProps {
   tile?: ITileModel
@@ -50,17 +50,17 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
     graphModel.pointDescription.setPointStrokeSameAsFill(isTheSame)
   }
 
-const catPointColorSettingArr: ReactElement[] = []
-categoriesRef.current?.forEach(cat => {
-  catPointColorSettingArr.push(
-    <Flex direction="row" key={cat} className="palette-row cat-color-picker">
-      <FormLabel className="form-label">{cat}</FormLabel>
-      <Input type="color" className="color-picker-thumb categorical"
-              value={dataConfiguration?.getLegendColorForCategory(cat) || missingColor}
-              onChange={e => handlePointColorSetting(e.target.value)}/>
-    </Flex>
-  )
-})
+  const catPointColorSettingArr: ReactElement[] = []
+  categoriesRef.current?.forEach(cat => {
+    catPointColorSettingArr.push(
+      <Flex direction="row" key={cat} className="palette-row cat-color-picker">
+        <FormLabel className="form-label">{cat}</FormLabel>
+        <Input type="color" className="color-picker-thumb categorical"
+                value={dataConfiguration?.getLegendColorForCategory(cat) || missingColor}
+                onChange={e => handlePointColorSetting(e.target.value)}/>
+      </Flex>
+    )
+  })
 
   return (
     <InspectorPalette

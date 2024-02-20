@@ -22,7 +22,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {axisPlaceToAttrRole, GraphAttrRole} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {PlotType, PlotTypes} from "../graphing-types"
+import {PlotType, PlotTypes, PointDisplayType, PointDisplayTypes} from "../graphing-types"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
@@ -61,6 +61,7 @@ export const GraphContentModel = DataDisplayContentModel
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
+    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
@@ -247,6 +248,9 @@ export const GraphContentModel = DataDisplayContentModel
         this.setAxis(aKey, props.axes[aKey])
       })
       self.plotType = props.plotType
+    },
+    setPointConfig(configType: PointDisplayType) {
+      self.pointDisplayType = configType
     },
     setPlotBackgroundColor(color: string) {
       self.plotBackgroundColor = color

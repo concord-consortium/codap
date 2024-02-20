@@ -13,6 +13,7 @@ import {
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
+import { PointDisplayType } from "../graph/graphing-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -79,6 +80,7 @@ export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
   pointRadius: number
   pointColor: string
+  pointDisplayType?: PointDisplayType
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
@@ -86,12 +88,13 @@ export interface IMatchCirclesProps {
 }
 
 export function matchCirclesToData(props: IMatchCirclesProps) {
-  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor } = props
+  const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
+          pointDisplayType = "points" } = props
   const allCaseData = dataConfiguration.joinedCaseDataArrays
 
   startAnimation()
 
-  pixiPoints?.matchPointsToData(allCaseData, {
+  pixiPoints?.matchPointsToData(allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
     stroke: pointStrokeColor,

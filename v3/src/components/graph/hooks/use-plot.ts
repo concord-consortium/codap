@@ -97,12 +97,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
+        // if plot is not univariate and the attribute type changes, we need to update the plotConfig
+        if (graphModel?.plotType !== "dotPlot") {
+          graphModel?.setPointConfig("points")
+        }
         startAnimation()
         callRefreshPointPositions(false)
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, startAnimation])
 
   useEffect(function respondToHiddenCasesChange() {
     const disposer = mstReaction(
@@ -115,6 +119,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
+          pointDisplayType: graphModel.pointDisplayType,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
           pixiPoints: pixiPointsRef.current,
           startAnimation, instanceId
@@ -164,10 +169,15 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         return
       }
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
+        // if plot is not univariate and the attribute type changes, we need to update the plotConfig
+        if (graphModel?.plotType !== "dotPlot") {
+          graphModel?.setPointConfig("points")
+        }
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
+          pointDisplayType: graphModel.pointDisplayType,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
           pixiPoints: pixiPointsRef.current,
           startAnimation, instanceId
@@ -177,6 +187,26 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }) || (() => true)
     return () => disposer()
   }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPointsRef])
+
+  // respond to pointDisplayType changes
+  useEffect(function respondToPointConfigChange() {
+    return mstReaction(
+      () => graphModel.pointDisplayType,
+      () => {
+        if (!pixiPointsRef.current) return
+        matchCirclesToData({
+          dataConfiguration,
+          pointRadius: graphModel.getPointRadius(),
+          pointColor: graphModel.pointDescription.pointColor,
+          pointDisplayType: graphModel.pointDisplayType,
+          pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+          pixiPoints: pixiPointsRef.current,
+          startAnimation, instanceId
+        })
+        callRefreshPointPositions(false)
+      }, {name: "usePlot [pointDisplayType]"}, graphModel
+    )
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPointsRef, startAnimation])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
