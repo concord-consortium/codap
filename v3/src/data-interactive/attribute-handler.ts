@@ -1,5 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
 import { DIHandler, DIResources, diNotImplementedYet } from "./data-interactive-types"
+import { registerDiHandler } from "./data-interactive-handler"
 
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
@@ -16,6 +17,8 @@ export const diAttributeHandler: DIHandler = {
   update: diNotImplementedYet,
   delete: diNotImplementedYet
 }
+
+registerDiHandler("attribute", diAttributeHandler)
 
 // from data_interactive_phone_handler.js
 // create: function (iResources, iValues, iMetadata) {
