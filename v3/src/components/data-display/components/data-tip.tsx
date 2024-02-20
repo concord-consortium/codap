@@ -20,15 +20,16 @@ interface IDataTipHelperProps {
   metadata: IPixiPointMetadata
 }
 
-const createVirtualElement = (sprite: PIXI.Sprite, event: PointerEvent) => {
+const createVirtualElement = (event: PointerEvent) => {
+  // The virtual element will be a single pixel positioned at the point of the mouse event.
   const pointLeft = event.x
   const pointTop = event.y
   return {
     getBoundingClientRect: () => ({
       left: pointLeft,
       top: pointTop,
-      right: pointLeft + sprite.width,
-      bottom: pointTop + sprite.height,
+      right: pointLeft + 1,
+      bottom: pointTop + 1,
       width: 1,
       height: 1,
       x: pointLeft,
@@ -67,7 +68,7 @@ export const DataTip = ({ dataset, getTipAttrs, pixiPointsRef }: IDataTipProps) 
     const tipTextString = tipText({dataset, metadata, getTipAttrs})
     tipTextLines.current = tipTextString.split("<br>")
     // Create the virtual element to use as a reference for positioning the data tip
-    const virtualElement = createVirtualElement(sprite, event)
+    const virtualElement = createVirtualElement(event)
     refs.setPositionReference(virtualElement)
     // Open the data tip
     context.onOpenChange(true)
