@@ -14,8 +14,12 @@ export interface InternalizedData {
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
-export const PointDisplayTypes = ["points", "bars", "bins"]
+export const PointDisplayTypes = ["points", "bars", "bins"] as const
 export type PointDisplayType = typeof PointDisplayTypes[number]
+
+export const isPointDisplayType = (value: string): value is PointDisplayType => {
+  return PointDisplayTypes.includes(value as PointDisplayType)
+}
 
 export const kAxisTickLength = 4,
   kAxisGap = 2

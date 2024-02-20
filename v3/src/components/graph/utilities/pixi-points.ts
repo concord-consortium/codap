@@ -7,6 +7,9 @@ const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
 const MAX_SPRITE_SCALE = 2
 
+const strokeColor = "#ffffff"
+const strokeColorHover = "#a35b3a"
+
 // Anything lying beneath the PixiJS canvas, expecting events to be passed through, must utilize only these specified
 // events. Others are currently not supported.
 export enum PixiBackgroundPassThroughEvent {
@@ -394,7 +397,7 @@ export class PixiPoints {
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (this.displayType === "bars") {
-        const newStyle = { ...this.getMetadata(sprite).style, stroke: "#a35b3a" }
+        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
         this.setPointStyle(sprite, newStyle)
       } else {
         this.transition(() => {
@@ -409,7 +412,7 @@ export class PixiPoints {
     }
     const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (this.displayType === "bars") {
-        const newStyle = { ...this.getMetadata(sprite).style, stroke: "#ffffff" }
+        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
         this.setPointStyle(sprite, newStyle)
       } else {
         this.transition(() => {

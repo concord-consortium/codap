@@ -1012,18 +1012,6 @@ export const DataSet = types.model("DataSet", {
     }
   }
 })
-.views(self => ({
-  subPlotKey(anID: string, secondaryAttrID?: string, extraSecondaryAttrID?: string, extraPrimaryAttrID?: string) {
-    const category = (secondaryAttrID && self.getStrValue(anID, secondaryAttrID)) ?? "__main__"
-    const extraCategory = (extraSecondaryAttrID && self?.getStrValue(anID, extraSecondaryAttrID)) ?? "__main__"
-    const extraPrimaryCategory = (extraPrimaryAttrID && self?.getStrValue(anID, extraPrimaryAttrID)) ?? "__main__"
-    const key: Record<string, string> = {}
-    secondaryAttrID && (key[secondaryAttrID] = category)
-    extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraCategory)
-    extraPrimaryAttrID && (key[extraPrimaryAttrID] = extraPrimaryCategory)
-    return key
-  }
-}))
 .actions(self => ({
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))

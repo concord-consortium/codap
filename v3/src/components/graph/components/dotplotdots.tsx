@@ -141,8 +141,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           category: string, extraCategory: string,
           extraPrimaryCategory: string, indexInBin: number
         }> = {},
-        plotWidth = layout.getAxisLength("bottom"),
-        plotHeight = layout.getAxisLength("left")
+        { plotWidth, plotHeight } = layout
       let overlap = 0
 
       function computeBinPlacements() {
@@ -222,11 +221,23 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         return { primaryCoord, extraPrimaryCoord }
       }
 
+      interface ISubPlotDetails {
+        cases: string[]
+        indices: Record<string, number>
+      }
+      const subPlotDetails = new Map<string, ISubPlotDetails>()
       const getSubPlotDetails = (anID: string) => {
-        const subPlotKey = dataset?.subPlotKey(anID, secondaryAttrID, extraSecondaryAttrID, extraPrimaryAttrID) ?? {}
-        const casesInCategory = dataConfig?.subPlotCases(subPlotKey) ?? []
-        const caseIndex = casesInCategory.findIndex((id) => id === anID)
-        return { subPlotKey, casesInCategory, caseIndex }
+        const subPlotKey = dataConfig?.subPlotKey(anID) ?? {}
+        const subPlotMapKey = JSON.stringify(subPlotKey)
+        let details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
+        if (!details) {
+          const cases = dataConfig?.subPlotCases(subPlotKey) ?? []
+          const indices: Record<string, number> = {}
+          cases.forEach((caseId, index) => indices[caseId] = index)
+          details = { cases, indices }
+          subPlotDetails.set(subPlotMapKey, details)
+        }
+        return { subPlotKey, casesInCategory: details.cases, caseIndex: details.indices[anID] }
       }
     
       const getBarStaticDimension = (anID: string) => {

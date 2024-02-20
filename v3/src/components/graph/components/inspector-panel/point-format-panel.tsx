@@ -12,7 +12,7 @@ import {isGraphContentModel} from "../../models/graph-content-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 
-import "./panel.scss"
+import "./inspector-panel.scss"
 
 interface IProps {
   tile?: ITileModel

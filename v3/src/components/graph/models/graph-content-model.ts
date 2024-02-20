@@ -22,7 +22,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {axisPlaceToAttrRole, GraphAttrRole} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {PlotType, PlotTypes, PointDisplayTypes} from "../graphing-types"
+import {PlotType, PlotTypes, PointDisplayType, PointDisplayTypes} from "../graphing-types"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
@@ -249,7 +249,7 @@ export const GraphContentModel = DataDisplayContentModel
       })
       self.plotType = props.plotType
     },
-    setPointConfig(configType: string) {
+    setPointConfig(configType: PointDisplayType) {
       self.pointDisplayType = configType
     },
     setPlotBackgroundColor(color: string) {

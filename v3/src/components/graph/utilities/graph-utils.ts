@@ -400,8 +400,9 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
-    barOrientation, dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius, pointStrokeColor,
-    pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled, getWidth, getHeight
+    barOrientation, dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+    pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled,
+    getWidth, getHeight
   } = props
 
 

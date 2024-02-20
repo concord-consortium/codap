@@ -222,8 +222,8 @@ export const useSubAxis = ({
           renderCategoricalSubAxis()
           break
       }
-    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, isAnimating,
-      centerCategoryLabels, showScatterPlotGridLines]),
+    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, graphModel.pointDisplayType, isAnimating,
+        centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current

@@ -294,6 +294,22 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
+    subPlotKey(anID: string) {
+      const primaryAttrRole = self.primaryRole ?? "x"
+      const primaryIsBottom = primaryAttrRole === "x"
+      const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
+      const extraPrimaryAttrID = self.attributeID(extraPrimaryRole) ?? ""
+      const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
+      const extraSecondaryAttrID = self.attributeID(extraSecondaryRole) ?? ""
+      const category = self.dataset?.getStrValue(anID, self.secondaryAttributeID) ?? "__main__"
+      const extraCategory = self.dataset?.getStrValue(anID, extraSecondaryAttrID) ?? "__main__"
+      const extraPrimaryCategory = self.dataset?.getStrValue(anID, extraPrimaryAttrID) ?? "__main__"
+      const key: Record<string, string> = {}
+      self.secondaryAttributeID && (key[self.secondaryAttributeID] = category)
+      extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraCategory)
+      extraPrimaryAttrID && (key[extraPrimaryAttrID] = extraPrimaryCategory)
+      return key
+    },
     subPlotCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
