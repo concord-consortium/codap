@@ -309,8 +309,8 @@ export class PixiPoints {
     const graphics = new PIXI.Graphics()
     graphics.beginFill(fill)
     graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
-    if (this.displayType === "bars" && width && height) {
-      graphics.drawRect(0, 0, width, height)
+    if (this.displayType === "bars") {
+      graphics.drawRect(0, 0, width ?? radius * 2, height ?? radius * 2)
     } else {
       graphics.drawCircle(0, 0, radius)
     }
