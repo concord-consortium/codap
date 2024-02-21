@@ -1,6 +1,8 @@
 import { appState } from "../models/app-state"
-import { IDataSet } from "../models/data/data-set"
+import { canonicalizeAttributeName } from "../models/data/attribute"
+// import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
+import { ITileModel } from "../models/tiles/tile-model"
 import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data-interactive-types"
 
 /**
@@ -24,7 +26,7 @@ import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data
  * @param iResource {string}
  * @returns {{}}
  */
-export function parseResourceSelector(iResource: string) {
+function parseResourceSelector(iResource: string) {
   // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
   // var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
   const selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*])?)/g
@@ -50,27 +52,29 @@ export function parseResourceSelector(iResource: string) {
 
 /**
  *
- * @param {object} resourceSelector Return value from parseResourceSelector
- * @param {string} action           Action name: get, create, update, delete, notify
+ * @param {string} resource             String to pass to parseResourceSelector
+ * @param {string} action               Action name: get, create, update, delete, notify
+ * @param {ITileModel} interactiveFrame Model of web view tile communicating with plugin
  * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
  */
-export function resolveResources(resourceSelector: DIResourceSelector, action: ActionName) {
-  function resolveContext(selector?: maybeString, myContext?: IDataSet) {
+export function resolveResources(resource: string, action: ActionName, interactiveFrame: ITileModel) {
+  const resourceSelector = parseResourceSelector(resource)
+  const document = appState.document
+  function resolveContext(selector?: maybeString) {
     if (!selector) {
       return
     }
+    const dataSets = getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
     if (selector === '#default') {
-      return myContext;
+      return dataSets[0]
     } else {
-      const document = appState.document
-      return document.getContextByName(resourceSelector.dataContext)
-        || (!isNaN(Number(resourceSelector.dataContext))
-          && document.getContextByID(resourceSelector.dataContext))
-        || null
+      return dataSets.find(dataSet => dataSet.name === resourceSelector.dataContext) ||
+      dataSets.find(dataSet => dataSet.id === resourceSelector.dataContext) ||
+      null
     }
   }
 
-  const result: DIResources = { interactiveFrame: this.controller}
+  const result: DIResources = { interactiveFrame }
 
   if (!resourceSelector.type || [
     'component', 'componentList', 'dataContextList', 'document', 'formulaEngine', 'global', 'globalList',
@@ -87,109 +91,108 @@ export function resolveResources(resourceSelector: DIResourceSelector, action: A
       // set a flag in the result, so we can recognize this context as special.
       result.isDefaultDataContext = true
     }
-    result.dataContext = resolveContext(resourceSelector.dataContext, this.controller?.context)
+    result.dataContext = resolveContext(resourceSelector.dataContext)
   }
 
-  const dataContext = result.dataContext;
+  const dataContext = result.dataContext
 
-  if (resourceSelector.component) {
-    result.component = appState.document.getComponentByName(resourceSelector.component)
-      || (!isNaN(Number(resourceSelector.component))
-        && appState.document.getComponentByID(resourceSelector.component))
-  }
+  // if (resourceSelector.component) {
+  //   result.component = document.getComponentByName(resourceSelector.component)
+  //     || (!isNaN(Number(resourceSelector.component))
+  //       && document.getComponentByID(resourceSelector.component))
+  // }
 
-  if (resourceSelector.global) {
-    result.global = DG.globalsController.getGlobalValueByName(resourceSelector.global)
-      || DG.globalsController.getGlobalValueByID(resourceSelector.global)
-  }
+  // if (resourceSelector.global) {
+  //   result.global = DG.globalsController.getGlobalValueByName(resourceSelector.global)
+  //     || DG.globalsController.getGlobalValueByID(resourceSelector.global)
+  // }
 
-  if (resourceSelector.dataContextList) {
-    result.dataContextList = (getSharedDataSets(appState.document).map(sharedDataSet => sharedDataSet.dataSet) as IDataSet[])
-      .map(dataSet => {
-        return {
-          name: dataSet.name,
-          guid: dataSet.id,
-          title: dataSet.name
-        }
-      })
-  }
+  // if (resourceSelector.dataContextList) {
+  //   result.dataContextList =
+  //     (getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet) as IDataSet[])
+  //       .map(dataSet => {
+  //         return {
+  //           name: dataSet.name,
+  //           guid: dataSet.id,
+  //           title: dataSet.name
+  //         }
+  //       })
+  // }
 
   if (resourceSelector.collection) {
     result.collection = dataContext &&
-      (dataContext.getCollectionByName(resourceSelector.collection)
-        || (!isNaN(Number(resourceSelector.collection))
-          && dataContext.getCollection(resourceSelector.collection)))
+      // TODO This will not return the ungrouped collection, which is an ICollectionPropsModel rather than
+      // an ICollectionModel. Is that ok?
+      (dataContext.getGroupedCollectionByName(resourceSelector.collection) ||
+        dataContext.getGroupedCollection(resourceSelector.collection))
   }
 
-  const collection = result.collection;
+  const collection = result.collection
 
   if (resourceSelector.attribute || resourceSelector.attributeLocation) {
-    const attrKey = resourceSelector.attribute?'attribute':'attributeLocation';
-    const attrName = resourceSelector[attrKey];
+    const attrKey = resourceSelector.attribute ? 'attribute' : 'attributeLocation'
+    const attrName = resourceSelector[attrKey] ?? ""
     result[attrKey] = (
       (
         dataContext && (
-            dataContext.getAttributeByName(attrName) ||
-            dataContext.getAttributeByName(dataContext.canonicalizeName(attrName))
+          dataContext.attrIDMap.get(dataContext.attrNameMap[attrName]) ||
+          dataContext.attrIDMap.get(dataContext.attrNameMap[canonicalizeAttributeName(attrName)])
         )
       ) ||
-      (
-        !isNaN(attrName) &&
-        collection && collection.getAttributeByID(attrName)
-      )
-    );
+      (collection?.getAttribute(attrName))
+    )
   }
 
-  if (resourceSelector.caseByID) {
-    result.caseByID = dataContext.getCaseByID(resourceSelector.caseByID);
-  }
+  // if (resourceSelector.caseByID) {
+  //   result.caseByID = dataContext.getCaseByID(resourceSelector.caseByID);
+  // }
 
-  if (resourceSelector.caseByIndex) {
-    result.caseByIndex = collection && collection.getCaseAt(Number(resourceSelector.caseByIndex));
-  }
+  // if (resourceSelector.caseByIndex) {
+  //   result.caseByIndex = collection && collection.getCaseAt(Number(resourceSelector.caseByIndex));
+  // }
 
-  if (resourceSelector.caseSearch) {
-    result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
-  }
+  // if (resourceSelector.caseSearch) {
+  //   result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
+  // }
 
-  if (resourceSelector.caseFormulaSearch) {
-    result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
-  }
+  // if (resourceSelector.caseFormulaSearch) {
+  //   result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
+  // }
 
-  if (resourceSelector.item) {
-    const dataSet = result.dataContext && result.dataContext.get('dataSet');
-    result.item = dataSet && serializeItem(dataSet,
-        dataSet.getDataItem(Number(resourceSelector.item)));
-  }
+  // if (resourceSelector.item) {
+  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
+  //   result.item = dataSet && serializeItem(dataSet,
+  //       dataSet.getDataItem(Number(resourceSelector.item)));
+  // }
 
-  if (resourceSelector.itemByID) {
-    const dataSet = result.dataContext && result.dataContext.get('dataSet');
-    result.itemByID = dataSet &&
-        serializeItem(dataSet,dataSet.getDataItemByID(resourceSelector.itemByID));
-  }
+  // if (resourceSelector.itemByID) {
+  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
+  //   result.itemByID = dataSet &&
+  //       serializeItem(dataSet,dataSet.getDataItemByID(resourceSelector.itemByID));
+  // }
 
-  if (resourceSelector.itemCount != null) {
-    result.itemCount = result.dataContext && result.dataContext.get('itemCount');
-  }
+  // if (resourceSelector.itemCount != null) {
+  //   result.itemCount = result.dataContext && result.dataContext.get('itemCount');
+  // }
 
-  if (resourceSelector.itemSearch) {
-    const dataSet = result.dataContext && result.dataContext.get('dataSet');
-    result.itemSearch = dataSet && dataSet.getItemsBySearch(
-        resourceSelector.itemSearch) ;
-  }
+  // if (resourceSelector.itemSearch) {
+  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
+  //   result.itemSearch = dataSet && dataSet.getItemsBySearch(
+  //       resourceSelector.itemSearch) ;
+  // }
 
-  if (resourceSelector.itemByCaseID) {
-    var myCase = result.dataContext && result.dataContext.getCaseByID(resourceSelector.itemByCaseID);
-    const dataSet = result.dataContext && result.dataContext.get('dataSet');
-    result.itemByCaseID = dataSet && myCase && serializeItem(dataSet, myCase.get('item'));
-  }
+  // if (resourceSelector.itemByCaseID) {
+  //   var myCase = result.dataContext && result.dataContext.getCaseByID(resourceSelector.itemByCaseID);
+  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
+  //   result.itemByCaseID = dataSet && myCase && serializeItem(dataSet, myCase.get('item'));
+  // }
 
-  DG.ObjectMap.forEach(resourceSelector, function (key, value) {
-    // Make sure we got values for every non-terminal selector.
-    if (SC.none(result[key]) && (key !== 'type') && (key !== resourceSelector.type)) {
-      throw (new Error('Unable to resolve %@: %@'.loc(key, value)));
-      //DG.log('Unable to resolve %@: %@'.loc(key, value));
-    }
-  });
-  return result;
+  // DG.ObjectMap.forEach(resourceSelector, function (key, value) {
+  //   // Make sure we got values for every non-terminal selector.
+  //   if (SC.none(result[key]) && (key !== 'type') && (key !== resourceSelector.type)) {
+  //     throw (new Error('Unable to resolve %@: %@'.loc(key, value)));
+  //     //DG.log('Unable to resolve %@: %@'.loc(key, value));
+  //   }
+  // });
+  return result
 }

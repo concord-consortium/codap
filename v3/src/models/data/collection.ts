@@ -44,6 +44,9 @@ export const CollectionModel = CollectionPropsModel
   },
   getAttributeIndex(attrId: string) {
     return self.attributes.findIndex(attr => attr?.id === attrId)
+  },
+  getAttributeByName(name: string) {
+    return self.attributes.find(attribute => attribute?.name === name)
   }
 }))
 .actions(self => ({

@@ -1,7 +1,7 @@
 import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
-import { parseResourceSelector } from "../../data-interactive/resource-parser"
+import { resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { isWebViewModel } from "./web-view-model"
@@ -32,11 +32,13 @@ export function useDataInteractiveController(iframeRef: React.MutableRefObject<H
           isClosable: true
         })
         let result: any = { success: false }
-        
+
         const processAction = (action: any) => {
-          if (action) {
-            console.log(`--- Resource`, action.resource)
-            console.log(` -- Parsed`, parseResourceSelector(action.resource))
+          if (action && tile) {
+            console.log(`--- Resolving resources`)
+            console.log(` -- Resource`, action.resource)
+            console.log(` -- Action`, action.action)
+            console.log(`  - Resolved`, resolveResources(action.resource, action.action, tile))
           }
           if (action && action.resource === "interactiveFrame") {
             if (action.action === "update") {

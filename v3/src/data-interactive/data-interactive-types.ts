@@ -3,21 +3,22 @@ import { IAttribute } from "../models/data/attribute"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
+import { ICollectionModel } from "../models/data/collection"
 
 export type DICase = unknown
-export type DICollection = unknown
 export type DIComponent  = unknown
 export type DIItem = unknown
 
 export interface DIResources {
-  attribute?: IAttribute
+  attribute?: IAttribute | null
+  attributeLocation?: IAttribute | null
   caseByID?: DICase
   caseByIndex?: DICase
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
-  collection?: DICollection
+  collection?: ICollectionModel | null
   component?: DIComponent
-  dataContext?: IDataSet
+  dataContext?: IDataSet | null
   dataContextList?: IDataSet[]
   global?: IGlobalValue
   interactiveFrame?: ITileModel
@@ -73,11 +74,13 @@ interface DIBaseHandler {
   delete?: DIHandlerFn
 }
 
+export type ActionName = "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister"
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete">
 
 export type maybeString = string | null
 export interface DIResourceSelector {
   attribute?: maybeString
+  attributeLocation?: maybeString
   attributes?: maybeString
   case?: maybeString
   collection?: maybeString
