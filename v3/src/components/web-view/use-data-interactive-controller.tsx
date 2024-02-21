@@ -8,10 +8,15 @@ import { isWebViewModel } from "./web-view-model"
 
 function extractOrigin(url?: string) {
   if (!url) return
-  return new URL(url).origin
+  // TODO It would probably be better to confirm that the url is legal before trying to create a URL from it
+  try {
+    return new URL(url).origin
+  } catch (e) {
+    debugLog(DEBUG_PLUGINS, `Could not determine origin from illegal url:`, url)
+  }
 }
 
-export function useDataInteractiveController(iframeRef: React.MutableRefObject<HTMLIFrameElement|null>, tile?: ITileModel) {
+export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFrameElement>, tile?: ITileModel) {
   const toast = useToast()
   const webViewModel = tile?.content
   const url = isWebViewModel(webViewModel) ? webViewModel.url : undefined
