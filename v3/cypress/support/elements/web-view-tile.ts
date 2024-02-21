@@ -32,5 +32,8 @@ export const WebViewTileElements = {
   },
   getEditUrlButton() {
     return cy.get(`[data-testid=web-view-edit-url-button]`)
+  },
+  getTitle() {
+    return cy.get(`.codap-web-view .title-bar .title-text`)
   }
 }
