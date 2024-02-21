@@ -6,6 +6,10 @@
 
   // CFM style overrides
   .view {
+    // Set up stacking context so that CFM z-indices are separate from client z-indices.
+    // This puts CFM menus and dialogs above all components, resize handles, etc.
+    z-index: 20;
+
     .menu-bar {
       // center hamburger menu button
       .menu-anchor {
