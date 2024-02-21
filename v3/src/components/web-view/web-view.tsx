@@ -8,7 +8,7 @@ import { isWebViewModel } from "./web-view-model"
 import "./web-view.scss"
 
 export const WebViewComponent = observer(function WebViewComponent({ tile }: ITileBaseProps) {
-  const iframeRef = useRef(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const webViewModel = tile?.content
 
   useDataInteractiveController(iframeRef, tile)
