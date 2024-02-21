@@ -4,7 +4,7 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 
 const calculatorName = "Calculator"
 
-context("Data summary UI", () => {
+context("Calculator", () => {
   beforeEach(function () {
       const queryParams = "?sample=mammals&dashboard&mouseSensor"
       const url = `${Cypress.config("index")}${queryParams}`

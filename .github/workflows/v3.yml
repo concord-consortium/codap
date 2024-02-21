@@ -47,7 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         # run multiple copies of the current job in parallel
-        containers: [1, 2]
+        containers: [1, 2, 3]
         # containers: [1]
     steps:
       - name: Checkout

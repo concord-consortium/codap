@@ -95,7 +95,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
           "name": "readOnly",
           "displayName": t("DG.fileMenu.provider.examples.displayName"),
           "urlDisplayName": "examples",
-          "src": "https://codap-server.concord.org/app/extn/example-documents/index.json.en",
+          "src": "https://codap-resources.s3.amazonaws.com/example-documents/index.json",
           alphabetize: true
         },
         {
