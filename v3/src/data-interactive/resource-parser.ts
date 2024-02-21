@@ -1,4 +1,7 @@
-import { DIResources } from "./data-interactive-types"
+import { appState } from "../models/app-state"
+import { IDataSet } from "../models/data/data-set"
+import { getSharedDataSets } from "../models/shared/shared-data-utils"
+import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data-interactive-types"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -24,19 +27,20 @@ import { DIResources } from "./data-interactive-types"
 export function parseResourceSelector(iResource: string) {
   // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
   // var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
-  var selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*])?)/g
+  const selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*])?)/g
   // selects complete strings matching the pattern 'aaaa[bbbb]' or 'aaaa'
   // var clauseRE =   /^([\w]+)(?:\[\s*([^\]][^\]]*)\s*\])?$/;
-  var clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*])?$/
-  var result: DIResourceSelector = {}
-  var selectors = iResource.match(selectorRE)
+  const clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*])?$/
+  const result: DIResourceSelector = {}
+  const selectors = iResource.match(selectorRE)
   result.type = ''
   selectors?.forEach(selector => {
     const match = clauseRE.exec(selector)
     const resourceType = match?.[1]
     const resourceName = match?.[2]
     if (resourceType) {
-      result[resourceType] = resourceName || ""
+      // TODO: any type
+      (result as any)[resourceType] = resourceName || ""
       result.type = resourceType
     }
   })
@@ -51,7 +55,6 @@ export function parseResourceSelector(iResource: string) {
  * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
  */
 export function resolveResources(resourceSelector: DIResourceSelector, action: ActionName) {
-  // TODO any type
   function resolveContext(selector?: maybeString, myContext?: IDataSet) {
     if (!selector) {
       return

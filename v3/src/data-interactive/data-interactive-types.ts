@@ -74,3 +74,18 @@ interface DIBaseHandler {
 }
 
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete">
+
+export type maybeString = string | null
+export interface DIResourceSelector {
+  attribute?: maybeString
+  attributes?: maybeString
+  case?: maybeString
+  collection?: maybeString
+  component?: maybeString
+  dataContext?: maybeString
+  dataContextList?: maybeString
+  global?: maybeString
+  interactiveFrame?: maybeString
+  logMessage?: maybeString
+  type?: maybeString
+}

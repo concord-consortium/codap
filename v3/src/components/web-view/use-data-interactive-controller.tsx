@@ -1,6 +1,7 @@
 import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
+import { parseResourceSelector } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { isWebViewModel } from "./web-view-model"
@@ -31,37 +32,46 @@ export function useDataInteractiveController(iframeRef: React.MutableRefObject<H
           isClosable: true
         })
         let result: any = { success: false }
-        if (Array.isArray(content)) {
-          result = content.map((action: any) => {
-            if (action && action.resource === "interactiveFrame") {
-              if (action.action === "update") {
-                const values = action.values
-                if (values.title) {
-                  tile?.setTitle(values.title)
-                  return { success: true }
-                }
-              } else if (action.action === "get") {
-                return {
-                  success: true,
-                  values: {
-                    name: tile?.title,
-                    title: tile?.title,
-                    version: "0.1",
-                    preventBringToFront: false,
-                    preventDataContextReorg: false,
-                    dimensions: {
-                      width: 600,
-                      height: 500
-                    },
-                    externalUndoAvailable: true,
-                    standaloneUndoModeAvailable: false
-                  }
+        
+        const processAction = (action: any) => {
+          if (action) {
+            console.log(`--- Resource`, action.resource)
+            console.log(` -- Parsed`, parseResourceSelector(action.resource))
+          }
+          if (action && action.resource === "interactiveFrame") {
+            if (action.action === "update") {
+              const values = action.values
+              if (values.title) {
+                tile?.setTitle(values.title)
+                return { success: true }
+              }
+            } else if (action.action === "get") {
+              return {
+                success: true,
+                values: {
+                  name: tile?.title,
+                  title: tile?.title,
+                  version: "0.1",
+                  preventBringToFront: false,
+                  preventDataContextReorg: false,
+                  dimensions: {
+                    width: 600,
+                    height: 500
+                  },
+                  externalUndoAvailable: true,
+                  standaloneUndoModeAvailable: false
                 }
               }
             }
-            return { success: false }
-          })
+          }
+          return { success: false }
         }
+        if (Array.isArray(content)) {
+          result = content.map((action: any) => processAction(action))
+        } else {
+          result = processAction(content)
+        }
+
         debugLog(DEBUG_PLUGINS, ` -- Responding with`, result)
         callback(result)
       }
