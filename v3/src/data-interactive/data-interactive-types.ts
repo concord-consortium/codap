@@ -2,6 +2,7 @@ import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
+import { ITileModel } from "../models/tiles/tile-model"
 
 export type DICase = unknown
 export type DICollection = unknown
@@ -19,7 +20,7 @@ export interface DIResources {
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
   global?: IGlobalValue
-  interactiveFrame?: any
+  interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
   item?: DIItem
   itemByCaseID?: DIItem
@@ -28,7 +29,19 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DIValues = unknown
+export interface DIValues {
+  dimensions?: {
+    height?: number
+    width?: number
+  }
+  externalUndoAvailable?: boolean
+  name?: string
+  preventBringToFront?: boolean
+  preventDataContextReorg?: boolean
+  standaloneUndoModeAvailable?: boolean
+  title?: string
+  version?: string
+}
 
 export interface DIMetadata {
   dirtyDocument?: boolean
