@@ -7,6 +7,9 @@ const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
 const MAX_SPRITE_SCALE = 2
 
+const strokeColor = "#ffffff"
+const strokeColorHover = "#a35b3a"
+
 // Anything lying beneath the PixiJS canvas, expecting events to be passed through, must utilize only these specified
 // events. Others are currently not supported.
 export enum PixiBackgroundPassThroughEvent {
@@ -32,6 +35,8 @@ export interface IPixiPointStyle {
   stroke: string
   strokeWidth: number
   strokeOpacity?: number
+  width?: number
+  height?: number
 }
 
 // PixiPoints layer can be setup to distribute events from background to elements laying underneath.
@@ -70,6 +75,8 @@ export class PixiPoints {
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
   caseIDToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
+  displayType = "points"
+  barOrientation = "horizontal"
 
   resizeObserver?: ResizeObserver
 
@@ -283,15 +290,30 @@ export class PixiPoints {
   }
 
   getPointTexture(style: IPixiPointStyle): PIXI.Texture {
-    const { radius, fill, stroke, strokeWidth, strokeOpacity } = style
-    const key = this.textureKey(style)
+    // TODO: It would be better to not create new textures for every width and height as doing so will generate more 
+    // textures than necessary, possibly causing performance issues. If possible, generate a single texture here, and
+    // when it's necessary to vary width and height (i.e. when displayType === "bars"), adjust those properties
+    // directly on the sprites elsewhere, probably in `setPointStyle`. There are scaling issues to do with stroke width
+    // that need to be worked out before we can do that, though. For now, we generate a new texture for each width
+    // and height when `displayType` is `bars`.
+    const { radius, fill, stroke, strokeWidth, strokeOpacity, width, height } = style
+    const styleForKey = this.displayType !== "bars"
+      ? { radius, fill, stroke, strokeWidth, strokeOpacity }
+      : style
+    const styleAndDisplayType = { ...styleForKey, displayType: this.displayType }
+    const key = this.textureKey(styleAndDisplayType)
+    // If there's already a matching texture, return that instead of creating a new one.
     if (this.textures.has(key)) {
       return this.textures.get(key) as PIXI.Texture
     }
     const graphics = new PIXI.Graphics()
     graphics.beginFill(fill)
     graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
-    graphics.drawCircle(0, 0, radius)
+    if (this.displayType === "bars") {
+      graphics.drawRect(0, 0, width ?? radius * 2, height ?? radius * 2)
+    } else {
+      graphics.drawCircle(0, 0, radius)
+    }
     graphics.endFill()
     const texture = this.renderer.generateTexture(graphics, {
       // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
@@ -374,9 +396,14 @@ export class PixiPoints {
     let draggingActive = false
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
-      this.transition(() => {
-        this.setPointScale(sprite, hoverRadiusFactor)
-      }, { duration: transitionDuration })
+      if (this.displayType === "bars") {
+        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
+        this.setPointStyle(sprite, newStyle)
+      } else {
+        this.transition(() => {
+          this.setPointScale(sprite, hoverRadiusFactor)
+        }, { duration: transitionDuration })
+      }
       if (!draggingActive) {
         this.onPointOver?.(pointerEvent, sprite, this.getMetadata(sprite))
       } else {
@@ -384,9 +411,14 @@ export class PixiPoints {
       }
     }
     const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
-      this.transition(() => {
-        this.setPointScale(sprite, 1)
-      }, { duration: transitionDuration })
+      if (this.displayType === "bars") {
+        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
+        this.setPointStyle(sprite, newStyle)
+      } else {
+        this.transition(() => {
+          this.setPointScale(sprite, 1)
+        }, { duration: transitionDuration })
+      }
       this.onPointLeave?.(pointerEvent, sprite, this.getMetadata(sprite))
     }
 
@@ -410,7 +442,8 @@ export class PixiPoints {
       this.onPointDragStart?.(pointerDownEvent, sprite, this.getMetadata(sprite))
 
       const onDrag = (onDragEvent: PointerEvent) => {
-        if (draggingActive) {
+        // bars cannot be dragged
+        if (draggingActive && this.displayType !== "bars") {
           this.onPointDrag?.(onDragEvent, sprite, this.getMetadata(sprite))
         }
       }
@@ -429,7 +462,8 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], style: IPixiPointStyle) {
+  matchPointsToData(caseData: CaseData[], displayType: string, style: IPixiPointStyle) {
+    this.displayType = displayType
     const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
@@ -470,6 +504,14 @@ export class PixiPoints {
     for (let i = 0; i < oldPointsCount; i++) {
       const point = this.points[i]
       if (point.texture !== texture) {
+        // The anchor should be set according to the point's shape.
+        // Circle: center (0.5)
+        // Horizontal Bar: bottom left corner (1,0)
+        // Vertical Bar: top left corner (0,0)
+        point.anchor.set(
+          this.displayType === "bars" ? (this.barOrientation === "horizontal" ? 1 : 0) : 0.5,
+          this.displayType === "bars" ? 0 : 0.5
+        )
         point.texture = texture
         const metadata = this.getMetadata(point)
         metadata.style = style
