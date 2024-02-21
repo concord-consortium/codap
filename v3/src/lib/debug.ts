@@ -16,6 +16,7 @@ export const DEBUG_MAP = debugContains("map")
 export const DEBUG_SAVE = debugContains("save")
 export const DEBUG_STORES = debugContains("stores")
 export const DEBUG_UNDO = debugContains("undo")
+export const DEBUG_PLUGINS = debugContains("plugins")
 
 export function debugLog(debugFlag: boolean, ...args: any[]) {
   // eslint-disable-next-line no-console
