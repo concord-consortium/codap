@@ -2,7 +2,7 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 
 context("CloudFileManager", () => {
   beforeEach(function () {
-      const queryParams = "" // "?sample=mammals&dashboard&mouseSensor"
+      const queryParams = "?mouseSensor"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(2500)
