@@ -3,7 +3,7 @@ import {GeoJSONOptions} from "leaflet"
 export const BaseMapKeys = ['oceans', 'topo', 'streets'] as const
 export type BaseMapKey = typeof BaseMapKeys[number]
 
-export const kMapUrls = {
+export const kMapUrls: Record<BaseMapKey, string> = {
   oceans: "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
   topo: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
   streets: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"

@@ -1,4 +1,4 @@
-import {LatLngBounds, Layer, Map as LeafletMap, Polygon, TileLayer} from 'leaflet'
+import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
@@ -8,7 +8,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {kMapModelName, kMapTileType} from "../map-defs"
-import {BaseMapKey, BaseMapKeys, kMapUrls} from "../map-types"
+import {BaseMapKey, BaseMapKeys} from "../map-types"
 import {
   datasetHasBoundaryData, datasetHasLatLongData, expandLatLngBounds, getLatLongBounds, latLongAttributesFromDataSet
 } from "../utilities/map-utils"
@@ -36,7 +36,6 @@ export const MapContentModel = DataDisplayContentModel
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
-    leafletBaseLayer: undefined as TileLayer | undefined,
     leafletMapState: new LeafletMapState(),
     isLeafletMapInitialized: false,
     isSharedDataInitialized: false,
@@ -111,23 +110,9 @@ export const MapContentModel = DataDisplayContentModel
     },
     setBaseMapLayerName(name: BaseMapKey) {
       self.baseMapLayerName = name
-      self.leafletBaseLayer?.setUrl(kMapUrls[name as keyof typeof kMapUrls])
-      // todo: This kludge gets around a problem whereby the background of the map displays with the wrong coordinates.
-      // When we switch to a more modern version of Leaflet plugins, we should be able to remove this.
-      // Note that we're forcing a rescale, so if the map is not already rescaled the user will experience
-      // this as a side effect of changing the background.
-      this.rescale()
     },
     setBaseMapLayerVisibility(isVisible: boolean) {
       self.baseMapLayerIsVisible = isVisible
-      // todo: This kludge gets around a problem whereby the background of the map displays with the wrong coordinates.
-      // When we switch to a more modern version of Leaflet plugins, we should be able to remove this.
-      // Note that we're forcing a rescale, so if the map is not already rescaled the user will experience
-      // this as a side effect of changing the background. Note that the setTimeout seems to be required here
-      // presumably because the change is brought about by a rerender of the CodapMap component.
-      setTimeout(() => {
-        this.rescale()
-      }, 10)
     },
   }))
   .actions(self => ({
@@ -258,12 +243,6 @@ export const MapContentModel = DataDisplayContentModel
       withoutUndo()
       self.leafletMap = leafletMap
       self.leafletMapState.setLeafletMap(leafletMap)
-      // By this time the base layer is in place. Stash it for use when user changes what it displays
-      leafletMap.eachLayer((layer) => {
-        if (!self.leafletBaseLayer) {
-          self.leafletBaseLayer = layer as TileLayer
-        }
-      })
     },
     setHasBeenInitialized() {
       withoutUndo()

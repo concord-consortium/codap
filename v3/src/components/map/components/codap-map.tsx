@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
 import {MapContainer, TileLayer} from "react-leaflet"
 import {kPortalClass} from "../../data-display/data-display-types"
-import {kMapAttribution, kMapUrls} from "../map-types"
+import {BaseMapKeys, kMapAttribution, kMapUrls} from "../map-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -26,8 +26,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     mapHeight = layout.contentHeight,
     interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({ width: 0, height: 0, legend: 0 }),
-    forceUpdate = useForceUpdate(),
-    mapURL = mapModel.baseMapLayerIsVisible ? kMapUrls[mapModel.baseMapLayerName as keyof typeof kMapUrls] : ''
+    forceUpdate = useForceUpdate()
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
@@ -66,7 +65,15 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
         <MapContainer center={mapModel.center} zoom={mapModel.zoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
-          <TileLayer attribution={kMapAttribution} url={mapURL}/>
+          <>
+            {
+              BaseMapKeys.map(mapKey => {
+                const url = kMapUrls[mapKey]
+                const show = mapModel.baseMapLayerIsVisible && mapModel.baseMapLayerName === mapKey
+                return show && <TileLayer key={mapKey} attribution={kMapAttribution} url={url}/>
+              })
+            }
+          </>
           <MapInterior/>
         </MapContainer>
       </div>
