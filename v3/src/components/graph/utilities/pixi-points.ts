@@ -57,7 +57,6 @@ export interface IPixiPointsOptions {
 
 interface IDisplayTypeTransitionState {
   isActive: boolean
-  completedCount: number
 }
 
 interface ITransitionPointDisplayTypeOptions {
@@ -65,7 +64,10 @@ interface ITransitionPointDisplayTypeOptions {
   style: Partial<IPixiPointStyle>
   x: number
   y: number
-  targetType: string
+}
+
+interface IPointTransitionState {
+  hasTransitioned: boolean
 }
 
 export class PixiPoints {
@@ -96,9 +98,9 @@ export class PixiPoints {
   displayType = "points"
   anchor = circleAnchor
   displayTypeTransitionState: IDisplayTypeTransitionState = {
-    isActive: false,
-    completedCount: 0
+    isActive: false
   }
+  pointTransitionStates = new Map<PIXI.Sprite, IPointTransitionState>()
 
   resizeObserver?: ResizeObserver
 
@@ -266,12 +268,12 @@ export class PixiPoints {
   }
 
   async transitionPointDisplayType(props: ITransitionPointDisplayTypeOptions) {
-    const { point, style, targetType, x, y } = props
+    const { point, style, x, y } = props
     const { width, height } = style
     const defaultRadius = 6
     const radius = style.radius ?? defaultRadius
-    const isBar = targetType === "bar" && isFiniteNumber(width) && isFiniteNumber(height)
-    const isPoint = targetType === "point" && isFiniteNumber(radius)
+    const isBar = this.displayType === "bars" && isFiniteNumber(width) && isFiniteNumber(height)
+    const isPoint = this.displayType === "points" && isFiniteNumber(radius)
 
     if (!isBar && !isPoint) return
 
@@ -291,31 +293,30 @@ export class PixiPoints {
     // Once the transition is complete, use the given style to create a new texture (or get a matching texture 
     // if one already exists in the cache) and apply that texture to the point sprite. In the case of bars, the
     // texture will include the unique width and height for the bar.
+    this.pointTransitionStates.set(point, { hasTransitioned: true })
     const newStyle = this.updatePointStyle(point, style)
-    const texture = this.getPointTexture(newStyle)
+    const includeDimensions = this.pointTransitionStates.get(point)?.hasTransitioned
+    const texture = this.getPointTexture(newStyle, includeDimensions)
+
     if (point.texture !== texture) {
       point.texture = texture
       this.setPointAnchor(point, this.anchor.x, this.anchor.y)
       this.setPointScale(point, 1)
     }
-    
-    this.displayTypeTransitionState.completedCount++
-    if (this.displayTypeTransitionState.completedCount === this.pointsCount) {
+
+    const allPointsTransitioned = Array.from(this.pointTransitionStates.values()).every(state => state.hasTransitioned)
+    if (allPointsTransitioned) {
       this.displayTypeTransitionState.isActive = false
-      this.displayTypeTransitionState.completedCount = 0
     }
   }
 
   setPositionOrTransition(point: PIXI.Sprite, style: Partial<IPixiPointStyle>, x: number, y: number) {
-    if (this.displayType === "points" && this.displayTypeTransitionState.isActive) {
-      this.transitionPointDisplayType({ point, style, x, y, targetType: "point" })
-    } else if (this.displayType === "bars" && this.displayTypeTransitionState.isActive) {
-      this.transitionPointDisplayType({ point, style, x, y, targetType: "bar" })
+    if (this.displayTypeTransitionState.isActive) {
+      this.transitionPointDisplayType({ point, style, x, y })
     } else {
       this.setPointPosition(point, x, y)
     }
   }
-
 
   setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
     // If the display type is transitioning from bars to points, we don't want to update the style here.
@@ -365,14 +366,14 @@ export class PixiPoints {
     return sprite
   }
 
-  textureKey(style: IPixiPointStyle): string {
+  textureKey(style: IPixiPointStyle, includeDimensions = false): string {
     let keyStyle = { ...style, displayType: this.displayType }
-    // Only include width and height in the key when the display type is bars and the transition from points to bars
-    // is not active, or if the display type is points and the transition from bars to points is active. This helps
-    // minimize the number of textures we create.
+    // Unless `includeDimensions` is set to true, remove width and height from keyStyle when the display type is bars
+    // and the transition from points to bars is active, or if the display type is points and the transition from
+    // bars to points is not active. This helps minimize the number of textures created.
     if (
-      (this.displayType === "bars" && !this.displayTypeTransitionState.isActive) ||
-      (this.displayType === "points" && this.displayTypeTransitionState.isActive)
+      (!includeDimensions && (this.displayType === "bars" && this.displayTypeTransitionState.isActive)) ||
+      (this.displayType === "points" && !this.displayTypeTransitionState.isActive)
     ) {
       const { width, height, ...rest } = keyStyle
       keyStyle = rest
@@ -407,9 +408,9 @@ export class PixiPoints {
     return texture
   }
 
-  getRectTexture(style: IPixiPointStyle) {
+  getRectTexture(style: IPixiPointStyle, includeDimensions = false) {
     const { radius, fill, stroke, strokeWidth, strokeOpacity, width, height } = style
-    const key = this.textureKey(style)
+    const key = this.textureKey({ ...style, strokeOpacity }, includeDimensions)
 
     if (this.textures.has(key)) {
       return this.textures.get(key) as PIXI.Texture
@@ -422,9 +423,10 @@ export class PixiPoints {
       // Do not draw the stroke when either:
       // 1. a transition from points to bars is active -- the stroke would be distorted by the scale change
       // 2. there are so many bars that their non-value dimension is thin enough that the stroke would obscure the fill
-      return !this.displayTypeTransitionState.isActive && isFiniteNumber(dimension) && dimension >= 3
+      return includeDimensions || !this.displayTypeTransitionState.isActive &&
+        isFiniteNumber(dimension) && dimension >= 3
     }
-  
+
     const textureStrokeWidth = shouldDrawStroke(width) || shouldDrawStroke(height) ? strokeWidth : 0
     graphics.lineStyle(textureStrokeWidth, stroke, strokeOpacity ?? 0.4)
 
@@ -435,8 +437,10 @@ export class PixiPoints {
     // shared square texture. Once the transition is complete, we apply separate rectangle textures to each bar. These
     // textures are defined using each point's unique width and height. This process helps minimize the number of
     // textures we create.
-    const rectWidth = isFiniteNumber(width) && !this.displayTypeTransitionState.isActive ? width : radius * 2
-    const rectHeight = isFiniteNumber(height) && !this.displayTypeTransitionState.isActive ? height : radius * 2
+    const rectWidth = isFiniteNumber(width) && (!this.displayTypeTransitionState.isActive || includeDimensions)
+      ? width : radius * 2
+    const rectHeight = isFiniteNumber(height) && (!this.displayTypeTransitionState.isActive || includeDimensions)
+      ? height : radius * 2
     graphics.drawRect(0, 0, rectWidth, rectHeight)
     graphics.endFill()
 
@@ -445,7 +449,7 @@ export class PixiPoints {
 
   getCircleTexture(style: IPixiPointStyle) {
     const { radius, fill, stroke, strokeWidth, strokeOpacity } = style
-    const key = this.textureKey(style)
+    const key = this.textureKey({ ...style })
 
     if (this.textures.has(key)) {
       return this.textures.get(key) as PIXI.Texture
@@ -460,8 +464,8 @@ export class PixiPoints {
     return this.generateTexture(graphics, key)
   }
 
-  getPointTexture(style: IPixiPointStyle): PIXI.Texture {
-    return this.displayType === "bars" ? this.getRectTexture(style) : this.getCircleTexture(style)
+  getPointTexture(style: IPixiPointStyle, includeDimensions = false): PIXI.Texture {
+    return this.displayType === "bars" ? this.getRectTexture(style, includeDimensions) : this.getCircleTexture(style)
   }
 
   cleanupUnusedTextures() {
@@ -604,7 +608,9 @@ export class PixiPoints {
     // If the display type has changed, we need to prepare for the transition between types
     if (this.displayType !== displayType) {
       this.displayTypeTransitionState.isActive = true
-      this.displayTypeTransitionState.completedCount = 0
+      this.forEachPoint(point => {
+        this.pointTransitionStates.set(point, { hasTransitioned: false })
+      })
     }
     this.displayType = displayType
 
