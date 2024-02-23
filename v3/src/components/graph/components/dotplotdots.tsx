@@ -14,7 +14,7 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {setPointCoordinates} from "../utilities/graph-utils"
-import {IPixiPointMetadata} from "../utilities/pixi-points"
+import {circleAnchor, hBarAnchor, IPixiPointMetadata, vBarAnchor} from "../utilities/pixi-points"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {pixiPointsRef} = props,
@@ -294,12 +294,16 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       const getLegendColor = dataConfig?.attributeID('legend')
         ? dataConfig?.getLegendColorForCase : undefined
 
+      const anchor = pointDisplayType === "bars"
+        ? primaryIsBottom ? hBarAnchor : vBarAnchor
+        : circleAnchor
+
       setPointCoordinates({
-        dataset, pointRadius: graphModel.getPointRadius(),
+        pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
-        pointDisplayType, getWidth, getHeight, barOrientation: primaryIsBottom ? "horizontal" : "vertical"
+        pointDisplayType, getWidth, getHeight, anchor
       })
     },
     [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,

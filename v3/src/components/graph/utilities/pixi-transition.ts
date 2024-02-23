@@ -10,7 +10,7 @@ const defaultInterpolation = smoother
 // const smooth2: Interpolation = (x: number) => smooth(smooth(x))
 // const pow2out: Interpolation = (x: number) => Math.pow(x - 1, 2) * (-1) + 1
 
-export type TransitionProp = "position" | "scale"
+export type TransitionProp = "anchor" | "position" | "scale"
 
 export type TransitionTarget = { x: number, y: number, transition: PixiTransition }
 
