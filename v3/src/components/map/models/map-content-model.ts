@@ -131,10 +131,6 @@ export const MapContentModel = DataDisplayContentModel
       newPolygonLayer.setDataset(dataSet)
     },
     afterCreate() {
-      if (!self.baseMapLayerName) {
-        self.setBaseMapLayerName('topo')
-      }
-
       addDisposer(self, () => self.leafletMapState.destroy())
 
       // synchronize leaflet state (center, zoom) to map model state
