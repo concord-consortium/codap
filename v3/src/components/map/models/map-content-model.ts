@@ -8,6 +8,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {kMapModelName, kMapTileType} from "../map-defs"
+import {BaseMapKey, BaseMapKeys} from "../map-types"
 import {
   datasetHasBoundaryData, datasetHasLatLongData, expandLatLngBounds, getLatLongBounds, latLongAttributesFromDataSet
 } from "../utilities/map-utils"
@@ -16,7 +17,7 @@ import {DataDisplayContentModel} from "../../data-display/models/data-display-co
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 import {MapPointLayerModel} from "./map-point-layer-model"
 import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
-import { LeafletMapState } from './leaflet-map-state'
+import {LeafletMapState} from './leaflet-map-state'
 
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
@@ -28,7 +29,7 @@ export const MapContentModel = DataDisplayContentModel
     zoom: -1, // -1 means no zoom has yet been set
 
     // This is the name of the layer used as an argument to L.esri.basemapLayer
-    baseMapLayerName: "",
+    baseMapLayerName: types.optional(types.enumeration([...BaseMapKeys]), 'topo'),
 
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
@@ -56,7 +57,7 @@ export const MapContentModel = DataDisplayContentModel
         }
       }
 
-      self.layers.forEach(({ dataConfiguration }) => {
+      self.layers.forEach(({dataConfiguration}) => {
         applyBounds(getLatLongBounds(dataConfiguration))
       })
       self.leafletMap?.eachLayer(function (iLayer: Layer) {
@@ -79,7 +80,7 @@ export const MapContentModel = DataDisplayContentModel
     setCenterAndZoom(center: ILatLngSnapshot, zoom: number) {
       self.center = center
       self.zoom = zoom
-    }
+    },
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyUndoableAction)
@@ -106,7 +107,13 @@ export const MapContentModel = DataDisplayContentModel
           undoStringKey, redoStringKey
         })
       }
-    }
+    },
+    setBaseMapLayerName(name: BaseMapKey) {
+      self.baseMapLayerName = name
+    },
+    setBaseMapLayerVisibility(isVisible: boolean) {
+      self.baseMapLayerIsVisible = isVisible
+    },
   }))
   .actions(self => ({
     addPointLayer(dataSet: IDataSet) {
@@ -129,10 +136,10 @@ export const MapContentModel = DataDisplayContentModel
       // synchronize leaflet state (center, zoom) to map model state
       addDisposer(self, reaction(
         () => {
-          const { isChanging, center, zoom } = self.leafletMapState
-          return { isChanging, center, zoom }
+          const {isChanging, center, zoom} = self.leafletMapState
+          return {isChanging, center, zoom}
         },
-        ({ isChanging, center, zoom }) => {
+        ({isChanging, center, zoom}) => {
           // don't sync map state to model until map change is complete
           if (!isChanging) {
             // if undo/redo strings are specified, then treat change as undoable
@@ -147,25 +154,25 @@ export const MapContentModel = DataDisplayContentModel
             }
           }
         },
-        { name: "MapContentModel.afterCreate.reaction [leafletState]", equals: comparer.structural }
+        {name: "MapContentModel.afterCreate.reaction [leafletState]", equals: comparer.structural}
       ))
 
       // synchronize map model state to leaflet map state
       addDisposer(self, reaction(
         () => {
-          const { zoom, syncFromLeafletCount } = self
-          return { center: getSnapshot(self.center), zoom, syncFromLeafletCount }
+          const {zoom, syncFromLeafletCount} = self
+          return {center: getSnapshot(self.center), zoom, syncFromLeafletCount}
         },
-        ({ center, zoom, syncFromLeafletCount }) => {
+        ({center, zoom, syncFromLeafletCount}) => {
           // don't sync back to map if this change was initiated from the map
           if (syncFromLeafletCount > self.syncFromLeafletResponseCount) {
             self.syncLeafletResponseCount(syncFromLeafletCount)
           }
           // sync back to map if this change was initiated from model (e.g. undo/redo)
           else {
-            self.leafletMapState.adjustMapView({ center, zoom })
+            self.leafletMapState.adjustMapView({center, zoom})
           }
-        }, { name: "MapContentModel.reaction [sync mapModel => leaflet map]", equals: comparer.structural }
+        }, {name: "MapContentModel.reaction [sync mapModel => leaflet map]", equals: comparer.structural}
       ))
     },
     afterAttachToDocument() {
@@ -255,7 +262,7 @@ export const MapContentModel = DataDisplayContentModel
     },
     clearHiddenCases() {
       self.layers.forEach(layer => {
-          layer.dataConfiguration.clearHiddenCases()
+        layer.dataConfiguration.clearHiddenCases()
       })
     }
   }))

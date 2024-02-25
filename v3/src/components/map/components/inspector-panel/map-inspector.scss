@@ -1,0 +1,30 @@
+.codap-inspector-palette {
+  .map-base-control {
+    margin: 1px;
+
+    .map-base-segmented {
+      border: 1px solid #cccccc;
+      margin: 5px;
+      border-radius: 10px;
+      padding-left: 5px;
+      padding-right: 5px;
+      font-size: 12px;
+      cursor: pointer;
+
+      .map-base-button {
+        border-radius: 5px;
+        padding: 5px;
+        background-image: linear-gradient(to bottom, #f7f7f7, #e7e7e7);
+      }
+
+      .map-base-button-selected {
+        border-radius: 5px;
+        padding: 5px;
+        background-image: linear-gradient(to bottom, #5DA3EE, #437BD4);
+        color: white;
+        font-weight: bold;
+        text-shadow: black 1px 1px;
+      }
+    }
+  }
+}

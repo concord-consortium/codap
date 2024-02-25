@@ -1,4 +1,13 @@
-import {GeoJSON, GeoJSONOptions} from "leaflet"
+import {GeoJSONOptions} from "leaflet"
+
+export const BaseMapKeys = ['oceans', 'topo', 'streets'] as const
+export type BaseMapKey = typeof BaseMapKeys[number]
+
+export const kMapUrls: Record<BaseMapKey, string> = {
+  oceans: "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
+  topo: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+  streets: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+}
 
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
@@ -14,10 +23,6 @@ export const
   kDefaultMapWidth = 530,
   kDefaultMapHeight = 335,
   kMapAttribution = '&copy; <a href="https://static.arcgis.com/attribution/World_Topo_Map">USGS, NOAA</a>',
-  kMapUrl = "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-
-  kDefaultMapLocation = [45.4408, 12.3155],
-  kDefaultMapZoom = 1.25,
   kDefaultMapZoomForGeoLocation = 8,
   // Constants for maps
   kDefaultMapFillOpacity = '0.5',
