@@ -410,7 +410,7 @@ export class PixiPoints {
 
   getRectTexture(style: IPixiPointStyle, includeDimensions = false) {
     const { radius, fill, stroke, strokeWidth, strokeOpacity, width, height } = style
-    const key = this.textureKey({ ...style, strokeOpacity }, includeDimensions)
+    const key = this.textureKey(style, includeDimensions)
 
     if (this.textures.has(key)) {
       return this.textures.get(key) as PIXI.Texture
@@ -449,7 +449,7 @@ export class PixiPoints {
 
   getCircleTexture(style: IPixiPointStyle) {
     const { radius, fill, stroke, strokeWidth, strokeOpacity } = style
-    const key = this.textureKey({ ...style })
+    const key = this.textureKey(style)
 
     if (this.textures.has(key)) {
       return this.textures.get(key) as PIXI.Texture
