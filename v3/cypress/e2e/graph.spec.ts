@@ -47,15 +47,51 @@ context("Graph UI", () => {
     c.getComponentTitle("graph").should("have.text", collectionName)
     c.changeComponentTitle("graph", newCollectionName)
     c.getComponentTitle("graph").should("have.text", newCollectionName)
+
+    // test for undo/redo when updating graph title
+    toolbar.getUndoTool().click()
+    c.changeComponentTitle("graph", newCollectionName)
+    c.getComponentTitle("graph").should("have.text", newCollectionName)
+    // TODO: add a check after undo to make sure the title has reverted to
+    // the Collection Name. Blocker: PT #187033159
+
+    // use force:true so we don't have to worry about redo disabling
+    toolbar.getRedoTool().click({force: true})
+    c.changeComponentTitle("graph", newCollectionName)
+    c.getComponentTitle("graph").should("have.text", newCollectionName)
+    // TODO: add a check after undo to make sure the title has reverted to
+    // the Collection Name. Blocker: PT #187033159
+
   })
   it("creates graphs with new collection name", () => {
-    c.getIconFromToolshelf("graph").click()
 
+    // Function to count CODAP graphs and return the count
+   const countCodapGraphs = () => {
+    return cy.get('.codap-graph').its('length')
+   }
+   countCodapGraphs().then(initialCount => {
+    cy.log(`Initial CODAP Graph Count: ${initialCount}`);
+
+    // perform an action that gets a new graph
+    c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph").should("contain", collectionName)
     c.getComponentTitle("graph", 1).should("contain", collectionName)
+    // Assert the count increased by 1
+    countCodapGraphs().should('eq', initialCount + 1)
 
     c.getIconFromToolshelf("graph").click()
     c.getComponentTitle("graph", 2).should("contain", collectionName)
+    // Assert the count increased by 1
+    countCodapGraphs().should('eq', initialCount + 2)
+
+    // tests for undo/redo after creating a second graph
+
+    toolbar.getUndoTool().click()
+    cy.wait(2500)
+    // Assert the count decreased by 1
+    countCodapGraphs().should('eq', initialCount + 1)
+
+   })
   })
   it("creates graphs with new collection names when existing ones are closed", () => {
     c.closeComponent("graph")
