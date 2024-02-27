@@ -13,7 +13,6 @@ import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {Background} from "./background"
 import {DroppablePlot} from "./droppable-plot"
 import {ScatterDots} from "./scatterdots"
-import {DotPlotDots} from "./dotplotdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import {Marquee} from "./marquee"
@@ -39,6 +38,7 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
+import { DotPlotDotsBaseComponent } from "./dotplotdots-base-component"
 
 import "./graph.scss"
 
@@ -181,8 +181,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
-        dotPlot: <DotPlotDots {...props}/>,
-        scatterPlot: <ScatterDots {...props}/>
+        dotPlot: <DotPlotDotsBaseComponent {...props}/>,
+        scatterPlot: <ScatterDots {...props}/>,
       }
     return typeToPlotComponentMap[plotType]
   }

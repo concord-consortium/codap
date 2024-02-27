@@ -48,6 +48,14 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </Radio>
             <Radio
               size="md"
+              value="bins"
+              data-testid="bins-radio-button"
+              onChange={(e) => handleSelection(e.target.value)}
+            >
+              {t("DG.Inspector.graphGroupIntoBins")}
+            </Radio>
+            <Radio
+              size="md"
               value="bars"
               data-testid="bars-radio-button"
               onChange={(e) => handleSelection(e.target.value)}

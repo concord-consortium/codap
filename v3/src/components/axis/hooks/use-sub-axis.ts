@@ -12,7 +12,7 @@ import {mstAutorun} from "../../../utilities/mst-autorun"
 import {isAliveSafe} from "../../../utilities/mst-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
-  getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
+        getCoordFunctions, IGetCoordFunctionsProps, binnedPointTicks} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useGraphContentModelContext } from "../../graph/hooks/use-graph-content-model-context"
 
@@ -34,6 +34,7 @@ export const useSubAxis = ({
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
     graphModel = useGraphContentModelContext(),
+    dataConfig = graphModel.dataConfiguration,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
@@ -96,14 +97,25 @@ export const useSubAxis = ({
         renderNumericAxis = () => {
           select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>
-          // When displaying bars, set the domain to [0, 100], otherwise use the default.
           if (graphModel.pointDisplayType === "bars") {
+            // When displaying bars, set the domain to [0, 100]. TODO: Fix this. The domain does need to be changed for
+            // bars, but it should be based on the data, not always the same static values.
             numericScale.domain([0, 100])
+          } else if (graphModel.pointDisplayType === "bins") {
+            // When displaying bins, set the domain to the min and max bin edges.
+            const { maxBinEdge, minBinEdge  } = dataConfig.binDetails()
+            numericScale.domain([minBinEdge, maxBinEdge])
           }
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
           const duration = isAnimating() ? transitionDuration : 0
-          if (!axisIsVertical && numericScale.ticks) {
+          if (!axisIsVertical && numericScale.ticks && graphModel.pointDisplayType !== "bins") {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
+          } else if (graphModel.pointDisplayType === "bins") {
+            const { tickValues, tickLabels } = binnedPointTicks(dataConfig)
+            axisScale.tickValues(tickValues)
+            axisScale.tickFormat((d, i) => {
+              return tickLabels[i]
+            })
           }
           select(subAxisElt)
             .attr("transform", initialTransform)
@@ -223,7 +235,7 @@ export const useSubAxis = ({
           break
       }
     }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, graphModel.pointDisplayType, isAnimating,
-        centerCategoryLabels, showScatterPlotGridLines]),
+        dataConfig, centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current

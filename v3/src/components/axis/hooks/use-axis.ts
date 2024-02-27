@@ -1,4 +1,4 @@
-import {ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal} from "d3"
+import {ScaleBand, ScaleLinear, format, scaleLinear, scaleOrdinal} from "d3"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {useCallback, useEffect, useRef} from "react"
@@ -6,11 +6,13 @@ import {mstAutorun} from "../../../utilities/mst-autorun"
 import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {maxWidthOfStringsD3} from "../../data-display/data-display-utils"
 import {useDataConfigurationContext} from "../../data-display/hooks/use-data-configuration-context"
-import {AxisPlace, axisGap} from "../axis-types"
+import {AxisPlace, AxisScaleType, axisGap} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
-import {collisionExists, getStringBounds} from "../axis-utils"
+import {binnedPointTicks, collisionExists, getStringBounds, isScaleLinear} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
+import { useGraphContentModelContext } from "../../graph/hooks/use-graph-content-model-context"
+import { IGraphDataConfigurationModel } from "../../graph/models/graph-data-configuration-model"
 
 import vars from "../../vars.scss"
 
@@ -20,8 +22,32 @@ export interface IUseAxis {
   centerCategoryLabels: boolean
 }
 
+interface IGetTicksProps {
+  d3Scale: AxisScaleType | ScaleLinear<number, number>
+  pointDisplayType: string
+  dataConfig: IGraphDataConfigurationModel
+}
+
+const getTicks = (props: IGetTicksProps) => {
+  const {d3Scale, pointDisplayType, dataConfig} = props
+  if (!isScaleLinear(d3Scale)) return []
+
+  let ticks: string[] = []
+  if (pointDisplayType === "bins") {
+    const { tickValues, tickLabels } = binnedPointTicks(dataConfig)
+    ticks = tickValues.map((tickValue, i) => {
+      return tickLabels[i]
+    })
+  } else {
+    const formatTick = d3Scale.tickFormat?.()
+    ticks = (d3Scale.ticks?.() ?? []).map(tick => formatTick(tick))
+  }
+  return ticks
+}
+
 export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUseAxis) => {
   const layout = useAxisLayoutContext(),
+    graphModel = useGraphContentModelContext(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
     isNumeric = axisModel && isNumericAxisModel(axisModel),
@@ -63,13 +89,13 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
       bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
       collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
       maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? []),
-      d3Scale = multiScale?.scale ?? (type === 'numeric' ? scaleLinear() : scaleOrdinal())
+      d3Scale = multiScale?.scale ?? (type === 'numeric' ? scaleLinear() : scaleOrdinal()),
+      pointDisplayType = graphModel.pointDisplayType
     let desiredExtent = axisTitleHeight + 2 * axisGap
     let ticks: string[] = []
     switch (type) {
       case 'numeric': {
-        const format = (d3Scale as ScaleLinear<number, number>).tickFormat?.()
-        ticks = (((d3Scale as ScaleLinear<number, number>).ticks?.()) ?? []).map(tick => format(tick))
+        ticks = getTicks({ d3Scale, pointDisplayType, dataConfig: graphModel.dataConfiguration })
         desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
           ? Math.max(getStringBounds(ticks[0]).width, getStringBounds(ticks[ticks.length - 1]).width) + axisGap
           : numbersHeight + axisGap
@@ -81,8 +107,8 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
       }
     }
     return desiredExtent
-  }, [dataConfiguration, axisPlace, axisTitle, multiScale?.repetitions, multiScale?.scale,
-    ordinalScale, categories, centerCategoryLabels, attrRole, type])
+  }, [dataConfiguration, axisPlace, axisTitle, multiScale?.repetitions, multiScale?.scale, ordinalScale, categories,
+      centerCategoryLabels, attrRole, type, graphModel.pointDisplayType, graphModel.dataConfiguration])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -128,6 +154,19 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
     )
     return () => disposer()
   }, [axisModel, layout, axisPlace, computeDesiredExtent])
+
+  // update d3 scale and axis when pointDisplayType changes
+  useEffect(() => {
+    const disposer = reaction(
+      () => {
+        return graphModel.pointDisplayType
+      },
+      () => {
+        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+      }, {name: "useAxis [pointDisplayType]"}
+    )
+    return () => disposer()
+  }, [axisModel, layout, axisPlace, computeDesiredExtent, graphModel.pointDisplayType])
 
   // Set desired extent when things change
   useEffect(() => {

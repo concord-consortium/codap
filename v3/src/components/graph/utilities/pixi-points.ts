@@ -614,13 +614,16 @@ export class PixiPoints {
 
   matchPointsToData(caseData: CaseData[], displayType: string, style: IPixiPointStyle) {
     // If the display type has changed, we need to prepare for the transition between types
-    if (this.displayType !== displayType) {
+    // For now, the only display type values PixiPoints supports are "points" and "bars", so
+    // all other display type values passed to this method will be treated as "points".
+    const useDisplayType = displayType !== "bars" ? "points" : "bars"
+    if (this.displayType !== useDisplayType) {
       this.displayTypeTransitionState.isActive = true
       this.forEachPoint(point => {
         this.pointTransitionStates.set(point, { hasTransitioned: false })
       })
     }
-    this.displayType = displayType
+    this.displayType = useDisplayType
 
     // Stop here if we need to transition between display types. The need for a display type transition is only
     // triggered when the user changes the display type from points to bars or vice versa. Calls to `matchPointsToData`
