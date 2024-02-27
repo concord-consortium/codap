@@ -141,7 +141,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           category: string, extraCategory: string,
           extraPrimaryCategory: string, indexInBin: number
         }> = {},
-        { plotWidth, plotHeight } = layout
+        { plotHeight } = layout
       let overlap = 0
 
       function computeBinPlacements() {
@@ -226,8 +226,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         indices: Record<string, number>
       }
       const subPlotDetails = new Map<string, ISubPlotDetails>()
-      const getSubPlotDetails = (anID: string) => {
-        const subPlotKey = dataConfig?.subPlotKey(anID) ?? {}
+      dataset?.cases.forEach(aCase => {
+        const subPlotKey = dataConfig?.subPlotKey(aCase.__id__) ?? {}
         const subPlotMapKey = JSON.stringify(subPlotKey)
         let details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
         if (!details) {
@@ -237,15 +237,21 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           details = { cases, indices }
           subPlotDetails.set(subPlotMapKey, details)
         }
-        return { subPlotKey, casesInCategory: details.cases, caseIndex: details.indices[anID] }
+      })
+
+      const getSubPlotDetails = (anID: string) => {
+        const subPlotKey = dataConfig?.subPlotKey(anID) ?? {}
+        const subPlotMapKey = JSON.stringify(subPlotKey)
+        const details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
+        return { subPlotKey, casesInCategory: details?.cases ?? [], caseIndex: details?.indices[anID] ?? -1 }
       }
     
-      const getBarStaticDimension = (anID: string) => {
-        // This function determines how much space is available for each bar on the non-primary axis
-        // by dividing the length of the non-primary axis by the number of cases in the plot.
-        const { casesInCategory } = getSubPlotDetails(anID)
-        const dimension = primaryIsBottom ? plotHeight : plotWidth
-        return casesInCategory.length ? dimension / numExtraSecondaryBands / casesInCategory.length : 0
+      const getBarStaticDimension = () => {
+        // This function determines how much space is available for each bar on the non-primary axis by dividing the
+        // length of the non-primary axis by the number of cases in the subplot containing the most cases. This keeps
+        // the bars a uniform size across subplots.
+        const largestSubplotCount = Math.max(...Array.from(subPlotDetails.values()).map(sp => sp.cases.length))
+        return largestSubplotCount ? secondaryBandwidth / largestSubplotCount : 0
       }
     
       const getBarValueDimension = (anID: string) => {
@@ -261,12 +267,20 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
-        const barDimension = getBarStaticDimension(anID)
-        const { caseIndex } = getSubPlotDetails(anID)
-        const { extraCategory: extraSecondaryCat } = binMap[anID]
-        const extraCoord = !!extraSecondaryCat && extraSecondaryCat !== '__main__'
-          ? (extraSecondaryAxisScale(extraSecondaryCat) ?? 0) : 0
-        return caseIndex >= 0 ? caseIndex * barDimension + extraCoord : 0
+        const { caseIndex, casesInCategory } = getSubPlotDetails(anID)
+        const barDimension = getBarStaticDimension()
+        const { category, extraCategory } = binMap[anID]
+        const secondaryCoord = category && category !== '__main__' ? (secondaryAxisScale(category) ?? 0) : 0
+        const extraSecondaryCoord = extraCategory && extraCategory !== '__main__'
+          ? (extraSecondaryAxisScale(extraCategory) ?? 0)
+          : 0
+      
+        // Adjusted bar position accounts for the bar's index, dimension, and additional offsets.
+        const adjustedBarPosition = caseIndex >= 0 ? caseIndex * barDimension + secondaryCoord + extraSecondaryCoord : 0
+      
+        // Calculate the centered position by adjusting for the collective dimension of all bars in the subplot
+        const collectiveDimension = barDimension * (casesInCategory.length ?? 0)
+        return (adjustedBarPosition - collectiveDimension / 2) + secondaryBandwidth / 2
       }
 
       const getPrimaryScreenCoord = (anID: string) => {
