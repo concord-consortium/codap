@@ -39,39 +39,32 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
   }
 
   return (
-    <Flex className="palette-form map-base-control" direction="column">
-      <Flex className="palette-form map-base-control" direction="row">
-        <Checkbox
-          className='map-layers-checkbox'
-          data-testid={`map-layers-checkbox-base`}
-          defaultChecked={mapModel.baseMapLayerIsVisible}
-          onChange={toggleVisibility}
-        >
-          {t('V3.map.inspector.base')}
-        </Checkbox>
-        <HStack spacing='5px' className='map-base-segmented'>
-          <Box data-testid={`map-layers-base-oceans`} className={classNameForSegment('oceans')}
-               onClick={() => {
-                 changeBaseMapLayer('oceans')
-               }}>
-            {t('V3.map.inspector.oceans')}
-          </Box>
-          <Box> | </Box>
-          <Box data-testid={`map-layers-base-topo`} className={classNameForSegment('topo')}
-               onClick={() => {
-                 changeBaseMapLayer('topo')
-               }}>
-            {t('V3.map.inspector.topo')}
-          </Box>
-          <Box> | </Box>
-          <Box data-testid={`map-layers-base-streets`} className={classNameForSegment('streets')}
-               onClick={() => {
-                 changeBaseMapLayer('streets')
-               }}>
-            {t('V3.map.inspector.streets')}
-          </Box>
-        </HStack>
-      </Flex>
+    <Flex className="palette-form map-base-control" direction="row">
+      <Checkbox
+        className='map-layers-checkbox'
+        data-testid={`map-layers-checkbox-base`}
+        defaultChecked={mapModel.baseMapLayerIsVisible}
+        onChange={toggleVisibility}
+        padding="2px"
+      >
+        {t('V3.map.inspector.base')}
+      </Checkbox>
+      <HStack spacing='5px' className='map-base-segmented'>
+        <Box data-testid={`map-layers-base-oceans`} className={classNameForSegment('oceans')}
+          onClick={()=>{ changeBaseMapLayer('oceans') }}>
+          {t('V3.map.inspector.oceans')}
+        </Box>
+        <Box> | </Box>
+        <Box data-testid={`map-layers-base-topo`} className={classNameForSegment('topo')}
+              onClick={()=>{ changeBaseMapLayer('topo') }}>
+          {t('V3.map.inspector.topo')}
+        </Box>
+        <Box> | </Box>
+        <Box data-testid={`map-layers-base-streets`} className={classNameForSegment('streets')}
+              onClick={()=>{ changeBaseMapLayer('streets') }}>
+          {t('V3.map.inspector.streets')}
+        </Box>
+      </HStack>
     </Flex>
   )
 })

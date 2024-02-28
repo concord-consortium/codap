@@ -38,7 +38,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
     return mapModel.layers.map(layer => {
       if (isMapLayerModel(layer)) {
         return (
-          <div key={layer.id}>
+          <div className="map-layer-controls" key={layer.id}>
             <Checkbox
               className='map-layers-checkbox'
               data-testid={`map-layers-checkbox-layer`}

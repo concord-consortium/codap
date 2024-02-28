@@ -1,4 +1,8 @@
 .codap-inspector-palette {
+  .map-layers-checkbox {
+    font-weight: bold;
+  }
+
   .map-base-control {
     margin: 1px;
 
@@ -27,8 +31,8 @@
       }
     }
   }
-}
 
-.map-layers-checkbox {
-  font-weight: bold;
+  .map-layer-controls {
+    padding: 3px;
+  }
 }

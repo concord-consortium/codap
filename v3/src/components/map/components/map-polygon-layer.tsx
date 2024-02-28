@@ -62,8 +62,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         weight
       })
     })
-  }, [dataset, dataConfiguration, mapLayerModel.features, displayItemDescription.itemColor,
-    displayItemDescription.itemStrokeColor])
+  }, [dataset, dataConfiguration, mapLayerModel, displayItemDescription])
 
   const refreshPolygons = useDebouncedCallback((selectedOnly: boolean) => {
     if (!dataset) return
@@ -197,12 +196,12 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   }, [layout, mapModel.leafletMapState, refreshPolygons])
 
   // Changes in legend attribute require repositioning polygons
-  useEffect(function setupResponsesToLayoutChanges() {
+  useEffect(function setupResponsesToLegendAttribute() {
     const disposer = reaction(
       () => [dataConfiguration.attributeID('legend')],
       () => {
         refreshPolygons(false)
-      }
+      }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute", equals: comparer.structural}
     )
     return () => disposer()
   }, [dataConfiguration, refreshPolygons])
@@ -212,7 +211,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       () => dataConfiguration?.caseDataArray.length,
       () => {
         refreshPolygons(false)
-      }, {name: "MapPointLayer.setupResponseToChangeInNumberOfCases", fireImmediately: true}, dataConfiguration
+      }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, dataConfiguration
     )
   }, [dataConfiguration, refreshPolygons])
 
@@ -221,7 +220,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       () => mapLayerModel.isVisible,
       () => {
         refreshPolygons(false)
-      }, {name: "MapPointLayer.setupResponseToChangeInVisibility", fireImmediately: true}, mapLayerModel
+      }, {name: "MapPolygonLayer.setupResponseToChangeInVisibility"}, mapLayerModel
     )
   }, [dataConfiguration, mapLayerModel, refreshPolygons])
 
@@ -233,7 +232,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         return [itemColor, itemStrokeColor, itemStrokeSameAsFill]
       },
       () => refreshPolygonStyles(),
-      {name: "respondToItemVisualChange"}, mapLayerModel
+      {name: "MapPolygonLayer.respondToItemVisualChange", equals: comparer.structural}, mapLayerModel
     )
   }, [refreshPolygonStyles, mapLayerModel])
 

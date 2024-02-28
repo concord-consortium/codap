@@ -1,4 +1,4 @@
-import {LatLngBounds, Layer, Map as LeafletMap, Polygon, TileLayer} from 'leaflet'
+import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
@@ -36,7 +36,6 @@ export const MapContentModel = DataDisplayContentModel
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
-    leafletBaseLayer: undefined as TileLayer | undefined,
     leafletMapState: new LeafletMapState(),
     isLeafletMapInitialized: false,
     isSharedDataInitialized: false,
@@ -132,10 +131,6 @@ export const MapContentModel = DataDisplayContentModel
       newPolygonLayer.setDataset(dataSet)
     },
     afterCreate() {
-      if (!self.baseMapLayerName) {
-        self.setBaseMapLayerName('topo')
-      }
-
       addDisposer(self, () => self.leafletMapState.destroy())
 
       // synchronize leaflet state (center, zoom) to map model state
@@ -244,12 +239,6 @@ export const MapContentModel = DataDisplayContentModel
       withoutUndo()
       self.leafletMap = leafletMap
       self.leafletMapState.setLeafletMap(leafletMap)
-      // By this time the base layer is in place. Stash it for use when user changes what it displays
-      leafletMap.eachLayer((layer) => {
-        if (!self.leafletBaseLayer) {
-          self.leafletBaseLayer = layer as TileLayer
-        }
-      })
     },
     setHasBeenInitialized() {
       withoutUndo()

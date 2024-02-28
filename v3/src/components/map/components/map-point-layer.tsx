@@ -124,7 +124,6 @@ export const MapPointLayer = function MapPointLayer(props: {
         ? dataConfiguration?.getLegendColorForCase : undefined
     const {latId, longId} = latLongAttributesFromDataSet(dataset)
 
-
     await pixiPoints.transition(() => {
       pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
         const {caseID} = metadata
@@ -181,7 +180,7 @@ export const MapPointLayer = function MapPointLayer(props: {
       },
       () => {
         refreshPoints(false)
-      }, {name: "setupResponseToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
+      }, {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
   }, [refreshPoints, dataConfiguration])
@@ -220,7 +219,7 @@ export const MapPointLayer = function MapPointLayer(props: {
           pixiPointsRef.current?.setZeroSize()
         }
       },
-      {name: "respondToLayerVisibilityChange"}, mapLayerModel
+      {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
   }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight])
 
@@ -232,7 +231,7 @@ export const MapPointLayer = function MapPointLayer(props: {
         return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
       },
       () => callMatchCirclesToData(),
-      {name: "respondToPointVisualChange"}, mapLayerModel
+      {name: "MapPointLayer.respondToPointVisualChange"}, mapLayerModel
     )
   }, [callMatchCirclesToData, mapLayerModel])
 
@@ -245,9 +244,8 @@ export const MapPointLayer = function MapPointLayer(props: {
 
   return (
     <>
-      <div ref={pixiContainerRef} className="map-dot-area" style={{width: "100%", height: "100%"}}/>
+      <div ref={pixiContainerRef} className="map-dot-area"/>
       <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
     </>
   )
 }
-

@@ -20,7 +20,7 @@ export const MapPolygonLayerModel = MapLayerModel
   }))
   .actions(self => ({
     afterCreate() {
-      // Set pointSizeMultipler to -1 so that DisplayItemFormatControlPanel knows it's a polygon
+      // Set pointSizeMultiplier to -1 so that DisplayItemFormatControlPanel knows it's a polygon
       self.displayItemDescription.setPointSizeMultiplier(-1)
     },
     setDataset(dataSet: IDataSet) {
@@ -45,4 +45,3 @@ export interface IMapPolygonLayerModelSnapshot extends SnapshotIn<typeof MapPoly
 export function isMapPolygonLayerModel(layerModel?: IDataDisplayLayerModel): layerModel is IMapPolygonLayerModel {
   return layerModel?.type === kMapPolygonLayerType
 }
-
