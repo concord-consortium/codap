@@ -35,6 +35,7 @@ NOAA_CODAP_PLUGIN_HOME=${NOAA_CODAP_PLUGIN_HOME:-${CODAP_HOME}/../noaa-codap-plu
 # expected codap build branch
 EXP_CODAP_BRANCH=${EXP_CODAP_BRANCH:-master}
 EXP_TRANSFORMERS_BRANCH=${EXP_TRANSFORMERS_BRANCH:-main}
+EXP_NOAA_BRANCH=${EXP_NOAA_BRANCH:-main}
 
 #echo HOME: $CODAP_HOME
 #set -e
@@ -65,7 +66,7 @@ echo '    * extension directories clean'
     error "Extn codeline check failed: $CODAP_TRANSFORMERS_HOME"
 ./bin/check_clean_codeline "$STORY_BUILDER_HOME" "$EXP_CODAP_BRANCH" ||
     error "Extn codeline check failed: $STORY_BUILDER_HOME"
-./bin/check_clean_codeline "$NOAA_CODAP_PLUGIN_HOME" "$EXP_CODAP_BRANCH" ||
+./bin/check_clean_codeline "$NOAA_CODAP_PLUGIN_HOME" "$EXP_NOAA_BRANCH" ||
     error "Extn codeline check failed: $NOAA_CODAP_PLUGIN_HOME"
 ./bin/recordExtnVersions
 echo '    * nothing checked out, and in master: “git st”'
