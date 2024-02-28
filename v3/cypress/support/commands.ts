@@ -11,7 +11,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
     graphTile: ".graph-plot svg",
-    graph_legend: ".graph-plot .legend .chakra-menu__menu-button",
+    graphLegend: ".graph-plot .legend .chakra-menu__menu-button",
     bottomAxis: ".codap-graph .droppable-axis.droppable-svg.bottom",
     bottomAxisLabel: ".codap-graph .axis-legend-attribute-menu.bottom .chakra-menu__menu-button",
     leftAxis: ".codap-graph .droppable-axis.droppable-svg.left",
@@ -22,6 +22,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
     rightAxisLabel: ".codap-graph [data-testid^=axis-legend-attribute-button-right]",
     yPlusAxis: ".codap-graph [data-testid^=add-attribute-drop-yPlus]",
     mapTile: ".codap-map .leaflet-container",
+    mapLegend: ".codap-map .legend",
     newCollection: ".collection-table-spacer.parentMost",
     prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
   }
@@ -78,15 +79,18 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
     case ("card collection"):
       target_el = el.caseCardCollectionDropZone
       break
-    case ("graph_plot"):
+    case ("graph-plot"):
       target_el = el.graphTile
       break
-    case ("graph_legend"):
-      target_el = el.graph_legend
+    case ("graph-legend"):
+      target_el = el.graphLegend
       break
     case ("map"):
       target_el = el.mapTile
       break
+    case ("map-legend"):
+        target_el = el.mapLegend
+        break
     case ("bottom"):
       target_el = el.bottomAxis
       break
@@ -183,7 +187,7 @@ Cypress.Commands.add("pointerMoveBy",
       caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
       caseCardCollectionDropZone: ".react-data-card .collection-header-row",
       graphTile: ".droppable-svg.droppable-plot",
-      graph_legend: ".graph-plot .legend .chakra-menu__menu-button",
+      graphLegend: ".graph-plot .legend .chakra-menu__menu-button",
       bottomAxis: ".codap-graph .droppable-axis.droppable-svg.bottom",
       leftAxis: ".codap-graph .droppable-axis.droppable-svg.left",
       topAxis: ".codap-graph [data-testid=add-attribute-drop-top]",
@@ -228,11 +232,11 @@ Cypress.Commands.add("pointerMoveBy",
       case ("card collection"):
         target_el = el.caseCardCollectionDropZone
         break
-      case ("graph_plot"):
+      case ("graph-plot"):
         target_el = el.graphTile
         break
-      case ("graph_legend"):
-        target_el = el.graph_legend
+      case ("graph-legend"):
+        target_el = el.graphLegend
         break
       case ("map"):
         target_el = el.mapTile
