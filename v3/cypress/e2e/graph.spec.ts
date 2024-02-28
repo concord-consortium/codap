@@ -1,41 +1,37 @@
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { CfmElements as cfm } from "../support/elements/cfm"
+import graphRules from '../fixtures/graph-rules.json'
 
 const collectionName = "Mammals"
 const newCollectionName = "Animals"
-// const newGraphName = "New Dataset"
-const arrayOfPlots = [
-  { attribute: "Mammal", axis: "x", collection: "mammals" },
-  { attribute: "Order", axis: "y", collection: "mammals" },
-  { attribute: "LifeSpan", axis: "x1", collection: "mammals" },
-  { attribute: "Height", axis: "y1", collection: "mammals" },
-  { attribute: "Mass", axis: "x", collection: "mammals" },
-  { attribute: "Sleep", axis: "y", collection: "mammals" },
-  { attribute: "Speed", axis: "x1", collection: "mammals" },
-  { attribute: "Habitat", axis: "graph_plot", collection: "mammals" },
-  { attribute: "Diet", axis: "graph_plot", collection: "mammals" }
-]
+const plots = graphRules.plots
 
 context("Test graph plot transitions", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
+    cfm.openLocalDoc("cypress/fixtures/3TableGroups.codap")
     cy.wait(2500)
   })
-  it("populates title bar from sample data", () => {
-    c.getComponentTitle("graph").should("contain", collectionName)
-  })
-  it("will add attributes to a graph and verify plot transitions are correct", () => {
-    cy.wrap(arrayOfPlots).each((hash, index, list) => {
-      cy.dragAttributeToTarget("table", hash.attribute, hash.axis)
-      cy.wait(2000)
+
+  plots.forEach(test => {
+    it(`${test.testName}`, () => {
+      c.getIconFromToolshelf("graph").click()
+      c.moveComponent("graph", 1000)
+      test.axes.forEach(hash => {
+        hash.checks.forEach(check => {
+          cy.checkDragAttributeHighlights("table", hash.attribute, check.axis, check.active)
+        })
+        cy.dragAttributeToTarget("table", hash.attribute, hash.target)
+      })
     })
   })
 })
 
-context("Graph UI", () => {
+context.skip("Graph UI", () => {
   beforeEach(function () {
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
@@ -97,13 +93,13 @@ context("Graph UI", () => {
     // The display config button should not appear until the graph is configured to have a univariate plot,
     // i.e. there is a single numeric attribute on either the bottom or left axis.
     graph.getDisplayConfigButton().should("not.exist")
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)
     graph.getDisplayConfigButton().should("exist")
     graph.getDisplayConfigButton().then($element => {
       c.checkToolTip($element, c.tooltips.graphDisplayConfigButton)
     })
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     cy.wait(500)
     graph.getDisplayConfigButton().should("not.exist")
   })

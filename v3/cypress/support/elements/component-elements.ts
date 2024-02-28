@@ -69,6 +69,14 @@ export const ComponentElements = {
   checkComponentExists(component) {
     this.getComponentSelector(component).should("exist")
   },
+  moveComponent(component, x, index = 0) {
+    this.getComponentTitle(component, index)
+      .trigger("mousedown", { force: true })
+      .wait(100)
+      .trigger("mousemove", {force: true, clientX: x})
+      .wait(100)
+      .trigger("mouseup", { force: true })
+  },
   closeComponent(component, index = 0) {
     this.selectTile(component, index)
     this.getCloseButton(component, index).click({ force: true })

@@ -3,6 +3,9 @@ Cypress.Commands.add("clickMenuItem", text => {
 })
 
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 0) => {
+  cy.log("Source:", source)
+  cy.log("attribute:", attribute)
+  cy.log("target:", target)
   const el = {
     tableHeader: ".codap-data-summary .data-attributes .draggable-attribute",
     tableColumnHeader:
@@ -11,11 +14,16 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
     graphTile: ".graph-plot svg",
-    legend: ".graph-plot .legend .chakra-menu__menu-button",
-    x_axis: ".codap-graph .droppable-axis.droppable-svg.bottom",
-    x_axis_label: ".codap-graph .axis-legend-attribute-menu.bottom .chakra-menu__menu-button",
-    y_axis: ".codap-graph .droppable-axis.droppable-svg.left",
-    y_axis_label: ".codap-graph .axis-legend-attribute-menu.left .chakra-menu__menu-button",
+    graph_legend: ".graph-plot .legend .chakra-menu__menu-button",
+    bottomAxis: ".codap-graph .droppable-axis.droppable-svg.bottom",
+    bottomAxisLabel: ".codap-graph .axis-legend-attribute-menu.bottom .chakra-menu__menu-button",
+    leftAxis: ".codap-graph .droppable-axis.droppable-svg.left",
+    leftAxisLabel: ".codap-graph .axis-legend-attribute-menu.left .chakra-menu__menu-button",
+    topAxis: ".codap-graph [data-testid=add-attribute-drop-top]",
+    topAxisLabel: ".codap-graph [data-testid=axis-legend-attribute-button-top]",
+    rightAxis: ".codap-graph [data-testid^=add-attribute-drop-right]",
+    rightAxisLabel: ".codap-graph [data-testid^=axis-legend-attribute-button-right]",
+    yPlusAxis: ".codap-graph [data-testid^=add-attribute-drop-yPlus]",
     mapTile: ".codap-map .leaflet-container",
     newCollection: ".collection-table-spacer.parentMost",
     prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
@@ -24,27 +32,42 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
   let source_el = "", target_el = ""
 
   switch (source) {
-    case ("table"):
-    case ("newCollection"):
+    case ("data-summary"):
       source_el = el.tableHeader
       break
+    case ("table"):
     case ("attribute"):
       source_el = el.tableColumnHeader
       break
     case ("card"):
       source_el = el.caseCardHeader
       break
-    case ("x1"):
-      source_el = el.x_axis
+    case ("bottom"):
+      source_el = el.bottomAxis
       break
-    case ("x"):
-      source_el = el.x_axis_label
+    case ("bottom-axis-label"):
+      source_el = el.bottomAxisLabel
       break
-    case ("y1"):
-      source_el = el.y_axis
+    case ("left"):
+      source_el = el.leftAxis
       break
-    case ("y"):
-      source_el = el.y_axis_label
+    case ("right"):
+      source_el = el.leftAxisLabel
+      break
+    case ("top"):
+      source_el = el.topAxis
+      break
+    case ("yplus"):
+      source_el = el.yPlusAxis
+      break
+    case ("top-axis-label"):
+      source_el = el.topAxisLabel
+      break
+    case ("right"):
+      source_el = el.rightAxis
+      break
+    case ("right-axis-label"):
+      source_el = el.rightAxisLabel
       break
   }
 
@@ -61,19 +84,28 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
     case ("graph_plot"):
       target_el = el.graphTile
       break
-    case ("legend"):
-      target_el = el.legend
+    case ("graph_legend"):
+      target_el = el.graph_legend
       break
     case ("map"):
       target_el = el.mapTile
       break
-    case ("x1"):
-    case ("x"):
-      target_el = el.x_axis
+    case ("bottom"):
+      target_el = el.bottomAxis
       break
-    case ("y1"):
-    case ("y"):
-      target_el = el.y_axis
+    case ("left"):
+      target_el = el.leftAxis
+      break
+    case ("top"):
+    case ("top-axis-label"):
+      target_el = el.topAxis
+      break
+    case ("yplus"):
+      target_el = el.yPlusAxis
+      break
+    case ("right"):
+    case ("right-axis-label"):
+      target_el = el.rightAxis
       break
     case ("newCollection"):
       target_el = el.newCollection
@@ -85,13 +117,21 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
       target_el = el.tableColumnHeader
       break
   }
-  cy.get(target_el).then($target => {
-    return $target[0].getBoundingClientRect()
-  }).then($targetRect => {
-    cy.get(source_el).contains(attribute).then($subject => {
-      cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
+
+  cy.log("target_el", target_el)
+  cy.get(source_el).contains(attribute)
+    .trigger("mousedown", { force: true })
+    .then(() => {
+      cy.get(target_el).then($target => {
+        return $target[0].getBoundingClientRect()
+      })
+      .then($targetRect => {
+        cy.log("targetRect", $targetRect)
+        cy.get(source_el).contains(attribute).then($subject => {
+          cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
+        })
+      })
     })
-  })
   cy.wait(2000)
 })
 
@@ -136,4 +176,106 @@ Cypress.Commands.add("pointerMoveBy",
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
       .trigger("pointerup", { force: true })
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
+  })
+
+  Cypress.Commands.add("checkDragAttributeHighlights", (source, attribute, target, exists, num = 0) => {
+    cy.log("Source:", source)
+    cy.log("attribute:", attribute)
+    cy.log("target:", target)
+    const el = {
+      tableColumnHeader:
+        `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
+      caseCardHeader: ".react-data-card-attribute",
+      caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
+      caseCardCollectionDropZone: ".react-data-card .collection-header-row",
+      graphTile: ".droppable-svg.droppable-plot",
+      graph_legend: ".graph-plot .legend .chakra-menu__menu-button",
+      bottomAxis: ".codap-graph .droppable-axis.droppable-svg.bottom",
+      leftAxis: ".codap-graph .droppable-axis.droppable-svg.left",
+      topAxis: ".codap-graph [data-testid=add-attribute-drop-top]",
+      rightAxis: ".codap-graph [data-testid^=add-attribute-drop-right]",
+      yPlusAxis: ".codap-graph [data-testid^=add-attribute-drop-yPlus]",
+      mapTile: ".codap-map .leaflet-container",
+      newCollection: ".collection-table-spacer.parentMost",
+      prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
+    }
+  
+    let source_el = "", target_el = ""
+  
+    switch (source) {
+      case ("table"):
+      case ("attribute"):
+        source_el = el.tableColumnHeader
+        break
+      case ("card"):
+        source_el = el.caseCardHeader
+        break
+      case ("bottom"):
+        source_el = el.bottomAxis
+        break
+      case ("left"):
+        source_el = el.leftAxis
+        break
+      case ("top"):
+        source_el = el.topAxis
+        break
+      case ("right"):
+        source_el = el.rightAxis
+        break
+      case ("yplus"):
+        source_el = el.yPlusAxis
+        break
+    }
+  
+    switch (target) {
+      case ("card"):
+        target_el = el.caseCardHeaderDropZone
+        break
+      case ("card collection"):
+        target_el = el.caseCardCollectionDropZone
+        break
+      case ("graph_plot"):
+        target_el = el.graphTile
+        break
+      case ("graph_legend"):
+        target_el = el.graph_legend
+        break
+      case ("map"):
+        target_el = el.mapTile
+        break
+      case ("bottom"):
+        target_el = el.bottomAxis
+        break
+      case ("left"):
+        target_el = el.leftAxis
+        break
+      case ("top"):
+        target_el = el.topAxis
+        break
+      case ("right"):
+        target_el = el.rightAxis
+        break
+      case ("yplus"):
+        target_el = el.yPlusAxis
+        break
+      case ("newCollection"):
+        target_el = el.newCollection
+        break
+      case ("prevCollection"):
+        target_el = el.prevCollection
+        break
+      default:
+        target_el = el.tableColumnHeader
+        break
+    }
+  
+    cy.log("target_el", target_el)
+    cy.get(source_el).contains(attribute)
+      .trigger("mousedown", { force: true })
+      .then(() => {
+        if(exists)
+          cy.get(target_el).should("have.class", "active")
+        else 
+          cy.get(target_el).should("not.exist")
+      })
   })

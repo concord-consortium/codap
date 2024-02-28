@@ -1,0 +1,1800 @@
+{
+  "plots": [
+    {
+      "testName": "check numeric bottom, numeric left, categorical top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ANUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, numeric left, categorical top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ANUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "yplus",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, numeric left, numeric top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ANUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "yplus",
+              "active": true
+            }
+          ],
+          "target": "yplus",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, numeric left, numeric top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ANUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "yplus",
+              "active": true
+            }
+          ],
+          "target": "yplus",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CNUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "yplus",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, categorical left, categorical top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, categorical left, categorical top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, categorical left, numeric top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check numeric bottom, categorical left, numeric top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        },
+        {
+          "attribute": "CNUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, numeric left, categorical top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, numeric left, categorical top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, numeric left, numeric top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, numeric left, numeric top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ANUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        },
+        {
+          "attribute": "CNUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, categorical left, categorical top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, categorical left, categorical top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "BCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "top",
+          "collection": "Table B"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, categorical left, numeric top, categorical right axes",
+      "axes": [
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        },
+        {
+          "attribute": "CCAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "right",
+          "collection": "Table C"
+        }
+      ]
+    },
+    {
+      "testName": "check categorical bottom, categorical left, numeric top, numeric right axes",
+      "axes": [
+        {
+          "attribute": "ACAT1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "ACAT2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": true
+            },
+            {
+              "axis": "top",
+              "active": true
+            }
+          ],
+          "target": "left",
+          "collection": "Table A"
+        },
+        {
+          "attribute": "CNUM1",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        },
+        {
+          "attribute": "CNUM2",
+          "checks": [
+            {
+              "axis": "bottom",
+              "active": true
+            },
+            {
+              "axis": "left",
+              "active": true
+            },
+            {
+              "axis": "graph_plot",
+              "active": true
+            },
+            {
+              "axis": "right",
+              "active": false
+            },
+            {
+              "axis": "top",
+              "active": false
+            }
+          ],
+          "target": "bottom",
+          "collection": "Table C"
+        }
+      ]
+    }
+  ]
+}

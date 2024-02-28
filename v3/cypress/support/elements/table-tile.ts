@@ -73,6 +73,9 @@ export const TableTileElements = {
   getAttribute(name, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
+  getCasetableAttribute(name) {
+    return this.getTableTile().find(`[data-testid^="codap-attribute-button ${name}"]`)
+  },
   openAttributeMenu(name, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click()
   },
@@ -194,13 +197,19 @@ export const TableTileElements = {
     })
   },
   moveAttributeToParent(name, moveType) {
-    cy.dragAttributeToTarget("table", name, moveType)
+    cy.dragAttributeToTarget("data-summary", name, moveType)
   },
   getExpandAllGroupsButton(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[title=\"expand all groups\"]")
   },
   getCollapseAllGroupsButton(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[title=\"collapse all groups\"]")
+  },
+  getNewCollectionDropZone(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(".collection-table-spacer.parentMost")
+  },
+  getPreviousCollectionHeader() {
+    return cy.get(".collection-table:nth-child(1) .codap-column-header:nth-child(2)")
   },
   verifyExpandAllGroupseButton(collectionIndex = 1) {
     this.getExpandAllGroupsButton(collectionIndex).should("exist")

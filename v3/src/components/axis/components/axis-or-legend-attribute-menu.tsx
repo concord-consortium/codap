@@ -60,7 +60,9 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
             <div className="attribute-label-menu" ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
                 data-testid={`attribute-label-menu-${place}`}>
-              <MenuButton style={buttonStyle} data-testid="axis-legend-attribute-button">{attribute?.name}</MenuButton>
+              <MenuButton style={buttonStyle} data-testid={`axis-legend-attribute-button-${place}`}>
+                {attribute?.name}
+              </MenuButton>
               <MenuList>
                 { data?.attributes?.map((attr) => {
                   return (

@@ -17,49 +17,49 @@ export const AxisHelper = {
   },
   verifyXAxisTickMarksNotDisplayed(categorical = false) {
     cy.log(`Check tick marks not displayed for x axis`)
-    ae.getTickLength("x", "y2", categorical).then($length => {
+    ae.getTickLength("bottom", "y2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
   verifyXAxisTickMarksDisplayed(categorical = false) {
     cy.log(`Check tick marks displayed for x axis`)
-    ae.getTickLength("x", "y2", categorical).then($length => {
+    ae.getTickLength("bottom", "y2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
   verifyYAxisTickMarksNotDisplayed(categorical = false) {
     cy.log(`Check tick marks not displayed for y axis`)
-    ae.getTickLength("y", "x2", categorical).then($length => {
+    ae.getTickLength("left", "x2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
   verifyYAxisTickMarksDisplayed(categorical = false) {
     cy.log(`Check tick marks displayed for y axis`)
-    ae.getTickLength("y", "x2", categorical).then($length => {
+    ae.getTickLength("left", "x2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
   verifyXAxisGridLinesNotDisplayed(categorical = false) {
     cy.log(`Check grid lines not displayed for x axis`)
-    ae.getGridLineLength("x", "y2", categorical).then($length => {
+    ae.getGridLineLength("bottom", "y2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },
   verifyXAxisGridLinesDisplayed(categorical = false) {
     cy.log(`Check grid lines displayed for x axis`)
-    ae.getGridLineLength("x", "y2", categorical).then($length => {
+    ae.getGridLineLength("bottom", "y2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
   verifyYAxisGridLinesNotDisplayed(categorical = false) {
     cy.log(`Check grid lines not displayed for y axis`)
-    ae.getGridLineLength("y", "x2", categorical).then($length => {
+    ae.getGridLineLength("left", "x2", categorical).then($length => {
       expect($length).to.be.lessThan(0)
     })
   },
   verifyYAxisGridLinesDisplayed(categorical = false) {
     cy.log(`Check grid lines displayed for y axis`)
-    ae.getGridLineLength("y", "x2", categorical).then($length => {
+    ae.getGridLineLength("left", "x2", categorical).then($length => {
       expect($length).to.be.greaterThan(0)
     })
   },

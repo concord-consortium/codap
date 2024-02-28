@@ -49,7 +49,7 @@ export const GraphLegendHelper = {
     cy.dragAttributeToTarget("table", name, "graph_plot")
   },
   dragAttributeToLegend(name) {
-    cy.dragAttributeToTarget("table", name, "legend")
+    cy.dragAttributeToTarget("table", name, "graph_legend")
   },
   openLegendMenu() {
     gle.getLegendAttributeMenu().click()
