@@ -124,11 +124,13 @@ export const MapContentModel = DataDisplayContentModel
       dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
       dataConfiguration.setAttribute('lat', {attributeID: latId})
       dataConfiguration.setAttribute('long', {attributeID: longId})
+      return newPointLayer
     },
     addPolygonLayer(dataSet: IDataSet) {
       const newPolygonLayer = MapPolygonLayerModel.create()
       self.layers.push(newPolygonLayer) // We have to do this first so safe references will work
       newPolygonLayer.setDataset(dataSet)
+      return newPolygonLayer
     },
     afterCreate() {
       addDisposer(self, () => self.leafletMapState.destroy())

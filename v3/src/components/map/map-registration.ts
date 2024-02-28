@@ -1,14 +1,15 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import {kMapTileClass, kMapTileType} from "./map-defs"
+import {kMapIdPrefix, kMapTileClass, kMapTileType} from "./map-defs"
 import {kDefaultMapHeight, kDefaultMapWidth} from "./map-types"
 import MapIcon from "../../assets/icons/icon-map.svg"
 import {createMapContentModel, MapContentModel} from "./models/map-content-model"
 import {MapComponentTitleBar} from "./components/map-component-title-bar"
 import {MapComponent} from "./components/map-component"
 import {MapInspector} from "./components/map-inspector"
+import {registerV2TileImporter} from "../../v2/codap-v2-tile-importers"
+import {v2MapImporter} from "./v2-map-importer"
 
-export const kMapIdPrefix = "MAP_"
 
 registerTileContentInfo({
   type: kMapTileType,
@@ -32,3 +33,5 @@ registerTileComponentInfo({
   defaultWidth: kDefaultMapWidth,
   defaultHeight: kDefaultMapHeight
 })
+
+registerV2TileImporter("DG.MapView", v2MapImporter)
