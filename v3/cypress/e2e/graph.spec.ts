@@ -17,8 +17,12 @@ context("Test graph plot transitions", () => {
     cy.wait(2500)
   })
 
+  // Skipping this test because Cypress 13 does not support displaying pixijs canvas elements in CI
+  // https://github.com/cypress-io/cypress/issues/28289
+  // This test can be unskipped when the above cypress bug is resolved
+  // (In local, this works fine and the tests can be run successfully)
   plots.forEach(test => {
-    it(`${test.testName}`, () => {
+    it.skip(`${test.testName}`, () => {
       c.getIconFromToolshelf("graph").click()
       c.moveComponent("graph", 1000)
       test.axes.forEach(hash => {
@@ -26,12 +30,13 @@ context("Test graph plot transitions", () => {
           cy.checkDragAttributeHighlights("table", hash.attribute, check.axis, check.active)
         })
         cy.dragAttributeToTarget("table", hash.attribute, hash.target)
+        cy.wait(2000)
       })
     })
   })
 })
 
-context.skip("Graph UI", () => {
+context("Graph UI", () => {
   beforeEach(function () {
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`

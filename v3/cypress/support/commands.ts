@@ -48,14 +48,11 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
     case ("left"):
       source_el = el.leftAxis
       break
-    case ("right"):
+    case ("left-axis-label"):
       source_el = el.leftAxisLabel
       break
     case ("top"):
       source_el = el.topAxis
-      break
-    case ("yplus"):
-      source_el = el.yPlusAxis
       break
     case ("top-axis-label"):
       source_el = el.topAxisLabel
@@ -65,6 +62,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
       break
     case ("right-axis-label"):
       source_el = el.rightAxisLabel
+      break
+    case ("yplus"):
+      source_el = el.yPlusAxis
       break
   }
 
@@ -267,10 +267,12 @@ Cypress.Commands.add("pointerMoveBy",
     cy.get(source_el).contains(attribute)
       .trigger("mousedown", { force: true })
       .then(() => {
-        if(exists)
+        if (exists) {
           cy.get(target_el).should("have.class", "active")
-        else 
+        }
+        else {
           cy.get(target_el).should("not.exist")
+        }
       })
     cy.wait(5000)
   })
