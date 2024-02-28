@@ -71,7 +71,7 @@ context("Graph UI", () => {
     return cy.get('.codap-graph').its('length')
    }
    countCodapGraphs().then(initialCount => {
-    cy.log(`Initial CODAP Graph Count: ${initialCount}`);
+    cy.log(`Initial CODAP Graph Count: ${initialCount}`)
 
     // perform an action that gets a new graph
     c.getIconFromToolshelf("graph").click()
@@ -143,5 +143,17 @@ context("Graph UI", () => {
     cy.dragAttributeToTarget("table", "Speed", "left")
     cy.wait(500)
     graph.getDisplayConfigButton().should("not.exist")
+  })
+  it("disables Point Size control when display type is bars", () => {
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    graph.getDisplayStylesButton().click()
+    cy.get("[data-testid=point-size-slider]").should("not.have.attr", "aria-disabled")
+    graph.getDisplayConfigButton().click()
+    cy.wait(500)
+    cy.get("[data-testid=bars-radio-button]").click()
+    cy.wait(500)
+    graph.getDisplayStylesButton().click()
+    cy.get("[data-testid=point-size-slider]").should("have.attr", "aria-disabled", "true")
   })
 })
