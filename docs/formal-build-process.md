@@ -54,6 +54,7 @@ to describe how to create a runnable local instance of CODAP for development.
     * [cloud-file-manager](https://github.com/concord-consortium/cloud-file-manager)
     * [codap-data](https://github.com/concord-consortium/codap-data)
     * [codap-data-interactives](https://github.com/concord-consortium/codap-data-interactives)
+    * [noaa-codap-plugin](https://github.com/concord-consortium/noaa-codap-plugin)
     * [codap-transformers](https://github.com/concord-consortium/codap-transformers)
     * [story-builder](https://github.com/concord-consortium/story-builder)
 
@@ -63,6 +64,7 @@ to describe how to create a runnable local instance of CODAP for development.
       [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide).
     * The following directories have node dependencies, so, run `npm install` in them:
       * cloud-file-manager
+      * noaa-codap-plugin
       * codap-transformers
       * story-builder
     * In the codap-data-interactives directory, run `npm install` in the
