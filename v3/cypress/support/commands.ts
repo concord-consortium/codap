@@ -2,10 +2,7 @@ Cypress.Commands.add("clickMenuItem", text => {
   cy.get("button[role=menuitem]").contains(text).click()
 })
 
-Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 0) => {
-  cy.log("Source:", source)
-  cy.log("attribute:", attribute)
-  cy.log("target:", target)
+Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
   const el = {
     tableHeader: ".codap-data-summary .data-attributes .draggable-attribute",
     tableColumnHeader:
@@ -132,7 +129,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, num = 
         })
       })
     })
-  cy.wait(2000)
+  cy.wait(5000)
 })
 
 Cypress.Commands.add("clickToUnselect", (subject, options?: { delay: number }) => {
@@ -178,10 +175,7 @@ Cypress.Commands.add("pointerMoveBy",
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
   })
 
-  Cypress.Commands.add("checkDragAttributeHighlights", (source, attribute, target, exists, num = 0) => {
-    cy.log("Source:", source)
-    cy.log("attribute:", attribute)
-    cy.log("target:", target)
+  Cypress.Commands.add("checkDragAttributeHighlights", (source, attribute, target, exists) => {
     const el = {
       tableColumnHeader:
         `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
@@ -278,4 +272,5 @@ Cypress.Commands.add("pointerMoveBy",
         else 
           cy.get(target_el).should("not.exist")
       })
+    cy.wait(5000)
   })
