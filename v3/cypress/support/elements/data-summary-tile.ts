@@ -4,5 +4,8 @@ export const DataSummaryTileElements = {
   },
   getCollectionTitle() {
     return this.getDataSummaryTile().find("[data-testid=editable-component-title]")
+  },
+  getDraggableAttribute(attribute) {
+    return this.getDataSummaryTile().find(".data-attributes .draggable-attribute").contains(attribute)
   }
 }
