@@ -30,7 +30,7 @@ context("Map UI", () => {
     c.getComponentTitle("map").should("have.text", componentName)
     c.changeComponentTitle("map", newComponentName)
     c.getComponentTitle("map").should("have.text", newComponentName)
-    
+
     cy.log("creates maps with new component name")
     c.getIconFromToolshelf("map").click()
 
@@ -110,7 +110,7 @@ context("Map UI", () => {
     // mlh.verifyNoLegendCategorySelectedForNumericLegend()
 
     mlh.openLegendMenu()
-    mlh.removeAttributeFromLegend(arrayOfAttributes[1]) 
+    mlh.removeAttributeFromLegend(arrayOfAttributes[1])
   })
   it("checks show/hide selected/unselected/all map boundaries", () => {
     cfm.openLocalDoc(filename2)
@@ -166,7 +166,7 @@ context("Map UI", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
-    
+
     mlh.verifyCategoricalLegend(arrayOfValues[0].values.length)
     mlh.selectCategoryNameForCategoricalLegend(arrayOfValues[0].values[0])
     map.selectHideShowButton()
@@ -197,7 +197,7 @@ context("Map UI", () => {
     // map.getShowAllCases().should("be.disabled")
 
     // map.selectHideUnselectedCases()
-    // TODO: This should be 0, but it's currently 1. 
+    // TODO: This should be 0, but it's currently 1.
     // Once fixed, this should be updated.
     // PT bug - #186916697
     // mlh.verifyCategoricalLegend(1)
@@ -206,7 +206,7 @@ context("Map UI", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[2], "map")
-    
+
     mlh.verifyCategoricalLegend(arrayOfValues[2].values.length)
     mlh.selectCategoryNameForCategoricalLegend(arrayOfValues[2].values[0])
     map.selectHideShowButton()
@@ -237,7 +237,47 @@ context("Map UI", () => {
     // map.getShowAllCases().should("be.disabled")
 
     // map.selectHideUnselectedCases()
-    // TODO: This should be 0, but it's currently 1. 
+    // TODO: This should be 0, but it's currently 1.
+    // Once fixed, this should be updated.
+    // PT bug - #186916697
+    // mlh.verifyCategoricalLegend(1)
+  })
+  it("checks show/hide map points with legend selections", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolshelf("map").click()
+    cy.dragAttributeToTarget("attribute", arrayOfAttributes[2], "map")
+
+    mlh.verifyCategoricalLegend(arrayOfValues[2].values.length)
+    mlh.selectCategoryNameForCategoricalLegend(arrayOfValues[2].values[0])
+    map.selectHideShowButton()
+    map.getHideSelectedCases().should("not.be.disabled")
+    map.getHideUnselectedCases().should("not.be.disabled")
+    map.getShowAllCases().should("be.disabled")
+
+    map.selectHideSelectedCases()
+    mlh.verifyCategoricalLegend(arrayOfValues[2].values.length-1)
+
+    map.selectHideShowButton()
+    map.getHideSelectedCases().should("be.disabled")
+    map.getHideUnselectedCases().should("not.be.disabled")
+    map.getShowAllCases().should("not.be.disabled")
+
+    map.selectShowAllCases()
+    mlh.verifyCategoricalLegend(arrayOfValues[2].values.length)
+    mlh.verifyCategoricalLegendKeySelected(arrayOfValues[2].values[0], arrayOfValues[2].selected[0])
+
+    // TODO: unselecting by clicking away in map doesn't work
+    // PT bug - #186747322
+    // Uncomment the below six lines once it's fixed
+    // mlh.unselectLegendCategory()
+    // mlh.verifyNoLegendCategorySelectedForCategoricalLegend()
+    // map.selectHideShowButton()
+    // map.getHideSelectedCases().should("be.disabled")
+    // map.getHideUnselectedCases().should("not.be.disabled")
+    // map.getShowAllCases().should("be.disabled")
+
+    // map.selectHideUnselectedCases()
+    // TODO: This should be 0, but it's currently 1.
     // Once fixed, this should be updated.
     // PT bug - #186916697
     // mlh.verifyCategoricalLegend(1)
