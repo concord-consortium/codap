@@ -71,7 +71,7 @@ context("Graph UI", () => {
     return cy.get('.codap-graph').its('length')
    }
    countCodapGraphs().then(initialCount => {
-    cy.log(`Initial CODAP Graph Count: ${initialCount}`);
+    cy.log(`Initial CODAP Graph Count: ${initialCount}`)
 
     // perform an action that gets a new graph
     c.getIconFromToolshelf("graph").click()
