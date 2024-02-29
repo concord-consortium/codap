@@ -3,6 +3,25 @@
 ## Version 3.0.0-pre.1515 - February 13, 2024
 
 ### Features/Improvements
+- PT-186945881: Provide access to existing v2 sample documents in v3/CFM
+- PT-186948896: The user can configure a numeric univariate plot to display a bar for each point
+- PT-187098593: The map's **Layers** inspector menu gives users control over which base layer is showing
+- PT-187057225: Respond to attribute get requests
+
+### Bug Fixes
+- PT-187054676: Map inspector not displaying on map creation
+- PT-187083507: Fix CFM Create a copy
+- PT-186945741: Bug: z-index issues between CFM and CODAP
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  144010 bytes |                            1.61% |
+|  index.js | 5099221 bytes |                            0.63% |
+
+## Version 3.0.0-pre.1515 - February 13, 2024
+
+### Features/Improvements
 - PT-186907568: Reimplement data tips after switch to Pixi.js
 - PT-186227281: Automation for Undo/Redo
 - PT-184210711: Basic file management via CFM, e.g. Open, Close, Save
@@ -28,7 +47,7 @@
 - PT-186717142: PixiJS graph: Basic dragging behavior
 - PT-186725017: PixiJS graph: Point selection via mouse click or shift + click
 - PT-186724979: PixiJS graph: Enabling dragging of graph points outside graph boundaries, similar to V2
-- PT-186730431: PixiJS map layer: reimplement map dots using PixiJS layerI 
+- PT-186730431: PixiJS map layer: reimplement map dots using PixiJS layerI
 - PT-186725312: PixiJS graph: reimplement marquee selection
 - PT-186726231: Automation for Map component
 - PT-185315423: Automation for toolshelf menu
