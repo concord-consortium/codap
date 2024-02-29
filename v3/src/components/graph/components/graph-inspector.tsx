@@ -74,7 +74,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   }
 
   return (
-    <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
+    <InspectorPanel ref={panelRef} component="graph data-display" show={show} setShowPalette={setShowPalette}>
       {renderRescaleButton()}
       <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
                      icon={<HideShowIcon/>} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
