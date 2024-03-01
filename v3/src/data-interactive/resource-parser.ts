@@ -26,7 +26,7 @@ import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data
  * @param iResource {string}
  * @returns {{}}
  */
-function parseResourceSelector(iResource: string) {
+export function parseResourceSelector(iResource: string) {
   // selects phrases like 'aaaa[bbbb]' or 'aaaa' in a larger context
   // var selectorRE = /(([\w]+)(?:\[\s*([#\w][^\]]*)\s*\])?)/g;
   const selectorRE = /(([\w]+)(?:\[\s*([^\]]+)\s*])?)/g
@@ -52,13 +52,14 @@ function parseResourceSelector(iResource: string) {
 
 /**
  *
- * @param {string} resource             String to pass to parseResourceSelector
- * @param {string} action               Action name: get, create, update, delete, notify
- * @param {ITileModel} interactiveFrame Model of web view tile communicating with plugin
+ * @param {DIResourceSelector} resourceSelector  ResourceSelector returned by parseREsourceSelector
+ * @param {string} action                        Action name: get, create, update, delete, notify
+ * @param {ITileModel} interactiveFrame          Model of web view tile communicating with plugin
  * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
  */
-export function resolveResources(resource: string, action: ActionName, interactiveFrame: ITileModel) {
-  const resourceSelector = parseResourceSelector(resource)
+export function resolveResources(
+  resourceSelector: DIResourceSelector, action: ActionName, interactiveFrame: ITileModel
+) {
   const document = appState.document
   function resolveContext(selector?: maybeString) {
     if (!selector) {

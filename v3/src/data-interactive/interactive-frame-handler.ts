@@ -1,4 +1,4 @@
-import { registerDiHandler } from "./data-interactive-handler"
+import { registerDIHandler } from "./data-interactive-handler"
 import { DIHandler, DIResources, diNotImplementedYet, DIValues } from "./data-interactive-types"
 
 const noIFResult = {success: false, values: {error: 'Interactive Frame not found'}}
@@ -39,4 +39,4 @@ export const diInteractiveFrameHandler: DIHandler = {
   delete: diNotImplementedYet
 }
 
-registerDiHandler("interactiveFrame", diInteractiveFrameHandler)
+registerDIHandler("interactiveFrame", diInteractiveFrameHandler)

@@ -1,7 +1,8 @@
 import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
-import { resolveResources } from "../../data-interactive/resource-parser"
+import { getDIHandler } from "../../data-interactive/data-interactive-handler"
+import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { isWebViewModel } from "./web-view-model"
@@ -40,36 +41,13 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
 
         const processAction = (action: any) => {
           if (action && tile) {
-            console.log(`--- Resolving resources`)
-            console.log(` -- Resource`, action.resource)
-            console.log(` -- Action`, action.action)
-            console.log(`  - Resolved`, resolveResources(action.resource, action.action, tile))
-          }
-          if (action && action.resource === "interactiveFrame") {
-            if (action.action === "update") {
-              const values = action.values
-              if (values.title) {
-                tile?.setTitle(values.title)
-                return { success: true }
-              }
-            } else if (action.action === "get") {
-              return {
-                success: true,
-                values: {
-                  name: tile?.title,
-                  title: tile?.title,
-                  version: "0.1",
-                  preventBringToFront: false,
-                  preventDataContextReorg: false,
-                  dimensions: {
-                    width: 600,
-                    height: 500
-                  },
-                  externalUndoAvailable: true,
-                  standaloneUndoModeAvailable: false
-                }
-              }
-            }
+            const resourceSelector = parseResourceSelector(action.resource)
+            const resources = resolveResources(resourceSelector, action.action, tile)
+            const h = getDIHandler(resourceSelector.type ?? "")
+            const a = action.action
+            const func = a === "get" ? h?.get
+              : a === "update" ? h?.update : h?.create
+            return func?.(resources)
           }
           return { success: false }
         }
