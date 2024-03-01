@@ -16,12 +16,6 @@ export const MapPointLayerModel = MapLayerModel
     type: types.optional(types.literal(kMapPointLayerType), kMapPointLayerType),
   })
   .actions(self => ({
-/*
-    afterCreate() {
-      self.displayItemDescription.setPointColor(self.layerIndex === 0
-        ? defaultPointColor : self.displayItemDescription.pointColorAtIndex(self.layerIndex))
-    },
-*/
     setDataset(dataSet:IDataSet) {
       const {latId, longId} = latLongAttributesFromDataSet(dataSet)
       self.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))

@@ -1,3 +1,4 @@
+import {comparer} from "mobx"
 import {useCallback, useEffect} from "react"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -64,7 +65,7 @@ export function useGraphModel(props: IProps) {
       return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
     },
       () => callMatchCirclesToData(),
-      {name: "respondToPointVisualChange"}, graphModel
+      {name: "respondToPointVisualChange", equals: comparer.structural}, graphModel
     )
   }, [callMatchCirclesToData, graphModel])
 
