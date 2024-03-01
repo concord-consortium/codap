@@ -171,6 +171,14 @@ export class PixiPoints {
     this.startRendering()
   }
 
+  get isZeroSize() {
+    return this.background.width === 0 || this.background.height === 0
+  }
+
+  setZeroSize() {
+    this.resize(0, 0)
+  }
+
   startRendering() {
     if (!this.ticker.started) {
       this.ticker.start()

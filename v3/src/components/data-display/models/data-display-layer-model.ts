@@ -1,6 +1,6 @@
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
-import {DataConfigurationModelUnion} from "./data-configuration-union"
+import {DataConfigurationModel} from "./data-configuration-model"
 
 export const kUnknownLayerModelType = "unknownLayer"
 
@@ -8,10 +8,7 @@ export const DataDisplayLayerModel = types.model("DataDisplayLayerModel", {
   id: types.optional(types.identifier, () => typedId("LAYR")),
   type: types.optional(types.string, kUnknownLayerModelType),
   layerIndex: types.optional(types.number, 0),
-  dataConfiguration: types.optional(DataConfigurationModelUnion,
-    () => {
-      throw "dataConfiguration must be overridden"
-    }),
+  dataConfiguration: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
 })
   .views(self => ({
     get data() {

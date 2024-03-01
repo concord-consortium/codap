@@ -1,10 +1,12 @@
+import {comparer} from "mobx"
 import {useCallback, useEffect} from "react"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IPixiPointsRef} from "../utilities/pixi-points"
-import {IGraphContentModel, isGraphVisualPropsAction} from "../models/graph-content-model"
+import {IGraphContentModel} from "../models/graph-content-model"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 
 interface IProps {
@@ -56,13 +58,15 @@ export function useGraphModel(props: IProps) {
   }, [dataConfig, dataset, startAnimation, graphModel, yAttrID, yAxisModel])
 
   // respond to point properties change
-  useEffect(function respondToGraphPointVisualAction() {
-    const disposer = onAnyAction(graphModel, action => {
-      if (isGraphVisualPropsAction(action)) {
-        callMatchCirclesToData()
-      }
-    })
-    return () => disposer()
+  useEffect(function respondToPointVisualChange() {
+    return mstReaction(() => {
+      const { pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier } =
+        graphModel.pointDescription
+      return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
+    },
+      () => callMatchCirclesToData(),
+      {name: "respondToPointVisualChange", equals: comparer.structural}, graphModel
+    )
   }, [callMatchCirclesToData, graphModel])
 
 }

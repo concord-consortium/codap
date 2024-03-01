@@ -6,14 +6,14 @@ import {Instance, types} from "mobx-state-tree"
 import {TileContentModel} from "../../../models/tiles/tile-content"
 import {IDataSet} from "../../../models/data/data-set"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
-import {PointDescriptionModel} from "./point-description-model"
+import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import {GraphPlace} from "../../axis-graph-shared"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
   .props({
     layers: types.array(DataDisplayLayerModelUnion),
-    pointDescription: types.optional(PointDescriptionModel, () => PointDescriptionModel.create()),
+    pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
   })
   .volatile(() => ({
     animationEnabled: false,

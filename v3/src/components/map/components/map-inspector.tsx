@@ -79,7 +79,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
 
   if (mapModel && mapModel.layers.length > 0) {
     return (
-      <InspectorPanel ref={panelRef} component="map" show={show} setShowPalette={setShowPalette}>
+      <InspectorPanel ref={panelRef} component="map data-display" show={show} setShowPalette={setShowPalette}>
         <InspectorButton tooltip={t("DG.Inspector.rescale.toolTip")}
                          showMoreOptions={false} testId={"map-resize-button"} onButtonClick={handleMapRescale}>
           <ScaleDataIcon/>

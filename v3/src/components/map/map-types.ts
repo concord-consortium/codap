@@ -9,6 +9,9 @@ export const kMapUrls: Record<BaseMapKey, string> = {
   streets: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
 }
 
+export const kMapPolygonLayerType = "mapPolygonLayer"
+export const kMapPointLayerType = "mapPointLayer"
+
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
 
@@ -25,7 +28,7 @@ export const
   kMapAttribution = '&copy; <a href="https://static.arcgis.com/attribution/World_Topo_Map">USGS, NOAA</a>',
   kDefaultMapZoomForGeoLocation = 8,
   // Constants for maps
-  kDefaultMapFillOpacity = '0.5',
+  kDefaultMapFillOpacity = 0.5,
   kDefaultMapStrokeColor = 'white',
   kDefaultMapStrokeOpacity = 0.6,
   kMapAreaNoLegendColor = '#FF3E00',
