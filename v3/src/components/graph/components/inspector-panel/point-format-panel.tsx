@@ -74,9 +74,10 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Inspector.pointSize")}</FormLabel>
-            <Slider aria-label="point-size-slider" ml="10px" min={0} max={2}
+            <Slider aria-label="point-size-slider" ml="10px" min={0} max={2} data-testid="point-size-slider"
                     defaultValue={graphModel.pointDescription.pointSizeMultiplier} step={0.01}
-                    onChange={(val) => handlePointSizeMultiplierSetting(val)}>
+                    onChange={(val) => handlePointSizeMultiplierSetting(val)}
+                    isDisabled={graphModel.pointDisplayType === "bars"}>
               <SliderTrack/>
               <SliderThumb/>
             </Slider>
