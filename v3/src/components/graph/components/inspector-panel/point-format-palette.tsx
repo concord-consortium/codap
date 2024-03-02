@@ -33,6 +33,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
       <DisplayItemFormatControl
         dataConfiguration={graphModel.dataConfiguration}
         displayItemDescription={graphModel.pointDescription}
+        pointDisplayType={graphModel.pointDisplayType}
         isTransparent={graphModel.isTransparent}
         plotBackgroundColor={graphModel.plotBackgroundColor}
         setIsTransparent={graphModel.setIsTransparent}

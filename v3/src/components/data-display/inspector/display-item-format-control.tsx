@@ -1,8 +1,7 @@
 import React, {ReactElement, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {
-  Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb,
-  SliderTrack
+  Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb, SliderTrack
 } from "@chakra-ui/react"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
 import {IDisplayItemDescriptionModel} from "../models/display-item-description-model"
@@ -14,20 +13,18 @@ import "./inspector-panel.scss"
 interface IProps {
   dataConfiguration: IDataConfigurationModel
   displayItemDescription: IDisplayItemDescriptionModel
+  pointDisplayType?: string
   isTransparent?: boolean
   setIsTransparent?: (isTransparent: boolean) => void
   plotBackgroundColor?: string
   setPlotBackgroundColor?: (color: string) => void
 }
 
-export const DisplayItemFormatControl = observer(function PointFormatControl({
-                                                                         dataConfiguration,
-                                                                         displayItemDescription,
-                                                                         isTransparent,
-                                                                         setIsTransparent,
-                                                                         plotBackgroundColor,
-                                                                         setPlotBackgroundColor
-                                                                       }: IProps) {
+export const DisplayItemFormatControl = observer(function PointFormatControl(props: IProps) {
+  const {
+    dataConfiguration, displayItemDescription, pointDisplayType,
+    isTransparent, setIsTransparent, plotBackgroundColor, setPlotBackgroundColor
+  } = props
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
   const categoriesRef = useRef<string[] | undefined>()
@@ -74,13 +71,14 @@ export const DisplayItemFormatControl = observer(function PointFormatControl({
         <FormControl size="xs">
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Inspector.pointSize")}</FormLabel>
-            <Slider aria-label="point-size-slider" ml="10px" min={0} max={2}
+            <Slider aria-label="point-size-slider" ml="10px" min={0} max={2} data-testid="point-size-slider"
                     defaultValue={displayItemDescription.pointSizeMultiplier} step={0.01}
                     onChange={(val) => {
                       displayItemDescription.applyUndoableAction(
                         () => displayItemDescription.setPointSizeMultiplier(val),
                         "DG.Undo.graph.changePointSize", "DG.Redo.graph.changePointSize")
-                    }}>
+                    }}
+                    isDisabled={pointDisplayType === "bars"}>
               <SliderTrack/>
               <SliderThumb/>
             </Slider>
