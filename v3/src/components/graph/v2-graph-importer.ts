@@ -1,5 +1,5 @@
 import {AttributeType} from "../../models/data/attribute"
-import {TileModel} from "../../models/tiles/tile-model"
+import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {typedId} from "../../utilities/js-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
@@ -7,18 +7,19 @@ import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-displ
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {PlotType} from "./graphing-types"
 import {IGraphContentModelSnapshot} from "./models/graph-content-model"
+import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
 import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
-import { v2AdornmentImporter } from "./adornments/v2-adornment-importer"
+import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 
 export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
   if (!isV2GraphComponent(v2Component)) return
 
   const {title = "", _links_: links, plotModels} = v2Component.componentStorage
   type TLinksKey = keyof typeof links
-  const contextId = links.context.id
+  const contextId = links.context?.id
   const {data, metadata} = v2Document.getDataAndMetadata(contextId)
 
   const roleFromAttrKey: Record<string, GraphAttrRole> = {
@@ -133,18 +134,24 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     layers: [{
       type: kGraphPointLayerType,
       dataConfiguration: {
+        type: kGraphDataConfigurationType,
+        dataset: data?.dataSet.id,
+        metadata: metadata?.id,
         primaryRole,
         _attributeDescriptions,
         _yAttributeDescriptions
       }
     }]
   }
-  const graphTile = TileModel.create({id: typedId(kGraphIdPrefix), title, content})
-  insertTile(graphTile)
+
+  const graphTileSnap: ITileModelSnapshotIn = { id: typedId(kGraphIdPrefix), title, content }
+  const graphTile = insertTile(graphTileSnap)
 
   // link shared model
-  sharedModelManager?.addTileSharedModel(graphTile.content, data, true)
-  sharedModelManager?.addTileSharedModel(graphTile.content, metadata, true)
+  if (sharedModelManager && graphTile) {
+    data && sharedModelManager.addTileSharedModel(graphTile.content, data, false)
+    metadata && sharedModelManager.addTileSharedModel(graphTile.content, metadata, false)
+  }
 
   return graphTile
 }

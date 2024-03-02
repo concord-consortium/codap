@@ -265,16 +265,16 @@ export interface ICodapV2PlotModel {
 
 export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   _links_: {
-    context: IGuidLink<"DG.DataContextRecord">
+    context?: IGuidLink<"DG.DataContextRecord">
     hiddenCases: any[]
-    xColl: IGuidLink<"DG.Collection">
-    xAttr: IGuidLink<"DG.Attribute">
-    yColl: IGuidLink<"DG.Collection">
-    yAttr: IGuidLink<"DG.Attribute"> | Array<IGuidLink<"DG.Attribute">>
-    y2Coll: IGuidLink<"DG.Collection">
-    y2Attr: IGuidLink<"DG.Attribute">
-    rightColl: IGuidLink<"DG.Collection">
-    rightAttr: IGuidLink<"DG.Attribute">
+    xColl?: IGuidLink<"DG.Collection">
+    xAttr?: IGuidLink<"DG.Attribute">
+    yColl?: IGuidLink<"DG.Collection">
+    yAttr?: IGuidLink<"DG.Attribute"> | Array<IGuidLink<"DG.Attribute">>
+    y2Coll?: IGuidLink<"DG.Collection">
+    y2Attr?: IGuidLink<"DG.Attribute">
+    rightColl?: IGuidLink<"DG.Collection">
+    rightAttr?: IGuidLink<"DG.Attribute">
   }
   displayOnlySelected: boolean
   legendRole: number

@@ -1,4 +1,4 @@
-import { getSnapshot, Instance, types } from "mobx-state-tree"
+import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ISharedModel } from "../shared/shared-model"
 import { SharedModelChangeType } from "../shared/shared-model-manager"
 import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
@@ -65,3 +65,4 @@ export const TileContentModel = types.model("TileContentModel", {
   .actions(self => tileModelHooks({}))
 
 export interface ITileContentModel extends Instance<typeof TileContentModel> {}
+export interface ITileContentSnapshot extends SnapshotIn<typeof TileContentModel> {}

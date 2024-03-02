@@ -2,19 +2,18 @@
  * A GraphContentModel is the top level model for the Graph component.
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
-import {reaction} from "mobx"
+import {when} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
-import {ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet}
-  from "../../../models/shared/shared-data-set"
 import {typedId} from "../../../utilities/js-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {IDataSet} from "../../../models/data/data-set"
-import {getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet, linkTileToDataSet}
-  from "../../../models/shared/shared-data-utils"
+import {
+  getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
+} from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
@@ -136,40 +135,31 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     afterCreate() {
-      self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
+      // add default layer if it's not already present
+      if (self.layers.length === 0) {
+        self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
+      }
+      // add default axes if they're not already present
+      if (!self.axes.get("bottom")) {
+        self.axes.set("bottom", EmptyAxisModel.create({place: "bottom"}))
+      }
+      if (!self.axes.get("left")) {
+        self.axes.set("left", EmptyAxisModel.create({place: "left"}))
+      }
     }
   }))
   .actions(self => ({
-    afterAttachToDocument() {
-      // Monitor our parents and update our shared model when we have a document parent
-      addDisposer(self, reaction(() => {
-          const sharedModelManager = self.tileEnv?.sharedModelManager
+    async afterAttachToDocument() {
+      if (!self.tileEnv?.sharedModelManager?.isReady) {
+        await when(() => !!self.tileEnv?.sharedModelManager?.isReady)
+      }
 
-          const sharedDataSets: ISharedDataSet[] = sharedModelManager?.isReady
-            ? sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
-            : []
+      getFormulaAdapters(self).forEach(adapter => {
+        adapter?.addGraphContentModel(self as IGraphContentModel)
+      })
 
-          return {sharedModelManager, sharedDataSets, formulaAdapters: getFormulaAdapters(self)}
-        },
-        // reaction/effect
-        ({sharedModelManager, sharedDataSets, formulaAdapters}) => {
-          if (!sharedModelManager?.isReady) {
-            // We aren't added to a document yet, so we can't do anything yet
-            return
-          }
+      self.installSharedModelManagerSync()
 
-          const tileDataSet = getTileDataSet(self)
-          if (self.dataset || self.metadata) {
-            self.dataConfiguration.setDataset(self.dataset, self.metadata)
-          } else if (!tileDataSet && sharedDataSets.length === 1) {
-            linkTileToDataSet(self, sharedDataSets[0].dataSet)
-          }
-
-          formulaAdapters.forEach(adapter => {
-            adapter?.addGraphContentModel(self as IGraphContentModel)
-          })
-        },
-        {name: "sharedModelSetup", fireImmediately: true}))
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
         self.dataConfiguration.casesChangeCount // eslint-disable-line no-unused-expressions
@@ -185,11 +175,6 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
-      if (type === "link") {
-        self.dataConfiguration.setDataset(self.dataset, self.metadata)
-      } else if (type === "unlink" && isSharedDataSet(sharedModel)) {
-        self.dataConfiguration.setDataset(undefined, undefined)
-      }
     }
   }))
   .views(self => ({
@@ -226,8 +211,6 @@ export const GraphContentModel = DataDisplayContentModel
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
       const newDataSet = getDataSetFromId(self, dataSetID)
       if (newDataSet && newDataSet !== self.dataConfiguration.dataset) {
-        // update shared model manager
-        linkTileToDataSet(self, newDataSet)
         // update data configuration
         self.dataConfiguration.clearAttributes()
         self.dataConfiguration.setDataset(newDataSet, getSharedCaseMetadataFromDataset(newDataSet))
@@ -285,14 +268,3 @@ export interface IGraphContentModelSnapshot extends SnapshotIn<typeof GraphConte
 export function isGraphContentModel(model?: ITileContentModel): model is IGraphContentModel {
   return model?.type === kGraphTileType
 }
-
-export function createGraphContentModel(snap?: IGraphContentModelSnapshot) {
-  return GraphContentModel.create({
-    axes: {
-      bottom: EmptyAxisModel.create({place: "bottom"}),
-      left: EmptyAxisModel.create({place: "left"})
-    },
-    ...snap
-  })
-}
-

@@ -1,5 +1,8 @@
+import { DocumentContentModel } from "../../models/document/document-content"
+import { FreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
@@ -22,7 +25,13 @@ describe("Calculator registration", () => {
     const calculatorJson = fs.readFileSync(file, "utf8")
     const calculatorDoc = JSON.parse(calculatorJson) as ICodapV2DocumentJson
     const v2Document = new CodapV2Document(calculatorDoc)
-    const mockInsertTile = jest.fn()
+
+    const docContent = DocumentContentModel.create()
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,

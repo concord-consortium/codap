@@ -64,35 +64,35 @@ context("Graph UI", () => {
     // the Collection Name. Blocker: PT #187033159
 
   })
-  it("creates graphs with new collection name", () => {
+  it("tests undo/redo of creating graphs", () => {
 
     // Function to count CODAP graphs and return the count
-   const countCodapGraphs = () => {
-    return cy.get('.codap-graph').its('length')
-   }
-   countCodapGraphs().then(initialCount => {
-    cy.log(`Initial CODAP Graph Count: ${initialCount}`)
+    const countCodapGraphs = () => {
+      return cy.get('.codap-graph').its('length')
+    }
+    countCodapGraphs().then((initialCount: number) => {
+      cy.log(`Initial CODAP Graph Count: ${initialCount}`)
 
-    // perform an action that gets a new graph
-    c.getIconFromToolshelf("graph").click()
-    c.getComponentTitle("graph").should("contain", collectionName)
-    c.getComponentTitle("graph", 1).should("contain", collectionName)
-    // Assert the count increased by 1
-    countCodapGraphs().should('eq', initialCount + 1)
+      // perform an action that gets a new graph
+      c.getIconFromToolshelf("graph").click()
+      // cy.wait(1000)
+      c.getComponentTitle("graph").should("contain", collectionName)
+      c.getComponentTitle("graph", 1).should("contain", collectionName)
+      // Assert the count increased by 1
+      countCodapGraphs().should('eq', initialCount + 1)
 
-    c.getIconFromToolshelf("graph").click()
-    c.getComponentTitle("graph", 2).should("contain", collectionName)
-    // Assert the count increased by 1
-    countCodapGraphs().should('eq', initialCount + 2)
+      // tests for undo after creating a graph
+      toolbar.getUndoTool().click()
+      // cy.wait(1000)
+      // Assert the count decreased by 1
+      countCodapGraphs().should('eq', initialCount)
 
-    // tests for undo/redo after creating a second graph
-
-    toolbar.getUndoTool().click()
-    cy.wait(2500)
-    // Assert the count decreased by 1
-    countCodapGraphs().should('eq', initialCount + 1)
-
-   })
+      // tests for redo of creating a graph
+      toolbar.getRedoTool().click()
+      // cy.wait(1000)
+      // Assert the count decreased by 1
+      countCodapGraphs().should('eq', initialCount + 1)
+    })
   })
   it("creates graphs with new collection names when existing ones are closed", () => {
     c.closeComponent("graph")

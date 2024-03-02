@@ -1,6 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { SharedModel } from "../shared/shared-model"
-import { GlobalValue, IGlobalValue, kDefaultNamePrefix } from "./global-value"
+import { GlobalValue, IGlobalValue, IGlobalValueSnapshot, kDefaultNamePrefix } from "./global-value"
 
 export const kGlobalValueManagerType = "GlobalValueManager"
 
@@ -46,6 +46,12 @@ export const GlobalValueManager = SharedModel
       console.warn(`GlobalValueManager: Adding global value with conflicting name: ${global.name}`)
     }
     self.globals.put(global)
+  },
+  addValueSnapshot(global: IGlobalValueSnapshot) {
+    if (self.getValueByName(global.name)) {
+      console.warn(`GlobalValueManager: Adding global value with conflicting name: ${global.name}`)
+    }
+    return self.globals.put(global)
   },
   removeValue(global: IGlobalValue) {
     self.globals.delete(global.id)

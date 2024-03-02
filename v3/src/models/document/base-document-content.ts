@@ -1,7 +1,7 @@
 import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
-import { ITileModel, TileModel } from "../tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model"
 import { ITileInRowOptions } from "./tile-row"
 import { ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
 import { SharedModelEntry, SharedModelMap } from "./shared-model-entry"
@@ -123,6 +123,13 @@ export const BaseDocumentContentModel = types
       row.insertTile(tile.id, options)
       self.tileMap.put(tile)
     },
+    insertTileSnapshotInRow(
+      tileSnap: ITileModelSnapshotIn, row: ITileRowModelUnion, options?: ITileInRowOptions
+    ): ITileModel | undefined {
+      const tile = self.tileMap.put(tileSnap)
+      row.insertTile(tile.id, options)
+      return tile
+    },
     setVisibleRows(rows: string[]) {
       self.visibleRows = rows
     }
@@ -132,11 +139,23 @@ export const BaseDocumentContentModel = types
       const rowOrIndex = self.defaultInsertRow
       const requiresNewRow = typeof rowOrIndex === "number"
       const row = requiresNewRow ? self.rowCreator?.() : rowOrIndex
-      if (row) {
+      if (row != null) {
         if (requiresNewRow) {
           self.insertRow(row, rowOrIndex)
         }
         self.insertTileInRow(tile, row)
+      }
+    },
+    insertTileSnapshotInDefaultRow(tileSnap: ITileModelSnapshotIn): ITileModel | undefined {
+      const rowOrIndex = self.defaultInsertRow
+      const requiresNewRow = typeof rowOrIndex === "number"
+      const row = requiresNewRow ? self.rowCreator?.() : rowOrIndex
+      if (row != null) {
+        if (requiresNewRow) {
+          self.insertRow(row, rowOrIndex)
+        }
+        const tile = self.insertTileSnapshotInRow(tileSnap, row)
+        return tile
       }
     },
     deleteRow(rowId: string) {

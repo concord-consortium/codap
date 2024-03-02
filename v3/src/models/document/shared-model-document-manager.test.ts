@@ -177,6 +177,7 @@ describe("SharedModelDocumentManager", () => {
 
     const sharedModel = doc.sharedModelMap.get("sm1")?.sharedModel as TestISharedModel
     expect(sharedModel).toBeDefined()
+    expect(getSharedModelManager(doc)?.getSharedModelById("sm1")).toBe(sharedModel)
 
     sharedModel.setValue("something")
 
@@ -196,6 +197,7 @@ describe("SharedModelDocumentManager", () => {
 
     const sharedModel = doc.sharedModelMap.get("sm1")?.sharedModel as TestISharedModel
     expect(sharedModel).toBeDefined()
+    expect(getSharedModelManager(doc)?.getSharedModelById("sm1")).toBe(sharedModel)
 
     // We call an async action on the tile
     // Then while the async action is running we change the sharedModel
@@ -293,6 +295,7 @@ describe("SharedModelDocumentManager", () => {
   })
 
   it("finds a shared model by type", () => {
+    const manager = new SharedModelDocumentManager()
     const doc = DocumentContentModel.create({
       sharedModelMap: {
         "sm1": {
@@ -302,15 +305,16 @@ describe("SharedModelDocumentManager", () => {
           }
         }
       },
-    })
-    const manager = new SharedModelDocumentManager()
+    }, { sharedModelManager: manager })
     manager.setDocument(doc)
 
     const sharedModel = manager.findFirstSharedModelByType(TestSharedModel)
     expect(sharedModel?.id).toBe("sm1")
+    expect(getSharedModelManager(doc)?.getSharedModelById("sm1")).toBe(sharedModel)
 
     const sharedModel2 = manager.findFirstSharedModelByType(TestSharedModel2)
     expect(sharedModel2).toBeUndefined()
+    expect(getSharedModelManager(doc)?.getSharedModelById("sm2")).toBeUndefined()
   })
 
   it("finds a snapshotProcessor shared model by the original type", () => {

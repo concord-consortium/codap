@@ -45,9 +45,7 @@ describe("TileModel", () => {
         content.originalType = "foo"
       }
 
-      let tile = TileModel.create({
-                      content: getSnapshot(toolDefaultContent?.())
-                    })
+      let tile = TileModel.create({ content: toolDefaultContent?.() })
       expect(tile.content.type).toBe(tileType)
 
       // can create/recognize snapshots of each type of tool

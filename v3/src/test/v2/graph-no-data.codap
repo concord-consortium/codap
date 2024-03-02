@@ -1,0 +1,86 @@
+{
+  "name": "Untitled Document",
+  "guid": 1,
+  "id": 1,
+  "components": [
+    {
+      "type": "DG.GraphView",
+      "guid": 2,
+      "id": 2,
+      "componentStorage": {
+        "_links_": {
+          "hiddenCases": []
+        },
+        "displayOnlySelected": false,
+        "legendRole": 0,
+        "legendAttributeType": 0,
+        "numberOfLegendQuantiles": 5,
+        "legendQuantilesAreLocked": false,
+        "pointColor": "#e6805b",
+        "strokeColor": "white",
+        "pointSizeMultiplier": 1,
+        "transparency": 0.85,
+        "strokeTransparency": 0.4,
+        "strokeSameAsFill": false,
+        "isTransparent": false,
+        "plotBackgroundColor": null,
+        "plotBackgroundOpacity": 1,
+        "plotBackgroundImage": null,
+        "plotBackgroundImageLockInfo": null,
+        "xRole": 0,
+        "xAttributeType": 0,
+        "yRole": 0,
+        "yAttributeType": 0,
+        "y2Role": 0,
+        "y2AttributeType": 0,
+        "topRole": 0,
+        "topAttributeType": 0,
+        "rightRole": 0,
+        "rightAttributeType": 0,
+        "xAxisClass": "DG.AxisModel",
+        "yAxisClass": "DG.AxisModel",
+        "y2AxisClass": "DG.AxisModel",
+        "topAxisClass": "DG.CellAxisModel",
+        "rightAxisClass": "DG.CellAxisModel",
+        "plotModels": [
+          {
+            "plotModelStorage": {
+              "verticalAxisIsY2": false,
+              "adornments": {
+                "plottedCount": {
+                  "isVisible": false,
+                  "enableMeasuresForSelection": false,
+                  "isShowingCount": false,
+                  "isShowingPercent": false,
+                  "percentKind": 1
+                }
+              }
+            },
+            "plotClass": "DG.CasePlotModel"
+          }
+        ],
+        "userSetTitle": false,
+        "cannotClose": false
+      },
+      "layout": {
+        "width": 300,
+        "height": 300,
+        "zIndex": 102,
+        "left": 5,
+        "top": 5,
+        "isVisible": true,
+        "right": 305,
+        "bottom": 305
+      },
+      "savedHeight": null
+    }
+  ],
+  "contexts": [],
+  "globalValues": [],
+  "appName": "DG",
+  "appVersion": "2.0",
+  "appBuildNum": "0708",
+  "lang": "en",
+  "idCount": 2,
+  "metadata": {}
+}

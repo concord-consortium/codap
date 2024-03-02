@@ -12,6 +12,11 @@ export function getSharedDataSets(node: IAnyStateTreeNode): ISharedDataSet[] {
   return sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
 }
 
+export function getSharedDataSetFromDataSetId(node: IAnyStateTreeNode, id: string): ISharedDataSet | undefined {
+  const sharedDataSets = getSharedDataSets(node)
+  return sharedDataSets.find(model => model.dataSet.id === id)
+}
+
 export function getDataSetFromId(node: IAnyStateTreeNode, id: string): IDataSet | undefined {
   const sharedDataSets = getSharedDataSets(node)
   const sharedDataSet = sharedDataSets.find(model => model.dataSet.id === id)
@@ -35,9 +40,17 @@ export function getTileDataSet(tile: ITileContentModel): IDataSet | undefined {
   return isSharedDataSet(sharedDataSet) ? sharedDataSet.dataSet : undefined
 }
 
+export function getAllTileDataSets(tile: ITileContentModel): ISharedDataSet[] {
+  return getTileSharedModels(tile).filter(m => isSharedDataSet(m)) as ISharedDataSet[]
+}
+
 export function getTileCaseMetadata(tile: ITileContentModel) {
   const sharedCaseMetadata = getTileSharedModels(tile).find(m => isSharedCaseMetadata(m))
   return isSharedCaseMetadata(sharedCaseMetadata) ? sharedCaseMetadata : undefined
+}
+
+export function getAllTileCaseMetadata(tile: ITileContentModel): ISharedCaseMetadata[] {
+  return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m)) as ISharedCaseMetadata[]
 }
 
 export function isTileLinkedToDataSet(tile: ITileContentModel, dataSet: IDataSet) {
@@ -50,6 +63,7 @@ export function isTileLinkedToOtherDataSet(tile: ITileContentModel, dataSet: IDa
   return !!sharedModels.find(sharedModel => isSharedDataSet(sharedModel) && sharedModel.dataSet.id !== dataSet.id)
 }
 
+// removes references to the specified tile from SharedDataSet and SharedCaseMetadata tiles
 export function unlinkTileFromDataSets(tile: ITileContentModel) {
   const sharedModelManager = getSharedModelManager(tile)
   const sharedModels = sharedModelManager?.getTileSharedModels(tile) ?? []
@@ -60,6 +74,7 @@ export function unlinkTileFromDataSets(tile: ITileContentModel) {
   })
 }
 
+// adds references to the specified tile to the specified SharedDataSet and its SharedCaseMetadata
 export function linkTileToDataSet(tile: ITileContentModel, dataSet: IDataSet) {
   if (isTileLinkedToOtherDataSet(tile, dataSet)) {
     unlinkTileFromDataSets(tile)

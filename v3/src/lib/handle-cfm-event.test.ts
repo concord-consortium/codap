@@ -4,7 +4,7 @@ import { handleCFMEvent } from "./handle-cfm-event"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { appState } from "../models/app-state"
 import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
-import * as ImportV2Document from "../components/import-v2-document"
+import * as ImportV2Document from "../v2/import-v2-document"
 
 describe("handleCFMEvent", () => {
 

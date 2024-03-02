@@ -1,5 +1,6 @@
+import { SetRequired } from "type-fest"
 import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
-import { TileContentModel, ITileContentModel } from "./tile-content"
+import { TileContentModel, ITileContentSnapshot } from "./tile-content"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { ITileEnvironment } from "./tile-environment"
 
@@ -24,7 +25,7 @@ export interface ITileContentInfo {
   type: string;
   prefix: string; // conventionally four uppercase chars
   modelClass: typeof TileContentModel;
-  defaultContent: (options?: IDefaultContentOptions) => ITileContentModel;
+  defaultContent: (options?: IDefaultContentOptions) => SetRequired<ITileContentSnapshot, "type">;
   titleBase?: string;
   metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document

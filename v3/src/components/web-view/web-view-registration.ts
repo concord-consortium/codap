@@ -12,7 +12,7 @@ registerTileContentInfo({
   type: kWebViewTileType,
   prefix: kWebViewIdPrefix,
   modelClass: WebViewModel,
-  defaultContent: () => WebViewModel.create()
+  defaultContent: () => ({ type: kWebViewTileType })
 })
 
 registerTileComponentInfo({

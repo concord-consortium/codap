@@ -10,16 +10,16 @@ import {
 
 export class CodapV2Document {
   private document: ICodapV2DocumentJson
-  private guidMap: Record<number, { type: string, object: any }> = {}
-  private dataMap: Record<number, ISharedDataSet> = {}
-  private v3AttrMap: Record<number, IAttribute> = {}
-  private metadataMap: Record<number, ISharedCaseMetadata> = {}
+  private guidMap = new Map<number, { type: string, object: any }>()
+  private dataMap = new Map<number, ISharedDataSet>()
+  private v3AttrMap = new Map<number, IAttribute>()
+  private metadataMap = new Map<number, ISharedCaseMetadata>()
 
   constructor(document: ICodapV2DocumentJson) {
     this.document = document
 
     // register the document
-    this.guidMap[document.guid] = { type: "DG.Document", object: document }
+    this.guidMap.set(document.guid, { type: "DG.Document", object: document })
 
     this.registerContexts(document.contexts)
     this.registerComponents(document.components)
@@ -38,46 +38,46 @@ export class CodapV2Document {
   }
 
   get datasets() {
-    return Object.values(this.dataMap)
+    return Array.from(this.dataMap.values())
   }
 
   get metadata() {
-    return Object.values(this.metadataMap)
+    return Array.from(this.metadataMap.values())
   }
 
-  getDataAndMetadata(v2Id: number) {
-    return { data: this.dataMap[v2Id], metadata: this.metadataMap[v2Id] }
+  getDataAndMetadata(v2Id?: number) {
+    return { data: this.dataMap.get(v2Id ?? -1), metadata: this.metadataMap.get(v2Id ?? -1) }
   }
 
   getParentCase(aCase: ICodapV2Case) {
     const parentCaseId = aCase.parent
-    return parentCaseId != null ? this.guidMap[parentCaseId]?.object as ICodapV2Case: undefined
+    return parentCaseId != null ? this.guidMap.get(parentCaseId)?.object as ICodapV2Case | undefined : undefined
   }
 
   getV2Attribute(v2Id: number) {
-    return this.guidMap[v2Id]
+    return this.guidMap.get(v2Id)
   }
 
   getV3Attribute(v2Id: number) {
-    return this.v3AttrMap[v2Id]
+    return this.v3AttrMap.get(v2Id)
   }
 
   registerComponents(components?: CodapV2Component[]) {
     components?.forEach(component => {
       const { guid, type } = component
-      this.guidMap[guid] = { type, object: component }
+      this.guidMap.set(guid, { type, object: component })
 
       // extract table metadata (e.g. column widths)
       if (isV2TableComponent(component)) {
         const { _links_, attributeWidths } = component.componentStorage
-        const data = this.dataMap[_links_.context.id].dataSet
-        const metadata = this.metadataMap[_links_.context.id]
+        const data = this.dataMap.get(_links_.context.id)?.dataSet
+        const metadata = this.metadataMap.get(_links_.context.id)
         attributeWidths?.forEach(entry => {
-          const v2Attr = this.guidMap[entry._links_.attr.id]
+          const v2Attr = this.guidMap.get(entry._links_.attr.id)
           if (isCodapV2Attribute(v2Attr)) {
-            const attrId = data.attrIDFromName(v2Attr.name)
+            const attrId = data?.attrIDFromName(v2Attr.name)
             if (attrId && entry.width) {
-              metadata.setColumnWidth(attrId, entry.width)
+              metadata?.setColumnWidth(attrId, entry.width)
             }
           }
         })
@@ -88,13 +88,13 @@ export class CodapV2Document {
   registerContexts(contexts?: ICodapV2DataContext[]) {
     contexts?.forEach(context => {
       const { guid, type = "DG.DataContext", document, name = "", collections = [] } = context
-      if (document && this.guidMap[document]?.type !== "DG.Document") {
+      if (document && this.guidMap.get(document)?.type !== "DG.Document") {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
-      this.guidMap[guid] = { type, object: context }
+      this.guidMap.set(guid, { type, object: context })
       const sharedDataSet = SharedDataSet.create({ dataSet: { name } })
-      this.dataMap[guid] = sharedDataSet
-      this.metadataMap[guid] = SharedCaseMetadata.create({ data: this.dataMap[guid].id })
+      this.dataMap.set(guid, sharedDataSet)
+      this.metadataMap.set(guid, SharedCaseMetadata.create({ data: this.dataMap.get(guid)?.id }))
 
       this.registerCollections(sharedDataSet.dataSet, collections)
     })
@@ -103,7 +103,7 @@ export class CodapV2Document {
   registerCollections(data: IDataSet, collections: ICodapV2Collection[]) {
     collections.forEach((collection, index) => {
       const { attrs = [], cases = [], guid, name = "", title = "", type = "DG.Collection" } = collection
-      this.guidMap[guid] = { type, object: collection }
+      this.guidMap.set(guid, { type, object: collection })
 
       // assumes hierarchical collection are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
@@ -129,15 +129,15 @@ export class CodapV2Document {
     attributes.forEach(attr => {
       const { guid, name = "", title = "", type, formula: _formula } = attr
       const formula = _formula ? { display: _formula } : undefined
-      this.guidMap[guid] = { type: type || "DG.Attribute", object: attr }
-      this.v3AttrMap[guid] = data.addAttribute({ name, formula, title })
+      this.guidMap.set(guid, { type: type || "DG.Attribute", object: attr })
+      this.v3AttrMap.set(guid, data.addAttribute({ name, formula, title }))
     })
   }
 
   registerCases(data: IDataSet, cases: ICodapV2Case[], level: number) {
     cases.forEach(_case => {
       const { guid, values } = _case
-      this.guidMap[guid] = { type: "DG.Case", object: _case }
+      this.guidMap.set(guid, { type: "DG.Case", object: _case })
       // only add child/leaf cases
       if (level === 0) {
         let caseValues = toCanonical(data, values)

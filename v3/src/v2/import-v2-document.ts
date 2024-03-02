@@ -5,9 +5,9 @@ import { gDataBroker } from "../models/data/data-broker"
 import { serializeDocument } from "../models/document/serialize-document"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
-import { ITileModel } from "../models/tiles/tile-model"
-import { CodapV2Document } from "../v2/codap-v2-document"
-import { importV2Component } from "../v2/codap-v2-tile-importers"
+import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
+import { CodapV2Document } from "./codap-v2-document"
+import { importV2Component } from "./codap-v2-tile-importers"
 
 export function importV2Document(v2Document: CodapV2Document) {
   const v3Document = createCodapDocument(undefined, { layout: "free" })
@@ -27,7 +27,8 @@ export function importV2Document(v2Document: CodapV2Document) {
   const { content } = v3Document
   const row = content?.firstRow
   v2Components.forEach(v2Component => {
-    const insertTile = (tile: ITileModel) => {
+    const insertTile = (tile: ITileModelSnapshotIn) => {
+      let newTile: ITileModel | undefined
       if (row && tile) {
         const info = getTileComponentInfo(tile.content.type)
         if (info) {
@@ -35,9 +36,10 @@ export function importV2Document(v2Document: CodapV2Document) {
           // only apply imported width and height to resizable tiles
           const _width = !info.isFixedWidth ? { width } : {}
           const _height = !info?.isFixedHeight ? { height } : {}
-          content?.insertTileInRow(tile, row, { x: left, y: top, ..._width, ..._height })
+          newTile = content?.insertTileSnapshotInRow(tile, row, { x: left, y: top, ..._width, ..._height })
         }
       }
+      return newTile
     }
     importV2Component({ v2Component, v2Document, sharedModelManager, insertTile })
   })
