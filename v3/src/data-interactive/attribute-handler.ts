@@ -1,4 +1,3 @@
-import { getSnapshot } from "mobx-state-tree"
 import { DIHandler, DIResources, diNotImplementedYet } from "./data-interactive-types"
 import { registerDIHandler } from "./data-interactive-handler"
 
@@ -8,8 +7,7 @@ export const diAttributeHandler: DIHandler = {
     return attribute
       ? {
           success: true,
-          // TODO: convert to v2 format for plugins
-          values: getSnapshot(attribute)
+          values: attribute.toArchive
         }
       : {success: false, values: {error: 'Attribute not found'}}
   },
