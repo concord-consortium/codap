@@ -1,2 +1,2 @@
-import "./attribute-handler"
-import "./interactive-frame-handler"
+import "./handlers/attribute-handler"
+import "./handlers/interactive-frame-handler"

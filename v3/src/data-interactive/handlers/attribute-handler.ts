@@ -1,5 +1,5 @@
-import { DIHandler, DIResources, diNotImplementedYet } from "./data-interactive-types"
-import { registerDIHandler } from "./data-interactive-handler"
+import { DIHandler, DIResources, diNotImplementedYet } from "../data-interactive-types"
+import { registerDIHandler } from "../data-interactive-handler"
 
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
