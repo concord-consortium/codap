@@ -2,11 +2,12 @@ import {Instance, types} from "mobx-state-tree"
 import {DataDisplayLayerModel, IDataDisplayLayerModel, kUnknownLayerModelType} from "./data-display-layer-model"
 import {GraphPointLayerModel, IGraphPointLayerModel, IGraphPointLayerModelSnapshot, kGraphPointLayerType}
   from "../../graph/models/graph-point-layer-model"
-import {IMapPointLayerModel, IMapPointLayerModelSnapshot, kMapPointLayerType, MapPointLayerModel}
+import {IMapPointLayerModel, IMapPointLayerModelSnapshot, MapPointLayerModel}
   from "../../map/models/map-point-layer-model"
+import {kMapPointLayerType, kMapPolygonLayerType} from "../../map/map-types"
 import {IMapBaseLayerModel, IMapBaseLayerModelSnapshot, kMapBaseLayerType, MapBaseLayerModel}
   from "../../map/models/map-base-layer-model"
-import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, kMapPolygonLayerType, MapPolygonLayerModel}
+import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, MapPolygonLayerModel}
   from "../../map/models/map-polygon-layer-model"
 
 export const UnknownDataDisplayLayerModel = DataDisplayLayerModel

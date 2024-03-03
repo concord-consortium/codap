@@ -1,10 +1,9 @@
 import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
-import {LatLngExpression} from "leaflet"
 import {MapContainer, TileLayer} from "react-leaflet"
 import {kPortalClass} from "../../data-display/data-display-types"
-import {kDefaultMapLocation, kDefaultMapZoom, kMapAttribution, kMapUrl} from "../map-types"
+import {BaseMapKeys, kMapAttribution, kMapUrls} from "../map-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -64,9 +63,17 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
-        <MapContainer center={kDefaultMapLocation as LatLngExpression} zoom={kDefaultMapZoom} scrollWheelZoom={false}
+        <MapContainer center={mapModel.center} zoom={mapModel.zoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
-          <TileLayer attribution={kMapAttribution} url={kMapUrl}/>
+          <>
+            {
+              BaseMapKeys.map(mapKey => {
+                const url = kMapUrls[mapKey]
+                const show = mapModel.baseMapLayerIsVisible && mapModel.baseMapLayerName === mapKey
+                return show && <TileLayer key={mapKey} attribution={kMapAttribution} url={url}/>
+              })
+            }
+          </>
           <MapInterior/>
         </MapContainer>
       </div>

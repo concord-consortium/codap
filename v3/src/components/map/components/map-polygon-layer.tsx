@@ -9,25 +9,25 @@ import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {getCaseTipText, handleClickOnCase} from "../../data-display/data-display-utils"
+import { PixiBackgroundPassThroughEvent } from "../../graph/utilities/pixi-points"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
 import {safeJsonParse} from "../../../utilities/js-utils"
 import {
-  GeoJsonObject, kDefaultMapStrokeColor, kDefaultMapStrokeOpacity, kMapAreaNoLegendColor,
+  GeoJsonObject, kDefaultMapFillOpacity, kMapAreaNoLegendColor,
   kMapAreaNoLegendSelectedBorderColor, kMapAreaNoLegendSelectedColor, kMapAreaNoLegendSelectedOpacity,
   kMapAreaNoLegendUnselectedOpacity, kMapAreaSelectedBorderWeight, kMapAreaUnselectedBorderWeight,
   kMapAreaWithLegendSelectedBorderColor, PolygonLayerOptions
 }
   from "../map-types"
-import { PixiBackgroundPassThroughEvent } from "../../graph/utilities/pixi-points"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
 }) {
   const {mapLayerModel} = props,
-    {dataConfiguration} = mapLayerModel,
+    {dataConfiguration, displayItemDescription } = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
     leafletMap = useMap(),
@@ -47,12 +47,12 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         // todo: fillColor, strokeColor and opacity are going to need
         //  to draw from what the user has set in the layers palette
         fillColor = hasLegend ? dataConfiguration.getLegendColorForCase(featureCaseID)
-          : (isSelected ? kMapAreaNoLegendSelectedColor : kMapAreaNoLegendColor),
+          : (isSelected ? kMapAreaNoLegendSelectedColor : displayItemDescription.itemColor),
         strokeColor = hasLegend
           ? (isSelected ? kMapAreaWithLegendSelectedBorderColor
             : dataConfiguration.getLegendColorForCase(featureCaseID))
-          : (isSelected ? kMapAreaNoLegendSelectedBorderColor : kDefaultMapStrokeColor),
-        opacity = kDefaultMapStrokeOpacity,
+          : (isSelected ? kMapAreaNoLegendSelectedBorderColor : displayItemDescription.itemStrokeColor),
+        opacity = kDefaultMapFillOpacity,
         weight = isSelected ? kMapAreaSelectedBorderWeight : kMapAreaUnselectedBorderWeight
       feature.setStyle({
         fillColor,
@@ -62,7 +62,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         weight
       })
     })
-  }, [dataset, dataConfiguration, mapLayerModel.features])
+  }, [dataset, dataConfiguration, mapLayerModel, displayItemDescription])
 
   const refreshPolygons = useDebouncedCallback((selectedOnly: boolean) => {
     if (!dataset) return
@@ -134,7 +134,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       featuresToRemove = mapLayerModel.features.map((feature) => {
         return (feature.options as PolygonLayerOptions).caseID
       })
-    dataConfiguration.caseDataArray.forEach((aCaseData, caseIndex) => {
+    // If this layer is not visible, skipping the following mapping will cause all the features to be removed
+    // which is what we want
+    mapLayerModel.isVisible && dataConfiguration.caseDataArray.forEach((aCaseData, caseIndex) => {
       const notAlreadyStashed = mapLayerModel.features.findIndex((feature) => {
         return (feature.options as PolygonLayerOptions).caseID === aCaseData.caseID
       }) === -1
@@ -194,12 +196,12 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   }, [layout, mapModel.leafletMapState, refreshPolygons])
 
   // Changes in legend attribute require repositioning polygons
-  useEffect(function setupResponsesToLayoutChanges() {
+  useEffect(function setupResponsesToLegendAttribute() {
     const disposer = reaction(
       () => [dataConfiguration.attributeID('legend')],
       () => {
         refreshPolygons(false)
-      }
+      }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute", equals: comparer.structural}
     )
     return () => disposer()
   }, [dataConfiguration, refreshPolygons])
@@ -209,9 +211,30 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       () => dataConfiguration?.caseDataArray.length,
       () => {
         refreshPolygons(false)
-      }, {name: "MapPointLayer.setupResponseToChangeInNumberOfCases", fireImmediately: true}, dataConfiguration
+      }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, dataConfiguration
     )
   }, [dataConfiguration, refreshPolygons])
+
+  useEffect(function setupResponseToChangeInVisibility() {
+    return mstReaction(
+      () => mapLayerModel.isVisible,
+      () => {
+        refreshPolygons(false)
+      }, {name: "MapPolygonLayer.setupResponseToChangeInVisibility"}, mapLayerModel
+    )
+  }, [dataConfiguration, mapLayerModel, refreshPolygons])
+
+  // respond to item visual properties change
+  useEffect(function respondToItemVisualChange() {
+    return mstReaction(() => {
+        const { itemColor, itemStrokeColor, itemStrokeSameAsFill } =
+          mapLayerModel.displayItemDescription
+        return [itemColor, itemStrokeColor, itemStrokeSameAsFill]
+      },
+      () => refreshPolygonStyles(),
+      {name: "MapPolygonLayer.respondToItemVisualChange", equals: comparer.structural}, mapLayerModel
+    )
+  }, [refreshPolygonStyles, mapLayerModel])
 
   return (
     <></>

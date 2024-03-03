@@ -1,0 +1,67 @@
+@import "../../vars";
+
+.inspector-panel.data-display {
+  .palette-form {
+    margin: 0px 0px 10px 20px;
+
+    .palette-row {
+      flex-direction: row;
+      align-items: center;
+      height: 20px;
+      label {
+        margin: 0;
+      }
+      margin: 5px;
+      white-space: nowrap;
+    }
+  }
+
+  .sub-options {
+    margin-bottom: 5px;
+    margin-left: 20px;
+
+    label {
+      display: flex;
+      padding: 1px 0;
+    }
+  }
+
+  .color-picker-thumb {
+    width: 50px !important;
+    height: 32px !important;
+    padding: 2px 5px !important;
+    margin: 2px 1px;
+    border: 1px solid #d0d0d0;
+    margin-left: 10px;
+    &.categorical {
+      position: absolute;
+      right: 2px;
+    }
+  }
+
+  .cat-color-setting {
+    height: 75px;
+    overflow-y: scroll;
+
+    // We limit the number of categories visible to 3 so we need to force the
+    // vertical scrollbar to be visible if there are more than 3 so users know
+    // it is a scrollable list of categories. This only works for Chrome and Safari.
+    // Still need to figure out what to do for Firefox
+    &::-webkit-scrollbar-track {
+      border-radius: 0.175rem;
+      background-color: lightgray;
+    }
+    &::-webkit-scrollbar {
+      width: 0.35rem;
+      border-radius: 0.125rem;
+    }
+    &::-webkit-scrollbar-thumb {
+      border-radius: 0.175rem;
+      background-color: gray;
+    }
+
+    .cat-color-picker {
+      margin: 6px 0px;
+    }
+  }
+}

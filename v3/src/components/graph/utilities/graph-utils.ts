@@ -380,7 +380,7 @@ export interface ISetPointSelection {
 }
 
 export interface ISetPointCoordinates {
-  barOrientation?: string
+  anchor?: Point
   dataset?: IDataSet
   pixiPointsRef: IPixiPointsRef
   selectedOnly?: boolean
@@ -400,7 +400,7 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
-    barOrientation, dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+    anchor, dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius,
     pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled,
     getWidth, getHeight
   } = props
@@ -426,13 +426,13 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
     // the graph and while updating legend colors, we could possibly split it into two different functions.
     const pixiPoints = pixiPointsRef?.current
     if (pixiPoints) {
-      if (barOrientation) {
-        pixiPoints.barOrientation = barOrientation
+      if (anchor) {
+        pixiPoints.anchor = anchor
       }
       pixiPoints.transition(() => {
         pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
           const { caseID, plotNum } = metadata
-          pixiPoints.setPointStyle(point, {
+          const style = {
             radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
             fill: lookupLegendColor(metadata),
             stroke: getLegendColor && dataset?.isCaseSelected(caseID) ? defaultSelectedStroke : pointStrokeColor,
@@ -442,8 +442,9 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
             // getWidth and getHeight are not provided, we use pointRadius * 2 for these values.
             width: getWidth?.(caseID) ?? pointRadius * 2,
             height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
-          })
-          pixiPoints.setPointPosition(point, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
+          }
+          pixiPoints.setPointStyle(point, style)
+          pixiPoints.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)
         }, { selectedOnly })
       }, { duration: getAnimationEnabled() ? transitionDuration : 0 })
     }

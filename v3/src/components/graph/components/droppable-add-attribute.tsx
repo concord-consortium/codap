@@ -45,7 +45,8 @@ export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
   const className = clsx(`add-attribute-drop-${placeKey}`, {over: isActive && isOver, active: isActive})
   return isActive ? (
     <div ref={setNodeRef} id={droppableId}
-         className={className}>
+         className={className}
+         data-testid={`add-attribute-drop-${place}`}>
       {isOver && hintString &&
          <DropHint hintText={hintString}/>
       }

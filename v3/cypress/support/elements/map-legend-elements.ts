@@ -22,5 +22,8 @@ export const MapLegendElements = {
   },
   getAttributeFromLegendMenu() {
     return this.getLegendAttributeMenu().parent()
+  },
+  getLegendDropZone() {
+    return this.getMapTile().find(".leaflet-container")
   }
 }

@@ -2,10 +2,15 @@ import * as PIXI from "pixi.js"
 import { CaseData } from "../../data-display/d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
 const MAX_SPRITE_SCALE = 2
+
+export const circleAnchor = { x: 0.5, y: 0.5 }
+export const hBarAnchor = { x: 1, y: 0 }
+export const vBarAnchor = { x: 0, y: 0 }
 
 const strokeColor = "#ffffff"
 const strokeColorHover = "#a35b3a"
@@ -50,6 +55,21 @@ export interface IPixiPointsOptions {
   backgroundEventDistribution?: IBackgroundEventDistributionOptions
 }
 
+interface IDisplayTypeTransitionState {
+  isActive: boolean
+}
+
+interface ITransitionPointDisplayTypeOptions {
+  point: PIXI.Sprite
+  style: Partial<IPixiPointStyle>
+  x: number
+  y: number
+}
+
+interface IPointTransitionState {
+  hasTransitioned: boolean
+}
+
 export class PixiPoints {
   renderer: PIXI.Renderer = new PIXI.Renderer({
     resolution: window.devicePixelRatio,
@@ -76,7 +96,11 @@ export class PixiPoints {
   caseIDToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
   displayType = "points"
-  barOrientation = "horizontal"
+  anchor = circleAnchor
+  displayTypeTransitionState: IDisplayTypeTransitionState = {
+    isActive: false
+  }
+  pointTransitionStates = new Map<PIXI.Sprite, IPointTransitionState>()
 
   resizeObserver?: ResizeObserver
 
@@ -147,6 +171,14 @@ export class PixiPoints {
     this.startRendering()
   }
 
+  get isZeroSize() {
+    return this.background.width === 0 || this.background.height === 0
+  }
+
+  setZeroSize() {
+    this.resize(0, 0)
+  }
+
   startRendering() {
     if (!this.ticker.started) {
       this.ticker.start()
@@ -184,6 +216,22 @@ export class PixiPoints {
   // This method should be used instead of directly setting the scale of the point sprite, as it handles transitions.
   setPointScale(point: PIXI.Sprite, scale: number) {
     this.setPointXyProperty("scale", point, scale, scale)
+  }
+
+  // This method should be used instead of directly setting the anchor of the point sprite, as it handles transitions.
+  setPointAnchor(point: PIXI.Sprite, x: number, y: number) {
+    this.setPointXyProperty("anchor", point, x, y)
+  }
+
+  // This method adjusts a point sprite's width and height without modifying the texture it uses. It's intended for
+  // use during transitions between display types (i.e. points to bars, and vice versa) before applying a new texture
+  // that's defined with the desired width and height. It should not be used to adjust the scale of a point sprite 
+  // before or after a transition as it could distort the sprite's appearance. To adjust the scale of a point sprite,
+  // use `setPointScale` instead.
+  setPointDimensionsForTransition(point: PIXI.Sprite, newWidth: number, newHeight: number) {
+    const scaleXFactor = newWidth / point.width
+    const scaleYFactor = newHeight / point.height
+    this.setPointXyProperty("scale", point, scaleXFactor, scaleYFactor)
   }
 
   setAllPointsScale(scale: number, duration = 0) {
@@ -227,12 +275,68 @@ export class PixiPoints {
     this.startRendering()
   }
 
+  async transitionPointDisplayType(props: ITransitionPointDisplayTypeOptions) {
+    const { point, style, x, y } = props
+    const { width, height } = style
+    const defaultRadius = 6
+    const radius = style.radius ?? defaultRadius
+    const isBar = this.displayType === "bars" && isFiniteNumber(width) && isFiniteNumber(height)
+    const isPoint = this.displayType === "points" && isFiniteNumber(radius)
+
+    if (!isBar && !isPoint) return
+
+    // Subtract 1 from the width and height to ensure bars don't touch during transition. If they touch, 
+    // they look more like a single mass than individual bars.
+    const newWidth = isBar ? width - 1 : radius * 2
+    const newHeight = isBar ? height - 1 : radius * 2
+  
+    // Transition the point sprite's dimensions to the desired width and height by adjusting its scale while
+    // also moving the point sprite to the specified location.
+    await this.transition(() => {
+      this.setPointAnchor(point, this.anchor.x, this.anchor.y)
+      this.setPointDimensionsForTransition(point, newWidth, newHeight)
+      this.setPointPosition(point, x, y)
+    }, { duration: transitionDuration })
+  
+    // Once the transition is complete, use the given style to create a new texture (or get a matching texture 
+    // if one already exists in the cache) and apply that texture to the point sprite. In the case of bars, the
+    // texture will include the unique width and height for the bar.
+    this.pointTransitionStates.set(point, { hasTransitioned: true })
+    const newStyle = this.updatePointStyle(point, style)
+    const includeDimensions = this.pointTransitionStates.get(point)?.hasTransitioned
+    const texture = this.getPointTexture(newStyle, includeDimensions)
+
+    if (point.texture !== texture) {
+      point.texture = texture
+      this.setPointAnchor(point, this.anchor.x, this.anchor.y)
+      this.setPointScale(point, 1)
+    }
+
+    const allPointsTransitioned = Array.from(this.pointTransitionStates.values()).every(state => state.hasTransitioned)
+    if (allPointsTransitioned) {
+      this.displayTypeTransitionState.isActive = false
+    }
+  }
+
+  setPositionOrTransition(point: PIXI.Sprite, style: Partial<IPixiPointStyle>, x: number, y: number) {
+    if (this.displayTypeTransitionState.isActive) {
+      this.transitionPointDisplayType({ point, style, x, y })
+    } else {
+      this.setPointPosition(point, x, y)
+    }
+  }
+
   setPointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
+    // If the display type is transitioning from bars to points, we don't want to update the style here.
+    // It will be handled elsewhere after the transition.
+    if (this.displayType === "points" && this.displayTypeTransitionState.isActive) return
+
     const newStyle = this.updatePointStyle(point, style)
     const texture = this.getPointTexture(newStyle)
     if (point.texture !== texture) {
       point.texture = texture
     }
+
     this.startRendering()
   }
 
@@ -264,14 +368,25 @@ export class PixiPoints {
 
   getNewSprite(texture: PIXI.Texture) {
     const sprite = new PIXI.Sprite(texture)
-    sprite.anchor.set(0.5)
+    sprite.anchor.copyFrom(this.anchor)
     sprite.zIndex = DEFAULT_Z_INDEX
     this.setupSpriteInteractivity(sprite)
     return sprite
   }
 
-  textureKey(style: IPixiPointStyle) {
-    return JSON.stringify(style)
+  textureKey(style: IPixiPointStyle, includeDimensions = false): string {
+    let keyStyle = { ...style, displayType: this.displayType }
+    // Unless `includeDimensions` is set to true, remove width and height from keyStyle when the display type is bars
+    // and the transition from points to bars is active, or if the display type is points and the transition from
+    // bars to points is not active. This helps minimize the number of textures created.
+    if (
+      (!includeDimensions && (this.displayType === "bars" && this.displayTypeTransitionState.isActive)) ||
+      (this.displayType === "points" && !this.displayTypeTransitionState.isActive)
+    ) {
+      const { width, height, ...rest } = keyStyle
+      keyStyle = rest
+    }
+    return JSON.stringify(keyStyle)
   }
 
   updatePointStyle(point: PIXI.Sprite, style: Partial<IPixiPointStyle>) {
@@ -289,41 +404,76 @@ export class PixiPoints {
     return newStyle
   }
 
-  getPointTexture(style: IPixiPointStyle): PIXI.Texture {
-    // TODO: It would be better to not create new textures for every width and height as doing so will generate more 
-    // textures than necessary, possibly causing performance issues. If possible, generate a single texture here, and
-    // when it's necessary to vary width and height (i.e. when displayType === "bars"), adjust those properties
-    // directly on the sprites elsewhere, probably in `setPointStyle`. There are scaling issues to do with stroke width
-    // that need to be worked out before we can do that, though. For now, we generate a new texture for each width
-    // and height when `displayType` is `bars`.
-    const { radius, fill, stroke, strokeWidth, strokeOpacity, width, height } = style
-    const styleForKey = this.displayType !== "bars"
-      ? { radius, fill, stroke, strokeWidth, strokeOpacity }
-      : style
-    const styleAndDisplayType = { ...styleForKey, displayType: this.displayType }
-    const key = this.textureKey(styleAndDisplayType)
-    // If there's already a matching texture, return that instead of creating a new one.
-    if (this.textures.has(key)) {
-      return this.textures.get(key) as PIXI.Texture
-    }
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(fill)
-    graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
-    if (this.displayType === "bars") {
-      graphics.drawRect(0, 0, width ?? radius * 2, height ?? radius * 2)
-    } else {
-      graphics.drawCircle(0, 0, radius)
-    }
-    graphics.endFill()
+  generateTexture(graphics: PIXI.Graphics, key: string): PIXI.Texture {
     const texture = this.renderer.generateTexture(graphics, {
       // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
       // The default resolution is `devicePixelRatio`, so if we multiply it by `MAX_SPRITE_SCALE`, we can scale
       // sprites up to `MAX_SPRITE_SCALE` without losing sharpness.
-      resolution: devicePixelRatio * MAX_SPRITE_SCALE
+      resolution: devicePixelRatio * MAX_SPRITE_SCALE,
     })
+  
     this.textures.set(key, texture)
-    this.cleanupUnusedTextures()
     return texture
+  }
+
+  getRectTexture(style: IPixiPointStyle, includeDimensions = false) {
+    const { radius, fill, stroke, strokeWidth, strokeOpacity, width, height } = style
+    const key = this.textureKey(style, includeDimensions)
+
+    if (this.textures.has(key)) {
+      return this.textures.get(key) as PIXI.Texture
+    }
+
+    const graphics = new PIXI.Graphics()
+    graphics.beginFill(fill)
+
+    const shouldDrawStroke = (dimension: number | undefined) => {
+      // Do not draw the stroke when either:
+      // 1. a transition from points to bars is active -- the stroke would be distorted by the scale change
+      // 2. there are so many bars that their non-value dimension is thin enough that the stroke would obscure the fill
+      return includeDimensions || !this.displayTypeTransitionState.isActive &&
+        isFiniteNumber(dimension) && dimension >= 3
+    }
+
+    const textureStrokeWidth = shouldDrawStroke(width) || shouldDrawStroke(height) ? strokeWidth : 0
+    graphics.lineStyle(textureStrokeWidth, stroke, strokeOpacity ?? 0.4)
+
+    // When the option to display bars is first selected, the width and height of the bars are first set to two times
+    // the radius value specified in `style`. This is so the bars are initially drawn as squares that are the same size
+    // as the circular point. The squares are then transitioned to the correct width and height per point. This is
+    // necessary because we transition from points to bars by scaling the point sprites' dimensions after applying this
+    // shared square texture. Once the transition is complete, we apply separate rectangle textures to each bar. These
+    // textures are defined using each point's unique width and height. This process helps minimize the number of
+    // textures we create.
+    const rectWidth = isFiniteNumber(width) && (!this.displayTypeTransitionState.isActive || includeDimensions)
+      ? width : radius * 2
+    const rectHeight = isFiniteNumber(height) && (!this.displayTypeTransitionState.isActive || includeDimensions)
+      ? height : radius * 2
+    graphics.drawRect(0, 0, rectWidth, rectHeight)
+    graphics.endFill()
+
+    return this.generateTexture(graphics, key)
+  }
+
+  getCircleTexture(style: IPixiPointStyle) {
+    const { radius, fill, stroke, strokeWidth, strokeOpacity } = style
+    const key = this.textureKey(style)
+
+    if (this.textures.has(key)) {
+      return this.textures.get(key) as PIXI.Texture
+    }
+
+    const graphics = new PIXI.Graphics()
+    graphics.beginFill(fill)
+    graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
+    graphics.drawCircle(0, 0, radius)
+    graphics.endFill()
+
+    return this.generateTexture(graphics, key)
+  }
+
+  getPointTexture(style: IPixiPointStyle, includeDimensions = false): PIXI.Texture {
+    return this.displayType === "bars" ? this.getRectTexture(style, includeDimensions) : this.getCircleTexture(style)
   }
 
   cleanupUnusedTextures() {
@@ -463,7 +613,20 @@ export class PixiPoints {
   }
 
   matchPointsToData(caseData: CaseData[], displayType: string, style: IPixiPointStyle) {
+    // If the display type has changed, we need to prepare for the transition between types
+    if (this.displayType !== displayType) {
+      this.displayTypeTransitionState.isActive = true
+      this.forEachPoint(point => {
+        this.pointTransitionStates.set(point, { hasTransitioned: false })
+      })
+    }
     this.displayType = displayType
+
+    // Stop here if we need to transition between display types. The need for a display type transition is only
+    // triggered when the user changes the display type from points to bars or vice versa. Calls to `matchPointsToData`
+    // caused by other changes will always happen separately from a display type change.
+    if (this.displayTypeTransitionState.isActive) return
+
     const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
@@ -504,14 +667,6 @@ export class PixiPoints {
     for (let i = 0; i < oldPointsCount; i++) {
       const point = this.points[i]
       if (point.texture !== texture) {
-        // The anchor should be set according to the point's shape.
-        // Circle: center (0.5)
-        // Horizontal Bar: bottom left corner (1,0)
-        // Vertical Bar: top left corner (0,0)
-        point.anchor.set(
-          this.displayType === "bars" ? (this.barOrientation === "horizontal" ? 1 : 0) : 0.5,
-          this.displayType === "bars" ? 0 : 0.5
-        )
         point.texture = texture
         const metadata = this.getMetadata(point)
         metadata.style = style

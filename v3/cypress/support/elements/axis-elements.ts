@@ -4,16 +4,16 @@ export const AxisElements = {
   },
   getAxisElement(axis) {
     switch (axis) {
-      case "X":
-      case "x":
+      case "bottom":
+      case "left":
       default:
-        return this.getGraphTile().find("[data-testid=axis-bottom]").parent()
-      case "Y":
-      case "y":
-        return this.getGraphTile().find("[data-testid=axis-left]").parent()
+        return this.getGraphTile().find(`[data-testid=axis-${axis}]`).parent()
       case "legend":
-        return this.getGraphTile().find("[data-testid=axis-legend-attribute-button]")
+        return this.getGraphTile().find("[data-testid=axis-legend-attribute-button-legend]")
     }
+  },
+  getDroppableAxis(axis) {
+    return this.getGraphTile().find(`[data-testid^=add-attribute-drop-${axis}]`)
   },
   getAxisLabel(axis) {
     return this.getAxisElement(axis).find("[data-testid=attribute-label]")
@@ -71,17 +71,10 @@ export const AxisElements = {
     cy.dragAttributeToTarget("graph", name, axis)
   },
   getAxisAttributeMenu(axis) {
-    switch (axis) {
-      case "X":
-      case "x":
-      default:
-        return this.getGraphTile().find("[data-testid=attribute-label-menu-bottom]")
-      case "Y":
-      case "y":
-        return this.getGraphTile().find("[data-testid=attribute-label-menu-left]")
-      case "legend":
-        return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
-    }
+    return this.getGraphTile().find(`[data-testid=attribute-label-menu-${axis}]`)
+  },
+  getAxisAttributeMenuButton(axis) {
+    return this.getGraphTile().find(`[data-testid=axis-legend-attribute-button-${axis}]`)
   },
   getAttributeFromAttributeMenu(axis) {
     return this.getAxisAttributeMenu(axis).parent()

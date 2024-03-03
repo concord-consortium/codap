@@ -46,10 +46,10 @@ export const GraphLegendHelper = {
     gle.getNumericLegendCategories().eq(index).should("have.class", "legend-rect-selected")
   },
   dragAttributeToPlot(name) {
-    cy.dragAttributeToTarget("table", name, "graph_plot")
+    cy.dragAttributeToTarget("table", name, "graph-plot")
   },
   dragAttributeToLegend(name) {
-    cy.dragAttributeToTarget("table", name, "legend")
+    cy.dragAttributeToTarget("table", name, "graph-legend")
   },
   openLegendMenu() {
     gle.getLegendAttributeMenu().click()

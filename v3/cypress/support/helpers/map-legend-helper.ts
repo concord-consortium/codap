@@ -45,11 +45,8 @@ export const MapLegendHelper = {
   verifyLegendQuintileSelected(index) {
     mle.getNumericLegendCategories().eq(index).should("have.class", "legend-rect-selected")
   },
-  dragAttributeToPlot(name) {
-    cy.dragAttributeToTarget("table", name, "graph_plot")
-  },
   dragAttributeToLegend(name) {
-    cy.dragAttributeToTarget("table", name, "legend")
+    cy.dragAttributeToTarget("table", name, "map-legend")
   },
   openLegendMenu() {
     mle.getLegendAttributeMenu().click()

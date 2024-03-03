@@ -4,6 +4,9 @@ export const GraphTileElements = {
   getGraphTile(index = 0) {
     return c.getComponentTile("graph", index)
   },
+  getGraphPlot() {
+    return this.getGraphTile().find(".graph-plot svg")
+  },
   getResizeIcon() {
     return c.getInspectorPanel().find("[data-testid=graph-resize-button]")
   },

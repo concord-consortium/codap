@@ -1,39 +1,41 @@
 @import "../../vars.scss";
 
-.palette-row {
-  flex-direction: row;
-  align-items: center;
-  height: 24px;
-  margin: 5px;
-  white-space: nowrap;
-  label {
-    height: inherit;
-  }
-  .slider-input {
+.inspector-panel.slider {
+  .palette-row {
+    flex-direction: row;
+    align-items: center;
     height: 24px;
-    width: 74px;
-    background-color: white;
-    margin-left: 8px;
-    input {
+    margin: 5px;
+    white-space: nowrap;
+    label {
       height: inherit;
     }
-  }
-  .animation-rate-input {
-    height: 24px;
-    width: 54px;
-    background-color: white;
-  }
-  .chakra-select__wrapper {
-    border: 1px #555 ;
-    text-shadow: 0 1px 1px white;
-    height: 24px;
-    width: 130px;
-    padding: 0;
-    .slider-select {
+    .slider-input {
+      height: 24px;
+      width: 74px;
+      background-color: white;
+      margin-left: 8px;
+      input {
+        height: inherit;
+      }
+    }
+    .animation-rate-input {
+      height: 24px;
+      width: 54px;
+      background-color: white;
+    }
+    .chakra-select__wrapper {
+      border: 1px #555 ;
+      text-shadow: 0 1px 1px white;
       height: 24px;
       width: 130px;
-      border: 1px solid #555;
-      margin-left: 8px;
+      padding: 0;
+      .slider-select {
+        height: 24px;
+        width: 130px;
+        border: 1px solid #555;
+        margin-left: 8px;
+      }
     }
   }
 }

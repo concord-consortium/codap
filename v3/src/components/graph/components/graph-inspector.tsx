@@ -8,13 +8,13 @@ import BarChartIcon from "../../../assets/icons/icon-segmented-bar-chart.svg"
 import StylesIcon from "../../../assets/icons/icon-styles.svg"
 import CameraIcon from "../../../assets/icons/icon-camera.svg"
 import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
-import {PointFormatPalette} from "./inspector-panel/point-format-panel"
-import {GraphMeasurePalette} from "./inspector-panel/graph-measure-panel"
+import {PointFormatPalette} from "./inspector-panel/point-format-palette"
+import {GraphMeasurePalette} from "./inspector-panel/graph-measure-palette"
 import { t } from "../../../utilities/translation/translate"
 import {useDndContext} from "@dnd-kit/core"
 import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
-import { DisplayConfigPanel } from "./inspector-panel/display-config-panel"
+import { DisplayConfigPalette } from "./inspector-panel/display-config-palette"
 
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
@@ -74,7 +74,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   }
 
   return (
-    <InspectorPanel ref={panelRef} component="graph" show={show} setShowPalette={setShowPalette}>
+    <InspectorPanel ref={panelRef} component="graph data-display" show={show} setShowPalette={setShowPalette}>
       {renderRescaleButton()}
       <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
                      icon={<HideShowIcon/>} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
@@ -105,8 +105,8 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
                              panelRect={panelRect} buttonRect={buttonRect}/>}
 
       {showPalette === "config" &&
-        <DisplayConfigPanel tile={tile} setShowPalette={setShowPalette}
-                            panelRect={panelRect} buttonRect={buttonRect}/>}
+        <DisplayConfigPalette tile={tile} setShowPalette={setShowPalette}
+                              panelRect={panelRect} buttonRect={buttonRect}/>}
       {showPalette === "format" &&
         <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
                             panelRect={panelRect} buttonRect={buttonRect}/>}

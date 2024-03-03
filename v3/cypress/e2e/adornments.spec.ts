@@ -18,15 +18,15 @@ context("Graph adornments", () => {
   })
   it("adds a count to graph when Count checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
 
     // add undo/redo to this test
     toolbar.getUndoTool().click()
-    ae.getAxisLabel("y").should("have.length", 0)
+    ae.getAxisLabel("left").should("have.length", 0)
     cy.wait(250)
     toolbar.getRedoTool().click()
-    ae.getAxisLabel("y").should("have.length", 1)
+    ae.getAxisLabel("left").should("have.length", 1)
     cy.wait(250)
 
 
@@ -63,8 +63,8 @@ context("Graph adornments", () => {
   })
   it("adds a percent to graph when Percent checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Diet", "x")
-    cy.dragAttributeToTarget("table", "Habitat", "y")
+    cy.dragAttributeToTarget("table", "Diet", "bottom")
+    cy.dragAttributeToTarget("table", "Habitat", "left")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").should("be.visible").click()
@@ -101,7 +101,7 @@ context("Graph adornments", () => {
   })
   it("adds mean adornment to graph when Mean checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean]").should("be.visible").click()
@@ -142,7 +142,7 @@ context("Graph adornments", () => {
   })
   it("adds median adornment to graph when Median checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-median]").should("be.visible").click()
@@ -183,7 +183,7 @@ context("Graph adornments", () => {
   })
   it("adds standard deviation adornment to graph when Standard Deviation checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-measuresOfSpread]").click()
@@ -237,7 +237,7 @@ context("Graph adornments", () => {
   })
   it("adds mean absolute deviation adornment to graph when Mean Absolute Deviation checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-measuresOfSpread]").click()
@@ -292,7 +292,7 @@ context("Graph adornments", () => {
       })
   it("adds box plot adornment to the graph when Box Plot checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Height", "x")
+    cy.dragAttributeToTarget("table", "Height", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-boxPlotAndNormalCurve]").click()
@@ -354,8 +354,8 @@ context("Graph adornments", () => {
   })
   it("adds a least squares line to graph when Least Squares Line checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Mass", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Mass", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("have.attr", "disabled")
     cy.get("[data-testid=adornment-checkbox-lsrl]").click()
@@ -401,7 +401,7 @@ context("Graph adornments", () => {
   })
   it("adds movable labels for univariate measures to graph when Show Measure Labels checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-mean]").click()
     cy.get("[data-testid=adornment-checkbox-show-measure-labels]").click()
@@ -446,8 +446,8 @@ context("Graph adornments", () => {
       })
   it("adds movable line to graph when Movable Line checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     graph.getDisplayValuesButton().click()
 
     graph.getInspectorPalette().should("be.visible")
@@ -487,8 +487,8 @@ context("Graph adornments", () => {
   })
   it.skip("locks intercept of LSRL and movable line when Lock Intercept checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-intercept-locked]").find("input")
       .should("not.be.checked").should("have.attr", "disabled")
@@ -522,8 +522,8 @@ context("Graph adornments", () => {
   })
   it("adds movable point to graph when Movable Point checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     graph.getDisplayValuesButton().click()
 
     graph.getInspectorPalette().should("be.visible")
@@ -559,8 +559,8 @@ context("Graph adornments", () => {
   })
   it("adds plotted function UI to graph when Plotted Function checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Mass", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Mass", "left")
     cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
     graph.getDisplayValuesButton().click()
 
@@ -610,8 +610,8 @@ context("Graph adornments", () => {
   })
   it("allows adding a plotted function to the graph by entering a value into the plotted function UI", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Mass", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Mass", "left")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").click()
     cy.get("[data-testid=graph-adornments-grid]").should("exist")
@@ -646,7 +646,7 @@ context("Graph adornments", () => {
   })
   it("adds plotted value UI to graph when Plotted Value checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
     graph.getDisplayValuesButton().click()
 
@@ -697,7 +697,7 @@ context("Graph adornments", () => {
   })
   it("allows adding a plotted value to the graph by entering a value into the plotted value UI", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-otherValues]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-value]").click()
@@ -718,7 +718,7 @@ context("Graph adornments", () => {
   })
   it("shows a plotted value error when incorrect formula is used", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-otherValues]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-value]").click()
@@ -740,7 +740,7 @@ context("Graph adornments", () => {
   })
   it("removes plotted value from the graph when both x and y axes are set to numeric attributes", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-otherValues]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-value]").click()
@@ -760,7 +760,7 @@ context("Graph adornments", () => {
   })
   it("adds movable value to graph when Movable Value button is clicked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
 
     graph.getInspectorPalette().should("be.visible")
@@ -805,7 +805,7 @@ context("Graph adornments", () => {
 
   it("renders Count adornment count per region defined by Movable Values", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-count-count]").click()
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
@@ -818,8 +818,8 @@ context("Graph adornments", () => {
   })
   it("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     graph.getDisplayValuesButton().click()
 
     graph.getInspectorPalette().should("be.visible")
@@ -859,8 +859,8 @@ context("Graph adornments", () => {
 
   it("adds connecting lines to the plot when the Connecting Lines checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "x")
-    cy.dragAttributeToTarget("table", "Speed", "y")
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "left")
     graph.getDisplayValuesButton().click()
 
     graph.getInspectorPalette().should("be.visible")

@@ -3,25 +3,27 @@
  */
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {GeoJSON} from "leaflet"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
-import {IMapLayerModel, MapLayerModel} from "./map-layer-model"
 import {IDataSet} from "../../../models/data/data-set"
+import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
+import {kMapPolygonLayerType} from "../map-types"
 import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
-import {DataConfigurationModel} from "../../data-display/models/data-configuration-model"
-
-export const kMapPolygonLayerType = "mapPolygonLayer"
+import {MapLayerModel} from "./map-layer-model"
 
 export const MapPolygonLayerModel = MapLayerModel
   .named('MapPolygonLayerModel')
   .props({
     type: types.optional(types.literal(kMapPolygonLayerType), kMapPolygonLayerType),
-    dataConfiguration: types.optional(DataConfigurationModel, () => DataConfigurationModel.create()),
   })
   .volatile(() => ({
     features: [] as GeoJSON[]
   }))
   .actions(self => ({
-    setDataset(dataSet:IDataSet) {
+    afterCreate() {
+      // Set pointSizeMultiplier to -1 so that DisplayItemFormatControlPanel knows it's a polygon
+      self.displayItemDescription.setPointSizeMultiplier(-1)
+    },
+    setDataset(dataSet: IDataSet) {
       const boundaryId = boundaryAttributeFromDataSet(dataSet)
       self.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
       self.dataConfiguration.setAttribute('polygon', {attributeID: boundaryId})
@@ -29,13 +31,17 @@ export const MapPolygonLayerModel = MapLayerModel
 
   }))
   .views(self => ({
+    get polygonDescription() {
+      return self.displayItemDescription
+    }
   }))
 
-export interface IMapPolygonLayerModel extends Instance<typeof MapPolygonLayerModel> {}
-
-export interface IMapPolygonLayerModelSnapshot extends SnapshotIn<typeof MapPolygonLayerModel> {}
-
-export function isMapPolygonLayerModel(layerModel?: IMapLayerModel): layerModel is IMapPolygonLayerModel {
-  return layerModel?.type === kMapPolygonLayerType
+export interface IMapPolygonLayerModel extends Instance<typeof MapPolygonLayerModel> {
 }
 
+export interface IMapPolygonLayerModelSnapshot extends SnapshotIn<typeof MapPolygonLayerModel> {
+}
+
+export function isMapPolygonLayerModel(layerModel?: IDataDisplayLayerModel): layerModel is IMapPolygonLayerModel {
+  return layerModel?.type === kMapPolygonLayerType
+}

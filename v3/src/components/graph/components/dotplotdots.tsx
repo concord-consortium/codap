@@ -1,6 +1,7 @@
 import {max, range, ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useCallback, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import * as PIXI from "pixi.js"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
@@ -14,7 +15,7 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {setPointCoordinates} from "../utilities/graph-utils"
-import {IPixiPointMetadata} from "../utilities/pixi-points"
+import {circleAnchor, hBarAnchor, IPixiPointMetadata, vBarAnchor} from "../utilities/pixi-points"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
   const {pixiPointsRef} = props,
@@ -141,7 +142,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           category: string, extraCategory: string,
           extraPrimaryCategory: string, indexInBin: number
         }> = {},
-        { plotWidth, plotHeight } = layout
+        { plotHeight } = layout
       let overlap = 0
 
       function computeBinPlacements() {
@@ -226,8 +227,8 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         indices: Record<string, number>
       }
       const subPlotDetails = new Map<string, ISubPlotDetails>()
-      const getSubPlotDetails = (anID: string) => {
-        const subPlotKey = dataConfig?.subPlotKey(anID) ?? {}
+      dataset?.cases.forEach(aCase => {
+        const subPlotKey = dataConfig?.subPlotKey(aCase.__id__) ?? {}
         const subPlotMapKey = JSON.stringify(subPlotKey)
         let details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
         if (!details) {
@@ -237,15 +238,21 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
           details = { cases, indices }
           subPlotDetails.set(subPlotMapKey, details)
         }
-        return { subPlotKey, casesInCategory: details.cases, caseIndex: details.indices[anID] }
+      })
+
+      const getSubPlotDetails = (anID: string) => {
+        const subPlotKey = dataConfig?.subPlotKey(anID) ?? {}
+        const subPlotMapKey = JSON.stringify(subPlotKey)
+        const details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
+        return { subPlotKey, casesInCategory: details?.cases ?? [], caseIndex: details?.indices[anID] ?? -1 }
       }
     
-      const getBarStaticDimension = (anID: string) => {
-        // This function determines how much space is available for each bar on the non-primary axis
-        // by dividing the length of the non-primary axis by the number of cases in the plot.
-        const { casesInCategory } = getSubPlotDetails(anID)
-        const dimension = primaryIsBottom ? plotHeight : plotWidth
-        return casesInCategory.length ? dimension / numExtraSecondaryBands / casesInCategory.length : 0
+      const getBarStaticDimension = () => {
+        // This function determines how much space is available for each bar on the non-primary axis by dividing the
+        // length of the non-primary axis by the number of cases in the subplot containing the most cases. This keeps
+        // the bars a uniform size across subplots.
+        const largestSubplotCount = Math.max(...Array.from(subPlotDetails.values()).map(sp => sp.cases.length))
+        return largestSubplotCount ? secondaryBandwidth / largestSubplotCount : 0
       }
     
       const getBarValueDimension = (anID: string) => {
@@ -261,12 +268,20 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
-        const barDimension = getBarStaticDimension(anID)
-        const { caseIndex } = getSubPlotDetails(anID)
-        const { extraCategory: extraSecondaryCat } = binMap[anID]
-        const extraCoord = !!extraSecondaryCat && extraSecondaryCat !== '__main__'
-          ? (extraSecondaryAxisScale(extraSecondaryCat) ?? 0) : 0
-        return caseIndex >= 0 ? caseIndex * barDimension + extraCoord : 0
+        const { caseIndex, casesInCategory } = getSubPlotDetails(anID)
+        const barDimension = getBarStaticDimension()
+        const { category, extraCategory } = binMap[anID]
+        const secondaryCoord = category && category !== '__main__' ? (secondaryAxisScale(category) ?? 0) : 0
+        const extraSecondaryCoord = extraCategory && extraCategory !== '__main__'
+          ? (extraSecondaryAxisScale(extraCategory) ?? 0)
+          : 0
+      
+        // Adjusted bar position accounts for the bar's index, dimension, and additional offsets.
+        const adjustedBarPosition = caseIndex >= 0 ? caseIndex * barDimension + secondaryCoord + extraSecondaryCoord : 0
+      
+        // Calculate the centered position by adjusting for the collective dimension of all bars in the subplot
+        const collectiveDimension = barDimension * (casesInCategory.length ?? 0)
+        return (adjustedBarPosition - collectiveDimension / 2) + secondaryBandwidth / 2
       }
 
       const getPrimaryScreenCoord = (anID: string) => {
@@ -294,18 +309,33 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       const getLegendColor = dataConfig?.attributeID('legend')
         ? dataConfig?.getLegendColorForCase : undefined
 
+      const anchor = pointDisplayType === "bars"
+        ? primaryIsBottom ? hBarAnchor : vBarAnchor
+        : circleAnchor
+
       setPointCoordinates({
-        dataset, pointRadius: graphModel.getPointRadius(),
+        pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
-        pointDisplayType, getWidth, getHeight, barOrientation: primaryIsBottom ? "horizontal" : "vertical"
+        pointDisplayType, getWidth, getHeight, anchor
       })
     },
     [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
       primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
 
   usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+
+  // respond to point size change because we have to change the stacking
+  useEffect(function respondToGraphPointVisualAction() {
+    return mstReaction(() => {
+        const { pointSizeMultiplier } = graphModel.pointDescription
+        return pointSizeMultiplier
+      },
+      () => refreshPointPositions(false),
+      {name: "respondToGraphPointVisualAction"}, graphModel
+    )
+  }, [graphModel, refreshPointPositions])
 
   return (
     <></>
