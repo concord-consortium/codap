@@ -60,7 +60,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
             : undefined
           if (!func) return errorResult(`Unsupported action: ${a}/${type}`)
 
-          return func?.(resources) ?? errorResult("Action handler returned undefined.")
+          return func?.(resources, action.values) ?? errorResult("Action handler returned undefined.")
         }
         if (Array.isArray(request)) {
           result = request.map(action => processAction(action))
