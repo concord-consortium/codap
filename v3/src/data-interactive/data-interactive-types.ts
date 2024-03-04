@@ -88,10 +88,11 @@ interface DIBaseHandler {
   create?: DIHandlerFn
   update?: DIHandlerFn
   delete?: DIHandlerFn
+  notify?: DIHandlerFn
 }
 
 export type ActionName = "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister"
-export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete">
+export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete" | "notify">
 
 export type maybeString = string | null
 export interface DIResourceSelector {
@@ -108,3 +109,11 @@ export interface DIResourceSelector {
   logMessage?: maybeString
   type?: maybeString
 }
+
+export interface DIAction {
+  action: ActionName
+  resource: string
+  values?: DIValues
+}
+export type DIRequest = DIAction | DIAction[]
+export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
