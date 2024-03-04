@@ -31,16 +31,32 @@ export interface DIResources {
 }
 
 export interface DIValues {
+  blockDisplayOfEmptyCategories?: boolean
+  _categoryMap?: unknown
+  cid?: string
+  defaultMax?: number
+  defaultMin?: number
+  deleteable?: boolean
+  deletedFormula?: string
+  description?: string
   dimensions?: {
     height?: number
     width?: number
   }
+  editable?: boolean
   externalUndoAvailable?: boolean
+  formula?: string
+  guid?: string
+  hidden?: boolean
   name?: string
+  precision?: number
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
+  renameable?: boolean
   standaloneUndoModeAvailable?: boolean
   title?: string
+  type?: string
+  unit?: string
   version?: string
 }
 
@@ -49,12 +65,12 @@ export interface DIMetadata {
 }
 
 interface DISuccessResult {
-  success: true
-  values?: unknown
+  success: boolean
+  values?: DIValues
 }
 
 interface DIErrorResult {
-  success: false
+  success: boolean
   values?: {
     error: string
   }

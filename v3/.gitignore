@@ -10,6 +10,7 @@ npm-error.log
 .nyc_output
 .yalc
 yalc.lock
+*no-git*
 
 # Editors
 .idea
