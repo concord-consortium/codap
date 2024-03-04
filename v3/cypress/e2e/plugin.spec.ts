@@ -11,7 +11,7 @@ context("codap plugins", () => {
       toolbar.getOptionsButton().click()
       toolbar.getWebViewButton().click()
       WebViewTileElements.enterUrl(url)
-      cy.wait(15000)
+      cy.wait(1000)
       WebViewTileElements.getTitle().should("contain.text", "CODAP API Tester")
   })
 })
