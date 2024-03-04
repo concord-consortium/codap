@@ -12,6 +12,8 @@ import {MapInterior} from "./map-interior"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {DroppableMapArea} from "./droppable-map-area"
 import {IDataSet} from "../../../models/data/data-set"
+import {isMapPointLayerModel} from "../models/map-point-layer-model"
+import {MapGridSlider} from "./map-grid-slider"
 
 import 'leaflet/dist/leaflet.css'
 import "./map.scss"
@@ -60,6 +62,12 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     }
   }) // no dependencies so it runs after every render
 
+  const renderSliderIfAppropriate = useCallback(() => {
+    if (mapModel.layers.some(layer => isMapPointLayerModel(layer) && layer.gridModel.isVisible)) {
+      return <MapGridSlider mapModel={mapModel} mapRef={mapRef}/>
+    }
+  }, [mapModel, mapRef])
+
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
@@ -77,6 +85,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
           <MapInterior/>
         </MapContainer>
       </div>
+      {renderSliderIfAppropriate()}
       <DroppableMapArea
         mapElt={mapRef.current}
         targetElt={interiorDivRef.current}

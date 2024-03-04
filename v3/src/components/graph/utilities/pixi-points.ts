@@ -171,12 +171,13 @@ export class PixiPoints {
     this.startRendering()
   }
 
-  get isZeroSize() {
-    return this.background.width === 0 || this.background.height === 0
+  setVisibility(isVisible: boolean) {
+    this.pointsContainer.visible = isVisible
+    this.startRendering()
   }
 
-  setZeroSize() {
-    this.resize(0, 0)
+  get isVisible() {
+    return this.pointsContainer.visible
   }
 
   startRendering() {

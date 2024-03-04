@@ -1,3 +1,5 @@
+import {singular} from "pluralize"
+import {translate} from "../../../utilities/translation/translate"
 import {LatLngBounds, latLngBounds} from 'leaflet'
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {IDataSet} from "../../../models/data/data-set"
@@ -135,4 +137,32 @@ export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
     southWest = {lat: center.lat - newLatDelta / 2, lng: center.lng - newLngDelta / 2},
     northEast = {lat: center.lat + newLatDelta / 2, lng: center.lng + newLngDelta / 2}
   return latLngBounds([southWest, northEast])
+}
+
+export const getCaseCountString = (dataset: IDataSet, latLngAttrID:string, numCases:number) => {
+  let collectionName = dataset.getCollectionForAttribute(latLngAttrID)?.name ??
+    translate('DG.DataContext.pluralCaseName')
+  collectionName = collectionName === '' ? (dataset.name ?? '') : collectionName
+  const caseName = numCases === 1 ? singular(collectionName) : collectionName
+  return translate('DG.DataContext.caseCountString', {vars: [numCases, caseName]})
+}
+
+export const getCategoryBreakdownHtml = (dataset: IDataSet, iCases: string[], iLegendAttrID: string) => {
+  const tCategories: { [key: string]: number } = {}
+  let  tTotalCount = 0,
+    tResult = ''
+  iCases.forEach((iCase) => {
+    const tValue = dataset.getStrValue(iCase, iLegendAttrID)
+    if (tValue && tValue !== '') {
+      tTotalCount++
+      if (!tCategories[ tValue]) {
+        tCategories[ tValue] = 0
+      }
+      tCategories[ tValue]++
+    }
+  })
+  Object.entries(tCategories).forEach(([cat, count]) => {
+    tResult += `<p>${cat}: ${count} (${(count / tTotalCount * 100).toFixed(1)}%)</p>`
+  })
+  return tResult
 }
