@@ -2,6 +2,7 @@ import { kCalculatorTileType } from "../../components/calculator/calculator-defs
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kDataSummaryTileType } from "../../components/data-summary/data-summary-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
+import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
 import { typedId } from "../../utilities/js-utils"
 import { urlParams } from "../../utilities/url-params"
@@ -14,7 +15,6 @@ import { getTileContentInfo } from "../tiles/tile-content-info"
 import { getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { TileModel } from "../tiles/tile-model"
 
-// const isDashboard = urlParams.dashboard !== undefined
 const isTableOnly = urlParams.tableOnly !== undefined
 
 type ILayoutOptions = IFreeTileInRowOptions | IMosaicTileInRowOptions | undefined
@@ -27,7 +27,6 @@ export function createDefaultTileOfType(tileType: string) {
   return content ? TileModel.create({ id, content }) : undefined
 }
 
-// TODO: Eliminate (or hide behind a URL parameter) default dashboard content
 export function addDefaultComponents() {
   const content = appState.document.content
   const manager = getSharedModelManager(appState.document)
@@ -97,8 +96,10 @@ export function addDefaultComponents() {
               ? { splitTileId: tableTile.id, direction: "row" }
               : { x: kFullWidth + kGap, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
       content.insertTileInRow(graphTile, row, graphOptions)
-      sharedData && manager?.addTileSharedModel(graphTile.content, sharedData)
-      caseMetadata && manager?.addTileSharedModel(graphTile.content, caseMetadata)
+      if (isGraphContentModel(graphTile.content)) {
+        const dataConfiguration = graphTile.content.layers[0]?.dataConfiguration
+        dataConfiguration.setDataset(sharedData?.dataSet, caseMetadata)
+      }
     }
   }
 }

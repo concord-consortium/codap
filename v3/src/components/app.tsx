@@ -4,7 +4,7 @@ import { CodapDndContext } from "./codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kCodapAppElementId } from "./constants"
-import { importV2Document } from "./import-v2-document"
+import { importV2Document } from "../v2/import-v2-document"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/use-cloud-file-manager"
 import { appState } from "../models/app-state"
@@ -88,9 +88,9 @@ export const App = observer(function App() {
           }
         }
         else if (isDashboard) {
+          // we have to create a new starter data set only if none is imported to show the dashboard
           appState.document.content?.createStarterDataset()
         }
-        // we have to create a new starter data set only if none is imported to show the dashboard
         if (isDashboard) {
           addDefaultComponents()
         }

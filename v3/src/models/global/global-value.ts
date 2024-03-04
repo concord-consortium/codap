@@ -1,4 +1,4 @@
-import {Instance, types} from "mobx-state-tree"
+import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 
 export const kDefaultNamePrefix = "v"
@@ -38,3 +38,4 @@ export const GlobalValue = types.model("GlobalValue", {
     }
   }))
 export interface IGlobalValue extends Instance<typeof GlobalValue> {}
+export interface IGlobalValueSnapshot extends SnapshotIn<typeof GlobalValue> {}

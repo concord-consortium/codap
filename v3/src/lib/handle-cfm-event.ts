@@ -2,7 +2,7 @@ import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-co
 import { appState } from "../models/app-state"
 import { isCodapV2Document } from "../v2/codap-v2-types"
 import { CodapV2Document } from "../v2/codap-v2-document"
-import { importV2Document } from "../components/import-v2-document"
+import { importV2Document } from "../v2/import-v2-document"
 import { wrapCfmCallback } from "./cfm-utils"
 
 import build from "../../build_number.json"

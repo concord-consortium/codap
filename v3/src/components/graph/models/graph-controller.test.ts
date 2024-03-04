@@ -1,5 +1,5 @@
 import { applySnapshot, getSnapshot, SnapshotIn, types } from "mobx-state-tree"
-import { GraphContentModel, createGraphContentModel } from "./graph-content-model"
+import { GraphContentModel } from "./graph-content-model"
 import { GraphController } from "./graph-controller"
 import { GraphLayout } from "./graph-layout"
 import { DataSet } from "../../../models/data/data-set"
@@ -28,7 +28,7 @@ jest.mock("../../data-display/data-display-utils", () => ({
 describe("GraphController", () => {
 
   const Tree = types.model("Tree", {
-    model: types.optional(GraphContentModel, () => createGraphContentModel()),
+    model: types.optional(GraphContentModel, () => GraphContentModel.create()),
     data: types.optional(DataSet, () => DataSet.create({
       attributes: [
         { id: "xId", name: "x", values: ["1", "2", "3"] },

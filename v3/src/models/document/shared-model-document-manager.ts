@@ -1,5 +1,5 @@
 import { action, computed, makeObservable, observable } from "mobx"
-import { getParentOfType, hasParentOfType, IAnyStateTreeNode } from "mobx-state-tree"
+import { getParentOfType, hasParentOfType, IAnyStateTreeNode, Instance } from "mobx-state-tree"
 import { IDocumentContentModel } from "./document-content"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { ISharedModelManager } from "../shared/shared-model-manager"
@@ -41,6 +41,10 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
 
   setDocument(document: IDocumentContentModel) {
     this.document = document
+  }
+
+  getSharedModelById<OT extends Instance<typeof SharedModel>>(id: string): OT | undefined {
+    return this.document?.sharedModelMap.get(id)?.sharedModel as OT | undefined
   }
 
   findFirstSharedModelByType<IT extends typeof SharedModel>(

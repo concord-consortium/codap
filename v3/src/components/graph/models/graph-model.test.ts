@@ -8,7 +8,7 @@ describe('GraphContentModel', () => {
     const graphModel = GraphContentModel.create()
     expect(graphModel.type).toBe(kGraphTileType)
     expect(graphModel.adornmentsStore.adornments.length).toBe(0)
-    expect(graphModel.axes.size).toBe(0)
+    expect(graphModel.axes.size).toBe(2)
     expect(graphModel.plotType).toBe('casePlot')
     expect(graphModel.dataConfiguration).toBeTruthy()
     expect(graphModel.pointDescription._itemColors).toStrictEqual([defaultPointColor])

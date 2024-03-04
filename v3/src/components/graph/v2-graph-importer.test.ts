@@ -1,26 +1,57 @@
-// import { getType } from "mobx-state-tree"
+import { getType } from "mobx-state-tree"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
+import { DataSet } from "../../models/data/data-set"
+import { DocumentContentModel, IDocumentContentModel } from "../../models/document/document-content"
+import { FreeTileRow } from "../../models/document/free-tile-row"
+import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
+import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import {isGraphContentModel} from "./models/graph-content-model"
-// import { CategoricalAxisModel, EmptyAxisModel, NumericAxisModel } from "../axis/models/axis-model"
+import { IGraphPointLayerModel } from "./models/graph-point-layer-model"
 import { v2GraphImporter } from "./v2-graph-importer"
 import "./graph-registration"
 
 const fs = require("fs")
 const path = require("path")
 
+function firstGraphComponent(v2Document: CodapV2Document) {
+  return v2Document.components.find(c => c.type === "DG.GraphView")!
+}
+
 function graphComponentWithTitle(v2Document: CodapV2Document, title: string) {
   return v2Document.components.find(c => c.componentStorage.title === title)!
 }
 
 describe("V2GraphImporter", () => {
-  const file = path.join(__dirname, "../../test/v2", "mammals-graphs.codap")
-  const mammalsJson = fs.readFileSync(file, "utf8")
+  const mammalsFile = path.join(__dirname, "../../test/v2", "mammals-graphs.codap")
+  const mammalsJson = fs.readFileSync(mammalsFile, "utf8")
   const mammalsDoc = JSON.parse(mammalsJson) as ICodapV2DocumentJson
-  const v2Document = new CodapV2Document(mammalsDoc)
-  const mockInsertTile = jest.fn()
+
+  let v2Document: CodapV2Document
+  let docContent: IDocumentContentModel | undefined
+  let sharedModelManager: SharedModelDocumentManager | undefined
+  const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+    const tile = docContent!.insertTileSnapshotInDefaultRow(tileSnap)
+    return tile
+  })
 
   beforeEach(() => {
+    v2Document = new CodapV2Document(mammalsDoc)
+    sharedModelManager = new SharedModelDocumentManager()
+    docContent = DocumentContentModel.create({}, { sharedModelManager })
+    docContent.setRowCreator(() => FreeTileRow.create())
+    sharedModelManager.setDocument(docContent)
+
+    // load shared models into sharedModelManager
+    v2Document.contexts.forEach(({ guid }) => {
+      const { data, metadata } = v2Document.getDataAndMetadata(guid)
+      data && sharedModelManager!.addSharedModel(data)
+      metadata?.setData(data?.dataSet)
+      metadata && sharedModelManager!.addSharedModel(metadata)
+    })
+
     mockInsertTile.mockClear()
   })
 
@@ -35,27 +66,55 @@ describe("V2GraphImporter", () => {
     expect(graphModel).not.toBeDefined()
   })
 
+  it("imports empty graph with no data set", () => {
+    const emptyGraphFile = path.join(__dirname, "../../test/v2", "graph-no-data.codap")
+    const emptyGraphJson = fs.readFileSync(emptyGraphFile, "utf8")
+    const emptyGraphDoc = JSON.parse(emptyGraphJson) as ICodapV2DocumentJson
+
+    v2Document = new CodapV2Document(emptyGraphDoc)
+    sharedModelManager = new SharedModelDocumentManager()
+    docContent = DocumentContentModel.create({}, { sharedModelManager })
+    docContent.setRowCreator(() => FreeTileRow.create())
+    sharedModelManager.setDocument(docContent)
+
+    const tile = v2GraphImporter({
+      v2Component: firstGraphComponent(v2Document),
+      v2Document,
+      insertTile: mockInsertTile
+    })
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+    expect(graphModel).toBeDefined()
+    expect(graphModel!.plotType).toBe("casePlot")
+    expect(graphModel!.axes.size).toBe(2)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("empty")
+    expect(graphModel!.axes.get("left")?.type).toBe("empty")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBeUndefined()
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(0)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(0)
+  })
+
   it("imports empty graphs", () => {
-    /* const tile = */ v2GraphImporter({
+    const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "Empty"),
       v2Document,
       insertTile: mockInsertTile
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
-/*
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-    expect(graphModel?.plotType).toBe("casePlot")
-    expect(graphModel?.axes.size).toBe(2)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(EmptyAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(EmptyAxisModel)
-    expect(graphModel?.config.primaryRole).toBeUndefined()
-    expect(graphModel?.config._attributeDescriptions.size).toBe(0)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(0)
-*/
+    expect(graphModel!.plotType).toBe("casePlot")
+    expect(graphModel!.axes.size).toBe(2)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("empty")
+    expect(graphModel!.axes.get("left")?.type).toBe("empty")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBeUndefined()
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(0)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(0)
   })
 
-  it("imports numeric X graphs", () => {
+  it("imports numeric X graphs", done => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "NumX"),
       v2Document,
@@ -64,18 +123,28 @@ describe("V2GraphImporter", () => {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-/*
-    expect(graphModel?.plotType).toBe("dotPlot")
-    expect(graphModel?.axes.size).toBe(2)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(NumericAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(EmptyAxisModel)
-    expect(graphModel?.config.primaryRole).toBe("x")
-    expect(graphModel?.config._attributeDescriptions.size).toBe(1)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(0)
-*/
+    expect(graphModel!.plotType).toBe("dotPlot")
+    expect(graphModel!.axes.size).toBe(2)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("numeric")
+    expect(graphModel!.axes.get("left")?.type).toBe("empty")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBe("x")
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(1)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(0)
+
+    expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
+
+    // wait a beat for reactions to run
+    setTimeout(() => {
+      expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
+      expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
+      done()
+    })
   })
 
-  it("imports numeric Y graphs", () => {
+  it("imports numeric Y graphs", done => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "NumY"),
       v2Document,
@@ -84,18 +153,28 @@ describe("V2GraphImporter", () => {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-/*
-    expect(graphModel?.plotType).toBe("dotPlot")
-    expect(graphModel?.axes.size).toBe(2)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(EmptyAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(NumericAxisModel)
-    expect(graphModel?.config.primaryRole).toBe("y")
-    expect(graphModel?.config._attributeDescriptions.size).toBe(0)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(1)
-*/
+    expect(graphModel!.plotType).toBe("dotPlot")
+    expect(graphModel!.axes.size).toBe(2)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("empty")
+    expect(graphModel!.axes.get("left")?.type).toBe("numeric")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBe("y")
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(0)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
+
+    expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
+
+    // wait a beat for reactions to run
+    setTimeout(() => {
+      expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
+      expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
+      done()
+    })
   })
 
-  it("imports split double-Y graphs", () => {
+  it("imports split double-Y graphs", done => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "2NumXNumYLegendCatRight"),
       v2Document,
@@ -104,19 +183,29 @@ describe("V2GraphImporter", () => {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-/*
-    expect(graphModel?.plotType).toBe("scatterPlot")
-    expect(graphModel?.axes.size).toBe(3)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(NumericAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(NumericAxisModel)
-    expect(getType(graphModel?.axes.get("rightNumeric"))).toBe(NumericAxisModel)
-    expect(graphModel?.config.primaryRole).toBe("x")
-    expect(graphModel?.config._attributeDescriptions.size).toBe(3)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(2)
-*/
+    expect(graphModel!.plotType).toBe("scatterPlot")
+    expect(graphModel!.axes.size).toBe(3)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("numeric")
+    expect(graphModel!.axes.get("left")?.type).toBe("numeric")
+    expect(graphModel!.axes.get("rightNumeric")?.type).toBe("numeric")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBe("x")
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(3)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(2)
+
+    expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
+
+    // wait a beat for reactions to run
+    setTimeout(() => {
+      expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
+      expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
+      done()
+    })
   })
 
-  it("imports split dot charts", () => {
+  it("imports split dot charts", done => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "CatXCatY"),
       v2Document,
@@ -125,18 +214,28 @@ describe("V2GraphImporter", () => {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-/*
-    expect(graphModel?.plotType).toBe("dotChart")
-    expect(graphModel?.axes.size).toBe(2)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(CategoricalAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(CategoricalAxisModel)
-    expect(graphModel?.config.primaryRole).toBe("x")
-    expect(graphModel?.config._attributeDescriptions.size).toBe(1)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(1)
-*/
+    expect(graphModel!.plotType).toBe("dotChart")
+    expect(graphModel!.axes.size).toBe(2)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("categorical")
+    expect(graphModel!.axes.get("left")?.type).toBe("categorical")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBe("x")
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(1)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
+
+    expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
+
+    // wait a beat for reactions to run
+    setTimeout(() => {
+      expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
+      expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
+      done()
+    })
   })
 
-  it("imports top-split dot charts", () => {
+  it("imports top-split dot charts", done => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "CatXCatYCatTop"),
       v2Document,
@@ -145,19 +244,29 @@ describe("V2GraphImporter", () => {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-/*
-    expect(graphModel?.plotType).toBe("dotChart")
-    expect(graphModel?.axes.size).toBe(3)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(CategoricalAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(CategoricalAxisModel)
-    expect(getType(graphModel?.axes.get("top"))).toBe(CategoricalAxisModel)
-    expect(graphModel?.config.primaryRole).toBe("x")
-    expect(graphModel?.config._attributeDescriptions.size).toBe(2)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(1)
-*/
+    expect(graphModel!.plotType).toBe("dotChart")
+    expect(graphModel!.axes.size).toBe(3)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("categorical")
+    expect(graphModel!.axes.get("left")?.type).toBe("categorical")
+    expect(graphModel!.axes.get("top")?.type).toBe("categorical")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBe("x")
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(2)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
+
+    expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
+
+    // wait a beat for reactions to run
+    setTimeout(() => {
+      expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
+      expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
+      done()
+    })
   })
 
-  it("imports right-split dot charts", () => {
+  it("imports right-split dot charts", done => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "CatXCatYCatRight"),
       v2Document,
@@ -166,15 +275,25 @@ describe("V2GraphImporter", () => {
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
     expect(graphModel).toBeDefined()
-/*
-    expect(graphModel?.plotType).toBe("dotChart")
-    expect(graphModel?.axes.size).toBe(3)
-    expect(getType(graphModel?.axes.get("bottom"))).toBe(CategoricalAxisModel)
-    expect(getType(graphModel?.axes.get("left"))).toBe(CategoricalAxisModel)
-    expect(getType(graphModel?.axes.get("rightCat"))).toBe(CategoricalAxisModel)
-    expect(graphModel?.config.primaryRole).toBe("x")
-    expect(graphModel?.config._attributeDescriptions.size).toBe(2)
-    expect(graphModel?.config._yAttributeDescriptions.length).toBe(1)
-*/
+    expect(graphModel!.plotType).toBe("dotChart")
+    expect(graphModel!.axes.size).toBe(3)
+    expect(graphModel!.axes.get("bottom")?.type).toBe("categorical")
+    expect(graphModel!.axes.get("left")?.type).toBe("categorical")
+    expect(graphModel!.axes.get("rightCat")?.type).toBe("categorical")
+    const layer = graphModel!.layers[0] as IGraphPointLayerModel
+    expect(layer.dataConfiguration.primaryRole).toBe("x")
+    expect(layer.dataConfiguration._attributeDescriptions.size).toBe(2)
+    expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
+
+    expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
+
+    // wait a beat for reactions to run
+    setTimeout(() => {
+      expect(sharedModelManager!.getSharedModelTileIds(sharedDataSet)).toEqual([tile!.id])
+      expect(sharedModelManager!.getSharedModelTileIds(layer.dataConfiguration.metadata)).toEqual([tile!.id])
+      done()
+    })
   })
 })

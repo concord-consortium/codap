@@ -9,7 +9,7 @@ registerTileContentInfo({
   type: kDataSummaryTileType,
   prefix: "DSUM",
   modelClass: DataSummaryModel,
-  defaultContent: () => DataSummaryModel.create()
+  defaultContent: () => ({ type: kDataSummaryTileType })
 })
 
 registerTileComponentInfo({

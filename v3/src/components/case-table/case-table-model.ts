@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -45,6 +45,7 @@ export const CaseTableModel = TileContentModel
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
+export interface ICaseTableSnapshot extends SnapshotIn<typeof CaseTableModel> {}
 
 export function isCaseTableModel(model?: ITileContentModel): model is ICaseTableModel {
   return model?.type === kCaseTableTileType

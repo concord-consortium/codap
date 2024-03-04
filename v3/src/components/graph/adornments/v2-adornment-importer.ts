@@ -18,7 +18,7 @@ import { kPlottedValueType } from "./univariate-measures/plotted-value/plotted-v
 import { kStandardDeviationType } from "./univariate-measures/standard-deviation/standard-deviation-adornment-types"
 
 interface IProps {
-  data: Record<string, any>
+  data?: Record<string, any>
   plotModels: Record<string, any>
   attributeDescriptions: Record<string, any>
   yAttributeDescriptions: Record<string, any>
@@ -37,7 +37,7 @@ interface IInstanceKeyProps {
 }
 
 interface IInstanceKeysForAdornmentsProps {
-  data: Record<string, any>
+  data?: Record<string, any>
   attributeDescriptions: Record<string, any>
   yAttributeDescriptions: Record<string, any>
 }
@@ -61,7 +61,7 @@ const instanceKey = (props: IInstanceKeyProps) => {
   // to utilize that view instead of duplicating code here. There isn't a straightforward way to do that as part of
   // the import process. We'd need to first add the associated graph data configuration to the MobX state tree of the
   // V3 document we're creating to get accurate data from the view. That would require temporarily adding the data
-  // config to the tree before importing the graph and adornments so we could access the view, and then removing it 
+  // config to the tree before importing the graph and adornments so we could access the view, and then removing it
   // before completing the import.
   const { index, xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = props
   const rightCatCount = rightCats.length || 1
@@ -264,7 +264,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     }
     v3Adornments.push(stDevAdornmentImport)
   }
-  
+
   // MEAN ABSOLUTE DEVIATION
   const madAdornment = v2Adornments.plottedMad
   if (madAdornment) {
