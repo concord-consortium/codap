@@ -15,8 +15,7 @@ export const diAttributeHandler: DIHandler = {
   update(resources: DIResources, values?: DIValues) {
     const { attribute } = resources
     if (!attribute) return attributeNotFoundResult
-    if (values?.name !== undefined) attribute.setName(values?.name)
-    if (values?.title !== undefined) attribute.setTitle(values?.title)
+    attribute.handleUpdateRequest(values)
     return {
       success: true,
       values: {

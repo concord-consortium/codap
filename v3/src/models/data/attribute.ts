@@ -26,11 +26,12 @@
  */
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { Formula, IFormula } from "../formula/formula"
+import { DIValues } from "../../data-interactive/data-interactive-types"
 import { typedId } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
-import { withoutUndo } from "../history/without-undo"
 import { cachedFnFactory } from "../../utilities/mst-utils"
+import { t } from "../../utilities/translation/translate"
+import { Formula, IFormula } from "../formula/formula"
+import { withoutUndo } from "../history/without-undo"
 import { IAttributeArchive } from "./attribute-types"
 
 export const kDefaultFormatStr = ".3~f"
@@ -303,6 +304,13 @@ export const Attribute = types.model("Attribute", {
       self.strValues[i] = ""
       self.numValues[i] = self.toNumeric(self.strValues[i])
     }
+  }
+}))
+.actions(self => ({
+  handleUpdateRequest(values?: DIValues) {
+    withoutUndo()
+    if (values?.name !== undefined) self.setName(values?.name)
+    if (values?.title !== undefined) self.setTitle(values?.title)
   }
 }))
 .views(self => ({
