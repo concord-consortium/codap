@@ -66,8 +66,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands,
         extraSecondaryBandwidth = (extraSecondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent),
         secondarySign = primaryIsBottom ? -1 : 1,
-        baseCoord = primaryIsBottom ? secondaryMax : 0,
-        { plotHeight } = layout
+        baseCoord = primaryIsBottom ? secondaryMax : 0
 
       const binPlacementProps = {
         dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
@@ -114,14 +113,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
         const { primaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
-        // If primaryIsBottom, we simply return the primaryCoord as the width. We can't use the value returned
-        // by getPrimaryScreenCoord because it adds the extraPrimaryCoord value.
-        // If primaryIsBottom is false, we return the absolute value of the difference between the plotHeight divided
-        // by the number of extra primary bands and the primaryCoord -- primaryCoord is essentially the top of
-        // the bar, and we need to return the height from there to the bottom of the plot.
-        return primaryIsBottom
-          ? primaryCoord
-          : Math.abs(plotHeight / numExtraPrimaryBands - primaryCoord)
+        return Math.abs(primaryCoord - primaryAxisScale(0) / numExtraPrimaryBands)
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
@@ -146,7 +138,11 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
           anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: false,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
-        const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
+        let { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
+        if (pointDisplayType === "bars") {
+          const zeroCoord = primaryAxisScale(0) / numExtraPrimaryBands
+          primaryCoord = primaryIsBottom ? Math.max(primaryCoord, zeroCoord) : Math.min(primaryCoord, zeroCoord)
+        }
         return primaryCoord + extraPrimaryCoord
       }
     

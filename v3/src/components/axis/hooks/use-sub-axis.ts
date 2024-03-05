@@ -15,6 +15,8 @@ import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabel
         getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { ICaseID } from "../../../models/data/data-set-types"
+import { isGraphContentModel } from "../../graph/models/graph-content-model"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -98,12 +100,6 @@ export const useSubAxis = ({
           if (!axisModel) return
           select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>
-          if (pointDisplayType === "bars") {
-            // When displaying bars, set the domain to [0, 100]. TODO: Fix this. The domain does need to be changed for
-            // bars, but it should be based on the data, not always the same static values. Also, it would be better not
-            // to use the pointDisplayType within the axis realm.
-            numericScale.domain([0, 100])
-          }
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
           const duration = isAnimating() ? transitionDuration : 0
           if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
@@ -232,8 +228,8 @@ export const useSubAxis = ({
           renderCategoricalSubAxis()
           break
       }
-    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, pointDisplayType, axisModel, displayModel,
-        isAnimating, centerCategoryLabels, showScatterPlotGridLines]),
+    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, isAnimating, centerCategoryLabels,
+        showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
@@ -371,7 +367,19 @@ export const useSubAxis = ({
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
         if (isNumericAxisModel(_axisModel)) {
-          const {domain} = _axisModel || {}
+          let { domain } = _axisModel || {}
+          if (displayModel.pointDisplayType === "bars" && isGraphContentModel(displayModel)) {
+            // When displaying bars, the domain should start at 0 unless there are negative values.
+            const dataset = displayModel.dataConfiguration?.dataset
+            const attributeID = axisPlace === "bottom"
+              ? displayModel.getAttributeID("x")
+              : displayModel.getAttributeID("y")
+            const hasNegativeValues = dataset?.cases?.some((datum: ICaseID) => {
+              const caseValue = dataset?.getNumeric(datum.__id__, attributeID) ?? NaN
+              return caseValue < 0
+            })
+            domain = hasNegativeValues ? domain : [0, _axisModel.max]
+          }
           layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
           renderSubAxis()
         }
@@ -380,7 +388,7 @@ export const useSubAxis = ({
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
       }
     }, { name: "useSubAxis.installDomainSync" }, axisProvider)
-  }, [axisPlace, axisProvider, layout, renderSubAxis])
+  }, [axisPlace, axisProvider, displayModel, layout, renderSubAxis])
 
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {

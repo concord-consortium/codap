@@ -151,6 +151,26 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
   })
+  it("will adjust axis domain when points are changed to bars", () => {
+    // When there are no negative numeric values, such as in the case of Height, the domain for the primary
+    // axis of a univariate plot showing bars should start at zero. So for this test we essentially subtract
+    // the first tick value from arrayOfValues[3].values (i.e. -0.5) to test that the domain starts at zero
+    // when the display type changes to bars.
+    const arrayOfBarValues = [...arrayOfValues[3].values].slice(0, 16)
+    cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
+    cy.wait(500)
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+    cy.get("[data-testid=graph-display-config-button").click()
+    cy.wait(500)
+    cy.get("[data-testid=bars-radio-button]").click()
+    cy.wait(500)
+    ah.verifyAxisTickLabels("bottom", arrayOfBarValues)
+    cy.wait(500)
+    cy.get("[data-testid=points-radio-button]").click()
+    cy.wait(500)
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+  })
 })
 
 context("Test graph axes attribute menu", () => {

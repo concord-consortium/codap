@@ -208,7 +208,7 @@ export const GraphContentModel = DataDisplayContentModel
             role = axisPlaceToAttrRole[axisPlace]
           if (isNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
-            setNiceDomain(numericValues, axis)
+            setNiceDomain(numericValues, axis, self.pointDisplayType)
           }
         })
       }

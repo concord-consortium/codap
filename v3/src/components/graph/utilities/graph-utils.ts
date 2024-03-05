@@ -73,10 +73,16 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], axisModel: IAxisModel) {
+export function setNiceDomain(values: number[], axisModel: IAxisModel, pointDisplayType?: PointDisplayType) {
   if (isNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
-    const {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
+    let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
+    if (pointDisplayType === "bars") {
+      // When displaying bars, the domain should start at 0 unless there are negative values.
+      if (minValue >= 0) {
+        niceMin = 0
+      }
+    }
     axisModel.setDomain(niceMin, niceMax)
   }
 }
