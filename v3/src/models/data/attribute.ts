@@ -31,6 +31,7 @@ import { typedId } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { withoutUndo } from "../history/without-undo"
 import { cachedFnFactory } from "../../utilities/mst-utils"
+import { IAttributeArchive } from "./attribute-types"
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -209,6 +210,9 @@ export const Attribute = types.model("Attribute", {
   setName(newName: string) {
     self.name = newName
   },
+  setTitle(newTitle: string) {
+    self.title = newTitle
+  },
   setUnits(units: string) {
     self.units = units
   },
@@ -302,7 +306,7 @@ export const Attribute = types.model("Attribute", {
   }
 }))
 .views(self => ({
-  get toArchive() {
+  get toArchive(): IAttributeArchive {
     return {
       name: self.name,
       type: self.type, // TODO This won't return "none", which v2 sometimes does

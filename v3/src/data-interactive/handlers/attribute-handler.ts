@@ -1,18 +1,31 @@
-import { DIHandler, DIResources, diNotImplementedYet } from "../data-interactive-types"
+import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { registerDIHandler } from "../data-interactive-handler"
 
+const attributeNotFoundResult = {success: false, values: {error: 'Attribute not found'}}
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
     const { attribute } = resources
-    return attribute
-      ? {
-          success: true,
-          values: attribute.toArchive
-        }
-      : {success: false, values: {error: 'Attribute not found'}}
+    if (!attribute) return attributeNotFoundResult
+    return {
+      success: true,
+      values: attribute.toArchive
+    }
   },
   create: diNotImplementedYet,
-  update: diNotImplementedYet,
+  update(resources: DIResources, values?: DIValues) {
+    const { attribute } = resources
+    if (!attribute) return attributeNotFoundResult
+    if (values?.name !== undefined) attribute.setName(values?.name)
+    if (values?.title !== undefined) attribute.setTitle(values?.title)
+    return {
+      success: true,
+      values: {
+        attrs: [
+          attribute.toArchive
+        ]
+      }
+    }
+  },
   delete: diNotImplementedYet
 }
 

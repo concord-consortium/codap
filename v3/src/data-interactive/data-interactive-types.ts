@@ -1,9 +1,10 @@
 import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
+import { IAttributeArchive } from "../models/data/attribute-types"
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICollectionModel } from "../models/data/collection"
 
 export type DICase = unknown
 export type DIComponent  = unknown
@@ -31,6 +32,7 @@ export interface DIResources {
 }
 
 export interface DIValues {
+  attrs?: IAttributeArchive[]
   blockDisplayOfEmptyCategories?: boolean
   _categoryMap?: unknown
   cid?: string
