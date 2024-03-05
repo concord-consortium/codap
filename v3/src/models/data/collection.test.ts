@@ -93,6 +93,8 @@ describe("CollectionModel", () => {
     expect(collection.getAttributeIndex("a")).toBe(1)
     collection.removeAttribute("b")
     expect(collection.attributes.length).toBe(1)
+    expect(collection.getAttributeByName("a")).toBeDefined()
+    expect(collection.getAttributeByName("b")).toBeUndefined()
     collection.removeAttribute("a")
     expect(collection.attributes.length).toBe(0)
   })

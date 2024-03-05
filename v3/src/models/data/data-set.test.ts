@@ -611,6 +611,7 @@ test("DataSet collection helpers", () => {
   expect(ds.getCollection(ds.collections[0].id)).toBeDefined()
   expect(ds.getCollectionIndex(ds.collections[0].id)).toEqual(0)
   expect(ds.getCollectionForAttribute(ds.attributes[0].id)).toBe(ds.collections[0])
+  expect(ds.getCollectionByName(ds.collections[0].name)).toBeDefined()
 
   // Test collection helpers using the the ungrouped collection stand-in. It's not considered be a grouped collection,
   // but other collection-related helpers handle it as expected.
