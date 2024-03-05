@@ -1,5 +1,5 @@
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
-import { ITileModel } from "../models/tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
 import { CodapV2Document } from "./codap-v2-document"
 import { ICodapV2BaseComponent } from "./codap-v2-types"
 
@@ -14,7 +14,7 @@ export interface V2TileImportArgs {
   v2Document: CodapV2Document
   sharedModelManager?: ISharedModelManager
   // function to call to insert the imported tile into the document
-  insertTile: (tile: ITileModel) => void
+  insertTile: (tileSnap: ITileModelSnapshotIn) => ITileModel | undefined
 }
 export type V2TileImportFn = (args: V2TileImportArgs) => ITileModel | undefined
 

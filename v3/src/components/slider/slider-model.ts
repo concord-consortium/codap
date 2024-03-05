@@ -1,5 +1,5 @@
 import { reaction } from "mobx"
-import { addDisposer, Instance, types} from "mobx-state-tree"
+import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { INumericAxisModel, NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { applyUndoableAction } from "../../models/history/apply-undoable-action"
@@ -174,6 +174,7 @@ export const SliderModel = TileContentModel
   .actions(applyUndoableAction)
 
 export interface ISliderModel extends Instance<typeof SliderModel> {}
+export interface ISliderSnapshot extends SnapshotIn<typeof SliderModel> {}
 
 export function isSliderModel(model?: ITileContentModel): model is ISliderModel {
   return model?.type === kSliderTileType

@@ -6,7 +6,7 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
-import { ITileModel, TileModel } from "../tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, toCanonical } from "../data/data-set"
@@ -60,12 +60,12 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
     },
-    createDefaultTileOfType(tileType: string) {
+    createDefaultTileSnapshotOfType(tileType: string): ITileModelSnapshotIn | undefined {
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)
       const id = typedId(info?.prefix || "TILE")
       const content = info?.defaultContent({ env })
-      return content ? TileModel.create({ id, content }) : undefined
+      return content ? { id, content } : undefined
     }
   }))
   .actions(self => ({
@@ -76,20 +76,22 @@ export const DocumentContentModel = BaseDocumentContentModel
       const height = componentInfo.defaultHeight
       const row = self.getRowByIndex(0)
       if (row) {
-        const newTile = self.createDefaultTileOfType(tileType)
-        if (newTile) {
+        const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType)
+        if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
             const {x, y} = getPositionOfNewComponent(newTileSize)
             const tileOptions = { x, y, width, height }
-            self.insertTileInRow(newTile, row, tileOptions)
-            const rowTile = row.tiles.get(newTile.id)
-            if (componentInfo.defaultWidth && componentInfo.defaultHeight) {
-              rowTile?.setSize(componentInfo.defaultWidth,  componentInfo.defaultHeight + kTitleBarHeight)
-              rowTile?.setPosition(tileOptions.x, tileOptions.y)
+            const newTile = self.insertTileSnapshotInRow(newTileSnapshot, row, tileOptions)
+            if (newTile) {
+              const rowTile = row.tiles.get(newTile.id)
+              if (componentInfo.defaultWidth && componentInfo.defaultHeight) {
+                rowTile?.setSize(componentInfo.defaultWidth,  componentInfo.defaultHeight + kTitleBarHeight)
+                rowTile?.setPosition(tileOptions.x, tileOptions.y)
+              }
+              return newTile
             }
           }
-          return newTile
         }
       }
     }

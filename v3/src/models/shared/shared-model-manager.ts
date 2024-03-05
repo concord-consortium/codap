@@ -1,5 +1,5 @@
 
-import { IAnyStateTreeNode, types } from "mobx-state-tree"
+import { IAnyStateTreeNode, Instance, types } from "mobx-state-tree"
 import { kUnknownSharedModel, SharedModel, ISharedModel } from "./shared-model"
 import { getSharedModelClasses, getSharedModelInfoByType } from "./shared-model-registry"
 
@@ -55,6 +55,13 @@ export interface ISharedModelManager {
    * The manager might be available, but is not ready to be used yet.
    */
   get isReady(): boolean;
+
+  /**
+   * Retrieve the shared model with the specified id.
+   *
+   * @param sharedModelType the MST model "class" of the shared model
+   */
+  getSharedModelById<OT extends Instance<typeof SharedModel>>(id: string): OT | undefined;
 
   /**
    * Find the shared model at the container level. If the tile wants to use this

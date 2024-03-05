@@ -1,6 +1,7 @@
-import React from "react"
-import {observer} from "mobx-react-lite"
 import {MenuItem, MenuList, useToast} from "@chakra-ui/react"
+import {observer} from "mobx-react-lite"
+import {isAlive} from "mobx-state-tree"
+import React from "react"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {isGraphContentModel} from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
@@ -11,7 +12,7 @@ interface IProps {
 
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const toast = useToast()
-  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+  const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfiguration = graphModel?.dataConfiguration
   const handleMenuItemClick = (menuItem: string) => {
     toast({

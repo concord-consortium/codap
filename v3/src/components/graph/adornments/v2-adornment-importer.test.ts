@@ -35,7 +35,7 @@ describe("V2AdornmentImporter", () => {
 
   it("imports graphs with no adornments", () => {
     const { _links_: links, plotModels } = emptyGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
@@ -52,7 +52,7 @@ describe("V2AdornmentImporter", () => {
 
   it("imports graphs with Count/Percent adornments", () => {
     const { _links_: links, plotModels } = countGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
@@ -70,7 +70,7 @@ describe("V2AdornmentImporter", () => {
 
   it("imports graphs with Connecting Lines adornments", () => {
     const { _links_: links, plotModels } = connectingLinesGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
@@ -81,7 +81,7 @@ describe("V2AdornmentImporter", () => {
 
   it("imports graphs with Univariate Measure adornments", () => {
     const { _links_: links, plotModels } = univariateMeasureGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
@@ -116,7 +116,7 @@ describe("V2AdornmentImporter", () => {
 
   it("imports graphs with Plotted and Movable Values adornments", () => {
     const { _links_: links, plotModels } = plottedAndMovableValuesGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
@@ -135,10 +135,10 @@ describe("V2AdornmentImporter", () => {
     expect(movableValuesAdornment.id).toBeDefined()
     expect(movableValuesAdornment.isVisible).toBe(true)
   })
-  
+
   it("imports graphs with Movable Point, Line, LSRL adornments", () => {
     const { _links_: links, plotModels } = movablePointLineLSRLGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []
@@ -164,7 +164,7 @@ describe("V2AdornmentImporter", () => {
 
   it("imports graphs with Plotted Function adornments", () => {
     const { _links_: links, plotModels } = plottedFunctionGraph?.componentStorage as ICodapV2GraphStorage
-    const contextId = links.context.id
+    const contextId = links.context?.id
     const { data } = v2Document.getDataAndMetadata(contextId)
     const adornmentStore = v2AdornmentImporter({
       data, plotModels, attributeDescriptions: {}, yAttributeDescriptions: []

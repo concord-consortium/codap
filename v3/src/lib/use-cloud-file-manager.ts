@@ -8,6 +8,7 @@ import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { t } from "../utilities/translation/translate"
+import { removeDevUrlParams } from "../utilities/url-params"
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
@@ -41,6 +42,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
             name: t('DG.fileMenu.menuItem.closeDocument'),
             action() {
               cfm.client.closeFileDialog(function() {
+                removeDevUrlParams()
                 appState.setDocument(getSnapshot(createCodapDocument()))
               })
             }

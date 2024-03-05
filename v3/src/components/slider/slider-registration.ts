@@ -1,16 +1,15 @@
-import { NumericAxisModel } from "../axis/models/axis-model"
-import { GlobalValue } from "../../models/global/global-value"
-import { TileModel } from "../../models/tiles/tile-model"
+import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getGlobalValueManager } from "../../models/tiles/tile-environment"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2SliderComponent } from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
 import { SliderInspector } from "./slider-inspector"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
-import { SliderModel } from "./slider-model"
+import { ISliderSnapshot, SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
 import SliderIcon from '../../assets/icons/icon-slider.svg'
@@ -26,9 +25,11 @@ registerTileContentInfo({
     const sharedModelManager = options?.env?.sharedModelManager
     const globalValueManager = getGlobalValueManager(sharedModelManager)
     const name = globalValueManager?.uniqueName() || "v1"
-    const globalValue = GlobalValue.create({ name, value: 0.5 })
-    globalValueManager?.addValue(globalValue)
-    return SliderModel.create({ globalValue: globalValue.id })
+    const globalValue = globalValueManager?.addValueSnapshot({ name, value: 0.5 })
+    const sliderTileSnap: SetRequired<ISliderSnapshot, "type"> = {
+      type: kSliderTileType, globalValue: globalValue?.id ?? ""
+    }
+    return sliderTileSnap
   }
 })
 
@@ -59,7 +60,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
 
   // parse the v2 content
   const {
-    title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
+    title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
     restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle
   } = v2Component.componentStorage
   const globalId = _links_.model.id
@@ -68,26 +69,26 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
 
   // create global value and add to manager
   const { guid, ...globalSnap } = v2Global
-  const globalValue = GlobalValue.create({ ...globalSnap })
-  globalValueManager.addValue(globalValue)
+  const globalValue = globalValueManager.addValueSnapshot(globalSnap)
+
   // create slider model
-  const slider = SliderModel.create({
+  const content: ISliderSnapshot = {
+    type: kSliderTileType,
     globalValue: globalValue.id,
     multipleOf: restrictToMultiplesOf ?? undefined,
     animationDirection: AnimationDirections[animationDirection] || kDefaultAnimationDirection,
     animationMode: AnimationModes[animationMode] || kDefaultAnimationMode,
     _animationRate: maxPerSecond ?? undefined,
-    axis: NumericAxisModel.create({ place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 })
-  })
-  // create and insert tile
-  const sliderTile = TileModel.create({
-    id: typedId(kSliderIdPrefix),
-    title: title && (userTitle || userSetTitle) ? title : undefined,
-    content: slider
-  })
-  insertTile(sliderTile)
+    axis: { type: "numeric", place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 }
+  }
+  const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
+  const sliderTileSnap: ITileModelSnapshotIn = { id: typedId(kSliderIdPrefix), title, content }
+  const sliderTile = insertTile(sliderTileSnap)
 
   // link tile to global value manager
-  sharedModelManager.addTileSharedModel(sliderTile.content, globalValueManager)
+  if (sliderTile) {
+    sharedModelManager.addTileSharedModel(sliderTile.content, globalValueManager)
+  }
+
   return sliderTile
 })

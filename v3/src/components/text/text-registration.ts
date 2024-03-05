@@ -10,7 +10,7 @@ export const kTextIdPrefix = "TEXT"
 //   type: "CodapText",
 //   prefix: kTextIdPrefix,
 //   modelClass: TextModel,
-//   defaultContent: () => createTextModel()
+//   defaultContent: () => ({ type: kCodapTextTileType })
 // })
 
 registerTileComponentInfo({
