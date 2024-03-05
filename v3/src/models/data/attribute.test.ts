@@ -2,7 +2,8 @@ import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import {
-  Attribute, IAttributeSnapshot, importValueToString, isFormulaAttr, isValidFormulaAttr, kDefaultFormatStr
+  Attribute, canonicalizeAttributeName, IAttributeSnapshot, importValueToString, isFormulaAttr,
+  isValidFormulaAttr, kDefaultFormatStr
 } from "./attribute"
 
 describe("Attribute", () => {
@@ -406,4 +407,11 @@ describe("Attribute", () => {
                 "% diff:", `${(100 * (elapsed0 - elapsed1) / elapsed0).toFixed(1)}%`)
   })
 
+})
+
+describe("Canonicalize Attribute Name", () => {
+  test("canonicalizeAttributeName works properly", () => {
+    expect(canonicalizeAttributeName("")).toEqual("attr")
+    expect(canonicalizeAttributeName(" fake attr(ms) ")).toEqual("fake_attr")
+  })
 })

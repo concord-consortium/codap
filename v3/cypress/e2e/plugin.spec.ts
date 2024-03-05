@@ -21,29 +21,5 @@ context("codap plugins", () => {
       }`)
       WebViewTileElements.getIFrame().find(`.di-send-button`).click()
       WebViewTileElements.getIFrame().find(`.di-log-message`).contains(/.*"success":\s*true.*/).should("exist")
-      // WebViewTileElements.getIFrame().find(`.di-log-message`).eq(1).invoke("text").should("include", `{
-      //   "success": true,
-      //   "values": {
-      //     "name": "Order",
-      //     "type": "categorical",
-      //     "title": "",
-      //     "editable": true,
-      //     "hidden": false,
-      //     "renameable": true,
-      //     "deleteable": true,`)
-      // WebViewTileElements.getIFrame().find(`.di-log-message`).eq(1).should("have.text", `{
-      //   "success": true,
-      //   "values": {
-      //     "name": "Order",
-      //     "type": "categorical",
-      //     "title": "",
-      //     "editable": true,
-      //     "hidden": false,
-      //     "renameable": true,
-      //     "deleteable": true,
-      //     "guid": "ATTRZt2J9fkVbzJS",
-      //     "id": "ATTRZt2J9fkVbzJS"
-      //   }
-      // }`)
   })
 })
