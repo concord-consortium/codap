@@ -15,11 +15,30 @@ context("codap plugins", () => {
       WebViewTileElements.getTitle().should("contain.text", "CODAP API Tester")
 
       cy.log("Handle get attribute request")
-      WebViewTileElements.getIFrame().find(`.di-message-area`).type(`{
+      const cmd1 = `{
         "action": "get",
         "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
-      }`)
-      WebViewTileElements.getIFrame().find(`.di-send-button`).click()
-      WebViewTileElements.getIFrame().find(`.di-log-message`).contains(/.*"success":\s*true.*/).should("exist")
+      }`
+      WebViewTileElements.sendAPITesterCommand(cmd1)
+      WebViewTileElements.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
+      WebViewTileElements.clearAPITesterResponses()
+
+      cy.log("Properly handles illegal actions")
+      const cmd2 = `{
+        "action": "fake",
+        "resource": "dataContext[Mammals].collection[Mammals].attribute[name]"
+      }`
+      WebViewTileElements.sendAPITesterCommand(cmd2, cmd1)
+      WebViewTileElements.confirmAPITesterResponseContains(/.*"Unsupported action: fake\/attribute".*/)
+      WebViewTileElements.clearAPITesterResponses()
+
+      cy.log("Finds the default dataset when no dataset is included")
+      const cmd3 = `{
+        "action": "get",
+        "resource": "collection[Mammals].attribute[Order]"
+      }`
+      WebViewTileElements.sendAPITesterCommand(cmd3, cmd2)
+      WebViewTileElements.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
+      WebViewTileElements.clearAPITesterResponses()
   })
 })

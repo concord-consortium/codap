@@ -35,5 +35,25 @@ export const WebViewTileElements = {
   },
   getTitle() {
     return cy.get(`.codap-web-view .title-bar .title-text`)
+  },
+
+  // Data Interactive API Tester Functions
+  // These will only work if you've opened the API Tester plugin, which can be found here:
+  // https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en
+  sendAPITesterCommand(command: string, oldCommand?: string) {
+    // Delete the old command if it's provided
+    if (oldCommand) {
+      const deleteCommand = oldCommand.split("").reduce(cmd => `${cmd}{backspace}`, "")
+      WebViewTileElements.getIFrame().find(`.di-message-area`).type(deleteCommand)
+    }
+    WebViewTileElements.getIFrame().find(`.di-message-area`).type(command)
+    WebViewTileElements.getIFrame().find(`.di-send-button`).click()
+  },
+  confirmAPITesterResponseContains(response: string | RegExp) {
+    WebViewTileElements.getIFrame().find(`.di-log-message`).contains(response).should("exist")
+  },
+  clearAPITesterResponses() {
+    WebViewTileElements.getIFrame().find(`#clear-log-button`).click()
   }
+
 }
