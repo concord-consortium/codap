@@ -255,6 +255,22 @@ $table-body-font-size: 8pt;
         }
       }
 
+      .cell-span {
+        .cell-color-swatch {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          .cell-color-swatch-center {
+            width: calc(100% - 4px);
+            height: calc(100% - 8px);
+            margin-top: 0.5px;
+          }
+        }
+      }
+
       // RDG.beta.17 moved all CSS inside @layers, which decreased their priority
       // so that some of Chakra's CSS takes precedence, including the gridlines.
       // These lines assert the RDG gridlines precedence ahead of Chakra's CSS.

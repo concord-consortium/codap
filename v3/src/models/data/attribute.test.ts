@@ -222,6 +222,8 @@ describe("Attribute", () => {
     expect(numericCountListener).toHaveBeenCalledTimes(1)
     numericCountDisposer()
 
+    const colorCountListener = jest.fn()
+    const colorCountDisposer = reaction(() => a.getStrictColorCount(), () => colorCountListener())
     const typeListener = jest.fn()
     const typeDisposer = reaction(() => a.type, () => typeListener())
     expect(a.type).toBe("numeric")
@@ -229,7 +231,23 @@ describe("Attribute", () => {
     a.setValue(2, "a")
     expect(a.type).toBe("categorical")
     expect(typeListener).toHaveBeenCalledTimes(1)
+    // color type
+    expect(a.getStrictColorCount()).toBe(0)
+    a.setValue(0, "#ff0000")
+    expect(a.getStrictColorCount()).toBe(1)
+    expect(a.type).toBe("categorical")
+    a.setValue(1, "rgb(0, 255, 0)")
+    expect(a.getStrictColorCount()).toBe(2)
+    expect(a.type).toBe("categorical")
+    a.setValue(2, "hsl(240, 100, 50")
+    expect(a.getStrictColorCount()).toBe(3)
+    expect(a.type).toBe("categorical")
+    a.setValue(3, "hsl(240 100% 50%")
+    expect(a.getStrictColorCount()).toBe(4)
+    expect(a.type).toBe("color")
+    expect(typeListener).toHaveBeenCalledTimes(2)
     typeDisposer()
+    colorCountDisposer()
   })
 
   test("Serialization (development)", () => {
