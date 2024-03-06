@@ -100,9 +100,30 @@ $inspector-panel-width: 50px;
     }
 
     .form-label {
+      align-items: center;
       display: flex;
       flex-direction: row;
-      align-items: center;
+      white-space: nowrap;
+    }
+    .inline-input-group {
+      background: rgba(231, 231, 231, 0.7);
+      display: flex;
+      flex-direction: row;
+
+      .form-label {
+        align-items: center;
+        display: flex;
+        flex-grow: 3;
+        margin: 0 10px 0 0;
+      }
+      .form-input {
+        background: #fff;
+        display: inline-block;
+        font-size: 12px;
+        margin-right: 10px;
+        padding: 2px 5px;
+        width: 40px;
+      }
     }
   }
 }
