@@ -187,6 +187,7 @@ export const Attribute = types.model("Attribute", {
   },
   get type() {
     if (self.userType) return self.userType
+    self.changeCount  // eslint-disable-line no-unused-expressions
     if (this.length === 0) return
     // only infer color if all non-empty values are strict colors
     if (self.getStrictColorCount() === this.length - self.getEmptyCount()) return "color"
