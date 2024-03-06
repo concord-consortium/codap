@@ -39,7 +39,6 @@ import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
-import { DotPlotDotsBaseComponent } from "./dotplotdots-base-component"
 
 import "./graph.scss"
 
@@ -183,8 +182,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
-        dotPlot: <DotPlotDotsBaseComponent {...props}/>,
-        scatterPlot: <ScatterDots {...props}/>,
+        dotPlot: <DotPlotDots {...props}/>,
+        scatterPlot: <ScatterDots {...props}/>
       }
     return typeToPlotComponentMap[plotType]
   }

@@ -30,6 +30,7 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} fro
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),

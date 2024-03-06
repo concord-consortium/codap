@@ -1,4 +1,4 @@
-import {ScaleBand, ScaleLinear, format, scaleLinear, scaleOrdinal} from "d3"
+import {ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal} from "d3"
 import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {useCallback, useEffect, useRef} from "react"

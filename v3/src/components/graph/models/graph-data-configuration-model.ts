@@ -422,7 +422,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         }
       })
     },
-    binDetails(_binAlignment?: number, _binWidth?: number, reset = false) {
+    binDetails(_binAlignment?: number, _binWidth?: number) {
       const kDefaultNumberOfBins = 4
 
       const minValue = self.caseDataArray.reduce((min, aCaseData) => {
