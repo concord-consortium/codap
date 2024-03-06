@@ -309,8 +309,13 @@ export const Attribute = types.model("Attribute", {
 .actions(self => ({
   handleUpdateRequest(values?: DIValues) {
     withoutUndo()
-    if (values?.name !== undefined) self.setName(values?.name)
-    if (values?.title !== undefined) self.setTitle(values?.title)
+    if (values?.description !== undefined) self.setDescription(values.description)
+    if (values?.editable !== undefined) self.setEditable(values.editable)
+    if (values?.formula !== undefined) self.setDisplayExpression(values.formula)
+    if (values?.name !== undefined) self.setName(values.name)
+    if (values?.precision !== undefined) self.setPrecision(values.precision)
+    if (values?.title !== undefined) self.setTitle(values.title)
+    if (values?.unit !== undefined) self.setUnits(values.unit)
   }
 }))
 .views(self => ({
