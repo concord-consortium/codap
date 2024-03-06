@@ -9,6 +9,7 @@ import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import { parseColorStrict } from "../../utilities/color-parse-strict"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
@@ -28,10 +29,10 @@ export const getNumFormatter = (formatStr: string) => {
 }
 
 export function renderValue(str = "", num = NaN, attr?: IAttribute) {
-  const type = attr?.type
+  const { type, userType } = attr || {}
 
   // colors
-  if (type === "color" && parseColor(str).space) {
+  if ((type === "color" && parseColor(str).space) || (!userType && parseColorStrict(str).space)) {
     return (
       <div className="cell-color-swatch" >
         <div className="cell-color-swatch-center" style={{ background: str }} />
@@ -86,8 +87,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        // access type to trigger the reaction, but it's not actually used in the column definitions
-        return visible.map(({ id, name, type, isEditable }) => ({ id, name, isEditable }))
+        return visible.map(({ id, name, type, isEditable }) => ({ id, name, type, isEditable }))
       },
       entries => {
         // column definitions

@@ -1,10 +1,16 @@
 /* eslint-disable max-len, no-cond-assign, no-tabs, no-useless-escape, no-var */
 
+import { ColorParseResult } from "color-parse"
+
 /**
  * parseColorStrict
  *
  * Modified version of the `parse` function from `color-parse` which doesn't support
- * numeric inputs or named string constants.
+ * numeric inputs or named string constants. Note that a goal of this function is to
+ * preserve as much of the original formatting as possible so that any future updates
+ * to the original `color-parse` library can be migrated via file-differencing with
+ * this file, thus disabled code is commented out rather than eliminated entirely and
+ * stylistic issues like use of tabs, `var`, and max length of line are preserved.
  */
 
 
@@ -22,18 +28,12 @@ var baseHues: Record<string, number> = {
 	purple: 300
 }
 
-interface ParseColorResult {
-	space: string | undefined
-	values: Array<string | number>
-	alpha: number
-}
-
 /**
  * Parse color from the string passed
  *
  * @return {Object} A space indicator `space`, an array `values` and `alpha`
  */
-export function parseColorStrict(cstr: string): ParseColorResult {
+export function parseColorStrict(cstr: string): ColorParseResult {
 	let m: RegExpExecArray | null
 	var parts: Array<string | number> = [], alpha = 1
 	let space = ''
