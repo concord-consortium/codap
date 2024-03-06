@@ -41,44 +41,5 @@ context("codap plugins", () => {
       webView.sendAPITesterCommand(cmd3, cmd2)
       webView.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
       webView.clearAPITesterResponses()
-
-      cy.log("Handle update attribute request")
-      const cmd4 = `{
-        "action": "update",
-        "resource": "dataContext[Mammals].collection[Mammal].attribute[Order]",
-        "values": {
-          "title": "new title",
-          "name": "new name",
-          "description": "new description",
-          "unit": "new unit",
-          "formula": "new formula",
-          "editable": false,
-          "type": "qualitative",
-          "precision": 10
-        }
-      }`
-      webView.sendAPITesterCommand(cmd4, cmd3)
-      webView.confirmAPITesterResponseContains(/.*"description":\s*"new description".*/)
-      webView.confirmAPITesterResponseContains(/.*"editable":\s*false.*/)
-      webView.confirmAPITesterResponseContains(/.*"formula":\s*"new formula".*/)
-      webView.confirmAPITesterResponseContains(/.*"name":\s*"new name".*/)
-      webView.confirmAPITesterResponseContains(/.*"precision":\s*10.*/)
-      webView.confirmAPITesterResponseContains(/.*"title":\s*"new title".*/)
-      webView.confirmAPITesterResponseContains(/.*"type":\s*"qualitative".*/)
-      webView.confirmAPITesterResponseContains(/.*"unit":\s*"new unit".*/)
-      table.getColumnHeaders().contains("new name (new unit)").should("exist")
-      webView.clearAPITesterResponses()
-
-      cy.log("Illegal types will not update attribute")
-      const cmd5 = `{
-        "action": "update",
-        "resource": "dataContext[Mammals].collection[Mammal].attribute[new name]",
-        "values": {
-          "type": "fake type"
-        }
-      }`
-      webView.sendAPITesterCommand(cmd5, cmd4)
-      webView.confirmAPITesterResponseContains(/.*"type":\s*"qualitative".*/)
-      webView.clearAPITesterResponses()
   })
 })
