@@ -10,15 +10,15 @@ export type DIComponent  = unknown
 export type DIItem = unknown
 
 export interface DIResources {
-  attribute?: IAttribute | null
-  attributeLocation?: IAttribute | null
+  attribute?: IAttribute
+  attributeLocation?: IAttribute
   caseByID?: DICase
   caseByIndex?: DICase
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
-  collection?: ICollectionModel | null
+  collection?: ICollectionModel
   component?: DIComponent
-  dataContext?: IDataSet | null
+  dataContext?: IDataSet
   dataContextList?: IDataSet[]
   global?: IGlobalValue
   interactiveFrame?: ITileModel
@@ -65,12 +65,12 @@ export interface DIMetadata {
 }
 
 interface DISuccessResult {
-  success: boolean
+  success: true
   values?: DIValues
 }
 
 interface DIErrorResult {
-  success: boolean
+  success: false
   values?: {
     error: string
   }
@@ -80,7 +80,7 @@ export type DIHandlerFnResult = DISuccessResult | DIErrorResult
 
 export type DIHandlerFn = (resources: DIResources, values?: DIValues, metadata?: DIMetadata) => DIHandlerFnResult
 
-export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}}
+export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}} as const
 export const diNotImplementedYet: DIHandlerFn = () => diNotImplementedYetResult
 
 interface DIBaseHandler {
@@ -94,7 +94,7 @@ interface DIBaseHandler {
 export type ActionName = "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister"
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete" | "notify">
 
-export type maybeString = string | null
+export type maybeString = string
 export interface DIResourceSelector {
   attribute?: maybeString
   attributeLocation?: maybeString

@@ -1,13 +1,20 @@
+import { getSnapshot } from "mobx-state-tree"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { DIHandler, DIResources, diNotImplementedYet } from "../data-interactive-types"
 import { registerDIHandler } from "../data-interactive-handler"
+import { V2Attribute } from "../models/V2Attribute"
 
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
-    const { attribute } = resources
+    const { attribute, dataContext } = resources
+    const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
     return attribute
       ? {
           success: true,
-          values: attribute.toArchive
+          values: {
+            ...getSnapshot(V2Attribute.create(attribute)),
+            hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false
+          }
         }
       : {success: false, values: {error: 'Attribute not found'}}
   },
