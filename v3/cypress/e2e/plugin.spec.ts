@@ -53,6 +53,7 @@ context("codap plugins", () => {
           "unit": "new unit",
           "formula": "new formula",
           "editable": false,
+          "type": "qualitative",
           "precision": 10
         }
       }`
@@ -63,8 +64,21 @@ context("codap plugins", () => {
       webView.confirmAPITesterResponseContains(/.*"name":\s*"new name".*/)
       webView.confirmAPITesterResponseContains(/.*"precision":\s*10.*/)
       webView.confirmAPITesterResponseContains(/.*"title":\s*"new title".*/)
+      webView.confirmAPITesterResponseContains(/.*"type":\s*"qualitative".*/)
       webView.confirmAPITesterResponseContains(/.*"unit":\s*"new unit".*/)
       table.getColumnHeaders().contains("new name (new unit)").should("exist")
+      webView.clearAPITesterResponses()
+
+      cy.log("Illegal types will not update attribute")
+      const cmd5 = `{
+        "action": "update",
+        "resource": "dataContext[Mammals].collection[Mammal].attribute[new name]",
+        "values": {
+          "type": "fake type"
+        }
+      }`
+      webView.sendAPITesterCommand(cmd5, cmd4)
+      webView.confirmAPITesterResponseContains(/.*"type":\s*"qualitative".*/)
       webView.clearAPITesterResponses()
   })
 })

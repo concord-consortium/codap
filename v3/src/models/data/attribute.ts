@@ -49,6 +49,9 @@ export const attributeTypes = [
   "categorical", "numeric", "date", "qualitative", "boundary", "checkbox", "color"
 ] as const
 export type AttributeType = typeof attributeTypes[number]
+export function isAttributeType(type: string): type is AttributeType {
+  return (attributeTypes as readonly string[]).includes(type)
+}
 
 export const Attribute = types.model("Attribute", {
   id: types.optional(types.identifier, () => typedId("ATTR")),
@@ -315,6 +318,7 @@ export const Attribute = types.model("Attribute", {
     if (values?.name !== undefined) self.setName(values.name)
     if (values?.precision !== undefined) self.setPrecision(values.precision)
     if (values?.title !== undefined) self.setTitle(values.title)
+    if (values?.type && isAttributeType(values.type)) self.setUserType(values.type)
     if (values?.unit !== undefined) self.setUnits(values.unit)
   }
 }))
