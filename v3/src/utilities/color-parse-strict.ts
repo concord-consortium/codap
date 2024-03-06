@@ -151,13 +151,13 @@ export function parseColorStrict(cstr: string): ParseColorResult {
 	}
 
 	//named channels case
-	else if (/[0-9](?:\s|\/|,)/.test(cstr)) {
-		parts = cstr.match(/([0-9]+)/g)!.map(function (value) {
-			return parseFloat(value)
-		})
+	// else if (/[0-9](?:\s|\/|,)/.test(cstr)) {
+	// 	parts = cstr.match(/([0-9]+)/g)!.map(function (value) {
+	// 		return parseFloat(value)
+	// 	})
 
-		space = cstr.match(/([a-z])/ig)?.join('')?.toLowerCase() || 'rgb'
-	}
+	// 	space = cstr.match(/([a-z])/ig)?.join('')?.toLowerCase() || 'rgb'
+	// }
 
 	return {
 		space,
