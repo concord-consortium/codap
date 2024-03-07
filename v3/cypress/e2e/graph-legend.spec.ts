@@ -1,5 +1,6 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import { GraphLegendHelper as glh } from "../support/helpers/graph-legend-helper"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 const arrayOfAttributes = ["Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet"]
 
@@ -30,12 +31,28 @@ context("Test legend with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "bottom")
   })
-  it("will draw categorical legend with categorical attribute on x axis", () => {
+  it("will draw categorical legend with categorical attribute on x axis and test undo/redo", () => {
+
+    // Initial setup: Drag attributes to the x-axis and plot area, respectively
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+
+    // Verify the axis and legend labels are correctly displayed
     ah.verifyAxisLabel("bottom", arrayOfAttributes[8])
     glh.verifyLegendLabel(arrayOfAttributes[7])
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
+
+    // Undo add legend to graph and verify removal
+    toolbar.getUndoTool().click()
+    ah.verifyAxisLabel("bottom", arrayOfAttributes[8])
+
+    // Redo add legend to graph and verify legend returns
+    toolbar.getRedoTool().click()
+    ah.verifyAxisLabel("bottom", arrayOfAttributes[8])
+    glh.verifyLegendLabel(arrayOfAttributes[7])
+    glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
+
+    // Remove attributes from axis and legend
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "bottom")
     glh.openLegendMenu()
