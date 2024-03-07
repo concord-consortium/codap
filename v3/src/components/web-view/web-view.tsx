@@ -2,7 +2,6 @@ import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
-import "../../data-interactive/register-handlers"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { isWebViewModel } from "./web-view-model"
 
