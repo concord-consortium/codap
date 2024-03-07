@@ -23,7 +23,7 @@
     },
     "transformIgnorePatterns": [
       "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
-      "/node_modules/(?!(d3|d3-(.+)|decode-uri-component|delaunator|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|@?react-leaflet|robust-predicates|split-on-first)/)"
+      "/node_modules/(?!(color-parse|d3|d3-(.+)|decode-uri-component|delaunator|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|@?react-leaflet|robust-predicates|split-on-first)/)"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
@@ -181,6 +181,7 @@
     "@dnd-kit/core": "^6.1.0",
     "@floating-ui/react": "^0.26.9",
     "clsx": "^2.1.0",
+    "color-parse": "^2.0.0",
     "d3": "^7.8.5",
     "d3-format": "^3.1.0",
     "d3-v6-tip": "^1.0.9",
