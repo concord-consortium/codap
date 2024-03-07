@@ -20,7 +20,7 @@ context("codap plugins", () => {
         "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
       }`
       WebViewTileElements.sendAPITesterCommand(cmd1)
-      WebViewTileElements.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
+      WebViewTileElements.confirmAPITesterResponseContains(/"success":\s*true/)
       WebViewTileElements.clearAPITesterResponses()
 
       cy.log("Properly handles illegal actions")
@@ -29,7 +29,7 @@ context("codap plugins", () => {
         "resource": "dataContext[Mammals].collection[Mammals].attribute[name]"
       }`
       WebViewTileElements.sendAPITesterCommand(cmd2, cmd1)
-      WebViewTileElements.confirmAPITesterResponseContains(/.*"Unsupported action: fake\/attribute".*/)
+      WebViewTileElements.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
       WebViewTileElements.clearAPITesterResponses()
 
       cy.log("Finds the default dataset when no dataset is included")
@@ -38,7 +38,7 @@ context("codap plugins", () => {
         "resource": "collection[Mammals].attribute[Order]"
       }`
       WebViewTileElements.sendAPITesterCommand(cmd3, cmd2)
-      WebViewTileElements.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
+      WebViewTileElements.confirmAPITesterResponseContains(/"success":\s*true/)
       WebViewTileElements.clearAPITesterResponses()
   })
 })
