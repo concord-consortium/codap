@@ -43,7 +43,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         })
         let result: DIRequestResponse = { success: false }
 
-        const errorResult = (error: string) => ({ success: false, values: { error }})
+        const errorResult = (error: string) => ({ success: false, values: { error }} as const)
         const processAction = (action: DIAction) => {
           if (!action) return errorResult("No action to process.")
           if (!tile) return errorResult("No tile for action.")

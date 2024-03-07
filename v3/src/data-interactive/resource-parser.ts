@@ -35,14 +35,12 @@ export function parseResourceSelector(iResource: string) {
   const clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*])?$/
   const result: DIResourceSelector = {}
   const selectors = iResource.match(selectorRE)
-  result.type = ''
   selectors?.forEach(selector => {
     const match = clauseRE.exec(selector)
-    const resourceType = match?.[1]
+    const resourceType = match?.[1] as keyof DIResourceSelector | undefined
     const resourceName = match?.[2]
     if (resourceType) {
-      // TODO: any type
-      (result as any)[resourceType] = resourceName || ""
+      result[resourceType] = resourceName
       result.type = resourceType
     }
   })
@@ -70,8 +68,7 @@ export function resolveResources(
       return dataSets[0]
     } else {
       return dataSets.find(dataSet => dataSet.name === resourceSelector.dataContext) ||
-      dataSets.find(dataSet => dataSet.id === resourceSelector.dataContext) ||
-      null
+      dataSets.find(dataSet => dataSet.id === resourceSelector.dataContext)
     }
   }
 
