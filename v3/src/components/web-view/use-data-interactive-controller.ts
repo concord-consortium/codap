@@ -2,7 +2,7 @@ import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
-import { DIAction, DIRequest, DIRequestResponse } from "../../data-interactive/data-interactive-types"
+import { DIAction, DIHandler, DIRequest, DIRequestResponse } from "../../data-interactive/data-interactive-types"
 import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
@@ -51,14 +51,8 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           const resourceSelector = parseResourceSelector(action.resource)
           const resources = resolveResources(resourceSelector, action.action, tile)
           const type = resourceSelector.type ?? ""
-          const h = getDIHandler(type)
           const a = action.action
-          const func = a === "get" ? h?.get
-            : a === "update" ? h?.update
-            : a === "create" ? h?.create
-            : a === "delete" ? h?.delete
-            : a === "notify" ? h?.notify
-            : undefined
+          const func = getDIHandler(type)?.[a as keyof DIHandler]
           if (!func) return errorResult(`Unsupported action: ${a}/${type}`)
 
           return func?.(resources, action.values) ?? errorResult("Action handler returned undefined.")
