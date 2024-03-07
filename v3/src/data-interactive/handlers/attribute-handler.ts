@@ -1,8 +1,6 @@
-import { getSnapshot } from "mobx-state-tree"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { DIHandler, DIResources, diNotImplementedYet } from "../data-interactive-types"
 import { registerDIHandler } from "../data-interactive-handler"
-import { V2Attribute } from "../models/V2Attribute"
 
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
@@ -12,8 +10,25 @@ export const diAttributeHandler: DIHandler = {
       ? {
           success: true,
           values: {
-            ...getSnapshot(V2Attribute.create(attribute)),
-            hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false
+            name: attribute.name,
+            type: attribute.type, // TODO This won't return "none", which v2 sometimes does
+            title: attribute.title,
+            // cid: self.cid, // TODO What should this be?
+            // defaultMin: self.defaultMin, // TODO Where should this come from?
+            // defaultMax: self.defaultMax, // TODO Where should this come from?
+            description: attribute.description,
+            // _categoryMap: self.categoryMap, // TODO What is this?
+            // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
+            editable: attribute.editable,
+            hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
+            renameable: true, // TODO What should this be?
+            deleteable: true, // TODO What should this be?
+            formula: attribute.formula?.display,
+            // deletedFormula: self.deletedFormula, // TODO What should this be?
+            guid: attribute.id, // TODO This is different than v2
+            id: attribute.id, // TODO This is different than v2
+            precision: attribute.precision,
+            unit: attribute.units // TODO Is this correct?
           }
         }
       : {success: false, values: {error: 'Attribute not found'}}
