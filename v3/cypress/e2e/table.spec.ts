@@ -182,37 +182,34 @@ context("case table ui", () => {
   })
 
   describe("index menu", () => {
-    it("verify index menu insert case and delete case work", () => {
-      // Unused variables here until missing radix errors can be fixed.
-      // let initialRowCount, postInsertRowCount, postDeleteRowCount
+    it("verify index menu insert case and delete case work with undo and redo", () => {
+      
+      let initialRowCount, postInsertRowCount, postDeleteRowCount
 
      // Get initial row count
-     // This line of code was throwing a missing radix parameter error
-     // table.getNumOfRows().then(rowCount => {
-     //   initialRowCount = parseInt(rowCount)
-     // })
+      table.getNumOfRows().then(rowCount => {
+        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+      })
 
      // Insert a new case
      table.openIndexMenuForRow(2)
      table.insertCase()
      
      // Get row count after insert
-     // This line of code was throwing a missing radix parameter error
-     // table.getNumOfRows().then(rowCount => {
-     //   postInsertRowCount = parseInt(rowCount)
-     //   expect(postInsertRowCount).to.eq(initialRowCount + 1)
-     // })
+      table.getNumOfRows().then(rowCount => {
+        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postInsertRowCount).to.eq(initialRowCount + 1)
+      })
 
      // Delete the inserted case
      table.openIndexMenuForRow(2)
      table.deleteCase()
 
      // Get row count after delete
-     // This line of code was throwing a missing radix parameter error
-     //table.getNumOfRows().then(rowCount => {
-     //  postDeleteRowCount = parseInt(rowCount)
-     //  expect(postDeleteRowCount).to.eq(initialRowCount)
-     // })
+     table.getNumOfRows().then(rowCount => {
+       postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+       expect(postDeleteRowCount).to.eq(initialRowCount)
+      })
 
      // Undo delete
      toolbar.getUndoTool().click()
