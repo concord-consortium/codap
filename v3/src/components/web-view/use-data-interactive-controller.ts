@@ -31,7 +31,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
         () => debugLog(DEBUG_PLUGINS, "connection with iframe established"))
       const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =
-        (request: DIRequest, callback: (returnValue: any) => void) =>
+        (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
       {
         debugLog(DEBUG_PLUGINS, `--- Received data-interactive: ${JSON.stringify(request)}`)
         toast({
