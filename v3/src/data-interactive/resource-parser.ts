@@ -1,9 +1,9 @@
 import { appState } from "../models/app-state"
-import { canonicalizeAttributeName } from "../models/data/attribute"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data-interactive-types"
+import { canonicalizeAttributeName } from "./data-interactive-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
