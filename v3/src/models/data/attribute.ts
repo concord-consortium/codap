@@ -31,6 +31,7 @@ import { typedId } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { withoutUndo } from "../history/without-undo"
 import { cachedFnFactory } from "../../utilities/mst-utils"
+import { parseColorStrict } from "../../utilities/color-parse-strict"
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -104,6 +105,13 @@ export const Attribute = types.model("Attribute", {
     self.changeCount // eslint-disable-line no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }),
+  getStrictColorCount: cachedFnFactory<number>(() => {
+    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
+    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
+    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
+    self.changeCount // eslint-disable-line no-unused-expressions
+    return self.strValues.reduce((prev, current) => parseColorStrict(current).space ? ++prev : prev, 0)
+  }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
   },
@@ -119,6 +127,7 @@ export const Attribute = types.model("Attribute", {
     ++self.changeCount
     self.getEmptyCount.invalidate()
     self.getNumericCount.invalidate()
+    self.getStrictColorCount.invalidate()
   }
 }))
 .actions(self => ({
@@ -178,7 +187,10 @@ export const Attribute = types.model("Attribute", {
   },
   get type() {
     if (self.userType) return self.userType
+    self.changeCount  // eslint-disable-line no-unused-expressions
     if (this.length === 0) return
+    // only infer color if all non-empty values are strict colors
+    if (self.getStrictColorCount() === this.length - self.getEmptyCount()) return "color"
     // only infer numeric if all non-empty values are numeric (CODAP2)
     return self.getNumericCount() === this.length - self.getEmptyCount() ? "numeric" : "categorical"
   },
