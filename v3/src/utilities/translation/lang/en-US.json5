@@ -1,5 +1,7 @@
 {
     // CODAP V3 temporary strings (not for translation, at least not yet)
+    // code uses this dynamically, i.e. `DG.CaseTable.attribute.type.${type}`
+    "DG.CaseTable.attribute.type.color": "color",
     "V3.caseTable.noCases": "no cases",
     "V3.summary.parseResults": "Parsed \"%@1\" with %@2 %@3 (%@4 selected) and...",
     "V3.summary.noData": "No data",

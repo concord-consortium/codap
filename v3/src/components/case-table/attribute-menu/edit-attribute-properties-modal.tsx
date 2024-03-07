@@ -21,7 +21,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const [description, setDescription] = useState("")
   const [unit, setUnit] = useState("")
   const [precision, setPrecision] = useState("")
-  const [attrType, setAttrType] = useState<AttributeType | "none">("none")
+  const [attrType, setAttrType] = useState<AttributeType | "none">(attribute?.userType ?? "none")
   const [editable, setEditable] = useState("true")
 
   useEffect(() => {
