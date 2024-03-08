@@ -19,6 +19,7 @@ interface IDataTipBaseProps {
 interface IDataTipHelperProps extends IDataTipBaseProps {
   legendAttrID?: string
   metadata: IPixiPointMetadata
+  pointsFusedIntoBars?: boolean
 }
 
 export interface IDataTipProps extends IDataTipBaseProps {

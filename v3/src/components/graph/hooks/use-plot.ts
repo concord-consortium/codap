@@ -190,6 +190,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           graphModel?.setPointConfig("points")
         }
 
+        // If points are fused into bars and the primary attribute is removed, unfuse the bars back to points.
+        const primaryAttrID =
+          dataConfiguration.primaryRole && dataConfiguration?.attributeID(dataConfiguration.primaryRole)
+        if (graphModel.pointsFusedIntoBars && !primaryAttrID) {
+          graphModel.setPointsFusedIntoBars(false)
+        }
+
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
@@ -205,7 +212,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return () => disposer()
   }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPoints])
 
-  // respond to pointDisplayType changes
+  // respond to pointDisplayType and pointsFusedIntoBars changes
   useEffect(function respondToPointConfigChange() {
     return mstReaction(
       () => graphModel.pointDisplayType,
