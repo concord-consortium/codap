@@ -1,3 +1,4 @@
+import { withoutUndo } from "../../models/history/without-undo"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, diNotImplementedYet, DIValues } from "../data-interactive-types"
 
@@ -31,9 +32,10 @@ export const diInteractiveFrameHandler: DIHandler = {
     // TODO: Expand to handle additional values
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noIFResult
-    if (values?.title) {
-      interactiveFrame.setTitle(values.title)
-    }
+    interactiveFrame.applyUndoableAction(() => {
+      withoutUndo()
+      if (values?.title) interactiveFrame.setTitle(values.title)
+    }, "", "")
     return { success: true }
   },
   delete: diNotImplementedYet
