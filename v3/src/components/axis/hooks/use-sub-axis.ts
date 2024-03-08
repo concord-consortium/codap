@@ -12,9 +12,9 @@ import {mstAutorun} from "../../../utilities/mst-autorun"
 import {isAliveSafe} from "../../../utilities/mst-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
-        getCoordFunctions, IGetCoordFunctionsProps, binnedPointTicks} from "../axis-utils"
+        getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
-import { useGraphContentModelContext } from "../../graph/hooks/use-graph-content-model-context"
+import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -33,8 +33,8 @@ export const useSubAxis = ({
                              subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
-    graphModel = useGraphContentModelContext(),
-    dataConfig = graphModel.dataConfiguration,
+    displayModel = useDataDisplayModelContext(),
+    pointDisplayType = displayModel?.pointDisplayType,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
@@ -95,23 +95,21 @@ export const useSubAxis = ({
             .style("stroke-opacity", "0.7")
         },
         renderNumericAxis = () => {
+          if (!axisModel) return
           select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>
-          if (graphModel.pointDisplayType === "bars") {
+          if (pointDisplayType === "bars") {
             // When displaying bars, set the domain to [0, 100]. TODO: Fix this. The domain does need to be changed for
-            // bars, but it should be based on the data, not always the same static values.
+            // bars, but it should be based on the data, not always the same static values. Also, it would be better not
+            // to use the pointDisplayType within the axis realm.
             numericScale.domain([0, 100])
-          } else if (graphModel.pointDisplayType === "bins") {
-            // When displaying bins, set the domain to the min and max bin edges.
-            const { maxBinEdge, minBinEdge  } = dataConfig.binDetails()
-            numericScale.domain([minBinEdge, maxBinEdge])
           }
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
           const duration = isAnimating() ? transitionDuration : 0
-          if (!axisIsVertical && numericScale.ticks && graphModel.pointDisplayType !== "bins") {
+          if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
-          } else if (graphModel.pointDisplayType === "bins") {
-            const { tickValues, tickLabels } = binnedPointTicks(dataConfig)
+          } else if (!displayModel.hasDraggableNumericAxis(axisModel)) {
+            const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks()
             axisScale.tickValues(tickValues)
             axisScale.tickFormat((d, i) => {
               return tickLabels[i]
@@ -234,8 +232,8 @@ export const useSubAxis = ({
           renderCategoricalSubAxis()
           break
       }
-    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, graphModel.pointDisplayType, isAnimating,
-        dataConfig, centerCategoryLabels, showScatterPlotGridLines]),
+    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, pointDisplayType, axisModel, displayModel,
+        isAnimating, centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current

@@ -8,7 +8,9 @@ const kDefaultDataDisplayModel = {
   stopAnimation: () => undefined,
   // required by AxisProviderContext
   getAxis: () => undefined,
-  getNumericAxis: () => undefined
+  getNumericAxis: () => undefined,
+  hasDraggableNumericAxis: () => undefined,
+  nonDraggableAxisTicks: () => ({tickValues: [], tickLabels: []})
 } as unknown as IDataDisplayContentModel
 
 export const DataDisplayModelContext = createContext<IDataDisplayContentModel>(kDefaultDataDisplayModel)

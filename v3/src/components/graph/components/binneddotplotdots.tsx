@@ -18,7 +18,7 @@ import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
 
 export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: PlotProps) {
-  const {pixiPointsRef} = props,
+  const {pixiPoints} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     {isAnimating} = useDataDisplayAnimation(),
@@ -33,15 +33,15 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     binTicksRef = useRef<SVGGElement>(null)
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
-  usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     dataConfig && setPointSelection({
-      pixiPointsRef, dataConfiguration: dataConfig, pointRadius: graphModel.getPointRadius(),
+      pixiPoints, dataConfiguration: dataConfig, pointRadius: graphModel.getPointRadius(),
       pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius("select"),
       pointDisplayType
     })
-  }, [dataConfig, graphModel, pixiPointsRef, pointColor, pointStrokeColor, pointDisplayType])
+  }, [dataConfig, graphModel, pixiPoints, pointColor, pointStrokeColor, pointDisplayType])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
@@ -51,6 +51,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit",
       extraSecondaryPlace = primaryIsBottom ? "rightCat" : "top",
       extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit",
+      primaryAxis = graphModel.getNumericAxis(primaryPlace),
       primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
       extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
       secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
@@ -73,7 +74,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins  } = dataConfig.binDetails()
 
     // Set the domain of the primary axis to the extent of the bins
-    primaryAxisScale.domain([minBinEdge, maxBinEdge])
+    primaryAxis?.setDomain(minBinEdge, maxBinEdge)
 
     // Draw lines to delineate the bins in the plot
     const binTicksArea = select(binTicksRef.current)
@@ -105,7 +106,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
       let primaryScreenCoord = primaryCoord + extraPrimaryCoord
       const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
-      const binForCase = determineBinForCase(caseValue, totalNumberOfBins, binWidth)
+      const binForCase = determineBinForCase(caseValue, binWidth)
       primaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "primary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
         screenCoord: primaryScreenCoord, primaryIsBottom
@@ -124,7 +125,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       }
       let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps) + onePixelOffset
       const casePrimaryValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
-      const binForCase = determineBinForCase(casePrimaryValue, totalNumberOfBins, binWidth)
+      const binForCase = determineBinForCase(casePrimaryValue, binWidth)
       secondaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "secondary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
         screenCoord: secondaryScreenCoord, primaryIsBottom
@@ -142,15 +143,15 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     setPointCoordinates({
       pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: graphModel.getPointRadius("select"),
-      pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
+      pixiPoints, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
       pointDisplayType, anchor: circleAnchor
     })
   },
-  [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
+  [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPoints,
     primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
 
-  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
   return (
     <>

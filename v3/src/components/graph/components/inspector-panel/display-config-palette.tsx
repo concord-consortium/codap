@@ -6,7 +6,7 @@ import { InspectorPalette } from "../../../inspector-panel"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
-import { isPointDisplayType } from "../../graphing-types"
+import { isPointDisplayType } from "../../../data-display/data-display-types"
 
 import "../../../data-display/inspector/inspector-panel.scss"
 

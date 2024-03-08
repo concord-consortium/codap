@@ -82,13 +82,13 @@ export interface IAdjustCoordForStacks {
  */
 export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
   const { anID, binWidth = 0, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned = false,
-          minBinEdge = 0, numExtraPrimaryBands, primaryAttrID, primaryAxisScale, totalNumberOfBins = 0 } = props
-  const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
-  const binNumber = determineBinForCase(caseValue, totalNumberOfBins, binWidth) ?? 0
+          minBinEdge = 0, numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
+  const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? NaN
+  const binNumber = determineBinForCase(caseValue, binWidth) ?? 0
   const binMidpoint = ((minBinEdge + binNumber * binWidth) - binWidth / 2) / numExtraPrimaryBands
   const primaryCoord = isBinned
     ? primaryAxisScale(binMidpoint)
-    : primaryAxisScale(dataset?.getNumeric(anID, primaryAttrID) ?? -1) / numExtraPrimaryBands
+    : primaryAxisScale(dataset?.getNumeric(anID, primaryAttrID) ?? NaN) / numExtraPrimaryBands
   const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
   const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? "__main__") ?? 0 : 0
   return { primaryCoord, extraPrimaryCoord }
@@ -127,11 +127,11 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
 export const computeBinPlacements = (props: IComputeBinPlacements) => {
   const { dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
           pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth,
-          totalNumberOfBins, binWidth } = props
+          totalNumberOfBins, binWidth: _binWidth } = props
   const primaryLength = layout.getAxisLength(primaryPlace) / numExtraPrimaryBands
   let overlap = 0
   const numBins = totalNumberOfBins ? totalNumberOfBins : Math.ceil(primaryLength / pointDiameter) + 1
-  const useBinWidth = binWidth ? binWidth : primaryLength / (numBins - 1)
+  const binWidth = _binWidth ? _binWidth : primaryLength / (numBins - 1)
   const bins: Record<string, Record<string, Record<string, string[][]>>> = {}
   const binMap: Record<string, BinMap> = {}
 
@@ -141,8 +141,8 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
       const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
       const numerator = primaryAxisScale(caseValue) / numExtraPrimaryBands
       const bin = totalNumberOfBins
-        ? determineBinForCase(caseValue, numBins, useBinWidth)
-        : Math.ceil((numerator ?? 0) / useBinWidth)
+        ? determineBinForCase(caseValue, binWidth)
+        : Math.ceil((numerator ?? 0) / binWidth)
       const category = dataset?.getStrValue(anID, secondaryAttrID) ?? "__main__"
       const extraCategory = dataset?.getStrValue(anID, extraSecondaryAttrID) ?? "__main__"
       const extraPrimaryCategory = dataset?.getStrValue(anID, extraPrimaryAttrID) ?? "__main__"
@@ -188,16 +188,8 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
 /*
  * Returns the bin number for a given case value in a binned dot plot.
  */
-export const determineBinForCase = (caseValue: number, totalNumberOfBins: number, binWidth: number) => {
-  let binNumber = 0
-  for (let i = 1; i <= totalNumberOfBins; i++) {
-    if (caseValue < i * binWidth) {
-      binNumber = i
-      break
-    }
-  }
-
-  return binNumber
+export const determineBinForCase = (caseValue: number, binWidth: number) => {
+  return Math.floor(caseValue / binWidth) + 1
 }
 
 /*

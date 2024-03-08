@@ -4,7 +4,7 @@ import * as PIXI from "pixi.js"
 import {IPixiPointMetadata, PixiPoints} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
-import {Point, transitionDuration} from "../../data-display/data-display-types"
+import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
 import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
@@ -14,7 +14,6 @@ import { isFiniteNumber } from "../../../utilities/math-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { t } from "../../../utilities/translation/translate"
-import { PointDisplayType } from "../graphing-types"
 
 /**
  * Utility routines having to do with graph entities

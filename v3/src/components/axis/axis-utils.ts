@@ -5,7 +5,6 @@ import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import {ICategorySet} from "../../models/data/category-set"
 import {MutableRefObject} from "react"
-import { IGraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
 
 export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
@@ -229,18 +228,6 @@ export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): nu
   }
 
   return Math.max(2, currentNumber)
-}
-
-export const binnedPointTicks = (dataConfig: IGraphDataConfigurationModel) => {
-  const tickValues: number[] = []
-  const tickLabels: string[] = []
-  const { binWidth, totalNumberOfBins  } = dataConfig.binDetails()
-  for (let i = 0; i < totalNumberOfBins; i++) {
-    tickValues.push((i * binWidth) + binWidth / 2)
-    tickLabels.push(`[${i * binWidth},${i * binWidth + binWidth})`)
-  }
-
-  return {tickValues, tickLabels}
 }
 
 export const isScaleLinear = (scale: any): scale is ScaleLinear<number, number> => {

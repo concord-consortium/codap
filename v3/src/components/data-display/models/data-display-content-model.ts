@@ -14,21 +14,36 @@ import {
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import {GraphPlace} from "../../axis-graph-shared"
+import { IDataConfigurationModel } from "./data-configuration-model"
+import { PointDisplayTypes } from "../data-display-types"
+import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
   .props({
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
+    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points")
   })
   .volatile(() => ({
     animationEnabled: false,
   }))
-  .views(() => ({
+  .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
                              dataset: IDataSet | undefined,
                              attributeID: string | undefined): boolean {
       return false
+    },
+    hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
+      return isNumericAxisModel(axisModel) && self.pointDisplayType !== "bins"
+    },
+    nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
+      // derived models should override
+      return {tickValues: [], tickLabels: []}
+    },
+    get dataConfiguration(): IDataConfigurationModel | undefined {
+      // derived models should override
+      return undefined
     }
   }))
   .actions(self => ({
