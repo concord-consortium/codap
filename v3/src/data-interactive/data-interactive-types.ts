@@ -1,23 +1,23 @@
 import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { IAttributeArchive } from "../models/data/attribute-types"
-import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
+import { ICollectionPropsModel } from "../models/data/collection"
 
 export type DICase = unknown
 export type DIComponent  = unknown
 export type DIItem = unknown
 
 export interface DIResources {
-  attribute?: IAttribute | null
-  attributeLocation?: IAttribute | null
+  attribute?: IAttribute
+  attributeLocation?: IAttribute
   caseByID?: DICase
   caseByIndex?: DICase
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
-  collection?: ICollectionModel | null
+  collection?: ICollectionPropsModel
   component?: DIComponent
   dataContext?: IDataSet | null
   dataContextList?: IDataSet[]
@@ -67,12 +67,12 @@ export interface DIMetadata {
 }
 
 interface DISuccessResult {
-  success: boolean
+  success: true
   values?: DIValues
 }
 
 interface DIErrorResult {
-  success: boolean
+  success: false
   values?: {
     error: string
   }
@@ -82,7 +82,7 @@ export type DIHandlerFnResult = DISuccessResult | DIErrorResult
 
 export type DIHandlerFn = (resources: DIResources, values?: DIValues, metadata?: DIMetadata) => DIHandlerFnResult
 
-export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}}
+export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}} as const
 export const diNotImplementedYet: DIHandlerFn = () => diNotImplementedYetResult
 
 interface DIBaseHandler {
@@ -96,20 +96,19 @@ interface DIBaseHandler {
 export type ActionName = "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister"
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete" | "notify">
 
-export type maybeString = string | null
 export interface DIResourceSelector {
-  attribute?: maybeString
-  attributeLocation?: maybeString
-  attributes?: maybeString
-  case?: maybeString
-  collection?: maybeString
-  component?: maybeString
-  dataContext?: maybeString
-  dataContextList?: maybeString
-  global?: maybeString
-  interactiveFrame?: maybeString
-  logMessage?: maybeString
-  type?: maybeString
+  attribute?: string
+  attributeLocation?: string
+  attributes?: string
+  case?: string
+  collection?: string
+  component?: string
+  dataContext?: string
+  dataContextList?: string
+  global?: string
+  interactiveFrame?: string
+  logMessage?: string
+  type?: string
 }
 
 export interface DIAction {

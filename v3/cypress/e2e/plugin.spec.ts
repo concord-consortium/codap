@@ -1,4 +1,3 @@
-import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 
@@ -17,29 +16,29 @@ context("codap plugins", () => {
 
       cy.log("Handle get attribute request")
       const cmd1 = `{
-        "action": "get",
-        "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
+            "action": "get",
+            "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
       }`
       webView.sendAPITesterCommand(cmd1)
-      webView.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
 
       cy.log("Properly handles illegal actions")
       const cmd2 = `{
-        "action": "fake",
-        "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
+            "action": "fake",
+            "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
       }`
       webView.sendAPITesterCommand(cmd2, cmd1)
-      webView.confirmAPITesterResponseContains(/.*"Unsupported action: fake\/attribute".*/)
+      webView.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
       webView.clearAPITesterResponses()
 
       cy.log("Finds the default dataset when no dataset is included")
       const cmd3 = `{
-        "action": "get",
-        "resource": "collection[Mammals].attribute[Order]"
+            "action": "get",
+            "resource": "collection[Mammals].attribute[Order]"
       }`
       webView.sendAPITesterCommand(cmd3, cmd2)
-      webView.confirmAPITesterResponseContains(/.*"success":\s*true.*/)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
   })
 })

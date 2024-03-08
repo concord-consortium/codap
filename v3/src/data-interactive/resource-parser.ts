@@ -1,9 +1,10 @@
 import { appState } from "../models/app-state"
-import { canonicalizeAttributeName } from "../models/data/attribute"
+import { isCollectionModel } from "../models/data/collection"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data-interactive-types"
+import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
+import { canonicalizeAttributeName } from "./data-interactive-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -35,14 +36,12 @@ export function parseResourceSelector(iResource: string) {
   const clauseRE =   /^([\w]+)(?:\[\s*([^\]]+)\s*])?$/
   const result: DIResourceSelector = {}
   const selectors = iResource.match(selectorRE)
-  result.type = ''
   selectors?.forEach(selector => {
     const match = clauseRE.exec(selector)
-    const resourceType = match?.[1]
+    const resourceType = match?.[1] as keyof DIResourceSelector | undefined
     const resourceName = match?.[2]
     if (resourceType) {
-      // TODO: any type
-      (result as any)[resourceType] = resourceName || ""
+      result[resourceType] = resourceName
       result.type = resourceType
     }
   })
@@ -61,7 +60,7 @@ export function resolveResources(
   resourceSelector: DIResourceSelector, action: ActionName, interactiveFrame: ITileModel
 ) {
   const document = appState.document
-  function resolveContext(selector?: maybeString) {
+  function resolveContext(selector?: string) {
     if (!selector) {
       return
     }
@@ -70,8 +69,7 @@ export function resolveResources(
       return dataSets[0]
     } else {
       return dataSets.find(dataSet => dataSet.name === resourceSelector.dataContext) ||
-      dataSets.find(dataSet => dataSet.id === resourceSelector.dataContext) ||
-      null
+      dataSets.find(dataSet => dataSet.id === resourceSelector.dataContext)
     }
   }
 
@@ -121,27 +119,22 @@ export function resolveResources(
   // }
 
   if (resourceSelector.collection) {
-    result.collection = dataContext &&
-      // TODO This will not return the ungrouped collection, which is an ICollectionPropsModel rather than
-      // an ICollectionModel. Is that ok?
-      (dataContext.getGroupedCollectionByName(resourceSelector.collection) ||
-        dataContext.getGroupedCollection(resourceSelector.collection))
+    result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
+                        dataContext?.getCollection(resourceSelector.collection)
   }
 
   const collection = result.collection
+  const collectionModel = isCollectionModel(collection) ? collection : undefined
 
   if (resourceSelector.attribute || resourceSelector.attributeLocation) {
     const attrKey = resourceSelector.attribute ? 'attribute' : 'attributeLocation'
     const attrName = resourceSelector[attrKey] ?? ""
-    result[attrKey] = (
-      (
-        dataContext && (
-          dataContext.attrIDMap.get(dataContext.attrNameMap[attrName]) ||
-          dataContext.attrIDMap.get(dataContext.attrNameMap[canonicalizeAttributeName(attrName)])
-        )
-      ) ||
-      (collection?.getAttribute(attrName))
-    )
+    const canonicalAttrName = canonicalizeAttributeName(attrName)
+    result[attrKey] =
+      // check collection first in case of ambiguous names in data set
+      collectionModel?.getAttributeByName(attrName) || collectionModel?.getAttributeByName(canonicalAttrName) ||
+      dataContext?.getAttributeByName(attrName) || dataContext?.getAttributeByName(canonicalAttrName) ||
+      dataContext?.getAttribute(attrName) // in case it's an id
   }
 
   // if (resourceSelector.caseByID) {

@@ -2,7 +2,8 @@ import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
-import { DIAction, DIRequest, DIRequestResponse } from "../../data-interactive/data-interactive-types"
+import { DIAction, DIHandler, DIRequest, DIRequestResponse } from "../../data-interactive/data-interactive-types"
+import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -30,7 +31,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
         () => debugLog(DEBUG_PLUGINS, "connection with iframe established"))
       const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =
-        (request: DIRequest, callback: (returnValue: any) => void) =>
+        (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
       {
         debugLog(DEBUG_PLUGINS, `--- Received data-interactive: ${JSON.stringify(request)}`)
         toast({
@@ -42,7 +43,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         })
         let result: DIRequestResponse = { success: false }
 
-        const errorResult = (error: string) => ({ success: false, values: { error }})
+        const errorResult = (error: string) => ({ success: false, values: { error }} as const)
         const processAction = (action: DIAction) => {
           if (!action) return errorResult("No action to process.")
           if (!tile) return errorResult("No tile for action.")
@@ -50,14 +51,8 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           const resourceSelector = parseResourceSelector(action.resource)
           const resources = resolveResources(resourceSelector, action.action, tile)
           const type = resourceSelector.type ?? ""
-          const h = getDIHandler(type)
           const a = action.action
-          const func = a === "get" ? h?.get
-            : a === "update" ? h?.update
-            : a === "create" ? h?.create
-            : a === "delete" ? h?.delete
-            : a === "notify" ? h?.notify
-            : undefined
+          const func = getDIHandler(type)?.[a as keyof DIHandler]
           if (!func) return errorResult(`Unsupported action: ${a}/${type}`)
 
           return func?.(resources, action.values) ?? errorResult("Action handler returned undefined.")

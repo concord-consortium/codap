@@ -1,6 +1,6 @@
 import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
-import { DIValues, diNotImplementedYetResult } from "../data-interactive-types"
+import { diNotImplementedYetResult, DIValues } from "../data-interactive-types"
 
 describe("DataInteractive AttributeHandler", () => {
   const handler = diAttributeHandler
