@@ -2,7 +2,7 @@ import { appState } from "../models/app-state"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ActionName, DIResources, DIResourceSelector, maybeString } from "./data-interactive-types"
+import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
 import { canonicalizeAttributeName } from "./data-interactive-utils"
 
 /**
@@ -59,7 +59,7 @@ export function resolveResources(
   resourceSelector: DIResourceSelector, action: ActionName, interactiveFrame: ITileModel
 ) {
   const document = appState.document
-  function resolveContext(selector?: maybeString) {
+  function resolveContext(selector?: string) {
     if (!selector) {
       return
     }

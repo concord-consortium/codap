@@ -94,20 +94,19 @@ interface DIBaseHandler {
 export type ActionName = "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister"
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete" | "notify">
 
-export type maybeString = string
 export interface DIResourceSelector {
-  attribute?: maybeString
-  attributeLocation?: maybeString
-  attributes?: maybeString
-  case?: maybeString
-  collection?: maybeString
-  component?: maybeString
-  dataContext?: maybeString
-  dataContextList?: maybeString
-  global?: maybeString
-  interactiveFrame?: maybeString
-  logMessage?: maybeString
-  type?: maybeString
+  attribute?: string
+  attributeLocation?: string
+  attributes?: string
+  case?: string
+  collection?: string
+  component?: string
+  dataContext?: string
+  dataContextList?: string
+  global?: string
+  interactiveFrame?: string
+  logMessage?: string
+  type?: string
 }
 
 export interface DIAction {
