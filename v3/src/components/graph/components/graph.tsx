@@ -177,7 +177,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   }, [graphController, layout, graphModel, startAnimation])
 
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, pixiPointsRef},
+    const props = {xAttrID, yAttrID, pixiPoints: pixiPointsRef.current},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,

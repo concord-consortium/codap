@@ -12,7 +12,7 @@ import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import { PixiPointEventHandler, IPixiPointsRef, PixiPoints } from "../utilities/pixi-points"
+import { PixiPointEventHandler, PixiPoints } from "../utilities/pixi-points"
 
 export interface IPixiDragHandlers {
   start: PixiPointEventHandler
@@ -39,7 +39,7 @@ export const usePixiDragHandlers = (pixiPoints: PixiPoints | undefined, {start, 
 export interface IPlotResponderProps {
   refreshPointPositions: (selectedOnly: boolean) => void
   refreshPointSelection: () => void
-  pixiPointsRef: IPixiPointsRef
+  pixiPoints?: PixiPoints
 }
 
 function isDefunctAxisModel(axisModel?: IAxisModel) {
@@ -47,7 +47,7 @@ function isDefunctAxisModel(axisModel?: IAxisModel) {
 }
 
 export const usePlotResponders = (props: IPlotResponderProps) => {
-  const { refreshPointPositions, refreshPointSelection, pixiPointsRef} = props,
+  const { refreshPointPositions, refreshPointSelection, pixiPoints} = props,
     graphModel = useGraphContentModelContext(),
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
@@ -112,7 +112,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => dataConfiguration?.hiddenCases.length,
       () => {
-        if (!pixiPointsRef.current) {
+        if (!pixiPoints) {
           return
         }
         matchCirclesToData({
@@ -121,14 +121,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           pointColor: graphModel.pointDescription.pointColor,
           pointDisplayType: graphModel.pointDisplayType,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          pixiPoints: pixiPointsRef.current,
+          pixiPoints,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPointsRef, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
@@ -165,7 +165,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {
     const disposer = dataConfiguration?.onAction(action => {
-      if (!pixiPointsRef.current) {
+      if (!pixiPoints) {
         return
       }
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
@@ -179,34 +179,34 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           pointColor: graphModel.pointDescription.pointColor,
           pointDisplayType: graphModel.pointDisplayType,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          pixiPoints: pixiPointsRef.current,
+          pixiPoints,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }
     }) || (() => true)
     return () => disposer()
-  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPointsRef])
+  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPoints])
 
   // respond to pointDisplayType changes
   useEffect(function respondToPointConfigChange() {
     return mstReaction(
       () => graphModel.pointDisplayType,
       () => {
-        if (!pixiPointsRef.current) return
+        if (!pixiPoints) return
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
           pointColor: graphModel.pointDescription.pointColor,
           pointDisplayType: graphModel.pointDisplayType,
           pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          pixiPoints: pixiPointsRef.current,
+          pixiPoints,
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
       }, {name: "usePlot [pointDisplayType]"}, graphModel
     )
-  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPointsRef, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.

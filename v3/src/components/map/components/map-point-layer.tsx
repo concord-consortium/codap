@@ -86,8 +86,8 @@ export const MapPointLayer = function MapPointLayer(props: {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
-      pixiPointsRef, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(), selectedPointRadius,
-      pointColor, pointStrokeColor
+      pixiPoints: pixiPointsRef.current, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
+      selectedPointRadius, pointColor, pointStrokeColor
     })
   }, [pointDescription, mapLayerModel, dataConfiguration])
 

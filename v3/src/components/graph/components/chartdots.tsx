@@ -1,22 +1,24 @@
 import {ScaleBand} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import React, {useCallback, useEffect} from "react"
+import * as PIXI from "pixi.js"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {attrRoleToAxisPlace} from "../../data-display/data-display-types"
-import {setPointSelection} from "../../data-display/data-display-utils"
+import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
+import { IPixiPointMetadata, PixiPointEventHandler } from "../utilities/pixi-points"
 
 type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
 
 export const ChartDots = function ChartDots(props: PlotProps) {
-  const {pixiPointsRef} = props,
+  const {pixiPoints} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
@@ -79,10 +81,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
-      pixiPointsRef, pointColor, pointStrokeColor, dataConfiguration,
+      pixiPoints, pointColor, pointStrokeColor, dataConfiguration,
       pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select')
     })
-  }, [dataConfiguration, graphModel, pixiPointsRef, pointColor, pointStrokeColor])
+  }, [dataConfiguration, graphModel, pixiPoints, pointColor, pointStrokeColor])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     // We're pretending that the primaryRole is the bottom just to help understand the naming
@@ -207,16 +209,27 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
       getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
 
-    setPointCoordinates({
+    pixiPoints && setPointCoordinates({
       dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
-      pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
+      pixiPoints, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, pixiPointsRef,
+  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, pixiPoints,
     extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor, isAnimating,
     primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
 
-  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+
+  const onPointClick: PixiPointEventHandler = useCallback(
+    (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      handleClickOnCase(event, metadata.caseID, dataset)
+  }, [dataset])
+  
+  useEffect(() => {
+    if (pixiPoints) {
+      pixiPoints.onPointClick = onPointClick
+    }
+  }, [pixiPoints, onPointClick])
 
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {
