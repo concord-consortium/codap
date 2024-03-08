@@ -1,6 +1,8 @@
+import { isAttributeType } from "../../models/data/attribute"
+import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
-import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { registerDIHandler } from "../data-interactive-handler"
+import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 
 function convertAttributeToV2(resources: DIResources) {
   const { attribute, dataContext } = resources
@@ -47,7 +49,17 @@ export const diAttributeHandler: DIHandler = {
   update(resources: DIResources, values?: DIValues) {
     const { attribute } = resources
     if (!attribute) return attributeNotFoundResult
-    attribute.handleUpdateRequest(values)
+    attribute.applyUndoableAction(() => {
+      withoutUndo()
+      if (values?.description !== undefined) attribute.setDescription(values.description)
+      if (values?.editable !== undefined) attribute.setEditable(values.editable)
+      if (values?.formula !== undefined) attribute.setDisplayExpression(values.formula)
+      if (values?.name !== undefined) attribute.setName(values.name)
+      if (values?.precision !== undefined) attribute.setPrecision(values.precision)
+      if (values?.title !== undefined) attribute.setTitle(values.title)
+      if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
+      if (values?.unit !== undefined) attribute.setUnits(values.unit)
+    }, "", "")
     const attributeV2 = convertAttributeToV2(resources)
     if (attributeV2) {
       return {

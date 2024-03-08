@@ -32,8 +32,8 @@ import { typedId } from "../../utilities/js-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { Formula, IFormula } from "../formula/formula"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 import { withoutUndo } from "../history/without-undo"
-import { IAttributeArchive } from "./attribute-types"
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -321,19 +321,7 @@ export const Attribute = types.model("Attribute", {
     }
   }
 }))
-.actions(self => ({
-  handleUpdateRequest(values?: DIValues) {
-    withoutUndo()
-    if (values?.description !== undefined) self.setDescription(values.description)
-    if (values?.editable !== undefined) self.setEditable(values.editable)
-    if (values?.formula !== undefined) self.setDisplayExpression(values.formula)
-    if (values?.name !== undefined) self.setName(values.name)
-    if (values?.precision !== undefined) self.setPrecision(values.precision)
-    if (values?.title !== undefined) self.setTitle(values.title)
-    if (values?.type && isAttributeType(values.type)) self.setUserType(values.type)
-    if (values?.unit !== undefined) self.setUnits(values.unit)
-  }
-}))
+.actions(applyUndoableAction)
 export interface IAttribute extends Instance<typeof Attribute> {}
 export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}
 
