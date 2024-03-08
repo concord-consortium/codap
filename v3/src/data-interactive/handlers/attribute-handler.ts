@@ -2,36 +2,43 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { registerDIHandler } from "../data-interactive-handler"
 
+function convertAttributeToV2(resources: DIResources) {
+  const { attribute, dataContext } = resources
+  const metadata = (dataContext && getSharedCaseMetadataFromDataset(dataContext))
+  if (attribute) {
+    const { name, type, title, description, editable, id, precision } = attribute
+    return {
+      name,
+      type, // TODO This won't return "none", which v2 sometimes does
+      title,
+      // cid: self.cid, // TODO What should this be?
+      // defaultMin: self.defaultMin, // TODO Where should this come from?
+      // defaultMax: self.defaultMax, // TODO Where should this come from?
+      description,
+      // _categoryMap: self.categoryMap, // TODO What is this?
+      // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
+      editable,
+      hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
+      renameable: true, // TODO What should this be?
+      deleteable: true, // TODO What should this be?
+      formula: attribute.formula?.display,
+      // deletedFormula: self.deletedFormula, // TODO What should this be?
+      guid: attribute.id, // TODO This is different than v2
+      id, // TODO This is different than v2
+      precision,
+      unit: attribute.units
+    }
+  }
+}
+
 const attributeNotFoundResult = {success: false, values: {error: 'Attribute not found'}} as const
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
-    const { attribute, dataContext } = resources
-    const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
+    const attribute = convertAttributeToV2(resources)
     if (attribute) {
-      const { name, type, title, description, editable, id, precision } = attribute
       return {
         success: true,
-        values: {
-          name,
-          type, // TODO This won't return "none", which v2 sometimes does
-          title,
-          // cid: self.cid, // TODO What should this be?
-          // defaultMin: self.defaultMin, // TODO Where should this come from?
-          // defaultMax: self.defaultMax, // TODO Where should this come from?
-          description,
-          // _categoryMap: self.categoryMap, // TODO What is this?
-          // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
-          editable,
-          hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
-          renameable: true, // TODO What should this be?
-          deleteable: true, // TODO What should this be?
-          formula: attribute.formula?.display,
-          // deletedFormula: self.deletedFormula, // TODO What should this be?
-          guid: attribute.id, // TODO This is different than v2
-          id, // TODO This is different than v2
-          precision,
-          unit: attribute.units
-        }
+        values: attribute
       }
     }
     return attributeNotFoundResult
@@ -41,14 +48,18 @@ export const diAttributeHandler: DIHandler = {
     const { attribute } = resources
     if (!attribute) return attributeNotFoundResult
     attribute.handleUpdateRequest(values)
-    return {
-      success: true,
-      values: {
-        attrs: [
-          attribute.toArchive
-        ]
+    const attributeV2 = convertAttributeToV2(resources)
+    if (attributeV2) {
+      return {
+        success: true,
+        values: {
+          attrs: [
+            attributeV2
+          ]
+        }
       }
     }
+    return attributeNotFoundResult
   },
   delete: diNotImplementedYet
 }
