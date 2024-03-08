@@ -211,6 +211,14 @@ export const DataSet = types.model("DataSet", {
     return [...self.collections, self.ungrouped]
   }
 }))
+.views(self => ({
+  getAttribute(id: string) {
+    return self.attrIDMap.get(id)
+  },
+  getAttributeByName(name: string) {
+    return self.attrIDMap.get(self.attrNameMap[name])
+  }
+}))
 .actions(self => ({
   // change the attribute order within the data set itself; doesn't handle collections
   moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
@@ -279,6 +287,18 @@ export const DataSet = types.model("DataSet", {
     return collectionId === self.ungrouped.id ? self.ungrouped : getGroupedCollection(collectionId)
   }
 
+  function getGroupedCollectionByName(name: string): ICollectionModel | undefined {
+    return self.collections.find(collection => collection.name === name)
+  }
+
+  function getCollectionByName(name: string): ICollectionPropsModel | undefined {
+    if (!isAlive(self)) {
+      console.warn("DataSet.getCollectionByName called on a defunct DataSet")
+      return
+    }
+    return name === self.ungrouped.name ? self.ungrouped : getGroupedCollectionByName(name)
+  }
+
   function getCollectionIndex(collectionId: string) {
     // For consistency, treat ungrouped as the last / child-most collection
     return collectionId === self.ungrouped.id
@@ -297,6 +317,10 @@ export const DataSet = types.model("DataSet", {
       getGroupedCollection,
       // get collection from id (including ungrouped collection)
       getCollection,
+      // get real collection from name (ungrouped collection is not considered to be a real collection)
+      getGroupedCollectionByName,
+      // get collection from name (including ungrouped collection)
+      getCollectionByName,
       // get index from collection (including ungrouped collection)
       getCollectionIndex,
       // get collection from attribute. Ungrouped collection is returned for ungrouped attributes.

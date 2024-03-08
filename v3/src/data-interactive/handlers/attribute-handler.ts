@@ -1,21 +1,46 @@
-import { getSnapshot } from "mobx-state-tree"
-import { DIHandler, DIResources, diNotImplementedYet } from "./data-interactive-types"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { DIHandler, DIResources, diNotImplementedYet } from "../data-interactive-types"
+import { registerDIHandler } from "../data-interactive-handler"
 
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
-    const { attribute } = resources
-    return attribute
-      ? {
-          success: true,
-          // TODO: convert to v2 format for plugins
-          values: getSnapshot(attribute)
+    const { attribute, dataContext } = resources
+    const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
+    if (attribute) {
+      const { name, type, title, description, editable, id, precision } = attribute
+      return {
+        success: true,
+        values: {
+          name,
+          type, // TODO This won't return "none", which v2 sometimes does
+          title,
+          // cid: self.cid, // TODO What should this be?
+          // defaultMin: self.defaultMin, // TODO Where should this come from?
+          // defaultMax: self.defaultMax, // TODO Where should this come from?
+          description,
+          // _categoryMap: self.categoryMap, // TODO What is this?
+          // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
+          editable,
+          hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
+          renameable: true, // TODO What should this be?
+          deleteable: true, // TODO What should this be?
+          formula: attribute.formula?.display,
+          // deletedFormula: self.deletedFormula, // TODO What should this be?
+          guid: attribute.id, // TODO This is different than v2
+          id, // TODO This is different than v2
+          precision,
+          unit: attribute.units
         }
-      : {success: false, values: {error: 'Attribute not found'}}
+      }
+    }
+    return {success: false, values: {error: 'Attribute not found'}}
   },
   create: diNotImplementedYet,
   update: diNotImplementedYet,
   delete: diNotImplementedYet
 }
+
+registerDIHandler("attribute", diAttributeHandler)
 
 // from data_interactive_phone_handler.js
 // create: function (iResources, iValues, iMetadata) {

@@ -44,6 +44,9 @@ export const CollectionModel = CollectionPropsModel
   },
   getAttributeIndex(attrId: string) {
     return self.attributes.findIndex(attr => attr?.id === attrId)
+  },
+  getAttributeByName(name: string) {
+    return self.attributes.find(attribute => attribute?.name === name)
   }
 }))
 .actions(self => ({
@@ -77,6 +80,6 @@ export const CollectionModel = CollectionPropsModel
 export interface ICollectionModel extends Instance<typeof CollectionModel> {}
 export interface ICollectionModelSnapshot extends SnapshotIn<typeof CollectionModel> {}
 
-export function isCollectionModel(model: IAnyStateTreeNode): model is ICollectionModel {
-  return getType(model) === CollectionModel
+export function isCollectionModel(model?: IAnyStateTreeNode): model is ICollectionModel {
+  return !!model && getType(model) === CollectionModel
 }

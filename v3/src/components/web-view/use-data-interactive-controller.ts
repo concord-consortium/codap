@@ -1,6 +1,10 @@
 import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
+import { getDIHandler } from "../../data-interactive/data-interactive-handler"
+import { DIAction, DIHandler, DIRequest, DIRequestResponse } from "../../data-interactive/data-interactive-types"
+import "../../data-interactive/register-handlers"
+import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { isWebViewModel } from "./web-view-model"
@@ -26,47 +30,39 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const originUrl = extractOrigin(url) ?? ""
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
         () => debugLog(DEBUG_PLUGINS, "connection with iframe established"))
-      const handler: iframePhone.IframePhoneRpcEndpointHandlerFn = (content: any, callback: any) => {
-        debugLog(DEBUG_PLUGINS, `--- Received data-interactive: ${JSON.stringify(content)}`)
+      const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =
+        (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
+      {
+        debugLog(DEBUG_PLUGINS, `--- Received data-interactive: ${JSON.stringify(request)}`)
         toast({
           title: "Web view received message",
-          description: JSON.stringify(content),
+          description: JSON.stringify(request),
           status: "success",
           duration: 9000,
           isClosable: true
         })
-        let result: any = { success: false }
-        if (Array.isArray(content)) {
-          result = content.map((action: any) => {
-            if (action && action.resource === "interactiveFrame") {
-              if (action.action === "update") {
-                const values = action.values
-                if (values.title) {
-                  tile?.setTitle(values.title)
-                  return { success: true }
-                }
-              } else if (action.action === "get") {
-                return {
-                  success: true,
-                  values: {
-                    name: tile?.title,
-                    title: tile?.title,
-                    version: "0.1",
-                    preventBringToFront: false,
-                    preventDataContextReorg: false,
-                    dimensions: {
-                      width: 600,
-                      height: 500
-                    },
-                    externalUndoAvailable: true,
-                    standaloneUndoModeAvailable: false
-                  }
-                }
-              }
-            }
-            return { success: false }
-          })
+        let result: DIRequestResponse = { success: false }
+
+        const errorResult = (error: string) => ({ success: false, values: { error }} as const)
+        const processAction = (action: DIAction) => {
+          if (!action) return errorResult("No action to process.")
+          if (!tile) return errorResult("No tile for action.")
+
+          const resourceSelector = parseResourceSelector(action.resource)
+          const resources = resolveResources(resourceSelector, action.action, tile)
+          const type = resourceSelector.type ?? ""
+          const a = action.action
+          const func = getDIHandler(type)?.[a as keyof DIHandler]
+          if (!func) return errorResult(`Unsupported action: ${a}/${type}`)
+
+          return func?.(resources, action.values) ?? errorResult("Action handler returned undefined.")
         }
+        if (Array.isArray(request)) {
+          result = request.map(action => processAction(action))
+        } else {
+          result = processAction(request)
+        }
+
         debugLog(DEBUG_PLUGINS, ` -- Responding with`, result)
         callback(result)
       }

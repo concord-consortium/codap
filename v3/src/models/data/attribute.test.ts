@@ -2,7 +2,8 @@ import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import {
-  Attribute, IAttributeSnapshot, importValueToString, isFormulaAttr, isValidFormulaAttr, kDefaultFormatStr
+  Attribute, IAttributeSnapshot, importValueToString, isFormulaAttr,
+  isValidFormulaAttr, kDefaultFormatStr
 } from "./attribute"
 
 describe("Attribute", () => {
