@@ -189,10 +189,16 @@ export const Attribute = types.model("Attribute", {
     if (self.userType) return self.userType
     self.changeCount  // eslint-disable-line no-unused-expressions
     if (this.length === 0) return
+
     // only infer color if all non-empty values are strict colors
-    if (self.getStrictColorCount() === this.length - self.getEmptyCount()) return "color"
+    const colorCount = self.getStrictColorCount()
+    if (colorCount > 0 && colorCount === this.length - self.getEmptyCount()) return "color"
+
     // only infer numeric if all non-empty values are numeric (CODAP2)
-    return self.getNumericCount() === this.length - self.getEmptyCount() ? "numeric" : "categorical"
+    const numCount = self.getNumericCount()
+    if (numCount > 0 && numCount === this.length - self.getEmptyCount()) return "numeric"
+
+    return "categorical"
   },
   get format() {
     return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr

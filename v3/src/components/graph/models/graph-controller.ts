@@ -146,7 +146,9 @@ export class GraphController {
             : attributeType === 'numeric' ? graphAttributeRole
               : otherAttributeType !== 'empty' ? otherAttrRole : graphAttributeRole
         dataConfig.setPrimaryRole(primaryRole)
-        graphModel.setPlotType(plotChoices[primaryType][otherAttributeType])
+        // TODO COLOR: treat color like categorical for now
+        const _primaryType = primaryType === 'color' ? 'categorical' : primaryType
+        graphModel.setPlotType(plotChoices[_primaryType][otherAttributeType])
       }
     }
 
@@ -170,7 +172,8 @@ export class GraphController {
           }
         }
           break
-        case 'categorical': {
+        case 'categorical':
+        case 'color': { // TODO COLOR: treat color like categorical for now
           if (currentType !== 'categorical') {
             const newAxisModel = CategoricalAxisModel.create({place})
             graphModel.setAxis(place, newAxisModel)
