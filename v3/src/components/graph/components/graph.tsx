@@ -287,7 +287,13 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
-        <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPoints={pixiPoints}/>
+        <DataTip
+          dataConfiguration={graphModel.dataConfiguration}
+          dataset={dataset}
+          getTipAttrs={getTipAttrs}
+          pixiPoints={pixiPoints}
+          pointsFusedIntoBars={graphModel.pointsFusedIntoBars}
+        />
       </div>
     </GraphDataConfigurationContext.Provider>
   )

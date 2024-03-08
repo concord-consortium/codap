@@ -155,7 +155,9 @@ export class GraphController {
         attr = attributeID ? dataset?.attrFromID(attributeID) : undefined,
         attrType = dataConfig.attributeType(attrRole) ?? 'empty',
         currAxisModel = graphModel.getAxis(place),
-        currentType = currAxisModel?.type ?? 'empty'
+        currentType = currAxisModel?.type ?? 'empty',
+        primaryRole = graphModel.dataConfiguration.primaryRole,
+        secondaryPlace = primaryRole === "x" ? "left" : "bottom"
       switch (attrType) {
         case 'numeric': {
           if (!currAxisModel || !isNumericAxisModel(currAxisModel)) {
@@ -181,7 +183,7 @@ export class GraphController {
         }
           break
         case 'empty': {
-          if (currentType !== 'empty') {
+          if (!(place === secondaryPlace && graphModel.pointsFusedIntoBars)) {
             layout.setAxisScaleType(place, 'ordinal')
             if (['left', 'bottom'].includes(place)) {
               graphModel.setAxis(place, EmptyAxisModel.create({place}))

@@ -79,9 +79,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
           handleMouseover = () => {
             const tFeature = mapLayerModel.features[caseIndex],
-              attrIDsToUse = (dataConfiguration.uniqueTipAttributes ?? [])
+              attributeIDs = (dataConfiguration.uniqueTipAttributes ?? [])
                 .map(aPair => aPair.attributeID),
-              tipText = getCaseTipText(caseID, attrIDsToUse, dataset)
+              tipText = getCaseTipText({caseID, attributeIDs, dataset})
             infoPopup = popup({
                 closeButton: false,
                 autoPan: false,

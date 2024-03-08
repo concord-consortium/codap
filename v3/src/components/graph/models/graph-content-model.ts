@@ -25,7 +25,8 @@ import {IDomainOptions, PlotType, PlotTypes} from "../graphing-types"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
-import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} from "../../axis/models/axis-model"
+import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel,
+  NumericAxisModel} from "../../axis/models/axis-model"
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
@@ -61,6 +62,7 @@ export const GraphContentModel = DataDisplayContentModel
     axes: types.map(AxisModelUnion),
     _binAlignment: types.maybe(types.number),
     _binWidth: types.maybe(types.number),
+    pointsFusedIntoBars: types.optional(types.boolean, false),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundImage: types.maybe(types.string),
@@ -137,7 +139,7 @@ export const GraphContentModel = DataDisplayContentModel
     get axisDomainOptions(): IDomainOptions {
       return {
         // When displaying bars, the domain should start at 0 unless there are negative values.
-        clampPosMinAtZero: self.pointDisplayType === "bars"
+        clampPosMinAtZero: self.pointDisplayType === "bars" || self.pointsFusedIntoBars
       }
     },
     binWidthFromData(minValue: number, maxValue: number): number {
@@ -294,6 +296,15 @@ export const GraphContentModel = DataDisplayContentModel
       self.setDragBinIndex(-1)
       self.setBinAlignment(binAlignment)
       self.setBinWidth(binWidth)
+    },
+    hasFixedMinAxis(axisModel: IAxisModelUnion): boolean {
+      if (isNumericAxisModel(axisModel)) {
+        const secondaryRole = self.dataConfiguration.primaryRole === "x" ? "y" : "x"
+        const secondaryAttrPlace = secondaryRole === "y" ? "left" : "bottom"
+        return self.pointsFusedIntoBars && secondaryAttrPlace === axisModel.place
+      } else {
+        return false
+      }
     }
   }))
   .actions(self => ({
@@ -324,7 +335,6 @@ export const GraphContentModel = DataDisplayContentModel
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
       const newDataSet = getDataSetFromId(self, dataSetID)
       if (newDataSet && newDataSet !== self.dataConfiguration.dataset) {
-        // update data configuration
         self.dataConfiguration.clearAttributes()
         self.dataConfiguration.setDataset(newDataSet, getSharedCaseMetadataFromDataset(newDataSet))
       }
@@ -366,6 +376,33 @@ export const GraphContentModel = DataDisplayContentModel
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show
     }
+  }))
+  .actions(self => ({
+    setBarCountAxis() {
+      const { maxOverAllCells, primaryRole, secondaryRole } = self.dataConfiguration
+      const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
+      const extraPrimAttrRole = primaryRole === "x" ? "topSplit" : "rightSplit"
+      const extraSecAttrRole = primaryRole === "x" ? "rightSplit" : "topSplit"
+      const maxCellCaseCount = maxOverAllCells(extraPrimAttrRole, extraSecAttrRole)
+      const countAxis = NumericAxisModel.create({scale: "linear", place: secondaryPlace, min: 0, max: maxCellCaseCount})
+      setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
+      self.setAxis(secondaryPlace, countAxis)
+    },
+    unsetBarCountAxis() {
+      const { secondaryRole } = self.dataConfiguration
+      const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
+      self.setAxis(secondaryPlace, EmptyAxisModel.create({ place: secondaryPlace }))
+    }
+  }))
+  .actions(self => ({
+    setPointsFusedIntoBars(fuseIntoBars: boolean) {
+      if (fuseIntoBars) {
+        self.setBarCountAxis()
+      } else {
+        self.unsetBarCountAxis()
+      }
+      self.pointsFusedIntoBars = fuseIntoBars
+    },
   }))
   .views(self => ({
     get noPossibleRescales() {

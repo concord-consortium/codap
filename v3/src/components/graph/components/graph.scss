@@ -168,3 +168,13 @@
     cursor: url("../adornments/assets/up-down-cursor.png") 8 8, grab;
   }
 }
+
+.bar-cover {
+  cursor: pointer;
+  fill: white;
+  opacity: 0;
+
+  &.active {
+    opacity: 0.3;
+  }
+}

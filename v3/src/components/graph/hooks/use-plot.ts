@@ -101,6 +101,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         if (graphModel?.plotType !== "dotPlot") {
           graphModel?.setPointConfig("points")
         }
+        // If points are fused into bars, make sure the Count axis on the secondary place is updated 
+        // accordingly when attributes change. And if an attribute is added to the secondary place (that is, 
+        // the attribute replaces the Count), we need to unfuse the bars back to points.
+        const secondaryRole = dataConfiguration.primaryRole === "x" ? "y" : "x"
+        const secondaryAttrID = dataConfiguration?.attributeID(secondaryRole)
+        if (graphModel.pointsFusedIntoBars && !secondaryAttrID) {
+          graphModel.setBarCountAxis()
+        } else if (graphModel.pointsFusedIntoBars) {
+          graphModel.setPointsFusedIntoBars(false)
+        }
         startAnimation()
         callRefreshPointPositions(false)
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
@@ -176,6 +186,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           graphModel?.setPointConfig("points")
         }
 
+        // If points are fused into bars and the primary attribute is removed, unfuse the bars back to points.
+        const primaryAttrID =
+          dataConfiguration.primaryRole && dataConfiguration?.attributeID(dataConfiguration.primaryRole)
+        if (graphModel.pointsFusedIntoBars && !primaryAttrID) {
+          graphModel.setPointsFusedIntoBars(false)
+        }
+
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),
@@ -191,12 +208,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return () => disposer()
   }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPoints])
 
-  // respond to pointDisplayType changes
+  // respond to pointDisplayType and pointsFusedIntoBars changes
   useEffect(function respondToPointConfigChange() {
     return mstReaction(
       () => graphModel.pointDisplayType,
       () => {
         if (!pixiPoints) return
+
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),

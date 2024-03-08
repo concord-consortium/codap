@@ -13,6 +13,10 @@ import {
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
+import { t } from "../../utilities/translation/translate"
+import { IGraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
+import { ICase } from "../../models/data/data-set-types"
+import { IBarCover } from "../graph/graphing-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -47,9 +51,18 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
   }
 }
 
-export function getCaseTipText(caseID: string, attributeIDs: string[], dataset?: IDataSet) {
+export interface IGetTipTextProps {
+  attributeIDs?: string[]
+  caseID: string
+  dataset?: IDataSet
+  dataConfig?: IDataConfigurationModel
+  legendAttrID?: string
+}
+
+export function getCaseTipText(props: IGetTipTextProps) {
+  const { attributeIDs, caseID, dataset } = props
   const float = format('.3~f'),
-    attrArray = (attributeIDs.map(attrID => {
+    attrArray = (attributeIDs?.map(attrID => {
       const attribute = dataset?.attrFromID(attrID),
         name = attribute?.name,
         numValue = dataset?.getNumeric(caseID, attrID),
@@ -61,9 +74,68 @@ export function getCaseTipText(caseID: string, attributeIDs: string[], dataset?:
   return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
 }
 
+export function getFusedCasesTipText(props: IGetTipTextProps) {
+  const { caseID, legendAttrID, dataset, dataConfig } = props
+  const float = format('.1~f')
+  const primaryRole = (dataConfig as IGraphDataConfigurationModel)?.primaryRole
+  const primaryAttrID = primaryRole && dataConfig?.attributeID(primaryRole)
+  const topSplitAttrID = dataConfig?.attributeID("topSplit")
+  const rightSplitAttrID = dataConfig?.attributeID("rightSplit")
+  const casePrimaryValue = primaryAttrID && dataset?.getStrValue(caseID, primaryAttrID)
+  const caseTopSplitValue = topSplitAttrID && dataset?.getStrValue(caseID, topSplitAttrID)
+  const caseRightSplitValue = rightSplitAttrID && dataset?.getStrValue(caseID, rightSplitAttrID)
+  const caseLegendValue = legendAttrID && dataset?.getStrValue(caseID, legendAttrID)
+
+  const getMatchingCases = (attrID?: string, value?: string, _allCases?: ICase[]) => {
+    const allCases = _allCases ?? dataset?.cases
+    const matchingCases = attrID && value
+      ? allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrID) === value) ?? []
+      : []
+    return matchingCases as ICase[]
+  }
+
+  // for each existing attribute, get the cases that have the same value as the current case 
+  const primaryMatches = getMatchingCases(primaryAttrID, casePrimaryValue)
+  const topSplitMatches = getMatchingCases(topSplitAttrID, caseTopSplitValue)
+  const rightSplitMatches = getMatchingCases(rightSplitAttrID, caseRightSplitValue)
+  const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
+  const legendMatches = getMatchingCases(legendAttrID, caseLegendValue, primaryMatches)
+
+  const cellKey: Record<string, string> = {
+    ...(casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
+    ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
+    ...(caseRightSplitValue && {[rightSplitAttrID]: caseRightSplitValue})
+  }
+  const casesInSubPlot = (dataConfig as IGraphDataConfigurationModel)?.subPlotCases(cellKey).length
+  const totalCases = [
+    legendMatches.length,
+    bothSplitMatches.length,
+    topSplitMatches.length,
+    rightSplitMatches.length,
+    dataset?.cases.length ?? 0
+  ].find(length => length > 0) ?? 0
+  const percent = totalCases ? float((casesInSubPlot / totalCases) * 100) : 100
+  const caseCategoryString = caseLegendValue !== ""
+    ? casePrimaryValue
+    : ""
+  const caseLegendCategoryString = caseLegendValue !== ""
+    ? caseLegendValue
+    : casePrimaryValue
+  const firstCount = legendAttrID ? totalCases : casesInSubPlot
+  const secondCount = legendAttrID ? casesInSubPlot : totalCases
+
+  // <n> of <m> <category> (<p>%) are <legend category>
+  const attrArray = [
+    firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
+  ]
+
+  return t("DG.BarChartModel.cellTipPlural", {vars: attrArray})
+}
+
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
+
   if (!caseIsSelected) {
     if (extendSelection) { // case is not selected and Shift key is down => add case to selection
       dataset?.selectCases([caseID])
@@ -75,11 +147,29 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
   }
 }
 
+interface IHandleClickOnBarProps {
+  event: PointerEvent
+  dataConfiguration: IDataConfigurationModel
+  primaryAttrRole: "x" | "y"
+  barCover: IBarCover
+}
+
+export const handleClickOnBar = ({ event, dataConfiguration, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
+  const { extraPrimeCat, extraSecCat, primeCat, secCat } = barCover
+  const extendSelection = event.shiftKey
+  if (primeCat) {
+    dataConfiguration?.selectCasesForCategoryValues(
+      primaryAttrRole, primeCat, secCat, extraPrimeCat, extraSecCat, extendSelection
+    )
+  }
+}
+
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
   pointRadius: number
   pointColor: string
   pointDisplayType?: PointDisplayType
+  pointsFusedIntoBars?: boolean
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
@@ -105,7 +195,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
 export function setPointSelection(props: ISetPointSelection) {
   const { pixiPoints, dataConfiguration, pointRadius, selectedPointRadius,
-    pointColor, pointStrokeColor, getPointColorAtIndex } = props
+    pointColor, pointStrokeColor, getPointColorAtIndex, pointsFusedIntoBars } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
   if (!pixiPoints) {
@@ -115,6 +205,7 @@ export function setPointSelection(props: ISetPointSelection) {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
     const isSelectedAndLegendIsPresent = isSelected && legendID
+    const isSelectedAndPointsFusedIntoBars = isSelected && pointsFusedIntoBars
     // This `fill` logic is directly translated from the old D3 code.
     let fill: string
     if (isSelected && !legendID) {
@@ -127,7 +218,11 @@ export function setPointSelection(props: ISetPointSelection) {
     const style: Partial<IPixiPointStyle> = {
       fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
-      stroke: isSelectedAndLegendIsPresent ? defaultSelectedStroke : pointStrokeColor,
+      stroke: isSelectedAndLegendIsPresent
+        ? defaultSelectedStroke
+        : isSelectedAndPointsFusedIntoBars
+          ? defaultSelectedColor
+          : pointStrokeColor,
       strokeWidth: isSelectedAndLegendIsPresent ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }

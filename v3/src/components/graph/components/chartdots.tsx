@@ -1,24 +1,92 @@
-import {ScaleBand} from "d3"
+import {ScaleBand, ScaleLinear, select} from "d3"
 import {mstReaction} from "../../../utilities/mst-reaction"
-import React, {useCallback, useEffect} from "react"
-import * as PIXI from "pixi.js"
+import React, {useCallback, useEffect, useRef} from "react"
+import { createPortal } from "react-dom"
 import {CaseData} from "../../data-display/d3-types"
-import {PlotProps} from "../graphing-types"
+import { IBarCover, PlotProps } from "../graphing-types"
 import {usePlotResponders} from "../hooks/use-plot"
 import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {attrRoleToAxisPlace} from "../../data-display/data-display-types"
-import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import {handleClickOnBar, setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setPointCoordinates} from "../utilities/graph-utils"
-import { IPixiPointMetadata, PixiPointEventHandler } from "../utilities/pixi-points"
+import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
+import { GraphLayout } from "../models/graph-layout"
+import { AxisPlace } from "../../axis/axis-types"
 
-type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
+interface IRenderBarCoverProps {
+  barCovers: IBarCover[]
+  barCoversRef: React.RefObject<SVGGElement>
+  dataConfiguration: IDataConfigurationModel
+  primaryAttrRole: "x" | "y"
+}
+
+interface IBarCoverDimensionsProps {
+  cellIndices: { p: number, s: number, ep: number, es: number }
+  layout: GraphLayout
+  maxInCell: number
+  numExtraSecondaryBands: number
+  primaryAxisPlace: AxisPlace
+  primaryIsBottom: boolean
+  primCatsArray: string[]
+  secondaryAxisPlace: AxisPlace
+  secondaryCellHeight: number
+}
+
+const renderBarCovers = (props: IRenderBarCoverProps) => {
+  const { barCovers, barCoversRef, dataConfiguration, primaryAttrRole } = props
+  select(barCoversRef.current).selectAll("rect").remove()
+  select(barCoversRef.current).selectAll("rect")
+    .data(barCovers)
+    .join((enter) => enter.append("rect")
+      .attr("class", (d) => d.class)
+      .attr("x", (d) => d.x)
+      .attr("y", (d) => d.y)
+      .attr("width", (d) => d.width)
+      .attr("height", (d) => d.height)
+      .on("mouseover", function() { select(this).classed("active", true) })
+      .on("mouseout", function() { select(this).classed("active", false) })
+      .on("click", function(event, d) {
+        dataConfiguration && handleClickOnBar({event, dataConfiguration, primaryAttrRole, barCover: d})
+      })
+    )
+}
+
+const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
+  const { cellIndices, layout, maxInCell, numExtraSecondaryBands, primCatsArray,
+    primaryAxisPlace, primaryIsBottom, secondaryAxisPlace, secondaryCellHeight } = props
+  const { p: primeCatIndex, ep: extraPrimeCatIndex, es: extraSecCatIndex } = cellIndices
+  const extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat"
+  const extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>
+  const secondaryAxisScale = layout.getAxisScale(secondaryAxisPlace) as ScaleLinear<number, number>
+  const numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1)
+  const primaryCellWidth = layout.getAxisLength(primaryAxisPlace) / (primCatsArray.length ?? 1)
+  const primarySubCellWidth = primaryCellWidth / numExtraPrimaryBands
+  const offsetExtraPrimary = extraPrimeCatIndex * primaryCellWidth
+  const primaryInvertedIndex = numExtraPrimaryBands - 1 - primeCatIndex
+  const offsetPrimary = primaryIsBottom
+                          ? primeCatIndex * primarySubCellWidth + offsetExtraPrimary
+                          : primaryInvertedIndex * primarySubCellWidth + offsetExtraPrimary
+  const secondaryCoord = secondaryAxisScale(maxInCell)
+  const invertedSecondaryIndex = numExtraSecondaryBands - 1 - extraSecCatIndex
+  const offsetSecondary = invertedSecondaryIndex * secondaryCellHeight
+  const adjustedSecondaryCoord = Math.abs(secondaryCoord / numExtraSecondaryBands + offsetSecondary)
+  const primaryDimension = primarySubCellWidth / 2
+  const secondaryDimension = Math.abs(secondaryCoord - secondaryAxisScale(0)) / numExtraSecondaryBands
+  const barWidth = primaryIsBottom ? primaryDimension : secondaryDimension
+  const barHeight = primaryIsBottom ? secondaryDimension : primaryDimension
+  const primaryCoord = offsetPrimary + (primarySubCellWidth / 2 - primaryDimension / 2)
+  const x = primaryIsBottom ? primaryCoord : secondaryAxisScale(0)
+  const y = primaryIsBottom ? adjustedSecondaryCoord : primaryCoord
+
+  return { x, y, barWidth, barHeight }
+}
 
 export const ChartDots = function ChartDots(props: PlotProps) {
-  const {pixiPoints} = props,
+  const {abovePointsGroupRef, pixiPoints} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
@@ -30,59 +98,14 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     primaryIsBottom = primaryAxisPlace === 'bottom',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
     extraPrimaryAttrRole = primaryAttrRole === 'x' ? 'topSplit' : 'rightSplit',
-    extraSecondaryAttrRole = primaryAttrRole === 'x' ? 'rightSplit' : 'topSplit'
-
-  /**
-   * Compute the maximum number of points in any cell of the grid. The grid has four
-   * dimensions: primary, secondary, extraPrimary, and extraSecondary.
-   * (Seems like there ought to be a more straightforward way to do this.)
-   */
-  const computeMaxOverAllCells = useCallback(() => {
-    const primAttrID = dataConfiguration?.attributeID(primaryAttrRole) ?? '',
-      secAttrID = dataConfiguration?.attributeID(secondaryAttrRole) ?? '',
-      extraPrimAttrID = dataConfiguration?.attributeID(extraPrimaryAttrRole) ?? '',
-      extraSecAttrID = dataConfiguration?.attributeID(extraSecondaryAttrRole) ?? '',
-      valueQuads = (dataConfiguration?.caseDataArray || []).map((aCaseData: CaseData) => {
-        return {
-          primary: (primAttrID && dataset?.getValue(aCaseData.caseID, primAttrID)) ?? '',
-          secondary: (secAttrID && dataset?.getValue(aCaseData.caseID, secAttrID)) ?? '__main__',
-          extraPrimary: (extraPrimAttrID && dataset?.getValue(aCaseData.caseID, extraPrimAttrID)) ?? '__main__',
-          extraSecondary: (extraSecAttrID && dataset?.getValue(aCaseData.caseID, extraSecAttrID)) ?? '__main__'
-        }
-      }),
-      bins: BinMap = {}
-    valueQuads?.forEach((aValue: any) => {
-      if (bins[aValue.primary] === undefined) {
-        bins[aValue.primary] = {}
-      }
-      if (bins[aValue.primary][aValue.secondary] === undefined) {
-        bins[aValue.primary][aValue.secondary] = {}
-      }
-      if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary] === undefined) {
-        bins[aValue.primary][aValue.secondary][aValue.extraPrimary] = {}
-      }
-      if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
-        bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
-      }
-      bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
-    })
-    // Now find and return the maximum value in the bins
-    return Object.keys(bins).reduce((hMax, hKey) => {
-      return Math.max(hMax, Object.keys(bins[hKey]).reduce((vMax, vKey) => {
-        return Math.max(vMax, Object.keys(bins[hKey][vKey]).reduce((epMax, epKey) => {
-          return Math.max(epMax, Object.keys(bins[hKey][vKey][epKey]).reduce((esMax, esKey) => {
-            return Math.max(esMax, bins[hKey][vKey][epKey][esKey])
-          }, 0))
-        }, 0))
-      }, 0))
-    }, 0)
-  }, [dataset, dataConfiguration, extraPrimaryAttrRole, extraSecondaryAttrRole,
-    primaryAttrRole, secondaryAttrRole])
+    extraSecondaryAttrRole = primaryAttrRole === 'x' ? 'rightSplit' : 'topSplit',
+    barCoversRef = useRef<SVGGElement>(null)
 
   const refreshPointSelection = useCallback(() => {
     dataConfiguration && setPointSelection({
       pixiPoints, pointColor, pointStrokeColor, dataConfiguration,
-      pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select')
+      pointRadius: graphModel.getPointRadius(), selectedPointRadius: graphModel.getPointRadius('select'),
+      pointsFusedIntoBars: graphModel.pointsFusedIntoBars
     })
   }, [dataConfiguration, graphModel, pixiPoints, pointColor, pointStrokeColor])
 
@@ -93,7 +116,10 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       extraPrimaryAxisPlace = attrRoleToAxisPlace[extraPrimaryAttrRole] ?? 'top',
       extraSecondaryAxisPlace = attrRoleToAxisPlace[extraSecondaryAttrRole] ?? 'rightCat',
       extraPrimaryAttrID = dataConfiguration?.attributeID(extraPrimaryAttrRole) ?? '',
+      extraSecondaryPlace = primaryIsBottom ? 'rightCat' : 'top',
+      extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
       extraSecondaryAttrID = dataConfiguration?.attributeID(extraSecondaryAttrRole) ?? '',
+      numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1),
       primCatsArray: string[] = (dataConfiguration && primaryAttrRole)
         ? Array.from(dataConfiguration.categoryArrayForAttrRole(primaryAttrRole)) : [],
       secCatsArray: string[] = (dataConfiguration && secondaryAttrRole)
@@ -112,29 +138,31 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       primaryHeight = (secOrdinalScale.bandwidth ? secOrdinalScale.bandwidth()
           : (secondaryAxisPlace ? layout.getAxisLength(secondaryAxisPlace) : 0)) /
         (dataConfiguration?.numRepetitionsForPlace(secondaryAxisPlace) ?? 1),
+      secondaryCellHeight = layout.getAxisLength(secondaryAxisPlace) / numExtraSecondaryBands,
       extraPrimCellWidth = (extraPrimOrdinalScale.bandwidth?.()) ?? 0,
       extraSecCellWidth = (extraSecOrdinalScale.bandwidth?.()) ?? 0,
       catMap: Record<string, Record<string, Record<string, Record<string,
         { cell: { p: number, s: number, ep: number, es: number }, numSoFar: number }>>>> = {},
       legendAttrID = dataConfiguration?.attributeID('legend'),
-      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
+      getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined,
+      secondaryAxisScale = layout.getAxisScale(secondaryAxisPlace) as ScaleLinear<number, number>
 
     const computeCellParams = () => {
-        primCatsArray.forEach((primeCat, i) => {
-          if (!catMap[primeCat]) {
-            catMap[primeCat] = {}
+        primCatsArray.forEach((primCat, i) => {
+          if (!catMap[primCat]) {
+            catMap[primCat] = {}
           }
           secCatsArray.forEach((secCat, j) => {
-            if (!catMap[primeCat][secCat]) {
-              catMap[primeCat][secCat] = {}
+            if (!catMap[primCat][secCat]) {
+              catMap[primCat][secCat] = {}
             }
             extraPrimCatsArray.forEach((exPrimeCat, k) => {
-              if (!catMap[primeCat][secCat][exPrimeCat]) {
-                catMap[primeCat][secCat][exPrimeCat] = {}
+              if (!catMap[primCat][secCat][exPrimeCat]) {
+                catMap[primCat][secCat][exPrimeCat] = {}
               }
               extraSecCatsArray.forEach((exSecCat, l) => {
-                if (!catMap[primeCat][secCat][exPrimeCat][exSecCat]) {
-                  catMap[primeCat][secCat][exPrimeCat][exSecCat] =
+                if (!catMap[primCat][secCat][exPrimeCat][exSecCat]) {
+                  catMap[primCat][secCat][exPrimeCat][exSecCat] =
                     {cell: {p: i, s: j, ep: k, es: l}, numSoFar: 0}
                 }
               })
@@ -143,12 +171,12 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         })
 
         const
-          secondaryGap = 5,
-          maxInCell = computeMaxOverAllCells(),
+          secondaryGap = graphModel.pointsFusedIntoBars ? 0 : 5,
+          maxInCell = dataConfiguration?.maxOverAllCells(extraPrimaryAttrRole, extraSecondaryAttrRole) ?? 0,
           allowedPointsPerColumn = Math.max(1, Math.floor((primaryHeight - secondaryGap) / pointDiameter)),
-          primaryGap = 18,
+          primaryGap = graphModel.pointsFusedIntoBars ? 0 : 18,
           allowedPointsPerRow = Math.max(1, Math.floor((primaryCellWidth - primaryGap) / pointDiameter)),
-          numPointsInRow = Math.max(1, Math.min(allowedPointsPerRow,
+          numPointsInRow = graphModel.pointsFusedIntoBars ? 1 : Math.max(1, Math.min(allowedPointsPerRow,
             Math.ceil(maxInCell / allowedPointsPerColumn))),
           actualPointsPerColumn = Math.ceil(maxInCell / numPointsInRow),
           overlap = -Math.max(0, ((actualPointsPerColumn + 1) * pointDiameter - primaryHeight) /
@@ -174,8 +202,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
             catMap[hCat]?.[vCat]?.[extraHCat]?.[extraVCat]) {
             const mapEntry = catMap[hCat][vCat][extraHCat][extraVCat],
               numInCell = mapEntry.numSoFar++,
-              row = Math.floor(numInCell / cellParams.numPointsInRow),
-              column = numInCell % cellParams.numPointsInRow
+              row = Math.floor(numInCell / (graphModel.pointsFusedIntoBars ? 1 : cellParams.numPointsInRow)),
+              column = graphModel.pointsFusedIntoBars ? 0 : numInCell % cellParams.numPointsInRow
             indices[anID] = {cell: mapEntry.cell, row, column}
           }
         })
@@ -196,7 +224,15 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         }
       },
       getSecondaryScreenCoord = (anID: string) => {
-        if (cellIndices[anID] && secOrdinalScale) {
+        if (graphModel.pointsFusedIntoBars && cellIndices[anID]) {
+          const {row} = cellIndices[anID],
+            {s, es} = cellIndices[anID].cell
+          const barHeight = Math.abs(secondaryAxisScale(1) - secondaryAxisScale(0)) / numExtraSecondaryBands
+          const baseSecScreenCoord = secOrdinalScale.range()[0] -
+            signForOffset * (s * primaryHeight + es * extraSecCellWidth +
+              (row + .25) * barHeight)
+          return primaryIsBottom ? baseSecScreenCoord - barHeight / 4 : baseSecScreenCoord + barHeight / 4
+        } else if (cellIndices[anID] && secOrdinalScale) {
           const {row} = cellIndices[anID],
             {s, es} = cellIndices[anID].cell
           return secOrdinalScale.range()[0] -
@@ -209,27 +245,63 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
       getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
 
+      const getWidth = graphModel?.pointsFusedIntoBars
+        ? () => primaryIsBottom
+          ? primaryCellWidth / 2
+          : (Math.abs(secondaryAxisScale(1) - secondaryAxisScale(0))) / numExtraSecondaryBands
+        : undefined
+      const getHeight = graphModel?.pointsFusedIntoBars
+        ? () => primaryIsBottom
+          ? (Math.abs(secondaryAxisScale(1) - secondaryAxisScale(0))) / numExtraSecondaryBands
+          : primaryCellWidth / 2
+        : undefined
+      const pointDisplayType = graphModel?.pointsFusedIntoBars ? "bars" : "points"
+
+    if (dataConfiguration && graphModel?.pointsFusedIntoBars && abovePointsGroupRef?.current) {
+      const barCovers: IBarCover[] = []
+      const bins = dataConfiguration?.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole) ?? {}
+      Object.entries(catMap).forEach(([primeCat, secCats]) => {
+        Object.entries(secCats).forEach(([secCat, extraPrimCats]) => {
+          Object.entries(extraPrimCats).forEach(([extraPrimeCat, extraSecCats]) => {
+            Object.entries(extraSecCats).forEach(([extraSecCat, cellData]) => {
+              const secCatKey = secCat === "__main__" ? "" : secCat
+              const exPrimeCatKey = extraPrimeCat === "__main__" ? "" : extraPrimeCat
+              const exSecCatKey = extraSecCat === "__main__" ? "" : extraSecCat
+              const maxInCell = bins[primeCat]?.[secCatKey]?.[exPrimeCatKey]?.[exSecCatKey] ?? 0
+              const { x, y, barWidth, barHeight } = barCoverDimensions({
+                cellIndices: cellData.cell, primaryAxisPlace, layout, numExtraSecondaryBands,
+                primCatsArray, primaryIsBottom, secondaryAxisPlace, secondaryCellHeight, maxInCell
+              })
+              barCovers.push({
+                class: `bar-cover ${primeCat} ${secCatKey} ${exPrimeCatKey} ${exSecCatKey}`,
+                primeCat, secCat, extraPrimeCat, extraSecCat,
+                x: x.toString(), y: y.toString(),
+                width: barWidth.toString(), height: barHeight.toString()
+              })
+            })
+          })
+        })
+      })
+      renderBarCovers({ barCovers, barCoversRef, dataConfiguration, primaryAttrRole })
+    }
+
     setPointCoordinates({
       dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
-      pixiPoints, selectedOnly, pointColor, pointStrokeColor,
-      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
+      pixiPoints, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
+      getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
+      pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
     })
-  }, [dataConfiguration, primaryAxisPlace, primaryAttrRole, secondaryAttrRole, graphModel, pixiPoints,
-    extraPrimaryAttrRole, extraSecondaryAttrRole, pointColor, isAnimating,
-    primaryIsBottom, layout, pointStrokeColor, computeMaxOverAllCells, dataset])
+  }, [secondaryAttrRole, extraPrimaryAttrRole, extraSecondaryAttrRole, dataConfiguration, primaryIsBottom,
+      layout, primaryAttrRole, graphModel, primaryAxisPlace, abovePointsGroupRef, dataset, pixiPoints,
+      pointColor, pointStrokeColor, isAnimating])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
-
-  const onPointClick: PixiPointEventHandler = useCallback(
-    (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
-      handleClickOnCase(event, metadata.caseID, dataset)
-  }, [dataset])
   
   useEffect(() => {
     if (pixiPoints) {
-      pixiPoints.onPointClick = onPointClick
+      pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     }
-  }, [pixiPoints, onPointClick])
+  }, [pixiPoints, graphModel.pointsFusedIntoBars])
 
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {
@@ -242,7 +314,27 @@ export const ChartDots = function ChartDots(props: PlotProps) {
     )
   }, [graphModel, refreshPointPositions])
 
+  // when points are fused into bars, we need to set the secondary axis scale type to linear
+  useEffect(function handleFuseIntoBars() {
+    return mstReaction(
+      () => graphModel.pointsFusedIntoBars,
+      (pointsFusedIntoBars: boolean) => {
+        if (pointsFusedIntoBars) {
+          const secondaryRole = graphModel.dataConfiguration.primaryRole === "x" ? "y" : "x"
+          const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
+          layout.setAxisScaleType(secondaryPlace, "linear")
+        }
+      },
+      {name: "useAxis [handleFuseIntoBars]"}, graphModel
+    )
+  }, [graphModel, layout])
+
   return (
-    <></>
+    <>
+      {graphModel?.pointsFusedIntoBars && abovePointsGroupRef?.current && createPortal(
+        <g ref={barCoversRef}/>,
+        abovePointsGroupRef.current
+      )}
+    </>
   )
 }

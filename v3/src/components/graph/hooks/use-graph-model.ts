@@ -24,13 +24,17 @@ export function useGraphModel(props: IProps) {
     startAnimation = graphModel.startAnimation
 
   const callMatchCirclesToData = useCallback(() => {
+    const pointStrokeColor = graphModel.pointsFusedIntoBars
+      ? graphModel.pointDescription.pointColor
+      : graphModel.pointDescription.pointStrokeColor
+
     dataConfig && matchCirclesToData({
       dataConfiguration: dataConfig,
       pixiPoints,
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
       pointDisplayType: graphModel.pointDisplayType,
-      pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+      pointStrokeColor,
       startAnimation, instanceId
     })
   }, [dataConfig, pixiPoints, graphModel, startAnimation, instanceId])

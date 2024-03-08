@@ -26,7 +26,8 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
-  const showDisplayConfig = caseDataArray.length > 0 && graphModel?.plotType === "dotPlot"
+  const showDisplayConfig = (caseDataArray.length > 0 && graphModel?.plotType === "dotPlot") ||
+    (graphModel?.plotType === "dotChart" && graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis)
 
   useEffect(() => {
     !show && setShowPalette(undefined)

@@ -1,6 +1,6 @@
 import React from "react"
 import {observer} from "mobx-react-lite"
-import { Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
+import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import { t } from "../../../../utilities/translation/translate"
 import { InspectorPalette } from "../../../inspector-panel"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
@@ -21,7 +21,12 @@ interface IProps {
 export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const selectedConfig = graphModel?.pointDisplayType
+  const pointDisplayType = graphModel?.pointDisplayType
+  const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
+  const plotType = graphModel?.plotType
+  const plotHasExactlyOneCategoricalAxis = graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis
+  // TODO: Have separate showFuseIntoBars and showPointDisplayType? That may be a bit clearer and more flexible.
+  const showOnlyFuseIntoBars = plotType === "dotChart" && plotHasExactlyOneCategoricalAxis
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -55,6 +60,17 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     setBinOption(option, value)
   }
 
+  const handleSetFuseIntoBars = (fuseIntoBars: boolean) => {
+    graphModel?.setPointsFusedIntoBars(fuseIntoBars)
+    if (fuseIntoBars) {
+      graphModel?.setPointConfig("bars")
+      graphModel?.pointDescription.setPointStrokeSameAsFill(true)
+    } else {
+      graphModel?.setPointConfig("points")
+      graphModel?.pointDescription.setPointStrokeSameAsFill(false)
+    }
+  }
+
   return (
     <InspectorPalette
       title={t("DG.Inspector.configuration")}
@@ -64,7 +80,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
-        <RadioGroup defaultValue={selectedConfig}>
+      {!showOnlyFuseIntoBars && (
+        <RadioGroup defaultValue={pointDisplayType}>
           <Stack>
             <Radio
               size="md"
@@ -92,7 +109,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </Radio>
           </Stack>
         </RadioGroup>
-        {selectedConfig === "bins" && (
+      )}
+        {!showOnlyFuseIntoBars && pointDisplayType === "bins" && (
           <Stack>
             <Box className="inline-input-group" data-testid="graph-bin-width-setting">
               <FormLabel className="form-label">
@@ -124,6 +142,15 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </Box>
           </Stack>       
         )}
+      { // For now this option is only available for dot charts, but it should eventually
+        // be available for univariate plot graphs as well.
+        plotHasExactlyOneCategoricalAxis &&
+          <Checkbox
+            mt="6px" isChecked={pointsFusedIntoBars}
+            onChange={e => handleSetFuseIntoBars(e.target.checked)}>
+            {t("DG.Inspector.graphBarChart")}
+          </Checkbox>
+       }
       </Flex>
     </InspectorPalette>
   )

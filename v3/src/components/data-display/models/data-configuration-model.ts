@@ -336,6 +336,36 @@ export const DataConfigurationModel = types
         return self.legendQuantileScale(value)
       },
 
+      selectCasesForCategoryValues(
+        primaryAttrRole: AttrRole, primaryValue: string, secondaryValue?: string, extraPrimaryValue?: string,
+        extraSecondaryValue?: string, extend = false
+      ) {
+        const dataset = self.dataset,
+          primaryAttrID = self.attributeID(primaryAttrRole),
+          secondaryAttrRole = primaryAttrRole === "x" ? "y" : "x",
+          extraPrimaryAttrRole = primaryAttrRole === "x" ? "topSplit" : "rightSplit",
+          extraSecondaryAttrRole = primaryAttrRole === "x" ? "rightSplit" : "topSplit",
+          secondaryAttrID = self.attributeID(secondaryAttrRole),
+          extraPrimaryAttrID = self.attributeID(extraPrimaryAttrRole),
+          extraSecondaryAttrID = self.attributeID(extraSecondaryAttrRole)
+
+        const selection = primaryAttrID ? self.caseDataArray.filter((aCaseData: CaseData) => {
+              return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
+                (secondaryValue === "__main__" ||
+                 dataset?.getValue(aCaseData.caseID, secondaryAttrID) === secondaryValue) &&
+                (extraPrimaryValue === "__main__" ||
+                 dataset?.getValue(aCaseData.caseID, extraPrimaryAttrID) === extraPrimaryValue) &&
+                (extraSecondaryValue === "__main__" ||
+                  dataset?.getValue(aCaseData.caseID, extraSecondaryAttrID) === extraSecondaryValue)
+            }).map((aCaseData: CaseData) => aCaseData.caseID)
+            : []
+
+        if (selection) {
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
+        }
+      },
+
       selectCasesForLegendValue(aValue: string, extend = false) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
