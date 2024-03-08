@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 3.0.0-pre.1517 - March 7, 2024
+
+### Features/Improvements
+- PT-181961973: The map **Layers** inspector menu gives users control over map layers
+- PT-187005635: Users can specify that an attribute has a **color** data type
+- PT-187014891: Color values are displayed in case table and case card as color swatches
+- PT-187169360: Remove `sample`/dashboard` url parameters on open/close file
+- PT-187005724: A data value in various formats is automatically recognized as a color
+- PT-187014833: When an attribute is user-assigned the color type, all 140 web color names are recognized
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  145250 bytes |                            0.86% |
+|  index.js | 5114230 bytes |                            0.29% |
+
 ## Version 3.0.0-pre.1516 - February 28, 2024
 
 ### Features/Improvements
