@@ -50,8 +50,5 @@ export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel
   IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedFunctionAdornmentModel |
   IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
 
-// TODO: Replace this with PlotTypes in v3/src/components/graph/graphing-types.ts?
-export type PlotTypes = "casePlot" | "dotChart" | "dotPlot" | "scatterPlot"
-
 export const ParentAdornmentTypes = ["Univariate Measure"] as const
 export type ParentAdornmentType = typeof ParentAdornmentTypes[number]
