@@ -3,7 +3,7 @@ import { IAttribute } from "../models/data/attribute"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICollectionModel } from "../models/data/collection"
+import { ICollectionPropsModel } from "../models/data/collection"
 
 export type DICase = unknown
 export type DIComponent  = unknown
@@ -16,7 +16,7 @@ export interface DIResources {
   caseByIndex?: DICase
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
-  collection?: ICollectionModel
+  collection?: ICollectionPropsModel
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]

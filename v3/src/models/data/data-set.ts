@@ -211,6 +211,14 @@ export const DataSet = types.model("DataSet", {
     return [...self.collections, self.ungrouped]
   }
 }))
+.views(self => ({
+  getAttribute(id: string) {
+    return self.attrIDMap.get(id)
+  },
+  getAttributeByName(name: string) {
+    return self.attrIDMap.get(self.attrNameMap[name])
+  }
+}))
 .actions(self => ({
   // change the attribute order within the data set itself; doesn't handle collections
   moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {

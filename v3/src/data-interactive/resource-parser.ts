@@ -1,4 +1,5 @@
 import { appState } from "../models/app-state"
+import { isCollectionModel } from "../models/data/collection"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -118,27 +119,22 @@ export function resolveResources(
   // }
 
   if (resourceSelector.collection) {
-    result.collection = dataContext &&
-      // TODO This will not return the ungrouped collection, which is an ICollectionPropsModel rather than
-      // an ICollectionModel. Is that ok?
-      (dataContext.getGroupedCollectionByName(resourceSelector.collection) ||
-        dataContext.getGroupedCollection(resourceSelector.collection))
+    result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
+                        dataContext?.getCollection(resourceSelector.collection)
   }
 
   const collection = result.collection
+  const collectionModel = isCollectionModel(collection) ? collection : undefined
 
   if (resourceSelector.attribute || resourceSelector.attributeLocation) {
     const attrKey = resourceSelector.attribute ? 'attribute' : 'attributeLocation'
     const attrName = resourceSelector[attrKey] ?? ""
-    result[attrKey] = (
-      (
-        dataContext && (
-          dataContext.attrIDMap.get(dataContext.attrNameMap[attrName]) ||
-          dataContext.attrIDMap.get(dataContext.attrNameMap[canonicalizeAttributeName(attrName)])
-        )
-      ) ||
-      (collection?.getAttribute(attrName))
-    )
+    const canonicalAttrName = canonicalizeAttributeName(attrName)
+    result[attrKey] =
+      // check collection first in case of ambiguous names in data set
+      collectionModel?.getAttributeByName(attrName) || collectionModel?.getAttributeByName(canonicalAttrName) ||
+      dataContext?.getAttributeByName(attrName) || dataContext?.getAttributeByName(canonicalAttrName) ||
+      dataContext?.getAttribute(attrName) // in case it's an id
   }
 
   // if (resourceSelector.caseByID) {

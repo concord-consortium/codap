@@ -80,6 +80,6 @@ export const CollectionModel = CollectionPropsModel
 export interface ICollectionModel extends Instance<typeof CollectionModel> {}
 export interface ICollectionModelSnapshot extends SnapshotIn<typeof CollectionModel> {}
 
-export function isCollectionModel(model: IAnyStateTreeNode): model is ICollectionModel {
-  return getType(model) === CollectionModel
+export function isCollectionModel(model?: IAnyStateTreeNode): model is ICollectionModel {
+  return !!model && getType(model) === CollectionModel
 }
