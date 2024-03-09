@@ -19,7 +19,7 @@ export interface DIResources {
   caseSearch?: DICase[]
   collection?: ICollectionPropsModel
   component?: DIComponent
-  dataContext?: IDataSet | null
+  dataContext?: IDataSet
   dataContextList?: IDataSet[]
   global?: IGlobalValue
   interactiveFrame?: ITileModel

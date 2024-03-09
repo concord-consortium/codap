@@ -16,8 +16,8 @@ context("codap plugins", () => {
 
       cy.log("Handle get attribute request")
       const cmd1 = `{
-            "action": "get",
-            "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
+        "action": "get",
+        "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
       }`
       webView.sendAPITesterCommand(cmd1)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
@@ -25,8 +25,8 @@ context("codap plugins", () => {
 
       cy.log("Properly handles illegal actions")
       const cmd2 = `{
-            "action": "fake",
-            "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
+        "action": "fake",
+        "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
       }`
       webView.sendAPITesterCommand(cmd2, cmd1)
       webView.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
@@ -34,8 +34,8 @@ context("codap plugins", () => {
 
       cy.log("Finds the default dataset when no dataset is included")
       const cmd3 = `{
-            "action": "get",
-            "resource": "collection[Mammals].attribute[Order]"
+        "action": "get",
+        "resource": "collection[Mammals].attribute[Order]"
       }`
       webView.sendAPITesterCommand(cmd3, cmd2)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)

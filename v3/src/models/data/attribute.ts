@@ -26,7 +26,6 @@
  */
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { DIValues } from "../../data-interactive/data-interactive-types"
 import { parseColorStrict } from "../../utilities/color-parse-strict"
 import { typedId } from "../../utilities/js-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
