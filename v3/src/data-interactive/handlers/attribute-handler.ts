@@ -1,6 +1,7 @@
 import { isAttributeType } from "../../models/data/attribute"
 import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 
@@ -33,7 +34,7 @@ function convertAttributeToV2(resources: DIResources) {
   }
 }
 
-const attributeNotFoundResult = {success: false, values: {error: 'Attribute not found'}} as const
+const attributeNotFoundResult = {success: false, values: {error: t("V3.DI.Error.attributeNotFound")}} as const
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
     const attribute = convertAttributeToV2(resources)
