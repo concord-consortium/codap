@@ -876,17 +876,6 @@ export const DataSet = types.model("DataSet", {
         }
       },
 
-      applyAttributeProperties(attributeID: string, attrProps: IAttributeSnapshot) {
-        (attrProps.name != null) && this.setAttributeName(attributeID, attrProps.name)
-        const attribute = attributeID && self.attrIDMap.get(attributeID)
-        if (!attribute) return
-        ;(attrProps.description != null) && attribute.setDescription(attrProps.description)
-        ;(attrProps.userType != null) && attribute.setUserType(attrProps.userType)
-        ;(attrProps.units != null) && attribute.setUnits(attrProps.units)
-        ;(attrProps.precision != null) && attribute.setPrecision(attrProps.precision)
-        ;(attrProps.editable != null) && attribute.setEditable(attrProps.editable)
-      },
-
       removeAttribute(attributeID: string) {
         const attrIndex = self.attrIndexFromID(attributeID),
               attribute = attributeID ? self.attrIDMap.get(attributeID) : undefined

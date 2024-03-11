@@ -234,13 +234,13 @@ export const Attribute = types.model("Attribute", {
   setTitle(newTitle: string) {
     self.title = newTitle
   },
-  setUnits(units: string) {
+  setUnits(units?: string) {
     self.units = units
   },
-  setDescription(description: string) {
+  setDescription(description?: string) {
     self.description = description
   },
-  setUserType(type: AttributeType | undefined) {
+  setUserType(type?: AttributeType) {
     self.userType = type
   },
   // setUserFormat(precision: string) {
@@ -327,6 +327,7 @@ export const Attribute = types.model("Attribute", {
   }
 }))
 .actions(applyUndoableAction)
+
 export interface IAttribute extends Instance<typeof Attribute> {}
 export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}
 
