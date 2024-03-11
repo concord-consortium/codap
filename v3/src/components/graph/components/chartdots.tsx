@@ -209,7 +209,7 @@ export const ChartDots = function ChartDots(props: PlotProps) {
       getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord,
       getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
 
-    pixiPoints && setPointCoordinates({
+    setPointCoordinates({
       dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
       pixiPoints, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating

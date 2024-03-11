@@ -342,7 +342,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       {pointColor, pointStrokeColor} = graphModel.pointDescription,
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
-    pixiPoints && setPointCoordinates({
+    setPointCoordinates({
       dataset, pixiPoints, pointRadius: pointRadiusRef.current,
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,

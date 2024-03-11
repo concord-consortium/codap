@@ -65,24 +65,23 @@ export const GraphComponent = observer(function GraphComponent({ tile }: ITileBa
   if (!graphModel) return null
 
   return (
-    pixiPointsRef.current &&
-      <DataSetContext.Provider value={data}>
-        <InstanceIdContext.Provider value={instanceId}>
-          <GraphLayoutContext.Provider value={layout}>
-            <AxisLayoutContext.Provider value={layout}>
-              <GraphContentModelContext.Provider value={graphModel}>
-                <AxisProviderContext.Provider value={graphModel}>
-                  <Graph
-                    graphController={graphController}
-                    graphRef={graphRef}
-                    pixiPointsRef={pixiPointsRef}
-                  />
-                </AxisProviderContext.Provider>
-                <AttributeDragOverlay activeDragId={overlayDragId} />
-              </GraphContentModelContext.Provider>
-            </AxisLayoutContext.Provider>
-          </GraphLayoutContext.Provider>
-        </InstanceIdContext.Provider>
-      </DataSetContext.Provider>
+    <DataSetContext.Provider value={data}>
+      <InstanceIdContext.Provider value={instanceId}>
+        <GraphLayoutContext.Provider value={layout}>
+          <AxisLayoutContext.Provider value={layout}>
+            <GraphContentModelContext.Provider value={graphModel}>
+              <AxisProviderContext.Provider value={graphModel}>
+                <Graph
+                  graphController={graphController}
+                  graphRef={graphRef}
+                  pixiPointsRef={pixiPointsRef}
+                />
+              </AxisProviderContext.Provider>
+              <AttributeDragOverlay activeDragId={overlayDragId} />
+            </GraphContentModelContext.Provider>
+          </AxisLayoutContext.Provider>
+        </GraphLayoutContext.Provider>
+      </InstanceIdContext.Provider>
+    </DataSetContext.Provider>
   )
 })

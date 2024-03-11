@@ -71,10 +71,10 @@ export const CaseDots = function CaseDots(props: {
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription,
       selectedPointRadius = graphModel.getPointRadius('select')
-      pixiPoints && dataConfiguration && setPointSelection({
-      pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
-      pointColor, pointStrokeColor
-    })
+      dataConfiguration && setPointSelection({
+        pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(), selectedPointRadius,
+        pointColor, pointStrokeColor
+      })
   }, [graphModel, dataConfiguration, pixiPoints])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
@@ -93,7 +93,7 @@ export const CaseDots = function CaseDots(props: {
       getLegendColor = dataConfiguration?.attributeID('legend')
         ? dataConfiguration?.getLegendColorForCase : undefined
 
-    pixiPoints && setPointCoordinates({
+    setPointCoordinates({
       dataset, pointRadius, selectedPointRadius, pixiPoints, selectedOnly,
       pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })

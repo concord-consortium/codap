@@ -313,7 +313,7 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
         ? primaryIsBottom ? hBarAnchor : vBarAnchor
         : circleAnchor
 
-      pixiPoints && setPointCoordinates({
+      setPointCoordinates({
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
         pixiPoints, selectedOnly, pointColor, pointStrokeColor,

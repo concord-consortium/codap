@@ -382,7 +382,7 @@ export interface ISetPointSelection {
 export interface ISetPointCoordinates {
   anchor?: Point
   dataset?: IDataSet
-  pixiPoints: PixiPoints
+  pixiPoints?: PixiPoints
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number
