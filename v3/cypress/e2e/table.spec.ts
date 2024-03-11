@@ -38,13 +38,13 @@ context("case table ui", () => {
         table.getColumnHeader(0).rightclick({ force: true })
         // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
       })
-      table.getColumnHeader(1).invoke("text").then(columnName => {
-        // const columnNameArr = columnName.split(" ")
-        table.getColumnHeader(1).rightclick({ force: true })
-        // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
+    table.getColumnHeader(1).invoke("text").then(columnName => {
+      // const columnNameArr = columnName.split(" ")
+      table.getColumnHeader(1).rightclick({ force: true })
+      // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
       })
     })
-    it("verify edit attribute properties", () => {
+    it("verify edit attribute properties with undo and redo", () => {
       const name = "Tallness",
         description = "The average height of the mammal.",
         unit = "meters",
@@ -52,9 +52,24 @@ context("case table ui", () => {
         type = null,
         precision = null,
         editable = "False"
+
+      // Edit the attribute property
       table.editAttributeProperty("Height", name, description, type, unit, precision, editable)
+      // Verify the attribute has been edited
       table.getAttribute(name).should("have.text", newName)
-      table.getAttribute(name).rightclick({ force: true })
+
+      // Perform Undo operation
+      toolbar.getUndoTool().click()
+
+      // Verify the undo reverts the edit to the original name "Height"
+      table.getAttribute("Height").should("not.have.text", newName)
+
+      // Perform Redo operation
+      toolbar.getRedoTool().click()
+
+      // Verify the redo reapplies the edit
+      table.getAttribute(name).should("have.text", newName)
+
       // table.getColumnHeaderTooltip().should("contain", `${name} : ${description}`)
     })
     // it("verify attribute reorder within a collection", () => {
@@ -64,28 +79,96 @@ context("case table ui", () => {
   })
 
   describe("case table header attribute menu", () => {
-    it("verify rename attribute", () => {
+    it("verify rename attribute with undo and redo", () => {
+
+      // Verify initial state
       table.getColumnHeader(1).should("contain", "Mammal")
       table.getAttribute("Mammal").should("exist")
+
+      // Rename the attribute
       table.openAttributeMenu("Mammal")
       table.selectMenuItemFromAttributeMenu("Rename")
       table.renameColumnName(`Animal{enter}`)
+
+      // Verify rename
+      table.getColumnHeader(1).should("contain", "Animal")
+      table.getAttribute("Animal").should("exist")
+
+      // Undo rename
+      toolbar.getUndoTool().click()
+
+      // Verify undo (revert to original name)
+      table.getColumnHeader(1).should("contain", "Mammal")
+      table.getAttribute("Mammal").should("exist")
+
+      // Redo rename
+      toolbar.getRedoTool().click()
+
+      // Verify redo (name changed back to new name)
       table.getColumnHeader(1).should("contain", "Animal")
       table.getAttribute("Animal").should("exist")
     })
-    it("verify hide and showAll attribute", () => {
+    it("verify hide and showAll attribute with undo and redo", () => {
+
+      // Hide the attribute
       table.openAttributeMenu("Mammal")
       table.selectMenuItemFromAttributeMenu("Hide Attribute")
+
+      // Verify attribute is hidden
       table.getColumnHeader(1).should("not.have.text", "Mammal")
       table.getAttribute("Mammal").should("not.exist")
+
+      // Undo hide
+      toolbar.getUndoTool().click()
+
+      // Verify undo (attribute should be visible again)
+      table.getColumnHeader(1).should("contain", "Mammal")
+      table.getAttribute("Mammal").should("exist")
+
+      // Redo hide
+      toolbar.getRedoTool().click()
+
+      // Verify redo (attribute should be hidden again)
+      table.getColumnHeader(1).should("not.have.text", "Mammal")
+      table.getAttribute("Mammal").should("not.exist")
+
+      // Show all attributes
       c.selectTile("table", 0)
       table.showAllAttributes()
+
+      // Verify all attributes are shown
       table.getColumnHeader(1).should("contain", "Mammal")
       table.getAttribute("Mammal").should("exist")
     })
-    it("verify delete attribute", () => {
+    it("verify delete attribute with undo and redo", () => {
+      // Capture the initial number of attributes
+      // note: it looks like getNumOfAttributes does this already
+      // let numOfAttributes
+      // table.getColumnHeaders().then(headers => {
+      // numOfAttributes = headers.length
+      // })
+
+      // Delete the attribute
       table.openAttributeMenu("Mammal")
       table.selectMenuItemFromAttributeMenu("Delete Attribute")
+
+      // Verify attribute is deleted
+      table.getColumnHeader(1).should("not.have.text", "Mammal")
+      table.getAttribute("Mammal").should("not.exist")
+      table.getColumnHeaders().should("have.length", numOfAttributes - 1)
+
+      // Undo delete
+      toolbar.getUndoTool().click()
+
+      // Verify undo (attribute should be restored)
+      table.getColumnHeader(1).should("contain", "Mammal")
+      table.getAttribute("Mammal").should("exist")
+      table.getColumnHeaders().should("have.length", numOfAttributes)
+
+      // Redo delete
+      toolbar.getRedoTool().click()
+
+      // Verify redo (attribute should be deleted again)
       table.getColumnHeader(1).should("not.have.text", "Mammal")
       table.getAttribute("Mammal").should("not.exist")
       table.getColumnHeaders().should("have.length", numOfAttributes - 1)
@@ -94,18 +177,77 @@ context("case table ui", () => {
 
   describe("index menu", () => {
     it("verify index menu insert case and delete case work", () => {
+
+      let initialRowCount, postInsertRowCount, postDeleteRowCount
+
+      // Get initial row count
+      table.getNumOfRows().then(rowCount => {
+        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+      })
+
+      // Insert a new case
       table.openIndexMenuForRow(2)
       table.insertCase()
+
+      // Get row count after insert
+      table.getNumOfRows().then(rowCount => {
+        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postInsertRowCount).to.eq(initialRowCount + 1)
+      })
+
+      // Delete the inserted case
       table.openIndexMenuForRow(2)
       table.deleteCase()
+
+      // Get row count after delete
+      table.getNumOfRows().then(rowCount => {
+        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postDeleteRowCount).to.eq(initialRowCount)
+      })
+
+      // Undo delete
+      toolbar.getUndoTool().click()
+
+      // Verify undo (check if row count is back to post-insert count)
+      // TODO: add the check once bug is fixed (PT #187083170)
+      // table.getNumOfRows().then(rowCount => {
+      //  const rowCountAfterUndo = parseInt(rowCount)
+      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
+      //})
+
+      // Redo delete
+      toolbar.getRedoTool().click()
+
+      // Verify redo (check if row count is back to initial count)
+      // TODO: add the check once bug is fixed (PT #187083170)
+      //  table.getNumOfRows().then(rowCount => {
+      //  const rowCountAfterRedo = parseInt(rowCount)
+      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
+      // })
+
     })
     it("verify insert cases before a row by typing num of cases", () => {
+
+      // Initial steps to insert cases before a specific row
       table.openIndexMenuForRow(2)
       table.insertCases(2, "before")
+
+      // Delete the newly inserted cases
       table.openIndexMenuForRow(2)
-      table.deleteCase()
+      table.deleteCase() // Delete the first inserted case
       table.openIndexMenuForRow(2)
-      table.deleteCase()
+      table.deleteCase() // Delete the second inserted case
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert cases after a row by typing num of cases", () => {
       table.openIndexMenuForRow(2)
@@ -114,6 +256,17 @@ context("case table ui", () => {
       table.deleteCase()
       table.openIndexMenuForRow(3)
       table.deleteCase()
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify index menu insert cases modal close", () => {
       table.openIndexMenuForRow(2)
@@ -138,6 +291,16 @@ context("case table ui", () => {
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      // toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert multiple cases below current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")
@@ -150,6 +313,17 @@ context("case table ui", () => {
       table.openIndexMenuForRow(lastRowIndex + 1)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert multiple cases above current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")
@@ -162,12 +336,31 @@ context("case table ui", () => {
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify delete last case", () => {
       table.getCaseTableGrid().scrollTo("bottom")
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
       numOfCases = (Number(numOfCases) - 1).toString()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      // toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert 1 case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -178,6 +371,18 @@ context("case table ui", () => {
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
+
     })
     it("verify insert multiple cases below current case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -192,6 +397,18 @@ context("case table ui", () => {
       table.openIndexMenuForRow(firstRowIndex + 1)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
+
     })
     it("verify insert multiple cases above current case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -206,12 +423,35 @@ context("case table ui", () => {
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
+
     })
     it("verify delete first case", () => {
       table.getCaseTableGrid().scrollTo("top")
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
       numOfCases = (Number(numOfCases) - 1).toString()
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert 1 case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -222,6 +462,17 @@ context("case table ui", () => {
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert multiple cases below current case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -236,6 +487,17 @@ context("case table ui", () => {
       table.openIndexMenuForRow(middleRowIndex + 1)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify insert multiple cases above current case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -250,12 +512,35 @@ context("case table ui", () => {
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
     it("verify delete case in the middle", () => {
       table.getCaseTableGrid().scrollTo("top")
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
       numOfCases = (Number(numOfCases) - 1).toString()
+
+      // Use the toolbar to undo the last action (which should be the deletion of the second case)
+      toolbar.getUndoTool().click()
+
+      // TODO: Add assertions here to verify the case is restored (PT ##187127871)
+      // For example, check the number of rows or a specific row's content
+
+      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      toolbar.getRedoTool().click()
+
+      // Add assertions here to verify the case is deleted again
+      // For example, check the number of rows or a specific row's content
     })
   })
 
@@ -264,6 +549,9 @@ context("case table ui", () => {
       c.getComponentTitle("table").should("have.text", collectionName)
       c.changeComponentTitle("table", renamedCollectionName)
       c.getComponentTitle("table").should("have.text", renamedCollectionName)
+
+      // TODO: add a check for undo/redo rename Collection name
+      // See PT #187033159
     })
     it("creates tables with new collection name", () => {
       table.createNewTableFromToolshelf()
@@ -285,9 +573,22 @@ context("case table ui", () => {
       table.createNewTableFromToolshelf()
       c.getComponentTitle("table").should("contain", newCollectionName)
     })
-    it("closes and reopens existing case tables", () => {
+    it("closes and reopens existing case tables with undo and redo", () => {
       c.closeComponent("table")
       c.checkComponentDoesNotExist("table")
+
+      // Add undo for closing table component
+      toolbar.getUndoTool().click()
+
+      // Asserts table has been reopened
+      c.getComponentTitle("table").should("contain", "Mammals")
+
+      // Add redo for closing table
+      toolbar.getRedoTool().click()
+
+      // Asserts table is closed again
+      c.checkComponentDoesNotExist("table")
+
       table.openExistingTableFromToolshelf(collectionName)
       c.getComponentTitle("table").should("contain", collectionName)
     })
