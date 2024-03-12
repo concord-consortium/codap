@@ -9,7 +9,7 @@ import { wrapCfmCallback } from "./cfm-utils"
 import build from "../../build_number.json"
 import pkg from "../../package.json"
 
-export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
+export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
   // const { data, state, ...restEvent } = event
   // console.log("cfmEventCallback", JSON.stringify({ ...restEvent }))
 
@@ -29,7 +29,14 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     // case "closedFile":
     //   break
     case "getContent": {
-      const content = appState.getDocumentSnapshot()
+      const content = await appState.getDocumentSnapshot()
+      console.log(`xxx content`, content)
+      const tileMap = content.content?.tileMap
+      if (tileMap) {
+        Object.keys(tileMap).forEach(tileId => {
+          console.log(` xx tileContent`, JSON.stringify(tileMap[tileId].content))
+        })
+      }
       event.callback({ content })
       break
     }

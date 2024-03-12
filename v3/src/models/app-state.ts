@@ -39,8 +39,10 @@ class AppState {
     return this.currentDocument
   }
 
-  getDocumentSnapshot() {
-    return serializeDocument(this.currentDocument, doc => getSnapshot(doc))
+  async getDocumentSnapshot() {
+    const snapshot =  await serializeDocument(this.currentDocument, doc => getSnapshot(doc))
+    console.log(`*** getDocumentSnapshot`, snapshot)
+    return snapshot
   }
 
   @action

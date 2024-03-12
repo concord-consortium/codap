@@ -142,7 +142,11 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
     cfm.init(_options)
 
     clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
-      return handleCFMEvent(cfm.client, event)
+      return (async () => {
+        const response = await handleCFMEvent(cfm.client, event)
+        console.log(`sss handleCFMEvent`, response)
+        return response
+      })()
     })
 
   }, [cfm])

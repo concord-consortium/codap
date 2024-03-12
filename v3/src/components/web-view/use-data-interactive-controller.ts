@@ -22,8 +22,9 @@ function extractOrigin(url?: string) {
 
 export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFrameElement>, tile?: ITileModel) {
   const toast = useToast()
-  const webViewModel = tile?.content
-  const url = isWebViewModel(webViewModel) ? webViewModel.url : undefined
+  const tileContentModel = tile?.content
+  const webViewModel = isWebViewModel(tileContentModel) ? tileContentModel : undefined
+  const url = webViewModel?.url
 
   useEffect(() => {
     debugLog(DEBUG_PLUGINS, `Establishing connection to ${iframeRef.current}`)
@@ -71,6 +72,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         "data-interactive", iframeRef.current, originUrl, phone)
       rpcEndpoint.call({message: "codap-present"} as any,
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
+      if (webViewModel) webViewModel.setDataInteractiveController(rpcEndpoint)
     }
   }, [iframeRef, tile, toast, url])
 }
