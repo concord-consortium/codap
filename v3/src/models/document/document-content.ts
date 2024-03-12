@@ -44,9 +44,17 @@ export interface IImportDataSetOptions {
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
   .actions(self => ({
-    prepareSnapshot() {
+    async prepareSnapshot() {
+      console.log(`... DocumentContent.prepareSnapshot`)
       // prepare each row for serialization
       self.rowMap.forEach(row => row.prepareSnapshot())
+
+      // prepare each tile for serialization
+      const promises: Promise<unknown>[] = []
+      self.tileMap.forEach(tile => promises.push(tile.prepareSnapshot()))
+      console.log(` .. promises`, promises)
+      const results = await Promise.all(promises)
+      console.log(`  . results`, results)
 
       // prepare each data set for serialization
       const sharedDataSets = getSharedDataSets(self)

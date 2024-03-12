@@ -25,7 +25,7 @@ export const WebViewModel = TileContentModel
     }
   }))
   .actions(self => ({
-    async updateSavedState(resolve: (value: unknown) => void) {
+    async prepareSnapshot(resolve: (value: unknown) => void) {
       console.log(`ooo updating saved state`)
       if (self.dataInteractiveController) {
         console.log(` oo found data interactive controller`)
