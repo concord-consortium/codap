@@ -15,6 +15,7 @@ import {circleAnchor, hBarAnchor, vBarAnchor} from "../utilities/pixi-points"
 import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "../utilities/dot-plot-utils"
 import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
+import { ICaseID } from "../../../models/data/data-set-types"
 
 export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProps) {
   const {pixiPoints} = props,
@@ -47,6 +48,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         extraPrimaryRole = primaryIsBottom ? 'topSplit' : 'rightSplit',
         extraSecondaryPlace = primaryIsBottom ? 'rightCat' : 'top',
         extraSecondaryRole = primaryIsBottom ? 'rightSplit' : 'topSplit',
+        primaryAxis = graphModel.getNumericAxis(primaryPlace),
         primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
         extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
         secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
@@ -73,6 +75,17 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
       }
       const { binMap, overlap } = computeBinPlacements(binPlacementProps)
+
+      // When displaying bars, the domain should start at 0 unless there are negative values.
+      if (pointDisplayType === "bars") {
+        const hasNegativeValues = dataset?.cases?.some((datum: ICaseID) => {
+          const caseValue = dataset?.getNumeric(datum.__id__, primaryAttrID) ?? NaN
+          return caseValue < 0
+        })
+        const domain = primaryAxisScale.domain()
+        const newDomainMin = hasNegativeValues ? domain[0] : 0
+        primaryAxis?.setDomain(newDomainMin, domain[1])
+      }
 
       interface ISubPlotDetails {
         cases: string[]
