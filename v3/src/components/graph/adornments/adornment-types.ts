@@ -50,7 +50,5 @@ export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel
   IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedFunctionAdornmentModel |
   IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
 
-export type PlotTypes = "casePlot" | "dotChart" | "dotPlot" | "scatterPlot"
-
 export const ParentAdornmentTypes = ["Univariate Measure"] as const
 export type ParentAdornmentType = typeof ParentAdornmentTypes[number]

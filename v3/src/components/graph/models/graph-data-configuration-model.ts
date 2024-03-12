@@ -396,6 +396,28 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           return caseId
         }
       })
+    },
+    binDetails() {
+      const kDefaultNumberOfBins = 4
+      const minValue = self.caseDataArray.reduce((min, aCaseData) => {
+        return Math.min(min, self.dataset?.getNumeric(aCaseData.caseID, self.primaryAttributeID) ?? min)
+      }, 0) ?? 0
+      const maxValue = self.caseDataArray.reduce((max, aCaseData) => {
+        return Math.max(max, self.dataset?.getNumeric(aCaseData.caseID, self.primaryAttributeID) ?? max)
+      }, 0) ?? 0
+      const binRange = (maxValue - minValue) / kDefaultNumberOfBins
+      // Convert to a logarithmic scale (base 10)
+      const logRange = Math.log(binRange) / Math.log(10)
+      const significantDigit = Math.pow(10, Math.floor(logRange))
+      // Determine the scale factor based on the significant digit
+      const scaleFactor = Math.pow(10, logRange - Math.floor(logRange))
+      const adjustedScaleFactor = scaleFactor < 2 ? 1 : scaleFactor < 5 ? 2 : 5
+      const binWidth = Math.max(significantDigit * adjustedScaleFactor, Number.MIN_VALUE)
+      const alignment = Math.floor(minValue / binWidth) * binWidth
+      const minBinEdge = alignment - Math.ceil((alignment - minValue) / binWidth) * binWidth
+      const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
+      const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
+      return { binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
     }
   }))
   .views(self => (

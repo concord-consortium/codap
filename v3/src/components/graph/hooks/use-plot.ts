@@ -97,7 +97,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
-        // if plot is not univariate and the attribute type changes, we need to update the plotConfig
+        // if plot is not univariate and the attribute type changes, we need to update the pointConfig
         if (graphModel?.plotType !== "dotPlot") {
           graphModel?.setPointConfig("points")
         }
@@ -169,7 +169,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         return
       }
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
-        // if plot is not univariate and the attribute type changes, we need to update the plotConfig
+        // if plot is not univariate and the attribute type changes, we need to update the pointConfig
         if (graphModel?.plotType !== "dotPlot") {
           graphModel?.setPointConfig("points")
         }

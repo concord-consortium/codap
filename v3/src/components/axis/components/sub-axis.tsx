@@ -5,6 +5,7 @@ import {useAxisProviderContext} from "../hooks/use-axis-provider-context"
 import {useSubAxis} from "../hooks/use-sub-axis"
 import {isNumericAxisModel} from "../models/axis-model"
 import {NumericAxisDragRects} from "./numeric-axis-drag-rects"
+import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 
 import "./axis.scss"
 
@@ -23,6 +24,7 @@ export const SubAxis = observer(function SubAxis({
   const
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
+    displayModel = useDataDisplayModelContext(),
     subWrapperElt = useRef<SVGGElement | null>(null),
     [subAxisElt, setSubAxisElt] = useState<SVGGElement | null>(null)
 
@@ -33,14 +35,13 @@ export const SubAxis = observer(function SubAxis({
   return (
     <g className='sub-axis-wrapper' ref={subWrapperElt}>
       <g className='axis' ref={elt => setSubAxisElt(elt)}/>
-      {isNumericAxisModel(axisModel)
-        ? <NumericAxisDragRects
+      {isNumericAxisModel(axisModel) && displayModel.hasDraggableNumericAxis(axisModel) &&
+        <NumericAxisDragRects
           axisModel={axisModel}
           axisWrapperElt={subWrapperElt.current}
           numSubAxes={numSubAxes}
           subAxisIndex={subAxisIndex}
         />
-        : null
       }
     </g>
   )
