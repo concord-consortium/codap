@@ -74,5 +74,5 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       if (webViewModel) webViewModel.setDataInteractiveController(rpcEndpoint)
     }
-  }, [iframeRef, tile, toast, url])
+  }, [iframeRef, tile, toast, url, webViewModel])
 }
