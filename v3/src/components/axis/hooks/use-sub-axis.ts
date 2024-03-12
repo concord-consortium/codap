@@ -373,7 +373,7 @@ export const useSubAxis = ({
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
       }
     }, { name: "useSubAxis.installDomainSync" }, axisProvider)
-  }, [axisPlace, axisProvider, displayModel, layout, renderSubAxis])
+  }, [axisPlace, axisProvider, layout, renderSubAxis])
 
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {

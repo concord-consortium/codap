@@ -1,6 +1,7 @@
 import {ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect} from "react"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {PlotProps} from "../graphing-types"
 import {setPointSelection} from "../../data-display/data-display-utils"
@@ -10,12 +11,11 @@ import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configur
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {setPointCoordinates} from "../utilities/graph-utils"
+import {setNiceDomain, setPointCoordinates} from "../utilities/graph-utils"
 import {circleAnchor, hBarAnchor, vBarAnchor} from "../utilities/pixi-points"
 import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "../utilities/dot-plot-utils"
 import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
-import { ICaseID } from "../../../models/data/data-set-types"
 
 export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProps) {
   const {pixiPoints} = props,
@@ -26,6 +26,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
     layout = useGraphLayoutContext(),
     primaryAttrRole = dataConfig?.primaryRole ?? 'x',
     primaryIsBottom = primaryAttrRole === 'x',
+    primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? '',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
     pointDisplayType = graphModel.pointDisplayType
@@ -48,12 +49,10 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         extraPrimaryRole = primaryIsBottom ? 'topSplit' : 'rightSplit',
         extraSecondaryPlace = primaryIsBottom ? 'rightCat' : 'top',
         extraSecondaryRole = primaryIsBottom ? 'rightSplit' : 'topSplit',
-        primaryAxis = graphModel.getNumericAxis(primaryPlace),
         primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
         extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
         secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
         extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
-        primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? '',
         extraPrimaryAttrID = dataConfig?.attributeID(extraPrimaryRole) ?? '',
         numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1),
         pointDiameter = 2 * graphModel.getPointRadius(),
@@ -75,17 +74,6 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
       }
       const { binMap, overlap } = computeBinPlacements(binPlacementProps)
-
-      // When displaying bars, the domain should start at 0 unless there are negative values.
-      if (pointDisplayType === "bars") {
-        const hasNegativeValues = dataset?.cases?.some((datum: ICaseID) => {
-          const caseValue = dataset?.getNumeric(datum.__id__, primaryAttrID) ?? NaN
-          return caseValue < 0
-        })
-        const domain = primaryAxisScale.domain()
-        const newDomainMin = hasNegativeValues ? domain[0] : 0
-        primaryAxis?.setDomain(newDomainMin, domain[1])
-      }
 
       interface ISubPlotDetails {
         cases: string[]
@@ -196,8 +184,8 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         pointDisplayType, getWidth, getHeight, anchor
       })
     },
-    [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPoints,
-      primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
+    [primaryIsBottom, layout, dataConfig, graphModel, secondaryAttrRole, dataset, primaryAttrID, pointDisplayType,
+     pixiPoints, pointColor, pointStrokeColor, isAnimating])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
@@ -211,6 +199,17 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
       {name: "respondToGraphPointVisualAction"}, graphModel
     )
   }, [graphModel, refreshPointPositions])
+
+  // respond to pointDisplayType changes because the axis domain may need to be updated
+  useEffect(function respondToGraphPointDisplayType() {
+    return mstAutorun(() => {
+      const primaryAttribute = dataset?.attrFromID(primaryAttrID)
+      const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
+      if (primaryAttribute && primaryAxis) {
+        setNiceDomain(primaryAttribute.numValues, primaryAxis, pointDisplayType)
+      }
+    }, {name: "respondToGraphPointDisplayType"}, graphModel)
+  }, [dataset, graphModel, pointDisplayType, primaryAttrID, primaryIsBottom])
 
   return (
     <></>
