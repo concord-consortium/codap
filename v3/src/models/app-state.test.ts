@@ -34,7 +34,7 @@ describe("AppState", () => {
   it("returns de-serializable document snapshots", async () => {
     const snap = await appState.getDocumentSnapshot()
     const docModel = DocumentModel.create(snap)
-    const docSnap = serializeDocument(docModel, doc => getSnapshot(doc))
+    const docSnap = await serializeDocument(docModel, doc => getSnapshot(doc))
     expect(docSnap).toEqual(snap)
   })
 })
