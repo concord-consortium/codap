@@ -25,7 +25,7 @@ import {IPixiPointMetadata, PixiBackgroundPassThroughEvent} from "../utilities/p
 import { transitionDuration } from "../../data-display/data-display-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
-  const {pixiPointsRef} = props,
+  const {pixiPoints} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
@@ -150,17 +150,17 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     appState.endPerformance()
   }, [dataConfiguration, dataset, dragID, startAnimation])
 
-  usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        pixiPointsRef, dataConfiguration, pointRadius: pointRadiusRef.current,
+        pixiPoints, dataConfiguration, pointRadius: pointRadiusRef.current,
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
-  }, [dataConfiguration, graphModel, pixiPointsRef])
+  }, [dataConfiguration, graphModel, pixiPoints])
 
   const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
     const linesPath = event.target && select(event.target as HTMLElement)
@@ -184,8 +184,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const handleConnectingLinesMouseOver = useCallback((
     event: MouseEvent, caseIDs: string[], parentAttrName?: string, parentAttrValue?: string
   ) => {
-    if (pixiPointsRef.current) {
-      pixiPointsRef.current.canvas.style.cursor = "pointer"
+    if (pixiPoints) {
+      pixiPoints.canvas.style.cursor = "pointer"
     }
     // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
     // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
@@ -200,14 +200,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     const vars = [parentAttrName, parentAttrValue, caseIdCount, datasetName]
     const dataTipContent = t("DG.DataTip.connectingLine", {vars})
     dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.name, pixiPointsRef])
+  }, [dataTip, dataset?.name, pixiPoints])
 
   const handleConnectingLinesMouseOut = useCallback(() => {
-    if (pixiPointsRef.current) {
-      pixiPointsRef.current.canvas.style.cursor = ""
+    if (pixiPoints) {
+      pixiPoints.canvas.style.cursor = ""
     }
     dataTip.hide()
-  }, [dataTip, pixiPointsRef])
+  }, [dataTip, pixiPoints])
 
   const refreshConnectingLines = useCallback(async () => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
@@ -289,16 +289,16 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     // revert to original point size when Connecting Lines are deactivated.
     if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
       origPointSizeMultiplier.current = pointSizeMultiplier
-      await pixiPointsRef.current?.setAllPointsScale(.5, transitionDuration)
+      await pixiPoints?.setAllPointsScale(.5, transitionDuration)
       graphModel.pointDescription.setPointSizeMultiplier(pointSizeMultiplier * .5)
     } else if (!showConnectingLines) {
       const scaleFactor = origPointSizeMultiplier.current / pointSizeMultiplier
-      await pixiPointsRef.current?.setAllPointsScale(scaleFactor, transitionDuration)
+      await pixiPoints?.setAllPointsScale(scaleFactor, transitionDuration)
       graphModel.pointDescription.setPointSizeMultiplier(origPointSizeMultiplier.current)
     }
   }, [dataConfiguration, dataset?.collections, dataTip, graphModel.pointDescription,
       handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
-      pixiPointsRef, pointSizeMultiplier, showConnectingLines])
+      pixiPoints, pointSizeMultiplier, showConnectingLines])
 
   const refreshSquares = useCallback(() => {
 
@@ -343,16 +343,15 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, pixiPointsRef, pointRadius: pointRadiusRef.current,
+      dataset, pixiPoints, pointRadius: pointRadiusRef.current,
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPointsRef, isAnimating])
+  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPoints, isAnimating])
 
   const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
-    const pixiPoints = pixiPointsRef.current
     if (!pixiPoints) {
       return
     }
@@ -374,7 +373,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
-  }, [pixiPointsRef, dataConfiguration, layout, dataset])
+  }, [pixiPoints, dataConfiguration, layout, dataset])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     refreshConnectingLines()
@@ -402,7 +401,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     }, { name: "ScatterDots.renderConnectingLines" })
   }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
 
-  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
   return (
     <>

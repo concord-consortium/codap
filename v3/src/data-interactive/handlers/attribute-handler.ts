@@ -12,9 +12,9 @@ function convertAttributeToV2(resources: DIResources) {
     const { name, type, title, description, editable, id, precision } = attribute
     return {
       name,
-      type, // TODO This won't return "none", which v2 sometimes does
+      type,
       title,
-      // cid: self.cid, // TODO What should this be?
+      cid: id,
       // defaultMin: self.defaultMin, // TODO Where should this come from?
       // defaultMax: self.defaultMax, // TODO Where should this come from?
       description,
@@ -26,8 +26,8 @@ function convertAttributeToV2(resources: DIResources) {
       deleteable: true, // TODO What should this be?
       formula: attribute.formula?.display,
       // deletedFormula: self.deletedFormula, // TODO What should this be?
-      guid: attribute.id, // TODO This is different than v2
-      id, // TODO This is different than v2
+      guid: Number(id), // TODO This is different than v2
+      id: Number(id), // TODO This is different than v2
       precision,
       unit: attribute.units
     }
@@ -52,14 +52,14 @@ export const diAttributeHandler: DIHandler = {
     if (!attribute) return attributeNotFoundResult
     attribute.applyUndoableAction(() => {
       withoutUndo()
-      if (values?.description !== undefined) attribute.setDescription(values.description)
-      if (values?.editable !== undefined) attribute.setEditable(values.editable)
-      if (values?.formula !== undefined) attribute.setDisplayExpression(values.formula)
-      if (values?.name !== undefined) attribute.setName(values.name)
-      if (values?.precision !== undefined) attribute.setPrecision(values.precision)
-      if (values?.title !== undefined) attribute.setTitle(values.title)
+      if (values?.description != null) attribute.setDescription(values.description)
+      if (values?.editable != null) attribute.setEditable(values.editable)
+      if (values?.formula != null) attribute.setDisplayExpression(values.formula)
+      if (values?.name != null) attribute.setName(values.name)
+      if (values?.precision != null) attribute.setPrecision(values.precision)
+      if (values?.title != null) attribute.setTitle(values.title)
       if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
-      if (values?.unit !== undefined) attribute.setUnits(values.unit)
+      if (values?.unit != null) attribute.setUnits(values.unit)
     }, "", "")
     const attributeV2 = convertAttributeToV2(resources)
     if (attributeV2) {
