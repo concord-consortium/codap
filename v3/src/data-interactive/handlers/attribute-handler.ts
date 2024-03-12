@@ -52,14 +52,14 @@ export const diAttributeHandler: DIHandler = {
     if (!attribute) return attributeNotFoundResult
     attribute.applyUndoableAction(() => {
       withoutUndo()
-      if (values?.description !== undefined) attribute.setDescription(values.description)
-      if (values?.editable !== undefined) attribute.setEditable(values.editable)
-      if (values?.formula !== undefined) attribute.setDisplayExpression(values.formula)
-      if (values?.name !== undefined) attribute.setName(values.name)
-      if (values?.precision !== undefined) attribute.setPrecision(values.precision)
-      if (values?.title !== undefined) attribute.setTitle(values.title)
+      if (values?.description != null) attribute.setDescription(values.description)
+      if (values?.editable != null) attribute.setEditable(values.editable)
+      if (values?.formula != null) attribute.setDisplayExpression(values.formula)
+      if (values?.name != null) attribute.setName(values.name)
+      if (values?.precision != null) attribute.setPrecision(values.precision)
+      if (values?.title != null) attribute.setTitle(values.title)
       if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
-      if (values?.unit !== undefined) attribute.setUnits(values.unit)
+      if (values?.unit != null) attribute.setUnits(values.unit)
     }, "", "")
     const attributeV2 = convertAttributeToV2(resources)
     if (attributeV2) {
