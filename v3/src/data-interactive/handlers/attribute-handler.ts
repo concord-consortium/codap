@@ -12,9 +12,9 @@ function convertAttributeToV2(resources: DIResources) {
     const { name, type, title, description, editable, id, precision } = attribute
     return {
       name,
-      type, // TODO This won't return "none", which v2 sometimes does
+      type,
       title,
-      // cid: self.cid, // TODO What should this be?
+      cid: attribute.id,
       // defaultMin: self.defaultMin, // TODO Where should this come from?
       // defaultMax: self.defaultMax, // TODO Where should this come from?
       description,
