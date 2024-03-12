@@ -11,6 +11,7 @@ import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth,
   from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { IDomainOptions } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { t } from "../../../utilities/translation/translate"
@@ -73,15 +74,13 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], axisModel: IAxisModel, pointDisplayType?: PointDisplayType) {
+export function setNiceDomain(values: number[], axisModel: IAxisModel, options?: IDomainOptions) {
   if (isNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
-    if (pointDisplayType === "bars") {
-      // When displaying bars, the domain should start at 0 unless there are negative values.
-      if (minValue >= 0) {
-        niceMin = 0
-      }
+    // When clamping, the domain should start at 0 unless there are negative values.
+    if (options?.clampPosMinAtZero && minValue >= 0) {
+      niceMin = 0
     }
     axisModel.setDomain(niceMin, niceMax)
   }

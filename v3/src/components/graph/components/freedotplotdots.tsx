@@ -99,7 +99,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         const details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
         return { subPlotKey, casesInCategory: details?.cases ?? [], caseIndex: details?.indices[anID] ?? -1 }
       }
-    
+
       const getBarStaticDimension = () => {
         // This function determines how much space is available for each bar on the non-primary axis by dividing the
         // length of the non-primary axis by the number of cases in the subplot containing the most cases. This keeps
@@ -107,7 +107,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         const largestSubplotCount = Math.max(...Array.from(subPlotDetails.values()).map(sp => sp.cases.length))
         return largestSubplotCount ? secondaryBandwidth / largestSubplotCount : 0
       }
-    
+
       const getBarValueDimension = (anID: string) => {
         const computePrimaryCoordProps = {
           anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: false,
@@ -125,10 +125,10 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         const extraSecondaryCoord = extraCategory && extraCategory !== '__main__'
           ? (extraSecondaryAxisScale(extraCategory) ?? 0)
           : 0
-      
+
         // Adjusted bar position accounts for the bar's index, dimension, and additional offsets.
         const adjustedBarPosition = caseIndex >= 0 ? caseIndex * barDimension + secondaryCoord + extraSecondaryCoord : 0
-      
+
         // Calculate the centered position by adjusting for the collective dimension of all bars in the subplot
         const collectiveDimension = barDimension * (casesInCategory.length ?? 0)
         return (adjustedBarPosition - collectiveDimension / 2) + secondaryBandwidth / 2
@@ -146,7 +146,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         }
         return primaryCoord + extraPrimaryCoord
       }
-    
+
       const getSecondaryScreenCoord = (anID: string) => {
         // For bar graphs, the secondary coordinate will be determined simply by the order of the cases in the dataset,
         // not by any value the cases possess.
@@ -163,12 +163,12 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
           ? computeSecondaryCoord(computeSecondaryCoordProps) + onePixelOffset
           : null
       }
-      
+
       const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
       const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
       const getWidth = primaryIsBottom ? getBarValueDimension : getBarStaticDimension
       const getHeight = primaryIsBottom ? getBarStaticDimension : getBarValueDimension
-      
+
       const getLegendColor = dataConfig?.attributeID('legend')
         ? dataConfig?.getLegendColorForCase : undefined
 
@@ -205,11 +205,12 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
     return mstAutorun(() => {
       const primaryAttribute = dataset?.attrFromID(primaryAttrID)
       const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
+      const numValues = graphModel.dataConfiguration.numericValuesForAttrRole(primaryIsBottom ? "x" : "y")
       if (primaryAttribute && primaryAxis) {
-        setNiceDomain(primaryAttribute.numValues, primaryAxis, pointDisplayType)
+        setNiceDomain(numValues, primaryAxis, graphModel.axisDomainOptions)
       }
     }, {name: "respondToGraphPointDisplayType"}, graphModel)
-  }, [dataset, graphModel, pointDisplayType, primaryAttrID, primaryIsBottom])
+  }, [dataset, graphModel, primaryAttrID, primaryIsBottom])
 
   return (
     <></>
