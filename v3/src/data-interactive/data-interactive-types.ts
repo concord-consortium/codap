@@ -1,6 +1,6 @@
 import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
-import { IAttributeArchive } from "../models/data/attribute-types"
+import { ICodapV2Attribute } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -32,7 +32,7 @@ export interface DIResources {
 }
 
 export interface DIValues {
-  attrs?: IAttributeArchive[]
+  attrs?: ICodapV2Attribute[]
   blockDisplayOfEmptyCategories?: boolean
   _categoryMap?: unknown
   cid?: string
@@ -48,8 +48,9 @@ export interface DIValues {
   editable?: boolean
   externalUndoAvailable?: boolean
   formula?: string
-  guid?: string
+  guid?: number
   hidden?: boolean
+  id?: number
   name?: string
   precision?: number
   preventBringToFront?: boolean

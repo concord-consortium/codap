@@ -14,7 +14,7 @@ function convertAttributeToV2(resources: DIResources) {
       name,
       type,
       title,
-      cid: attribute.id,
+      cid: id,
       // defaultMin: self.defaultMin, // TODO Where should this come from?
       // defaultMax: self.defaultMax, // TODO Where should this come from?
       description,
@@ -26,8 +26,8 @@ function convertAttributeToV2(resources: DIResources) {
       deleteable: true, // TODO What should this be?
       formula: attribute.formula?.display,
       // deletedFormula: self.deletedFormula, // TODO What should this be?
-      guid: attribute.id, // TODO This is different than v2
-      id, // TODO This is different than v2
+      guid: Number(id), // TODO This is different than v2
+      id: Number(id), // TODO This is different than v2
       precision,
       unit: attribute.units
     }
