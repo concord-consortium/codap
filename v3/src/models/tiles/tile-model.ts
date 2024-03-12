@@ -7,6 +7,7 @@ import { ITileContentModel } from "./tile-content"
 import { DisplayUserTypeEnum } from "../stores/user-types"
 import { typedId } from "../../utilities/js-utils"
 import { StringBuilder } from "../../utilities/string-builder"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 
 // generally negotiated with app, e.g. single column width for table
 export const kDefaultMinWidth = 60
@@ -144,6 +145,7 @@ export const TileModel = types
       metadata?.setDisabledFeatures?.(disabled)
     }
   }))
+  .actions(applyUndoableAction)
 
 export interface ITileModel extends Instance<typeof TileModel> {}
 export interface ITileModelSnapshotIn extends SnapshotIn<typeof TileModel> {}

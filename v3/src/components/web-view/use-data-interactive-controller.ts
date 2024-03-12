@@ -7,6 +7,7 @@ import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { t } from "../../utilities/translation/translate"
 import { isWebViewModel } from "./web-view-model"
 
 function extractOrigin(url?: string) {
@@ -45,17 +46,17 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
 
         const errorResult = (error: string) => ({ success: false, values: { error }} as const)
         const processAction = (action: DIAction) => {
-          if (!action) return errorResult("No action to process.")
-          if (!tile) return errorResult("No tile for action.")
+          if (!action) return errorResult(t("V3.DI.Error.noAction"))
+          if (!tile) return errorResult(t("V3.DI.Error.noTile"))
 
           const resourceSelector = parseResourceSelector(action.resource)
           const resources = resolveResources(resourceSelector, action.action, tile)
           const type = resourceSelector.type ?? ""
           const a = action.action
           const func = getDIHandler(type)?.[a as keyof DIHandler]
-          if (!func) return errorResult(`Unsupported action: ${a}/${type}`)
+          if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
 
-          return func?.(resources, action.values) ?? errorResult("Action handler returned undefined.")
+          return func?.(resources, action.values) ?? errorResult(t("V3.DI.Error.undefinedResponse"))
         }
         if (Array.isArray(request)) {
           result = request.map(action => processAction(action))

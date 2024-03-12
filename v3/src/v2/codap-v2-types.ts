@@ -7,18 +7,19 @@ export interface ICodapV2Attribute {
   cid?: string
   defaultMin?: number
   defaultMax?: number
-  description: string
+  description?: string
   categoryMap?: any
   _categoryMap?: any
   colormap?: any
   _colormap?: any
   blockDisplayOfEmptyCategories?: boolean
   editable: boolean
+  hidden?: boolean
   renameable?: boolean
   deleteable?: boolean
-  formula: string
+  formula?: string
   deletedFormula?: string
-  precision: number
+  precision?: number
   unit?: string | null
 }
 

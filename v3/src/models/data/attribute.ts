@@ -26,12 +26,13 @@
  */
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { Formula, IFormula } from "../formula/formula"
-import { typedId } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
-import { withoutUndo } from "../history/without-undo"
-import { cachedFnFactory } from "../../utilities/mst-utils"
 import { parseColorStrict } from "../../utilities/color-parse-strict"
+import { typedId } from "../../utilities/js-utils"
+import { cachedFnFactory } from "../../utilities/mst-utils"
+import { t } from "../../utilities/translation/translate"
+import { Formula, IFormula } from "../formula/formula"
+import { applyUndoableAction } from "../history/apply-undoable-action"
+import { withoutUndo } from "../history/without-undo"
 
 export const kDefaultFormatStr = ".3~f"
 export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
@@ -48,6 +49,9 @@ export const attributeTypes = [
   "categorical", "numeric", "date", "qualitative", "boundary", "checkbox", "color"
 ] as const
 export type AttributeType = typeof attributeTypes[number]
+export function isAttributeType(type: string): type is AttributeType {
+  return (attributeTypes as readonly string[]).includes(type)
+}
 
 export const Attribute = types.model("Attribute", {
   id: types.optional(types.identifier, () => typedId("ATTR")),
@@ -227,6 +231,9 @@ export const Attribute = types.model("Attribute", {
   setName(newName: string) {
     self.name = newName
   },
+  setTitle(newTitle: string) {
+    self.title = newTitle
+  },
   setUnits(units: string) {
     self.units = units
   },
@@ -319,6 +326,7 @@ export const Attribute = types.model("Attribute", {
     }
   }
 }))
+.actions(applyUndoableAction)
 export interface IAttribute extends Instance<typeof Attribute> {}
 export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}
 

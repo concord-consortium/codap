@@ -1,42 +1,79 @@
+import { isAttributeType } from "../../models/data/attribute"
+import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
-import { DIHandler, DIResources, diNotImplementedYet } from "../data-interactive-types"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
+import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 
+function convertAttributeToV2(resources: DIResources) {
+  const { attribute, dataContext } = resources
+  const metadata = (dataContext && getSharedCaseMetadataFromDataset(dataContext))
+  if (attribute) {
+    const { name, type, title, description, editable, id, precision } = attribute
+    return {
+      name,
+      type,
+      title,
+      cid: id,
+      // defaultMin: self.defaultMin, // TODO Where should this come from?
+      // defaultMax: self.defaultMax, // TODO Where should this come from?
+      description,
+      // _categoryMap: self.categoryMap, // TODO What is this?
+      // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
+      editable,
+      hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
+      renameable: true, // TODO What should this be?
+      deleteable: true, // TODO What should this be?
+      formula: attribute.formula?.display,
+      // deletedFormula: self.deletedFormula, // TODO What should this be?
+      guid: Number(id), // TODO This is different than v2
+      id: Number(id), // TODO This is different than v2
+      precision,
+      unit: attribute.units
+    }
+  }
+}
+
+const attributeNotFoundResult = {success: false, values: {error: t("V3.DI.Error.attributeNotFound")}} as const
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
-    const { attribute, dataContext } = resources
-    const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
+    const attribute = convertAttributeToV2(resources)
     if (attribute) {
-      const { name, type, title, description, editable, id, precision } = attribute
+      return {
+        success: true,
+        values: attribute
+      }
+    }
+    return attributeNotFoundResult
+  },
+  create: diNotImplementedYet,
+  update(resources: DIResources, values?: DIValues) {
+    const { attribute } = resources
+    if (!attribute) return attributeNotFoundResult
+    attribute.applyUndoableAction(() => {
+      withoutUndo()
+      if (values?.description != null) attribute.setDescription(values.description)
+      if (values?.editable != null) attribute.setEditable(values.editable)
+      if (values?.formula != null) attribute.setDisplayExpression(values.formula)
+      if (values?.name != null) attribute.setName(values.name)
+      if (values?.precision != null) attribute.setPrecision(values.precision)
+      if (values?.title != null) attribute.setTitle(values.title)
+      if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
+      if (values?.unit != null) attribute.setUnits(values.unit)
+    }, "", "")
+    const attributeV2 = convertAttributeToV2(resources)
+    if (attributeV2) {
       return {
         success: true,
         values: {
-          name,
-          type, // TODO This won't return "none", which v2 sometimes does
-          title,
-          // cid: self.cid, // TODO What should this be?
-          // defaultMin: self.defaultMin, // TODO Where should this come from?
-          // defaultMax: self.defaultMax, // TODO Where should this come from?
-          description,
-          // _categoryMap: self.categoryMap, // TODO What is this?
-          // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
-          editable,
-          hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
-          renameable: true, // TODO What should this be?
-          deleteable: true, // TODO What should this be?
-          formula: attribute.formula?.display,
-          // deletedFormula: self.deletedFormula, // TODO What should this be?
-          guid: attribute.id, // TODO This is different than v2
-          id, // TODO This is different than v2
-          precision,
-          unit: attribute.units
+          attrs: [
+            attributeV2
+          ]
         }
       }
     }
-    return {success: false, values: {error: 'Attribute not found'}}
+    return attributeNotFoundResult
   },
-  create: diNotImplementedYet,
-  update: diNotImplementedYet,
   delete: diNotImplementedYet
 }
 
