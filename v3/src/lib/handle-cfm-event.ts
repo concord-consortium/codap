@@ -30,13 +30,6 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     //   break
     case "getContent": {
       const content = await appState.getDocumentSnapshot()
-      console.log(`xxx content`, content)
-      const tileMap = content.content?.tileMap
-      if (tileMap) {
-        Object.keys(tileMap).forEach(tileId => {
-          console.log(` xx tileContent`, JSON.stringify(tileMap[tileId].content))
-        })
-      }
       event.callback({ content })
       break
     }

@@ -26,17 +26,13 @@ export const WebViewModel = TileContentModel
   }))
   .actions(self => ({
     async prepareSnapshot(resolve: (value: unknown) => void) {
-      console.log(`ooo updating saved state`)
       if (self.dataInteractiveController) {
-        console.log(` oo found data interactive controller`)
-        return await self.dataInteractiveController.call({
+        await self.dataInteractiveController.call({
           "action": "get",
           "resource": "interactiveState"
         } as any, result => {
-          console.log(` oo got result`, result)
           if (result) {
             const state = result.values || result.state || result.status
-            console.log(`  o state`, state)
             if (state) {
               self.setSavedState(state)
               resolve({ success: true })
@@ -44,6 +40,7 @@ export const WebViewModel = TileContentModel
           }
           resolve({ success: false })
         })
+        return
       }
       resolve({ success: false })
     }
