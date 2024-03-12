@@ -18,7 +18,7 @@ import {setPointCoordinates} from "../utilities/graph-utils"
 import {circleAnchor, hBarAnchor, IPixiPointMetadata, vBarAnchor} from "../utilities/pixi-points"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
-  const {pixiPointsRef} = props,
+  const {pixiPoints} = props,
     graphModel = useGraphContentModelContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataConfig = useGraphDataConfigurationContext(),
@@ -101,15 +101,15 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
     }
   }, [dataset, dragID, dataConfig, startAnimation, primaryAttrRole])
 
-  usePixiDragHandlers(pixiPointsRef.current, {start: onDragStart, drag: onDrag, end: onDragEnd})
+  usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
 
   const refreshPointSelection = useCallback(() => {
     dataConfig && setPointSelection({
-      pixiPointsRef, dataConfiguration: dataConfig, pointRadius: graphModel.getPointRadius(),
+      pixiPoints, dataConfiguration: dataConfig, pointRadius: graphModel.getPointRadius(),
       pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select'),
       pointDisplayType
     })
-  }, [dataConfig, graphModel, pixiPointsRef, pointColor, pointStrokeColor, pointDisplayType])
+  }, [dataConfig, graphModel, pixiPoints, pointColor, pointStrokeColor, pointDisplayType])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace = primaryIsBottom ? 'bottom' : 'left',
@@ -316,15 +316,15 @@ export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
       setPointCoordinates({
         pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: graphModel.getPointRadius('select'),
-        pixiPointsRef, selectedOnly, pointColor, pointStrokeColor,
+        pixiPoints, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
         pointDisplayType, getWidth, getHeight, anchor
       })
     },
-    [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPointsRef,
+    [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPoints,
       primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
 
-  usePlotResponders({pixiPointsRef, refreshPointPositions, refreshPointSelection})
+  usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {

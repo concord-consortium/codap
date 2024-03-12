@@ -105,15 +105,14 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 }
 
 export function setPointSelection(props: ISetPointSelection) {
-  const { pixiPointsRef, dataConfiguration, pointRadius, selectedPointRadius,
+  const { pixiPoints, dataConfiguration, pointRadius, selectedPointRadius,
     pointColor, pointStrokeColor, getPointColorAtIndex } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
-  const pixiRenderer = pixiPointsRef?.current
-  if (!pixiRenderer) {
+  if (!pixiPoints) {
     return
   }
-  pixiRenderer.forEachPoint((point, metadata) => {
+  pixiPoints.forEachPoint((point, metadata) => {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
     const isSelectedAndLegendIsPresent = isSelected && legendID
@@ -133,8 +132,8 @@ export function setPointSelection(props: ISetPointSelection) {
       strokeWidth: isSelectedAndLegendIsPresent ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }
-    pixiRenderer.setPointStyle(point, style)
-    pixiRenderer.setPointRaised(point, isSelected)
+    pixiPoints.setPointStyle(point, style)
+    pixiPoints.setPointRaised(point, isSelected)
   })
 }
 
