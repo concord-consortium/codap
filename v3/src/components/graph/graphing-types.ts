@@ -1,7 +1,7 @@
-import { IPixiPointsRef } from "./utilities/pixi-points"
+import { PixiPoints } from "./utilities/pixi-points"
 
 export interface PlotProps {
-  pixiPointsRef: IPixiPointsRef
+  pixiPoints?: PixiPoints
 }
 
 // One element of the data array assigned to the points

@@ -1,7 +1,7 @@
 import {extent, format} from "d3"
 import {isInteger} from "lodash"
 import * as PIXI from "pixi.js"
-import {IPixiPointMetadata, IPixiPointsRef} from "./pixi-points"
+import {IPixiPointMetadata, PixiPoints} from "./pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, transitionDuration} from "../../data-display/data-display-types"
@@ -369,7 +369,7 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 }
 
 export interface ISetPointSelection {
-  pixiPointsRef: IPixiPointsRef
+  pixiPoints?: PixiPoints
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
   selectedPointRadius: number,
@@ -382,7 +382,7 @@ export interface ISetPointSelection {
 export interface ISetPointCoordinates {
   anchor?: Point
   dataset?: IDataSet
-  pixiPointsRef: IPixiPointsRef
+  pixiPoints?: PixiPoints
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number
@@ -400,7 +400,7 @@ export interface ISetPointCoordinates {
 
 export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
-    anchor, dataset, pixiPointsRef, selectedOnly = false, pointRadius, selectedPointRadius,
+    anchor, dataset, pixiPoints, selectedOnly = false, pointRadius, selectedPointRadius,
     pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled,
     getWidth, getHeight
   } = props
@@ -424,7 +424,6 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   const setPoints = () => {
     // Do we really need to calculate legend color here? If this function is called both while resizing
     // the graph and while updating legend colors, we could possibly split it into two different functions.
-    const pixiPoints = pixiPointsRef?.current
     if (pixiPoints) {
       if (anchor) {
         pixiPoints.anchor = anchor
