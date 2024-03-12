@@ -31,14 +31,14 @@ describe("handleCFMEvent", () => {
     expect(menuBarInfoArg).toBe(`Version ${providerOptionsArg.appVersion}`)
   })
 
-  it("handles the `getContent` message", () => {
+  it("handles the `getContent` message", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const mockCfmEvent = {
       type: "getContent",
       callback: jest.fn()
     }
     const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
-    handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
     const contentArg = mockCfmEvent.callback.mock.calls[0][0]
     expect(isCodapDocument(contentArg.content)).toBe(true)
   })
