@@ -230,3 +230,6 @@ export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): nu
   return Math.max(2, currentNumber)
 }
 
+export const isScaleLinear = (scale: any): scale is ScaleLinear<number, number> => {
+  return (scale as ScaleLinear<number, number>).interpolate !== undefined
+}

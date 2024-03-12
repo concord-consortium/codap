@@ -6,6 +6,13 @@ export type Point = { x: number, y: number }
 export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
 export const kNullPoint = {x: -999, y: -999}
 
+export const PointDisplayTypes = ["points", "bars", "bins"] as const
+export type PointDisplayType = typeof PointDisplayTypes[number]
+
+export const isPointDisplayType = (value: string): value is PointDisplayType => {
+  return PointDisplayTypes.includes(value as PointDisplayType)
+}
+
 export interface Rect {
   x: number, y: number, width: number, height: number
 }

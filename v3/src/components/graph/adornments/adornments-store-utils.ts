@@ -1,10 +1,10 @@
 import {getAdornmentContentInfo, getAdornmentTypes, IAdornmentContentInfo} from "./adornment-content-info"
 import {getAdornmentComponentInfo, IAdornmentComponentInfo} from "./adornment-component-info"
-import {PlotTypes} from "./adornment-types"
 import {IMeasure, measures, RulerStateKey} from "./adornment-ui-types"
 import {kMovableLineType} from "./movable-line/movable-line-adornment-types"
 import {kLSRLType} from "./lsrl/lsrl-adornment-types"
 import {IAdornmentsBaseStore} from "./adornments-base-store"
+import { PlotType } from "../graphing-types"
 
 export interface IMeasureMenuItem {
   checked: boolean
@@ -33,7 +33,7 @@ export function isGroupItem(item: IMeasureMenuItem | IGroupItem): item is IGroup
 
 export type MeasureMenuItemArray = Array<IMeasureMenuItem | IGroupItem>
 
-export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore, plotType: PlotTypes) {
+export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore, plotType: PlotType) {
 
   function constructMeasureItem(measure: IMeasure): IMeasureMenuItem {
     return {
@@ -74,7 +74,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore
 
   // Add the Connecting Lines checkbox immediately after the Count/Percent checkbox(es). That setting will be used
   // by the ScatterDots component to determine whether to show connecting lines.
-  function guaranteeAddedConnectingLinesIfScatterplot(thePlotType: PlotTypes, measureOrGroup: IMeasure,
+  function guaranteeAddedConnectingLinesIfScatterplot(thePlotType: PlotType, measureOrGroup: IMeasure,
                                                       alreadyAdded: boolean) {
     const registeredAdornment = registeredAdornments.find(a => a.type === measureOrGroup.type)
     if (plotType === "scatterPlot" && registeredAdornment?.type === "Count" && !alreadyAdded) {
@@ -91,7 +91,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore
   // Add the Intercept Locked option checkbox immediately after the LSRL checkbox. Since the Intercept Locked
   // option isn't for activating an adornment, but rather for modifying the behavior of other adornments, it
   // doesn't have an associated registeredAdornment. So we need to add it like this.
-  function guaranteeAddedLockInterceptIfScatterplot(thePlotType: PlotTypes, measureOrGroup: IMeasure,
+  function guaranteeAddedLockInterceptIfScatterplot(thePlotType: PlotType, measureOrGroup: IMeasure,
                                                       alreadyAdded: boolean) {
     if (
       registeredAdornments.find(a => a.type === measureOrGroup.type)?.type === "LSRL" &&
@@ -112,7 +112,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore
   }
 
   // The sum of squares of residuals is only shown for scatter plots, and only when the LSRL or Movable Line is
-  function addSumOfSquaresIfAppropriate(thePlotType: PlotTypes) {
+  function addSumOfSquaresIfAppropriate(thePlotType: PlotType) {
     if (plotType === "scatterPlot") {
       const movableLineVisible = !!theStore.adornments.find(a => a.type === "Movable Line")?.isVisible
       const lsrlVisible = !!theStore.adornments.find(a => a.type === "LSRL")?.isVisible

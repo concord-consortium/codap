@@ -8,12 +8,11 @@ import {
 import {IDataSet} from "../../models/data/data-set"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {
-  hoverRadiusFactor, kDataDisplayFont, Point, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
+  hoverRadiusFactor, kDataDisplayFont, Point, PointDisplayType, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
-import { PointDisplayType } from "../graph/graphing-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
