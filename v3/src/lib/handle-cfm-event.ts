@@ -9,7 +9,7 @@ import { wrapCfmCallback } from "./cfm-utils"
 import build from "../../build_number.json"
 import pkg from "../../package.json"
 
-export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
+export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
   // const { data, state, ...restEvent } = event
   // console.log("cfmEventCallback", JSON.stringify({ ...restEvent }))
 
@@ -29,8 +29,9 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     // case "closedFile":
     //   break
     case "getContent": {
-      const content = await appState.getDocumentSnapshot()
-      event.callback({ content })
+      appState.getDocumentSnapshot().then(content => {
+        event.callback({ content })
+      })
       break
     }
     case "willOpenFile":
