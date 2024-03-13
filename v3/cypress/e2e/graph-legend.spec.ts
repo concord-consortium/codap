@@ -126,60 +126,170 @@ context("Test legend with various attribute types", () => {
     glh.verifyLegendDoesNotExist()
 
   })
-  it("will draw categorical legend with numerical attribute on y axis", () => {
+  it("will draw categorical legend with numerical attribute on y axis and test undo/redo", () => {
+
+    // Drag numerical attribute to y-axis and categorical attribute to plot area
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "left") // LifeSpan => y-axis
     glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+
+    // Verify axis label and legend setup
     ah.verifyAxisLabel("left", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[7])
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
+
+    // Remove attributes from axis and legend
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "left")
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[7])
+
+    // Undo the removal of attributes
+    toolbar.getUndoTool().click() // Undo remove from legend
+    toolbar.getUndoTool().click() // Undo remove from axis
+
+    // Verify the attributes are restored on the axis and legend
+    ah.verifyAxisLabel("left", arrayOfAttributes[2])
+    glh.verifyLegendLabel(arrayOfAttributes[7])
+    glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
+
+    // Redo the removal of attributes
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
+
+    // Verify the attributes are removed from the legend
+    glh.verifyLegendDoesNotExist()
   })
-  it("will draw numeric legend with categorical attribute on x axis", () => {
+  it("will draw numeric legend with categorical attribute on x axis and test undo/redo", () => {
+    // Initial setup: Drag categorical attribute to x-axis and numerical attribute to plot area
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+
+    // Verify axis and legend setup
     ah.verifyAxisLabel("bottom", arrayOfAttributes[8])
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Remove attributes from axis and legend
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "bottom")
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
+
+    // Undo the removal of attributes
+    toolbar.getUndoTool().click() // Undo remove from legend
+    toolbar.getUndoTool().click() // Undo remove from axis
+
+    // Verify attributes are restored on axis and legend
+    ah.verifyAxisLabel("bottom", arrayOfAttributes[8])
+    glh.verifyLegendLabel(arrayOfAttributes[3])
+    glh.verifyNumericLegend()
+
+    // Redo the removal of attributes
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
+
+    // Verify the attributes are removed from the legend
+    glh.verifyLegendDoesNotExist()
   })
-  it("will draw numeric legend with categorical attribute on y axis", () => {
+  it("will draw numeric legend with categorical attribute on y axis and test undo/redo", () => {
+    // Initial setup: Drag categorical attribute to y-axis and numerical attribute to plot area
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
     glh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+
+    // Verify axis and legend setup
     ah.verifyAxisLabel("left", arrayOfAttributes[8])
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Remove attributes from axis and legend
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
+
+    // Undo the removal of attributes
+    toolbar.getUndoTool().click() // Undo remove from legend
+    toolbar.getUndoTool().click() // Undo remove from axis
+
+    // Verify attributes are restored on axis and legend
+    ah.openAxisAttributeMenu("left")
+    ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
+    glh.openLegendMenu()
+    glh.removeAttributeFromLegend(arrayOfAttributes[3])
+
+    // Redo the removal of attributes
+    // Note: Redo button disables in Cypress at this step.
+    // The disable doesn't happen in CODAP though.
+    // Used force:true so that test can happen.
+    toolbar.getRedoTool().click({force: true}) // Redo remove from legend
+    toolbar.getRedoTool().click({force: true}) // Redo remove from axis
+
+    // Verify the attributes are removed from the legend
+    glh.verifyLegendDoesNotExist()
   })
-  it("will draw numeric legend with numerical attribute on x axis", () => {
+  it("will draw numeric legend with numerical attribute on x axis and test undo/redo", () => {
+    // Setup: Drag numerical attributes to x-axis and plot area
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+
+    // Verify axis and legend setup
     ah.verifyAxisLabel("bottom", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Remove attributes from axis and legend
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "bottom")
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
+
+    // Undo the removal of attributes
+    toolbar.getUndoTool().click() // Undo remove from legend
+    toolbar.getUndoTool().click() // Undo remove from axis
+
+    // Verify attributes are restored on axis and legend
+    ah.verifyAxisLabel("bottom", arrayOfAttributes[2])
+    glh.verifyLegendLabel(arrayOfAttributes[3])
+    glh.verifyNumericLegend()
+
+    // Redo the removal of attributes
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
+
+    // Verify the attributes are removed from the legend
+    glh.verifyLegendDoesNotExist()
   })
-  it("will draw numeric legend with numerical attribute on y axis", () => {
+  it("will draw numeric legend with numerical attribute on y axis and test undo/redo", () => {
+    // Initial setup: Drag numerical attribute to y-axis and another numerical attribute to plot area
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "left") // LifeSpan => y-axis
     glh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+
+    // Verify axis and legend setup
     ah.verifyAxisLabel("left", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Remove attribute from axis and legend
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "left")
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
+
+    // Undo the removal of attributes
+    toolbar.getUndoTool().click() // Undo remove from legend
+    toolbar.getUndoTool().click() // Undo remove from axis
+
+    // Verify attribute are restored on axis and legend
+    ah.verifyAxisLabel("left", arrayOfAttributes[2])
+    glh.verifyLegendLabel(arrayOfAttributes[3])
+    glh.verifyNumericLegend()
+
+    // Redo the removal of attributes
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
+
+    // Verify the attributes are removed from the legend
+    glh.verifyLegendDoesNotExist()
   })
 })
 
