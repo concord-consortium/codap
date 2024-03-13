@@ -11,6 +11,10 @@ export interface InternalizedData {
   cases:string[]
 }
 
+export interface IDomainOptions {
+  clampPosMinAtZero?: boolean
+}
+
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 

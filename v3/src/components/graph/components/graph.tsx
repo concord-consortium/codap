@@ -150,7 +150,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
       graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
       const yAxisModel = graphModel.getAxis('left') as IAxisModel
-      setNiceDomain((graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []), yAxisModel)
+      const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
+      setNiceDomain(yValues, yAxisModel, graphModel.axisDomainOptions)
     } else {
       dataset && handleChangeAttribute(place, dataset, '')
     }

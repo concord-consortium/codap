@@ -126,7 +126,7 @@ export class GraphController {
     } else if (graphPlace === 'yPlus') {
       // The yPlus attribute utilizes the left numeric axis for plotting but doesn't change anything else
       const yAxisModel = graphModel.getAxis('left')
-      yAxisModel && setNiceDomain(dataConfig.numericValuesForYAxis, yAxisModel)
+      yAxisModel && setNiceDomain(dataConfig.numericValuesForYAxis, yAxisModel, graphModel.axisDomainOptions)
       return
     }
 
@@ -166,9 +166,9 @@ export class GraphController {
             graphModel.setAxis(place, newAxisModel)
             dataConfig.setAttributeType(attrRole, 'numeric')
             layout.setAxisScaleType(place, 'linear')
-            setNiceDomain(attr?.numValues || [], newAxisModel)
+            setNiceDomain(attr?.numValues || [], newAxisModel, graphModel.axisDomainOptions)
           } else {
-            setNiceDomain(attr?.numValues || [], currAxisModel)
+            setNiceDomain(attr?.numValues || [], currAxisModel, graphModel.axisDomainOptions)
           }
         }
           break
