@@ -300,71 +300,174 @@ context("Test drawing legend on existing legend", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it("will draw categorical legend on existing categorical legend", () => {
+  it("will draw categorical legend on existing categorical legend and test undo/redo", () => {
+
+    // Initial setup: Drag attributes to the x-axis and plot area for the first legend
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+
+    // Verify the first legend setup
     ah.verifyAxisLabel("bottom", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[7])
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
+
+    // Add a second categorical legend
     glh.dragAttributeToLegend(arrayOfAttributes[8]) // Diet => plot area
+
+    // Verify the second legend setup
     glh.verifyLegendLabel(arrayOfAttributes[8])
     glh.verifyCategoricalLegend(arrayOfValues[8].values.length)
+
+    // Remove the x-axis attribute
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "bottom")
+
+    // Verify that the second legend persists after x-axis attribute removal
     glh.verifyLegendLabel(arrayOfAttributes[8])
     glh.verifyCategoricalLegend(arrayOfValues[8].values.length)
+
+    // Remove the second legend attribute
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[8])
+
+    // Undo the removal of the second legend attribute
+    toolbar.getUndoTool().click()
+
+    // Verify that the second legend attribute is restored
+    glh.verifyLegendLabel(arrayOfAttributes[8])
+    glh.verifyCategoricalLegend(arrayOfValues[8].values.length)
+
+    // Redo the removal of the second legend attribute
+    toolbar.getRedoTool().click()
+    cy.wait(500)
+
+    // Verify absence of second attribute
+    glh.verifyLegendDoesNotExist()
   })
-  it("will draw categorical legend on existing numeric legend", () => {
+  it("will draw categorical legend on existing numeric legend and test undo/redo", () => {
+    // Setup: Drag numerical attribute to x-axis and another numerical attribute to plot area for the numeric legend
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "left") // LifeSpan => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+
+    // Verify numeric legend setup
     ah.verifyAxisLabel("left", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Add a categorical attribute to create a categorical legend
     // Temporarily changing this because of #184764820
     glh.dragAttributeToPlot(arrayOfAttributes[8]) // Diet => plot area
     glh.verifyLegendLabel(arrayOfAttributes[8])
     glh.verifyCategoricalLegend(arrayOfValues[8].values.length)
+
+    // Remove the x-axis attribute
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "left")
+
+    // Verify the categorical legend persists after x-axis attribute removal
     glh.verifyLegendLabel(arrayOfAttributes[8])
     glh.verifyCategoricalLegend(arrayOfValues[8].values.length)
+
+    // Remove the categorical legend attribute
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[8])
+
+    // Undo the removal of the categorical legend attribute
+    toolbar.getUndoTool().click()
+
+    // Verify that the categorical legend attribute is restored
+    glh.verifyLegendLabel(arrayOfAttributes[8])
+    glh.verifyCategoricalLegend(arrayOfValues[8].values.length)
+
+    // Redo the removal of the categorical legend attribute
+    toolbar.getRedoTool().click()
+
+    // Verify absence of the categorical legend attribute
+    glh.verifyLegendDoesNotExist()
+
   })
-  it("will draw numeric legend on existing categorical legend", () => {
+  it("will draw numeric legend on existing categorical legend and test undo/redo", () => {
+    // Initial setup: Drag attributes to the x-axis and plot area for the categorical legend
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+
+    // Verify categorical legend setup
     ah.verifyAxisLabel("bottom", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[7])
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
+
+    // Replace the categorical legend with a numeric attribute to create a numeric legend
     glh.dragAttributeToLegend(arrayOfAttributes[3]) // Height => plot area
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Remove the x-axis attribute
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "bottom")
+
+    // Verify the numeric legend persists after x-axis attribute removal
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Remove the numeric legend attribute
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
+
+    // Undo the removal of the numeric legend attribute
+    toolbar.getUndoTool().click()
+
+    // Verify that the numeric legend attribute is restored
+    glh.verifyLegendLabel(arrayOfAttributes[3])
+    glh.verifyNumericLegend()
+
+    // Redo the removal of the numeric legend attribute
+    toolbar.getRedoTool().click()
+
+    // Verify absence of the numeric legend attribute
+    glh.verifyLegendDoesNotExist()
+
   })
-  it("will draw numeric legend on existing numeric legend", () => {
+  it("will draw numeric legend on existing numeric legend and test undo/redo", () => {
+    // Setup: Drag numerical attributes to the x-axis and plot area for the first numeric legend
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "left") // LifeSpan => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[3]) // Height => plot area
+
+    // Verify the first numeric legend setup
     ah.verifyAxisLabel("left", arrayOfAttributes[2])
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
+
+    // Add another numerical attribute to create a second numeric legend
     // Temporarily changing this because of #184764820
     glh.dragAttributeToPlot(arrayOfAttributes[4]) // Mass => plot area
     glh.verifyLegendLabel(arrayOfAttributes[4])
     glh.verifyNumericLegend()
+
+    // Remove the x-axis attribute
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "left")
+
+    // Verify the second numeric legend persists after x-axis attribute removal
     glh.verifyLegendLabel(arrayOfAttributes[4])
     glh.verifyNumericLegend()
+
+    // Remove the numeric legend attribute
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[4])
+
+    // Undo the removal of the numeric legend attribute
+    toolbar.getUndoTool().click()
+
+    // Verify that the numeric legend attribute is restored
+    glh.verifyLegendLabel(arrayOfAttributes[4])
+    glh.verifyNumericLegend()
+
+    // Redo the removal of the numeric legend attribute
+    toolbar.getRedoTool().click()
+
+    // Verify absence of the numeric legend attribute
+    glh.verifyLegendDoesNotExist()
+
   })
 })
 context("Test selecting and selecting categories in legend", () => {
