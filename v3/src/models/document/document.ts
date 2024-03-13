@@ -71,8 +71,8 @@ export const DocumentModel = Tree.named("Document")
       // Destroying it will probably also free up memory
       addDisposer(self, () => destroy(manager))
     },
-    async prepareSnapshot() {
-      await self.content?.prepareSnapshot()
+    prepareSnapshot() {
+      return self.content?.prepareSnapshot()
     },
     completeSnapshot() {
       self.content?.completeSnapshot()
