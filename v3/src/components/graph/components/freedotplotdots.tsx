@@ -26,7 +26,6 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
     layout = useGraphLayoutContext(),
     primaryAttrRole = dataConfig?.primaryRole ?? 'x',
     primaryIsBottom = primaryAttrRole === 'x',
-    primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? '',
     secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
     pointDisplayType = graphModel.pointDisplayType
@@ -53,6 +52,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
         secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
         extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
+        primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? '',
         extraPrimaryAttrID = dataConfig?.attributeID(extraPrimaryRole) ?? '',
         numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1),
         pointDiameter = 2 * graphModel.getPointRadius(),
@@ -184,7 +184,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         pointDisplayType, getWidth, getHeight, anchor
       })
     },
-    [primaryIsBottom, layout, dataConfig, graphModel, secondaryAttrRole, dataset, primaryAttrID, pointDisplayType,
+    [primaryIsBottom, layout, dataConfig, primaryAttrRole, graphModel, secondaryAttrRole, dataset, pointDisplayType,
      pixiPoints, pointColor, pointStrokeColor, isAnimating])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
@@ -203,14 +203,13 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
   // respond to pointDisplayType changes because the axis domain may need to be updated
   useEffect(function respondToGraphPointDisplayType() {
     return mstAutorun(() => {
-      const primaryAttribute = dataset?.attrFromID(primaryAttrID)
       const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
       const numValues = graphModel.dataConfiguration.numericValuesForAttrRole(primaryIsBottom ? "x" : "y")
-      if (primaryAttribute && primaryAxis) {
+      if (primaryAxis) {
         setNiceDomain(numValues, primaryAxis, graphModel.axisDomainOptions)
       }
     }, {name: "respondToGraphPointDisplayType"}, graphModel)
-  }, [dataset, graphModel, primaryAttrID, primaryIsBottom])
+  }, [dataset, graphModel, primaryIsBottom])
 
   return (
     <></>
