@@ -11,10 +11,10 @@ describe('WebViewContentModel', () => {
       }
     } as iframePhone.IframePhoneRpcEndpoint
     const webView = WebViewModel.create({})
-    
+
     webView.setDataInteractiveController(dataInteractiveController)
-    const result = await new Promise((resolve, reject) => webView.prepareSnapshot(resolve))
+    await webView.prepareSnapshot()
     const snapshot = getSnapshot(webView)
-    expect(snapshot.savedState).toBe(state)
+    expect(snapshot.state).toBe(state)
   })
 })

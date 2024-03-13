@@ -44,9 +44,12 @@ export const TileContentModel = types.model("TileContentModel", {
     }
   }))
   .actions(self => ({
-    async prepareSnapshot(resolve: (value: unknown) => void) {
+    prepareSnapshot() {
       // Override in derived models as appropriate
-      resolve({ success: true })
+      return Promise.resolve()
+    },
+    completeSnapshot() {
+      // Override in derived models as appropriate
     },
     /**
      * This will be called automatically by the tree monitor.

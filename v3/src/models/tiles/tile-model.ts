@@ -137,8 +137,11 @@ export const TileModel = types
     onTileAction(call: ISerializedActionCall) {
       self.content.onTileAction?.(call)
     },
-    async prepareSnapshot() {
-      return new Promise((resolve, reject) => self.content.prepareSnapshot(resolve))
+    prepareSnapshot() {
+      return self.content.prepareSnapshot()
+    },
+    completeSnapshot() {
+      self.content.completeSnapshot()
     },
     willRemoveFromDocument() {
       return self.content.willRemoveFromDocument?.()

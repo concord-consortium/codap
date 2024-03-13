@@ -91,6 +91,7 @@ export class DataBroker {
     this.sharedModelManager?.addSharedModel(caseMetadata)
 
     this.addSharedDataSet(sharedModel)
+    ds.completeSnapshot()
 
     return { sharedData: sharedModel, caseMetadata }
   }

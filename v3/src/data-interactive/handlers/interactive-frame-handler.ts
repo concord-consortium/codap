@@ -23,7 +23,7 @@ export const diInteractiveFrameHandler: DIHandler = {
           name: interactiveFrame.title,
           preventBringToFront: false,
           preventDataContextReorg: false,
-          savedState: webViewContent?.savedState,
+          savedState: webViewContent?.state,
           standaloneUndoModeAvailable: false,
           title: interactiveFrame.title,
           version: "0.1",

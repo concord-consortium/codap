@@ -6,9 +6,9 @@ import { kWebViewTileType } from "./web-view-defs"
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
   .props({
-    savedState: types.frozen(),
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
-    url: ""
+    url: "",
+    state: types.frozen<unknown>()
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined
@@ -17,32 +17,34 @@ export const WebViewModel = TileContentModel
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },
-    setSavedState(state: any) {
-      self.savedState = state
+    setSavedState(state: unknown) {
+      self.state = state
     },
     setUrl(url: string) {
       self.url = url
     }
   }))
   .actions(self => ({
-    async prepareSnapshot(resolve: (value: unknown) => void) {
-      if (self.dataInteractiveController) {
-        await self.dataInteractiveController.call({
-          "action": "get",
-          "resource": "interactiveState"
-        } as any, result => {
-          if (result) {
-            const state = result.values || result.state || result.status
-            if (state) {
-              self.setSavedState(state)
-              resolve({ success: true })
+    prepareSnapshot() {
+      return new Promise<void>((resolve) => {
+        if (self.dataInteractiveController) {
+          self.dataInteractiveController?.call({
+            "action": "get",
+            "resource": "interactiveState"
+          } as any, (result) => {
+            if (result) {
+              const state = result.values || result.state
+              if (state) {
+                self.setSavedState(state)
+              }
             }
-          }
-          resolve({ success: false })
-        })
-        return
-      }
-      resolve({ success: false })
+            resolve()
+          })
+        }
+        else {
+          resolve()
+        }
+      })
     }
   }))
 export interface IWebViewModel extends Instance<typeof WebViewModel> {}

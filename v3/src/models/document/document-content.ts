@@ -49,7 +49,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       self.rowMap.forEach(row => row.prepareSnapshot())
 
       // prepare each tile for serialization
-      const promises: Promise<unknown>[] = []
+      const promises: Promise<void>[] = []
       self.tileMap.forEach(tile => promises.push(tile.prepareSnapshot()))
       await Promise.all(promises)
 
@@ -61,6 +61,9 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each data set
       const sharedDataSets = getSharedDataSets(self)
       sharedDataSets.forEach(model => model.dataSet.completeSnapshot())
+
+      // complete serialization for each tile
+      self.tileMap.forEach(tile => tile.completeSnapshot())
 
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
