@@ -19,11 +19,10 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
-import {axisPlaceToAttrRole, GraphAttrRole, PointDisplayType,
-        PointDisplayTypes} from "../../data-display/data-display-types"
+import {axisPlaceToAttrRole, GraphAttrRole, PointDisplayType} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {PlotType, PlotTypes} from "../graphing-types"
+import {IDomainOptions, PlotType, PlotTypes} from "../graphing-types"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
@@ -61,7 +60,6 @@ export const GraphContentModel = DataDisplayContentModel
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
-    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
@@ -117,6 +115,12 @@ export const GraphContentModel = DataDisplayContentModel
                                   dataset: IDataSet | undefined,
                                   attributeID: string | undefined): boolean {
       return self.dataConfiguration.placeCanAcceptAttributeIDDrop(place, dataset, attributeID)
+    },
+    get axisDomainOptions(): IDomainOptions {
+      return {
+        // When displaying bars, the domain should start at 0 unless there are negative values.
+        clampPosMinAtZero: self.pointDisplayType === "bars"
+      }
     },
     nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
@@ -208,7 +212,7 @@ export const GraphContentModel = DataDisplayContentModel
             role = axisPlaceToAttrRole[axisPlace]
           if (isNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
-            setNiceDomain(numericValues, axis)
+            setNiceDomain(numericValues, axis, self.axisDomainOptions)
           }
         })
       }

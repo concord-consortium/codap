@@ -34,7 +34,6 @@ export const useSubAxis = ({
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContext(),
-    pointDisplayType = displayModel?.pointDisplayType,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
@@ -98,12 +97,6 @@ export const useSubAxis = ({
           if (!axisModel) return
           select(subAxisElt).selectAll('*').remove()
           const numericScale = d3Scale as unknown as ScaleLinear<number, number>
-          if (pointDisplayType === "bars") {
-            // When displaying bars, set the domain to [0, 100]. TODO: Fix this. The domain does need to be changed for
-            // bars, but it should be based on the data, not always the same static values. Also, it would be better not
-            // to use the pointDisplayType within the axis realm.
-            numericScale.domain([0, 100])
-          }
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
           const duration = isAnimating() ? transitionDuration : 0
           if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
@@ -232,8 +225,8 @@ export const useSubAxis = ({
           renderCategoricalSubAxis()
           break
       }
-    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, pointDisplayType, axisModel, displayModel,
-        isAnimating, centerCategoryLabels, showScatterPlotGridLines]),
+    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, axisModel, isAnimating, displayModel,
+        centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
@@ -371,7 +364,7 @@ export const useSubAxis = ({
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
         if (isNumericAxisModel(_axisModel)) {
-          const {domain} = _axisModel || {}
+          const { domain } = _axisModel || {}
           layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
           renderSubAxis()
         }

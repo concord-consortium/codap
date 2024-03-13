@@ -151,6 +151,22 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
   })
+  it("will adjust axis domain when points are changed to bars", () => {
+    // When there are no negative numeric values, such as in the case of Height, the domain for the primary
+    // axis of a univariate plot showing bars should start at zero.
+    cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
+    cy.wait(500)
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyAxisTickLabel("bottom", "−0.5", 0)
+    cy.get("[data-testid=graph-display-config-button").click()
+    cy.wait(500)
+    cy.get("[data-testid=bars-radio-button]").click()
+    cy.wait(500)
+    ah.verifyAxisTickLabel("bottom", "0", 0)
+    cy.get("[data-testid=points-radio-button]").click()
+    cy.wait(500)
+    ah.verifyAxisTickLabel("bottom", "−0.5", 0)
+  })
 })
 
 context("Test graph axes attribute menu", () => {
