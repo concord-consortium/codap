@@ -31,7 +31,7 @@ export const TableTileElements = {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
   getIndexRow(rowNum, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid] 
+    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid]
       [role=row][aria-rowindex="${rowNum}"]
       [data-testid=codap-index-content-button]`)
   },
@@ -110,7 +110,10 @@ export const TableTileElements = {
   getApplyButton() {
     return cy.get("[data-testid=Apply-button]")
   },
-  editAttributeProperty(attr, name, description, type, unit, precision, editable) {
+  getCancelButton() {
+    return cy.get("[data-testid=Cancel-button]")
+  },
+  editAttributeProperties(attr, name, description, type, unit, precision, editable) {
     this.openAttributeMenu(attr)
     this.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
     if (name !== "") {
@@ -132,7 +135,6 @@ export const TableTileElements = {
       this.selectAttributeEditableState(editable)
     }
     this.getApplyButton().click()
-
   },
   getCell(line, row, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${line}"] .cell-span`)

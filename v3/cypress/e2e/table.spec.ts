@@ -49,20 +49,38 @@ context("case table ui", () => {
         description = "The average height of the mammal.",
         unit = "meters",
         newName = "Tallness (meters)",
-        type = null,
+        type = "color",
         precision = null,
-        editable = "False"
+        editable = "No"
 
       // Edit the attribute property
-      table.editAttributeProperty("Height", name, description, type, unit, precision, editable)
+      table.editAttributeProperties("Height", name, description, type, unit, precision, editable)
       // Verify the attribute has been edited
       table.getAttribute(name).should("have.text", newName)
+
+      // opening the dialog again should show the updated values
+      table.openAttributeMenu(name)
+      table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+      cy.get("[data-testid='attr-name-input']").should("have.value", name)
+      cy.get("[data-testid='attr-description-input']").should("have.text", description)
+      cy.get("[data-testid='attr-type-select']").should("have.value", type)
+      cy.get("[data-testid='attr-editable-radio'] input[value='no']").should("be.checked")
+      table.getCancelButton().click()
 
       // Perform Undo operation
       toolbar.getUndoTool().click()
 
       // Verify the undo reverts the edit to the original name "Height"
-      table.getAttribute("Height").should("not.have.text", newName)
+      table.getAttribute("Height").should("have.text", "Height")
+
+      // opening the dialog again should show the original values
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+      cy.get("[data-testid='attr-name-input']").should("have.value", "Height")
+      cy.get("[data-testid='attr-description-input']").should("have.text", "")
+      cy.get("[data-testid='attr-type-select']").should("have.value", "none")
+      cy.get("[data-testid='attr-editable-radio'] input[value='yes']").should("be.checked")
+      table.getCancelButton().click()
 
       // Perform Redo operation
       toolbar.getRedoTool().click()
