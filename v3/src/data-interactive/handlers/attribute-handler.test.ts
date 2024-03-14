@@ -1,6 +1,6 @@
 import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
-import { diNotImplementedYetResult, DIValues } from "../data-interactive-types"
+import { diNotImplementedYetResult, DISingleValues } from "../data-interactive-types"
 
 describe("DataInteractive AttributeHandler", () => {
   const handler = diAttributeHandler
@@ -28,7 +28,7 @@ describe("DataInteractive AttributeHandler", () => {
     const result = handler.update?.({ attribute },
       { name, title, description, unit, formula, editable, type, precision })
     expect(result?.success).toBe(true)
-    const values = result?.values as DIValues
+    const values = result?.values as DISingleValues
     const resultAttr = values.attrs?.[0]
     expect(resultAttr?.name).toBe(name)
     expect(resultAttr?.title).toBe(title)
@@ -40,7 +40,7 @@ describe("DataInteractive AttributeHandler", () => {
     expect(resultAttr?.precision).toBe(precision)
 
     const result2 = handler.update?.({ attribute }, { type: "fake type" })
-    const values2 = result2?.values as DIValues
+    const values2 = result2?.values as DISingleValues
     const resultAttr2 = values2.attrs?.[0]
     expect(resultAttr2?.type).toBe(type)
   })

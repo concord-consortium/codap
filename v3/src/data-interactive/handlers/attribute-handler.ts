@@ -1,36 +1,41 @@
 import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
+import { IDataSet } from "../../models/data/data-set"
 import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
+import { DIHandler, DIResources, DISingleValues, DIValues } from "../data-interactive-types"
 
-function convertAttributeToV2(resources: DIResources) {
+function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet) {
+  const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
+  const { name, type, title, description, editable, id, precision } = attribute
+  return {
+    name,
+    type,
+    title,
+    cid: id,
+    // defaultMin: self.defaultMin, // TODO Where should this come from?
+    // defaultMax: self.defaultMax, // TODO Where should this come from?
+    description,
+    // _categoryMap: self.categoryMap, // TODO What is this?
+    // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
+    editable,
+    hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
+    renameable: true, // TODO What should this be?
+    deleteable: true, // TODO What should this be?
+    formula: attribute.formula?.display,
+    // deletedFormula: self.deletedFormula, // TODO What should this be?
+    guid: Number(id), // TODO This is different than v2
+    id: Number(id), // TODO This is different than v2
+    precision,
+    unit: attribute.units
+  }
+}
+
+function convertAttributeToV2FromResources(resources: DIResources) {
   const { attribute, dataContext } = resources
-  const metadata = (dataContext && getSharedCaseMetadataFromDataset(dataContext))
   if (attribute) {
-    const { name, type, title, description, editable, id, precision } = attribute
-    return {
-      name,
-      type,
-      title,
-      cid: id,
-      // defaultMin: self.defaultMin, // TODO Where should this come from?
-      // defaultMax: self.defaultMax, // TODO Where should this come from?
-      description,
-      // _categoryMap: self.categoryMap, // TODO What is this?
-      // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
-      editable,
-      hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
-      renameable: true, // TODO What should this be?
-      deleteable: true, // TODO What should this be?
-      formula: attribute.formula?.display,
-      // deletedFormula: self.deletedFormula, // TODO What should this be?
-      guid: Number(id), // TODO This is different than v2
-      id: Number(id), // TODO This is different than v2
-      precision,
-      unit: attribute.units
-    }
+    return convertAttributeToV2(attribute, dataContext)
   }
 }
 
@@ -38,7 +43,7 @@ const attributeNotFoundResult = { success: false, values: { error: t("V3.DI.Erro
 const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
-    const attribute = convertAttributeToV2(resources)
+    const attribute = convertAttributeToV2FromResources(resources)
     if (attribute) {
       return {
         success: true,
@@ -50,15 +55,31 @@ export const diAttributeHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
-    if (!values || values.name == null) return { success: false, values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "attribute", "name"] }) } }
 
-    const createAttribute()
-    let attribute: IAttribute | undefined
-    dataContext.applyUndoableAction(() => {
-      withoutUndo()
-      attribute = dataContext.addAttribute(values as IAttributeSnapshot)
-    }, "", "")
-    return { success: true }
+    // Wrap single attribute in array and bail if any new attributes missing names
+    const attributeValues = Array.isArray(values) ? values : [values]
+    const attributeErrors = attributeValues.map(singleValue => {
+      if (!singleValue || singleValue.name == null) {
+        return { success: false, values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "attribute", "name"] }) } } as const
+      }
+      return { success: true }
+    }).filter(error => !error.success)
+    if (attributeErrors.length > 0) return attributeErrors[0]
+
+    // Create the attributes
+    const attributes: IAttribute[] = []
+    const createAttribute = (value: DISingleValues) => {
+      dataContext.applyUndoableAction(() => {
+        withoutUndo()
+        attributes.push(dataContext.addAttribute(value as IAttributeSnapshot))
+      }, "", "")
+    }
+    attributeValues.forEach(attributeValue => {
+      if (attributeValue) createAttribute(attributeValue)
+    })
+    return { success: true, values: {
+      attrs: attributes.map(attribute => convertAttributeToV2(attribute, dataContext))
+    } }
   },
   update(resources: DIResources, values?: DIValues) {
     const { attribute } = resources
@@ -75,7 +96,7 @@ export const diAttributeHandler: DIHandler = {
       if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
       if (values?.unit != null) attribute.setUnits(values.unit)
     }, "", "")
-    const attributeV2 = convertAttributeToV2(resources)
+    const attributeV2 = convertAttributeToV2FromResources(resources)
     if (attributeV2) {
       return {
         success: true,
@@ -102,92 +123,3 @@ export const diAttributeHandler: DIHandler = {
 }
 
 registerDIHandler("attribute", diAttributeHandler)
-
-// from data_interactive_phone_handler.js
-// create: function (iResources, iValues, iMetadata) {
-//   return DG.appController.documentArchiver.createAttribute(iResources, iValues, iMetadata, this.get('id'));
-// },
-// update: function (iResources, iValues, iMetadata) {
-//   return DG.appController.documentArchiver.updateAttribute(iResources, iValues, iMetadata);
-// },
-// 'delete': function (iResources, iValues, iMetadata) {
-//   var iDataContext = iResources.dataContext;
-//   var attr = iResources.attribute;
-//   var iAttrID = attr && attr.get('id');
-//   var tCollectionClient = iResources.collection;
-//   var response, change;
-//   if ((tCollectionClient.get('attrsController').get('length') === 1) &&
-//       (iDataContext.get('collections').length !== 1) &&
-//       (tCollectionClient.getAttributeByID(iAttrID))) {
-//     response = iDataContext.applyChange( {
-//       operation: 'deleteCollection', collection: tCollectionClient
-//     });
-//   } else {
-//     change = {
-//         operation: 'deleteAttributes',
-//         collection: tCollectionClient,
-//         attrs: [{id: iAttrID, attribute: attr}],
-//         requester: this.get('id')
-//       };
-//     if (iMetadata && iMetadata.dirtyDocument === false) {
-//       change.dirtyDocument = false;
-//     }
-//     response = iDataContext.applyChange( change);
-//   }
-//   iDataContext.set('flexibleGroupingChangeFlag', true);
-//   var success = !!(response && response.success);
-//   return {
-//     success: success,
-//   };
-// }
-
-// from document_helper.js
-// createAttribute: function (iResources, iValues, iMetadata, iRequesterID) {
-//   if (!iResources.dataContext) {
-//     return {success: false, values: {error: "no context"}};
-//   }
-//   if (!iResources.collection) {
-//     return {success: false, values: {error: 'Collection not found'}};
-//   }
-//   var context = iResources.dataContext;
-//   var attrSpecs = SC.clone(Array.isArray(iValues) ? iValues : [iValues]);
-//   if (attrSpecs.some(function(spec) { return !spec.name; })) {
-//     return {success: false, values: {error: "Create attribute: name required"}};
-//   }
-//   attrSpecs.forEach(function(attrSpec) {
-//     attrSpec.clientName = attrSpec.name;
-//     attrSpec.name = context.canonicalizeName(attrSpec.name + ' ');
-//   });
-//   var change = {
-//     operation: 'createAttributes',
-//     collection: context.getCollectionByID( iResources.collection.get('id')),
-//     attrPropsArray: attrSpecs,
-//     requester: iRequesterID,
-//     position: iResources.position
-//   };
-//   return this.applyChangeAndProcessResult(context, change, iMetadata);
-// },
-// updateAttribute: function (iResources, iValues, iMetadata) {
-//   var context = iResources.dataContext;
-//   if (!iResources.collection) {
-//     return {success: false, values: {error: 'Collection not found'}};
-//   }
-//   if (!iResources.attribute) {
-//     return {success: false, values: {error: 'Attribute not found'}};
-//   }
-//   if (!iValues.id && iResources.attribute.id)
-//     iValues.id = iResources.attribute.id;
-//   if (!iValues.name && iResources.attribute.name)
-//     iValues.name = iResources.attribute.name;
-//   else if (iValues.name) {
-//     iValues.clientName = iValues.name;
-//     iValues.name = context.canonicalizeName(iValues.name + ' ');
-//   }
-//   var change = {
-//     operation: 'updateAttributes',
-//     collection: iResources.collection,
-//     attrPropsArray: [iValues],
-//     requester: this.get('id')
-//   };
-//   return this.applyChangeAndProcessResult(context, change, iMetadata);
-// },
