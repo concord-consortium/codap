@@ -1430,7 +1430,11 @@ DG.DocumentController = SC.Object.extend(
                   defaultLayout: iLayout,
                   position: iComponent && iComponent.position,
                   title: iTitle,
-                  useLayout: !SC.none(iComponent) || !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
+              // As a V2 patch, to fix a plugin api problem found by PhET team, we force useLayout to be false
+              // unless the incoming layout is specified with a center or left coordinate. The bug was that
+              // the plugin positioning was not being respected. This has been an error-prone area of the code.
+              // We are trying to fix the bug without breaking other things. V3 will do better!
+                  useLayout: /*!SC.none(iComponent) ||*/ !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
                 }
             );
             this._component = tView.getPath('controller.model');
