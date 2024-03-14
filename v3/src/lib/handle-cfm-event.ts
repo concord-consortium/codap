@@ -29,8 +29,9 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     // case "closedFile":
     //   break
     case "getContent": {
-      const content = appState.getDocumentSnapshot()
-      event.callback({ content })
+      appState.getDocumentSnapshot().then(content => {
+        event.callback({ content })
+      })
       break
     }
     case "willOpenFile":

@@ -72,7 +72,7 @@ export const DocumentModel = Tree.named("Document")
       addDisposer(self, () => destroy(manager))
     },
     prepareSnapshot() {
-      self.content?.prepareSnapshot()
+      return self.content?.prepareSnapshot()
     },
     completeSnapshot() {
       self.content?.completeSnapshot()
