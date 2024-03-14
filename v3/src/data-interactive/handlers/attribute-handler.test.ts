@@ -13,7 +13,7 @@ describe("DataInteractive AttributeHandler", () => {
     expect(result?.success).toBe(true)
     expect((result?.values as any)?.name).toBe("test")
   })
-  it("create is not implemented yet", () => {
+  it("create works as expected", () => {
     const dataContext = DataSet.create({})
     const resources = { dataContext }
     expect(handler.create?.(resources).success).toEqual(false)
@@ -62,7 +62,7 @@ describe("DataInteractive AttributeHandler", () => {
     const resultAttr2 = values2.attrs?.[0]
     expect(resultAttr2?.type).toBe(type)
   })
-  it("delete is not implemented yet", () => {
+  it("delete works as expected", () => {
     const attribute = Attribute.create({ name: "name" })
     const dataContext = DataSet.create({})
     dataContext.addAttribute(attribute)

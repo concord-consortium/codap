@@ -56,7 +56,7 @@ export const diAttributeHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    // Wrap single attribute in array and bail if any new attributes missing names
+    // Wrap single attribute in array and bail if any new attributes are missing names
     const attributeValues = Array.isArray(values) ? values : [values]
     const attributeErrors = attributeValues.map(singleValue => {
       if (!singleValue || singleValue.name == null) {
