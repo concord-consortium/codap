@@ -1,4 +1,4 @@
-import { isAttributeType } from "../../models/data/attribute"
+import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
 import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
@@ -34,7 +34,8 @@ function convertAttributeToV2(resources: DIResources) {
   }
 }
 
-const attributeNotFoundResult = {success: false, values: {error: t("V3.DI.Error.attributeNotFound")}} as const
+const attributeNotFoundResult = { success: false, values: { error: t("V3.DI.Error.attributeNotFound") } } as const
+const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 export const diAttributeHandler: DIHandler = {
   get(resources: DIResources) {
     const attribute = convertAttributeToV2(resources)
@@ -46,10 +47,23 @@ export const diAttributeHandler: DIHandler = {
     }
     return attributeNotFoundResult
   },
-  create: diNotImplementedYet,
+  create(resources: DIResources, values?: DIValues) {
+    const { dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!values || values.name == null) return { success: false, values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "attribute", "name"] }) } }
+
+    const createAttribute()
+    let attribute: IAttribute | undefined
+    dataContext.applyUndoableAction(() => {
+      withoutUndo()
+      attribute = dataContext.addAttribute(values as IAttributeSnapshot)
+    }, "", "")
+    return { success: true }
+  },
   update(resources: DIResources, values?: DIValues) {
     const { attribute } = resources
-    if (!attribute) return attributeNotFoundResult
+    if (!attribute || Array.isArray(values)) return attributeNotFoundResult
+
     attribute.applyUndoableAction(() => {
       withoutUndo()
       if (values?.description != null) attribute.setDescription(values.description)
@@ -77,17 +91,13 @@ export const diAttributeHandler: DIHandler = {
   delete(resources: DIResources) {
     const { attribute, dataContext } = resources
     if (!attribute) return attributeNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
 
-    // Remove attribute from dataset
-    if (dataContext) {
-      dataContext.applyUndoableAction(() => {
-        withoutUndo()
-        dataContext.removeAttribute(attribute.id)
-      }, "", "")
-      return { success: true } as const
-    }
-
-    return { success: false, values: { error: "Could not delete attribute because missing data context." } }
+    dataContext.applyUndoableAction(() => {
+      withoutUndo()
+      dataContext.removeAttribute(attribute.id)
+    }, "", "")
+    return { success: true }
   }
 }
 

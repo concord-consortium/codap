@@ -59,6 +59,8 @@
     "V3.DI.Error.unsupportedAction": "Unsupported action: %@/%@",
     "V3.DI.Error.undefinedResponse": "Action handler returned undefined.",
     "V3.DI.Error.attributeNotFound": "Attribute not found",
+    "V3.DI.Error.fieldRequired": "%@ %@: %@ required",
+    "V3.DI.Error.dataContextNotFound": "DataContext not found",
     "V3.DI.Error.interactiveFrameNotFound": "Interactive Frame not found",
 
     // CFM/File menu
