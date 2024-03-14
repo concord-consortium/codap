@@ -74,7 +74,21 @@ export const diAttributeHandler: DIHandler = {
     }
     return attributeNotFoundResult
   },
-  delete: diNotImplementedYet
+  delete(resources: DIResources) {
+    const { attribute, dataContext } = resources
+    if (!attribute) return attributeNotFoundResult
+
+    // Remove attribute from dataset
+    if (dataContext) {
+      dataContext.applyUndoableAction(() => {
+        withoutUndo()
+        dataContext.removeAttribute(attribute.id)
+      }, "", "")
+      return { success: true } as const
+    }
+
+    return { success: false, values: { error: "Could not delete attribute because missing data context." } }
+  }
 }
 
 registerDIHandler("attribute", diAttributeHandler)
