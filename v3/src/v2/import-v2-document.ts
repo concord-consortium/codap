@@ -9,7 +9,7 @@ import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
 import { CodapV2Document } from "./codap-v2-document"
 import { importV2Component } from "./codap-v2-tile-importers"
 
-export function importV2Document(v2Document: CodapV2Document) {
+export async function importV2Document(v2Document: CodapV2Document) {
   const v3Document = createCodapDocument(undefined, { layout: "free" })
   const sharedModelManager = getSharedModelManager(v3Document)
   sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
@@ -45,7 +45,7 @@ export function importV2Document(v2Document: CodapV2Document) {
   })
 
   // retrieve document snapshot
-  const docSnapshot = serializeDocument(v3Document, doc => getSnapshot(doc))
+  const docSnapshot = await serializeDocument(v3Document, doc => getSnapshot(doc))
   // use document snapshot
   appState.setDocument(docSnapshot)
 }

@@ -1,3 +1,4 @@
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { withoutUndo } from "../../models/history/without-undo"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -9,24 +10,27 @@ export const diInteractiveFrameHandler: DIHandler = {
   get(resources: DIResources) {
     // TODO: Fix many hard coded values
     const { interactiveFrame } = resources
-    return interactiveFrame
-      ? {
-          success: true,
-          values: {
-            dimensions: {
-              width: 600,
-              height: 500
-            },
-            externalUndoAvailable: true,
-            name: interactiveFrame.title,
-            preventBringToFront: false,
-            preventDataContextReorg: false,
-            standaloneUndoModeAvailable: false,
-            title: interactiveFrame.title,
-            version: "0.1",
-          }
+    if (interactiveFrame) {
+      const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
+      return {
+        success: true,
+        values: {
+          dimensions: {
+            width: 600,
+            height: 500
+          },
+          externalUndoAvailable: true,
+          name: interactiveFrame.title,
+          preventBringToFront: false,
+          preventDataContextReorg: false,
+          savedState: webViewContent?.state,
+          standaloneUndoModeAvailable: false,
+          title: interactiveFrame.title,
+          version: "0.1",
         }
-      : noIFResult
+      }
+    }
+    return noIFResult
   },
   create: diNotImplementedYet,
   update(resources: DIResources, values?: DIValues) {

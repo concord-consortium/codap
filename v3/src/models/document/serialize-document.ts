@@ -1,8 +1,8 @@
 import { IDocumentModel } from "./document"
 
-export function serializeDocument<T>(document: IDocumentModel, serializeFn: (doc: IDocumentModel) => T) {
+export async function serializeDocument<T>(document: IDocumentModel, serializeFn: (doc: IDocumentModel) => T) {
   try {
-    document.prepareSnapshot()
+    await document.prepareSnapshot()
 
     // perform the serialization of the prepared document
     return serializeFn(document)
