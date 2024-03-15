@@ -1,5 +1,5 @@
 # Changelog
-## Version 3.0.0-pre.1517 - March 14, 2024
+## Version 3.0.0-pre.1518 - March 14, 2024
 
 ### Features/Improvements
 - PT-187203297: Dragging a color attribute to graph misbehaves
