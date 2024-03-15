@@ -2,8 +2,6 @@
 ## Version 3.0.0-pre.1518 - March 14, 2024
 
 ### Features/Improvements
-- PT-187203297: Dragging a color attribute to graph misbehaves
-- PT-187142716: Bar for Each Point configuration option breaks axis
 - PT-187014891: Color values are displayed in case table and case card as color swatches
 - PT-187057225: Respond to attribute get requests
 - PT-186948814: The user can configure a univariate plot to group points into bins
@@ -11,6 +9,8 @@
 - PT-187194068: Manage plugin interactive state
 
 ### Bug Fixes
+- PT-187203297: Dragging a color attribute to graph misbehaves
+- PT-187142716: Bar for Each Point configuration option breaks axis
 - PT-187153567: Clicking on points in dot plot fails to select them
 - PT-187188045: Changing attribute type to **none** doesn't work
 
