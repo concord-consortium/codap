@@ -17,7 +17,7 @@ describe('GraphContentModel', () => {
     expect(graphModel.plotBackgroundColor).toBe(defaultBackgroundColor)
     expect(graphModel.pointDescription.pointSizeMultiplier).toBe(1)
     expect(graphModel.isTransparent).toBe(false)
-    expect(graphModel.plotBackgroundImageID).toBe('')
+    expect(graphModel.plotBackgroundImage).toBe('')
     expect(graphModel.plotBackgroundLockInfo).toBe(undefined)
     expect(graphModel.showParentToggles).toBe(false)
     expect(graphModel.showMeasuresForSelection).toBe(false)

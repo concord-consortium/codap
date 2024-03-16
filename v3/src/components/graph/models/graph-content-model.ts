@@ -62,9 +62,10 @@ export const GraphContentModel = DataDisplayContentModel
     axes: types.map(AxisModelUnion),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
-    plotBackgroundColor: defaultBackgroundColor,
+    plotBackgroundColor: types.optional(types.maybe(types.string), defaultBackgroundColor),
     isTransparent: false,
-    plotBackgroundImageID: "",
+    plotBackgroundImage: types.optional(types.maybe(types.string), ''),
+    plotBackgroundImageLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // Plots can have a background whose properties are described by this property.
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))

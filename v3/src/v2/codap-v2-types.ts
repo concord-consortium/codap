@@ -1,3 +1,5 @@
+import {AttributeType} from "../models/data/attribute"
+
 export interface ICodapV2Attribute {
   guid: number
   id: number
@@ -280,6 +282,8 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   displayOnlySelected: boolean
   legendRole: number
   legendAttributeType: number
+  numberOfLegendQuantiles: number
+  legendQuantilesAreLocked: boolean
   pointColor: string
   strokeColor: string
   pointSizeMultiplier: 1
@@ -287,9 +291,10 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   strokeTransparency: number
   strokeSameAsFill: boolean
   isTransparent: boolean
-  plotBackgroundColor: string | null
+  plotBackgroundColor: string | undefined | null
   plotBackgroundOpacity: number
   plotBackgroundImageLockInfo: any
+  plotBackgroundImage: string
   xRole: number
   xAttributeType: number
   yRole: number
@@ -319,7 +324,8 @@ export interface ICodapV2MapLayerStorage {
     context: IGuidLink<"DG.DataContextRecord">
     hiddenCases: any[],
     legendColl?: IGuidLink<"DG.Collection">,
-    legendAttr?: IGuidLink<"DG.Attribute">
+    // We sometimes see an array of links here
+    legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
   }
   legendRole: number
   legendAttributeType: number
@@ -372,6 +378,12 @@ export interface ICodapV2BaseComponent {
   }
   savedHeight: number | null
 }
+
+export const v3TypeFromV2Type: Array<AttributeType | undefined> = [
+  // indices are numeric values of v2 types
+  undefined, "numeric", "categorical", "date", "boundary", "color"
+  // v2 type eNone === 0 which v3 codes as undefined
+]
 
 export interface ICodapV2CalculatorComponent extends ICodapV2BaseComponent {
   type: "DG.Calculator"

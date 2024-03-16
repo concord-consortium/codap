@@ -3,6 +3,7 @@ import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} fro
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
+import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../../data-display/data-display-types"
 import {rectangleSubtract, rectNormalize} from "../../data-display/data-display-utils"
 import {IPixiPointMetadata, IPixiPointsRef, PixiBackgroundPassThroughEvent, PixiPoints} from "../utilities/pixi-points"
@@ -107,7 +108,9 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     return autorun(() => {
       const { left, top, width: plotWidth, height: plotHeight } = layout.computedBounds.plot,
         transform = `translate(${left}, ${top})`,
-        { isTransparent, plotBackgroundColor } = graphModel,
+        // { isTransparent, plotBackgroundColor } = graphModel,
+        isTransparent = graphModel.isTransparent,
+        plotBackgroundColor = graphModel.plotBackgroundColor ?? defaultBackgroundColor,
         bgColor = String(color(plotBackgroundColor)),
         darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
         numRows = layout.getAxisMultiScale('left').repetitions,
