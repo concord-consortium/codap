@@ -129,6 +129,13 @@ export const diAttributeHandler: DIHandler = {
       if (values?.title != null) attribute.setTitle(values.title)
       if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
       if (values?.unit != null) attribute.setUnits(values.unit)
+      if (values?.hidden != null) {
+        const { dataContext } = resources
+        if (dataContext) {
+          const metadata = getSharedCaseMetadataFromDataset(dataContext)
+          metadata?.hidden.set(attribute.id, values.hidden)
+        }
+      }
     }, "", "")
     const attributeV2 = convertAttributeToV2FromResources(resources)
     if (attributeV2) {
