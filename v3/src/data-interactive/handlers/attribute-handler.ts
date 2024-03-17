@@ -32,6 +32,13 @@ function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet) {
   }
 }
 
+function convertAttributeToV2FromResources(resources: DIResources) {
+  const { attribute, dataContext } = resources
+  if (attribute) {
+    return convertAttributeToV2(attribute, dataContext)
+  }
+}
+
 function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSnapshot | undefined {
   if (values.name) {
     const userType = values.type && isAttributeType(values.type) ? values.type : undefined
@@ -59,13 +66,6 @@ function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSna
   }
 }
 
-function convertAttributeToV2FromResources(resources: DIResources) {
-  const { attribute, dataContext } = resources
-  if (attribute) {
-    return convertAttributeToV2(attribute, dataContext)
-  }
-}
-
 const attributeNotFoundResult = { success: false, values: { error: t("V3.DI.Error.attributeNotFound") } } as const
 const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 export const diAttributeHandler: DIHandler = {
@@ -88,7 +88,10 @@ export const diAttributeHandler: DIHandler = {
     const attributeValues = Array.isArray(values) ? values : [values]
     const attributeErrors = attributeValues.map(singleValue => {
       if (!singleValue?.name) {
-        return { success: false, values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "attribute", "name"] }) } } as const
+        return {
+          success: false,
+          values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "attribute", "name"] }) }
+        } as const
       }
       return { success: true }
     }).filter(error => !error.success)
