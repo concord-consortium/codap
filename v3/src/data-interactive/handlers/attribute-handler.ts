@@ -32,6 +32,33 @@ function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet) {
   }
 }
 
+function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSnapshot | undefined {
+  if (values.name) {
+    const userType = values.type && isAttributeType(values.type) ? values.type : undefined
+    return {
+      name: values.name,
+      userType,
+      title: values.title,
+      id: values.cid, // TODO Should we allow the values to specify an id at all?
+      // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
+      // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
+      description: values.description,
+      // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
+      // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
+      editable: values.editable,
+      // hidden is part of metadata, not the attribute model
+      // renameable: values.renameable, // TODO renameable not part of IAttribute yet
+      // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
+      // formula is not part of the attribute model so it's handled separately
+      // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
+      // guid is not in the attribute model
+      // id has no equivalent part of the attribute model
+      precision: values.precision,
+      units: values.unit
+    }
+  }
+}
+
 function convertAttributeToV2FromResources(resources: DIResources) {
   const { attribute, dataContext } = resources
   if (attribute) {
@@ -55,6 +82,7 @@ export const diAttributeHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
+    const metadata = getSharedCaseMetadataFromDataset(dataContext)
 
     // Wrap single attribute in array and bail if any new attributes are missing names
     const attributeValues = Array.isArray(values) ? values : [values]
@@ -71,7 +99,13 @@ export const diAttributeHandler: DIHandler = {
     const createAttribute = (value: DISingleValues) => {
       dataContext.applyUndoableAction(() => {
         withoutUndo()
-        attributes.push(dataContext.addAttribute(value as IAttributeSnapshot))
+        const attributeSnapshot = convertValuesToAttributeSnapshot(value)
+        if (attributeSnapshot) {
+          const attribute = dataContext.addAttribute(attributeSnapshot)
+          if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
+          metadata?.hidden.set(attribute.id, !!value.hidden)
+          attributes.push(attribute)
+        }
       }, "", "")
     }
     attributeValues.forEach(attributeValue => {
