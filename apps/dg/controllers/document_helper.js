@@ -195,7 +195,7 @@ DG.DocumentHelper = SC.Object.extend(
       updateDataContext: function (iResources, iValues) {
         var context = iResources.dataContext;
         if (context) {
-          ['managingController', 'title', 'description', 'preventReorg', 'metadata', 'rerandomize']
+          ['managingController', 'title', 'description', 'preventReorg', 'metadata', 'rerandomize', 'sort']
               .forEach(function (prop) {
                 var existingMetadata;
                 if (!SC.none(iValues[prop])) {
@@ -206,6 +206,28 @@ DG.DocumentHelper = SC.Object.extend(
                     }
                   } else if (prop === 'rerandomize' && !!iValues[prop]) {
                     context.doRerandomizeAll();
+                  } else if (prop === 'sort') {
+                    // example message: iValues['sort] = {attrID: 1, isDescending: true}
+                    // last resort: Or in the plugin - get the table for that context, and pass it in iValues with AttrId and asc/desc, so that you can call sort on it.
+                    var controllersMap = DG.currDocumentController().get('componentControllersMap');
+                    var tableAdapters = [];
+
+                    for (var key in controllersMap) {
+                      if (controllersMap[key].hasOwnProperty('caseTableAdapters')) {
+                        tableAdapters.push(controllersMap[key]);
+                        break;
+                      }
+                    }
+                    tableAdapters.forEach(function (tableController) {
+                        var tableContext = tableController.get('dataContext');
+                        console.log('***** tableContext: ', tableContext);
+                        console.log('***** context: ', context);
+                        if (tableContext.get('id') === context.get('id')) {
+                          var attrId = iValues[prop].attrId;
+                          var isDescending = iValues[prop].isDescending;
+                          tableController.sortAttribute(attrId, isDescending);
+                        }
+                      });
                   }
                   else {
                     context.set(prop, iValues[prop]);

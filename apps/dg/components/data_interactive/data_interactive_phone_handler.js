@@ -1097,7 +1097,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         }
       },
-
+      handleAttributeSort: {
+        update: function (iResources, iValues) {
+          return DG.appController.documentArchiver.updateDataContext(iResources, iValues);
+        }
+      },
       handleCase: {
         create: function (iResources, iValues) {
           return DG.appController.documentArchiver.createCases(iResources, iValues, this.get('id'));
