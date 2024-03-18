@@ -106,17 +106,10 @@ export function resolveResources(
   //     || DG.globalsController.getGlobalValueByID(resourceSelector.global)
   // }
 
-  // if (resourceSelector.dataContextList) {
-  //   result.dataContextList =
-  //     (getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet) as IDataSet[])
-  //       .map(dataSet => {
-  //         return {
-  //           name: dataSet.name,
-  //           guid: dataSet.id,
-  //           title: dataSet.name
-  //         }
-  //       })
-  // }
+  if ("dataContextList" in resourceSelector) {
+    result.dataContextList =
+      getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
+  }
 
   if (resourceSelector.collection) {
     result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
