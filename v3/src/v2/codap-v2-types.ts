@@ -126,6 +126,15 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   title: string
 }
 
+export interface ICodapV2WebViewStorage extends ICodapV2BaseComponentStorage {
+  URL: string
+}
+
+export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
+  currentGameUrl: string
+  savedGameState?: unknown
+}
+
 interface ICodapV2Coordinates {
   x: number
   y: number
@@ -355,6 +364,18 @@ export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
 }
 export const isV2TableComponent = (component: ICodapV2BaseComponent): component is ICodapV2TableComponent =>
               component.type === "DG.TableView"
+export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
+  type: "DG.WebView"
+  componentStorage: ICodapV2WebViewStorage
+}
+export const isV2WebViewComponent =
+  (component: ICodapV2BaseComponent): component is ICodapV2WebViewComponent => component.type === "DG.WebView"
+export interface ICodapGameViewComponent extends ICodapV2BaseComponent {
+  type: "DG.GameView"
+  componentStorage: ICodapV2GameViewStorage
+}
+export const isV2GameViewComponent =
+  (component: ICodapV2BaseComponent): component is ICodapGameViewComponent => component.type === "DG.GameView"
 
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"
