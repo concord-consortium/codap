@@ -6,12 +6,14 @@ context("codap plugins", () => {
     const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
     cy.visit(url)
   })
-  it('will update web view title in response to plugin request', ()=>{
+  it('will handle plugin requests', () => {
       const url='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
       toolbar.getOptionsButton().click()
       toolbar.getWebViewButton().click()
       webView.enterUrl(url)
       cy.wait(1000)
+
+      cy.log("Handle update interactiveFrame request")
       webView.getTitle().should("contain.text", "CODAP API Tester")
 
       cy.log("Handle get attribute request")
@@ -39,6 +41,15 @@ context("codap plugins", () => {
       }`
       webView.sendAPITesterCommand(cmd3, cmd2)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
+      webView.clearAPITesterResponses()
+
+      cy.log("Handle get dataContextList request")
+      const cmd4 = `{
+        "action": "get",
+        "resource": "dataContextList"
+      }`
+      webView.sendAPITesterCommand(cmd4, cmd3)
+      webView.confirmAPITesterResponseContains(/"values":\s\[\s{\s"name":\s*"Mammals"/)
       webView.clearAPITesterResponses()
   })
 })
