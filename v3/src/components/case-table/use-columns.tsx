@@ -1,5 +1,4 @@
 import { Tooltip } from "@chakra-ui/react"
-import parseColor from "color-parse"
 import { format } from "d3"
 import { comparer } from "mobx"
 import React, { useCallback, useEffect, useState } from "react"
@@ -9,7 +8,7 @@ import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
-import { parseColorStrict } from "../../utilities/color-parse-strict"
+import { parseColor } from "../../utilities/color-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
@@ -32,10 +31,11 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute) {
   const { type, userType } = attr || {}
 
   // colors
-  if ((type === "color" && parseColor(str).space) || (!userType && parseColorStrict(str).space)) {
+  const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
+  if (color) {
     return (
       <div className="cell-color-swatch" >
-        <div className="cell-color-swatch-center" style={{ background: str }} />
+        <div className="cell-color-swatch-center" style={{ background: color }} />
       </div>
     )
   }

@@ -7,6 +7,12 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { CodapModal } from "../../codap-modal"
 import { t } from "../../../utilities/translation/translate"
 
+// for use in menus of attribute types
+const selectableAttributeTypes = ["none", ...attributeTypes] as const
+type SelectableAttributeType = typeof selectableAttributeTypes[number]
+
+type YesNoValue = "yes" | "no"
+
 interface IProps {
   attributeId: string
   isOpen: boolean
@@ -19,47 +25,61 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const columnName = attribute?.name || "attribute"
   const [attributeName, setAttributeName] = useState(columnName)
   const [description, setDescription] = useState("")
-  const [unit, setUnit] = useState("")
+  const [units, setUnits] = useState("")
   const [precision, setPrecision] = useState("")
-  const [attrType, setAttrType] = useState<AttributeType | "none">(attribute?.userType ?? "none")
-  const [editable, setEditable] = useState("true")
+  const [userType, setUserType] = useState<SelectableAttributeType>("none")
+  const [editable, setEditable] = useState<YesNoValue>("yes")
 
   useEffect(() => {
-    setAttributeName(columnName)
-  }, [columnName])
+    // reset the dialog contents from the attribute on each invocation
+    setAttributeName(attribute?.name || "attribute")
+    setDescription(attribute?.description ?? "")
+    setUnits(attribute?.units ?? "")
+    setPrecision(`${attribute?.precision ?? ""}`)
+    setUserType(attribute?.userType ?? "none")
+    setEditable(attribute?.editable ? "yes" : "no")
+  }, [attribute, isOpen])
 
-  const updateProperties = () => {
+  const applyChanges = () => {
     if (attribute && attributeId) {
-      data?.applyAttributeProperties(attributeId, {
-        name: uniqueName(attributeName,
-          (aName: string) => (aName === columnName) || !data?.attributes.find(attr => aName === attr.name)
-        ),
-        description: description || undefined,
-        userType: attrType && attrType !== "none" ? attrType : undefined,
-        units: unit || undefined,
-        precision: precision && isFinite(+precision) ? +precision : undefined,
-        editable: editable === "true"
-      })
+      data?.applyUndoableAction(() => {
+        if (attributeName !== attribute.name) {
+          const newName = uniqueName(attributeName,
+            (aName: string) => (aName === columnName) || !data?.attributes.find(attr => aName === attr.name)
+          )
+          attribute.setName(newName)
+        }
+        if (description !== attribute.description ?? "") {
+          attribute.setDescription(description || undefined)
+        }
+        if (units !== attribute.units ?? "") {
+          attribute.setUnits(units || undefined)
+        }
+        if (userType !== attribute.userType ?? "none") {
+          attribute.setUserType(userType === "none" ? undefined : userType)
+        }
+        if (precision !== `${attribute?.precision ?? ""}`) {
+          attribute.setPrecision(precision ? +precision : undefined)
+        }
+        if ((editable === "yes") !== attribute.editable) {
+          attribute.setEditable(editable === "yes")
+        }
+      }, "DG.Undo.caseTable.editAttribute", "DG.Redo.caseTable.editAttribute")
     }
     closeModal()
   }
 
   const closeModal = () => {
     onClose()
-    setAttributeName(attribute?.name || "")
-    setDescription(attribute?.description || "")
-    setAttrType(attribute?.userType ? attribute?.userType : "none")
-    setUnit(attribute?.units || "")
-    setPrecision((attribute?.precision)?.toString() || "")
-    setEditable((attribute?.editable)?.toString() || "true")
   }
 
-  const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),
-                    tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
-                    onClick: closeModal },
-                 {  label: t("DG.AttrFormView.applyBtnTitle"),
-                    onClick: updateProperties
-                 }]
+  const buttons = [
+    {
+      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: closeModal
+    },
+    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges }
+  ]
+
   return (
     <CodapModal
       isOpen={isOpen}
@@ -86,10 +106,9 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           />
         </FormLabel>
         <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.type")}
-          <Select size="xs" ml={5} value={attrType} data-testid="attr-type-select"
-              onChange={(e) => setAttrType(e.target.value as AttributeType)}>
-            <option value={"none"}></option>
-            {attributeTypes.map(aType => {
+          <Select size="xs" ml={5} value={userType} data-testid="attr-type-select"
+              onChange={(e) => setUserType(e.target.value as AttributeType)}>
+            {selectableAttributeTypes.map(aType => {
               return (<option key={aType} value={aType} data-testid="attr-type-option">
                         {t(`DG.CaseTable.attribute.type.${aType}`)}
                       </option>)
@@ -97,8 +116,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           </Select>
         </FormLabel>
         <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.unit")}
-          <Input size="xs" placeholder="unit" ml={5} value={unit} onFocus={(e) => e.target.select()}
-            onChange={event => setUnit(event.target.value)} data-testid="attr-unit-input"
+          <Input size="xs" placeholder="unit" ml={5} value={units} onFocus={(e) => e.target.select()}
+            onChange={event => setUnits(event.target.value)} data-testid="attr-unit-input"
             onKeyDown={(e) => e.stopPropagation()}
           />
         </FormLabel>
@@ -115,14 +134,16 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             <option value={"6"} data-testid="attr-precision-option">6</option>
             <option value={"7"} data-testid="attr-precision-option">7</option>
             <option value={"8"} data-testid="attr-precision-option">8</option>
+            <option value={"9"} data-testid="attr-precision-option">9</option>
           </Select>
         </FormLabel>
         <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.editable")}
-          <RadioGroup value={editable} ml={5} onChange={(value) => setEditable(value)} data-testid="attr-editable-radio"
-            onKeyDown={(e) =>e.stopPropagation()}>
+          <RadioGroup value={editable} ml={5} data-testid="attr-editable-radio"
+            onChange={(value) => setEditable(value as YesNoValue)}
+            onKeyDown={(e) => e.stopPropagation()}>
             <HStack>
-              <Radio value="true">True</Radio>
-              <Radio value="false">False</Radio>
+              <Radio value="yes">{t("V3.general.yes")}</Radio>
+              <Radio value="no">{t("V3.general.no")}</Radio>
             </HStack>
           </RadioGroup>
         </FormLabel>

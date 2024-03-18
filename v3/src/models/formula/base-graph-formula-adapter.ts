@@ -1,4 +1,4 @@
-import { makeObservable, observable } from "mobx"
+import { action, makeObservable, observable } from "mobx"
 import { ICase } from "../data/data-set-types"
 import { IFormula } from "./formula"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
@@ -48,10 +48,12 @@ export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
     this.api = api
   }
 
+  @action
   addGraphContentModel(graphContentModel: IGraphContentModel) {
     this.graphContentModels.set(graphContentModel.id, graphContentModel)
   }
 
+  @action
   removeGraphContentModel(graphContentModelId: string) {
     this.graphContentModels.delete(graphContentModelId)
   }

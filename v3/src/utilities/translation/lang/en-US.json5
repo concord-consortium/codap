@@ -1,7 +1,5 @@
 {
     // CODAP V3 temporary strings (not for translation, at least not yet)
-    // code uses this dynamically, i.e. `DG.CaseTable.attribute.type.${type}`
-    "DG.CaseTable.attribute.type.color": "color",
     "V3.caseTable.noCases": "no cases",
     "V3.summary.parseResults": "Parsed \"%@1\" with %@2 %@3 (%@4 selected) and...",
     "V3.summary.noData": "No data",
@@ -9,6 +7,11 @@
     "V3.summary.attributeInspector": "Attribute Inspector",
     "V3.summary.startProfiling": "Start Profiling",
     "V3.summary.stopProfiling": "Stop Profiling",
+
+    // V3 general strings that are not present in V2 and will require translation
+    "V3.general.yes": "Yes",
+    "V3.general.no": "No",
+
     "V3.map.inspector.base": "Base",
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
@@ -20,6 +23,8 @@
     "V3.Undo.map.inspector.changeMapBaseLayer": "Undo changing base map",
     "V3.Redo.map.inspector.changeMapBaseLayer": "Redo changing base map",
 
+    // V3 case table strings that are not present in V2 and will eventually require translation.
+    "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
     "V3.Undo.caseTable.create": "Undo adding case table",
     "V3.Redo.caseTable.create": "Redo adding case table",
     "V3.Undo.caseTable.delete": "Undo deleting case table",
@@ -708,7 +713,7 @@
     "DG.CaseTable.indexMenu.insertCases": "Insert Cases...",
     "DG.CaseTable.indexMenu.deleteCase": "Delete Case",
     "DG.CaseTable.indexMenu.deleteCases": "Delete Cases",
-    "DG.CaseTable.attribute.type.none": "",
+    "DG.CaseTable.attribute.type.none": "none",
     "DG.CaseTable.attribute.type.nominal": "categorical",
     "DG.CaseTable.attribute.type.categorical": "categorical",
     "DG.CaseTable.attribute.type.numeric": "numeric",

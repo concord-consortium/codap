@@ -26,7 +26,7 @@
  */
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { parseColorStrict } from "../../utilities/color-parse-strict"
+import { parseColor } from "../../utilities/color-utils"
 import { typedId } from "../../utilities/js-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
@@ -114,7 +114,7 @@ export const Attribute = types.model("Attribute", {
     // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
     // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
     self.changeCount // eslint-disable-line no-unused-expressions
-    return self.strValues.reduce((prev, current) => parseColorStrict(current).space ? ++prev : prev, 0)
+    return self.strValues.reduce((prev, current) => parseColor(current) ? ++prev : prev, 0)
   }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
@@ -234,13 +234,13 @@ export const Attribute = types.model("Attribute", {
   setTitle(newTitle: string) {
     self.title = newTitle
   },
-  setUnits(units: string) {
+  setUnits(units?: string) {
     self.units = units
   },
-  setDescription(description: string) {
+  setDescription(description?: string) {
     self.description = description
   },
-  setUserType(type: AttributeType | undefined) {
+  setUserType(type?: AttributeType) {
     self.userType = type
   },
   // setUserFormat(precision: string) {
@@ -327,6 +327,7 @@ export const Attribute = types.model("Attribute", {
   }
 }))
 .actions(applyUndoableAction)
+
 export interface IAttribute extends Instance<typeof Attribute> {}
 export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}
 

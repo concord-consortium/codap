@@ -94,9 +94,11 @@ export const useSubAxis = ({
             .style("stroke-opacity", "0.7")
         },
         renderNumericAxis = () => {
-          if (!axisModel) return
+          const numericScale = multiScale.scaleType === "linear"
+                                ? multiScale.numericScale as ScaleLinear<number, number>
+                                : undefined
+          if (!isNumericAxisModel(axisModel) || !numericScale) return
           select(subAxisElt).selectAll('*').remove()
-          const numericScale = d3Scale as unknown as ScaleLinear<number, number>
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
           const duration = isAnimating() ? transitionDuration : 0
           if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
