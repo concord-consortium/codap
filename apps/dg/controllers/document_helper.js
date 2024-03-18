@@ -220,12 +220,10 @@ DG.DocumentHelper = SC.Object.extend(
                     }
                     tableAdapters.forEach(function (tableController) {
                         var tableContext = tableController.get('dataContext');
-                        console.log('***** tableContext: ', tableContext);
-                        console.log('***** context: ', context);
+                        var attribute = typeof(iValues[prop].attrId) === "string" ? tableContext.getAttribute(iValues[prop].attrId).id : iValues[prop].attrId;
                         if (tableContext.get('id') === context.get('id')) {
-                          var attrId = iValues[prop].attrId;
                           var isDescending = iValues[prop].isDescending;
-                          tableController.sortAttribute(attrId, isDescending);
+                          tableController.sortAttribute(attribute, isDescending);
                         }
                       });
                   }
