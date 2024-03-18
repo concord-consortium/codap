@@ -1,5 +1,6 @@
 import {observer} from "mobx-react-lite"
 import React from "react"
+import {PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useMapModel} from "../hooks/use-map-model"
 import {kMapPointLayerType, kMapPolygonLayerType} from "../map-types"
@@ -8,7 +9,11 @@ import {MapPointLayer} from "./map-point-layer"
 import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {MapPolygonLayer} from "./map-polygon-layer"
 
-export const MapInterior = observer(function MapInterior() {
+interface IProps {
+  pixiPointsArrayRef:  React.MutableRefObject<PixiPoints[]>
+}
+
+export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: IProps) {
   const mapModel = useMapModelContext()
 
   useMapModel()
@@ -22,7 +27,10 @@ export const MapInterior = observer(function MapInterior() {
         return <MapPointLayer
           key={`${kMapPointLayerType}-${index}`}
           mapLayerModel={layerModel}
-        />
+          stashPixiPoints={(pixiPoints: PixiPoints, layerIndex) => {
+            pixiPointsArrayRef.current[layerIndex] = pixiPoints
+          }
+        }/>
       }
       else if (isMapPolygonLayerModel(layerModel)) {
         return <MapPolygonLayer

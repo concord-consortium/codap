@@ -15,7 +15,8 @@ import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IDataConfigurationModel } from "./data-configuration-model"
-import { PointDisplayTypes } from "../data-display-types"
+import {defaultBackgroundColor} from "../../../utilities/color-utils"
+import {MarqueeMode, PointDisplayTypes} from "../data-display-types"
 import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 
 export const DataDisplayContentModel = TileContentModel
@@ -23,10 +24,13 @@ export const DataDisplayContentModel = TileContentModel
   .props({
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
-    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points")
+    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
+    plotBackgroundColor: defaultBackgroundColor,
+    isTransparent: false,
   })
   .volatile(() => ({
     animationEnabled: false,
+    marqueeMode: 'unclicked' as MarqueeMode,
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -44,6 +48,10 @@ export const DataDisplayContentModel = TileContentModel
     get dataConfiguration(): IDataConfigurationModel | undefined {
       // derived models should override
       return undefined
+    },
+    get datasetsArray(): IDataSet[] {
+      // derived models should override
+      return []
     }
   }))
   .actions(self => ({
@@ -99,6 +107,9 @@ export const DataDisplayContentModel = TileContentModel
           fireImmediately: true
         }
       ))
+    },
+    setMarqueeMode(mode: MarqueeMode) {
+      self.marqueeMode = mode
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}

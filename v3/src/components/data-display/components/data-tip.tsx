@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from "react
 import * as PIXI from "pixi.js"
 import { computePosition, offset, useFloating } from "@floating-ui/react"
 import { IDataSet } from "../../../models/data/data-set"
-import { IPixiPointMetadata, IPixiPointsRef } from "../../graph/utilities/pixi-points"
+import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import { getCaseTipText } from "../data-display-utils"
 import { urlParams } from "../../../utilities/url-params"
 
@@ -11,7 +11,7 @@ import "./data-tip.scss"
 export interface IDataTipProps {
   dataset?: IDataSet
   getTipAttrs: (plotNum: number) => string[]
-  pixiPointsRef: IPixiPointsRef
+  pixiPoints: PixiPoints | undefined
 }
 
 interface IDataTipHelperProps {
@@ -44,7 +44,7 @@ const tipText = (props: IDataTipHelperProps) => {
   return getCaseTipText(caseID, getTipAttrs(metadata.plotNum), dataset)
 }
 
-export const DataTip = ({ dataset, getTipAttrs, pixiPointsRef }: IDataTipProps) => {
+export const DataTip = ({ dataset, getTipAttrs, pixiPoints }: IDataTipProps) => {
   const tipTextLines = useRef<string[]>([])
   const [isTipOpen, setIsTipOpen] = useState(false)
   const { context, refs, floatingStyles } = useFloating({open: isTipOpen, onOpenChange: setIsTipOpen})
@@ -84,9 +84,9 @@ export const DataTip = ({ dataset, getTipAttrs, pixiPointsRef }: IDataTipProps) 
   }, [isTipOpen, positionDataTip])
 
   // support disabling data tips via url parameter for jest tests
-  if (urlParams.noDataTips === undefined && pixiPointsRef?.current) {
-    pixiPointsRef.current.onPointOver = showDataTip
-    pixiPointsRef.current.onPointLeave = hideDataTip
+  if (urlParams.noDataTips === undefined && pixiPoints) {
+    pixiPoints.onPointOver = showDataTip
+    pixiPoints.onPointLeave = hideDataTip
   }
 
   return (

@@ -22,11 +22,13 @@ import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
 
-export const MapPointLayer = function MapPointLayer(props: {
+interface IProps {
   mapLayerModel: IMapPointLayerModel
-}) {
-  const {mapLayerModel} = props,
-    {dataConfiguration, pointDescription} = mapLayerModel,
+  stashPixiPoints: (pixiPoints: PixiPoints, layerIndex: number) => void
+}
+
+export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoints}: IProps) {
+  const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
@@ -60,8 +62,10 @@ export const MapPointLayer = function MapPointLayer(props: {
       // and handled by its click handler (which will deselect the point). The current workaround is to disable
       // point deselection on map click, but it needs to be addressed better.
       event.stopPropagation()
+      // We prevent the default action to avoid the map click handler deselecting the point
+      mapLayerModel.setDeselectionIsDisabled(true)
     }
-  }, [dataConfiguration.dataset])
+  }, [dataConfiguration.dataset, mapLayerModel])
 
   if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
@@ -243,6 +247,13 @@ export const MapPointLayer = function MapPointLayer(props: {
     )
   }, [callMatchCirclesToData, mapLayerModel])
 
+  useEffect(function _stashPixiPoints() {
+    if (pixiPointsRef.current) {
+      stashPixiPoints(pixiPointsRef.current, mapLayerModel.layerIndex)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])  // only run once on mount
+
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = mapLayerModel.dataConfiguration
     const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
@@ -254,7 +265,7 @@ export const MapPointLayer = function MapPointLayer(props: {
     <>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
-      <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
+      <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPoints={pixiPointsRef.current}/>
     </>
   )
 }

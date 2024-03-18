@@ -87,7 +87,7 @@
   .map-grid-slider {
     position: absolute!important;
     top: 16px;
-    right: 50px;
+    right: 58px;
     width: 40px;
     height: 16px;
     left: auto;
@@ -104,6 +104,41 @@
 
   .map-grid-slider-thumb {
     background: teal;
+  }
+
+  .map-marquee-select {
+    position: absolute;
+    top: 9px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    left: auto;
+    border: none;
+    z-index: 1;
+    background-image:  url('../assets/map_marquee_icon.svg');
+    background-repeat: no-repeat;
+
+    &:hover {
+      background-image:  url('../assets/map_marquee_icon_hover.svg');
+      background-repeat: no-repeat;
+    }
+
+  }
+  .selected {
+    background-image:  url('../assets/map_marquee_icon_selected.svg');
+
+    &:hover {
+      background-image:  url('../assets/map_marquee_icon_selected_hover.svg');
+      cursor: crosshair;
+    }
+  }
+
+  .map-background-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
   }
 
 }

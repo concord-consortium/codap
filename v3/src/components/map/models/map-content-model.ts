@@ -15,9 +15,10 @@ import {
 import {GraphPlace} from '../../axis-graph-shared'
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
-import {MapPointLayerModel} from "./map-point-layer-model"
+import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
 import {LeafletMapState} from './leaflet-map-state'
+import {isMapLayerModel} from "./map-layer-model"
 
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
@@ -33,6 +34,7 @@ export const MapContentModel = DataDisplayContentModel
 
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
+    plotBackgroundColor: '#FFFFFF01',
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
@@ -41,7 +43,8 @@ export const MapContentModel = DataDisplayContentModel
     isSharedDataInitialized: false,
     // used to track whether a given change was initiated by leaflet or CODAP
     syncFromLeafletCount: 0,
-    syncFromLeafletResponseCount: 0
+    syncFromLeafletResponseCount: 0,
+    deselectionIsDisabled: false,
   }))
   .views(self => ({
     get latLongBounds() {
@@ -66,6 +69,16 @@ export const MapContentModel = DataDisplayContentModel
       })
 
       return overallBounds
+    },
+    get datasetsArray(): IDataSet[] {
+      const datasets: IDataSet[] = []
+      self.layers.filter(isMapLayerModel).forEach(layer => {
+        const dataset = layer.dataConfiguration.dataset
+        if (dataset) {
+          datasets.push(dataset)
+        }
+      })
+      return datasets
     }
   }))
   .actions(self => ({
@@ -114,10 +127,24 @@ export const MapContentModel = DataDisplayContentModel
     setBaseMapLayerVisibility(isVisible: boolean) {
       self.baseMapLayerIsVisible = isVisible
     },
+    setDeselectionIsDisabled(isDisabled: boolean) {
+      self.deselectionIsDisabled = isDisabled
+    },
+    deselectAllCases() {
+      if (!self.deselectionIsDisabled) {
+        self.layers.forEach(layer => {
+          layer.dataConfiguration.dataset?.selectAll(false)
+        })
+      }
+      else {
+        this.setDeselectionIsDisabled(false)
+      }
+    }
   }))
   .actions(self => ({
     addPointLayer(dataSet: IDataSet) {
       const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
+      newPointLayer.setSetDeselectionIsDisabled(self.setDeselectionIsDisabled)
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPointLayer.dataConfiguration,
         {latId, longId} = latLongAttributesFromDataSet(dataSet)
@@ -179,6 +206,12 @@ export const MapContentModel = DataDisplayContentModel
           }
         }, {name: "MapContentModel.reaction [sync mapModel => leaflet map]", equals: comparer.structural}
       ))
+
+      self.leafletMapState.deselectFunction = self.deselectAllCases
+      // Pass setDeselectionIsDisabled to each point layer
+      self.layers.forEach(layer => {
+          isMapPointLayerModel(layer) && layer.setSetDeselectionIsDisabled(self.setDeselectionIsDisabled)
+      })
     },
     afterAttachToDocument() {
       // Monitor coming and going of shared datasets

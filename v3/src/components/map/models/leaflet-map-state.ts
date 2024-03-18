@@ -34,6 +34,7 @@ export class LeafletMapState {
   // if not set, then changes are not considered undoable
   undoStringKey = ""
   redoStringKey = ""
+  deselectFunction: () => void = () => {}
 
   constructor(leafletMap?: LeafletMap) {
     this.setLeafletMap(leafletMap)
@@ -61,6 +62,10 @@ export class LeafletMapState {
   @computed
   get isChanging() {
     return this.isMoving || this.isZooming || this.isLeafletInteracting || this.isMapViewChanging
+  }
+
+  handleClick(event:MouseEvent) {
+    if (!event.shiftKey) this.deselectFunction()
   }
 
   @action
@@ -99,6 +104,7 @@ export class LeafletMapState {
 
   installHandlers() {
     this.leafletMap?.on({
+      "click": () => this.handleClick(event as MouseEvent),
       "movestart": () => this.handleMoveStart(),
       "move": () => this.handleMove(),
       "moveend": () => this.handleMoveEnd(),
@@ -110,6 +116,7 @@ export class LeafletMapState {
 
   removeHandlers() {
     this.leafletMap?.off({
+      "click": () => this.handleClick(event as MouseEvent),
       "movestart": () => this.handleMoveStart(),
       "move": () => this.handleMove(),
       "moveend": () => this.handleMoveEnd(),

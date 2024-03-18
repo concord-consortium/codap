@@ -3,7 +3,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 
 export const kDefaultTileWidth = 300
 export const kDefaultTileHeight = 300
-interface ITileSize {
+export interface ITileSize {
   tileWidth: number
   tileHeight: number
 }
@@ -58,13 +58,21 @@ export class DataDisplayLayout {
    * We assume that all the desired extents have been set so that we can compute new bounds.
    * We set the computedBounds only once at the end so there should be only one notification to respond to.
    */
-  @computed get computedBounds() {
+  @computed get computedBounds(): Partial<Record<GraphPlace, Bounds>> {
     const {desiredExtents, tileWidth, tileHeight} = this,
-      legendHeight = desiredExtents.get('legend') ?? 0,
-      newBounds: Partial<Record<GraphPlace, Bounds>> = {
-        legend: {left: 6, top: tileHeight - legendHeight, width: tileWidth - 6, height: legendHeight},
-      }
-    return newBounds
+      legendHeight = desiredExtents.get('legend') ?? 0
+    return {
+      legend: {left: 6, top: tileHeight - legendHeight, width: tileWidth - 6, height: legendHeight},
+      plot: {left: 0, top: 0, width: tileWidth, height: tileHeight - legendHeight}  // So map can use this
+    }
+  }
+
+  get numRows() {
+    return 1
+  }
+
+  get numColumns() {
+    return 1
   }
 
   getComputedBounds(place: GraphPlace) {

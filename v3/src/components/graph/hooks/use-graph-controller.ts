@@ -1,16 +1,16 @@
 import {useEffect} from "react"
 import {GraphController} from "../models/graph-controller"
 import {IGraphContentModel} from "../models/graph-content-model"
-import {IPixiPointsRef} from "../utilities/pixi-points"
+import {IPixiPointsArrayRef} from "../utilities/pixi-points"
 
 export interface IUseGraphControllerProps {
   graphController: GraphController,
   graphModel?: IGraphContentModel,
-  pixiPointsRef: IPixiPointsRef
+  pixiPointsArrayRef: IPixiPointsArrayRef
 }
 
-export const useGraphController = ({graphController, graphModel, pixiPointsRef}: IUseGraphControllerProps) => {
+export const useGraphController = ({graphController, graphModel, pixiPointsArrayRef}: IUseGraphControllerProps) => {
   useEffect(() => {
-    graphModel && graphController.setProperties({graphModel, pixiPointsRef})
-  }, [graphController, graphModel, pixiPointsRef])
+    graphModel && graphController.setProperties({graphModel, pixiPointsArrayRef})
+  }, [graphController, graphModel, pixiPointsArrayRef])
 }

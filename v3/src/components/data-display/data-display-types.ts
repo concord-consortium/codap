@@ -13,6 +13,8 @@ export const isPointDisplayType = (value: string): value is PointDisplayType => 
   return PointDisplayTypes.includes(value as PointDisplayType)
 }
 
+export type MarqueeMode = "unclicked" | "selected" | "dragging"
+
 export interface Rect {
   x: number, y: number, width: number, height: number
 }

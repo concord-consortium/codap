@@ -15,7 +15,6 @@ import {
   getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
 } from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
-import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -64,8 +63,6 @@ export const GraphContentModel = DataDisplayContentModel
     _binWidth: types.maybe(types.number),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
-    plotBackgroundColor: defaultBackgroundColor,
-    isTransparent: false,
     plotBackgroundImage: types.maybe(types.string),
     plotBackgroundImageLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // Plots can have a background whose properties are described by this property.
@@ -98,6 +95,9 @@ export const GraphContentModel = DataDisplayContentModel
     },
     get dataset() {
       return getTileDataSet(self)
+    },
+    get datasetsArray(): IDataSet[] {
+      return !this.dataset ? [] : [this.dataset]
     },
     get metadata() {
       return getTileCaseMetadata(self)

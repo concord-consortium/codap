@@ -25,10 +25,12 @@ export enum PixiBackgroundPassThroughEvent {
 }
 
 export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
+export type IPixiPointsArrayRef = React.MutableRefObject<PixiPoints[]>
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
 export interface IPixiPointMetadata extends CaseData {
+  datasetID: string
   style: IPixiPointStyle
 }
 
@@ -621,7 +623,7 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], _displayType: string, style: IPixiPointStyle) {
+  matchPointsToData(datasetID:string, caseData: CaseData[], _displayType: string, style: IPixiPointStyle) {
     // If the display type has changed, we need to prepare for the transition between types
     // For now, the only display type values PixiPoints supports are "points" and "bars", so
     // all other display type values passed to this method will be treated as "points".
@@ -670,7 +672,7 @@ export class PixiPoints {
       if (!currentCaseDataSet.has(caseDataKey(caseDataItem))) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { ...caseDataItem, style })
+        this.pointMetadata.set(sprite, { ...caseDataItem, datasetID, style })
         this.setPointForCaseData(caseDataItem, sprite)
       }
     }

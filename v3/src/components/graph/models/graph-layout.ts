@@ -193,4 +193,12 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   getComputedBounds(place: GraphExtentsPlace) {
     return this.computedBounds[place]
   }
+
+  @override @computed get numRows() {
+    return this.getAxisMultiScale('left').repetitions
+  }
+
+  @override @computed get numColumns() {
+    return this.getAxisMultiScale('bottom').repetitions
+  }
 }

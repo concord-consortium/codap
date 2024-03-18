@@ -16,6 +16,9 @@ export const MapPointLayerModel = MapLayerModel
     pointsAreVisible: true, // This is different than layer visibility
     connectingLinesAreVisible: false,
   })
+  .volatile(() => ({
+    setDeselectionIsDisabled: (isDisabled: boolean) => {},
+  }))
   .actions(self => ({
     afterCreate() {
       self.gridModel.setDataConfiguration(self.dataConfiguration)
@@ -31,6 +34,9 @@ export const MapPointLayerModel = MapLayerModel
     },
     setConnectingLinesAreVisible(isVisible: boolean) {
       self.connectingLinesAreVisible = isVisible
+    },
+    setSetDeselectionIsDisabled(settingFunction: (isDisabled: boolean) => void) {
+      self.setDeselectionIsDisabled = settingFunction
     }
   }))
   .views(self => ({

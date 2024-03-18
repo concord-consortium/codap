@@ -1,7 +1,7 @@
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import {IPixiPointsRef} from "../utilities/pixi-points"
+import {IPixiPointsArrayRef, PixiPoints} from "../utilities/pixi-points"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
@@ -26,12 +26,12 @@ interface IGraphControllerConstructorProps {
 
 interface IGraphControllerProps {
   graphModel: IGraphContentModel
-  pixiPointsRef: IPixiPointsRef
+  pixiPointsArrayRef: IPixiPointsArrayRef
 }
 
 export class GraphController {
   graphModel?: IGraphContentModel
-  pixiPointsRef?: IPixiPointsRef
+  pixiPoints?: PixiPoints
   layout: GraphLayout
   instanceId: string
   // tracks the currently configured attribute descriptions so that we know whether
@@ -45,7 +45,7 @@ export class GraphController {
 
   setProperties(props: IGraphControllerProps) {
     this.graphModel = props.graphModel
-    this.pixiPointsRef = props.pixiPointsRef
+    this.pixiPoints = props.pixiPointsArrayRef.current?.[0] ?? undefined
     if (this.graphModel.dataConfiguration.dataset !== this.graphModel.dataset) {
       this.graphModel.dataConfiguration.setDataset(
         this.graphModel.dataset, this.graphModel.metadata)
@@ -54,15 +54,15 @@ export class GraphController {
   }
 
   callMatchCirclesToData() {
-    const {graphModel, pixiPointsRef, instanceId} = this
-    if (graphModel && pixiPointsRef?.current) {
+    const {graphModel, pixiPoints, instanceId} = this
+    if (graphModel && pixiPoints) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius(),
         pointDisplayType = graphModel.pointDisplayType,
         startAnimation = graphModel.startAnimation
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, pixiPoints: pixiPointsRef.current, pointDisplayType,
+        dataConfiguration, pixiPoints, pointDisplayType,
         pointRadius, startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }
