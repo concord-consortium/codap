@@ -1,3 +1,4 @@
+import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 
@@ -34,21 +35,34 @@ context("codap plugins", () => {
       webView.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
       webView.clearAPITesterResponses()
 
-      cy.log("Finds the default dataset when no dataset is included")
+      cy.log("Handle update attribute hidden")
       const cmd3 = `{
+        "action": "update",
+        "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]",
+        "values": {
+          "hidden": true
+        }
+      }`
+      table.getAttributeHeader().contains("Order").should("be.visible")
+      webView.sendAPITesterCommand(cmd3, cmd2)
+      table.getAttributeHeader().contains("Order").should("not.exist")
+      webView.clearAPITesterResponses()
+
+      cy.log("Finds the default dataset when no dataset is included")
+      const cmd4 = `{
         "action": "get",
         "resource": "collection[Mammals].attribute[Order]"
       }`
-      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.sendAPITesterCommand(cmd4, cmd3)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
 
       cy.log("Handle get dataContextList request")
-      const cmd4 = `{
+      const cmd5 = `{
         "action": "get",
         "resource": "dataContextList"
       }`
-      webView.sendAPITesterCommand(cmd4, cmd3)
+      webView.sendAPITesterCommand(cmd5, cmd4)
       webView.confirmAPITesterResponseContains(/"values":\s\[\s{\s"name":\s*"Mammals"/)
       webView.clearAPITesterResponses()
   })
