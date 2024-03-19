@@ -29,14 +29,20 @@ registerTileComponentInfo({
   defaultHeight: 400
 })
 
-function addWebViewSnapshot(args: V2TileImportArgs, title?: string, url?: string, state?: unknown) {
-  const { insertTile } = args
+function addWebViewSnapshot(args: V2TileImportArgs, url?: string, state?: unknown) {
+  const { v2Component, insertTile } = args
+  const { title, userSetTitle } = v2Component.componentStorage
+
   const content: IWebViewSnapshot = {
     type: kWebViewTileType,
     state,
     url
   }
-  const webViewTileSnap: ITileModelSnapshotIn = { id: typedId(kWebViewIdPrefix), title, content }
+  const webViewTileSnap: ITileModelSnapshotIn = {
+    id: typedId(kWebViewIdPrefix),
+    title: (userSetTitle && title) || undefined,
+    content
+  }
   const webViewTile = insertTile(webViewTileSnap)
 
   return webViewTile
@@ -46,10 +52,10 @@ function importWebView(args: V2TileImportArgs) {
   if (!isV2WebViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { title, URL } = v2Component.componentStorage
+  const { URL } = v2Component.componentStorage
 
   // create webView model
-  return addWebViewSnapshot(args, title, URL)
+  return addWebViewSnapshot(args, URL)
 }
 registerV2TileImporter("DG.WebView", importWebView)
 
@@ -58,9 +64,9 @@ function importGameView(args: V2TileImportArgs) {
   if (!isV2GameViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { title, currentGameUrl, savedGameState} = v2Component.componentStorage
+  const { currentGameUrl, savedGameState} = v2Component.componentStorage
 
   // create webView model
-  return addWebViewSnapshot(args, title, currentGameUrl, savedGameState)
+  return addWebViewSnapshot(args, currentGameUrl, savedGameState)
 }
 registerV2TileImporter("DG.GameView", importGameView)
