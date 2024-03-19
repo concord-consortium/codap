@@ -31,7 +31,7 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export interface DIValues {
+export interface DISingleValues {
   attrs?: ICodapV2Attribute[]
   blockDisplayOfEmptyCategories?: boolean
   _categoryMap?: unknown
@@ -62,6 +62,8 @@ export interface DIValues {
   unit?: string
   version?: string
 }
+
+export type DIValues = DISingleValues | DISingleValues[]
 
 export interface DIMetadata {
   dirtyDocument?: boolean

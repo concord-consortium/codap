@@ -37,6 +37,9 @@ export const diInteractiveFrameHandler: DIHandler = {
     // TODO: Expand to handle additional values
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noIFResult
+    // CODAP v2 seems to ignore interactiveFrame updates when an array is passed for values
+    if (Array.isArray(values)) return { success: true }
+
     interactiveFrame.applyUndoableAction(() => {
       withoutUndo()
       if (values?.title) interactiveFrame.setTitle(values.title)
