@@ -32,7 +32,7 @@ export async function importV2Document(v2Document: CodapV2Document) {
       if (row && tile) {
         const info = getTileComponentInfo(tile.content.type)
         if (info) {
-          const { left, top, width, height } = v2Component.layout
+          const { left = 0, top = 0, width, height } = v2Component.layout
           // only apply imported width and height to resizable tiles
           const _width = !info.isFixedWidth ? { width } : {}
           const _height = !info?.isFixedHeight ? { height } : {}
