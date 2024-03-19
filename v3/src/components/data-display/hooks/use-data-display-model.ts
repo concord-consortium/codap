@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react"
 import { IDataDisplayContentModel } from "../models/data-display-content-model"
+import { MultiScale } from "../../axis/models/multi-scale"
 
 const kDefaultDataDisplayModel = {
   // required by useDataDisplayAnimation
@@ -10,7 +11,7 @@ const kDefaultDataDisplayModel = {
   getAxis: () => undefined,
   getNumericAxis: () => undefined,
   hasDraggableNumericAxis: () => undefined,
-  nonDraggableAxisTicks: () => ({tickValues: [], tickLabels: []})
+  nonDraggableAxisTicks: (multiScale?: MultiScale) => ({tickValues: [], tickLabels: []})
 } as unknown as IDataDisplayContentModel
 
 export const DataDisplayModelContext = createContext<IDataDisplayContentModel>(kDefaultDataDisplayModel)

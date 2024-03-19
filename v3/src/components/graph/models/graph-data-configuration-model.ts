@@ -424,24 +424,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     binDetails(_binAlignment?: number, _binWidth?: number) {
       const kDefaultNumberOfBins = 4
-
       const minValue = self.caseDataArray.reduce((min, aCaseData) => {
         return Math.min(min, self.dataset?.getNumeric(aCaseData.caseID, self.primaryAttributeID) ?? min)
       }, Infinity)
-
       const maxValue = self.caseDataArray.reduce((max, aCaseData) => {
         return Math.max(max, self.dataset?.getNumeric(aCaseData.caseID, self.primaryAttributeID) ?? max)
       }, -Infinity)
 
       if (minValue === Infinity || maxValue === -Infinity) {
-        return { binAlignment: 0,
-          binWidth: 1,
-          minBinEdge: 0,
-          maxBinEdge: 0,
-          minValue: 0,
-          maxValue: 0,
-          totalNumberOfBins: 0
-        }
+        return { binAlignment: 0, binWidth: 1, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
+                 totalNumberOfBins: 0 }
       }
 
       const binRange = (maxValue - minValue) / kDefaultNumberOfBins

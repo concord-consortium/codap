@@ -30,7 +30,7 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} fro
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
-import { isFiniteNumber } from "../../../utilities/math-utils"
+import { MultiScale } from "../../axis/models/multi-scale"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -61,8 +61,8 @@ export const GraphContentModel = DataDisplayContentModel
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
-    binAlignment: types.maybe(types.number),
-    binWidth: types.maybe(types.number),
+    _binAlignment: types.maybe(types.number),
+    _binWidth: types.maybe(types.number),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
@@ -77,12 +77,18 @@ export const GraphContentModel = DataDisplayContentModel
   })
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
+    dragBinIndex: -1,
+    dynamicBinAlignment: undefined as number | undefined,
+    dynamicBinWidth: undefined as number | undefined,
     prevDataSetId: ""
   }))
   .actions(self => ({
     addLayer(aLayer: IGraphPointLayerModel) {
       self.layers.push(aLayer)
     },
+    setDragBinIndex(index: number) {
+      self.dragBinIndex = index
+    }
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {
@@ -99,6 +105,15 @@ export const GraphContentModel = DataDisplayContentModel
     },
     get adornments(): IAdornmentModel[] {
       return self.adornmentsStore.adornments
+    },
+    get binAlignment() {
+      return self.dynamicBinAlignment ?? self._binAlignment
+    },
+    get binWidth() {
+      return self.dynamicBinWidth ?? self._binWidth
+    },
+    get isBinBoundaryDragging() {
+      return self.dragBinIndex >= 0
     }
   }))
   .views(self => ({
@@ -186,10 +201,18 @@ export const GraphContentModel = DataDisplayContentModel
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
     },
     setBinAlignment(alignment: number) {
-      self.binAlignment = alignment
+      self._binAlignment = alignment
+      self.dynamicBinAlignment = undefined
+    },
+    setDynamicBinAlignment(alignment: number) {
+      self.dynamicBinAlignment = alignment
     },
     setBinWidth(width: number) {
-      self.binWidth = width
+      self._binWidth = width
+      self.dynamicBinWidth = undefined
+    },
+    setDynamicBinWidth(width: number) {
+      self.dynamicBinWidth = width
     }
   }))
   .views(self => ({
@@ -197,29 +220,37 @@ export const GraphContentModel = DataDisplayContentModel
       return computePointRadius(self.dataConfiguration.caseDataArray.length,
         self.pointDescription.pointSizeMultiplier, use)
     },
-    nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(multiScale?: MultiScale): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
-      const { binWidth, totalNumberOfBins, minBinEdge } =
-        self.dataConfiguration.binDetails(self.binAlignment, self.binWidth)
+      const currentBinAlignment = self.binAlignment
+      const currentBinWidth = self.binWidth ?? 0
+      const { totalNumberOfBins, minBinEdge } = self.dataConfiguration.binDetails(currentBinAlignment, currentBinWidth)
 
       let currentStart = minBinEdge
       let binCount = 0
+
       while (binCount < totalNumberOfBins) {
-        // TODO: Handle potential decimal point issues. If binWidth were 0.1, for instance, the below would result in
-        // many decimal places. The number of decimal places to display depends on the number required to represent the
-        // binWidth.
-        const tickValue = currentStart + (binWidth / 2)
-        const tickLabel = `[${currentStart}, ${currentStart + binWidth})`
-        tickValues.push(tickValue)
-        tickLabels.push(tickLabel)
-        currentStart += binWidth
+        const formattedCurrentStart = multiScale
+          ? multiScale.formatValueForScale(currentStart)
+          : currentStart
+        const formattedCurrentEnd = multiScale
+          ? multiScale.formatValueForScale(currentStart + currentBinWidth)
+          : currentStart + currentBinWidth
+        tickValues.push(currentStart + (currentBinWidth / 2))
+        tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
+        currentStart += currentBinWidth
         binCount++
       }
       return { tickValues, tickLabels }
     },
     resetBinSettings() {
       const { binAlignment, binWidth } = self.dataConfiguration.binDetails()
+      self.setBinAlignment(binAlignment)
+      self.setBinWidth(binWidth)
+    },
+    endBinBoundaryDrag(binAlignment: number, binWidth: number) {
+      self.setDragBinIndex(-1)
       self.setBinAlignment(binAlignment)
       self.setBinWidth(binWidth)
     }

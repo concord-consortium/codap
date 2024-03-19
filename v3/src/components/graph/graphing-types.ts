@@ -2,6 +2,8 @@ import { PixiPoints } from "./utilities/pixi-points"
 
 export interface PlotProps {
   pixiPoints?: PixiPoints
+  plotArea1Ref?: React.RefObject<SVGGElement>
+  plotArea2Ref?: React.RefObject<SVGGElement>
 }
 
 // One element of the data array assigned to the points

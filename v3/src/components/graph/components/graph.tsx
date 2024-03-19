@@ -178,7 +178,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   }, [graphController, layout, graphModel, startAnimation])
 
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, pixiPoints: pixiPointsRef.current},
+    const props = {xAttrID, yAttrID, pixiPoints: pixiPointsRef.current, plotArea2Ref},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -262,7 +262,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
             {renderPlotComponent()}
           </g>
           <foreignObject ref={pixiContainerRef} />
-          <g ref={plotArea2Ref}>
+          <g className="plot-area-2" ref={plotArea2Ref}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
           </g>

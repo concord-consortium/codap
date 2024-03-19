@@ -141,3 +141,30 @@
     opacity: 0.5;
   }
 }
+
+.plot-area-2 {
+  outline: none;
+}
+.draggable-bin-boundary {
+  stroke: #73bfca;
+  stroke-width: 1px;
+
+  &.dragging {
+    stroke: steelblue;
+    stroke-width: 2px;
+  }
+  &.lower {
+    stroke-width: 2px;
+  }
+}
+.draggable-bin-boundary-cover {
+  cursor: grab;
+  cursor: url("../adornments/assets/left-right-cursor.png") 8 8, grab;
+  pointer-events: all;
+  stroke: rgba(0, 0, 0, 0);
+  stroke-width: 8px;
+  
+  &.horizontal {
+    cursor: url("../adornments/assets/up-down-cursor.png") 8 8, grab;
+  }
+}
