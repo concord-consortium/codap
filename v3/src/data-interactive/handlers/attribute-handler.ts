@@ -41,7 +41,7 @@ function convertAttributeToV2FromResources(resources: DIResources) {
 
 function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSnapshot | undefined {
   if (values.name) {
-    const userType = values.type && isAttributeType(values.type) ? values.type : undefined
+    const userType = isAttributeType(values.type) ? values.type : undefined
     return {
       name: values.name,
       userType,
@@ -130,7 +130,7 @@ export const diAttributeHandler: DIHandler = {
       if (values?.name != null) attribute.setName(values.name)
       if (values?.precision != null) attribute.setPrecision(values.precision)
       if (values?.title != null) attribute.setTitle(values.title)
-      if (values?.type && isAttributeType(values.type)) attribute.setUserType(values.type)
+      if (isAttributeType(values?.type)) attribute.setUserType(values.type)
       if (values?.unit != null) attribute.setUnits(values.unit)
       if (values?.hidden != null) {
         const { dataContext } = resources
