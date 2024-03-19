@@ -1,6 +1,6 @@
 import {ScaleBand, ScaleLinear, select} from "d3"
 import {observer} from "mobx-react-lite"
-import React, {useCallback, useRef} from "react"
+import React, {useCallback, useEffect, useRef} from "react"
 import {PlotProps} from "../graphing-types"
 import {setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
@@ -10,12 +10,13 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {circleAnchor} from "../utilities/pixi-points"
-import {setPointCoordinates} from "../utilities/graph-utils"
+import { setPointCoordinates } from "../utilities/graph-utils"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, adjustCoordForStacks,
          determineBinForCase} from "../utilities/dot-plot-utils"
 import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
+import { mstReaction } from "../../../utilities/mst-reaction"
 
 export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: PlotProps) {
   const {pixiPoints} = props,
@@ -45,6 +46,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
+
     const primaryPlace: AxisPlace = primaryIsBottom ? "bottom" : "left",
       secondaryPlace = primaryIsBottom ? "left" : "bottom",
       extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat",
@@ -71,7 +73,8 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       extraSecondaryBandwidth = (extraSecondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent),
       secondarySign = primaryIsBottom ? -1 : 1,
       baseCoord = primaryIsBottom ? secondaryMax : 0,
-      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins  } = dataConfig.binDetails()
+      { binAlignment, binWidth: initialBinWidth } = graphModel,
+      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = dataConfig.binDetails(binAlignment, initialBinWidth)
 
     // Set the domain of the primary axis to the extent of the bins
     primaryAxis?.setDomain(minBinEdge, maxBinEdge)
@@ -91,9 +94,9 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     }
 
     const binPlacementProps = {
-      dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
-      pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth,
-      totalNumberOfBins, binWidth
+      binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge,
+      numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
+      secondaryBandwidth, totalNumberOfBins
     }
     const { bins, binMap } = computeBinPlacements(binPlacementProps)
     const overlap = 0
@@ -106,7 +109,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
       let primaryScreenCoord = primaryCoord + extraPrimaryCoord
       const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
-      const binForCase = determineBinForCase(caseValue, binWidth)
+      const binForCase = determineBinForCase(caseValue, binWidth, minBinEdge)
       primaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "primary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
         screenCoord: primaryScreenCoord, primaryIsBottom
@@ -125,7 +128,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       }
       let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps) + onePixelOffset
       const casePrimaryValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
-      const binForCase = determineBinForCase(casePrimaryValue, binWidth)
+      const binForCase = determineBinForCase(casePrimaryValue, binWidth, minBinEdge)
       secondaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "secondary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
         screenCoord: secondaryScreenCoord, primaryIsBottom
@@ -152,6 +155,15 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+
+  // respond to binAlignment and binWidth changes because the axis may need to be updated
+  useEffect(function respondToGraphBinSettings() {
+    return mstReaction(
+      () => [graphModel.binAlignment, graphModel.binWidth],
+      () => {
+      refreshPointPositions(false)
+    }, {name: "respondToGraphBinSettings"}, graphModel)
+  }, [dataset, graphModel, refreshPointPositions])
 
   return (
     <>

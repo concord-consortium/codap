@@ -3,8 +3,9 @@ import { calculatePointStacking, determineBinForCase } from "./dot-plot-utils"
 describe("determineBinForCase", () => {
   it("returns the bin number for a given case value in a binned dot plot", () => {
     const caseValue = 25
+    const minBinEdge = 0
     const binWidth = 10
-    const binNumber = determineBinForCase(caseValue, binWidth)
+    const binNumber = determineBinForCase(caseValue, binWidth, minBinEdge)
     expect(binNumber).toEqual(3)
   })
 })

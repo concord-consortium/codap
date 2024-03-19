@@ -60,6 +60,8 @@ export const GraphContentModel = DataDisplayContentModel
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
+    binAlignment: types.maybe(types.number),
+    binWidth: types.maybe(types.number),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
@@ -121,16 +123,6 @@ export const GraphContentModel = DataDisplayContentModel
         // When displaying bars, the domain should start at 0 unless there are negative values.
         clampPosMinAtZero: self.pointDisplayType === "bars"
       }
-    },
-    nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
-      const tickValues: number[] = []
-      const tickLabels: string[] = []
-      const { binWidth, totalNumberOfBins  } = self.dataConfiguration.binDetails()
-      for (let i = 0; i < totalNumberOfBins; i++) {
-        tickValues.push(((i + 0.5) * binWidth))
-        tickLabels.push(`[${i * binWidth}, ${(i + 1) * binWidth})`)
-      }
-      return { tickValues, tickLabels }
     }
   }))
   .views(self => ({
@@ -190,6 +182,12 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
+    },
+    setBinAlignment(alignment: number) {
+      self.binAlignment = alignment
+    },
+    setBinWidth(width: number) {
+      self.binWidth = width
     }
   }))
   .views(self => ({
@@ -197,6 +195,32 @@ export const GraphContentModel = DataDisplayContentModel
       return computePointRadius(self.dataConfiguration.caseDataArray.length,
         self.pointDescription.pointSizeMultiplier, use)
     },
+    nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
+      const tickValues: number[] = []
+      const tickLabels: string[] = []
+      const { binWidth, totalNumberOfBins, minBinEdge } =
+        self.dataConfiguration.binDetails(self.binAlignment, self.binWidth)
+
+      let currentStart = minBinEdge
+      let binCount = 0
+      while (binCount < totalNumberOfBins) {
+        // TODO: Handle potential decimal point issues. If binWidth were 0.1, for instance, the below would result in
+        // many decimal places. The number of decimal places to display depends on the number required to represent the
+        // binWidth.
+        const tickValue = currentStart + (binWidth / 2)
+        const tickLabel = `[${currentStart}, ${currentStart + binWidth})`
+        tickValues.push(tickValue)
+        tickLabels.push(tickLabel)
+        currentStart += binWidth
+        binCount++
+      }
+      return { tickValues, tickLabels }
+    },
+    resetBinSettings() {
+      const { binAlignment, binWidth } = self.dataConfiguration.binDetails()
+      self.setBinAlignment(binAlignment)
+      self.setBinWidth(binWidth)
+    }
   }))
   .actions(self => ({
     incrementChangeCount() {
@@ -237,6 +261,7 @@ export const GraphContentModel = DataDisplayContentModel
       }
       const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
       self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+      self.dataConfiguration.primaryAttributeID && self.resetBinSettings()
     },
     setPlotType(type: PlotType) {
       self.plotType = type
@@ -249,6 +274,11 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setPointConfig(configType: PointDisplayType) {
       self.pointDisplayType = configType
+      if (configType === "bins") {
+        const { binWidth, binAlignment } = self.dataConfiguration.binDetails()
+        self.setBinWidth(binWidth)
+        self.setBinAlignment(binAlignment)
+      }
     },
     setPlotBackgroundColor(color: string) {
       self.plotBackgroundColor = color
