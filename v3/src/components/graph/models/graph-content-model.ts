@@ -66,7 +66,8 @@ export const GraphContentModel = DataDisplayContentModel
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
     isTransparent: false,
-    plotBackgroundImageID: "",
+    plotBackgroundImage: types.maybe(types.string),
+    plotBackgroundImageLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // Plots can have a background whose properties are described by this property.
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))

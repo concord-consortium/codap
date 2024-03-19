@@ -1,8 +1,7 @@
-import {AttributeType} from "../../models/data/attribute"
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {typedId} from "../../utilities/js-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
+import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2Type} from "../../v2/codap-v2-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {PlotType} from "./graphing-types"
@@ -13,11 +12,25 @@ import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configu
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
+import {defaultBackgroundColor} from "../../utilities/color-utils"
 
 export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
   if (!isV2GraphComponent(v2Component)) return
 
-  const {title = "", _links_: links, plotModels} = v2Component.componentStorage
+  const {
+    title = "", _links_: links, plotModels,
+
+    pointColor, strokeColor, pointSizeMultiplier,
+    strokeSameAsFill, isTransparent,
+    plotBackgroundImageLockInfo,
+/* The following are present in the componentStorage but not used in the V3 content model (yet):
+    displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
+    legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
+    plotBackgroundOpacity,
+*/
+  } = v2Component.componentStorage
+  const plotBackgroundColor: string | null | undefined = v2Component.componentStorage.plotBackgroundColor ||
+    defaultBackgroundColor
   type TLinksKey = keyof typeof links
   const contextId = links.context?.id
   const {data, metadata} = v2Document.getDataAndMetadata(contextId)
@@ -30,11 +43,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     top: "topSplit",
     right: "rightSplit"
   }
-  const v3TypeFromV2Type: Array<AttributeType | undefined> = [
-    // indices are numeric values of v2 types
-    undefined, "numeric", "categorical", "date", "boundary", "color"
-    // v2 type eNone === 0 which v3 codes as undefined
-  ]
   const axes: Partial<Record<AxisPlace, IAxisModelSnapshotUnion>> = {}
   let primaryRole: PrimaryAttrRole | undefined
   const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
@@ -48,7 +56,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       const
         v3AttrRole = roleFromAttrKey[attrKey] || 'x',
         v2AttrArray = (Array.isArray(links[aKey]) ? links[aKey] : [links[aKey]]) as IGuidLink<"DG.Attribute">[]
-      v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">, index: number) => {
+      v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">) => {
         const v2AttrId = aLink.id,
           attribute = v2Document.getV3Attribute(v2AttrId),
           v3AttrId = attribute?.id ?? '',
@@ -131,6 +139,21 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     adornmentsStore,
     axes,
     plotType,
+    plotBackgroundColor,
+    // plotBackgroundOpacity,
+    // plotBackgroundImage,
+    plotBackgroundImageLockInfo,
+    isTransparent: isTransparent ?? false,
+    /*
+    * displayOnlySelected,legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
+    * */
+    pointDescription: {
+      _itemColors: pointColor ? [pointColor] : [],
+      _itemStrokeColor: strokeColor,
+      pointSizeMultiplier,
+      /*transparency, strokeTransparency*/
+      _itemStrokeSameAsFill: strokeSameAsFill
+    },
     layers: [{
       type: kGraphPointLayerType,
       dataConfiguration: {
