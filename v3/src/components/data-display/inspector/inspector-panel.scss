@@ -2,7 +2,7 @@
 
 .inspector-panel.data-display {
   .palette-form {
-    margin: 0px 0px 10px 20px;
+    margin: 0 0 10px 20px;
 
     .palette-row {
       flex-direction: row;
@@ -61,7 +61,12 @@
     }
 
     .cat-color-picker {
-      margin: 6px 0px;
+      margin: 6px 0;
     }
   }
+}
+
+.map-values-layer-label {
+  border-bottom: solid #C1C5C7 1px;
+  font-weight: bold;
 }

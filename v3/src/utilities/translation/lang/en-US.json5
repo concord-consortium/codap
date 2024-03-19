@@ -22,6 +22,10 @@
     "V3.Redo.map.inspector.showMapLayer": "Redo showing map layer",
     "V3.Undo.map.inspector.changeMapBaseLayer": "Undo changing base map",
     "V3.Redo.map.inspector.changeMapBaseLayer": "Redo changing base map",
+    "V3.Undo.map.showLayer": "Undo showing map layer",
+    "V3.Redo.map.showLayer": "Redo showing map layer",
+    "V3.Undo.map.hideLayer": "Undo hiding map layer",
+    "V3.Redo.map.hideLayer": "Redo hiding map layer",
 
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)

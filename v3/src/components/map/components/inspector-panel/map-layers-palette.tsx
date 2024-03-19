@@ -44,7 +44,10 @@ export const MapLayersPalette = observer(function MapLayersPalette(
               data-testid={`map-layers-checkbox-layer`}
               defaultChecked={layer.isVisible}
               onChange={() => {
-                layer.setVisibility(!layer.isVisible)
+                const op = layer.isVisible ? 'hide' : 'show'
+                layer.applyUndoableAction(() => {
+                  layer.setVisibility(!layer.isVisible)
+                }, `V3.Undo.map.${op}Layer`, `V3.Redo.map.${op}Layer`)
               }}
             >
               {layer.dataConfiguration.dataset?.name /* todo:  */}

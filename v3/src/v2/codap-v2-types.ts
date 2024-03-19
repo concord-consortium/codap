@@ -1,3 +1,5 @@
+import {AttributeType} from "../models/data/attribute"
+
 export interface ICodapV2Attribute {
   guid: number
   id: number
@@ -159,7 +161,7 @@ interface ICodapV2CountAdornment {
   percentKind: number
 }
 
-interface ICodapV2ConectingLinesAdornment {
+interface ICodapV2ConnectingLinesAdornment {
   isVisible: boolean
   enableMeasuresForSelection: boolean
 }
@@ -218,7 +220,7 @@ interface ICodapV2PlottedValueAdornment {
   expression: string
 }
 
-type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2ConectingLinesAdornment | ICodapV2MovableValueAdornment |
+type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2ConnectingLinesAdornment | ICodapV2MovableValueAdornment |
                          ICodapV2MeanAdornment | ICodapV2MedianAdornment | ICodapV2StDevAdornment |
                          ICodapV2MadAdornment | ICodapV2PlottedFunctionAdornment | ICodapV2PlottedValueAdornment |
                          ICodapV2BoxPlotAdornment
@@ -289,6 +291,8 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   displayOnlySelected: boolean
   legendRole: number
   legendAttributeType: number
+  numberOfLegendQuantiles: number
+  legendQuantilesAreLocked: boolean
   pointColor: string
   strokeColor: string
   pointSizeMultiplier: 1
@@ -296,9 +300,10 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   strokeTransparency: number
   strokeSameAsFill: boolean
   isTransparent: boolean
-  plotBackgroundColor: string | null
+  plotBackgroundColor?: string | null
   plotBackgroundOpacity: number
   plotBackgroundImageLockInfo: any
+  plotBackgroundImage: string
   xRole: number
   xAttributeType: number
   yRole: number
@@ -323,6 +328,44 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   plotModels: ICodapV2PlotModel[]
 }
 
+export interface ICodapV2MapLayerStorage {
+  _links_: {
+    context: IGuidLink<"DG.DataContextRecord">
+    hiddenCases: any[],
+    legendColl?: IGuidLink<"DG.Collection">,
+    // We sometimes see an array of links here
+    legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
+  }
+  legendRole: number
+  legendAttributeType: number
+  isVisible: boolean
+  strokeSameAsFill: boolean
+  // Polygons
+  areaColor?: string
+  areaTransparency?: number
+  areaStrokeColor?: string
+  areaStrokeTransparency?: number
+  // Points
+  pointColor?: string
+  strokeColor?: string
+  pointSizeMultiplier?: number
+  transparency?: number
+  strokeTransparency?: number
+  pointsShouldBeVisible?: boolean
+  grid?: { gridMultiplier: number, isVisible: boolean }
+  connectingLines: { isVisible: boolean, enableMeasuresForSelection: boolean }
+}
+
+export interface ICodapV2MapStorage extends ICodapV2BaseComponentStorage {
+  mapModelStorage: {
+    center: { lat: number, lng: number }
+    zoom: number
+    baseMapLayerName: string
+    gridMultiplier: number
+    layerModels: ICodapV2MapLayerStorage[]
+  }
+}
+
 export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number
   isVisible?: boolean
@@ -344,6 +387,12 @@ export interface ICodapV2BaseComponent {
   }
   savedHeight: number | null
 }
+
+export const v3TypeFromV2Type: Array<AttributeType | undefined> = [
+  // indices are numeric values of v2 types
+  undefined, "numeric", "categorical", "date", "boundary", "color"
+  // v2 type eNone === 0 which v3 codes as undefined
+]
 
 export interface ICodapV2CalculatorComponent extends ICodapV2BaseComponent {
   type: "DG.Calculator"
@@ -383,6 +432,13 @@ export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
 }
 export const isV2GraphComponent = (component: ICodapV2BaseComponent): component is ICodapV2GraphComponent =>
               component.type === "DG.GraphView"
+
+export interface ICodapV2MapComponent extends ICodapV2BaseComponent {
+  type: "DG.MapView"
+  componentStorage: ICodapV2MapStorage
+}
+export const isV2MapComponent = (component: ICodapV2BaseComponent): component is ICodapV2MapComponent =>
+              component.type === "DG.MapView"
 
 export interface ICodapV2GuideComponent extends ICodapV2BaseComponent {
   type: "DG.GuideView"
