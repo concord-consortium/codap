@@ -1,6 +1,6 @@
 import React from "react"
 import {observer} from "mobx-react-lite"
-import { Flex, Radio, RadioGroup, Stack } from "@chakra-ui/react"
+import { Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import { t } from "../../../../utilities/translation/translate"
 import { InspectorPalette } from "../../../inspector-panel"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
@@ -9,6 +9,8 @@ import { isGraphContentModel } from "../../models/graph-content-model"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 
 import "../../../data-display/inspector/inspector-panel.scss"
+
+type BinOption = "binWidth" | "binAlignment"
 
 interface IProps {
   tile?: ITileModel
@@ -25,6 +27,32 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     if (isPointDisplayType(configType)) {
       graphModel?.setPointConfig(configType)
     }
+  }
+
+  const setBinOption = (option: BinOption, value: number) => {
+    switch (option) {
+      case "binWidth":
+        graphModel?.setBinWidth(value)
+        break
+      case "binAlignment":
+        graphModel?.setBinAlignment(value)
+        break
+      default:
+        break
+    }
+  }
+
+  const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      const value = Number((e.target as HTMLInputElement).value)
+      setBinOption(option, value)
+    }
+  }
+
+  const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
+    const value = Number((e.target as HTMLInputElement).value)
+    setBinOption(option, value)
   }
 
   return (
@@ -64,6 +92,32 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </Radio>
           </Stack>
         </RadioGroup>
+        {selectedConfig === "bins" && (
+          <Stack>
+            <Box className="inline-input-group" data-testid="graph-bin-width-setting">
+              <FormLabel className="form-label">
+                {t("DG.Inspector.graphBinWidth")}
+              </FormLabel>
+              <Input
+                className="form-input"
+                defaultValue={graphModel?.binWidth}
+                onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
+                onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
+              />
+            </Box>
+            <Box className="inline-input-group" data-testid="graph-bin-alignment-setting">
+              <FormLabel className="form-label">
+                {t("DG.Inspector.graphAlignment")}
+              </FormLabel>
+              <Input
+                className="form-input"
+                defaultValue={graphModel?.binAlignment}
+                onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
+                onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
+              />
+            </Box>
+          </Stack>       
+        )}
       </Flex>
     </InspectorPalette>
   )

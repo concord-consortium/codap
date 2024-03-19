@@ -169,10 +169,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         return
       }
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
-        // if plot is not univariate and the attribute type changes, we need to update the pointConfig
-        if (graphModel?.plotType !== "dotPlot") {
+        // there  are no longer any cases in the dataset, or if plot is not univariate and the attribute type changes,
+        // we need to set the pointConfig to points
+        const caseDataArray = dataConfiguration?.caseDataArray ?? []
+        if (caseDataArray.length === 0 || graphModel?.plotType !== "dotPlot") {
           graphModel?.setPointConfig("points")
         }
+
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),

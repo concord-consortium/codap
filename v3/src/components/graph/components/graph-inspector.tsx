@@ -19,13 +19,14 @@ import { DisplayConfigPalette } from "./inspector-panel/display-config-palette"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+  const caseDataArray = graphModel?.dataConfiguration?.caseDataArray ?? []
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
-  const showDisplayConfig = graphModel?.plotType === "dotPlot"
+  const showDisplayConfig = caseDataArray.length > 0 && graphModel?.plotType === "dotPlot"
 
   useEffect(() => {
     !show && setShowPalette(undefined)
