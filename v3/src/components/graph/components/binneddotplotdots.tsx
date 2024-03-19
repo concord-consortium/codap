@@ -1,7 +1,6 @@
 import {ScaleBand, ScaleLinear, select} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef} from "react"
-import { mstAutorun } from "../../../utilities/mst-autorun"
 import {PlotProps} from "../graphing-types"
 import {setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
@@ -17,6 +16,7 @@ import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, adjus
          determineBinForCase} from "../utilities/dot-plot-utils"
 import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
+import { mstReaction } from "../../../utilities/mst-reaction"
 
 export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: PlotProps) {
   const {pixiPoints} = props,
@@ -158,7 +158,9 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
   // respond to binAlignment and binWidth changes because the axis may need to be updated
   useEffect(function respondToGraphBinSettings() {
-    return mstAutorun(() => {
+    return mstReaction(
+      () => [graphModel.binAlignment, graphModel.binWidth],
+      () => {
       refreshPointPositions(false)
     }, {name: "respondToGraphBinSettings"}, graphModel)
   }, [dataset, graphModel, refreshPointPositions])

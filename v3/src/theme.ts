@@ -41,9 +41,9 @@ export const theme = extendTheme({
         }
       }
     },
-    Menu,
-    Modal,
     Checkbox,
-    Input
+    Input,
+    Menu,
+    Modal
   }
 })

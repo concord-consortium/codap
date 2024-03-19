@@ -190,8 +190,7 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
  * Returns the bin number for a given case value in a binned dot plot.
  */
 export const determineBinForCase = (caseValue: number, binWidth: number, minBinEdge = 0) => {
-  const adjustedCaseValue = caseValue - minBinEdge
-  return Math.floor(adjustedCaseValue / binWidth) + 1
+  return Math.floor((caseValue - minBinEdge) / binWidth) + 1
 }
 
 /*

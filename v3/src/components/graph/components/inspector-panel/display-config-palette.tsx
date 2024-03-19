@@ -10,6 +10,8 @@ import { isPointDisplayType } from "../../../data-display/data-display-types"
 
 import "../../../data-display/inspector/inspector-panel.scss"
 
+type BinOption = "binWidth" | "binAlignment"
+
 interface IProps {
   tile?: ITileModel
   panelRect?: DOMRect
@@ -27,7 +29,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
-  const setBinOption = (option: string, value: number) => {
+  const setBinOption = (option: BinOption, value: number) => {
     switch (option) {
       case "binWidth":
         graphModel?.setBinWidth(value)
@@ -40,7 +42,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
-  const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: string) => {
+  const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
     if (e.key === "Enter") {
       e.preventDefault()
       const value = Number((e.target as HTMLInputElement).value)
@@ -48,7 +50,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
-  const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: string) => {
+  const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
     const value = Number((e.target as HTMLInputElement).value)
     setBinOption(option, value)
   }

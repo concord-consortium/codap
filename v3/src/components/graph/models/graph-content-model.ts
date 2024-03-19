@@ -30,7 +30,6 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} fro
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
-import { isFiniteNumber } from "../../../utilities/math-utils"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -199,19 +198,15 @@ export const GraphContentModel = DataDisplayContentModel
     nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
-      const { binAlignment, binWidth, totalNumberOfBins, minBinEdge } =
+      const { binWidth, totalNumberOfBins, minBinEdge } =
         self.dataConfiguration.binDetails(self.binAlignment, self.binWidth)
-
-      if (!isFiniteNumber(self.binWidth)) {
-        self.setBinWidth(binWidth)
-      }
-      if (!isFiniteNumber(self.binAlignment)) {
-        self.setBinAlignment(binAlignment)
-      }
 
       let currentStart = minBinEdge
       let binCount = 0
       while (binCount < totalNumberOfBins) {
+        // TODO: Handle potential decimal point issues. If binWidth were 0.1, for instance, the below would result in
+        // many decimal places. The number of decimal places to display depends on the number required to represent the
+        // binWidth.
         const tickValue = currentStart + (binWidth / 2)
         const tickLabel = `[${currentStart}, ${currentStart + binWidth})`
         tickValues.push(tickValue)
@@ -266,7 +261,7 @@ export const GraphContentModel = DataDisplayContentModel
       }
       const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
       self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-      self.resetBinSettings()
+      self.dataConfiguration.primaryAttributeID && self.resetBinSettings()
     },
     setPlotType(type: PlotType) {
       self.plotType = type
@@ -279,6 +274,11 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setPointConfig(configType: PointDisplayType) {
       self.pointDisplayType = configType
+      if (configType === "bins") {
+        const { binWidth, binAlignment } = self.dataConfiguration.binDetails()
+        self.setBinWidth(binWidth)
+        self.setBinAlignment(binAlignment)
+      }
     },
     setPlotBackgroundColor(color: string) {
       self.plotBackgroundColor = color
