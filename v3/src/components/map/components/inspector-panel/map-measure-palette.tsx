@@ -1,10 +1,11 @@
 import React from "react"
-import {Box, Checkbox, Flex, FormControl, /*useToast*/} from "@chakra-ui/react"
+import {Box, Checkbox, Flex} from "@chakra-ui/react"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {InspectorPalette} from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
-// import {isMapContentModel} from "../../models/map-content-model"
+import {isMapContentModel} from "../../models/map-content-model"
+import {isMapPointLayerModel} from "../../models/map-point-layer-model"
 
 interface IProps {
   tile?: ITileModel
@@ -14,53 +15,61 @@ interface IProps {
 }
 
 export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}: IProps) => {
-  // const toast = useToast()
-  // const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
-  const titles = ["DG.Inspector.mapGrid", "DG.Inspector.mapPoints", "DG.Inspector.mapLines"]
+  const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
+  if (!mapModel) return null
 
-/*
-  const handleSetting = (measure: string, checked: boolean) => {
-    // Show toast pop-ups for adornments that haven't been implemented yet.
-    // TODO: Remove this once all adornments are implemented.
-    toast({
-      title: 'Item clicked',
-      description: `You clicked on ${measure} ${checked}`,
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
+  const renderLayersDisplayControls = () => {
+    return mapModel.layers.map(layer => {
+      if (isMapPointLayerModel(layer)) {
+        return (
+          <Flex className="map-values-controls" key={layer.id} direction='column'>
+            <Box className='map-values-layer-label' data-testid={`map-values-layer-label`}>
+              {layer.dataConfiguration.dataset?.name}
+            </Box>
+            <Checkbox className='map-values-checkbox' data-testid={`map-values-grid-checkbox`}
+                      defaultChecked={layer.gridModel.isVisible}
+                      onChange={() => {
+                        const op = layer.gridModel.isVisible ? 'hide' : 'show'
+                        layer.gridModel.applyUndoableAction(() => {
+                          layer.gridModel.setIsVisible(!layer.gridModel.isVisible)
+                        }, `DG.Undo.map.${op}Grid`, `DG.Redo.map.${op}Grid`)
+                      }}
+            >
+              {t("DG.Inspector.mapGrid")}
+            </Checkbox>
+            <Checkbox className='map-values-checkbox' data-testid={`map-values-points-checkbox`}
+                      defaultChecked={layer.pointsAreVisible}
+                      onChange={() => {
+                        const op = layer.pointsAreVisible ? 'hide' : 'show'
+                        layer.applyUndoableAction(() => {
+                          layer.setPointsAreVisible(!layer.pointsAreVisible)
+                        }, `DG.Undo.map.${op}Points`, `DG.Redo.map.${op}Points`)
+                      }}
+            >
+              {t("DG.Inspector.mapPoints")}
+            </Checkbox>
+            <Checkbox className='map-values-checkbox' data-testid={`map-values-lines-checkbox`}
+                      defaultChecked={layer.connectingLinesAreVisible}
+                      onChange={() => {
+                        const op = layer.connectingLinesAreVisible ? 'hide' : 'show'
+                        layer.applyUndoableAction(() => {
+                          layer.setConnectingLinesAreVisible(!layer.connectingLinesAreVisible)
+                        }, `DG.Undo.map.${op}Lines`, `DG.Redo.map.${op}Lines`)
+                      }}
+            >
+              {t("DG.Inspector.mapLines")}
+            </Checkbox>
+          </Flex>)
+      }
     })
-    return null
   }
-*/
 
   return (
-    <InspectorPalette
-      title={t("DG.Inspector.values")}
-      Icon={<ValuesIcon/>}
-      setShowPalette={setShowPalette}
-      panelRect={panelRect}
-      buttonRect={buttonRect}
+    <InspectorPalette title={t("DG.Inspector.values")} Icon={<ValuesIcon/>} setShowPalette={setShowPalette}
+                      panelRect={panelRect} buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
-        <Box className="form-title">Show ...</Box>
-        {
-          titles.map((title) => {
-            const titleSlug = t(title).replace(/ /g, "-").toLowerCase()
-            return (
-              <FormControl key={titleSlug}>
-                <Checkbox
-                  data-testid={`adornment-checkbox-${titleSlug}`}
-                  /*
-                  defaultChecked={checked}
-                  onChange={clickHandler ? clickHandler : e => handleSetting(t(title), e.target.checked)}
-                  */
-                >
-                  {t(title)}
-                </Checkbox>
-              </FormControl>
-            )
-          })
-        }
+        {renderLayersDisplayControls()}
       </Flex>
     </InspectorPalette>
   )

@@ -1,5 +1,6 @@
 import {Instance, types} from "mobx-state-tree"
 import {typedId} from "../../../utilities/js-utils"
+import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {DataConfigurationModel} from "./data-configuration-model"
 
 export const kUnknownLayerModelType = "unknownLayer"
@@ -18,7 +19,7 @@ export const DataDisplayLayerModel = types.model("DataDisplayLayerModel", {
       return self.dataConfiguration.metadata
     },
   }))
-  .actions(self => ({}))
+  .actions(applyUndoableAction)
 
 export interface IDataDisplayLayerModel extends Instance<typeof DataDisplayLayerModel> {
 }

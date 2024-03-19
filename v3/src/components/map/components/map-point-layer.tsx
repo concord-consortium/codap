@@ -20,6 +20,7 @@ import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
+import {MapPointGrid} from "./map-point-grid"
 
 export const MapPointLayer = function MapPointLayer(props: {
   mapLayerModel: IMapPointLayerModel
@@ -109,11 +110,19 @@ export const MapPointLayer = function MapPointLayer(props: {
       getScreenY = (anID: string) => {
         const coords = getCoords(anID)
         return coords.y
-      }
-
+      },
+      layerIsVisible = mapLayerModel.isVisible,
+      pointsAreVisible = mapLayerModel.pointsAreVisible
     const pixiPoints = pixiPointsRef.current
     if (!pixiPoints || !dataset) {
       return
+    }
+    if (!(layerIsVisible && pointsAreVisible && pixiPointsRef.current?.isVisible)) {
+      pixiPointsRef.current?.setVisibility(false)
+      return
+    }
+    if (layerIsVisible && pointsAreVisible && !pixiPointsRef.current?.isVisible) {
+      pixiPointsRef.current?.setVisibility(true)
     }
     const pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
         pointDescription.pointSizeMultiplier)
@@ -208,20 +217,19 @@ export const MapPointLayer = function MapPointLayer(props: {
   // respond to change in layer visibility
   useEffect(function respondToLayerVisibilityChange() {
     return mstReaction(() => {
-        return mapLayerModel.isVisible
+        return { layerIsVisible: mapLayerModel.isVisible, pointsAreVisible: mapLayerModel.pointsAreVisible}
       },
-      (isVisible) => {
-        if (isVisible && pixiPointsRef.current?.isZeroSize) {
-          pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
-          callMatchCirclesToData()
+      ({layerIsVisible, pointsAreVisible}) => {
+        if (layerIsVisible && pointsAreVisible && !pixiPointsRef.current?.isVisible) {
+          pixiPointsRef.current?.setVisibility(true)
         }
-        else if (!isVisible && !pixiPointsRef.current?.isZeroSize) {
-          pixiPointsRef.current?.setZeroSize()
+        else if (!(layerIsVisible && pointsAreVisible) && pixiPointsRef.current?.isVisible) {
+          pixiPointsRef.current?.setVisibility(false)
         }
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight])
+  }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight, refreshPoints])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
@@ -245,6 +253,7 @@ export const MapPointLayer = function MapPointLayer(props: {
   return (
     <>
       <div ref={pixiContainerRef} className="map-dot-area"/>
+      <MapPointGrid mapLayerModel={mapLayerModel} />
       <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
     </>
   )
