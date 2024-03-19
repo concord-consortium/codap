@@ -136,7 +136,7 @@ export const diAttributeHandler: DIHandler = {
         const { dataContext } = resources
         if (dataContext) {
           const metadata = getSharedCaseMetadataFromDataset(dataContext)
-          metadata?.hidden.set(attribute.id, values.hidden)
+          metadata?.setIsHidden(attribute.id, values.hidden)
         }
       }
     }, "", "")
