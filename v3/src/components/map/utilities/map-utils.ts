@@ -140,9 +140,8 @@ export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
 }
 
 export const getCaseCountString = (dataset: IDataSet, latLngAttrID:string, numCases:number) => {
-  let collectionName = dataset.getCollectionForAttribute(latLngAttrID)?.name ??
-    translate('DG.DataContext.pluralCaseName')
-  collectionName = collectionName === '' ? (dataset.name ?? '') : collectionName
+  const collectionName = (dataset.getCollectionForAttribute(latLngAttrID)?.name ??
+    translate('DG.DataContext.pluralCaseName')) || (dataset.name ?? '')
   const caseName = numCases === 1 ? singular(collectionName) : collectionName
   return translate('DG.DataContext.caseCountString', {vars: [numCases, caseName]})
 }
@@ -153,12 +152,12 @@ export const getCategoryBreakdownHtml = (dataset: IDataSet, iCases: string[], iL
     tResult = ''
   iCases.forEach((iCase) => {
     const tValue = dataset.getStrValue(iCase, iLegendAttrID)
-    if (tValue && tValue !== '') {
+    if (tValue) {
       tTotalCount++
-      if (!tCategories[ tValue]) {
-        tCategories[ tValue] = 0
+      if (!tCategories[tValue]) {
+        tCategories[tValue] = 0
       }
-      tCategories[ tValue]++
+      tCategories[tValue]++
     }
   })
   Object.entries(tCategories).forEach(([cat, count]) => {

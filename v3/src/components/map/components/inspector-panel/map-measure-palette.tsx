@@ -27,32 +27,35 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
               {layer.dataConfiguration.dataset?.name}
             </Box>
             <Checkbox className='map-values-checkbox' data-testid={`map-values-grid-checkbox`}
-              defaultChecked={layer.gridModel.isVisible}
-              onChange={() => {
-                const op = layer.gridModel.isVisible ? 'hide' : 'show'
-                layer.gridModel.applyUndoableAction(() => {
-                  layer.gridModel.setIsVisible(!layer.gridModel.isVisible)
-                }, `DG.Undo.map.${op}Grid`, `DG.Redo.map.${op}Grid`)
-              }}
+                      defaultChecked={layer.gridModel.isVisible}
+                      onChange={() => {
+                        const op = layer.gridModel.isVisible ? 'hide' : 'show'
+                        layer.gridModel.applyUndoableAction(() => {
+                          layer.gridModel.setIsVisible(!layer.gridModel.isVisible)
+                        }, `DG.Undo.map.${op}Grid`, `DG.Redo.map.${op}Grid`)
+                      }}
             >
               {t("DG.Inspector.mapGrid")}
             </Checkbox>
             <Checkbox className='map-values-checkbox' data-testid={`map-values-points-checkbox`}
-              defaultChecked={layer.pointsAreVisible}
-              onChange={() => {
-                const op = layer.pointsAreVisible ? 'hide' : 'show'
-                layer.applyUndoableAction(() => {
-                  layer.setPointsAreVisible(!layer.pointsAreVisible)
-                }, `DG.Undo.map.${op}Points`, `DG.Redo.map.${op}Points`)
-              }}
+                      defaultChecked={layer.pointsAreVisible}
+                      onChange={() => {
+                        const op = layer.pointsAreVisible ? 'hide' : 'show'
+                        layer.applyUndoableAction(() => {
+                          layer.setPointsAreVisible(!layer.pointsAreVisible)
+                        }, `DG.Undo.map.${op}Points`, `DG.Redo.map.${op}Points`)
+                      }}
             >
               {t("DG.Inspector.mapPoints")}
             </Checkbox>
             <Checkbox className='map-values-checkbox' data-testid={`map-values-lines-checkbox`}
-              defaultChecked={layer.connectingLinesAreVisible}
-              onChange={() => {
-                layer.setConnectingLinesAreVisible(!layer.connectingLinesAreVisible)
-              }}
+                      defaultChecked={layer.connectingLinesAreVisible}
+                      onChange={() => {
+                        const op = layer.connectingLinesAreVisible ? 'hide' : 'show'
+                        layer.applyUndoableAction(() => {
+                          layer.setConnectingLinesAreVisible(!layer.connectingLinesAreVisible)
+                        }, `DG.Undo.map.${op}Lines`, `DG.Redo.map.${op}Lines`)
+                      }}
             >
               {t("DG.Inspector.mapLines")}
             </Checkbox>
@@ -63,10 +66,10 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
 
   return (
     <InspectorPalette title={t("DG.Inspector.values")} Icon={<ValuesIcon/>} setShowPalette={setShowPalette}
-      panelRect={panelRect} buttonRect={buttonRect}
+                      panelRect={panelRect} buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
-          {renderLayersDisplayControls()}
+        {renderLayersDisplayControls()}
       </Flex>
     </InspectorPalette>
   )

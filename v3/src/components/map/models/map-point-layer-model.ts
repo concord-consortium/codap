@@ -1,5 +1,4 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 import {kMapPointLayerType} from "../map-types"
 import {MapLayerModel} from "./map-layer-model"
@@ -43,7 +42,6 @@ export const MapPointLayerModel = MapLayerModel
       return self.displayItemDescription
     }
   }))
-  .actions(applyUndoableAction)
 
 
 export interface IMapPointLayerModel extends Instance<typeof MapPointLayerModel> {
