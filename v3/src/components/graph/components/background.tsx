@@ -108,9 +108,7 @@ export const Background = forwardRef<SVGGElement, IProps>((props, ref) => {
     return autorun(() => {
       const { left, top, width: plotWidth, height: plotHeight } = layout.computedBounds.plot,
         transform = `translate(${left}, ${top})`,
-        // { isTransparent, plotBackgroundColor } = graphModel,
-        isTransparent = graphModel.isTransparent,
-        plotBackgroundColor = graphModel.plotBackgroundColor ?? defaultBackgroundColor,
+        { isTransparent, plotBackgroundColor = defaultBackgroundColor } = graphModel,
         bgColor = String(color(plotBackgroundColor)),
         darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
         numRows = layout.getAxisMultiScale('left').repetitions,

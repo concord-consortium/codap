@@ -291,7 +291,7 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   strokeTransparency: number
   strokeSameAsFill: boolean
   isTransparent: boolean
-  plotBackgroundColor: string | undefined | null
+  plotBackgroundColor?: string | null
   plotBackgroundOpacity: number
   plotBackgroundImageLockInfo: any
   plotBackgroundImage: string

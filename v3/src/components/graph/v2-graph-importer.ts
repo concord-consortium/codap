@@ -23,7 +23,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     pointColor, strokeColor, pointSizeMultiplier,
     strokeSameAsFill, isTransparent,
     plotBackgroundImageLockInfo,
-/* The following are present in the componentStorage but not used in the V3 content model:
+/* The following are present in the componentStorage but not used in the V3 content model (yet):
     displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
     legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
     plotBackgroundOpacity,
