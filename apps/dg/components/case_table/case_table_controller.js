@@ -411,11 +411,11 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             break;
           case 'createCase':
           case 'createCases':
-          case 'moveCases':
             this.doCreateCases( iChange);
             invalidateAggregates = false; // handled by doDependentCases
             break;
           case 'updateCases':
+          case 'moveCases':
             this.doUpdateCases( iChange);
             invalidateAggregates = false; // handled by doDependentCases
             break;
