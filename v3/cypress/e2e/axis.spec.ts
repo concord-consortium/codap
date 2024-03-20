@@ -1,4 +1,5 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
 
@@ -30,6 +31,7 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyDefaultAxisLabel("left")
   })
   it("will add categorical attribute to x axis", () => {
+    // Adding the attribute
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("left")
@@ -39,8 +41,23 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "bottom")
+
+    // Undo adding the attribute
+    // This test fails due to PT #187262957
+    // toolbar.getUndoTool().click()
+    // cy.wait(2000)
+    // Verify the attribute was removed
+    // ah.verifyDefaultAxisLabel("bottom")
+
+    // Redo adding the attribute
+    // This test fails due to PT #187262957
+    // toolbar.getRedoTool().click()
+
+    // Verify the attribute was added back
+    // ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
   })
   it("will add numeric attribute to x axis", () => {
+    // Adding the attribute
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("left")
@@ -50,6 +67,19 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[2].values)
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "bottom")
+
+    // Undo adding the attribute
+    // This test fails due to PT #187262957
+    // toolbar.getUndoTool().click()
+    // cy.wait(2000)
+    // Verify the attribute was added back
+    // ah.verifyAxisTickLabels("bottom", arrayOfValues[2].values)
+
+    // Redo adding the attribute
+    // toolbar.getRedoTool().click()
+    // cy.wait(2000)
+    // Verify the attribute was removed
+    // ah.verifyDefaultAxisLabel("bottom")
   })
   it("will add categorical attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
@@ -61,6 +91,8 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("left", arrayOfValues[8].values, true)
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
+
+    // TODO: add undo/redo test (PT #187262957)
   })
   it("will add numeric attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "left") // Sleep => y-axis
@@ -72,10 +104,12 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("left", arrayOfValues[5].values)
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[5], "left")
+
+    // TODO: add undo/redo test (PT #187262957)
   })
   it("will add categorical attribute to x axis and categorical attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
-    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => x-axis
+    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
     cy.wait(2000)
     ah.verifyXAxisTickMarksDisplayed(true)
     ah.verifyXAxisGridLinesDisplayed(true)
@@ -92,6 +126,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("left", arrayOfValues[8].values, true)
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
+
+    // TODO: Add checks for undo/redo
+    // see PT #187279762 and #187262957
   })
   it("will add categorical attribute to x axis and numeric attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
