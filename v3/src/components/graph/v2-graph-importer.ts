@@ -1,7 +1,7 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {typedId} from "../../utilities/js-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2Type} from "../../v2/codap-v2-types"
+import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {PlotType} from "./graphing-types"
@@ -64,7 +64,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
           v2Role = v2Component.componentStorage[attrRoleKey],
           attrTypeKey = `${attrKey}AttributeType` as keyof ICodapV2GraphStorage,
           v2Type = v2Component.componentStorage[attrTypeKey],
-          v3Type = v3TypeFromV2Type[v2Type]
+          v3Type = v3TypeFromV2TypeIndex[v2Type]
         if (v3AttrRole && v3AttrId && v3Type) {
           const v2PrimaryNumeric = 1
           const v2PrimaryCategorical = 3
