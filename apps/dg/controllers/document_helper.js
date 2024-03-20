@@ -217,9 +217,9 @@ DG.DocumentHelper = SC.Object.extend(
                     }
                     tableAdapters.forEach(function (tableController) {
                       var tableContext = tableController.get('dataContext');
-                      var attribute = typeof(iValues[prop].attrId) === "string"
-                                        ? tableContext.getAttribute(iValues[prop].attrId).id
-                                        : iValues[prop].attrId;
+                      var attribute = typeof(iValues[prop].attr) === "string"
+                                        ? context.getAttributeByName(iValues[prop].attr).id
+                                        : iValues[prop].attr;
                       if (tableContext.get('id') === context.get('id')) {
                         var isDescending = iValues[prop].isDescending;
                         tableController.sortAttribute(attribute, isDescending);
