@@ -5,7 +5,7 @@ import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared
 import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
 import {
   CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson,
-  isCodapV2Attribute, isV2TableComponent
+  isCodapV2Attribute, isV2TableComponent, v3TypeFromV2TypeString
 } from "./codap-v2-types"
 
 export class CodapV2Document {
@@ -94,20 +94,21 @@ export class CodapV2Document {
       this.guidMap.set(guid, { type, object: context })
       const sharedDataSet = SharedDataSet.create({ dataSet: { name } })
       this.dataMap.set(guid, sharedDataSet)
-      this.metadataMap.set(guid, SharedCaseMetadata.create({ data: this.dataMap.get(guid)?.id }))
+      const metadata = SharedCaseMetadata.create({ data: this.dataMap.get(guid)?.id })
+      this.metadataMap.set(guid, metadata)
 
-      this.registerCollections(sharedDataSet.dataSet, collections)
+      this.registerCollections(sharedDataSet.dataSet, metadata, collections)
     })
   }
 
-  registerCollections(data: IDataSet, collections: ICodapV2Collection[]) {
+  registerCollections(data: IDataSet, metadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
     collections.forEach((collection, index) => {
       const { attrs = [], cases = [], guid, name = "", title = "", type = "DG.Collection" } = collection
       this.guidMap.set(guid, { type, object: collection })
 
-      // assumes hierarchical collection are in order parent => child
+      // assumes hierarchical collections are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
-      this.registerAttributes(data, attrs, level)
+      this.registerAttributes(data, metadata, attrs, level)
       this.registerCases(data, cases, level)
 
       if (level > 0) {
@@ -125,12 +126,27 @@ export class CodapV2Document {
     })
   }
 
-  registerAttributes(data: IDataSet, attributes: ICodapV2Attribute[], level: number) {
-    attributes.forEach(attr => {
-      const { guid, name = "", title = "", type, formula: _formula } = attr
-      const formula = _formula ? { display: _formula } : undefined
-      this.guidMap.set(guid, { type: type || "DG.Attribute", object: attr })
-      this.v3AttrMap.set(guid, data.addAttribute({ name, formula, title }))
+  registerAttributes(data: IDataSet, metadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[], level: number) {
+    attributes.forEach(v2Attr => {
+      const {
+        cid, guid, description: v2Description, name = "", title = "", type: v2Type, formula: v2Formula,
+        editable, unit: v2Unit, precision: v2Precision
+      } = v2Attr
+      const description = v2Description ?? undefined
+      const userType = v3TypeFromV2TypeString(v2Type)
+      const formula = v2Formula ? { display: v2Formula } : undefined
+      const precision = v2Precision ?? undefined
+      const units = v2Unit ?? undefined
+      this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
+      const attribute = data.addAttribute({
+        id: cid, name, description, formula, title, userType, editable, units, precision
+      })
+      if (attribute) {
+        this.v3AttrMap.set(guid, attribute)
+        if (v2Attr.hidden) {
+          metadata.setIsHidden(attribute.id, true)
+        }
+      }
     })
   }
 

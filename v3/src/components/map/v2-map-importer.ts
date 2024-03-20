@@ -1,7 +1,7 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {typedId} from "../../utilities/js-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {isV2MapComponent, v3TypeFromV2Type} from "../../v2/codap-v2-types"
+import {isV2MapComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {GraphAttrRole} from "../data-display/data-display-types"
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"
@@ -40,7 +40,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         legendRole
 */
       } = v2LayerModel,
-      v3LegendType = v3TypeFromV2Type[legendAttributeType]
+      v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
 
     if (legendAttributeId) {
       _attributeDescriptions.legend = {

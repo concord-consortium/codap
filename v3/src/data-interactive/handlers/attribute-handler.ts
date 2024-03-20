@@ -4,9 +4,9 @@ import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, DISingleValues, DIValues } from "../data-interactive-types"
+import { DIAttribute, DIHandler, DIResources, DISingleValues, DIValues } from "../data-interactive-types"
 
-function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet) {
+function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): DIAttribute {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
   const { name, type, title, description, editable, id, precision } = attribute
   return {
@@ -39,7 +39,8 @@ function convertAttributeToV2FromResources(resources: DIResources) {
   }
 }
 
-function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSnapshot | undefined {
+function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
+  const values = _values as DIAttribute
   if (values.name) {
     const userType = isAttributeType(values.type) ? values.type : undefined
     return {
@@ -49,7 +50,7 @@ function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSna
       id: values.cid, // TODO Should we allow the values to specify an id at all?
       // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
       // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
-      description: values.description,
+      description: values.description ?? undefined,
       // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
       // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
       editable: values.editable,
@@ -60,8 +61,8 @@ function convertValuesToAttributeSnapshot(values: DISingleValues): IAttributeSna
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       // guid is not in the attribute model
       // id has no equivalent part of the attribute model
-      precision: values.precision,
-      units: values.unit
+      precision: values.precision ?? undefined,
+      units: values.unit ?? undefined
     }
   }
 }
@@ -79,10 +80,11 @@ export const diAttributeHandler: DIHandler = {
     }
     return attributeNotFoundResult
   },
-  create(resources: DIResources, values?: DIValues) {
+  create(resources: DIResources, _values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
     const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const values = _values as DIAttribute | DIAttribute[]
 
     // Wrap single attribute in array and bail if any new attributes are missing names
     const attributeValues = Array.isArray(values) ? values : [values]
@@ -99,7 +101,7 @@ export const diAttributeHandler: DIHandler = {
 
     // Create the attributes
     const attributes: IAttribute[] = []
-    const createAttribute = (value: DISingleValues) => {
+    const createAttribute = (value: DIAttribute) => {
       dataContext.applyUndoableAction(() => {
         withoutUndo()
         const attributeSnapshot = convertValuesToAttributeSnapshot(value)
@@ -118,10 +120,11 @@ export const diAttributeHandler: DIHandler = {
       attrs: attributes.map(attribute => convertAttributeToV2(attribute, dataContext))
     } }
   },
-  update(resources: DIResources, values?: DIValues) {
+  update(resources: DIResources, _values?: DIValues) {
     const { attribute } = resources
-    if (!attribute || Array.isArray(values)) return attributeNotFoundResult
+    if (!attribute || Array.isArray(_values)) return attributeNotFoundResult
 
+    const values = _values as DIAttribute
     attribute.applyUndoableAction(() => {
       withoutUndo()
       if (values?.description != null) attribute.setDescription(values.description)
