@@ -195,7 +195,7 @@ DG.DocumentHelper = SC.Object.extend(
       updateDataContext: function (iResources, iValues) {
         var context = iResources.dataContext;
         if (context) {
-          ['managingController', 'title', 'description', 'preventReorg', 'metadata', 'rerandomize']
+          ['managingController', 'title', 'description', 'preventReorg', 'metadata', 'rerandomize', 'sort']
               .forEach(function (prop) {
                 var existingMetadata;
                 if (!SC.none(iValues[prop])) {
@@ -206,6 +206,25 @@ DG.DocumentHelper = SC.Object.extend(
                     }
                   } else if (prop === 'rerandomize' && !!iValues[prop]) {
                     context.doRerandomizeAll();
+                  } else if (prop === 'sort') {
+                    var controllersMap = DG.currDocumentController().get('componentControllersMap');
+                    var tableAdapters = [];
+                    for (var key in controllersMap) {
+                      if (controllersMap[key].hasOwnProperty('caseTableAdapters')) {
+                        tableAdapters.push(controllersMap[key]);
+                        break;
+                      }
+                    }
+                    tableAdapters.forEach(function (tableController) {
+                      var tableContext = tableController.get('dataContext');
+                      var attribute = typeof(iValues[prop].attr) === "string"
+                                        ? context.getAttributeByName(iValues[prop].attr).id
+                                        : iValues[prop].attr;
+                      if (tableContext.get('id') === context.get('id')) {
+                        var isDescending = iValues[prop].isDescending;
+                        tableController.sortAttribute(attribute, isDescending);
+                      }
+                    });
                   }
                   else {
                     context.set(prop, iValues[prop]);

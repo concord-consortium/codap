@@ -451,6 +451,9 @@ DG.CaseTableController = DG.CaseDisplayController.extend(
             this.dataContextDidChange(iChange);
             this.doMoveAttributes(iChange);
             break;
+          case 'sortAttribute':
+            this.dataContextDidChange(iChange);
+            break;
           case 'resetCollections':
             this.caseCountDidChange( iChange);
             this.dataContextDidChange();
