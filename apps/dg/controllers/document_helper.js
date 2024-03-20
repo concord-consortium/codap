@@ -207,11 +207,8 @@ DG.DocumentHelper = SC.Object.extend(
                   } else if (prop === 'rerandomize' && !!iValues[prop]) {
                     context.doRerandomizeAll();
                   } else if (prop === 'sort') {
-                    // example message: iValues['sort] = {attrID: 1, isDescending: true}
-                    // last resort: Or in the plugin - get the table for that context, and pass it in iValues with AttrId and asc/desc, so that you can call sort on it.
                     var controllersMap = DG.currDocumentController().get('componentControllersMap');
                     var tableAdapters = [];
-
                     for (var key in controllersMap) {
                       if (controllersMap[key].hasOwnProperty('caseTableAdapters')) {
                         tableAdapters.push(controllersMap[key]);
@@ -219,13 +216,15 @@ DG.DocumentHelper = SC.Object.extend(
                       }
                     }
                     tableAdapters.forEach(function (tableController) {
-                        var tableContext = tableController.get('dataContext');
-                        var attribute = typeof(iValues[prop].attrId) === "string" ? tableContext.getAttribute(iValues[prop].attrId).id : iValues[prop].attrId;
-                        if (tableContext.get('id') === context.get('id')) {
-                          var isDescending = iValues[prop].isDescending;
-                          tableController.sortAttribute(attribute, isDescending);
-                        }
-                      });
+                      var tableContext = tableController.get('dataContext');
+                      var attribute = typeof(iValues[prop].attrId) === "string"
+                                        ? tableContext.getAttribute(iValues[prop].attrId).id
+                                        : iValues[prop].attrId;
+                      if (tableContext.get('id') === context.get('id')) {
+                        var isDescending = iValues[prop].isDescending;
+                        tableController.sortAttribute(attribute, isDescending);
+                      }
+                    });
                   }
                   else {
                     context.set(prop, iValues[prop]);
