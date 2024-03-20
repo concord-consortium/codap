@@ -106,7 +106,7 @@ export const diAttributeHandler: DIHandler = {
         if (attributeSnapshot) {
           const attribute = dataContext.addAttribute(attributeSnapshot)
           if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
-          metadata?.hidden.set(attribute.id, !!value.hidden)
+          metadata?.setIsHidden(attribute.id, !!value.hidden)
           attributes.push(attribute)
         }
       }, "", "")
