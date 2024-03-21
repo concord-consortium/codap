@@ -15,7 +15,7 @@ export interface ICodapV2Attribute {
   colormap?: any
   _colormap?: any
   blockDisplayOfEmptyCategories?: boolean
-  editable: boolean
+  editable: boolean | boolean[]
   hidden: boolean
   renameable?: boolean
   deleteable?: boolean

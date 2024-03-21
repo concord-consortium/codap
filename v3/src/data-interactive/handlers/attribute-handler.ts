@@ -1,3 +1,4 @@
+import { isArray } from "lodash"
 import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { withoutUndo } from "../../models/history/without-undo"
@@ -53,7 +54,7 @@ function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSn
       description: values.description ?? undefined,
       // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
       // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
-      editable: values.editable,
+      editable: Array.isArray(values.editable) ? values.editable[0] : values.editable,
       // hidden is part of metadata, not the attribute model
       // renameable: values.renameable, // TODO renameable not part of IAttribute yet
       // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
@@ -128,7 +129,13 @@ export const diAttributeHandler: DIHandler = {
     attribute.applyUndoableAction(() => {
       withoutUndo()
       if (values?.description != null) attribute.setDescription(values.description)
-      if (values?.editable != null) attribute.setEditable(values.editable)
+      if (values?.editable != null) {
+        if (Array.isArray(values.editable)) {
+          if (values.editable.length > 0) attribute.setEditable(values.editable[0])
+        } else {
+          attribute.setEditable(values.editable)
+        }
+      }
       if (values?.formula != null) attribute.setDisplayExpression(values.formula)
       if (values?.name != null) attribute.setName(values.name)
       if (values?.precision != null) attribute.setPrecision(values.precision)

@@ -14,5 +14,10 @@ context("import codap v2 documents", () => {
     cy.wait(1000)
     webView.getIFrame().find(".welcome").should("contain.text",
       "Save Madeline the dog by winning at Rock Paper Scissors.")
+    cfm.getHamburgerMenuButton().click()
+    cfm.getHamburgerMenu().find("li").contains("Open...").click()
+    cfm.getModalDialog().find(".selectable").contains("Parachute Model").click()
+    cfm.getModalDialog().find("button").contains("Open").click()
+    webView.getTitle().should("contain.text", "Terminal Velocity")
   })
 })
