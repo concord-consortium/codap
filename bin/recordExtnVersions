@@ -9,7 +9,6 @@ EXTN_DIRS="../codap-data-interactives
            ../codap-data
            ../codap-transformers
            ../story-builder
-           ../noaa-codap-plugin"
 
 for t in $EXTN_DIRS; do
 #  echo $t;
