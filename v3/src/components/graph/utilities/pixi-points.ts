@@ -28,9 +28,7 @@ export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
-export interface IPixiPointMetadata {
-  caseID: string
-  plotNum: number
+export interface IPixiPointMetadata extends CaseData {
   style: IPixiPointStyle
 }
 
@@ -672,7 +670,7 @@ export class PixiPoints {
       if (!currentCaseDataSet.has(caseDataKey(caseDataItem))) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { caseID: caseDataItem.caseID, plotNum: caseDataItem.plotNum, style })
+        this.pointMetadata.set(sprite, { ...caseDataItem, style })
         this.setPointForCaseData(caseDataItem, sprite)
       }
     }
