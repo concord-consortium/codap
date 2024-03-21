@@ -8,7 +8,7 @@ DIRNAME=$(dirname "$0")
 EXTN_DIRS="../codap-data-interactives
            ../codap-data
            ../codap-transformers
-           ../story-builder
+           ../story-builder"
 
 for t in $EXTN_DIRS; do
 #  echo $t;
