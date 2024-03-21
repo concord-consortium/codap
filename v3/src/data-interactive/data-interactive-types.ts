@@ -6,8 +6,27 @@ import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionPropsModel } from "../models/data/collection"
 
+export type DIAttribute = Partial<ICodapV2Attribute>
+export interface DIAttributes {
+  attrs?: DIAttribute[]
+}
 export type DICase = unknown
 export type DIComponent  = unknown
+export interface DIInteractiveFrame {
+  dimensions?: {
+    height?: number
+    width?: number
+  }
+  externalUndoAvailable?: boolean
+  id?: number
+  name?: string
+  preventBringToFront?: boolean
+  preventDataContextReorg?: boolean
+  savedState?: unknown
+  standaloneUndoModeAvailable?: boolean
+  title?: string
+  version?: string
+}
 export type DIItem = unknown
 
 export interface DIResources {
@@ -31,37 +50,7 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export interface DISingleValues {
-  attrs?: ICodapV2Attribute[]
-  blockDisplayOfEmptyCategories?: boolean
-  _categoryMap?: unknown
-  cid?: string
-  defaultMax?: number
-  defaultMin?: number
-  deleteable?: boolean
-  deletedFormula?: string
-  description?: string
-  dimensions?: {
-    height?: number
-    width?: number
-  }
-  editable?: boolean
-  externalUndoAvailable?: boolean
-  formula?: string
-  guid?: number
-  hidden?: boolean
-  id?: number
-  name?: string
-  precision?: number
-  preventBringToFront?: boolean
-  preventDataContextReorg?: boolean
-  renameable?: boolean
-  standaloneUndoModeAvailable?: boolean
-  title?: string
-  type?: string
-  unit?: string
-  version?: string
-}
+export type DISingleValues = DIAttribute | DIAttributes | DIInteractiveFrame
 
 export type DIValues = DISingleValues | DISingleValues[]
 
@@ -96,7 +85,7 @@ interface DIBaseHandler {
   notify?: DIHandlerFn
 }
 
-export type ActionName = "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister"
+export type ActionName = keyof DIBaseHandler | "register" | "unregister"
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete" | "notify">
 
 export interface DIResourceSelector {
