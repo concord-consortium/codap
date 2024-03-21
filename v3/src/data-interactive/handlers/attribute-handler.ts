@@ -1,4 +1,3 @@
-import { isArray } from "lodash"
 import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { withoutUndo } from "../../models/history/without-undo"
