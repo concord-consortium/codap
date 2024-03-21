@@ -1434,7 +1434,7 @@ DG.DocumentController = SC.Object.extend(
               // unless the incoming layout is specified with a center or left coordinate. The bug was that
               // the plugin positioning was not being respected. This has been an error-prone area of the code.
               // We are trying to fix the bug without breaking other things. V3 will do better!
-                  useLayout: /*!SC.none(iComponent) ||*/ !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
+                  useLayout: !SC.none(iLayout.centerX) || !SC.none(iLayout.left)
                 }
             );
             this._component = tView.getPath('controller.model');
