@@ -70,6 +70,8 @@ interface IPointTransitionState {
   hasTransitioned: boolean
 }
 
+const caseDataMapKey = ({ plotNum, caseID }: CaseData) => `${plotNum}:${caseID}`
+
 export class PixiPoints {
   renderer: PIXI.Renderer = new PIXI.Renderer({
     resolution: window.devicePixelRatio,
@@ -93,7 +95,7 @@ export class PixiPoints {
   tickerStopTimeoutId: number | undefined
 
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
-  caseDataToPoint: Map<CaseData, PIXI.Sprite> = new Map()
+  caseDataToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
   displayType = "points"
   anchor = circleAnchor
@@ -209,6 +211,18 @@ export class PixiPoints {
     this.startRendering()
   }
 
+  getPointForCaseData(caseData: CaseData) {
+    return this.caseDataToPoint.get(caseDataMapKey(caseData))
+  }
+
+  setPointForCaseData(caseData: CaseData, point: PIXI.Sprite) {
+    this.caseDataToPoint.set(caseDataMapKey(caseData), point)
+  }
+
+  deletePointForCaseData(caseData: CaseData) {
+    this.caseDataToPoint.delete(caseDataMapKey(caseData))
+  }
+
   // This method should be used instead of directly setting the position of the point sprite, as it handles transitions.
   setPointPosition(point: PIXI.Sprite, x: number, y: number) {
     this.setPointXyProperty("position", point, x, y)
@@ -226,7 +240,7 @@ export class PixiPoints {
 
   // This method adjusts a point sprite's width and height without modifying the texture it uses. It's intended for
   // use during transitions between display types (i.e. points to bars, and vice versa) before applying a new texture
-  // that's defined with the desired width and height. It should not be used to adjust the scale of a point sprite 
+  // that's defined with the desired width and height. It should not be used to adjust the scale of a point sprite
   // before or after a transition as it could distort the sprite's appearance. To adjust the scale of a point sprite,
   // use `setPointScale` instead.
   setPointDimensionsForTransition(point: PIXI.Sprite, newWidth: number, newHeight: number) {
@@ -286,11 +300,11 @@ export class PixiPoints {
 
     if (!isBar && !isPoint) return
 
-    // Subtract 1 from the width and height to ensure bars don't touch during transition. If they touch, 
+    // Subtract 1 from the width and height to ensure bars don't touch during transition. If they touch,
     // they look more like a single mass than individual bars.
     const newWidth = isBar ? width - 1 : radius * 2
     const newHeight = isBar ? height - 1 : radius * 2
-  
+
     // Transition the point sprite's dimensions to the desired width and height by adjusting its scale while
     // also moving the point sprite to the specified location.
     await this.transition(() => {
@@ -298,8 +312,8 @@ export class PixiPoints {
       this.setPointDimensionsForTransition(point, newWidth, newHeight)
       this.setPointPosition(point, x, y)
     }, { duration: transitionDuration })
-  
-    // Once the transition is complete, use the given style to create a new texture (or get a matching texture 
+
+    // Once the transition is complete, use the given style to create a new texture (or get a matching texture
     // if one already exists in the cache) and apply that texture to the point sprite. In the case of bars, the
     // texture will include the unique width and height for the bar.
     this.pointTransitionStates.set(point, { hasTransitioned: true })
@@ -339,10 +353,6 @@ export class PixiPoints {
     }
 
     this.startRendering()
-  }
-
-  getPointByCaseId(aCaseData: CaseData) {
-    return this.caseDataToPoint.get(aCaseData) as PIXI.Sprite
   }
 
   transition(callback: () => void, options: { duration: number }) {
@@ -412,7 +422,7 @@ export class PixiPoints {
       // sprites up to `MAX_SPRITE_SCALE` without losing sharpness.
       resolution: devicePixelRatio * MAX_SPRITE_SCALE,
     })
-  
+
     this.textures.set(key, texture)
     return texture
   }
@@ -647,10 +657,10 @@ export class PixiPoints {
         // Note that .destroy() call will also remove the point from the stage children array, so we don't have to
         // do that manually (e.g. using .removeChild()).
         point.destroy()
-        this.caseDataToPoint.delete(pointCaseData)
+        this.deletePointForCaseData(pointCaseData)
       } else {
         currentCaseDataSet.add(pointCaseData)
-        this.caseDataToPoint.set(pointCaseData, point)
+        this.setPointForCaseData(pointCaseData, point)
       }
     }
 
@@ -664,7 +674,7 @@ export class PixiPoints {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
         this.pointMetadata.set(sprite, { caseID: caseDataItem.caseID, plotNum: caseDataItem.plotNum, style })
-        this.caseDataToPoint.set(caseDataItem, sprite)
+        this.setPointForCaseData(caseDataItem, sprite)
       }
     }
 
