@@ -5,11 +5,9 @@ import throttle from "lodash/throttle"
 import {useResizeDetector} from "react-resize-detector"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import pluralize from "pluralize"
 import { uniqueName } from "../../utilities/js-utils"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
@@ -19,13 +17,11 @@ export const CollectionTitle = observer(function CollectionTitle() {
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const { isTileSelected } = useTileModelContext()
-  const { setTitle, displayTitle } = collection || {}
-  const defaultName = collection ? pluralize((getCollectionAttrs(collection, data)[0]?.name) ?? "") : ""
+  const { setTitle, title } = collection || {}
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const titleRef = useRef<HTMLDivElement>(null)
-  const title = displayTitle || defaultName
   // used to trigger a render
   const [ , setTableScrollLeft] = useState(0)
   const { active } = useDndContext()
@@ -79,7 +75,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
   }
 
   const handleAddNewAttribute = () => {
-    const newAttrName = uniqueName("newAttr",
+    const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
       (aName: string) => !data?.attributes.find(attr => aName === attr.name)
      )
     data?.addAttribute({ name: newAttrName }, { collection: collectionId })

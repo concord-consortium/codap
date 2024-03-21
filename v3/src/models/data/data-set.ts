@@ -43,7 +43,8 @@
  */
 
 import { observable, reaction, runInAction } from "mobx"
-import { addDisposer, addMiddleware, getEnv, Instance, isAlive, types } from "mobx-state-tree"
+import { addDisposer, addMiddleware, getEnv, Instance, isAlive, SnapshotIn, types } from "mobx-state-tree"
+import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
@@ -62,6 +63,7 @@ import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
+import { V2Model } from "./v2-model"
 
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
@@ -134,10 +136,9 @@ export interface CollectionGroup {
   groupsMap: Record<string, CaseGroup>
 }
 
-export const DataSet = types.model("DataSet", {
+export const DataSet = V2Model.named("DataSet").props({
   id: types.optional(types.identifier, () => typedId("DATA")),
   sourceID: types.maybe(types.string),
-  name: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
   collections: types.array(CollectionModel),
   // ungrouped (child-most) collection has properties, but no grouping attributes
@@ -472,6 +473,9 @@ export const DataSet = types.model("DataSet", {
       invalidateCollectionGroups() {
         isValidCollectionGroups.set(false)
       },
+      setUngroupedCollection(collection: ICollectionPropsModel) {
+        self.ungrouped = collection
+      },
       addCollection(collection: ICollectionModel, beforeCollectionId?: string) {
         const beforeIndex = beforeCollectionId ? getCollectionIndex(beforeCollectionId) : -1
         if (beforeIndex >= 0) {
@@ -529,10 +533,14 @@ export const DataSet = types.model("DataSet", {
       },
       // if beforeCollectionId is not specified, new collection is last (child-most)
       moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
-        const collection = CollectionModel.create()
-        this.addCollection(collection, beforeCollectionId)
-        this.setCollectionForAttribute(attributeId, { collection: collection.id })
-        return collection
+        const attribute = self.getAttribute(attributeId)
+        if (attribute) {
+          const name = pluralize(attribute.name)
+          const collection = CollectionModel.create({ name })
+          this.addCollection(collection, beforeCollectionId)
+          this.setCollectionForAttribute(attributeId, { collection: collection.id })
+          return collection
+        }
       }
     }
   }
@@ -1040,3 +1048,4 @@ export const DataSet = types.model("DataSet", {
 .actions(applyUndoableAction)
 
 export interface IDataSet extends Instance<typeof DataSet> {}
+export interface IDataSetSnapshot extends SnapshotIn<typeof DataSet> {}

@@ -6,14 +6,16 @@ import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
-import { getFormulaManager, getTileEnvironment } from "../tiles/tile-environment"
+import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
-import { DataSet, IDataSet, toCanonical } from "../data/data-set"
+import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyUndoableAction } from "../history/apply-undoable-action"
+import { SharedCaseMetadata } from "../shared/shared-case-metadata"
+import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 
@@ -92,6 +94,28 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
+    createDataSet(snapshot?: IDataSetSnapshot, providerId?: string) {
+      const sharedModelManager = getSharedModelManager(self)
+      // DataSets must have unique names
+      const baseDataSetName = snapshot?.name || t("DG.AppController.createDataSet.name")
+      const baseCollectionName = snapshot?.ungrouped?.name || t("DG.AppController.createDataSet.collectionName")
+      const ungrouped = { name: baseCollectionName, ...snapshot?.ungrouped }
+      let name = baseDataSetName
+      const existingNames = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+                              .map((sharedModel: ISharedDataSet) => sharedModel.dataSet.name) ?? []
+      for (let i = 2; existingNames.includes(name); ++i) {
+        name = `${baseDataSetName} ${i}`
+      }
+      const dataSet: IDataSetSnapshot = { ...snapshot, name, ungrouped }
+      const sharedDataSet = SharedDataSet.create({ providerId, dataSet })
+      sharedModelManager?.addSharedModel(sharedDataSet)
+
+      const caseMetadata = SharedCaseMetadata.create()
+      sharedModelManager?.addSharedModel(caseMetadata)
+      caseMetadata.setData(sharedDataSet.dataSet)
+
+      return { sharedDataSet, caseMetadata }
+    },
     createTile(tileType: string, options?: INewTileOptions): ITileModel | undefined {
       const componentInfo = getTileComponentInfo(tileType)
       if (!componentInfo) return

@@ -22,15 +22,15 @@ describe("CollectionModel", () => {
 
   it("Simple properties work as expected", () => {
     const withName = CollectionPropsModel.create({ name: "name" })
-    expect(withName.displayTitle).toBe("name")
-    withName.setName("newName")
-    expect(withName.displayTitle).toBe("newName")
+    expect(withName.title).toBe("name")
+    withName.setTitle("newName")
+    expect(withName.title).toBe("newName")
     expect(isCollectionModel(withName)).toBe(false)
 
-    const withNameAndTitle = CollectionPropsModel.create({ name: "name", title: "title" })
-    expect(withNameAndTitle.displayTitle).toBe("title")
+    const withNameAndTitle = CollectionPropsModel.create({ name: "name", _title: "title" })
+    expect(withNameAndTitle.title).toBe("title")
     withNameAndTitle.setTitle("newTitle")
-    expect(withNameAndTitle.displayTitle).toBe("newTitle")
+    expect(withNameAndTitle.title).toBe("newTitle")
     expect(isCollectionModel(withNameAndTitle)).toBe(false)
   })
 
@@ -47,6 +47,7 @@ describe("CollectionModel", () => {
     expect(collection.attributes.length).toBe(0)
     expect(collection.getAttribute("a")).toBeUndefined()
     expect(collection.getAttributeIndex("a")).toBe(-1)
+    expect(collection.getAttributeByName("a")).toBeUndefined()
     // removing a non-existent attribute is a no-op
     collection.removeAttribute("a")
     expect(collection.attributes.length).toBe(0)
@@ -70,12 +71,15 @@ describe("CollectionModel", () => {
     expect(isAlive(attrA)).toBe(true)
     expect(collection.attributes.length).toBe(1)
     expect(collection.getAttribute("a")).toBe(attrA)
+    expect(collection.getAttributeByName("a")).toBe(attrA)
     expect(collection.getAttributeIndex("a")).toBe(0)
 
     const attrB = Attribute.create({ id: "b", name: "b" })
     tree.addAttribute(attrB)
     collection.addAttribute(attrB, { before: "a" })
     expect(collection.attributes.length).toBe(2)
+    expect(collection.getAttributeByName("a")).toBe(attrA)
+    expect(collection.getAttributeByName("b")).toBe(attrB)
     expect(collection.getAttributeIndex("b")).toBe(0)
     expect(collection.getAttributeIndex("a")).toBe(1)
 
