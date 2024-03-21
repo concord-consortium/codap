@@ -17,6 +17,7 @@ import { DEBUG_UNDO } from "../../lib/debug"
 import { IDocumentModel } from "../../models/document/document"
 import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
+import { PluginsButton } from "./plugins-button"
 
 import "./tool-shelf.scss"
 
@@ -133,18 +134,21 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   return (
     <Flex className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
       <Flex className="tool-shelf-component-buttons">
-        {entries.map((entry, idx) => {
-          if (!entry) return null
-          const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = entry
-          const label = t(labelKey)
-          const hint = t(hintKey)
-          return (
-            ButtonComponent
-              ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
-                    onClick={handleTileButtonClick}/>
-              : null
-          )
-        })}
+        {[
+          ...entries.map((entry, idx) => {
+            if (!entry) return null
+            const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = entry
+            const label = t(labelKey)
+            const hint = t(hintKey)
+            return (
+              ButtonComponent
+                ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
+                      onClick={handleTileButtonClick}/>
+                : null
+            )
+          }),
+          <PluginsButton key="plugins-99" />
+        ]}
       </Flex>
       <Spacer/>
       <Flex className="tool-shelf-right-buttons">
