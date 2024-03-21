@@ -93,7 +93,7 @@ export class PixiPoints {
   tickerStopTimeoutId: number | undefined
 
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
-  caseIDToPoint: Map<string, PIXI.Sprite> = new Map()
+  caseDataToPoint: Map<CaseData, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
   displayType = "points"
   anchor = circleAnchor
@@ -341,8 +341,8 @@ export class PixiPoints {
     this.startRendering()
   }
 
-  getPointByCaseId(caseId: string) {
-    return this.caseIDToPoint.get(caseId) as PIXI.Sprite
+  getPointByCaseId(aCaseData: CaseData) {
+    return this.caseDataToPoint.get(aCaseData) as PIXI.Sprite
   }
 
   transition(callback: () => void, options: { duration: number }) {
@@ -636,20 +636,21 @@ export class PixiPoints {
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
     // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
     // probably better.
-    const newIDs = new Set(caseData.map(data => data.caseID))
-    const currentIDs = new Set<string>()
+    const newCaseDataSet = new Set(caseData)
+    const currentCaseDataSet = new Set<CaseData>()
     for (let i = this.points.length - 1; i >= 0; i--) {
       const point = this.points[i]
-      const { caseID } = this.getMetadata(point)
-      if (!newIDs.has(caseID)) {
+      const pointMetaData = this.getMetadata(point)
+      const pointCaseData = { caseID: pointMetaData.caseID, plotNum: pointMetaData.plotNum }
+      if (!newCaseDataSet.has(pointCaseData)) {
         this.pointMetadata.delete(point)
         // Note that .destroy() call will also remove the point from the stage children array, so we don't have to
         // do that manually (e.g. using .removeChild()).
         point.destroy()
-        this.caseIDToPoint.delete(caseID)
+        this.caseDataToPoint.delete(pointCaseData)
       } else {
-        currentIDs.add(caseID)
-        this.caseIDToPoint.set(caseID, point)
+        currentCaseDataSet.add(pointCaseData)
+        this.caseDataToPoint.set(pointCaseData, point)
       }
     }
 
@@ -658,12 +659,12 @@ export class PixiPoints {
 
     // Now, add points that are in the new data but not in the old data.
     for (let i = 0; i < caseData.length; i++) {
-      const { caseID, plotNum } = caseData[i]
-      if (!currentIDs.has(caseID)) {
+      const caseDataItem = caseData[i]
+      if (!currentCaseDataSet.has(caseDataItem)) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { caseID, plotNum, style })
-        this.caseIDToPoint.set(caseID, sprite)
+        this.pointMetadata.set(sprite, { caseID: caseDataItem.caseID, plotNum: caseDataItem.plotNum, style })
+        this.caseDataToPoint.set(caseDataItem, sprite)
       }
     }
 

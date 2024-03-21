@@ -364,7 +364,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       const y = yScaleRef.current &&
         getScreenCoord(dataset, caseId, secondaryAttrIDsRef.current[aCaseData.plotNum], yScaleRef.current)
       if (x != null && isFinite(x) && y != null && isFinite(y)) {
-        const point = pixiPoints.getPointByCaseId(caseId)
+        const point = pixiPoints.getPointByCaseId(aCaseData)
         pixiPoints.setPointPosition(point, x, y)
       }
     }
