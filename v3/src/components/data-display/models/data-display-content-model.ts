@@ -17,7 +17,6 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import { PointDisplayTypes } from "../data-display-types"
 import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
-import { MultiScale } from "../../axis/models/multi-scale"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
@@ -38,7 +37,7 @@ export const DataDisplayContentModel = TileContentModel
     hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
       return isNumericAxisModel(axisModel) && self.pointDisplayType !== "bins"
     },
-    nonDraggableAxisTicks(multiScale?: MultiScale): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       // derived models should override
       return {tickValues: [], tickLabels: []}
     },

@@ -35,8 +35,9 @@ const getTicks = (props: IGetTicksProps) => {
   if (!isScaleLinear(d3Scale)) return []
 
   let ticks: string[] = []
-  if (pointDisplayType === "bins" && displayModel) {
-    const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(multiScale)
+  if (pointDisplayType === "bins" && displayModel && multiScale) {
+    const formatter = (value: number) => multiScale.formatValueForScale(value)
+    const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
     ticks = tickValues.map((tickValue, i) => {
       return tickLabels[i]
     })

@@ -207,8 +207,8 @@ context("Graph UI", () => {
     cy.get("[data-testid=graph-bin-alignment-setting]").find("input").type("{enter}")
     cy.dragAttributeToTarget("table", "Speed", "bottom")
     graph.getDisplayConfigButton().click()
-    cy.get("[data-testid=graph-bin-width-setting]").find("input").should("exist").should("have.value", "20")
-    cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("exist").should("have.value", "0")
+    cy.get("[data-testid=graph-bin-width-setting]").find("input").should("have.value", "20")
+    cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("have.value", "0")
   })
   it("allows user to change bin width and alignment values by dragging the bin boundary lines", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
@@ -221,15 +221,21 @@ context("Graph UI", () => {
     // focus on the plot area
     cy.get("[data-testid=bin-ticks-graph-1]").click()
     cy.window().then((win: Window) => {
-      cy.get("[data-testid=bin-ticks-graph-1]").find("path").eq(3)
+      cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").eq(2)
         .trigger("mousedown", { which: 1, force: true, view: win })
-      cy.get("[data-testid=bin-ticks-graph-1]").find("path").eq(3)
+      cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").eq(2)
         .trigger("mousemove", 20, 0, { force: true })
-      cy.get("[data-testid=bin-ticks-graph-1]").find("path").eq(3)
+      cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").eq(2)
         .trigger("mouseup", { force: true, view: win })
     })
     graph.getDisplayConfigButton().click()
-    cy.get("[data-testid=graph-bin-width-setting]").find("input").should("exist").should("have.value", "2.75")
-    cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("exist").should("have.value", "4")
+    cy.get("[data-testid=graph-bin-width-setting]").find("input").invoke("val").then((valueStr: string) => {
+      const valueNum = parseFloat(valueStr)
+      expect(valueNum).to.be.closeTo(2.75, 0.25)
+    })
+    cy.get("[data-testid=graph-bin-alignment-setting]").find("input").invoke("val").then((valueStr: string) => {
+      const valueNum = parseFloat(valueStr)
+      expect(valueNum).to.be.closeTo(4, 0.1)
+    })
   })
 })

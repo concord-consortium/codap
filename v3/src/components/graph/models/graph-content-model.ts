@@ -30,7 +30,6 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel} fro
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
-import { MultiScale } from "../../axis/models/multi-scale"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -220,7 +219,7 @@ export const GraphContentModel = DataDisplayContentModel
       return computePointRadius(self.dataConfiguration.caseDataArray.length,
         self.pointDescription.pointSizeMultiplier, use)
     },
-    nonDraggableAxisTicks(multiScale?: MultiScale): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
       const currentBinAlignment = self.binAlignment
@@ -231,11 +230,11 @@ export const GraphContentModel = DataDisplayContentModel
       let binCount = 0
 
       while (binCount < totalNumberOfBins) {
-        const formattedCurrentStart = multiScale
-          ? multiScale.formatValueForScale(currentStart)
+        const formattedCurrentStart = formatter
+          ? formatter(currentStart)
           : currentStart
-        const formattedCurrentEnd = multiScale
-          ? multiScale.formatValueForScale(currentStart + currentBinWidth)
+        const formattedCurrentEnd = formatter
+          ? formatter(currentStart + currentBinWidth)
           : currentStart + currentBinWidth
         tickValues.push(currentStart + (currentBinWidth / 2))
         tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
