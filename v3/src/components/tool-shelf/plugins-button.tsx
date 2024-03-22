@@ -24,18 +24,14 @@ interface PluginData {
   width: number
 }
 
-export function PluginsButton() {
+interface IPluginSelectionProps {
+  pluginData: PluginData
+}
+function PluginSelection({ pluginData }: IPluginSelectionProps) {
   const documentContent = useDocumentContent()
-  const [pluginData, setPluginData] = useState<PluginData[]>([])
 
-  useEffect(() => {
-    fetch(pluginDataUrl)
-      .then(response => response.json())
-      .then(json => setPluginData(json))
-  }, [])
-
-  function handlePluginSelectionClick(pd: PluginData) {
-    const url = `${rootPluginUrl}${pd.path}`
+  function handleClick() {
+    const url = `${rootPluginUrl}${pluginData.path}`
     documentContent?.applyUndoableAction(() => {
       // TODO v2 eliminates the undo history when you add a plugin
       const tile = documentContent?.createOrShowTile?.(kWebViewTileType)
@@ -43,6 +39,26 @@ export function PluginsButton() {
       // TODO Set the tile's height and width
     }, "", "")
   }
+
+  return (
+    <MenuItem
+      data-testid="tool-shelf-plugins-option"
+      onClick={handleClick}
+    >
+      <img src={`${rootPluginUrl}${pluginData.icon}`} />
+      {pluginData.title}
+    </MenuItem>
+  )
+}
+
+export function PluginsButton() {
+  const [pluginData, setPluginData] = useState<PluginData[]>([])
+
+  useEffect(() => {
+    fetch(pluginDataUrl)
+      .then(response => response.json())
+      .then(json => setPluginData(json))
+  }, [])
 
   return (
     <Menu isLazy>
@@ -55,16 +71,7 @@ export function PluginsButton() {
         <Tag className="tool-shelf-tool-label">{t("DG.ToolButtonData.pluginMenu.title")}</Tag>
       </MenuButton>
       <MenuList>
-        {pluginData.map(pd => (
-          <MenuItem
-            data-testid="tool-shelf-plugins-option"
-            key={pd.title}
-            onClick={() => handlePluginSelectionClick(pd)}
-          >
-            <img src={`${rootPluginUrl}${pd.icon}`} />
-            {pd.title}
-          </MenuItem>
-        ))}
+        {pluginData.map(pd => <PluginSelection key={pd.title} pluginData={pd} />)}
       </MenuList>
     </Menu>
   )
