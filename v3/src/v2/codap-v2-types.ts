@@ -15,7 +15,8 @@ export interface ICodapV2Attribute {
   colormap?: any
   _colormap?: any
   blockDisplayOfEmptyCategories?: boolean
-  editable: boolean | boolean[]
+  // plugin bugs have led to documents in the field with values like `[true]`
+  editable: boolean | unknown
   hidden: boolean
   renameable?: boolean
   deleteable?: boolean
