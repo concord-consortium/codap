@@ -106,7 +106,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   const handleDragBinBoundary = useCallback((event: MouseEvent) => {
     if (!dataConfig) return
     const dragValue = primaryIsBottom ? event.x : event.y
-    const screenBinWidth = Math.max(kMinBinScreenWidth, dragValue - lowerBoundaryRef.current)
+    const screenBinWidth = Math.max(kMinBinScreenWidth, Math.abs(dragValue - lowerBoundaryRef.current))
     const worldBinWidth = screenWidthToWorldWidth(primaryAxisScaleCopy.current, screenBinWidth)
     graphModel.setDynamicBinWidth(worldBinWidth)
   }, [dataConfig, graphModel, primaryIsBottom])
