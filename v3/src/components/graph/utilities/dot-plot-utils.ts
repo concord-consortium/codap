@@ -198,7 +198,7 @@ export const determineBinForCase = (caseValue: number, binWidth: number, minBinE
  */
 export const calculatePointStacking = (pointCount: number, pointDiameter: number, cellSize: number) => {
   let numberOfStacks = 1
-  const maxPointsPerStack = Math.floor(cellSize / pointDiameter)
+  const maxPointsPerStack = Math.max(Math.floor(cellSize / pointDiameter), 1)
   while (maxPointsPerStack < pointCount && pointCount > numberOfStacks * maxPointsPerStack) {
     numberOfStacks++
   }
