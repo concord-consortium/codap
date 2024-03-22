@@ -39,8 +39,8 @@ export const kDataConfigurationType = "dataConfigurationType"
 export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
     id: types.optional(types.identifier, () => typedId("DCON")),
-    // keys are GraphAttrRoles, excluding y role
     type: types.optional(types.string, kDataConfigurationType),
+    // keys are GraphAttrRoles, excluding y role
     _attributeDescriptions: types.map(AttributeDescription),
     dataset: types.safeReference(DataSet),
     metadata: types.safeReference(SharedCaseMetadata),
@@ -58,7 +58,7 @@ export const DataConfigurationModel = types
       return self._attributeDescriptions.size === 0
     },
     get attributeDescriptions() {
-      return {...getSnapshot(self._attributeDescriptions)}
+      return getSnapshot(self._attributeDescriptions) as Record<AttrRole, IAttributeDescriptionSnapshot>
     },
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
@@ -143,10 +143,10 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
-    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
-      // If the case is hidden we don't plot it
-      if (self.hiddenCasesSet.has(caseID)) return false
-      const descriptions = {...self.attributeDescriptions}
+  }))
+  .views(self => ({
+    _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
+                                       descriptions: Record<string, {attributeID:string}>) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
@@ -158,6 +158,17 @@ export const DataConfigurationModel = types
             return !!data.getValue(caseID, attributeID)
         }
       })
+    },
+    // This function can be called either here in this base class or in a subclass to handle the situation in which
+    // caseArrayNumber === 0.
+    _filterCase(data: IDataSet, caseID: string) {
+      // If the case is hidden we don't plot it
+      if (self.hiddenCasesSet.has(caseID)) return false
+      const descriptions = {...self.attributeDescriptions}
+      return this._caseHasValidValuesForDescriptions(data, caseID, descriptions)
+    },
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
+      return this._filterCase(data, caseID)
     }
   }))
   .views(self => ({

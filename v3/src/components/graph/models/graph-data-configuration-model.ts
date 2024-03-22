@@ -8,7 +8,7 @@ import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
-import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
+import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 
@@ -62,12 +62,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      * The rightNumeric attribute description is also not returned.
      */
     get attributeDescriptions() {
-      const descriptions = {...getSnapshot(self._attributeDescriptions)}
+      const descriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> =
+        {...getSnapshot(self._attributeDescriptions)}
       delete descriptions.rightNumeric
       if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
       }
-      return descriptions
+      return descriptions as Record<AttrRole, IAttributeDescriptionSnapshot>
     },
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
@@ -141,6 +142,30 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._attributeDescriptions.delete(iRole)
       }
+    }
+  }))
+  .views(self => ({
+    /**
+     * We override the base implementation to handle the case where there are multiple y-attributes. We only have
+     * to do this when caseArrayNumber is not zero; i.e. when the plot has multiple y-attributes.
+     */
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
+      // If the case is hidden we don't plot it
+      if (self.hiddenCasesSet.has(caseID)) return false
+      if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
+        return self._filterCase(data, caseID)
+      }
+      const descriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {...self.attributeDescriptions}
+      // If a 'rightNumeric' attribute exists and caseArrayNumber is >= the length of _yAttributeDescriptions, then
+      // we are looking at the rightNumeric attribute. Delete the y attribute description and add the rightNumeric one.
+      // Otherwise, replace the y attribute description with the one at the given index.
+      if (caseArrayNumber >= self._yAttributeDescriptions.length) {
+        delete descriptions.y
+        descriptions.rightNumeric = self.attributeDescriptionForRole('rightNumeric')
+      } else {
+        descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
+      }
+      return self._caseHasValidValuesForDescriptions(data, caseID, descriptions)
     }
   }))
   .views(self => ({
@@ -553,6 +578,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (index >= 0) {
         self._yAttributeDescriptions.splice(index, 1)
         self.filteredCases?.splice(index, 1)
+        self.filteredCases?.forEach((aFilteredCases, casesArrayNumber) => {
+          aFilteredCases.setCasesArrayNumber(casesArrayNumber)
+        })
         self.setPointsNeedUpdating(true)
       }
     },
