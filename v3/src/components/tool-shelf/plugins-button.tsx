@@ -59,9 +59,13 @@ export function PluginsButton() {
   const [pluginData, setPluginData] = useState<PluginData[]>([])
 
   useEffect(() => {
-    fetch(pluginDataUrl)
-      .then(response => response.json())
-      .then(json => setPluginData(json))
+    try {
+      fetch(pluginDataUrl)
+        .then(response => response.json())
+        .then(json => setPluginData(json))
+    } catch (error) {
+      console.warn("Unable to load plugin data.", error)
+    }
   }, [])
 
   return (
