@@ -6,6 +6,8 @@ import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { IWebViewModel } from "../web-view/web-view-model"
 
+import "./plugins-button.scss"
+
 const rootPluginUrl = "https://codap-resources.s3.amazonaws.com/plugins"
 const pluginDataUrl = `${rootPluginUrl}/published-plugins.json`
 
@@ -45,8 +47,10 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
       data-testid="tool-shelf-plugins-option"
       onClick={handleClick}
     >
-      <img src={`${rootPluginUrl}${pluginData.icon}`} />
-      {pluginData.title}
+      <div className="plugin-selection">
+        <img className="plugin-selection-icon" src={`${rootPluginUrl}${pluginData.icon}`} />
+        <span className="plugin-selection-title">{pluginData.title}</span>
+      </div>
     </MenuItem>
   )
 }
