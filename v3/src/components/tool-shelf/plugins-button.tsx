@@ -36,9 +36,9 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
     const url = `${rootPluginUrl}${pluginData.path}`
     documentContent?.applyUndoableAction(() => {
       // TODO v2 eliminates the undo history when you add a plugin
-      const tile = documentContent?.createOrShowTile?.(kWebViewTileType)
+      const options = { height: pluginData.height, width: pluginData.width }
+      const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
       if (tile) (tile.content as IWebViewModel).setUrl(url)
-      // TODO Set the tile's height and width
     }, "", "")
   }
 
