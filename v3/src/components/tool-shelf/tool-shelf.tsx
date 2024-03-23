@@ -105,9 +105,9 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   }
 
   const keys = getTileComponentKeys()
-  const entries = keys.map(key => getTileComponentInfo(key))
-                      .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
-  entries.sort((a, b) => a.shelf.position - b.shelf.position)
+  const tileComponentInfo = keys.map(key => getTileComponentInfo(key))
+    .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
+  tileComponentInfo.sort((a, b) => a.shelf.position - b.shelf.position)
 
   function handleTileButtonClick(tileType: string) {
     const undoRedoStringKeysMap: Record<string, [string, string]> = {
@@ -131,24 +131,23 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     }
   }
 
+  const tileButtons = tileComponentInfo.map((info, idx) => {
+    if (!info) return null
+    const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = info
+    const label = t(labelKey)
+    const hint = t(hintKey)
+    return (
+      ButtonComponent
+        ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
+              onClick={handleTileButtonClick}/>
+        : null
+    )
+  })
+
   return (
     <Flex className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
       <Flex className="tool-shelf-component-buttons">
-        {[
-          ...entries.map((entry, idx) => {
-            if (!entry) return null
-            const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = entry
-            const label = t(labelKey)
-            const hint = t(hintKey)
-            return (
-              ButtonComponent
-                ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
-                      onClick={handleTileButtonClick}/>
-                : null
-            )
-          }),
-          <PluginsButton key="plugins-99" />
-        ]}
+        {[...tileButtons, <PluginsButton key="plugins-99" />]}
       </Flex>
       <Spacer/>
       <Flex className="tool-shelf-right-buttons">
