@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
-    Tag, Tooltip, useDisclosure } from "@chakra-ui/react"
+    Tooltip, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { t } from "../../utilities/translation/translate"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"

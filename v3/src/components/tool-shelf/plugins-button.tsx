@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { Menu, MenuButton, MenuItem, MenuList, Tag } from "@chakra-ui/react"
+import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
