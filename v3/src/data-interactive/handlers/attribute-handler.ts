@@ -53,7 +53,7 @@ function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSn
       description: values.description ?? undefined,
       // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
       // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
-      editable: !!values.editable,
+      editable: values.editable == null || !!values.editable,
       // hidden is part of metadata, not the attribute model
       // renameable: values.renameable, // TODO renameable not part of IAttribute yet
       // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
