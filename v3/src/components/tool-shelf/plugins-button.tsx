@@ -33,13 +33,16 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
   const documentContent = useDocumentContent()
 
   function handleClick() {
-    const url = `${rootPluginUrl}${pluginData.path}`
-    documentContent?.applyUndoableAction(() => {
-      // TODO v2 eliminates the undo history when you add a plugin
-      const options = { height: pluginData.height, width: pluginData.width }
-      const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
-      if (tile) (tile.content as IWebViewModel).setUrl(url)
-    }, "", "")
+    documentContent?.applyUndoableAction(
+      () => {
+        const url = `${rootPluginUrl}${pluginData.path}`
+        const options = { height: pluginData.height, width: pluginData.width }
+        const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
+        if (tile) (tile.content as IWebViewModel).setUrl(url)
+      },
+      t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
+      t("V3.Redo.plugin.create", { vars: [pluginData.title] })
+    )
   }
 
   return (
