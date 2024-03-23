@@ -18,6 +18,7 @@ import { uiState } from "../../models/ui-state"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 import AlertIcon from "../../assets/icons/icon-alert.svg"
+import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 
 import "../tool-shelf/tool-shelf.scss"
 
@@ -121,10 +122,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 export const CaseTableToolShelfButton = () => {
   return (
     <Menu isLazy>
-      <MenuButton className="tool-shelf-button menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
+      <MenuButton className="tool-shelf-button table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon />
-        <Tag className='tool-shelf-tool-label table'>{t("DG.ToolButtonData.tableButton.title")}</Tag>
+        <ToolShelfButtonTag className="table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
       <CaseTableToolShelfMenuList />
     </Menu>

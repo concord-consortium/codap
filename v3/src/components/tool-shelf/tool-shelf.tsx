@@ -2,7 +2,6 @@ import {Flex, Spacer, useToast} from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
-import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
@@ -18,6 +17,7 @@ import { IDocumentModel } from "../../models/document/document"
 import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
 import { PluginsButton } from "./plugins-button"
+import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 
 import "./tool-shelf.scss"
 
@@ -157,7 +157,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
             button
               ? button
               : <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
-                    disabled={entry.isDisabled?.()} background="#ececec"
+                    disabled={entry.isDisabled?.()} background={kRightButtonBackground}
                     onClick={() => handleRightButtonClick(entry)} />
           )
         })}

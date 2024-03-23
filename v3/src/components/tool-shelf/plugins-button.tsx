@@ -5,6 +5,7 @@ import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { IWebViewModel } from "../web-view/web-view-model"
+import { ToolShelfButtonTag } from "./tool-shelf-button"
 
 import "./plugins-button.scss"
 
@@ -74,12 +75,12 @@ export function PluginsButton() {
   return (
     <Menu isLazy>
       <MenuButton
-        className="tool-shelf-button menu plugins"
+        className="tool-shelf-button plugins"
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
       >
         <PluginsIcon />
-        <Tag className="tool-shelf-tool-label">{t("DG.ToolButtonData.pluginMenu.title")}</Tag>
+        <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
       </MenuButton>
       <MenuList>
         {pluginData.map(pd => <PluginSelection key={pd.title} pluginData={pd} />)}
