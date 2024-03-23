@@ -566,7 +566,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (isNewAttribute) {
         self._addNewFilteredCases()
       } else if (isEmpty) {
-        self.filteredCases?.pop() // remove the last one because it is the array
+        self.filteredCases?.pop()?.destroy() // remove and destroy the one for the y2 plot
         self.setPointsNeedUpdating(true)
       } else {
         const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
@@ -577,7 +577,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
       if (index >= 0) {
         self._yAttributeDescriptions.splice(index, 1)
+        // remove and destroy the filtered cases for the y attribute
         self.filteredCases?.splice(index, 1)
+          .forEach(aFilteredCases => aFilteredCases.destroy())
         self.filteredCases?.forEach((aFilteredCases, casesArrayNumber) => {
           aFilteredCases.setCasesArrayNumber(casesArrayNumber)
         })
