@@ -143,8 +143,6 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
-  }))
-  .views(self => ({
     _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
                                        descriptions: Record<string, {attributeID:string}>) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
@@ -167,8 +165,10 @@ export const DataConfigurationModel = types
       const descriptions = {...self.attributeDescriptions}
       return this._caseHasValidValuesForDescriptions(data, caseID, descriptions)
     },
+  }))
+  .views(self => ({
     filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
-      return this._filterCase(data, caseID)
+      return self._filterCase(data, caseID)
     }
   }))
   .views(self => ({
