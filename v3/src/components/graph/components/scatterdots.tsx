@@ -69,7 +69,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
 
-  const onDragStart = useCallback((event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+  const onDragStart = useCallback((event: PointerEvent, _point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
     dataset?.beginCaching()
     secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
     stopAnimation() // We don't want to animate points until end of drag
@@ -228,7 +228,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       // attributes or the presence of a parent attribute and the number of unique values for that attribute. If there
       // are multiple Y attributes, the number of groups matches the number of Y attributes. Otherwise, if there's a
       // parent attribute, the number of groups matches the number of unique values for that attribute. If there's only
-      // one Y attribute and no parent attribute, then there's a only single group. The code below builds lists of
+      // one Y attribute and no parent attribute, then there's only a single group. The code below builds lists of
       // connecting lines and case IDs for each group.
       const lineGroups: Record<string, IConnectingLineDescription[]> = {}
       const allLineCaseIds: Record<string, string[]> = {}
@@ -357,7 +357,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     }
     const xAttrID = dataConfiguration?.attributeID('x') ?? '',
       {joinedCaseDataArrays, selection} = dataConfiguration || {},
-      primaryAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
+      primaryAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>,
+      numberOfPlots = dataConfiguration?.numberOfPlots || 1
     const updateDot = (aCaseData: CaseData) => {
       const caseId = aCaseData.caseID
       const x = primaryAxisScale && getScreenCoord(dataset, caseId, xAttrID, primaryAxisScale)
@@ -369,7 +370,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       }
     }
     if (selectedOnly) {
-      selection?.forEach(caseId => updateDot({plotNum: 0, caseID: caseId}))
+      selection?.forEach(caseId => {
+        for (let plotNum = 0; plotNum < numberOfPlots; plotNum++) {
+          updateDot({plotNum, caseID: caseId})
+        }
+      })
     } else {
       joinedCaseDataArrays?.forEach((aCaseData) => updateDot(aCaseData))
     }
