@@ -73,6 +73,11 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       rpcEndpoint.call({message: "codap-present"} as any,
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       webViewModel?.setDataInteractiveController(rpcEndpoint)
+      
+      return () => {
+        rpcEndpoint.disconnect()
+        phone.disconnect()
+      }
     }
   }, [iframeRef, tile, toast, url, webViewModel])
 }

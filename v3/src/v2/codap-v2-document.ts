@@ -130,11 +130,12 @@ export class CodapV2Document {
     attributes.forEach(v2Attr => {
       const {
         cid, guid, description: v2Description, name = "", title = "", type: v2Type, formula: v2Formula,
-        editable, unit: v2Unit, precision: v2Precision
+        editable: v2Editable, unit: v2Unit, precision: v2Precision
       } = v2Attr
       const description = v2Description ?? undefined
       const userType = v3TypeFromV2TypeString(v2Type)
       const formula = v2Formula ? { display: v2Formula } : undefined
+      const editable = v2Editable == null || !!v2Editable
       const precision = v2Precision ?? undefined
       const units = v2Unit ?? undefined
       this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
