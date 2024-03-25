@@ -2,7 +2,6 @@ import {Flex, Spacer, useToast} from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
-import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-undo-types"
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
@@ -17,6 +16,8 @@ import { DEBUG_UNDO } from "../../lib/debug"
 import { IDocumentModel } from "../../models/document/document"
 import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
+import { PluginsButton } from "./plugins-button"
+import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 
 import "./tool-shelf.scss"
 
@@ -104,9 +105,9 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   }
 
   const keys = getTileComponentKeys()
-  const entries = keys.map(key => getTileComponentInfo(key))
-                      .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
-  entries.sort((a, b) => a.shelf.position - b.shelf.position)
+  const tileComponentInfo = keys.map(key => getTileComponentInfo(key))
+    .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
+  tileComponentInfo.sort((a, b) => a.shelf.position - b.shelf.position)
 
   function handleTileButtonClick(tileType: string) {
     const undoRedoStringKeysMap: Record<string, [string, string]> = {
@@ -130,21 +131,23 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     }
   }
 
+  const tileButtons = tileComponentInfo.map((info, idx) => {
+    if (!info) return null
+    const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = info
+    const label = t(labelKey)
+    const hint = t(hintKey)
+    return (
+      ButtonComponent
+        ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
+              onClick={handleTileButtonClick}/>
+        : null
+    )
+  })
+
   return (
     <Flex className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
       <Flex className="tool-shelf-component-buttons">
-        {entries.map((entry, idx) => {
-          if (!entry) return null
-          const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = entry
-          const label = t(labelKey)
-          const hint = t(hintKey)
-          return (
-            ButtonComponent
-              ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
-                    onClick={handleTileButtonClick}/>
-              : null
-          )
-        })}
+        {[...tileButtons, <PluginsButton key="plugins-99" />]}
       </Flex>
       <Spacer/>
       <Flex className="tool-shelf-right-buttons">
@@ -154,7 +157,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
             button
               ? button
               : <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
-                    disabled={entry.isDisabled?.()} background="#ececec"
+                    disabled={entry.isDisabled?.()} background={kRightButtonBackground}
                     onClick={() => handleRightButtonClick(entry)} />
           )
         })}

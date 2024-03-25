@@ -4,6 +4,17 @@ import React from "react"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { t } from "../../utilities/translation/translate"
 
+export const kRightButtonBackground = "#ececec"
+
+interface IToolShelfButtonTagProps {
+  bg?: string
+  className?: string
+  label: string
+}
+export function ToolShelfButtonTag({ bg = "white", className, label }: IToolShelfButtonTagProps) {
+  return <Tag className={clsx("tool-shelf-tool-label", className)} bg={bg}>{label}</Tag>
+}
+
 export interface IToolShelfButtonProps {
   className?: string
   icon: React.ReactElement
@@ -30,7 +41,7 @@ export const ToolShelfButton = ({
     >
       <>
         {icon}
-        <Tag className='tool-shelf-tool-label' bg={background} >{t(label)}</Tag>
+        <ToolShelfButtonTag bg={background} label={t(label)} />
       </>
     </Box>
   )

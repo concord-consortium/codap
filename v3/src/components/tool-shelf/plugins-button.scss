@@ -1,0 +1,12 @@
+.plugin-selection {
+  display: flex;
+  flex-direction: row;
+
+  .plugin-selection-icon {
+    width: 16px;
+  }
+
+  .plugin-selection-title {
+    margin-left: 13px;
+  }
+}
