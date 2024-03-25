@@ -36,19 +36,22 @@ export const DisplayItemDescriptionModel = types
     get itemStrokeSameAsFill() {
       return self._itemStrokeSameAsFill
     },
+  }))
+  .views(self => ({
     // Convenience methods referring to points, especially for use by graphs
     pointColorAtIndex(plotIndex = 0) {
-      return this.itemColorAtIndex(plotIndex)
+      return self.itemColorAtIndex(plotIndex)
     },
     get pointColor() {
-      return this.itemColor
+      return self.itemColor
     },
     get pointStrokeColor() {
-      return this.itemStrokeColor
+      return self.itemStrokeColor
     },
     get pointStrokeSameAsFill() {
-      return this.itemStrokeSameAsFill
+      return self.itemStrokeSameAsFill
     }
+
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyUndoableAction)

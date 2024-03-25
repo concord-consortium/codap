@@ -1,4 +1,25 @@
 # Changelog
+## Version 3.0.0-pre.1519 - March 22, 2024
+
+### ✨ Features & Improvements:
+- **PT-186957025:** Automation for Undo/Redo: legend
+- **PT-187125519:** When Group into Bins is chosen, the menu changes to allow the user to change bin width and alignment.
+- **PT-187259952:** Respond to get dataContextList requests
+- **PT-181962713:** Map points can be displayed as a grid
+- **PT-187230453:** Respond to attribute create and delete requests
+
+### 🐞 Bug Fixes:
+- **PT-187134147:** V2 map components and graph point properties are not being imported
+- **PT-187128104:** Changes in point size aren't discrete wrt undo/redo
+- **PT-187213848:** CODAP table attribute creation with out-of-range color value displays blank cell
+- **PT-187286536:** Failure to plot multiple y-attributes
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  145913 bytes |                            0.04% |
+|  index.js | 5158753 bytes |                            0.04% |
+
 ## Version 3.0.0-pre.1518 - March 14, 2024
 
 ### Features/Improvements
