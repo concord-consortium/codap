@@ -85,7 +85,7 @@ To deploy a production release:
 5. Create `v3-release-<version>` branch and stage versions.md, package.json and package-lock.json
 6. Run `npm run release-notes 3.0.0-pre.<new-version>` in the `dev-templates/scripts` repo.
 7. Run `npm run build`
-8. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`
+8. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`. In the Terminal from the `v3` folder, the command is `ls -la dist/assets`
 9. Stage CHANGELOG.md, Commit changes, push to GitHub, create PR and merge
 10. Checkout `main` and pull
 11. Make a new version tag using your local git client with the version number in the description (e.g., `git tag -a 3.0.0-pre.1085 -m "version 3.0.0-pre.1085"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.1085`)
