@@ -12,11 +12,12 @@ export const diInteractiveFrameHandler: DIHandler = {
     // TODO: Fix many hard coded values
     const { interactiveFrame } = resources
     if (interactiveFrame) {
+      const freeTileLayout = getFreeTileLayout(interactiveFrame.id)
       const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
       const values: DIInteractiveFrame = {
         dimensions: {
-          width: 600,
-          height: 500
+          width: freeTileLayout?.width,
+          height: freeTileLayout?.height
         },
         externalUndoAvailable: true,
         name: interactiveFrame.title,
