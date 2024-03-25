@@ -57,11 +57,11 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
   const drawBinBoundaries = useCallback(() => {
     if (!dataConfig || !isFiniteNumber(graphModel.binAlignment) || !isFiniteNumber(graphModel.binWidth)) return
-    const { binWidth } = graphModel
+    const { binDetails, binWidth } = graphModel
     const secondaryPlace = primaryIsBottom ? "left" : "bottom"
     const secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>
     const secondaryAxisExtent = Math.abs(secondaryAxisScale.range()[0] - secondaryAxisScale.range()[1])
-    const { minBinEdge, totalNumberOfBins } = dataConfig.binDetails(graphModel.binAlignment, binWidth)
+    const { minBinEdge, totalNumberOfBins } = binDetails(graphModel.binAlignment, binWidth)
     const binBoundariesArea = select(binBoundariesRef.current)
 
     binBoundariesArea.selectAll("path").remove()
@@ -93,11 +93,11 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
   const handleDragBinBoundaryStart = useCallback((event: MouseEvent, binIndex: number) => {
     if (!dataConfig || !isFiniteNumber(graphModel.binAlignment) || !isFiniteNumber(graphModel.binWidth)) return
-    const { binWidth } = graphModel
+    const { binDetails, binWidth } = graphModel
     primaryAxisScaleCopy.current = primaryAxisScale.copy()
     graphModel.setDragBinIndex(binIndex)
 
-    const { minBinEdge } = dataConfig.binDetails(graphModel.binAlignment, binWidth)
+    const { minBinEdge } = binDetails(graphModel.binAlignment, binWidth)
     const newBinAlignment = minBinEdge + binIndex * binWidth
     lowerBoundaryRef.current = primaryAxisScale(newBinAlignment)
     graphModel.setDynamicBinAlignment(newBinAlignment)
@@ -171,8 +171,8 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       extraSecondaryBandwidth = (extraSecondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent),
       secondarySign = primaryIsBottom ? -1 : 1,
       baseCoord = primaryIsBottom ? secondaryMax : 0,
-      { binAlignment, binWidth: initialBinWidth } = graphModel,
-      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = dataConfig.binDetails(binAlignment, initialBinWidth)
+      { binAlignment, binDetails, binWidth: initialBinWidth } = graphModel,
+      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = binDetails(binAlignment, initialBinWidth)
 
     // Set the domain of the primary axis to the extent of the bins
     primaryAxis?.setDomain(minBinEdge, maxBinEdge)
@@ -247,12 +247,20 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
-  // Respond to binAlignment and binWidth changes because the axis may need to be updated.
+  // Respond to binAlignment and binWidth changes.
   useEffect(function respondToGraphBinSettings() {
     return mstReaction(
-      () => [graphModel._binAlignment, graphModel._binWidth, graphModel.binAlignment, graphModel.binWidth],
+      () => [graphModel.binAlignment, graphModel.binWidth],
       () => refreshPointPositions(false),
       {name: "respondToGraphBinSettings", equals: comparer.structural}, graphModel)
+  }, [dataset, graphModel, refreshPointPositions])
+
+  // Respond to _binAlignment and _binWidth changes.
+  useEffect(function respondToDragEnd() {
+    return mstReaction(
+      () => [graphModel._binAlignment, graphModel._binWidth],
+      () => refreshPointPositions(false),
+      {name: "respondToDragEnd", equals: comparer.structural}, graphModel)
   }, [dataset, graphModel, refreshPointPositions])
 
   // Initialize binWidth and binAlignment on the graph model if they haven't been defined yet.
@@ -260,7 +268,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   useEffect(function setInitialBinSettings() {
     if (!dataConfig) return
     if (graphModel.binWidth === undefined || graphModel.binAlignment === undefined) {
-      const { binAlignment, binWidth } = dataConfig.binDetails()
+      const { binAlignment, binWidth } = graphModel.binDetails()
       graphModel.applyUndoableAction(() => {
         withoutUndo()
         graphModel.setBinWidth(binWidth)
