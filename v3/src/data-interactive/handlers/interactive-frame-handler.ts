@@ -1,6 +1,5 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
-import { appState } from "../../models/app-state"
-import { isFreeTileRow } from "../../models/document/free-tile-row"
+import { getFreeTileLayout } from "../../models/document/document-utils"
 import { withoutUndo } from "../../models/history/without-undo"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -45,15 +44,8 @@ export const diInteractiveFrameHandler: DIHandler = {
       withoutUndo()
       if (values?.title) interactiveFrame.setTitle(values.title)
       if (values?.dimensions) {
-        const documentContent = appState.document.content
-        const rowId = documentContent?.findRowIdContainingTile(interactiveFrame.id)
-        if (rowId != null) {
-          const row = documentContent?.getRow(rowId)
-          if (row && isFreeTileRow(row)) {
-            const rtile = row.tiles.get(interactiveFrame.id)
-            rtile?.setSize(values.dimensions.width, values.dimensions.height)
-          }
-        }
+        const freeTileLayout = getFreeTileLayout(interactiveFrame.id)
+        freeTileLayout?.setSize(values.dimensions?.width, values.dimensions?.height)
       }
     }, "", "")
     return { success: true }
