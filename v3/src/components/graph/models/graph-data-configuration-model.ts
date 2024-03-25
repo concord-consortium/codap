@@ -68,7 +68,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
       }
-      return descriptions as Record<AttrRole, IAttributeDescriptionSnapshot>
+      return descriptions
     },
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
@@ -155,7 +155,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
         return self._filterCase(data, caseID)
       }
-      const descriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {...self.attributeDescriptions}
+      const descriptions = {...self.attributeDescriptions}
       // If a 'rightNumeric' attribute exists and caseArrayNumber is >= the length of _yAttributeDescriptions, then
       // we are looking at the rightNumeric attribute. Delete the y attribute description and add the rightNumeric one.
       // Otherwise, replace the y attribute description with the one at the given index.
@@ -440,7 +440,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           maxBinEdge: 0,
           minValue: 0,
           maxValue: 0,
-          totalNumberOfBins: 0 
+          totalNumberOfBins: 0
         }
       }
 
@@ -458,7 +458,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       // to the maximum data value, adding a small constant to ensure the max value is contained.
       const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
       const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
-    
+
       return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
     }
   }))
