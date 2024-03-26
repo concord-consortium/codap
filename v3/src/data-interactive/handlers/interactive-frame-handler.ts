@@ -1,4 +1,5 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
+import { appState } from "../../models/app-state"
 import { withoutUndo } from "../../models/history/without-undo"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -11,12 +12,10 @@ export const diInteractiveFrameHandler: DIHandler = {
     // TODO: Fix many hard coded values
     const { interactiveFrame } = resources
     if (interactiveFrame) {
+      const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
       const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
       const values: DIInteractiveFrame = {
-        dimensions: {
-          width: 600,
-          height: 500
-        },
+        dimensions,
         externalUndoAvailable: true,
         name: interactiveFrame.title,
         preventBringToFront: false,
@@ -42,6 +41,9 @@ export const diInteractiveFrameHandler: DIHandler = {
     interactiveFrame.applyUndoableAction(() => {
       withoutUndo()
       if (values?.title) interactiveFrame.setTitle(values.title)
+      if (values?.dimensions) {
+        appState.document.content?.setTileDimensions(interactiveFrame.id, values.dimensions)
+      }
     }, "", "")
     return { success: true }
   },

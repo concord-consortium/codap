@@ -47,6 +47,10 @@ export const TileRowModel = types
     hasTile(tileId: string) {
       // "derived" models should override
       return false
+    },
+    getTileDimensions(tileId: string) {
+      // "derived" models should override
+      return undefined
     }
   }))
   .actions(self => ({
@@ -73,6 +77,9 @@ export const TileRowModel = types
       return false
     },
     moveTileToTop(tileId: string) {
+      // "derived" models should override
+    },
+    setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
       // "derived" models should override
     }
   }))

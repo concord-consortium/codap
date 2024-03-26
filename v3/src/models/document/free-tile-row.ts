@@ -86,7 +86,7 @@ export const FreeTileRow = TileRowModel
     },
     getNode(tileId: string) {
       return self.tiles.get(tileId)
-    },
+    }
   }))
   .views(self => ({
     // id of last (top) node in list
@@ -102,6 +102,10 @@ export const FreeTileRow = TileRowModel
     },
     hasTile(tileId: string) {
       return self.tiles.has(tileId)
+    },
+    getTileDimensions(tileId: string) {
+      const freeTileLayout = self.getNode(tileId)
+      return { width: freeTileLayout?.width, height: freeTileLayout?.height }
     }
   }))
   .actions(self => ({
@@ -145,6 +149,10 @@ export const FreeTileRow = TileRowModel
         self.order.splice(index, 1)
         self.order.push(tileId)
       }
+    },
+    setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
+      const freeTileLayout = self.getNode(tileId)
+      freeTileLayout?.setSize(dimensions.width, dimensions.height)
     }
   }))
 export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}
