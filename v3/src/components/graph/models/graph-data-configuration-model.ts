@@ -8,7 +8,7 @@ import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
-import {GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
+import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 
@@ -62,7 +62,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      * The rightNumeric attribute description is also not returned.
      */
     get attributeDescriptions() {
-      const descriptions = {...getSnapshot(self._attributeDescriptions)}
+      const descriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> =
+        {...getSnapshot(self._attributeDescriptions)}
       delete descriptions.rightNumeric
       if (self._yAttributeDescriptions.length > 0) {
         descriptions.y = self._yAttributeDescriptions[0]
@@ -141,6 +142,30 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._attributeDescriptions.delete(iRole)
       }
+    }
+  }))
+  .views(self => ({
+    /**
+     * We override the base implementation to handle the case where there are multiple y-attributes. We only have
+     * to do this when caseArrayNumber is not zero; i.e. when the plot has multiple y-attributes.
+     */
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
+      // If the case is hidden we don't plot it
+      if (self.hiddenCasesSet.has(caseID)) return false
+      if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
+        return self._filterCase(data, caseID)
+      }
+      const descriptions = {...self.attributeDescriptions}
+      // If a 'rightNumeric' attribute exists and caseArrayNumber is >= the length of _yAttributeDescriptions, then
+      // we are looking at the rightNumeric attribute. Delete the y attribute description and add the rightNumeric one.
+      // Otherwise, replace the y attribute description with the one at the given index.
+      if (caseArrayNumber >= self._yAttributeDescriptions.length) {
+        delete descriptions.y
+        descriptions.rightNumeric = self.attributeDescriptionForRole('rightNumeric')
+      } else {
+        descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
+      }
+      return self._caseHasValidValuesForDescriptions(data, caseID, descriptions)
     }
   }))
   .views(self => ({
@@ -415,7 +440,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           maxBinEdge: 0,
           minValue: 0,
           maxValue: 0,
-          totalNumberOfBins: 0 
+          totalNumberOfBins: 0
         }
       }
 
@@ -433,7 +458,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       // to the maximum data value, adding a small constant to ensure the max value is contained.
       const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
       const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
-    
+
       return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
     }
   }))
@@ -541,7 +566,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (isNewAttribute) {
         self._addNewFilteredCases()
       } else if (isEmpty) {
-        self.filteredCases?.pop() // remove the last one because it is the array
+        self.filteredCases?.pop()?.destroy() // remove and destroy the one for the y2 plot
         self.setPointsNeedUpdating(true)
       } else {
         const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
@@ -552,7 +577,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
       if (index >= 0) {
         self._yAttributeDescriptions.splice(index, 1)
+        // remove and destroy the filtered cases for the y attribute
         self.filteredCases?.splice(index, 1)
+          .forEach(aFilteredCases => aFilteredCases.destroy())
+        self.filteredCases?.forEach((aFilteredCases, casesArrayNumber) => {
+          aFilteredCases.setCasesArrayNumber(casesArrayNumber)
+        })
         self.setPointsNeedUpdating(true)
       }
     },
