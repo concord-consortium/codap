@@ -73,8 +73,8 @@ export const useSubAxis = ({
         axis = axisPlaceToAxisFn(axisPlace),
         type = _axisModel?.type,
         axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
-        d3Scale: AxisScaleType = multiScale.scale.copy()
-          .range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax]) as AxisScaleType,
+        newRange = axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax],
+        d3Scale: AxisScaleType = multiScale.scale.copy().range(newRange) as AxisScaleType,
         initialTransform = (axisPlace === 'left')
           ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
           : (axisPlace === 'top')
@@ -95,8 +95,8 @@ export const useSubAxis = ({
         },
         renderNumericAxis = () => {
           const numericScale = multiScale.scaleType === "linear"
-                                ? multiScale.numericScale as ScaleLinear<number, number>
-                                : undefined
+                                 ? multiScale.numericScale?.range(newRange) as ScaleLinear<number, number>
+                                 : undefined
           if (!isNumericAxisModel(axisModel) || !numericScale) return
           select(subAxisElt).selectAll('*').remove()
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
@@ -214,7 +214,7 @@ export const useSubAxis = ({
             )
         }
 
-      d3Scale.range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax])
+      d3Scale.range(newRange)
       switch (type) {
         case 'empty':
           renderEmptyAxis()
