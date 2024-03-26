@@ -17,10 +17,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   return (
     <div className="codap-web-view-body" data-testid="codap-web-view">
-      <div className="codap-web-view-backdrop">
-        <div className="codap-web-view-url">{webViewModel.url}</div>
-        <div className="codap-web-view-message">{t("DG.GameView.loadError")}</div>
-      </div>
+      {!webViewModel.dataInteractiveController && (
+        <div className="codap-web-view-backdrop">
+          <div className="codap-web-view-url">{webViewModel.url}</div>
+          <div className="codap-web-view-message">{t("DG.GameView.loadError")}</div>
+        </div>
+      )}
       <div className="codap-web-view-iframe-wrapper">
         <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
       </div>
