@@ -247,20 +247,15 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
-  // Respond to binAlignment and binWidth changes.
+  // Respond to binAlignment and binWidth changes. We include both the volatile and non-volatile versions of these
+  // properties. Changes to the volatile versions occur during bin boundary dragging and result in the appropriate
+  // behavior during a drag. Changes to the non-volatile versions occur when a drag ends (or the user sets the bin
+  // and alignment values via the form fields) and result in the behavior required when bin boundary dragging ends.
   useEffect(function respondToGraphBinSettings() {
     return mstReaction(
-      () => [graphModel.binAlignment, graphModel.binWidth],
+      () => [graphModel._binAlignment, graphModel._binWidth, graphModel.binAlignment, graphModel.binWidth],
       () => refreshPointPositions(false),
       {name: "respondToGraphBinSettings", equals: comparer.structural}, graphModel)
-  }, [dataset, graphModel, refreshPointPositions])
-
-  // Respond to _binAlignment and _binWidth changes.
-  useEffect(function respondToDragEnd() {
-    return mstReaction(
-      () => [graphModel._binAlignment, graphModel._binWidth],
-      () => refreshPointPositions(false),
-      {name: "respondToDragEnd", equals: comparer.structural}, graphModel)
   }, [dataset, graphModel, refreshPointPositions])
 
   // Initialize binWidth and binAlignment on the graph model if they haven't been defined yet.
@@ -280,7 +275,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   // If the pixel width of graphModel.binWidth would be less than kMinBinPixelWidth, set it to kMinBinPixelWidth.
   useEffect(function enforceMinBinPixelWidth() {
     return mstReaction(
-      () => [graphModel.binWidth],
+      () => graphModel.binWidth,
       () => {
         if (graphModel.binWidth && primaryAxisScale) {
           if (worldWidthToScreenWidth(primaryAxisScale, graphModel.binWidth) < kMinBinScreenWidth) {
