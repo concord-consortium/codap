@@ -95,7 +95,7 @@ export const useSubAxis = ({
         },
         renderNumericAxis = () => {
           const numericScale = multiScale.scaleType === "linear"
-                                 ? multiScale.numericScale?.range(newRange) as ScaleLinear<number, number>
+                                 ? multiScale.numericScale?.copy().range(newRange) as ScaleLinear<number, number>
                                  : undefined
           if (!isNumericAxisModel(axisModel) || !numericScale) return
           select(subAxisElt).selectAll('*').remove()
@@ -214,7 +214,6 @@ export const useSubAxis = ({
             )
         }
 
-      d3Scale.range(newRange)
       switch (type) {
         case 'empty':
           renderEmptyAxis()
