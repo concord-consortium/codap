@@ -17,7 +17,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
   return (
     <div className="codap-web-view-body" data-testid="codap-web-view">
-      {!webViewModel.dataInteractiveController && (
+      {!webViewModel.isPlugin && (
         <div className="codap-web-view-backdrop">
           <div className="codap-web-view-url">{webViewModel.url}</div>
           <div className="codap-web-view-message">{t("DG.GameView.loadError")}</div>

@@ -11,11 +11,15 @@ export const WebViewModel = TileContentModel
     state: types.frozen<unknown>()
   })
   .volatile(self => ({
-    dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined
+    dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
+    isPlugin: false
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
+    },
+    setIsPlugin(_isPlugin: boolean) {
+      self.isPlugin = _isPlugin
     },
     setSavedState(state: unknown) {
       self.state = state
