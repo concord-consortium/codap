@@ -36,7 +36,8 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
   function handleClick() {
     documentContent?.applyUndoableAction(
       () => {
-        const url = `${rootPluginUrl}${pluginData.path}`
+        const baseUrl = `${rootPluginUrl}${pluginData.path}`
+        const url = baseUrl.endsWith("/") ? `${baseUrl}index.html` : baseUrl
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (tile) (tile.content as IWebViewModel).setUrl(url)
