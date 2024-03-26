@@ -1,5 +1,5 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
-import { getFreeTileLayout } from "../../models/document/document-utils"
+import { appState } from "../../models/app-state"
 import { withoutUndo } from "../../models/history/without-undo"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -12,13 +12,10 @@ export const diInteractiveFrameHandler: DIHandler = {
     // TODO: Fix many hard coded values
     const { interactiveFrame } = resources
     if (interactiveFrame) {
-      const freeTileLayout = getFreeTileLayout(interactiveFrame.id)
+      const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
       const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
       const values: DIInteractiveFrame = {
-        dimensions: {
-          width: freeTileLayout?.width,
-          height: freeTileLayout?.height
-        },
+        dimensions,
         externalUndoAvailable: true,
         name: interactiveFrame.title,
         preventBringToFront: false,
@@ -45,8 +42,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       withoutUndo()
       if (values?.title) interactiveFrame.setTitle(values.title)
       if (values?.dimensions) {
-        const freeTileLayout = getFreeTileLayout(interactiveFrame.id)
-        freeTileLayout?.setSize(values.dimensions?.width, values.dimensions?.height)
+        appState.document.content?.setTileDimensions(interactiveFrame.id, values.dimensions)
       }
     }, "", "")
     return { success: true }
