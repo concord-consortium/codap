@@ -80,6 +80,12 @@ export class FilteredCases {
   }
 
   @action
+  setCasesArrayNumber(casesArrayNumber: number) {
+    if (this.casesArrayNumber === casesArrayNumber) return
+    this.casesArrayNumber = casesArrayNumber
+  }
+
+  @action
   setCollectionID(collectionID?: string) {
     if (this.collectionID === collectionID) return
     this.collectionID = collectionID

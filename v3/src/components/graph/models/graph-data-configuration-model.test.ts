@@ -32,9 +32,9 @@ describe("DataConfigurationModel", () => {
 
   it("behaves as expected when empty", () => {
     const config = tree.config
-    expect(config.attributeID('caption')).toEqual('')
-    expect(config.attributeID("x")).toBeUndefined()
-    expect(config.attributeID("y")).toBeUndefined()
+    expect(config.attributeID('caption')).toBe('')
+    expect(config.attributeID("x")).toBe('')
+    expect(config.attributeID("y")).toBe('')
     expect(config.attributeID("caption")).toEqual('')
     expect(config.attributeType("x")).toBeUndefined()
     expect(config.attributeType("caption")).toBeUndefined()
@@ -51,8 +51,8 @@ describe("DataConfigurationModel", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
     expect(config.attributeID('caption')).toBe("nId")
-    expect(config.attributeID("x")).toBeUndefined()
-    expect(config.attributeID("y")).toBeUndefined()
+    expect(config.attributeID("x")).toBe("")
+    expect(config.attributeID("y")).toBe("")
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBeUndefined()
     expect(config.attributeType("caption")).toBe("categorical")
@@ -74,7 +74,7 @@ describe("DataConfigurationModel", () => {
     config.setAttribute("x", { attributeID: "nId" })
     expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBe("nId")
-    expect(config.attributeID("y")).toBeUndefined()
+    expect(config.attributeID("y")).toBe("")
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBe("categorical")
     expect(config.attributeType("caption")).toBe("categorical")
@@ -98,7 +98,7 @@ describe("DataConfigurationModel", () => {
     config.setAttribute("x", { attributeID: "xId" })
     expect(config.attributeID('caption')).toBe("nId")
     expect(config.attributeID("x")).toBe("xId")
-    expect(config.attributeID("y")).toBeUndefined()
+    expect(config.attributeID("y")).toBe("")
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBe("numeric")
     expect(config.attributeType("caption")).toBe("categorical")
@@ -157,7 +157,7 @@ describe("DataConfigurationModel", () => {
     // behaves as expected after removing x-axis attribute
     config.removeAttributeFromRole("x", "xId")
     expect(config.attributeID('caption')).toBe("nId")
-    expect(config.attributeID("x")).toBeUndefined()
+    expect(config.attributeID("x")).toBe("")
     expect(config.attributeID("y")).toBe("yId")
     expect(config.attributeID("caption")).toBe("nId")
     expect(config.attributeType("x")).toBeUndefined()
