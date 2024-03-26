@@ -105,6 +105,17 @@ export const BaseDocumentContentModel = types
       // if all else fails, revert to last visible row
       return self.indexOfLastVisibleRow + 1
     },
+    findRowContainingTile(tileId: string) {
+      const rowId = self.findRowIdContainingTile(tileId)
+      if (rowId) {
+        return self.rowMap.get(rowId)
+      }
+    }
+  }))
+  .views(self => ({
+    getTileDimensions(tileId: string) {
+      return self.findRowContainingTile(tileId)?.getTileDimensions(tileId)
+    }
   }))
   .actions(self => ({
     setRowCreator(creator: () => ITileRowModelUnion) {
@@ -132,6 +143,9 @@ export const BaseDocumentContentModel = types
     },
     setVisibleRows(rows: string[]) {
       self.visibleRows = rows
+    },
+    setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
+      self.findRowContainingTile(tileId)?.setTileDimensions(tileId, dimensions)
     }
   }))
   .actions(self => ({
