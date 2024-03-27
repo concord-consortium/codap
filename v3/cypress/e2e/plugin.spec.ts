@@ -48,21 +48,46 @@ context("codap plugins", () => {
       table.getAttributeHeader().contains("Order").should("not.exist")
       webView.clearAPITesterResponses()
 
+      cy.log("Handle create attribute")
+      const cmd4 =`{
+        "action": "create",
+        "resource": "dataContext[Mammals].collection[Mammals].attribute",
+        "values": [
+          {
+            "name": "Heartrate"
+          }
+        ]
+      }`
+      table.getAttributeHeader().contains("Heartrate").should("not.exist")
+      webView.sendAPITesterCommand(cmd4, cmd3)
+      table.getAttributeHeader().contains("Heartrate").should("exist")
+      webView.clearAPITesterResponses()
+
+      cy.log("handle delete attribute")
+      const cmd5 = `{
+        "action": "delete",
+        "resource": "dataContext[Mammals].collection[Mammals].attribute[Heartrate]"
+      }`
+      table.getAttributeHeader().contains("Heartrate").should("exist")
+      webView.sendAPITesterCommand(cmd5, cmd4)
+      table.getAttributeHeader().contains("Heartrate").should("not.exist")
+      webView.clearAPITesterResponses()
+
       cy.log("Finds the default dataset when no dataset is included")
-      const cmd4 = `{
+      const cmd6 = `{
         "action": "get",
         "resource": "collection[Mammals].attribute[Order]"
       }`
-      webView.sendAPITesterCommand(cmd4, cmd3)
+      webView.sendAPITesterCommand(cmd6, cmd5)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
 
       cy.log("Handle get dataContextList request")
-      const cmd5 = `{
+      const cmd7 = `{
         "action": "get",
         "resource": "dataContextList"
       }`
-      webView.sendAPITesterCommand(cmd5, cmd4)
+      webView.sendAPITesterCommand(cmd7, cmd6)
       webView.confirmAPITesterResponseContains(/"values":\s\[\s{\s"name":\s*"Mammals"/)
       webView.clearAPITesterResponses()
   })

@@ -49,7 +49,7 @@ export const attributeTypes = [
   "categorical", "numeric", "date", "qualitative", "boundary", "checkbox", "color"
 ] as const
 export type AttributeType = typeof attributeTypes[number]
-export function isAttributeType(type?: string): type is AttributeType {
+export function isAttributeType(type?: string | null): type is AttributeType {
   return type != null && (attributeTypes as readonly string[]).includes(type)
 }
 

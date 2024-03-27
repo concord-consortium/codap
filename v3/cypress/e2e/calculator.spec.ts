@@ -9,7 +9,7 @@ context("Calculator", () => {
       const queryParams = "?sample=mammals&dashboard&mouseSensor"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
-      cy.wait(2500)
+      cy.wait(2500) // Ensuring the page and components are fully loaded.
   })
   it("populates default title", () => {
     c.getComponentTitle("calculator").should("contain", calculatorName)
@@ -19,8 +19,18 @@ context("Calculator", () => {
     c.getComponentTitle("calculator").should("have.text", calculatorName)
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
+
+     // Undo title change
+     // Note: This title does not update. Instead it goes to "my Cal" when the undo button is pressed
+     // See PT bug #187033159
+     // toolbar.getUndoTool().click()
+     // c.getComponentTitle("calculator").should("have.text", calculatorName)
+
+     // Redo title change
+     // toolbar.getRedoTool().click()
+     // c.getComponentTitle("calculator").should("have.text", newCalculatorName)
   })
-  it("close calculator from toolshelf", () => {
+  it("close calculator from toolshelf with undo/redo", () => {
     const newCalculatorName = "my calc"
     c.getComponentTitle("calculator").should("contain", calculatorName)
     c.changeComponentTitle("calculator", newCalculatorName)
@@ -29,17 +39,33 @@ context("Calculator", () => {
     c.getIconFromToolshelf("calc").click()
     c.checkComponentDoesNotExist("calculator")
 
+    // Undo closing calculator (Reopen)
+    toolbar.getUndoTool().click()
+    c.checkComponentExists("calculator")
+
+    // Redo closing calculator
+    toolbar.getRedoTool().click()
+    c.checkComponentDoesNotExist("calculator")
+
     c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", calculatorName)
   })
-  it("close calculator from close button", () => {
+  it("close calculator from close button with undo/redo", () => {
     const newCalculatorName = "my calc"
     c.getComponentTitle("calculator").should("contain", calculatorName)
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
 
     c.closeComponent("calculator")
+    c.checkComponentDoesNotExist("calculator")
+
+    // Undo closing calculator (Reopen)
+    toolbar.getUndoTool().click()
+    c.checkComponentExists("calculator")
+
+    // Redo closing calculator
+    toolbar.getRedoTool().click()
     c.checkComponentDoesNotExist("calculator")
 
     c.getIconFromToolshelf("calc").click()

@@ -5,6 +5,9 @@ export const ToolbarElements = {
   getToolShelfIcon(component) {
     return this.getToolshelfSelector(component)
   },
+  getPluginSelection() {
+    return cy.get(`.plugin-selection`)
+  },
   getNewCaseTable() {
     return cy.get("[data-testid=tool-shelf-table-new]")
   },

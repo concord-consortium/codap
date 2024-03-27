@@ -31,7 +31,10 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
     if (iframeRef.current) {
       const originUrl = extractOrigin(url) ?? ""
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
-        () => debugLog(DEBUG_PLUGINS, "connection with iframe established"))
+        () => {
+          webViewModel?.setIsPlugin(true)
+          debugLog(DEBUG_PLUGINS, "connection with iframe established")
+        })
       const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =
         (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
       {
@@ -73,6 +76,11 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       rpcEndpoint.call({message: "codap-present"} as any,
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       webViewModel?.setDataInteractiveController(rpcEndpoint)
+      
+      return () => {
+        rpcEndpoint.disconnect()
+        phone.disconnect()
+      }
     }
   }, [iframeRef, tile, toast, url, webViewModel])
 }

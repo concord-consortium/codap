@@ -5,7 +5,7 @@ import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { MapTileElements as map } from "../support/elements/map-tile"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { CalculatorTileElements as calculator } from "../support/elements/calculator-tile"
-import { WebViewTileElements } from "../support/elements/web-view-tile"
+import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 
 context("codap toolbar", () => {
   beforeEach(function () {
@@ -40,6 +40,14 @@ context("codap toolbar", () => {
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
+  it("plugin menu works", () => {
+    c.getIconFromToolshelf("plugins").should("exist").click()
+    toolbar.getPluginSelection().should("have.length", 9)
+    webView.getTitle().should("not.exist")
+    toolbar.getPluginSelection().eq(0).click()
+    webView.getTitle().should("have.text", "Sampler")
+    toolbar.getPluginSelection().should("not.exist")
+  })
   it('will display a webpage', ()=>{
       const url='https://www.wikipedia.org'
       let deleteUrl = ""
@@ -47,15 +55,15 @@ context("codap toolbar", () => {
       const url2=`${deleteUrl}https://en.wikipedia.org/wiki/Concord_Consortium`
       toolbar.getOptionsButton().click()
       toolbar.getWebViewButton().click()
-      WebViewTileElements.getUrlModal().should("exist")
-      WebViewTileElements.enterUrl(url)
+      webView.getUrlModal().should("exist")
+      webView.enterUrl(url)
       cy.wait(1000)
-      WebViewTileElements.getUrlModal().should("not.exist")
-      WebViewTileElements.getIFrame().find(`.central-textlogo`).should("be.visible")
-      WebViewTileElements.getEditUrlButton().click()
-      WebViewTileElements.getUrlModal().should("exist")
-      WebViewTileElements.enterUrl(url2)
+      webView.getUrlModal().should("not.exist")
+      webView.getIFrame().find(`.central-textlogo`).should("be.visible")
+      webView.getEditUrlButton().click()
+      webView.getUrlModal().should("exist")
+      webView.enterUrl(url2)
       cy.wait(1000)
-      WebViewTileElements.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
+      webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
 })

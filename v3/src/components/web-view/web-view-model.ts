@@ -1,5 +1,5 @@
 import iframePhone from "iframe-phone"
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
@@ -11,11 +11,15 @@ export const WebViewModel = TileContentModel
     state: types.frozen<unknown>()
   })
   .volatile(self => ({
-    dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined
+    dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
+    isPlugin: false
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
+    },
+    setIsPlugin(isPlugin: boolean) {
+      self.isPlugin = isPlugin
     },
     setSavedState(state: unknown) {
       self.state = state
@@ -48,6 +52,7 @@ export const WebViewModel = TileContentModel
     }
   }))
 export interface IWebViewModel extends Instance<typeof WebViewModel> {}
+export interface IWebViewSnapshot extends SnapshotIn<typeof WebViewModel> {}
 
 export function isWebViewModel(model?: ITileContentModel): model is IWebViewModel {
   return model?.type === kWebViewTileType

@@ -41,6 +41,11 @@ export interface IImportDataSetOptions {
   defaultTileType?: string    // default kCaseTableTileType
 }
 
+export interface INewTileOptions {
+  height?: number
+  width?: number
+}
+
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
   .actions(self => ({
@@ -77,11 +82,11 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    createTile(tileType: string): ITileModel | undefined {
+    createTile(tileType: string, options?: INewTileOptions): ITileModel | undefined {
       const componentInfo = getTileComponentInfo(tileType)
       if (!componentInfo) return
-      const width = componentInfo.defaultWidth
-      const height = componentInfo.defaultHeight
+      const width = options?.width ?? componentInfo.defaultWidth
+      const height = options?.height ?? componentInfo.defaultHeight
       const row = self.getRowByIndex(0)
       if (row) {
         const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType)
@@ -93,8 +98,8 @@ export const DocumentContentModel = BaseDocumentContentModel
             const newTile = self.insertTileSnapshotInRow(newTileSnapshot, row, tileOptions)
             if (newTile) {
               const rowTile = row.tiles.get(newTile.id)
-              if (componentInfo.defaultWidth && componentInfo.defaultHeight) {
-                rowTile?.setSize(componentInfo.defaultWidth,  componentInfo.defaultHeight + kTitleBarHeight)
+              if (width && height) {
+                rowTile?.setSize(width, height + kTitleBarHeight)
                 rowTile?.setPosition(tileOptions.x, tileOptions.y)
               }
               return newTile
@@ -116,13 +121,13 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    createOrShowTile(tileType: string) {
+    createOrShowTile(tileType: string, options?: INewTileOptions) {
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
           self.toggleTileVisibility(tileType)
         } else {
-          return self.createTile(tileType)
+          return self.createTile(tileType, options)
         }
       }
     }

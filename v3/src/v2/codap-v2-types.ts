@@ -9,24 +9,37 @@ export interface ICodapV2Attribute {
   cid?: string
   defaultMin?: number
   defaultMax?: number
-  description?: string
+  description?: string | null
   categoryMap?: any
   _categoryMap?: any
   colormap?: any
   _colormap?: any
   blockDisplayOfEmptyCategories?: boolean
-  editable: boolean
-  hidden?: boolean
+  // plugin bugs have led to documents in the field with values like `[true]`
+  editable: boolean | unknown
+  hidden: boolean
   renameable?: boolean
   deleteable?: boolean
   formula?: string
   deletedFormula?: string
-  precision?: number
+  precision?: number | null
   unit?: string | null
 }
 
 export function isCodapV2Attribute(o: any): o is ICodapV2Attribute {
   return o.type === "DG.Attribute"
+}
+
+export const v3TypeFromV2TypeIndex: Array<AttributeType | undefined> = [
+  // indices are numeric values of v2 types
+  undefined, "numeric", "categorical", "date", "boundary", "color"
+  // v2 type eNone === 0 which v3 codes as undefined
+]
+
+export function v3TypeFromV2TypeString(v2Type?: string | null): AttributeType | undefined {
+  if (v2Type == null || v2Type === "none") return undefined
+  if (v2Type === "nominal") return "categorical"
+  return v2Type as AttributeType
 }
 
 export interface ICodapV2Case {
@@ -126,6 +139,15 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
     width: number
   }>
   title: string
+}
+
+export interface ICodapV2WebViewStorage extends ICodapV2BaseComponentStorage {
+  URL: string
+}
+
+export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
+  currentGameUrl: string
+  savedGameState?: unknown
 }
 
 interface ICodapV2Coordinates {
@@ -379,12 +401,6 @@ export interface ICodapV2BaseComponent {
   savedHeight: number | null
 }
 
-export const v3TypeFromV2Type: Array<AttributeType | undefined> = [
-  // indices are numeric values of v2 types
-  undefined, "numeric", "categorical", "date", "boundary", "color"
-  // v2 type eNone === 0 which v3 codes as undefined
-]
-
 export interface ICodapV2CalculatorComponent extends ICodapV2BaseComponent {
   type: "DG.Calculator"
   componentStorage: ICodapV2CalculatorStorage
@@ -404,6 +420,18 @@ export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
 }
 export const isV2TableComponent = (component: ICodapV2BaseComponent): component is ICodapV2TableComponent =>
               component.type === "DG.TableView"
+export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
+  type: "DG.WebView"
+  componentStorage: ICodapV2WebViewStorage
+}
+export const isV2WebViewComponent =
+  (component: ICodapV2BaseComponent): component is ICodapV2WebViewComponent => component.type === "DG.WebView"
+export interface ICodapGameViewComponent extends ICodapV2BaseComponent {
+  type: "DG.GameView"
+  componentStorage: ICodapV2GameViewStorage
+}
+export const isV2GameViewComponent =
+  (component: ICodapV2BaseComponent): component is ICodapGameViewComponent => component.type === "DG.GameView"
 
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"

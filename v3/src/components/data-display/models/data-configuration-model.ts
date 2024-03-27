@@ -32,6 +32,7 @@ export type RoleAttrIDPair = { role: AttrRole, attributeID: string }
 
 export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof AttributeDescription> {
 }
+export type AttributeDescriptionsMapSnapshot = Partial<Record<AttrRole, IAttributeDescriptionSnapshot>>
 
 export const kUnknownDataConfigurationType = "unknownDataConfigurationType"
 export const kDataConfigurationType = "dataConfigurationType"
@@ -39,8 +40,8 @@ export const kDataConfigurationType = "dataConfigurationType"
 export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
     id: types.optional(types.identifier, () => typedId("DCON")),
-    // keys are GraphAttrRoles, excluding y role
     type: types.optional(types.string, kDataConfigurationType),
+    // keys are AttrRoles, excluding y role
     _attributeDescriptions: types.map(AttributeDescription),
     dataset: types.safeReference(DataSet),
     metadata: types.safeReference(SharedCaseMetadata),
@@ -58,7 +59,7 @@ export const DataConfigurationModel = types
       return self._attributeDescriptions.size === 0
     },
     get attributeDescriptions() {
-      return {...getSnapshot(self._attributeDescriptions)}
+      return getSnapshot(self._attributeDescriptions) as AttributeDescriptionsMapSnapshot
     },
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
@@ -66,15 +67,14 @@ export const DataConfigurationModel = types
     attributeDescriptionForRole(role: AttrRole) {
       return this.attributeDescriptions[role]
     },
+    // returns empty string (rather than undefined) for roles without attributes
     attributeID(role: AttrRole) {
 
       const defaultCaptionAttributeID = () => {
         // We find the childmost collection and return the first attribute in that collection. If there is no
         // childmost collection, we return the first attribute in the dataset.
-        const attrIDs = ['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend']
-            .map(
-              aRole => this.attributeID(aRole as AttrRole)
-            )
+        const attrIDs = (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend'] as const)
+            .map(aRole => this.attributeID(aRole))
             .filter(id => !!id),
           childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
@@ -88,7 +88,7 @@ export const DataConfigurationModel = types
         return self.dataset?.ungroupedAttributes[0]?.id
       }
 
-      let attrID = this.attributeDescriptionForRole(role)?.attributeID
+      let attrID = this.attributeDescriptionForRole(role)?.attributeID || ""
       if ((role === "caption") && !attrID) {
         attrID = defaultCaptionAttributeID() || ""
       }
@@ -143,10 +143,8 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
-    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
-      // If the case is hidden we don't plot it
-      if (self.hiddenCasesSet.has(caseID)) return false
-      const descriptions = {...self.attributeDescriptions}
+    _caseHasValidValuesForDescriptions(data: IDataSet, caseID: string,
+                                       descriptions: AttributeDescriptionsMapSnapshot) {
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
@@ -158,6 +156,18 @@ export const DataConfigurationModel = types
             return !!data.getValue(caseID, attributeID)
         }
       })
+    },
+    // This function can be called either here in this base class or in a subclass to handle the situation in which
+    // caseArrayNumber === 0.
+    _filterCase(data: IDataSet, caseID: string) {
+      // If the case is hidden we don't plot it
+      if (self.hiddenCasesSet.has(caseID)) return false
+      return this._caseHasValidValuesForDescriptions(data, caseID, self.attributeDescriptions)
+    },
+  }))
+  .views(self => ({
+    filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
+      return self._filterCase(data, caseID)
     }
   }))
   .views(self => ({
@@ -251,7 +261,7 @@ export const DataConfigurationModel = types
      * @param role
      * @param emptyCategoryArray
      */
-    categoryArrayForAttrRole: cachedFnWithArgsFactory({
+    categoryArrayForAttrRole: cachedFnWithArgsFactory<(role: AttrRole, emptyCategoryArray?: string[]) => string[]>({
       key: (role: AttrRole, emptyCategoryArray = ['__main__']) => JSON.stringify({ role, emptyCategoryArray }),
       calculate: (role: AttrRole, emptyCategoryArray = ['__main__']) => {
         let categoryArray = Array.from(new Set(self.valuesForAttrRole(role)))

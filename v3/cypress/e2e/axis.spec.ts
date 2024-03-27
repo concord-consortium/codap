@@ -197,6 +197,27 @@ context("Test graph axes with various attribute types", () => {
     // TODO: add checks for undo/redo
     // see PT #187262957
   })
+  it("will split an axis into identical sub axes when categorical attribute is on opposite split", () => {
+    cy.dragAttributeToTarget("table", arrayOfAttributes[4], "bottom") // Mass => x-axis
+    cy.wait(500)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.dragAttributeToTarget("table", arrayOfAttributes[7], "top") // Habitat => top split
+    cy.wait(500)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 3)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").each((wrapper) => {
+      cy.wrap(wrapper).find(".tick").should("have.length", 4)
+    })
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").each((wrapper) => {
+      cy.wrap(wrapper).find(".tick").each((tick, index) => {
+        const value = index * 2000
+        cy.wrap(tick).invoke("text").should("eq", value.toString())
+      })
+    })
+    ah.openAxisAttributeMenu("top")
+    ah.removeAttributeFromAxis(arrayOfAttributes[7], "top")
+    cy.wait(500)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+  })
   it("will adjust axis domain when points are changed to bars with undo/redo", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
     // axis of a univariate plot showing bars should start at zero.

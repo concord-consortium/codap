@@ -1,11 +1,12 @@
 import React from "react"
-import { Menu, MenuButton, MenuItem, MenuList, Tag, useDisclosure } from "@chakra-ui/react"
+import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import OptionsIcon from "../../assets/icons/icon-options.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
+import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
 
 import "./tool-shelf.scss"
 
@@ -31,12 +32,16 @@ export const OptionsShelfButton = () => {
     <>
       <Menu isLazy>
         <MenuButton
-          className="tool-shelf-button menu web-view"
+          className="tool-shelf-button web-view"
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
           data-testid="tool-shelf-button-options"
         >
           <OptionsIcon />
-          <Tag className="tool-shelf-tool-label web-view">{t("DG.ToolButtonData.optionMenu.title")}</Tag>
+          <ToolShelfButtonTag
+            bg={kRightButtonBackground}
+            className="web-view"
+            label={t("DG.ToolButtonData.optionMenu.title")}
+          />
         </MenuButton>
         <MenuList>
           <MenuItem data-testid="tool-shelf-button-web-view" onClick={handleSetWebViewUrlOpen}>
