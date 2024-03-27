@@ -259,7 +259,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   useEffect(function setInitialBinSettings() {
     if (!dataConfig) return
     if (graphModel.binWidth === undefined || graphModel.binAlignment === undefined) {
-      const { binAlignment, binWidth } = graphModel.binDetails({ shouldComputeInitial: true })
+      const { binAlignment, binWidth } = graphModel.binDetails({ initialize: true })
       graphModel.applyUndoableAction(() => {
         withoutUndo()
         graphModel.setBinWidth(binWidth)

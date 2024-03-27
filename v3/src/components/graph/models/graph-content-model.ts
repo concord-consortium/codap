@@ -170,8 +170,8 @@ export const GraphContentModel = DataDisplayContentModel
         yScale
       }
     },
-    binDetails(options?: { shouldComputeInitial?: boolean }) {
-      const { shouldComputeInitial = false } = options ?? {}
+    binDetails(options?: { initialize?: boolean }) {
+      const { initialize = false } = options ?? {}
       const { caseDataArray, dataset, primaryAttributeID } = self.dataConfiguration
       const minValue = caseDataArray.reduce((min, aCaseData) => {
         return Math.min(min, dataset?.getNumeric(aCaseData.caseID, primaryAttributeID) ?? min)
@@ -185,10 +185,10 @@ export const GraphContentModel = DataDisplayContentModel
                  totalNumberOfBins: 0 }
       }
 
-      const binWidth = shouldComputeInitial || !self.binWidth
+      const binWidth = initialize || !self.binWidth
                          ? self.binWidthFromData(minValue, maxValue)
                          : self.binWidth
-      const binAlignment = shouldComputeInitial || !self.binAlignment
+      const binAlignment = initialize || !self.binAlignment
                              ? Math.floor(minValue / binWidth) * binWidth
                              : self.binAlignment
       const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
@@ -286,7 +286,7 @@ export const GraphContentModel = DataDisplayContentModel
       return { tickValues, tickLabels }
     },
     resetBinSettings() {
-      const { binAlignment, binWidth } = self.binDetails({ shouldComputeInitial: true })
+      const { binAlignment, binWidth } = self.binDetails({ initialize: true })
       self.setBinAlignment(binAlignment)
       self.setBinWidth(binWidth)
     },
@@ -349,7 +349,7 @@ export const GraphContentModel = DataDisplayContentModel
     setPointConfig(configType: PointDisplayType) {
       self.pointDisplayType = configType
       if (configType === "bins") {
-        const { binWidth, binAlignment } = self.binDetails({ shouldComputeInitial: true })
+        const { binWidth, binAlignment } = self.binDetails({ initialize: true })
         self.setBinWidth(binWidth)
         self.setBinAlignment(binAlignment)
       }
