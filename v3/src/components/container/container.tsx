@@ -1,5 +1,7 @@
 import { clsx } from "clsx"
-import React, { useCallback } from "react"
+import { reaction } from "mobx"
+import React, { useCallback, useEffect } from "react"
+import { getNotificaiton, notifications } from "../../data-interactive/notification-manager"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
@@ -39,6 +41,22 @@ export const Container: React.FC = () => {
       }
     }
   })
+
+  useEffect(() => {
+    const disposer = reaction(
+      () => [notifications.length],
+      notificaitonsLength => {
+        console.log(`--- checking notifications`)
+        const notificaiton = getNotificaiton()
+        if (notificaiton) {
+          console.log(` -- broadcasting message`, notificaiton)
+          documentContent?.broadcastMessage(notificaiton.message, notificaiton.callback)
+        }
+      },
+      { fireImmediately: true }
+    )
+    return disposer
+  }, [documentContent])
 
   const classes = clsx("codap-container", { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (

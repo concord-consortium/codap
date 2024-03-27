@@ -1,6 +1,7 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
-import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
+// import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
+import { broadcastNotification } from "../../data-interactive/notification-manager"
 
 export const kDefaultNamePrefix = "v"
 
@@ -38,13 +39,17 @@ export const GlobalValue = types.model("GlobalValue", {
       self.dynamicValue = undefined
 
       // Broadcast update to all plugins
-      getDocumentContentFromNode(self)?.broadcastMessage({
-        action: "notify",
-        resource: `global[${self.name}]`,
-        values: {
-          globalValue: self.value
-        }
-      }, (response: any) => console.log(` .. message response`, response))
+      // getDocumentContentFromNode(self)?.broadcastMessage({
+      broadcastNotification({
+        message: {
+          action: "notify",
+          resource: `global[${self.name}]`,
+          values: {
+            globalValue: self.value
+          }
+        }, 
+        callback: (response: any) => console.log(` .. message response`, response)
+      })
     }
   }))
 export interface IGlobalValue extends Instance<typeof GlobalValue> {}
