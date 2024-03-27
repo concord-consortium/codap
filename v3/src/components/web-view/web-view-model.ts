@@ -18,8 +18,8 @@ export const WebViewModel = TileContentModel
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },
-    setIsPlugin(_isPlugin: boolean) {
-      self.isPlugin = _isPlugin
+    setIsPlugin(isPlugin: boolean) {
+      self.isPlugin = isPlugin
     },
     setSavedState(state: unknown) {
       self.state = state
