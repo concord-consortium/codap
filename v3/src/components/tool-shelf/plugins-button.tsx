@@ -37,6 +37,9 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
     documentContent?.applyUndoableAction(
       () => {
         const baseUrl = `${rootPluginUrl}${pluginData.path}`
+        // Some plugins relied on index.html being the default file loaded when pointing to a directory.
+        // This is no longer the case with our S3 hosted plugins, so we have to modify the path to point to the
+        // correct file in this case.
         const url = baseUrl.endsWith("/") ? `${baseUrl}index.html` : baseUrl
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
