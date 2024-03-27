@@ -256,9 +256,29 @@ context("Test graph axes attribute menu", () => {
     ah.openAxisAttributeMenu("left")
     ah.verifyAxisMenuIsClosed("left")
   })
-  it("will add and remove categorical attribute to x axis from attribute menu", () => {
+  it("will add and remove categorical attribute to x axis from attribute menu with undo/redo", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.addAttributeToAxis(arrayOfAttributes[7], "bottom") // Habitat => x-axis
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
+    ah.verifyXAxisTickMarksDisplayed(true)
+    ah.verifyXAxisGridLinesDisplayed(true)
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
+
+    // Undo the addition of the categorical attribute
+    toolbar.getUndoTool().click()
+    cy.wait(500)
+
+    // Verify the x-axis reverts to its default state after undoing the attribute addition
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
+
+
+    // Redo the addition of the categorical attribute
+    toolbar.getRedoTool().click()
+    cy.wait(500) // Adjust wait time as needed for the redo action to be processed
+
+    // Verify the x-axis reflects the re-addition of the categorical attribute
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
     ah.verifyXAxisTickMarksDisplayed(true)
@@ -267,7 +287,7 @@ context("Test graph axes attribute menu", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "bottom")
   })
-  it("will add and remove numeric attribute to x axis from attribute menu", () => {
+  it("will add and remove numeric attribute to x axis from attribute menu with undo/redo", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.addAttributeToAxis(arrayOfAttributes[3], "bottom") // Height => x-axis
     ah.verifyTickMarksDoNotExist("left")
@@ -275,10 +295,30 @@ context("Test graph axes attribute menu", () => {
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyXAxisGridLinesNotDisplayed()
     ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+
+    // Perform an undo action to revert the addition of the numeric attribute
+    toolbar.getUndoTool().click()
+    cy.wait(500) // Wait for the undo action to process
+
+    // Verify the x-axis reverts to its default state after undoing the attribute addition
+    ah.verifyDefaultAxisLabel("bottom")
+
+    // Perform a redo action to reapply the addition of the numeric attribute
+    toolbar.getRedoTool().click()
+    cy.wait(500) // Wait for the redo action to process
+
+    // Verify the x-axis reflects the readdition of the numeric attribute
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyXAxisGridLinesNotDisplayed()
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+
+    // Clean up by removing the attribute
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
   })
-  it("will add and remove categorical attribute to y axis from attribute menu", () => {
+  it("will add and remove categorical attribute to y axis from attribute menu with undo/redo", () => {
     ah.openAxisAttributeMenu("left")
     ah.addAttributeToAxis(arrayOfAttributes[7], "left") // Habitat => y-axis
     ah.verifyTickMarksDoNotExist("bottom")
@@ -286,10 +326,29 @@ context("Test graph axes attribute menu", () => {
     ah.verifyYAxisTickMarksDisplayed(true)
     ah.verifyYAxisGridLinesDisplayed(true)
     ah.verifyAxisTickLabels("left", arrayOfValues[7].values, true)
+
+    // Undo the addition of the categorical attribute
+    toolbar.getUndoTool().click()
+    cy.wait(500) // Wait for the undo action to process
+
+    // Verify the y-axis reverts to its default state after undoing the attribute addition
+    ah.verifyDefaultAxisLabel("left")
+
+    // Redo the addition of the categorical attribute
+    toolbar.getRedoTool().click()
+    cy.wait(500) // Wait for the redo action to process
+
+    // Verify the y-axis reflects the readdition of the categorical attribute
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
+    ah.verifyYAxisTickMarksDisplayed(true)
+    ah.verifyYAxisGridLinesDisplayed(true)
+    ah.verifyAxisTickLabels("left", arrayOfValues[7].values, true)
+
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "left")
   })
-  it("will add and remove numeric attribute to y axis from attribute menu", () => {
+  it("will add and remove numeric attribute to y axis from attribute menu with undo/redo", () => {
     ah.openAxisAttributeMenu("left")
     ah.addAttributeToAxis(arrayOfAttributes[4], "left") // Mass => y-axis
     ah.verifyTickMarksDoNotExist("bottom")
@@ -297,6 +356,25 @@ context("Test graph axes attribute menu", () => {
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyYAxisGridLinesNotDisplayed()
     ah.verifyAxisTickLabels("left", arrayOfValues[4].values)
+
+    // Undo the addition of the numeric attribute
+    toolbar.getUndoTool().click()
+    cy.wait(500)
+
+    // Verify the y-axis reverts to its default state after undoing the attribute addition
+    ah.verifyDefaultAxisLabel("left")
+
+    // Redo the addition of the numeric attribute
+    toolbar.getRedoTool().click()
+    cy.wait(500)
+
+    // Verify the y-axis reflects the readdition of the numeric attribute
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
+    ah.verifyYAxisTickMarksDisplayed()
+    ah.verifyYAxisGridLinesNotDisplayed()
+    ah.verifyAxisTickLabels("left", arrayOfValues[4].values)
+
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[4], "left")
   })
