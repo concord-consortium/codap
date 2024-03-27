@@ -1,6 +1,5 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
-// import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
 import { broadcastNotification } from "../../data-interactive/notification-manager"
 
 export const kDefaultNamePrefix = "v"
@@ -39,7 +38,6 @@ export const GlobalValue = types.model("GlobalValue", {
       self.dynamicValue = undefined
 
       // Broadcast update to all plugins
-      // getDocumentContentFromNode(self)?.broadcastMessage({
       broadcastNotification({
         message: {
           action: "notify",
