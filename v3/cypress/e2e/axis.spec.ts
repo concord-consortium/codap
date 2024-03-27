@@ -25,11 +25,11 @@ context("Test graph axes with various attribute types", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it.skip("will show default x axis label", () => {
+  it("will show default x axis label", () => {
     ah.verifyDefaultAxisLabel("bottom")
     ah.verifyDefaultAxisLabel("left")
   })
-  it.skip("will add categorical attribute to x axis", () => {
+  it("will add categorical attribute to x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("left")
@@ -40,7 +40,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "bottom")
   })
-  it.skip("will add numeric attribute to x axis", () => {
+  it("will add numeric attribute to x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("left")
@@ -51,7 +51,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "bottom")
   })
-  it.skip("will add categorical attribute to y axis", () => {
+  it("will add categorical attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("bottom")
@@ -62,7 +62,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
   })
-  it.skip("will add numeric attribute to y axis", () => {
+  it("will add numeric attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "left") // Sleep => y-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("bottom")
@@ -73,7 +73,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[5], "left")
   })
-  it.skip("will add categorical attribute to x axis and categorical attribute to y axis", () => {
+  it("will add categorical attribute to x axis and categorical attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => x-axis
     cy.wait(2000)
@@ -93,7 +93,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
   })
-  it.skip("will add categorical attribute to x axis and numeric attribute to y axis", () => {
+  it("will add categorical attribute to x axis and numeric attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "left") // Sleep => y-axis
     cy.wait(2000)
@@ -113,7 +113,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[5], "left")
   })
-  it.skip("will add numeric attribute to x axis and categorical attribute to y axis", () => {
+  it("will add numeric attribute to x axis and categorical attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "left") // Habitat => y-axis
     cy.wait(2000)
@@ -133,7 +133,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
   })
-  it.skip("will add numeric attribute to x axis and numeric attribute to y axis", () => {
+  it("will add numeric attribute to x axis and numeric attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y-axis
     cy.wait(2000)
@@ -151,7 +151,7 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
   })
-  it.skip("will split an axis into identical sub axes when categorical attribute is on opposite split", () => {
+  it("will split an axis into identical sub axes when categorical attribute is on opposite split", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[4], "bottom") // Mass => x-axis
     cy.wait(500)
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
@@ -173,35 +173,23 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
   })
 
-  it("create a graph of numerical x-axis and two numerical attributes on y-axis", () => {
+  it("will test for multiple y-attributes on a graph that has a numerical x-axis and two numerical attributes on a y-axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // Lifespan => x-axis
     cy.wait(500)
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
     cy.wait(500)
+    cy.dragAttributeToTarget("data-summary", arrayOfAttributes[5], "yplus") // Sleep => left split
+    cy.wait(500)
 
-    // what is going on here with yPlusAxis?
-    cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yPlusAxis") // Sleep => left split
-
+    // checks for multiple y-axis labels
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyYAxisTickMarksDisplayed()
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    ah.verifyAxisTickLabel("left", "0", 0)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
 
-    //same checks as above, code is commented out for now
-
-    // cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 3)
-    //cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").each((wrapper) => {
-    //   cy.wrap(wrapper).find(".tick").should("have.length", 4)
-    // })
-    // cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").each((wrapper) => {
-     // cy.wrap(wrapper).find(".tick").each((tick, index) => {
-       // const value = index * 2000
-        //cy.wrap(tick).invoke("text").should("eq", value.toString())
-     // })
-    // })
-    // ah.openAxisAttributeMenu("top")
-    //ah.removeAttributeFromAxis(arrayOfAttributes[7], "top")
-    //cy.wait(500)
-    //cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    // TODO: add checks for undo/redo
   })
   it("will adjust axis domain when points are changed to bars", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
