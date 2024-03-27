@@ -173,7 +173,7 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
   })
 
-  it("will test for multiple y-attributes on a graph that has a numerical x-axis and two numerical attributes on a y-axis", () => {
+  it("will test graph with numeric x-axis and two numeric y-attributes", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // Lifespan => x-axis
     cy.wait(500)
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
