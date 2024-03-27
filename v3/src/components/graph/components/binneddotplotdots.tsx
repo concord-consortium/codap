@@ -1,6 +1,9 @@
-import {ScaleBand, ScaleLinear, select} from "d3"
+import {ScaleBand, ScaleLinear, drag, select} from "d3"
+import { comparer } from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef} from "react"
+import { createPortal } from "react-dom"
+import { clsx } from "clsx"
 import {PlotProps} from "../graphing-types"
 import {setPointSelection} from "../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
@@ -17,24 +20,118 @@ import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, adjus
 import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
 import { mstReaction } from "../../../utilities/mst-reaction"
+import { t } from "../../../utilities/translation/translate"
+import { isFiniteNumber } from "../../../utilities/math-utils"
+import { withoutUndo } from "../../../models/history/without-undo"
+
+const screenWidthToWorldWidth = (scale: ScaleLinear<number, number>, screenWidth: number) => {
+  return Math.abs(scale.invert(screenWidth) - scale.invert(0))
+}
+
+const worldWidthToScreenWidth = (scale: ScaleLinear<number, number>, worldWidth: number) => {
+  return Math.abs(scale(worldWidth) - scale(0))
+}
 
 export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: PlotProps) {
-  const {pixiPoints} = props,
+  const {pixiPoints, abovePointsGroupRef} = props,
     graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
-    {isAnimating} = useDataDisplayAnimation(),
+    { isAnimating } = useDataDisplayAnimation(),
     dataConfig = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
     primaryAttrRole = dataConfig?.primaryRole ?? "x",
     primaryIsBottom = primaryAttrRole === "x",
+    primaryPlace: AxisPlace = primaryIsBottom ? "bottom" : "left",
+    primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
     secondaryAttrRole = primaryAttrRole === "x" ? "y" : "x",
     {pointColor, pointStrokeColor} = graphModel.pointDescription,
     pointDisplayType = graphModel.pointDisplayType,
-    binTicksRef = useRef<SVGGElement>(null)
+    kMinBinScreenWidth = 20,
+    binBoundariesRef = useRef<SVGGElement>(null),
+    primaryAxisScaleCopy = useRef<ScaleLinear<number, number>>(primaryAxisScale.copy()),
+    lowerBoundaryRef = useRef<number>(0)
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
   usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+
+  const drawBinBoundaries = useCallback(() => {
+    if (!dataConfig || !isFiniteNumber(graphModel.binAlignment) || !isFiniteNumber(graphModel.binWidth)) return
+    const secondaryPlace = primaryIsBottom ? "left" : "bottom"
+    const secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>
+    const secondaryAxisExtent = Math.abs(secondaryAxisScale.range()[0] - secondaryAxisScale.range()[1])
+    const { binWidth, minBinEdge, totalNumberOfBins } = graphModel.binDetails()
+    const binBoundariesArea = select(binBoundariesRef.current)
+
+    binBoundariesArea.selectAll("path").remove()
+    for (let i = 1; i < totalNumberOfBins; i++) {
+      const primaryBoundaryOrigin = primaryAxisScale(minBinEdge + i * binWidth)
+      const lineCoords = primaryIsBottom
+        ? `M ${primaryBoundaryOrigin},0 L ${primaryBoundaryOrigin},${secondaryAxisExtent}`
+        : `M 0,${primaryBoundaryOrigin} L ${secondaryAxisExtent},${primaryBoundaryOrigin}`
+      const boundaryClasses = clsx(
+        "draggable-bin-boundary",
+        {dragging: i - 1 === graphModel.dragBinIndex},
+        {lower: i === graphModel.dragBinIndex}
+      )
+      const boundaryCoverClasses = clsx(
+        "draggable-bin-boundary-cover",
+        {vertical: primaryIsBottom},
+        {horizontal: !primaryIsBottom}
+      )
+      binBoundariesArea.append("path")
+        .attr("class", boundaryClasses)
+        .attr("d", lineCoords)
+      binBoundariesArea.append("path")
+        .attr("class", boundaryCoverClasses)
+        .attr("d", lineCoords)
+        .append("title")
+          .text(`${t("DG.BinnedPlotModel.dragBinTip")}`)
+    }
+  }, [dataConfig, graphModel, layout, primaryAxisScale, primaryIsBottom])
+
+  const handleDragBinBoundaryStart = useCallback((event: MouseEvent, binIndex: number) => {
+    if (!dataConfig || !isFiniteNumber(graphModel.binAlignment) || !isFiniteNumber(graphModel.binWidth)) return
+    primaryAxisScaleCopy.current = primaryAxisScale.copy()
+    graphModel.setDragBinIndex(binIndex)
+    const { binWidth, minBinEdge } = graphModel.binDetails()
+    const newBinAlignment = minBinEdge + binIndex * binWidth
+    lowerBoundaryRef.current = primaryAxisScale(newBinAlignment)
+    graphModel.setDynamicBinAlignment(newBinAlignment)
+  }, [dataConfig, graphModel, primaryAxisScale])
+
+  const handleDragBinBoundary = useCallback((event: MouseEvent) => {
+    if (!dataConfig) return
+    const dragValue = primaryIsBottom ? event.x : event.y
+    const screenBinWidth = Math.max(kMinBinScreenWidth, Math.abs(dragValue - lowerBoundaryRef.current))
+    const worldBinWidth = screenWidthToWorldWidth(primaryAxisScaleCopy.current, screenBinWidth)
+    graphModel.setDynamicBinWidth(worldBinWidth)
+  }, [dataConfig, graphModel, primaryIsBottom])
+
+  const handleDragBinBoundaryEnd = useCallback(() => {
+    graphModel.applyUndoableAction(
+      () => {
+        if (graphModel.binAlignment && graphModel.binWidth) {
+          graphModel.endBinBoundaryDrag(graphModel.binAlignment, graphModel.binWidth)
+        }
+        lowerBoundaryRef.current = 0
+      },
+      "DG.Undo.graph.dragBinBoundary", "DG.Redo.graph.dragBinBoundary"
+    )
+  }, [graphModel])
+
+  const addBinBoundaryDragHandlers = useCallback(() => {
+    const binBoundariesArea = select(binBoundariesRef.current)
+    const binBoundaryCovers = binBoundariesArea.selectAll<SVGPathElement, unknown>("path.draggable-bin-boundary-cover")
+    binBoundaryCovers.each(function(d, i) {
+      select(this).call(
+        drag<SVGPathElement, unknown>()
+          .on("start", (e) => handleDragBinBoundaryStart(e, i))
+          .on("drag", (e) => handleDragBinBoundary(e))
+          .on("end", handleDragBinBoundaryEnd)
+      )
+    })
+  }, [handleDragBinBoundary, handleDragBinBoundaryEnd, handleDragBinBoundaryStart])
 
   const refreshPointSelection = useCallback(() => {
     dataConfig && setPointSelection({
@@ -47,14 +144,12 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
 
-    const primaryPlace: AxisPlace = primaryIsBottom ? "bottom" : "left",
-      secondaryPlace = primaryIsBottom ? "left" : "bottom",
+    const secondaryPlace = primaryIsBottom ? "left" : "bottom",
       extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat",
       extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit",
       extraSecondaryPlace = primaryIsBottom ? "rightCat" : "top",
       extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit",
       primaryAxis = graphModel.getNumericAxis(primaryPlace),
-      primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>,
       extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
       secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
       extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
@@ -73,24 +168,15 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       extraSecondaryBandwidth = (extraSecondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent),
       secondarySign = primaryIsBottom ? -1 : 1,
       baseCoord = primaryIsBottom ? secondaryMax : 0,
-      { binAlignment, binWidth: initialBinWidth } = graphModel,
-      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = dataConfig.binDetails(binAlignment, initialBinWidth)
+      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = graphModel.binDetails()
 
     // Set the domain of the primary axis to the extent of the bins
     primaryAxis?.setDomain(minBinEdge, maxBinEdge)
 
     // Draw lines to delineate the bins in the plot
-    const binTicksArea = select(binTicksRef.current)
-    binTicksArea.selectAll("path").remove()
-    for (let i = 0; i <= totalNumberOfBins; i++) {
-      const primaryTickOrigin = primaryAxisScale(minBinEdge + i * binWidth)
-      const tickSize = secondaryAxisExtent
-      const lineCoords = primaryIsBottom
-        ? `M ${primaryTickOrigin},0 L ${primaryTickOrigin},${tickSize}`
-        : `M 0,${primaryTickOrigin} L ${tickSize},${primaryTickOrigin}`
-      binTicksArea.append("path")
-        .attr("d", lineCoords)
-        .attr("stroke", "#73bfca")
+    drawBinBoundaries()
+    if (!graphModel.isBinBoundaryDragging) {
+      addBinBoundaryDragHandlers()
     }
 
     const binPlacementProps = {
@@ -151,23 +237,56 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       pointDisplayType, anchor: circleAnchor
     })
   },
-  [graphModel, dataConfig, layout, primaryAttrRole, secondaryAttrRole, dataset, pixiPoints,
-    primaryIsBottom, pointColor, pointStrokeColor, isAnimating, pointDisplayType])
+  [dataConfig, primaryIsBottom, graphModel, primaryPlace, layout, primaryAttrRole, secondaryAttrRole,
+   drawBinBoundaries, dataset, primaryAxisScale, pixiPoints, pointColor, pointStrokeColor, isAnimating,
+   pointDisplayType, addBinBoundaryDragHandlers])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
-  // respond to binAlignment and binWidth changes because the axis may need to be updated
+  // Respond to binAlignment and binWidth changes. We include both the volatile and non-volatile versions of these
+  // properties. Changes to the volatile versions occur during bin boundary dragging and result in the appropriate
+  // behavior during a drag. Changes to the non-volatile versions occur when a drag ends (or the user sets the bin
+  // and alignment values via the form fields) and result in the behavior required when bin boundary dragging ends.
   useEffect(function respondToGraphBinSettings() {
     return mstReaction(
-      () => [graphModel.binAlignment, graphModel.binWidth],
-      () => {
-      refreshPointPositions(false)
-    }, {name: "respondToGraphBinSettings"}, graphModel)
+      () => [graphModel._binAlignment, graphModel._binWidth, graphModel.binAlignment, graphModel.binWidth],
+      () => refreshPointPositions(false),
+      {name: "respondToGraphBinSettings", equals: comparer.structural}, graphModel)
   }, [dataset, graphModel, refreshPointPositions])
 
+  // Initialize binWidth and binAlignment on the graph model if they haven't been defined yet.
+  // This can happen when a CODAP document containing a graph with binned points is imported.
+  useEffect(function setInitialBinSettings() {
+    if (!dataConfig) return
+    if (graphModel.binWidth === undefined || graphModel.binAlignment === undefined) {
+      const { binAlignment, binWidth } = graphModel.binDetails({ initialize: true })
+      graphModel.applyUndoableAction(() => {
+        withoutUndo()
+        graphModel.setBinWidth(binWidth)
+        graphModel.setBinAlignment(binAlignment)
+      }, "", "")
+    }
+  })
+
+  // If the pixel width of graphModel.binWidth would be less than kMinBinPixelWidth, set it to kMinBinPixelWidth.
+  useEffect(function enforceMinBinPixelWidth() {
+    return mstReaction(
+      () => graphModel.binWidth,
+      () => {
+        if (graphModel.binWidth && primaryAxisScale) {
+          if (worldWidthToScreenWidth(primaryAxisScale, graphModel.binWidth) < kMinBinScreenWidth) {
+            const newBinWidth = screenWidthToWorldWidth(primaryAxisScale, kMinBinScreenWidth)
+            graphModel.setBinWidth(newBinWidth)
+          }
+        }
+      }, {name: "enforceMinBinPixelWidth"}, graphModel
+    )
+  }, [graphModel, primaryAxisScale])
+
   return (
-    <>
-      <g data-testid={`bin-ticks-${instanceId}`} className="bin-ticks" ref={binTicksRef}/>
-    </>
+    abovePointsGroupRef?.current && createPortal(
+      <><g data-testid={`bin-ticks-${instanceId}`} className="bin-ticks" ref={binBoundariesRef}/></>,
+      abovePointsGroupRef.current
+    )
   )
 })

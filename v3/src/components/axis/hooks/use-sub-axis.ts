@@ -104,7 +104,8 @@ export const useSubAxis = ({
           if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
           } else if (!displayModel.hasDraggableNumericAxis(axisModel)) {
-            const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks()
+            const formatter = (value: number) => multiScale.formatValueForScale(value)
+            const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
             axisScale.tickValues(tickValues)
             axisScale.tickFormat((d, i) => {
               return tickLabels[i]

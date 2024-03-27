@@ -37,7 +37,7 @@ export const DataDisplayContentModel = TileContentModel
     hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
       return isNumericAxisModel(axisModel) && self.pointDisplayType !== "bins"
     },
-    nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       // derived models should override
       return {tickValues: [], tickLabels: []}
     },

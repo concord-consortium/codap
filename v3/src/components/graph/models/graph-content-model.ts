@@ -60,8 +60,8 @@ export const GraphContentModel = DataDisplayContentModel
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
-    binAlignment: types.maybe(types.number),
-    binWidth: types.maybe(types.number),
+    _binAlignment: types.maybe(types.number),
+    _binWidth: types.maybe(types.number),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
     plotBackgroundColor: defaultBackgroundColor,
@@ -76,12 +76,18 @@ export const GraphContentModel = DataDisplayContentModel
   })
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
+    dragBinIndex: -1,
+    dynamicBinAlignment: undefined as number | undefined,
+    dynamicBinWidth: undefined as number | undefined,
     prevDataSetId: ""
   }))
   .actions(self => ({
     addLayer(aLayer: IGraphPointLayerModel) {
       self.layers.push(aLayer)
     },
+    setDragBinIndex(index: number) {
+      self.dragBinIndex = index
+    }
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {
@@ -98,6 +104,15 @@ export const GraphContentModel = DataDisplayContentModel
     },
     get adornments(): IAdornmentModel[] {
       return self.adornmentsStore.adornments
+    },
+    get binAlignment() {
+      return self.dynamicBinAlignment ?? self._binAlignment
+    },
+    get binWidth() {
+      return self.dynamicBinWidth ?? self._binWidth
+    },
+    get isBinBoundaryDragging() {
+      return self.dragBinIndex >= 0
     }
   }))
   .views(self => ({
@@ -124,6 +139,21 @@ export const GraphContentModel = DataDisplayContentModel
         // When displaying bars, the domain should start at 0 unless there are negative values.
         clampPosMinAtZero: self.pointDisplayType === "bars"
       }
+    },
+    binWidthFromData(minValue: number, maxValue: number): number {
+      if (minValue === Infinity || maxValue === -Infinity) return 1
+      const kDefaultNumberOfBins = 4
+
+      const binRange = maxValue !== minValue
+        ? (maxValue - minValue) / kDefaultNumberOfBins
+        : 1 / kDefaultNumberOfBins
+      // Convert to a logarithmic scale (base 10)
+      const logRange = Math.log(binRange) / Math.LN10
+      const significantDigit = Math.pow(10.0, Math.floor(logRange))
+      // Determine the scale factor based on the significant digit
+      const scaleFactor = Math.pow(10.0, logRange - Math.floor(logRange))
+      const adjustedScaleFactor = scaleFactor < 2 ? 1 : scaleFactor < 5 ? 2 : 5
+      return Math.max(significantDigit * adjustedScaleFactor, Number.MIN_VALUE)
     }
   }))
   .views(self => ({
@@ -139,6 +169,35 @@ export const GraphContentModel = DataDisplayContentModel
         xScale,
         yScale
       }
+    },
+    binDetails(options?: { initialize?: boolean }) {
+      const { initialize = false } = options ?? {}
+      const { caseDataArray, dataset, primaryAttributeID } = self.dataConfiguration
+      const minValue = caseDataArray.reduce((min, aCaseData) => {
+        return Math.min(min, dataset?.getNumeric(aCaseData.caseID, primaryAttributeID) ?? min)
+      }, Infinity)
+      const maxValue = caseDataArray.reduce((max, aCaseData) => {
+        return Math.max(max, dataset?.getNumeric(aCaseData.caseID, primaryAttributeID) ?? max)
+      }, -Infinity)
+
+      if (minValue === Infinity || maxValue === -Infinity) {
+        return { binAlignment: 0, binWidth: 1, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
+                 totalNumberOfBins: 0 }
+      }
+
+      const binWidth = initialize || !self.binWidth
+                         ? self.binWidthFromData(minValue, maxValue)
+                         : self.binWidth
+      const binAlignment = initialize || !self.binAlignment
+                             ? Math.floor(minValue / binWidth) * binWidth
+                             : self.binAlignment
+      const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
+      // Calculate the total number of bins needed to cover the range from the minimum data value
+      // to the maximum data value, adding a small constant to ensure the max value is contained.
+      const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
+      const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
+    
+      return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
     }
   }))
   .actions(self => ({
@@ -185,10 +244,18 @@ export const GraphContentModel = DataDisplayContentModel
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
     },
     setBinAlignment(alignment: number) {
-      self.binAlignment = alignment
+      self._binAlignment = alignment
+      self.dynamicBinAlignment = undefined
+    },
+    setDynamicBinAlignment(alignment: number) {
+      self.dynamicBinAlignment = alignment
     },
     setBinWidth(width: number) {
-      self.binWidth = width
+      self._binWidth = width
+      self.dynamicBinWidth = undefined
+    },
+    setDynamicBinWidth(width: number) {
+      self.dynamicBinWidth = width
     }
   }))
   .views(self => ({
@@ -196,29 +263,35 @@ export const GraphContentModel = DataDisplayContentModel
       return computePointRadius(self.dataConfiguration.caseDataArray.length,
         self.pointDescription.pointSizeMultiplier, use)
     },
-    nonDraggableAxisTicks(): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
-      const { binWidth, totalNumberOfBins, minBinEdge } =
-        self.dataConfiguration.binDetails(self.binAlignment, self.binWidth)
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
 
       let currentStart = minBinEdge
       let binCount = 0
+
       while (binCount < totalNumberOfBins) {
-        // TODO: Handle potential decimal point issues. If binWidth were 0.1, for instance, the below would result in
-        // many decimal places. The number of decimal places to display depends on the number required to represent the
-        // binWidth.
-        const tickValue = currentStart + (binWidth / 2)
-        const tickLabel = `[${currentStart}, ${currentStart + binWidth})`
-        tickValues.push(tickValue)
-        tickLabels.push(tickLabel)
+        const formattedCurrentStart = formatter
+          ? formatter(currentStart)
+          : currentStart
+        const formattedCurrentEnd = formatter
+          ? formatter(currentStart + binWidth)
+          : currentStart + binWidth
+        tickValues.push(currentStart + (binWidth / 2))
+        tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
         currentStart += binWidth
         binCount++
       }
       return { tickValues, tickLabels }
     },
     resetBinSettings() {
-      const { binAlignment, binWidth } = self.dataConfiguration.binDetails()
+      const { binAlignment, binWidth } = self.binDetails({ initialize: true })
+      self.setBinAlignment(binAlignment)
+      self.setBinWidth(binWidth)
+    },
+    endBinBoundaryDrag(binAlignment: number, binWidth: number) {
+      self.setDragBinIndex(-1)
       self.setBinAlignment(binAlignment)
       self.setBinWidth(binWidth)
     }
@@ -276,7 +349,7 @@ export const GraphContentModel = DataDisplayContentModel
     setPointConfig(configType: PointDisplayType) {
       self.pointDisplayType = configType
       if (configType === "bins") {
-        const { binWidth, binAlignment } = self.dataConfiguration.binDetails()
+        const { binWidth, binAlignment } = self.binDetails({ initialize: true })
         self.setBinWidth(binWidth)
         self.setBinAlignment(binAlignment)
       }
