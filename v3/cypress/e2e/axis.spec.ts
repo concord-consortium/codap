@@ -149,6 +149,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("left", arrayOfValues[5].values)
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[5], "left")
+
+    // TODO: add checks for undo/redo
+    // see PT #187319588 and #187262957
   })
   it("will add numeric attribute to x axis and categorical attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
@@ -169,6 +172,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
+
+    // TODO: add checks for undo/redo
+    // see PT #187319588 and #187262957
   })
   it("will add numeric attribute to x axis and numeric attribute to y axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
@@ -187,19 +193,42 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
+
+    // TODO: add checks for undo/redo
+    // see PT #187262957
   })
-  it("will adjust axis domain when points are changed to bars", () => {
+  it("will adjust axis domain when points are changed to bars with undo/redo", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
     // axis of a univariate plot showing bars should start at zero.
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
     cy.wait(500)
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("bottom", "−0.5", 0)
+
+    // Changing to bars and verifying axis adjustment
     cy.get("[data-testid=graph-display-config-button").click()
     cy.wait(500)
     cy.get("[data-testid=bars-radio-button]").click()
     cy.wait(500)
     ah.verifyAxisTickLabel("bottom", "0", 0)
+
+    // Undo the change to bars (expect to revert to points)
+    toolbar.getUndoTool().click();
+    cy.wait(500)
+
+    // Verify the axis label reverts to the initial state for points
+    ah.verifyAxisTickLabel("bottom", "−0.5", 0)
+
+    // Redo the change to bars
+    toolbar.getRedoTool().click()
+    cy.wait(500)
+
+    // Verify the axis label adjusts correctly for bars again
+    ah.verifyAxisTickLabel("bottom", "0", 0)
+
+    // Switch back to points without undo/redo to clean up state
+    cy.get("[data-testid=graph-display-config-button").click()
+    cy.wait(500)
     cy.get("[data-testid=points-radio-button]").click()
     cy.wait(500)
     ah.verifyAxisTickLabel("bottom", "−0.5", 0)
