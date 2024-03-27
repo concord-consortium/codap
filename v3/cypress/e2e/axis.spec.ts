@@ -213,7 +213,7 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabel("bottom", "0", 0)
 
     // Undo the change to bars (expect to revert to points)
-    toolbar.getUndoTool().click();
+    toolbar.getUndoTool().click()
     cy.wait(500)
 
     // Verify the axis label reverts to the initial state for points
