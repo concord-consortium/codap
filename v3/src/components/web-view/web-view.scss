@@ -16,7 +16,6 @@
     position: absolute;
     transform: rotate(-30deg) translateY(35%);
     width: 100%;
-    z-index: 0;
 
     .codap-web-view-url {
       color: white;
@@ -35,7 +34,6 @@
     height: 100%;
     position: absolute;
     width: 100%;
-    z-index: 1;
 
     .codap-web-view-iframe {
       height: 100%;
