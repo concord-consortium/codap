@@ -22,6 +22,11 @@ export const WebViewModel = TileContentModel
     },
     setUrl(url: string) {
       self.url = url
+    },
+    // TODO any type
+    broadcastMessage(message: any, callback: iframePhone.ListenerCallback) {
+      console.log(`!!! sending message`, message)
+      self.dataInteractiveController?.call(message, callback)
     }
   }))
   .actions(self => ({

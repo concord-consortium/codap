@@ -1,3 +1,4 @@
+import iframePhone from "iframe-phone"
 import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
@@ -146,6 +147,15 @@ export const BaseDocumentContentModel = types
     },
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
       self.findRowContainingTile(tileId)?.setTileDimensions(tileId, dimensions)
+    },
+    // TODO any type
+    broadcastMessage(message: any, callback: iframePhone.ListenerCallback) {
+      const tileIds = self.tileMap.keys()
+      if (tileIds) {
+        Array.from(tileIds).forEach(tileId => {
+          self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
+        })
+      }
     }
   }))
   .actions(self => ({
