@@ -6,12 +6,12 @@ import { BinnedDotPlotDots } from "./binneddotplotdots"
 import { FreeDotPlotDots } from "./freedotplotdots"
 
 export const DotPlotDots = observer(function DotPlotDots(props: PlotProps) {
-  const { pixiPoints } = props
+  const { pixiPoints, abovePointsGroupRef } = props
   const graphModel = useGraphContentModelContext()
   const pointDisplayType = graphModel.pointDisplayType
 
   const plotComponent = pointDisplayType === "bins"
-    ? <BinnedDotPlotDots pixiPoints={pixiPoints} />
+    ? <BinnedDotPlotDots pixiPoints={pixiPoints} abovePointsGroupRef={abovePointsGroupRef}  />
     : <FreeDotPlotDots pixiPoints={pixiPoints} />
 
   return plotComponent
