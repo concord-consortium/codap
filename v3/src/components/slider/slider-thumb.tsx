@@ -1,11 +1,12 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
-import { ISliderModel } from "./slider-model"
+import ThumbIcon from "../../assets/icons/icon-thumb.svg"
+import { useDocumentContent } from "../../hooks/use-document-content"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+import { ISliderModel } from "./slider-model"
 import { useSliderAnimation } from "./use-slider-animation"
-import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
 import './slider.scss'
 
@@ -23,6 +24,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
   sliderContainer, sliderModel: _sliderModel, running, setRunning
 } : IProps) {
   const sliderModel = isAliveSafe(_sliderModel) ? _sliderModel : undefined
+  const documentContent = useDocumentContent()
   const layout = useAxisLayoutContext()
   const scale = layout.getAxisMultiScale("bottom")
   const [isDragging, setIsDragging] = useState(false)
@@ -59,7 +61,16 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       const sliderValue = getSliderValueFromEvent(e)
       if (sliderValue != null) {
         sliderModel?.applyUndoableAction(
-          () => sliderModel.setValue(sliderValue),
+          () => {
+            sliderModel.setValue(sliderValue)
+            documentContent?.broadcastMessage({
+              action: "notify",
+              resource: `global[${sliderModel.globalValue.name}]`,
+              values: {
+                globalValue: sliderModel.value
+              }
+            }, (response: any) => console.log(` .. message response`, response))
+          },
           "DG.Undo.slider.change", "DG.Redo.slider.change")
       }
       downOffset.current = 0
@@ -79,7 +90,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
         document.removeEventListener("pointerup", handlePointerUp, { capture: true })
       }
     }
-  }, [isDragging, scale, sliderContainer, sliderModel])
+  }, [documentContent, isDragging, scale, sliderContainer, sliderModel])
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const containerX = sliderContainer?.getBoundingClientRect().x

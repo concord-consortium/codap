@@ -1,6 +1,5 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
-import { broadcastNotification } from "../../data-interactive/notification-manager"
 
 export const kDefaultNamePrefix = "v"
 
@@ -36,18 +35,6 @@ export const GlobalValue = types.model("GlobalValue", {
     setValue(value: number) {
       self._value = value
       self.dynamicValue = undefined
-
-      // Broadcast update to all plugins
-      broadcastNotification({
-        message: {
-          action: "notify",
-          resource: `global[${self.name}]`,
-          values: {
-            globalValue: self.value
-          }
-        }, 
-        callback: (response: any) => console.log(` .. message response`, response)
-      })
     }
   }))
 export interface IGlobalValue extends Instance<typeof GlobalValue> {}

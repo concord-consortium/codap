@@ -3,6 +3,7 @@ import { autorun } from "mobx"
 import {observer} from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, {useState, useEffect} from "react"
+import { useDocumentContent } from "../../hooks/use-document-content"
 import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
 
@@ -15,6 +16,7 @@ interface IProps {
 
 export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
+  const documentContent = useDocumentContent()
 
   useEffect(() => {
     return autorun(() => {
@@ -44,6 +46,13 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
         () => {
           sliderModel.encompassValue(inputValue)
           sliderModel.setValue(inputValue)
+          documentContent?.broadcastMessage({
+            action: "notify",
+            resource: `global[${sliderModel.globalValue.name}]`,
+            values: {
+              globalValue: sliderModel.value
+            }
+          }, (response: any) => console.log(` .. message response`, response))
         },
         "DG.Undo.slider.change", "DG.Redo.slider.change")
     }
