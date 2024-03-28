@@ -30,12 +30,12 @@ CODAP_DATA_HOME=${CODAP_DATA_HOME:-${CODAP_HOME}/../codap-data}
 CODAP_DATA_INTERACTIVE_HOME=${CODAP_DATA_INTERACTIVE_HOME:-${CODAP_HOME}/../codap-data-interactives}
 CODAP_TRANSFORMERS_HOME=${CODAP_TRANSFORMERS_HOME:-${CODAP_HOME}/../codap-transformers}
 STORY_BUILDER_HOME=${STORY_BUILDER_HOME:-${CODAP_HOME}/../story-builder}
-# NOAA_CODAP_PLUGIN_HOME=${NOAA_CODAP_PLUGIN_HOME:-${CODAP_HOME}/../noaa-codap-plugin}
+NOAA_CODAP_PLUGIN_HOME=${NOAA_CODAP_PLUGIN_HOME:-${CODAP_HOME}/../noaa-codap-plugin}
 
 # expected codap build branch
 EXP_CODAP_BRANCH=${EXP_CODAP_BRANCH:-master}
 EXP_TRANSFORMERS_BRANCH=${EXP_TRANSFORMERS_BRANCH:-main}
-# EXP_NOAA_BRANCH=${EXP_NOAA_BRANCH:-main}
+EXP_NOAA_BRANCH=${EXP_NOAA_BRANCH:-main}
 
 #echo HOME: $CODAP_HOME
 #set -e
@@ -66,8 +66,8 @@ echo '    * extension directories clean'
     error "Extn codeline check failed: $CODAP_TRANSFORMERS_HOME"
 ./bin/check_clean_codeline "$STORY_BUILDER_HOME" "$EXP_CODAP_BRANCH" ||
     error "Extn codeline check failed: $STORY_BUILDER_HOME"
-# ./bin/check_clean_codeline "$NOAA_CODAP_PLUGIN_HOME" "$EXP_NOAA_BRANCH" ||
-#     error "Extn codeline check failed: $NOAA_CODAP_PLUGIN_HOME"
+./bin/check_clean_codeline "$NOAA_CODAP_PLUGIN_HOME" "$EXP_NOAA_BRANCH" ||
+    error "Extn codeline check failed: $NOAA_CODAP_PLUGIN_HOME"
 ./bin/recordExtnVersions
 echo '    * nothing checked out, and in master: “git st”'
 [ "$CODAP_BRANCH" != "$EXP_CODAP_BRANCH" ] && error 'branch is not master'
