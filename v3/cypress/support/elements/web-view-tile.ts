@@ -52,6 +52,9 @@ export const WebViewTileElements = {
   confirmAPITesterResponseContains(response: string | RegExp) {
     WebViewTileElements.getIFrame().find(`.di-log-message`).contains(response).should("exist")
   },
+  toggleAPITesterFilter() {
+    WebViewTileElements.getIFrame().find(`#filter-button`).click()
+  },
   clearAPITesterResponses() {
     WebViewTileElements.getIFrame().find(`#clear-log-button`).click()
   }
