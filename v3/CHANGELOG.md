@@ -1,4 +1,27 @@
 # Changelog
+## Version 3.0.0-pre.1520 - March 28, 2024
+
+### ✨ Features & Improvements:
+- **PT-186957009:** Automation for Undo/Redo: calculator
+- **PT-187262806:** Load plugins when importing v2 documents
+- **PT-187263361:** Setup Plugin Menu
+- **PT-187308636:** Handle update interactiveFrame resize requests
+- **PT-187125534:** Graph bin boundaries are draggable
+- **PT-187308660:** SPIKE Look into why some plugins aren't loading
+
+### 🐞 Bug Fixes:
+- **PT-187314590:** Graph axis not split when categorical attribute added to opposite split
+- **PT-187289494:** In a scatterplot with multiple y-attributes, there are extraneous points at the top
+- **PT-187289428:** When dragging a scatterplot point with multiple y attributes, points not moving as they should
+- **PT-187296306:** CODAP crashes upon graph component resize when "Group into Bins" is applied to Lifespan Data
+- **PT-187308847:** WebView iframes render above other elements
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  147356 bytes |                            0.99% |
+|  index.js | 5169173 bytes |                            0.20% |
+
 ## Version 3.0.0-pre.1519 - March 22, 2024
 
 ### ✨ Features & Improvements:
