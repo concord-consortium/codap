@@ -25,7 +25,6 @@ export const WebViewModel = TileContentModel
     },
     // TODO any type
     broadcastMessage(message: any, callback: iframePhone.ListenerCallback) {
-      console.log(`!!! sending message`, message)
       self.dataInteractiveController?.call(message, callback)
     }
   }))

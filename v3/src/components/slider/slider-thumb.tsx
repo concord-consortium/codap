@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
@@ -63,13 +64,14 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
         sliderModel?.applyUndoableAction(
           () => {
             sliderModel.setValue(sliderValue)
-            documentContent?.broadcastMessage({
-              action: "notify",
-              resource: `global[${sliderModel.globalValue.name}]`,
-              values: {
-                globalValue: sliderModel.value
-              }
-            }, (response: any) => console.log(` .. message response`, response))
+
+            const action = "notify"
+            const resource = `global[${sliderModel.globalValue.name}]`
+            const values = { globalValue: sliderModel.value }
+            documentContent?.broadcastMessage({ action, resource, values },
+              (response: any) =>
+                debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
+            )
           },
           "DG.Undo.slider.change", "DG.Redo.slider.change")
       }

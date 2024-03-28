@@ -35,7 +35,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =
         (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
       {
-        debugLog(DEBUG_PLUGINS, `--- Received data-interactive: ${JSON.stringify(request)}`)
+        debugLog(DEBUG_PLUGINS, `Received data-interactive: ${JSON.stringify(request)}`)
         toast({
           title: "Web view received message",
           description: JSON.stringify(request),
@@ -65,7 +65,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           result = processAction(request)
         }
 
-        debugLog(DEBUG_PLUGINS, ` -- Responding with`, result)
+        debugLog(DEBUG_PLUGINS, `Responding with`, result)
         callback(result)
       }
       const rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(handler,
