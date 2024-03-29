@@ -55,7 +55,11 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
               debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
           )
         },
-        "DG.Undo.slider.change", "DG.Redo.slider.change")
+        {
+          undoStringKey: "DG.Undo.slider.change",
+          redoStringKey: "DG.Redo.slider.change"
+        }
+      )
     }
   }
 

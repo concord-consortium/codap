@@ -148,7 +148,10 @@ export const MapContentModel = DataDisplayContentModel
             if (self.leafletMapState.undoStringKey && self.leafletMapState.redoStringKey) {
               self.applyUndoableAction(() => {
                 self.syncCenterAndZoomFromMap()
-              }, self.leafletMapState.undoStringKey, self.leafletMapState.redoStringKey)
+              }, {
+                undoStringKey: self.leafletMapState.undoStringKey,
+                redoStringKey: self.leafletMapState.redoStringKey
+              })
             }
             // otherwise, sync map state to model without undo
             else {

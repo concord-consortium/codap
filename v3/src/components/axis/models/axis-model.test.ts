@@ -61,7 +61,7 @@ describe("NumericAxisModel", () => {
     expect(aModel.max).toBe(10)
     aModel.applyUndoableAction(
       () => aModel.setDomain(10, 20),
-      "Undo the thing", "Redo the thing"
+      { undoStringKey: "Undo the thing", redoStringKey: "Redo the thing" }
     )
     expect(aModel.isUpdatingDynamically).toBe(false)
     expect(aModel.min).toBe(10)

@@ -40,9 +40,10 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (tile) (tile.content as IWebViewModel).setUrl(url)
-      },
-      t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
-      t("V3.Redo.plugin.create", { vars: [pluginData.title] })
+      }, {
+        undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
+        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] })
+      }
     )
   }
 

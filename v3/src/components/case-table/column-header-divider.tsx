@@ -36,20 +36,32 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
         // move the attribute within a collection
         data.applyUndoableAction(
           () => collection.moveAttribute(dragAttrId, options),
-          "DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
+          {
+            undoStringKey: "DG.Undo.dataContext.moveAttribute",
+            redoStringKey: "DG.Redo.dataContext.moveAttribute"
+          }
+        )
       }
       else {
         // move an ungrouped attribute within the DataSet
         data.applyUndoableAction(
           () => data.moveAttribute(dragAttrId, options),
-          "DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
+          {
+            undoStringKey: "DG.Undo.dataContext.moveAttribute",
+            redoStringKey: "DG.Redo.dataContext.moveAttribute"
+          }
+        )
       }
     }
     else {
       // move the attribute to a new collection
       data.applyUndoableAction(
         () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
-        "DG.Undo.dataContext.moveAttribute", "DG.Redo.dataContext.moveAttribute")
+        {
+          undoStringKey: "DG.Undo.dataContext.moveAttribute",
+          redoStringKey: "DG.Redo.dataContext.moveAttribute"
+        }
+      )
     }
   })
 

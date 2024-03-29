@@ -62,7 +62,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
       openTableForDataset(sharedData, caseMetadata)
-    }, "V3.Undo.caseTable.create", "V3.Redo.caseTable.create")
+    }, {
+      undoStringKey: "V3.Undo.caseTable.create",
+      redoStringKey: "V3.Redo.caseTable.create"
+    })
   }
 
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
@@ -155,7 +158,10 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
       document.applyUndoableAction(() => {
         manager?.removeSharedModel(dataSetId)
         getFormulaManager(document)?.removeDataSet(dataSetId)
-      }, "V3.Undo.caseTable.delete", "V3.Redo.caseTable.delete")
+      }, {
+        undoStringKey: "V3.Undo.caseTable.delete",
+        redoStringKey: "V3.Redo.caseTable.delete"
+      })
     }
   }
 

@@ -27,7 +27,10 @@ export const Container: React.FC = () => {
         manager?.removeTileSharedModel(tile?.content, model)
       })
       tileId && documentContent?.deleteTile(tileId)
-    }, "DG.Undo.component.close", "DG.Redo.component.close")
+    }, {
+      undoStringKey: "DG.Undo.component.close",
+      redoStringKey: "DG.Redo.component.close"
+    })
   }, [documentContent, getTile])
 
   const { setNodeRef } = useContainerDroppable("codap-container", evt => {

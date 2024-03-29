@@ -32,7 +32,10 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                         const op = layer.gridModel.isVisible ? 'hide' : 'show'
                         layer.gridModel.applyUndoableAction(() => {
                           layer.gridModel.setIsVisible(!layer.gridModel.isVisible)
-                        }, `DG.Undo.map.${op}Grid`, `DG.Redo.map.${op}Grid`)
+                        }, {
+                          undoStringKey: `DG.Undo.map.${op}Grid`,
+                          redoStringKey: `DG.Redo.map.${op}Grid`
+                        })
                       }}
             >
               {t("DG.Inspector.mapGrid")}
@@ -43,7 +46,10 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                         const op = layer.pointsAreVisible ? 'hide' : 'show'
                         layer.applyUndoableAction(() => {
                           layer.setPointsAreVisible(!layer.pointsAreVisible)
-                        }, `DG.Undo.map.${op}Points`, `DG.Redo.map.${op}Points`)
+                        }, {
+                          undoStringKey: `DG.Undo.map.${op}Points`,
+                          redoStringKey: `DG.Redo.map.${op}Points`
+                        })
                       }}
             >
               {t("DG.Inspector.mapPoints")}
@@ -54,7 +60,10 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                         const op = layer.connectingLinesAreVisible ? 'hide' : 'show'
                         layer.applyUndoableAction(() => {
                           layer.setConnectingLinesAreVisible(!layer.connectingLinesAreVisible)
-                        }, `DG.Undo.map.${op}Lines`, `DG.Redo.map.${op}Lines`)
+                        }, {
+                          undoStringKey: `DG.Undo.map.${op}Lines`,
+                          redoStringKey: `DG.Redo.map.${op}Lines`
+                        })
                       }}
             >
               {t("DG.Inspector.mapLines")}

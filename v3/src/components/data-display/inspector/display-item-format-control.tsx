@@ -76,7 +76,11 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                     onChange={(val) => {
                       displayItemDescription.applyUndoableAction(
                         () => displayItemDescription.setPointSizeMultiplier(val),
-                        "DG.Undo.graph.changePointSize", "DG.Redo.graph.changePointSize")
+                        {
+                          undoStringKey: "DG.Undo.graph.changePointSize",
+                          redoStringKey: "DG.Redo.graph.changePointSize"
+                        }
+                      )
                     }}
                     isDisabled={pointDisplayType === "bars"}>
               <SliderTrack/>
@@ -100,7 +104,11 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                  onChange={(e) => {
                    displayItemDescription.applyUndoableAction(
                      () => displayItemDescription.setPointStrokeColor(e.target.value),
-                     "DG.Undo.graph.changeStrokeColor", "DG.Redo.graph.changeStrokeColor")
+                     {
+                       undoStringKey: "DG.Undo.graph.changeStrokeColor",
+                       redoStringKey: "DG.Redo.graph.changeStrokeColor"
+                     }
+                   )
                  }}/>
         </Flex>
       </FormControl>
@@ -131,8 +139,11 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                        onChange={e => {
                          displayItemDescription.applyUndoableAction(
                            () => displayItemDescription.setPointColor(e.target.value),
-                           "DG.Undo.graph.changePointColor", "DG.Redo.graph.changePointColor")
-
+                           {
+                             undoStringKey: "DG.Undo.graph.changePointColor",
+                             redoStringKey: "DG.Redo.graph.changePointColor"
+                           }
+                         )
                        }}/>
               </Flex>)
           }
@@ -144,7 +155,11 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
           onChange={e => {
             displayItemDescription.applyUndoableAction(
               () => displayItemDescription.setPointStrokeSameAsFill(e.target.checked),
-              "DG.Undo.graph.changeStrokeColor", "DG.Redo.graph.changeStrokeColor")
+              {
+                undoStringKey: "DG.Undo.graph.changeStrokeColor",
+                redoStringKey: "DG.Redo.graph.changeStrokeColor"
+              }
+            )
           }}>
           {t("DG.Inspector.strokeSameAsFill")}
         </Checkbox>

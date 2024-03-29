@@ -21,7 +21,10 @@ const Controls = () => {
 
     graphModel.applyUndoableAction(
       () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
-      kMovableValueUndoAddKey, kMovableValueRedoAddKey
+      {
+        undoStringKey: kMovableValueUndoAddKey,
+        redoStringKey: kMovableValueRedoAddKey
+      }
     )
   }
 
@@ -33,7 +36,10 @@ const Controls = () => {
           adornmentsStore.updateAdornment(() => { adornment?.deleteValue() })
           if (!adornment?.hasValues) adornment?.setVisibility(false)
       },
-      kMovableValueUndoRemoveKey, kMovableValueRedoRemoveKey
+      {
+        undoStringKey: kMovableValueUndoRemoveKey,
+        redoStringKey: kMovableValueRedoRemoveKey
+      }
     )
   }
 

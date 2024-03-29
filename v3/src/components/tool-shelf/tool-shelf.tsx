@@ -119,7 +119,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType] || []
     document?.content?.applyUndoableAction(() => {
       document?.content?.createOrShowTile?.(tileType)
-    }, undoStringKey, redoStringKey)
+    }, { undoStringKey, redoStringKey })
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

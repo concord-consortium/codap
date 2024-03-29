@@ -46,13 +46,21 @@ export const LegendAttributeLabel =
     const handleRemoveAttribute = useCallback(() => {
       dataConfiguration?.applyUndoableAction(
         () => dataConfiguration.setAttribute('legend', {attributeID: ''}),
-        "V3.Undo.legendAttributeRemove", "V3.Redo.legendAttributeRemove")
+        {
+          undoStringKey: "V3.Undo.legendAttributeRemove",
+          redoStringKey: "V3.Redo.legendAttributeRemove"
+        }
+      )
     }, [dataConfiguration])
 
     const handleTreatAttributeAs = useCallback((_place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
       dataConfiguration?.applyUndoableAction(
         () => dataConfiguration.setAttributeType('legend', treatAs),
-        "V3.Undo.attributeTreatAs", "V3.Redo.attributeTreatAs")
+        {
+          undoStringKey: "V3.Undo.attributeTreatAs",
+          redoStringKey: "V3.Redo.attributeTreatAs"
+        }
+      )
     }, [dataConfiguration])
 
     useEffect(function setupTitle() {

@@ -28,13 +28,20 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
       redoString = isVisible
         ? "V3.Redo.map.inspector.showMapLayer" : "V3.Redo.map.inspector.hideMapLayer"
     mapModel.applyUndoableAction(
-      () => mapModel.setBaseMapLayerVisibility(e.target.checked), undoString, redoString)
+      () => mapModel.setBaseMapLayerVisibility(e.target.checked), {
+        undoStringKey: undoString,
+        redoStringKey: redoString
+      }
+    )
   }
 
   const changeBaseMapLayer = (layerName: BaseMapKey) => {
     mapModel.applyUndoableAction(
       () => mapModel.setBaseMapLayerName(layerName),
-      "V3.Undo.map.inspector.changeMapBaseLayer", "V3.Redo.map.inspector.changeMapBaseLayer"
+      {
+        undoStringKey: "V3.Undo.map.inspector.changeMapBaseLayer",
+        redoStringKey: "V3.Redo.map.inspector.changeMapBaseLayer"
+      }
     )
   }
 

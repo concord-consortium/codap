@@ -72,7 +72,11 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
                 debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
             )
           },
-          "DG.Undo.slider.change", "DG.Redo.slider.change")
+          {
+            undoStringKey: "DG.Undo.slider.change",
+            redoStringKey: "DG.Redo.slider.change"
+          }
+        )
       }
       downOffset.current = 0
       setIsDragging(false)
