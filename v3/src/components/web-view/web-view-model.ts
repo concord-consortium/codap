@@ -1,5 +1,6 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
@@ -23,8 +24,7 @@ export const WebViewModel = TileContentModel
     setUrl(url: string) {
       self.url = url
     },
-    // TODO any type
-    broadcastMessage(message: any, callback: iframePhone.ListenerCallback) {
+    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       self.dataInteractiveController?.call(message, callback)
     }
   }))

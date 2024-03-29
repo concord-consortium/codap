@@ -2,8 +2,8 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
 import ThumbIcon from "../../assets/icons/icon-thumb.svg"
-import { useDocumentContent } from "../../hooks/use-document-content"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
+import { notify } from "../../models/tiles/tile-environment"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
@@ -25,7 +25,6 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
   sliderContainer, sliderModel: _sliderModel, running, setRunning
 } : IProps) {
   const sliderModel = isAliveSafe(_sliderModel) ? _sliderModel : undefined
-  const documentContent = useDocumentContent()
   const layout = useAxisLayoutContext()
   const scale = layout.getAxisMultiScale("bottom")
   const [isDragging, setIsDragging] = useState(false)
@@ -68,7 +67,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
             const action = "notify"
             const resource = `global[${sliderModel.globalValue.name}]`
             const values = { globalValue: sliderModel.value }
-            documentContent?.broadcastMessage({ action, resource, values },
+            notify(sliderModel, { action, resource, values },
               (response: any) =>
                 debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
             )
@@ -92,7 +91,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
         document.removeEventListener("pointerup", handlePointerUp, { capture: true })
       }
     }
-  }, [documentContent, isDragging, scale, sliderContainer, sliderModel])
+  }, [isDragging, scale, sliderContainer, sliderModel])
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const containerX = sliderContainer?.getBoundingClientRect().x
