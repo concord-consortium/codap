@@ -9,6 +9,7 @@ import {MultiScale} from "../axis/models/multi-scale"
 import {ISliderModel} from "./slider-model"
 
 import './slider.scss'
+import { valueChangeNoficiation } from "./slider-utils"
 
 interface IProps {
   sliderModel: ISliderModel
@@ -46,16 +47,9 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
         () => {
           sliderModel.encompassValue(inputValue)
           sliderModel.setValue(inputValue)
-
-          const action = "notify"
-          const resource = `global[${sliderModel.globalValue.name}]`
-          const values = { globalValue: sliderModel.value }
-          notify(sliderModel, { action, resource, values },
-            (response: any) =>
-              debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
-          )
         },
         {
+          notification: valueChangeNoficiation(inputValue, sliderModel.globalValue.name),
           undoStringKey: "DG.Undo.slider.change",
           redoStringKey: "DG.Redo.slider.change"
         }

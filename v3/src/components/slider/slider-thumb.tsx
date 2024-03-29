@@ -7,6 +7,7 @@ import { notify } from "../../models/tiles/tile-environment"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
+import { valueChangeNoficiation } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
 import './slider.scss'
@@ -61,18 +62,9 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       const sliderValue = getSliderValueFromEvent(e)
       if (sliderValue != null) {
         sliderModel?.applyUndoableAction(
-          () => {
-            sliderModel.setValue(sliderValue)
-
-            const action = "notify"
-            const resource = `global[${sliderModel.globalValue.name}]`
-            const values = { globalValue: sliderModel.value }
-            notify(sliderModel, { action, resource, values },
-              (response: any) =>
-                debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
-            )
-          },
+          () => sliderModel.setValue(sliderValue),
           {
+            notification: valueChangeNoficiation(sliderValue, sliderModel?.globalValue.name),
             undoStringKey: "DG.Undo.slider.change",
             redoStringKey: "DG.Redo.slider.change"
           }
