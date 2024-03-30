@@ -9,6 +9,7 @@ import { IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
 import { WebViewTitleBar } from "./web-view-title-bar"
+import { processPluginUrl } from "./web-view-utils"
 
 export const kWebViewIdPrefix = "WEBV"
 
@@ -67,6 +68,6 @@ function importGameView(args: V2TileImportArgs) {
   const { currentGameUrl, savedGameState} = v2Component.componentStorage
 
   // create webView model
-  return addWebViewSnapshot(args, currentGameUrl, savedGameState)
+  return addWebViewSnapshot(args, processPluginUrl(currentGameUrl), savedGameState)
 }
 registerV2TileImporter("DG.GameView", importGameView)
