@@ -1,8 +1,10 @@
+import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
 import { isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
@@ -79,6 +81,14 @@ export const DocumentContentModel = BaseDocumentContentModel
       const id = typedId(info?.prefix || "TILE")
       const content = info?.defaultContent({ env })
       return content ? { id, content } : undefined
+    },
+    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
+      const tileIds = self.tileMap.keys()
+      if (tileIds) {
+        Array.from(tileIds).forEach(tileId => {
+          self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
+        })
+      }
     }
   }))
   .actions(self => ({

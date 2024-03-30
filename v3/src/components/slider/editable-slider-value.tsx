@@ -7,7 +7,7 @@ import {MultiScale} from "../axis/models/multi-scale"
 import {ISliderModel} from "./slider-model"
 
 import './slider.scss'
-import { valueChangeNoficiation } from "./slider-utils"
+import { valueChangeNotification } from "./slider-utils"
 
 interface IProps {
   sliderModel: ISliderModel
@@ -47,7 +47,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
           sliderModel.setValue(inputValue)
         },
         {
-          notification: valueChangeNoficiation(inputValue, sliderModel.globalValue.name),
+          notification: valueChangeNotification(inputValue, sliderModel.globalValue.name),
           undoStringKey: "DG.Undo.slider.change",
           redoStringKey: "DG.Redo.slider.change"
         }

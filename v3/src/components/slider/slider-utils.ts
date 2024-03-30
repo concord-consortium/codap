@@ -1,6 +1,6 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 
-export function valueChangeNoficiation(value: number, name?: string) {
+export function valueChangeNotification(value: number, name?: string) {
   const action = "notify"
   const resource = `global[${name ?? ""}]`
   const values = { globalValue: value }

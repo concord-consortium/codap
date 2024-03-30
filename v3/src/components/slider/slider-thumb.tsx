@@ -5,7 +5,7 @@ import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
-import { valueChangeNoficiation } from "./slider-utils"
+import { valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
 import './slider.scss'
@@ -62,7 +62,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
         sliderModel?.applyUndoableAction(
           () => sliderModel.setValue(sliderValue),
           {
-            notification: valueChangeNoficiation(sliderValue, sliderModel?.globalValue.name),
+            notification: valueChangeNotification(sliderValue, sliderModel?.globalValue.name),
             undoStringKey: "DG.Undo.slider.change",
             redoStringKey: "DG.Redo.slider.change"
           }

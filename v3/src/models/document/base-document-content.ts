@@ -1,6 +1,4 @@
-import iframePhone from "iframe-phone"
 import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
-import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
 import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model"
@@ -148,14 +146,6 @@ export const BaseDocumentContentModel = types
     },
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
       self.findRowContainingTile(tileId)?.setTileDimensions(tileId, dimensions)
-    },
-    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
-      const tileIds = self.tileMap.keys()
-      if (tileIds) {
-        Array.from(tileIds).forEach(tileId => {
-          self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
-        })
-      }
     }
   }))
   .actions(self => ({

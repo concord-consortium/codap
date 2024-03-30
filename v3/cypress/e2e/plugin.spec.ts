@@ -15,7 +15,7 @@ context("codap plugins", () => {
     webView.enterUrl(url)
     cy.wait(1000)
   }
-  it.skip('will handle plugin requests', () => {
+  it('will handle plugin requests', () => {
     openAPITester()
 
     cy.log("Handle update interactiveFrame request")
