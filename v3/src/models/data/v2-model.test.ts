@@ -1,4 +1,6 @@
-import { V2Model, V2ModelStorage, isV2ModelSnapshot, v2ModelSnapshotFromV2ModelStorage, v2NameTitleToV3Title } from "./v2-model"
+import {
+  V2Model, V2ModelStorage, isV2ModelSnapshot, v2ModelSnapshotFromV2ModelStorage, v2NameTitleToV3Title
+} from "./v2-model"
 
 describe("V2Model", () => {
   it("can be constructed without arguments", () => {
@@ -9,11 +11,21 @@ describe("V2Model", () => {
     expect(m.title).toBe("")
     expect(m.matchNameOrId("")).toBe(false)
 
+    m.setName("name")
+    expect(m.v2Id).toBeUndefined()
+    expect(m.name).toBe("name")
+    expect(m._title).toBeUndefined()
+    expect(m.title).toBe("name")
+    expect(m.matchNameOrId("")).toBe(false)
+    expect(m.matchNameOrId("name")).toBe(true)
+
     m.setTitle("title")
     expect(m.v2Id).toBeUndefined()
-    expect(m.name).toBe("")
+    expect(m.name).toBe("name")
     expect(m._title).toBe("title")
     expect(m.title).toBe("title")
+    expect(m.matchNameOrId("")).toBe(false)
+    expect(m.matchNameOrId("name")).toBe(true)
     expect(m.matchNameOrId("title")).toBe(false)
   })
 

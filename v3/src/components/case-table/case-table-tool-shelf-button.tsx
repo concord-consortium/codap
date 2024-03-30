@@ -92,12 +92,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     <>
       <MenuList>
         {datasets?.map((dataset, idx) => {
-          const model = datasets.find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
-          const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
-          const tiles = manager?.getSharedModelTiles(model)
-          const tableTile = tiles?.find(tile => tile.content.type === kCaseTableTileType)
-          const tileTitle = caseMetadata?.title ? caseMetadata?.title
-                                                : tableTile?.title ? tableTile?.title : dataset.dataSet.name
+          // case table title reflects DataSet title
+          const tileTitle = dataset.dataSet.title
           return (
             <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>handleOpenDataSetTable(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>

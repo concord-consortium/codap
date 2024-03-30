@@ -15,6 +15,10 @@ export const V2Model = types.model("V2Model", {
   }
 }))
 .actions(self => ({
+  // some models allow changing name
+  setName(name: string) {
+    self.name = name
+  },
   setTitle(title: string) {
     self._title = title
   }

@@ -16,8 +16,8 @@ export const CollectionTitle = observer(function CollectionTitle() {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
+  const collectionName = collection?.name ?? ""
   const { isTileSelected } = useTileModelContext()
-  const { setTitle, title } = collection || {}
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
@@ -68,9 +68,9 @@ export const CollectionTitle = observer(function CollectionTitle() {
     }
   }
 
-  const handleChangeTitle = (nextValue?: string) => {
-    if (nextValue) {
-      setTitle?.(nextValue)
+  const handleChangeName = (newName?: string) => {
+    if (newName) {
+      collection?.setName(newName)
     }
   }
 
@@ -87,11 +87,11 @@ export const CollectionTitle = observer(function CollectionTitle() {
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
-        <Editable value={isEditing ? title : `${title} (${caseCount} ${casesStr})`}
+        <Editable value={isEditing ? collectionName : `${collectionName} (${caseCount} ${casesStr})`}
             onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)} onCancel={() => setIsEditing(false)}
-            isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeTitle}>
+            isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview paddingY={0} />
-          <EditableInput value={title} paddingY={0} className="collection-title-input" />
+          <EditableInput value={collectionName} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
       <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
