@@ -115,8 +115,10 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
           graphModel.endBinBoundaryDrag(graphModel.binAlignment, graphModel.binWidth)
         }
         lowerBoundaryRef.current = 0
-      },
-      "DG.Undo.graph.dragBinBoundary", "DG.Redo.graph.dragBinBoundary"
+      }, {
+        undoStringKey: "DG.Undo.graph.dragBinBoundary",
+        redoStringKey: "DG.Redo.graph.dragBinBoundary"
+      }
     )
   }, [graphModel])
 
@@ -264,7 +266,10 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
         withoutUndo()
         graphModel.setBinWidth(binWidth)
         graphModel.setBinAlignment(binAlignment)
-      }, "", "")
+      }, {
+        undoStringKey: "",
+        redoStringKey: ""
+      })
     }
   })
 
