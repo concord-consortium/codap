@@ -22,7 +22,6 @@ import { AxisPlace } from "../../axis/axis-types"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { t } from "../../../utilities/translation/translate"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { withoutUndo } from "../../../models/history/without-undo"
 
 const screenWidthToWorldWidth = (scale: ScaleLinear<number, number>, screenWidth: number) => {
   return Math.abs(scale.invert(screenWidth) - scale.invert(0))
