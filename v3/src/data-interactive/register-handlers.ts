@@ -1,3 +1,4 @@
 import "./handlers/attribute-handler"
+import "./handlers/case-count-handler"
 import "./handlers/data-context-list-handler"
 import "./handlers/interactive-frame-handler"

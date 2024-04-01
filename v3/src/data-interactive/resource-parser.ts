@@ -112,6 +112,7 @@ export function resolveResources(
   }
 
   if (resourceSelector.collection) {
+    console.log(`--- finding collection`, resourceSelector.collection)
     result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
                         dataContext?.getCollection(resourceSelector.collection)
   }
