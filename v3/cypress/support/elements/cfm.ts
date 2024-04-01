@@ -17,7 +17,7 @@ export const CfmElements = {
   openExampleDocument(filename: string) {
     this.getHamburgerMenuButton().click()
     this.getHamburgerMenu().find("li").contains("Open...").click()
-    this.getModalDialog().find(".selectable").contains(filename).click()
+    this.getModalDialog().find(".selectable").contains(filename).eq(0).click()
     this.getModalDialog().find("button").contains("Open").click()
   }
 }

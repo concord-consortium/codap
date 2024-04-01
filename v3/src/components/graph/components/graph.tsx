@@ -58,8 +58,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     layout = useGraphLayoutContext(),
     xScale = layout.getAxisScale("bottom"),
     svgRef = useRef<SVGSVGElement>(null),
-    plotArea1Ref = useRef<SVGGElement>(null),
-    plotArea2Ref = useRef<SVGGElement>(null),
+    belowPointsGroupRef = useRef<SVGGElement>(null),
+    abovePointsGroupRef = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     xAttrID = graphModel.getAttributeID('x'),
@@ -99,8 +99,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       // - https://www.pivotaltracker.com/story/show/186784214
       // - https://bugs.webkit.org/show_bug.cgi?id=219978
       // - https://github.com/bkrem/react-d3-tree/issues/284
-      select(plotArea1Ref.current).attr("transform", translate)
-      select(plotArea2Ref.current).attr("transform", translate)
+      select(belowPointsGroupRef.current).attr("transform", translate)
+      select(abovePointsGroupRef.current).attr("transform", translate)
       select(pixiContainerRef.current)
         .attr("x", x).attr("y", y) // translate won't work in Safari!
         .attr("width", `${layout.plotWidth}px`)
@@ -185,7 +185,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   }, [graphController, layout, graphModel, startAnimation])
 
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, pixiPoints: pixiPointsRef.current},
+    const props = {xAttrID, yAttrID, pixiPoints: pixiPointsRef.current, abovePointsGroupRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -264,12 +264,12 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
             - https://bugs.webkit.org/show_bug.cgi?id=219978
             - https://github.com/bkrem/react-d3-tree/issues/284
           */}
-          <g ref={plotArea1Ref}>
+          <g className="below-points-group" ref={belowPointsGroupRef}>
             {/* Components rendered below the dots/points should be added to this group. */}
             {renderPlotComponent()}
           </g>
           <foreignObject ref={pixiContainerRef} />
-          <g ref={plotArea2Ref}>
+          <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
           </g>

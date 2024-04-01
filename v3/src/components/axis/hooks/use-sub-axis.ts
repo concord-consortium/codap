@@ -73,8 +73,8 @@ export const useSubAxis = ({
         axis = axisPlaceToAxisFn(axisPlace),
         type = _axisModel?.type,
         axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
-        d3Scale: AxisScaleType = multiScale.scale.copy()
-          .range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax]) as AxisScaleType,
+        newRange = axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax],
+        d3Scale: AxisScaleType = multiScale.scale.copy().range(newRange) as AxisScaleType,
         initialTransform = (axisPlace === 'left')
           ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
           : (axisPlace === 'top')
@@ -95,8 +95,8 @@ export const useSubAxis = ({
         },
         renderNumericAxis = () => {
           const numericScale = multiScale.scaleType === "linear"
-                                ? multiScale.numericScale as ScaleLinear<number, number>
-                                : undefined
+                                 ? multiScale.numericScale?.copy().range(newRange) as ScaleLinear<number, number>
+                                 : undefined
           if (!isNumericAxisModel(axisModel) || !numericScale) return
           select(subAxisElt).selectAll('*').remove()
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
@@ -104,7 +104,8 @@ export const useSubAxis = ({
           if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
           } else if (!displayModel.hasDraggableNumericAxis(axisModel)) {
-            const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks()
+            const formatter = (value: number) => multiScale.formatValueForScale(value)
+            const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
             axisScale.tickValues(tickValues)
             axisScale.tickFormat((d, i) => {
               return tickLabels[i]
@@ -214,7 +215,6 @@ export const useSubAxis = ({
             )
         }
 
-      d3Scale.range(axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax])
       switch (type) {
         case 'empty':
           renderEmptyAxis()

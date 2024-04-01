@@ -98,8 +98,13 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               <FormLabel className="form-label">
                 {t("DG.Inspector.graphBinWidth")}
               </FormLabel>
+              {/* TODO: Make it so this field updates instantly to the appropriate value if the user-entered
+                  value would result in a pixel width for bins that's smaller than the minimum allowed pixel
+                  width. Currently, enforcing of the min pixel width is handled by the enforceMinBinPixelWidth
+                  useEffect in BinnedDotPlotDots. */}
               <Input
                 className="form-input"
+                type="number"
                 defaultValue={graphModel?.binWidth}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
@@ -111,6 +116,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               </FormLabel>
               <Input
                 className="form-input"
+                type="number"
                 defaultValue={graphModel?.binAlignment}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}

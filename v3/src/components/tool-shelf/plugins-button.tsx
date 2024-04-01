@@ -5,12 +5,12 @@ import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { IWebViewModel } from "../web-view/web-view-model"
+import { kRootPluginUrl, processPluginUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 
 import "./plugins-button.scss"
 
-const rootPluginUrl = "https://codap-resources.s3.amazonaws.com/plugins"
-const pluginDataUrl = `${rootPluginUrl}/published-plugins.json`
+const pluginDataUrl = `${kRootPluginUrl}/published-plugins.json`
 
 interface PluginData {
   aegis?: string,
@@ -36,7 +36,8 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
   function handleClick() {
     documentContent?.applyUndoableAction(
       () => {
-        const url = `${rootPluginUrl}${pluginData.path}`
+        const baseUrl = `${kRootPluginUrl}${pluginData.path}`
+        const url = processPluginUrl(baseUrl)
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (tile) (tile.content as IWebViewModel).setUrl(url)
@@ -53,7 +54,7 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
       onClick={handleClick}
     >
       <div className="plugin-selection">
-        <img className="plugin-selection-icon" src={`${rootPluginUrl}${pluginData.icon}`} />
+        <img className="plugin-selection-icon" src={`${kRootPluginUrl}${pluginData.icon}`} />
         <span className="plugin-selection-title">{pluginData.title}</span>
       </div>
     </MenuItem>

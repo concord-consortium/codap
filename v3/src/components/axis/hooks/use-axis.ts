@@ -13,6 +13,7 @@ import {collisionExists, getStringBounds, isScaleLinear} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
+import { MultiScale } from "../models/multi-scale"
 
 import vars from "../../vars.scss"
 
@@ -24,17 +25,19 @@ export interface IUseAxis {
 
 interface IGetTicksProps {
   d3Scale: AxisScaleType | ScaleLinear<number, number>
+  multiScale?: MultiScale
   pointDisplayType: string
   displayModel?: IDataDisplayContentModel
 }
 
 const getTicks = (props: IGetTicksProps) => {
-  const { d3Scale, pointDisplayType, displayModel } = props
+  const { d3Scale, multiScale, pointDisplayType, displayModel } = props
   if (!isScaleLinear(d3Scale)) return []
 
   let ticks: string[] = []
-  if (pointDisplayType === "bins" && displayModel) {
-    const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks()
+  if (pointDisplayType === "bins" && displayModel && multiScale) {
+    const formatter = (value: number) => multiScale.formatValueForScale(value)
+    const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
     ticks = tickValues.map((tickValue, i) => {
       return tickLabels[i]
     })
@@ -95,7 +98,7 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
     let ticks: string[] = []
     switch (type) {
       case 'numeric': {
-        ticks = getTicks({ d3Scale, pointDisplayType, displayModel })
+        ticks = getTicks({ d3Scale, multiScale, pointDisplayType, displayModel })
         desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
           ? Math.max(getStringBounds(ticks[0]).width, getStringBounds(ticks[ticks.length - 1]).width) + axisGap
           : numbersHeight + axisGap
@@ -107,8 +110,8 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
       }
     }
     return desiredExtent
-  }, [dataConfiguration, axisPlace, axisTitle, multiScale?.repetitions, multiScale?.scale, ordinalScale, 
-      categories, centerCategoryLabels, attrRole, type, displayModel])
+  }, [dataConfiguration, axisPlace, axisTitle, multiScale, ordinalScale, categories, centerCategoryLabels, attrRole,
+      type, displayModel])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {

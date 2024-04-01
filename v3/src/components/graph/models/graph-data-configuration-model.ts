@@ -421,45 +421,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           return caseId
         }
       })
-    },
-    binDetails(_binAlignment?: number, _binWidth?: number, reset = false) {
-      const kDefaultNumberOfBins = 4
-
-      const minValue = self.caseDataArray.reduce((min, aCaseData) => {
-        return Math.min(min, self.dataset?.getNumeric(aCaseData.caseID, self.primaryAttributeID) ?? min)
-      }, Infinity)
-
-      const maxValue = self.caseDataArray.reduce((max, aCaseData) => {
-        return Math.max(max, self.dataset?.getNumeric(aCaseData.caseID, self.primaryAttributeID) ?? max)
-      }, -Infinity)
-
-      if (minValue === Infinity || maxValue === -Infinity) {
-        return { binAlignment: 0,
-          binWidth: 1,
-          minBinEdge: 0,
-          maxBinEdge: 0,
-          minValue: 0,
-          maxValue: 0,
-          totalNumberOfBins: 0
-        }
-      }
-
-      const binRange = (maxValue - minValue) / kDefaultNumberOfBins
-      // Convert to a logarithmic scale (base 10)
-      const logRange = Math.log(binRange) / Math.LN10
-      const significantDigit = Math.pow(10.0, Math.floor(logRange))
-      // Determine the scale factor based on the significant digit
-      const scaleFactor = Math.pow(10.0, logRange - Math.floor(logRange))
-      const adjustedScaleFactor = scaleFactor < 2 ? 1 : scaleFactor < 5 ? 2 : 5
-      const binWidth = _binWidth || Math.max(significantDigit * adjustedScaleFactor, Number.MIN_VALUE)
-      const binAlignment = _binAlignment || Math.floor(minValue / binWidth) * binWidth
-      const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
-      // Calculate the total number of bins needed to cover the range from the minimum data value
-      // to the maximum data value, adding a small constant to ensure the max value is contained.
-      const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
-      const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
-
-      return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
     }
   }))
   .views(self => (
