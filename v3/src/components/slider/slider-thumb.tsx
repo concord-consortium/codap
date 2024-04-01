@@ -50,7 +50,10 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
     const handlePointerMove = (e: PointerEvent) => {
       const sliderValue = getSliderValueFromEvent(e)
       if (sliderValue != null) {
-        sliderModel?.setDynamicValue(sliderValue)
+        sliderModel?.applyUndoableAction(
+          () => sliderModel?.setDynamicValue(sliderValue),
+          { notification: valueChangeNotification(sliderValue, sliderModel?.globalValue.name) }
+        )
       }
       e.preventDefault()
       e.stopImmediatePropagation()
@@ -62,7 +65,6 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
         sliderModel?.applyUndoableAction(
           () => sliderModel.setValue(sliderValue),
           {
-            notification: valueChangeNotification(sliderValue, sliderModel?.globalValue.name),
             undoStringKey: "DG.Undo.slider.change",
             redoStringKey: "DG.Redo.slider.change"
           }
