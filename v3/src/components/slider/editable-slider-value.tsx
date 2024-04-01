@@ -5,9 +5,9 @@ import { isAlive } from "mobx-state-tree"
 import React, {useState, useEffect} from "react"
 import {MultiScale} from "../axis/models/multi-scale"
 import {ISliderModel} from "./slider-model"
+import { valueChangeNotification } from "./slider-utils"
 
 import './slider.scss'
-import { valueChangeNotification } from "./slider-utils"
 
 interface IProps {
   sliderModel: ISliderModel
