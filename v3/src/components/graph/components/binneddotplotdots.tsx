@@ -22,7 +22,6 @@ import { AxisPlace } from "../../axis/axis-types"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { t } from "../../../utilities/translation/translate"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { withoutUndo } from "../../../models/history/without-undo"
 
 const screenWidthToWorldWidth = (scale: ScaleLinear<number, number>, screenWidth: number) => {
   return Math.abs(scale.invert(screenWidth) - scale.invert(0))
@@ -115,8 +114,10 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
           graphModel.endBinBoundaryDrag(graphModel.binAlignment, graphModel.binWidth)
         }
         lowerBoundaryRef.current = 0
-      },
-      "DG.Undo.graph.dragBinBoundary", "DG.Redo.graph.dragBinBoundary"
+      }, {
+        undoStringKey: "DG.Undo.graph.dragBinBoundary",
+        redoStringKey: "DG.Redo.graph.dragBinBoundary"
+      }
     )
   }, [graphModel])
 
@@ -261,10 +262,9 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     if (graphModel.binWidth === undefined || graphModel.binAlignment === undefined) {
       const { binAlignment, binWidth } = graphModel.binDetails({ initialize: true })
       graphModel.applyUndoableAction(() => {
-        withoutUndo()
         graphModel.setBinWidth(binWidth)
         graphModel.setBinAlignment(binAlignment)
-      }, "", "")
+      })
     }
   })
 

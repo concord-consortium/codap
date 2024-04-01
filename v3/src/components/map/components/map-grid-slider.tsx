@@ -25,7 +25,11 @@ export const MapGridSlider = function MapGridSlider(props: {
           }
         })
       },
-      "DG.Undo.map.changeGridSize", "DG.Redo.map.changeGridSize")
+      {
+        undoStringKey: "DG.Undo.map.changeGridSize",
+        redoStringKey: "DG.Redo.map.changeGridSize"
+      }
+    )
   }
 
   const getAverageGridMultiplier = () => {

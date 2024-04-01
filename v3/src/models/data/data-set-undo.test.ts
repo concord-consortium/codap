@@ -29,7 +29,7 @@ describe("DataSet undo/redo", () => {
 
     data.applyUndoableAction(
       () => data.moveAttribute("bId", { before: "aId" }),
-      "Undo move attribute", "Redo move attribute")
+      { undoStringKey: "Undo move attribute", redoStringKey: "Redo move attribute" })
 
     expect(data.attributes.map(attr => attr.name)).toEqual(["b", "a"])
 
@@ -55,7 +55,7 @@ describe("DataSet undo/redo", () => {
 
     data.applyUndoableAction(
       () => data.setCaseValues([{ __id__: "caseId", "aId": 2, "bId": 3 }]),
-      "Undo edit value", "Redo edit value")
+      { undoStringKey: "Undo edit value", redoStringKey: "Redo edit value" })
     expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })
 
     let timedOut = false

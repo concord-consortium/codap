@@ -139,7 +139,11 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     const attrRole = graphPlaceToAttrRole[computedPlace]
     graphModel.applyUndoableAction(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
-      "DG.Undo.axisAttributeChange", "DG.Redo.axisAttributeChange")
+      {
+        undoStringKey: "DG.Undo.axisAttributeChange",
+        redoStringKey: "DG.Redo.axisAttributeChange"
+      }
+    )
   }, [graphModel])
 
   /**
@@ -161,7 +165,10 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     dataset && graphModel.applyUndoableAction(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
-    }, "V3.Undo.attributeTreatAs", "V3.Redo.attributeTreatAs")
+    }, {
+      undoStringKey: "V3.Undo.attributeTreatAs",
+      redoStringKey: "V3.Redo.attributeTreatAs"
+    })
   }, [dataset, graphController, graphModel])
 
   // respond to assignment of new attribute ID

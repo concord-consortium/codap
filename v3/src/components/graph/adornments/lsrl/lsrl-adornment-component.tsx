@@ -110,7 +110,10 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
         const lines = getLines()
         graphModel.applyUndoableAction(
           () => lines?.[lineIndex]?.setEquationCoords({x: left, y: top}),
-          "DG.Undo.graph.repositionEquation", "DG.Redo.graph.repositionEquation"
+          {
+            undoStringKey: "DG.Undo.graph.repositionEquation",
+            redoStringKey: "DG.Redo.graph.repositionEquation"
+          }
         )
       }
     }

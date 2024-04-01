@@ -62,8 +62,11 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       graphModel?.startAnimation()
       graphModel?.applyUndoableAction(
         () => graphModel.rescale(),
-        "DG.Undo.axisDilate",
-        "DG.Redo.axisDilate")
+        {
+          undoStringKey: "DG.Undo.axisDilate",
+          redoStringKey: "DG.Redo.axisDilate"
+        }
+      )
     }
 
     return (

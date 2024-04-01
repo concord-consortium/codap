@@ -46,12 +46,18 @@ const Controls = () => {
           adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
           setShowAdornment()
         },
-        undoAddKey, redoAddKey
+        {
+          undoStringKey: undoAddKey,
+          redoStringKey: redoAddKey
+        }
       )
     } else {
       graphModel.applyUndoableAction(
         () => adornmentsStore.updateAdornment(setShowAdornment),
-        undoRemoveKey, redoRemoveKey
+        {
+          undoStringKey: undoRemoveKey,
+          redoStringKey: redoRemoveKey
+        }
       )
     }
   }

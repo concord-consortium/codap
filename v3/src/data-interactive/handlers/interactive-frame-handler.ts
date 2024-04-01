@@ -1,6 +1,5 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
-import { withoutUndo } from "../../models/history/without-undo"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, diNotImplementedYet, DIValues, DIInteractiveFrame } from "../data-interactive-types"
@@ -39,12 +38,11 @@ export const diInteractiveFrameHandler: DIHandler = {
 
     const values = _values as DIInteractiveFrame
     interactiveFrame.applyUndoableAction(() => {
-      withoutUndo()
       if (values?.title) interactiveFrame.setTitle(values.title)
       if (values?.dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, values.dimensions)
       }
-    }, "", "")
+    })
     return { success: true }
   },
   delete: diNotImplementedYet

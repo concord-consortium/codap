@@ -1,6 +1,5 @@
 import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
-import { withoutUndo } from "../../models/history/without-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -103,7 +102,6 @@ export const diAttributeHandler: DIHandler = {
     const attributes: IAttribute[] = []
     const createAttribute = (value: DIAttribute) => {
       dataContext.applyUndoableAction(() => {
-        withoutUndo()
         const attributeSnapshot = convertValuesToAttributeSnapshot(value)
         if (attributeSnapshot) {
           const attribute = dataContext.addAttribute(attributeSnapshot)
@@ -111,7 +109,7 @@ export const diAttributeHandler: DIHandler = {
           metadata?.setIsHidden(attribute.id, !!value.hidden)
           attributes.push(attribute)
         }
-      }, "", "")
+      })
     }
     attributeValues.forEach(attributeValue => {
       if (attributeValue) createAttribute(attributeValue)
@@ -126,7 +124,6 @@ export const diAttributeHandler: DIHandler = {
 
     const values = _values as DIAttribute
     attribute.applyUndoableAction(() => {
-      withoutUndo()
       if (values?.description != null) attribute.setDescription(values.description)
       if (values?.editable != null) attribute.setEditable(!!values.editable)
       if (values?.formula != null) attribute.setDisplayExpression(values.formula)
@@ -142,7 +139,7 @@ export const diAttributeHandler: DIHandler = {
           metadata?.setIsHidden(attribute.id, values.hidden)
         }
       }
-    }, "", "")
+    })
     const attributeV2 = convertAttributeToV2FromResources(resources)
     if (attributeV2) {
       return {
@@ -162,9 +159,8 @@ export const diAttributeHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     dataContext.applyUndoableAction(() => {
-      withoutUndo()
       dataContext.removeAttribute(attribute.id)
-    }, "", "")
+    })
     return { success: true }
   }
 }

@@ -29,12 +29,18 @@ const Controls = observer(function Controls() {
     if (checked) {
       graphModel.applyUndoableAction(
         () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
-        undoRedoKeys.undoAdd || "", undoRedoKeys.redoAdd || ""
+        {
+          undoStringKey: undoRedoKeys.undoAdd || "",
+          redoStringKey: undoRedoKeys.redoAdd || ""
+        }
       )
     } else {
       graphModel.applyUndoableAction(
         () => adornmentsStore.hideAdornment(adornment.type),
-        undoRedoKeys.undoRemove || "", undoRedoKeys.redoRemove || ""
+        {
+          undoStringKey: undoRedoKeys.undoRemove || "",
+          redoStringKey: undoRedoKeys.redoRemove || ""
+        }
       )
     }
   }

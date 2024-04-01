@@ -1,5 +1,7 @@
+import iframePhone from "iframe-phone"
 import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
+import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ISharedModel } from "../shared/shared-model"
 import { SharedModelChangeType } from "../shared/shared-model-manager"
 import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
@@ -67,6 +69,9 @@ export const TileContentModel = types.model("TileContentModel", {
      */
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
       console.warn("updateAfterSharedModelChanges not implemented for:", self.type)
+    },
+    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
+      // Override in derived models as appropriate
     }
   }))
   // Add an empty api so the api methods can be used on this generic type
