@@ -263,12 +263,8 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     if (graphModel.binWidth === undefined || graphModel.binAlignment === undefined) {
       const { binAlignment, binWidth } = graphModel.binDetails({ initialize: true })
       graphModel.applyUndoableAction(() => {
-        withoutUndo()
         graphModel.setBinWidth(binWidth)
         graphModel.setBinAlignment(binAlignment)
-      }, {
-        undoStringKey: "",
-        redoStringKey: ""
       })
     }
   })
