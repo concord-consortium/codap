@@ -288,8 +288,6 @@ export const DataSet = types.model("DataSet", {
   }
 
   function getGroupedCollectionByName(name: string): ICollectionModel | undefined {
-    console.log(`ooo getting grouped collection by name`, name)
-    console.log(` oo collections`, self.collections)
     return self.collections.find(collection => collection.name === name)
   }
 
