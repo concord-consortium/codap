@@ -65,7 +65,9 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     if (dataSet.attrFromID(attrId)) {
       dataSet.applyUndoableAction(() => {
         const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
-        lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
+        if (collection) {
+          lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
+        }
       }, {
         undoStringKey: "DG.Undo.caseTable.createCollection",
         redoStringKey: "DG.Redo.caseTable.createCollection"

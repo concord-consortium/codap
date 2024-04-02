@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import {
-  Attribute, IAttributeSnapshot, importValueToString, isFormulaAttr,
+  Attribute, IAttributeSnapshot, importValueToString, isAttributeType, isFormulaAttr,
   isValidFormulaAttr, kDefaultFormatStr
 } from "./attribute"
 
@@ -12,6 +12,25 @@ describe("Attribute", () => {
 
   afterEach(() => {
     process.env.NODE_ENV = origNodeEnv
+  })
+
+  test("isAttributeType", () => {
+    expect(isAttributeType()).toBe(false)
+    expect(isAttributeType("")).toBe(false)
+    expect(isAttributeType("foo")).toBe(false)
+    expect(isAttributeType("nominal")).toBe(false)
+    expect(isAttributeType("categorical")).toBe(true)
+    expect(isAttributeType("numeric")).toBe(true)
+    expect(isAttributeType("color")).toBe(true)
+  })
+
+  test("matchNameOrId", () => {
+    const a = Attribute.create({ v2Id: 1, id: "v3Id", name: "name", _title: "title" })
+    expect(a.matchNameOrId("")).toBe(false)
+    expect(a.matchNameOrId(1)).toBe(true)
+    expect(a.matchNameOrId("v3Id")).toBe(true)
+    expect(a.matchNameOrId("name")).toBe(true)
+    expect(a.matchNameOrId("title")).toBe(false)
   })
 
   test("Value conversions", () => {

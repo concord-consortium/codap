@@ -1,6 +1,7 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
+import { CollectionModel, CollectionPropsModel } from "./collection"
 import { DataSet, fromCanonical, toCanonical } from "./data-set"
 import { CaseID, ICaseID } from "./data-set-types"
 
@@ -114,6 +115,9 @@ test("DataSet basic functionality", () => {
   dataset.endTransaction()
   expect(dataset.isInTransaction).toBe(false)
 
+  expect(dataset.getAttribute("foo")).toBeUndefined()
+  expect(dataset.getAttributeByName("foo")).toBeUndefined()
+
   // add numeric attribute
   dataset.addAttribute({ name: "num" })
   const numAttr = dataset.attrFromName("num")
@@ -121,6 +125,8 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes.length).toBe(1)
   expect(numAttr?.id).toBe(numAttrID)
   expect(dataset.attributes[0].length).toBe(0)
+  expect(dataset.getAttribute(numAttrID)).toBe(numAttr)
+  expect(dataset.getAttributeByName("num")).toBe(numAttr)
 
   // add string attribute before numeric attribute
   dataset.addAttribute({ name: "str" }, { before: numAttrID })
@@ -218,6 +224,8 @@ test("DataSet basic functionality", () => {
   mockConsole1.mockRestore()
   expect(dataset.getValue("bogus", "bogus")).toBeUndefined()
   expect(dataset.getValueAtIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getStrValue("bogus", "bogus")).toBe("")
+  expect(dataset.getStrValueAtIndex(-1, "bogus")).toBe("")
   expect(dataset.getNumeric("bogus", "bogus")).toBeUndefined()
   expect(dataset.getNumericAtIndex(-1, "bogus")).toBeUndefined()
   // adding a case "before" a non-existent case appends the case to the end
@@ -243,6 +251,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.getNumeric(caseD4ID, numAttrID)).toBe(4)
   expect(dataset.getNumericAtIndex(0, numAttrID)).toBe(4)
   expect(dataset.getValueAtIndex(0, numAttrID)).toBe("4")
+  expect(dataset.getStrValueAtIndex(0, numAttrID)).toBe("4")
 
   // add new case before first case
   dataset.addCases(toCanonical(dataset, [{ str: "c", num: 3 }]), { before: caseD4ID })
@@ -370,6 +379,39 @@ test("DataSet basic functionality", () => {
   destroy(dataset)
 })
 
+test("hierarchical collection support", () => {
+  const data = DataSet.create({ name: "data" })
+  expect(data.id).toBeDefined()
+
+  expect(data.ungrouped.name).toBe("")
+  expect(data.collectionIds).toEqual([data.ungrouped.id])
+  expect(data.collectionModels).toEqual([data.ungrouped])
+  data.setUngroupedCollection(CollectionPropsModel.create({ name: "Cases" }))
+  expect(data.ungrouped.name).toBe("Cases")
+  expect(data.collectionIds).toEqual([data.ungrouped.id])
+  expect(data.collectionModels).toEqual([data.ungrouped])
+
+  const collection = CollectionModel.create({ name: "ParentCollection" })
+  const collectionId = collection.id
+  data.addCollection(collection)
+  expect(data.collectionIds).toEqual([collection.id, data.ungrouped.id])
+  expect(data.collectionModels).toEqual([collection, data.ungrouped])
+
+  const childAttr = data.addAttribute({ name: "childAttr" })
+  const parentAttr = data.addAttribute({ name: "parentAttr" }, { collection: collectionId })
+  expect(collection.getAttribute(childAttr.id)).toBeUndefined()
+  expect(collection.getAttribute(parentAttr.id)).toBe(parentAttr)
+
+  destroy(data)
+  jestSpyConsole("warn", spy => {
+    data.getCollection(collectionId)
+    expect(spy).toHaveBeenCalledTimes(1)
+
+    data.getCollectionByName("ParentCollection")
+    expect(spy).toHaveBeenCalledTimes(2)
+  })
+})
+
 test("Canonical case functionality", () => {
   const dataset = DataSet.create({
                     name: "data",
@@ -456,6 +498,7 @@ test("Canonical case functionality", () => {
                          { __id__: caseC3ID, [strAttrID]: "C", [numAttrID]: 30 }])
   expect(dataset.getCase(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(dataset.getValue(caseC3ID, strAttrID)).toBe("C")
+  expect(dataset.getStrValue(caseC3ID, strAttrID)).toBe("C")
   expect(dataset.getNumeric(caseC3ID, numAttrID)).toBe(30)
   const mockConsoleWarn = jest.fn()
   const consoleSpy = jest.spyOn(console, "warn").mockImplementation((...args: any[]) => mockConsoleWarn(...args))
@@ -530,6 +573,7 @@ test("Caching mode", () => {
   expect(snapshotHandler).not.toHaveBeenCalled()
   expect(ds.caseCache.get(aId)?.[numAttrID]).toBe(-1)
   expect(ds.getValue(aId, numAttrID)).toBe(-1)
+  expect(ds.getStrValue(aId, numAttrID)).toBe("-1")
   expect(ds.getNumeric(aId, numAttrID)).toBe(-1)
 
   ds.endCaching(true)

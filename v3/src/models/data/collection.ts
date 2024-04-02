@@ -2,6 +2,7 @@ import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-st
 import { Attribute, IAttribute } from "./attribute"
 import { typedId } from "../../utilities/js-utils"
 import { IMoveAttributeOptions } from "./data-set-types"
+import { V2Model } from "./v2-model"
 
 export const CollectionLabels = types.model("CollectionLabels", {
   singleCase: "",
@@ -11,25 +12,10 @@ export const CollectionLabels = types.model("CollectionLabels", {
   setOfCasesWithArticle: ""
 })
 
-export const CollectionPropsModel = types.model("CollectionProps", {
+export const CollectionPropsModel = V2Model.named("CollectionProps").props({
   id: types.optional(types.identifier, () => typedId("COLL")),
-  name: "",
-  title: "",
   labels: types.maybe(CollectionLabels)
 })
-.views(self => ({
-  get displayTitle() {
-    return self.title || self.name
-  }
-}))
-.actions(self => ({
-  setName(name: string) {
-    self.name = name
-  },
-  setTitle(title: string) {
-    self.title = title
-  }
-}))
 export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}
 
 export const CollectionModel = CollectionPropsModel
