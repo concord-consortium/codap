@@ -1,5 +1,6 @@
 import { appState } from "../models/app-state"
 import { isCollectionModel } from "../models/data/collection"
+import { GlobalValueManager } from "../models/global/global-value-manager"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -101,10 +102,11 @@ export function resolveResources(
   //       && document.getComponentByID(resourceSelector.component))
   // }
 
-  // if (resourceSelector.global) {
-  //   result.global = DG.globalsController.getGlobalValueByName(resourceSelector.global)
-  //     || DG.globalsController.getGlobalValueByID(resourceSelector.global)
-  // }
+  if (resourceSelector.global) {
+    const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
+    result.global = globalManager?.getValueByName(resourceSelector.global)
+      || globalManager?.getValueById(resourceSelector.global)
+  }
 
   if ("dataContextList" in resourceSelector) {
     result.dataContextList =
