@@ -2,6 +2,7 @@ import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/da
 import { IDataSet } from "../../models/data/data-set"
 import { v2ModelSnapshotFromV2ModelStorage } from "../../models/data/v2-model"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { v3TypeFromV2TypeString } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -57,7 +58,7 @@ function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSn
       // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
       formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
-      precision: values.precision ?? undefined,
+      precision: values.precision == null || values.precision === "" ? undefined : values.precision,
       units: values.unit ?? undefined
     }
   }
@@ -125,7 +126,9 @@ export const diAttributeHandler: DIHandler = {
       if (values?.editable != null) attribute.setEditable(!!values.editable)
       if (values?.formula != null) attribute.setDisplayExpression(values.formula)
       if (values?.name != null) attribute.setName(values.name)
-      if (values?.precision != null) attribute.setPrecision(values.precision)
+      if (hasOwnProperty(values, "precision")) {
+        attribute.setPrecision(values.precision == null || values.precision === "" ? undefined : values.precision)
+      }
       if (values?.title != null) attribute.setTitle(values.title)
       if (isAttributeType(values?.type)) attribute.setUserType(values.type)
       if (values?.unit != null) attribute.setUnits(values.unit)

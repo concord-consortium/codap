@@ -138,7 +138,7 @@ export class CodapV2Document {
       const userType = v3TypeFromV2TypeString(v2Type)
       const formula = v2Formula ? { display: v2Formula } : undefined
       const editable = v2Editable == null || !!v2Editable
-      const precision = v2Precision ?? undefined
+      const precision = v2Precision == null || v2Precision === "" ? undefined : v2Precision
       const units = v2Unit ?? undefined
       this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
       const attribute = data.addAttribute({
