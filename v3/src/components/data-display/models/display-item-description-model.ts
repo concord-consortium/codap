@@ -7,8 +7,11 @@ export const DisplayItemDescriptionModel = types
     _itemColors: types.optional(types.array(types.string), [defaultPointColor]),
     _itemStrokeColor: defaultStrokeColor,
     _itemStrokeSameAsFill: false,
-    pointSizeMultiplier: 1, // Not used when item is a polygon in which case it is set to -1
+    _pointSizeMultiplier: 1, // Not used when item is a polygon in which case it is set to -1
   })
+  .volatile(() => ({
+    _dynamicPointSizeMultiplier: undefined as number | undefined  // Used during slider drag
+  }))
   .actions(self => ({
     setPointColor(color: string, plotIndex = 0) {
       self._itemColors[plotIndex] = color
@@ -20,10 +23,17 @@ export const DisplayItemDescriptionModel = types
       self._itemStrokeSameAsFill = isSame
     },
     setPointSizeMultiplier(multiplier: number) {
-      self.pointSizeMultiplier = multiplier
+      self._pointSizeMultiplier = multiplier
+      self._dynamicPointSizeMultiplier = undefined
+    },
+    setDynamicPointSizeMultiplier(multiplier: number) {
+      self._dynamicPointSizeMultiplier = multiplier
     }
   }))
   .views(self => ({
+    get pointSizeMultiplier() {
+      return self._dynamicPointSizeMultiplier ?? self._pointSizeMultiplier
+    },
     itemColorAtIndex(plotIndex = 0) {
       return self._itemColors[plotIndex] ?? kellyColors[plotIndex % kellyColors.length]
     },

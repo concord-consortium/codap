@@ -73,7 +73,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
             <FormLabel className="form-label">{t("DG.Inspector.pointSize")}</FormLabel>
             <Slider aria-label="point-size-slider" ml="10px" min={0} max={2} data-testid="point-size-slider"
                     defaultValue={displayItemDescription.pointSizeMultiplier} step={0.01}
-                    onChange={(val) => {
+                    onChange={(val) => displayItemDescription.setDynamicPointSizeMultiplier(val)}
+                    onChangeEnd={(val) => {
                       displayItemDescription.applyUndoableAction(
                         () => displayItemDescription.setPointSizeMultiplier(val),
                         {

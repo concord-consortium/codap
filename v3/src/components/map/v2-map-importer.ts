@@ -72,7 +72,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         displayItemDescription: {
           _itemColors: pointColor ? [pointColor] : [],
           _itemStrokeColor: strokeColor,
-          pointSizeMultiplier
+          _pointSizeMultiplier: pointSizeMultiplier,
         }
       }
       layers.push(pointLayerSnapshot)
