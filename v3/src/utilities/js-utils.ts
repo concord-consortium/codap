@@ -6,6 +6,19 @@ const ulid = monotonicFactory()
 const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz", 21)
 
 /*
+ * hasOwnProperty()
+ *
+ * Replacement for Object.hasOwn -- returns true if the specified property is present
+ * on the specified object, even if its value is `undefined`. See
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn and
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
+ * for some of the subtleties here.
+ */
+export function hasOwnProperty(obj: object, property: string) {
+  return Object.prototype.hasOwnProperty.call(obj, property)
+}
+
+/*
  * castArrayCopy()
  *
  * returns an array for simple items, and a copy of the array for arrays
@@ -102,6 +115,6 @@ export function safeDomIdentifier(value: string) {
 
   // Ensure value doesn't start with a number
   const validId = sanitizedValue.replace(/^([0-9])/, "_$1")
-  
+
   return validId
 }
