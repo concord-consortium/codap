@@ -28,8 +28,11 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       () => dataConfiguration?.addNewHiddenCases(
         dataConfiguration?.selection ?? []
       ),
-      "DG.Undo.hideSelectedCases",
-      "DG.Redo.hideSelectedCases")
+      {
+        undoStringKey: "DG.Undo.hideSelectedCases",
+        redoStringKey: "DG.Redo.hideSelectedCases"
+      }
+    )
   }
 
   const hideUnselectedCases = () => {
@@ -37,15 +40,21 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       () => dataConfiguration?.addNewHiddenCases(
         dataConfiguration?.unselectedCases ?? []
       ),
-      "DG.Undo.hideUnselectedCases",
-      "DG.Redo.hideUnselectedCases")
+      {
+        undoStringKey: "DG.Undo.hideUnselectedCases",
+        redoStringKey: "DG.Redo.hideUnselectedCases"
+      }
+    )
   }
 
   const showAllCases = () => {
     dataConfiguration?.applyUndoableAction(
       () => dataConfiguration?.clearHiddenCases(),
-      "DG.Undo.showAllCases",
-      "DG.Redo.showAllCases")
+      {
+        undoStringKey: "DG.Undo.showAllCases",
+        redoStringKey: "DG.Redo.showAllCases"
+      }
+    )
   }
 
   const numSelected = dataConfiguration?.selection.length ?? 0,

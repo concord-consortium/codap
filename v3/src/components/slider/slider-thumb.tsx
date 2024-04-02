@@ -1,11 +1,12 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, {CSSProperties, useEffect, useState, useRef} from "react"
-import { ISliderModel } from "./slider-model"
+import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+import { ISliderModel } from "./slider-model"
+import { valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
-import ThumbIcon from "../../assets/icons/icon-thumb.svg"
 
 import './slider.scss'
 
@@ -49,7 +50,10 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
     const handlePointerMove = (e: PointerEvent) => {
       const sliderValue = getSliderValueFromEvent(e)
       if (sliderValue != null) {
-        sliderModel?.setDynamicValue(sliderValue)
+        sliderModel?.applyUndoableAction(
+          () => sliderModel?.setDynamicValue(sliderValue),
+          { notification: valueChangeNotification(sliderValue, sliderModel?.globalValue.name) }
+        )
       }
       e.preventDefault()
       e.stopImmediatePropagation()
@@ -60,7 +64,11 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       if (sliderValue != null) {
         sliderModel?.applyUndoableAction(
           () => sliderModel.setValue(sliderValue),
-          "DG.Undo.slider.change", "DG.Redo.slider.change")
+          {
+            undoStringKey: "DG.Undo.slider.change",
+            redoStringKey: "DG.Redo.slider.change"
+          }
+        )
       }
       downOffset.current = 0
       setIsDragging(false)

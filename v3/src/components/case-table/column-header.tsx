@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
-import { kDefaultAttributeName } from "../../models/data/attribute"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTablePortal } from "./case-table-portal"
@@ -94,7 +93,7 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
         isMenuOpen.current = isOpen
         onCloseRef.current = onClose
         return (
-          <Tooltip label={`${column.name} ${description}` || kDefaultAttributeName} h="20px" fontSize="12px"
+          <Tooltip label={`${column.name ?? ""} ${description}`} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
@@ -111,7 +110,7 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${column?.name}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
-                        {column.name ? `${column?.name}${units}` : kDefaultAttributeName}
+                        {`${column?.name ?? ""}${units}`}
                       </MenuButton>
                       {column.key !== kIndexColumnKey &&
                         <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>

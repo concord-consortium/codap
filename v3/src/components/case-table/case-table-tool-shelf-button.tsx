@@ -62,7 +62,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
       openTableForDataset(sharedData, caseMetadata)
-    }, "V3.Undo.caseTable.create", "V3.Redo.caseTable.create")
+    }, {
+      undoStringKey: "V3.Undo.caseTable.create",
+      redoStringKey: "V3.Redo.caseTable.create"
+    })
   }
 
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
@@ -89,12 +92,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     <>
       <MenuList>
         {datasets?.map((dataset, idx) => {
-          const model = datasets.find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
-          const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
-          const tiles = manager?.getSharedModelTiles(model)
-          const tableTile = tiles?.find(tile => tile.content.type === kCaseTableTileType)
-          const tileTitle = caseMetadata?.title ? caseMetadata?.title
-                                                : tableTile?.title ? tableTile?.title : dataset.dataSet.name
+          // case table title reflects DataSet title
+          const tileTitle = dataset.dataSet.title
           return (
             <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>handleOpenDataSetTable(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>
@@ -155,7 +154,10 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
       document.applyUndoableAction(() => {
         manager?.removeSharedModel(dataSetId)
         getFormulaManager(document)?.removeDataSet(dataSetId)
-      }, "V3.Undo.caseTable.delete", "V3.Redo.caseTable.delete")
+      }, {
+        undoStringKey: "V3.Undo.caseTable.delete",
+        redoStringKey: "V3.Redo.caseTable.delete"
+      })
     }
   }
 

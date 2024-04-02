@@ -111,7 +111,10 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       if (isComplete) {
         metadata?.applyUndoableAction(() => {
           metadata.columnWidths.set(attrId, width)
-        }, "DG.Undo.caseTable.resizeOneColumn", "DG.Redo.caseTable.resizeOneColumn")
+        }, {
+          undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
+          redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
+        })
       }
     }, [columns, metadata])
 

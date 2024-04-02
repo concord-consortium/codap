@@ -1,8 +1,9 @@
 import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
-import { withoutUndo } from "../../models/history/without-undo"
+import { v2ModelSnapshotFromV2ModelStorage } from "../../models/data/v2-model"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
+import { v3TypeFromV2TypeString } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIAttribute, DIHandler, DIResources, DISingleValues, DIValues } from "../data-interactive-types"
 
@@ -42,12 +43,9 @@ function convertAttributeToV2FromResources(resources: DIResources) {
 function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
   if (values.name) {
-    const userType = isAttributeType(values.type) ? values.type : undefined
     return {
-      name: values.name,
-      userType,
-      title: values.title,
-      id: values.cid, // TODO Should we allow the values to specify an id at all?
+      ...v2ModelSnapshotFromV2ModelStorage(values),
+      userType: v3TypeFromV2TypeString(values.type),
       // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
       // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
       description: values.description ?? undefined,
@@ -57,10 +55,8 @@ function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSn
       // hidden is part of metadata, not the attribute model
       // renameable: values.renameable, // TODO renameable not part of IAttribute yet
       // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
-      // formula is not part of the attribute model so it's handled separately
+      formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
-      // guid is not in the attribute model
-      // id has no equivalent part of the attribute model
       precision: values.precision ?? undefined,
       units: values.unit ?? undefined
     }
@@ -103,7 +99,6 @@ export const diAttributeHandler: DIHandler = {
     const attributes: IAttribute[] = []
     const createAttribute = (value: DIAttribute) => {
       dataContext.applyUndoableAction(() => {
-        withoutUndo()
         const attributeSnapshot = convertValuesToAttributeSnapshot(value)
         if (attributeSnapshot) {
           const attribute = dataContext.addAttribute(attributeSnapshot)
@@ -111,7 +106,7 @@ export const diAttributeHandler: DIHandler = {
           metadata?.setIsHidden(attribute.id, !!value.hidden)
           attributes.push(attribute)
         }
-      }, "", "")
+      })
     }
     attributeValues.forEach(attributeValue => {
       if (attributeValue) createAttribute(attributeValue)
@@ -126,7 +121,6 @@ export const diAttributeHandler: DIHandler = {
 
     const values = _values as DIAttribute
     attribute.applyUndoableAction(() => {
-      withoutUndo()
       if (values?.description != null) attribute.setDescription(values.description)
       if (values?.editable != null) attribute.setEditable(!!values.editable)
       if (values?.formula != null) attribute.setDisplayExpression(values.formula)
@@ -142,7 +136,7 @@ export const diAttributeHandler: DIHandler = {
           metadata?.setIsHidden(attribute.id, values.hidden)
         }
       }
-    }, "", "")
+    })
     const attributeV2 = convertAttributeToV2FromResources(resources)
     if (attributeV2) {
       return {
@@ -162,9 +156,8 @@ export const diAttributeHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     dataContext.applyUndoableAction(() => {
-      withoutUndo()
       dataContext.removeAttribute(attribute.id)
-    }, "", "")
+    })
     return { success: true }
   }
 }

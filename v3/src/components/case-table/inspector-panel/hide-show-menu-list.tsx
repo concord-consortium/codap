@@ -47,7 +47,10 @@ export const HideShowMenuList = () => {
   const handleShowAllAttributes = () => {
     caseMetadata?.applyUndoableAction(
       () => caseMetadata?.showAllAttributes(),
-      "DG.Undo.caseTable.showAllHiddenAttributes", "DG.Redo.caseTable.showAllHiddenAttributes"
+      {
+        undoStringKey: "DG.Undo.caseTable.showAllHiddenAttributes",
+        redoStringKey: "DG.Redo.caseTable.showAllHiddenAttributes"
+      }
     )
   }
 

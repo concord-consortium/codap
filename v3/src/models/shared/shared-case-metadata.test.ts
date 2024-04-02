@@ -57,12 +57,6 @@ describe("SharedCaseMetadata", () => {
     expect(isSharedCaseMetadata(tree.metadata)).toBe(true)
   })
 
-  it("supports a title", () => {
-    expect(tree.metadata.title).toBeUndefined()
-    tree.metadata.setTitle("foo")
-    expect(tree.metadata.title).toBe("foo")
-  })
-
   it("stores column widths and hidden attributes", () => {
     expect(tree.metadata.columnWidth("foo")).toBeUndefined()
     expect(tree.metadata.isHidden("foo")).toBe(false)

@@ -47,7 +47,10 @@ export const MapLayersPalette = observer(function MapLayersPalette(
                 const op = layer.isVisible ? 'hide' : 'show'
                 layer.applyUndoableAction(() => {
                   layer.setVisibility(!layer.isVisible)
-                }, `V3.Undo.map.${op}Layer`, `V3.Redo.map.${op}Layer`)
+                }, {
+                  undoStringKey: `V3.Undo.map.${op}Layer`,
+                  redoStringKey: `V3.Redo.map.${op}Layer`
+                })
               }}
             >
               {layer.dataConfiguration.dataset?.name /* todo:  */}

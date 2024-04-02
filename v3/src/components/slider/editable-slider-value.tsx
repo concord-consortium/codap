@@ -3,8 +3,9 @@ import { autorun } from "mobx"
 import {observer} from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, {useState, useEffect} from "react"
-import {ISliderModel} from "./slider-model"
 import {MultiScale} from "../axis/models/multi-scale"
+import {ISliderModel} from "./slider-model"
+import { valueChangeNotification } from "./slider-utils"
 
 import './slider.scss'
 
@@ -45,7 +46,12 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
           sliderModel.encompassValue(inputValue)
           sliderModel.setValue(inputValue)
         },
-        "DG.Undo.slider.change", "DG.Redo.slider.change")
+        {
+          notification: valueChangeNotification(inputValue, sliderModel.globalValue.name),
+          undoStringKey: "DG.Undo.slider.change",
+          redoStringKey: "DG.Redo.slider.change"
+        }
+      )
     }
   }
 

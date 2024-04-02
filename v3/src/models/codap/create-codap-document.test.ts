@@ -1,10 +1,7 @@
 import { getSnapshot } from "mobx-state-tree"
 import { omitUndefined } from "../../test/test-utils"
-import { gDataBroker } from "../data/data-broker"
-import { DataSet, toCanonical } from "../data/data-set"
+import { toCanonical } from "../data/data-set"
 import { createCodapDocument } from "./create-codap-document"
-import { ISharedDataSet } from "../shared/shared-data-set"
-import { getSharedModelManager } from "../tiles/tile-environment"
 import "../shared/shared-case-metadata-registration"
 import "../shared/shared-data-set-registration"
 
@@ -48,20 +45,12 @@ describe("createCodapDocument", () => {
     })
   })
 
-  it("DataBroker adds a DataSet to the document as a shared model", () => {
+  it("createDataSet adds a DataSet to the document as a shared model", () => {
     const doc = createCodapDocument()
-    const manager = getSharedModelManager(doc)
-    const data = DataSet.create()
+    const { sharedDataSet, caseMetadata } = doc.content!.createDataSet()
+    const { dataSet: data } = sharedDataSet
     data.addAttribute({ name: "a" })
     data.addCases(toCanonical(data, [{ a: "1" }, { a: "2" }, { a: "3" }]))
-    gDataBroker.setSharedModelManager(manager!)
-    const { sharedData, caseMetadata } = gDataBroker.addDataSet(data)
-
-    const entry = doc.content?.sharedModelMap.get(sharedData.id)
-    const sharedModel = entry?.sharedModel as ISharedDataSet | undefined
-    // the DataSet is not copied -- it's a single instance
-    expect(data).toBe(gDataBroker.last)
-    expect(gDataBroker.last).toBe(sharedModel?.dataSet)
 
     // need to wrap the serialization in prepareSnapshot()/completeSnapshot() to get the data
     data.prepareSnapshot()
@@ -77,24 +66,24 @@ describe("createCodapDocument", () => {
           sharedModel: { id: "test-2", type: "GlobalValueManager", globals: {} },
           tiles: []
         },
-        [sharedData.id]: {
+        [sharedDataSet.id]: {
           sharedModel: {
             dataSet: {
+              name: "New Dataset",
               attributes: [{
                 clientKey: "",
-                id: "test-6",
+                id: "test-8",
                 name: "a",
-                title: "",
                 editable: true,
                 values: ["1", "2", "3"]
               }],
-              cases: [{ __id__: "CASEorder-7" }, { __id__: "CASEorder-8" }, { __id__: "CASEorder-9" }],
+              cases: [{ __id__: "CASEorder-9" }, { __id__: "CASEorder-10" }, { __id__: "CASEorder-11" }],
               collections: [],
-              ungrouped: { id: "test-5", name: "", title: "" },
-              id: "test-4",
+              ungrouped: { id: "test-6", name: "Cases" },
+              id: "test-5",
               snapSelection: []
             },
-            id: sharedData.id,
+            id: sharedDataSet.id,
             providerId: "",
             type: "SharedDataSet"
           },
@@ -105,7 +94,7 @@ describe("createCodapDocument", () => {
             categories: {},
             collections: {},
             columnWidths: {},
-            data: "test-4",
+            data: "test-5",
             hidden: {},
             id: caseMetadata.id,
             type: "SharedCaseMetadata"

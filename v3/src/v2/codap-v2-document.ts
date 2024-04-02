@@ -1,6 +1,7 @@
 import { IAttribute } from "../models/data/attribute"
-import { CollectionModel } from "../models/data/collection"
+import { CollectionModel, CollectionPropsModel } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
+import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
 import {
@@ -103,7 +104,8 @@ export class CodapV2Document {
 
   registerCollections(data: IDataSet, metadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
     collections.forEach((collection, index) => {
-      const { attrs = [], cases = [], guid, name = "", title = "", type = "DG.Collection" } = collection
+      const { attrs = [], cases = [], guid, name = "", title, type = "DG.Collection" } = collection
+      const _title = v2NameTitleToV3Title(name, title)
       this.guidMap.set(guid, { type, object: collection })
 
       // assumes hierarchical collections are in order parent => child
@@ -112,7 +114,7 @@ export class CodapV2Document {
       this.registerCases(data, cases, level)
 
       if (level > 0) {
-        const collectionModel = CollectionModel.create({ name, title })
+        const collectionModel = CollectionModel.create({ name, _title })
         attrs.forEach(attr => {
           const attrModel = data.attrFromName(attr.name)
           attrModel && collectionModel.addAttribute(attrModel)
@@ -120,8 +122,7 @@ export class CodapV2Document {
         data.addCollection(collectionModel)
       }
       else {
-        data.ungrouped.setName(name)
-        data.ungrouped.setTitle(title)
+        data.setUngroupedCollection(CollectionPropsModel.create({ name, _title }))
       }
     })
   }
@@ -129,9 +130,10 @@ export class CodapV2Document {
   registerAttributes(data: IDataSet, metadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[], level: number) {
     attributes.forEach(v2Attr => {
       const {
-        cid, guid, description: v2Description, name = "", title = "", type: v2Type, formula: v2Formula,
+        cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
         editable: v2Editable, unit: v2Unit, precision: v2Precision
       } = v2Attr
+      const _title = v2NameTitleToV3Title(name, v2Title)
       const description = v2Description ?? undefined
       const userType = v3TypeFromV2TypeString(v2Type)
       const formula = v2Formula ? { display: v2Formula } : undefined
@@ -140,7 +142,7 @@ export class CodapV2Document {
       const units = v2Unit ?? undefined
       this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
       const attribute = data.addAttribute({
-        id: cid, name, description, formula, title, userType, editable, units, precision
+        id: cid, name, description, formula, _title, userType, editable, units, precision
       })
       if (attribute) {
         this.v3AttrMap.set(guid, attribute)

@@ -150,7 +150,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     pointDescription: {
       _itemColors: pointColor ? [pointColor] : [],
       _itemStrokeColor: strokeColor,
-      pointSizeMultiplier,
+      _pointSizeMultiplier: pointSizeMultiplier,
       /*transparency, strokeTransparency*/
       _itemStrokeSameAsFill: strokeSameAsFill
     },

@@ -64,7 +64,10 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         if ((editable === "yes") !== attribute.editable) {
           attribute.setEditable(editable === "yes")
         }
-      }, "DG.Undo.caseTable.editAttribute", "DG.Redo.caseTable.editAttribute")
+      }, {
+        undoStringKey: "DG.Undo.caseTable.editAttribute",
+        redoStringKey: "DG.Redo.caseTable.editAttribute"
+      })
     }
     closeModal()
   }

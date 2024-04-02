@@ -85,7 +85,10 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
 
     graphModel.applyUndoableAction(
       () => model.setPoint({x: xValue, y: yValue}, instanceKey),
-      "DG.Undo.graph.moveMovablePoint", "DG.Redo.graph.moveMovablePoint"
+      {
+        undoStringKey: "DG.Undo.graph.moveMovablePoint",
+        redoStringKey: "DG.Redo.graph.moveMovablePoint"
+      }
     )
 
   }, [graphModel, instanceKey, model, xScale, xSubAxesCount, yScale, ySubAxesCount])

@@ -9,6 +9,21 @@ import { IDocumentModel } from "../../models/document/document"
 const libDebug = require("../../lib/debug")
 
 describe("Tool shelf", () => {
+
+  beforeEach(() => {
+    const consoleWarn = console.warn
+    jest.spyOn(console, "warn").mockImplementation((...args: any[]) => {
+      // ignore the expected warning, but allow others
+      if (args[0] !== "Unable to load plugin data.") {
+        consoleWarn(...args)
+      }
+    })
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   const renderToolShelf = (doc?: IDocumentModel) => {
     const document = doc ?? createCodapDocument()
     render(<ToolShelf document={document}/>)

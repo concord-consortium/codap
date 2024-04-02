@@ -29,13 +29,12 @@ import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { parseColor } from "../../utilities/color-utils"
 import { typedId } from "../../utilities/js-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
-import { t } from "../../utilities/translation/translate"
 import { Formula, IFormula } from "../formula/formula"
 import { applyUndoableAction } from "../history/apply-undoable-action"
 import { withoutUndo } from "../history/without-undo"
+import { V2Model } from "./v2-model"
 
 export const kDefaultFormatStr = ".3~f"
-export const kDefaultAttributeName = t("DG.TableController.newAttrDlg.defaultAttrName")
 
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 
@@ -53,12 +52,10 @@ export function isAttributeType(type?: string | null): type is AttributeType {
   return type != null && (attributeTypes as readonly string[]).includes(type)
 }
 
-export const Attribute = types.model("Attribute", {
+export const Attribute = V2Model.named("Attribute").props({
   id: types.optional(types.identifier, () => typedId("ATTR")),
   clientKey: "",
   sourceID: types.maybe(types.string),
-  name: types.string,
-  title: "",
   description: types.maybe(types.string),
   userType: types.maybe(types.enumeration([...attributeTypes])),
   // userFormat: types.maybe(types.string),
@@ -74,17 +71,27 @@ export const Attribute = types.model("Attribute", {
 })
 .preProcessSnapshot(snapshot => {
   const { formula: inFormula, values: inValues, ...others } = snapshot
+  // early development versions of v3 had a `title` property
+  const _title = snapshot._title ?? ((snapshot as any).title || undefined)
   // don't import empty formulas
   const formula = inFormula?.display?.length ? inFormula : undefined
   // map all non-string values to strings
   const values = (inValues || []).map(v => importValueToString(v))
-  return { formula, values, ...others }
+  return { formula, values, ...others, _title }
 })
 .volatile(self => ({
   strValues: [] as string[],
   numValues: [] as number[],
   changeCount: 0
 }))
+.views(self => {
+  const baseMatchNameOrId = self.matchNameOrId
+  return {
+    matchNameOrId(nameOrId: string | number) {
+      return self.id === nameOrId || baseMatchNameOrId(nameOrId)
+    }
+  }
+})
 .views(self => ({
   importValue(value: IValueType) {
     // may eventually want to do something more sophisticated here, like convert
@@ -230,9 +237,6 @@ export const Attribute = types.model("Attribute", {
 .actions(self => ({
   setName(newName: string) {
     self.name = newName
-  },
-  setTitle(newTitle: string) {
-    self.title = newTitle
   },
   setUnits(units?: string) {
     self.units = units

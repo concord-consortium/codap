@@ -5,11 +5,9 @@ import throttle from "lodash/throttle"
 import {useResizeDetector} from "react-resize-detector"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import pluralize from "pluralize"
 import { uniqueName } from "../../utilities/js-utils"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
@@ -18,14 +16,12 @@ export const CollectionTitle = observer(function CollectionTitle() {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
+  const collectionName = collection?.name ?? ""
   const { isTileSelected } = useTileModelContext()
-  const { setTitle, displayTitle } = collection || {}
-  const defaultName = collection ? pluralize((getCollectionAttrs(collection, data)[0]?.name) ?? "") : ""
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const titleRef = useRef<HTMLDivElement>(null)
-  const title = displayTitle || defaultName
   // used to trigger a render
   const [ , setTableScrollLeft] = useState(0)
   const { active } = useDndContext()
@@ -72,14 +68,14 @@ export const CollectionTitle = observer(function CollectionTitle() {
     }
   }
 
-  const handleChangeTitle = (nextValue?: string) => {
-    if (nextValue) {
-      setTitle?.(nextValue)
+  const handleChangeName = (newName?: string) => {
+    if (newName) {
+      collection?.setName(newName)
     }
   }
 
   const handleAddNewAttribute = () => {
-    const newAttrName = uniqueName("newAttr",
+    const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
       (aName: string) => !data?.attributes.find(attr => aName === attr.name)
      )
     data?.addAttribute({ name: newAttrName }, { collection: collectionId })
@@ -91,11 +87,11 @@ export const CollectionTitle = observer(function CollectionTitle() {
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
-        <Editable value={isEditing ? title : `${title} (${caseCount} ${casesStr})`}
+        <Editable value={isEditing ? collectionName : `${collectionName} (${caseCount} ${casesStr})`}
             onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)} onCancel={() => setIsEditing(false)}
-            isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeTitle}>
+            isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview paddingY={0} />
-          <EditableInput value={title} paddingY={0} className="collection-title-input" />
+          <EditableInput value={collectionName} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
       <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}

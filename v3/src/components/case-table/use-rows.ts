@@ -224,7 +224,11 @@ export const useRows = () => {
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     data?.applyUndoableAction(
       () => data?.setCaseValues(caseValues),
-      "DG.Undo.caseTable.editCellValue", "DG.Redo.caseTable.editCellValue")
+      {
+        undoStringKey: "DG.Undo.caseTable.editCellValue",
+        redoStringKey: "DG.Redo.caseTable.editCellValue"
+      }
+    )
   }, [data])
 
   return { handleRowsChange }

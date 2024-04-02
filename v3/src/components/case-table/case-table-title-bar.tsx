@@ -12,8 +12,8 @@ import "./case-table-title-bar.scss"
 
 export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, ...others}: ITileTitleBarProps) {
   const data = isCaseTableModel(tile?.content) ? tile?.content.data : undefined
-  const caseMetadata = isCaseTableModel(tile?.content) ? tile?.content.metadata  : undefined
-  const getTitle = () => caseMetadata?.title || tile?.title || data?.name
+  // case table title reflects DataSet title
+  const getTitle = () => data?.title ?? ""
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
   const cardTableToggleRef = useRef(null)
@@ -33,10 +33,10 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, ...o
     setShowCaseCard(!showCaseCard)
   }
 
-  const handleChangeTitle = (nextValue?: string) => {
-    if (nextValue) {
-      tile?.setTitle(nextValue)
-      caseMetadata?.setTitle(nextValue)
+  const handleChangeTitle = (newTitle?: string) => {
+    if (newTitle) {
+      // case table title reflects DataSet title
+      data?.setTitle(newTitle)
     }
   }
 

@@ -314,7 +314,10 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         const lineModel = model.lines.get(instanceKey)
         graphModel.applyUndoableAction(
           () => lineModel?.setEquationCoords({x: left, y: top}),
-          "DG.Undo.graph.repositionEquation", "DG.Redo.graph.repositionEquation"
+          {
+            undoStringKey: "DG.Undo.graph.repositionEquation",
+            redoStringKey: "DG.Redo.graph.repositionEquation"
+          }
         )
       }
     }

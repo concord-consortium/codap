@@ -31,22 +31,31 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const hideSelectedCases = () => {
     mapModel?.applyUndoableAction(
       () => mapModel?.hideSelectedCases(),
-      "DG.Undo.hideSelectedCases",
-      "DG.Redo.hideSelectedCases")
+      {
+        undoStringKey: "DG.Undo.hideSelectedCases",
+        redoStringKey: "DG.Redo.hideSelectedCases"
+      }
+    )
   }
 
   const hideUnselectedCases = () => {
     mapModel?.applyUndoableAction(
       () => mapModel?.hideUnselectedCases(),
-      "DG.Undo.hideUnselectedCases",
-      "DG.Redo.hideUnselectedCases")
+      {
+        undoStringKey: "DG.Undo.hideUnselectedCases",
+        redoStringKey: "DG.Redo.hideUnselectedCases"
+      }
+    )
   }
 
   const showAllCases = () => {
     mapModel?.applyUndoableAction(
       () => mapModel?.clearHiddenCases(),
-      "DG.Undo.showAllCases",
-      "DG.Redo.showAllCases")
+      {
+        undoStringKey: "DG.Undo.showAllCases",
+        redoStringKey: "DG.Redo.showAllCases"
+      }
+    )
   }
 
   return (

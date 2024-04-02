@@ -32,7 +32,10 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
     handleModalOpen(false)
     graphModel.applyUndoableAction(
       () => model.setExpression(newExpression),
-      "DG.Undo.graph.changePlotFunction", "DG.Redo.graph.changePlotFunction"
+      {
+        undoStringKey: "DG.Undo.graph.changePlotFunction",
+        redoStringKey: "DG.Redo.graph.changePlotFunction"
+      }
     )
   }
 

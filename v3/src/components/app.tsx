@@ -43,7 +43,10 @@ export const App = observer(function App() {
       let sharedData: ISharedDataSet | undefined
       appState.document.content?.applyUndoableAction(() => {
         sharedData = appState.document.content?.importDataSet(data, options)
-      }, "V3.Undo.import.data", "V3.Redo.import.data")
+      }, {
+        undoStringKey: "V3.Undo.import.data",
+        redoStringKey: "V3.Redo.import.data"
+      })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
     }, [])

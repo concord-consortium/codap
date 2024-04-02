@@ -39,7 +39,11 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const handleHideAttribute = () => {
     caseMetadata?.applyUndoableAction(
       () => caseMetadata?.setIsHidden(column.key, true),
-      "DG.Undo.caseTable.hideAttribute", "DG.Redo.caseTable.hideAttribute")
+      {
+        undoStringKey: "DG.Undo.caseTable.hideAttribute",
+        redoStringKey: "DG.Redo.caseTable.hideAttribute"
+      }
+    )
   }
 
   const handleDeleteAttribute = () => {
@@ -51,7 +55,10 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       // delete the attribute
       data.applyUndoableAction(() => {
         data.removeAttribute(attrId)
-      }, "DG.Undo.caseTable.deleteAttribute", "DG.Redo.caseTable.deleteAttribute")
+      }, {
+        undoStringKey: "DG.Undo.caseTable.deleteAttribute",
+        redoStringKey: "DG.Redo.caseTable.deleteAttribute"
+      })
       attributeToDelete.completeSnapshot()
     }
   }
