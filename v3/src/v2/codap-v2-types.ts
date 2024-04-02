@@ -22,8 +22,7 @@ export interface ICodapV2Attribute {
   deleteable?: boolean
   formula?: string
   deletedFormula?: string
-  // some documents have "" ¯\_(ツ)_/¯
-  precision?: number | "" | null
+  precision?: number | string | null
   unit?: string | null
 }
 

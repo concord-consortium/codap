@@ -58,7 +58,7 @@ function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSn
       // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
       formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
-      precision: values.precision == null || values.precision === "" ? undefined : values.precision,
+      precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
       units: values.unit ?? undefined
     }
   }
@@ -127,7 +127,7 @@ export const diAttributeHandler: DIHandler = {
       if (values?.formula != null) attribute.setDisplayExpression(values.formula)
       if (values?.name != null) attribute.setName(values.name)
       if (hasOwnProperty(values, "precision")) {
-        attribute.setPrecision(values.precision == null || values.precision === "" ? undefined : values.precision)
+        attribute.setPrecision(values.precision == null || values.precision === "" ? undefined : +values.precision)
       }
       if (values?.title != null) attribute.setTitle(values.title)
       if (isAttributeType(values?.type)) attribute.setUserType(values.type)
