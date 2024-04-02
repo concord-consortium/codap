@@ -22,7 +22,7 @@ export const diGlobalHandler: DIHandler = {
     if (!global || !value) return { success: false, values: { error: t("V3.DI.Error.globalNotFound") } }
 
     global.applyUndoableAction(
-      () => global.setValue(value)
+      () => global.setValue(Number(value))
     )
     return { success: true }
   }
