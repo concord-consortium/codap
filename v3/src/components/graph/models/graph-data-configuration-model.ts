@@ -471,10 +471,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
-    casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>) {
+    casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>, binnedPoints = false) {
       return self.subPlotCases(cellKey)?.filter(caseId => {
         const caseValue = self.dataset?.getNumeric(caseId, attrId)
-        if (isFiniteNumber(caseValue) && caseValue >= min && caseValue <= max) {
+        const upperRangeBoundary = binnedPoints ? max - 0.000001 : max
+        if (isFiniteNumber(caseValue) && caseValue >= min && caseValue <= upperRangeBoundary) {
           return caseId
         }
       })

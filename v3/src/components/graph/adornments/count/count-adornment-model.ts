@@ -13,6 +13,7 @@ export interface IRegionCount {
   width: number
 }
 export interface IRegionCountParams {
+  binnedPoints?: boolean
   cellKey: Record<string, string>
   dataConfig?: IGraphDataConfigurationModel
   plotHeight: number
@@ -46,7 +47,7 @@ export const CountAdornmentModel = AdornmentModel
       return isFinite(percentValue) ? percentValue : 0
     },
     regionCounts(props: IRegionCountParams) {
-      const { cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries } = props
+      const { binnedPoints, cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries } = props
       const primaryAttrRole = dataConfig?.primaryRole ?? "x"
       const attrId = dataConfig?.attributeID(primaryAttrRole)
       if (!attrId) return []
@@ -69,7 +70,7 @@ export const CountAdornmentModel = AdornmentModel
         const upperBoundary = subPlotRegionBoundaries[i + 1]
         const pixelMin = scaleCopy(lowerBoundary)
         const pixelMax = scaleCopy(upperBoundary)
-        const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey) ?? []
+        const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, binnedPoints) ?? []
         const count = casesInRange.length
         const width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
         const height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)

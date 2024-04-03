@@ -816,6 +816,18 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-button-movable-value--add]").click()
     cy.get(".sub-count").should("have.length", 3)
   })
+  it("renders Count adornment count per region defined by bin boundaries when 'Group into Bins' is selected", () => {
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    graph.getDisplayConfigButton().click()
+    cy.get("[data-testid=bins-radio-button]").click()
+    cy.wait(500)
+    cy.get("[data-testid=graph-bin-width-setting]").should("exist")
+    graph.getDisplayValuesButton().click()
+    cy.get("[data-testid=adornment-checkbox-count-count]").click()
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get(".sub-count").should("have.length", 10)
+  })
   it("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
