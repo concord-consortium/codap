@@ -1,6 +1,5 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
-import { applyUndoableAction } from "../history/apply-undoable-action"
 
 export const kDefaultNamePrefix = "v"
 
@@ -38,6 +37,5 @@ export const GlobalValue = types.model("GlobalValue", {
       self.dynamicValue = undefined
     }
   }))
-  .actions(applyUndoableAction)
 export interface IGlobalValue extends Instance<typeof GlobalValue> {}
 export interface IGlobalValueSnapshot extends SnapshotIn<typeof GlobalValue> {}

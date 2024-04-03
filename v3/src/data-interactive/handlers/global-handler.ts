@@ -28,7 +28,7 @@ export const diGlobalHandler: DIHandler = {
     if (global) {
       return { success: true, values: valuesFromGlobal(global) }
     }
-    
+
     return { success: false, values: { error: t("V3.DI.Error.globalCreation") } }
   },
   get(resources: DIResources) {
@@ -41,11 +41,12 @@ export const diGlobalHandler: DIHandler = {
     }
   },
   update(resources: DIResources, values?: DIValues) {
+    const { document } = appState
     const { global } = resources
     const { value } = values as DIGlobal
     if (!global || !value) return { success: false, values: { error: t("V3.DI.Error.globalNotFound") } }
 
-    global.applyUndoableAction(
+    document.applyUndoableAction(
       () => global.setValue(Number(value))
     )
     return { success: true }
