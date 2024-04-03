@@ -14,14 +14,20 @@ function valuesFromGlobal(global: IGlobalValue) {
   }
 }
 
+const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.globalIllegalValue") } } as const
+
 export const diGlobalHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
     const { document } = appState
     const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
     const { name, value } = values as DIGlobal
+
+    const _value = Number(value ?? kDefaultSliderValue)
+    if (isNaN(_value)) return illegalValueResult
+
     const globalSnapshot = {
       name: (name ?? globalManager?.uniqueName() ?? kDefaultSliderName).toString(),
-      value: Number(value ?? kDefaultSliderValue)
+      value: _value
     }
 
     if (globalManager?.getValueByName(globalSnapshot.name)) {
@@ -50,8 +56,11 @@ export const diGlobalHandler: DIHandler = {
     const { value } = values as DIGlobal
     if (!global || !value) return { success: false, values: { error: t("V3.DI.Error.globalNotFound") } }
 
+    const _value = Number(value)
+    if (isNaN(_value)) return illegalValueResult
+
     document.applyUndoableAction(
-      () => global.setValue(Number(value))
+      () => global.setValue(_value)
     )
     return { success: true }
   }
