@@ -56,7 +56,7 @@ export interface DIResources {
 
 export type DISingleValues = DIAttribute | DIAttributes | DIGlobal | DIInteractiveFrame
 
-export type DIValues = DISingleValues | DISingleValues[]
+export type DIValues = DISingleValues | DISingleValues[] | number
 
 export interface DIMetadata {
   dirtyDocument?: boolean

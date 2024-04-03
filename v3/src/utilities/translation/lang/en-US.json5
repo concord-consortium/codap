@@ -74,6 +74,7 @@
     "V3.DI.Error.attributeNotFound": "Attribute not found",
     "V3.DI.Error.fieldRequired": "%@1 %@2: %@3 required",
     "V3.DI.Error.dataContextNotFound": "DataContext not found",
+    "V3.DI.Error.collectionNotFound": "Collection not found",
     "V3.DI.Error.globalCreation": "error creating global value",
     "V3.DI.Error.globalNotFound": "missing global or value",
     "V3.DI.Error.interactiveFrameNotFound": "Interactive Frame not found",
