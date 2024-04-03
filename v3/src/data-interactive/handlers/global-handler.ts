@@ -20,8 +20,8 @@ export const diGlobalHandler: DIHandler = {
     const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
     const { name, value } = values as DIGlobal
     const globalSnapshot = {
-      name: name ?? globalManager?.uniqueName() ?? kDefaultSliderName,
-      value: value ?? kDefaultSliderValue
+      name: (name ?? globalManager?.uniqueName() ?? kDefaultSliderName).toString(),
+      value: Number(value ?? kDefaultSliderValue)
     }
 
     const global = globalManager?.addValueSnapshot(globalSnapshot)
