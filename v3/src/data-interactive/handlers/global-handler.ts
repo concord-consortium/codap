@@ -1,6 +1,6 @@
 import { kDefaultSliderName, kDefaultSliderValue } from "../../components/slider/slider-utils"
 import { appState } from "../../models/app-state"
-import { GlobalValueManager } from "../../models/global/global-value-manager"
+import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIGlobal, DIHandler, DIResources, DIValues } from "../data-interactive-types"
@@ -11,7 +11,7 @@ const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.glo
 export const diGlobalHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
     const { document } = appState
-    const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
+    const globalManager = getGlobalValueManager(getSharedModelManager(document))
     const { name, value } = values as DIGlobal
 
     const _value = Number(value ?? kDefaultSliderValue)

@@ -1,7 +1,7 @@
 
 import { appState } from "../../models/app-state"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
-import { DIGlobal, DISingleValues } from "../data-interactive-types"
+import { DIGlobal } from "../data-interactive-types"
 import { diGlobalListHandler } from "./global-list-handler"
 
 describe("DataInteractive GlobalListHandler", () => {

@@ -1,14 +1,9 @@
-import { GlobalValueManager, IGlobalValueManager } from "../../models/global/global-value-manager"
+import { GlobalValue } from "../../models/global/global-value"
 import { DIGlobal, DIValues } from "../data-interactive-types"
 import { diGlobalHandler } from "./global-handler"
 
 describe("DataInteractive GlobalHandler", () => {
   const handler = diGlobalHandler
-
-  let globalValueManager: IGlobalValueManager | undefined
-  beforeEach(() => {
-    globalValueManager = GlobalValueManager.create({})
-  })
 
   const name1 = "g1"
   const value1 = 1
@@ -27,16 +22,16 @@ describe("DataInteractive GlobalHandler", () => {
   })
 
   it("get works as expected", () => {
-    const global1 = globalValueManager?.addValueSnapshot({ name: name1, value: value1 })
     expect(handler.get?.({}).success).toBe(false)
 
+    const global1 = GlobalValue.create({ name: name1, value: value1 })
     const values = handler.get?.({ global: global1 })?.values as DIGlobal
     expect(values.name).toBe(name1)
     expect(values.value).toBe(value1)
   })
 
   it("update works as expected", () => {
-    const global1 = globalValueManager?.addValueSnapshot({ name: name1, value: value1 })
+    const global1 = GlobalValue.create({ name: name1, value: value1 })
     const resources = { global: global1 }
 
     // Global and value are required
