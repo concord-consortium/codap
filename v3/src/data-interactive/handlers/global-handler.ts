@@ -24,6 +24,10 @@ export const diGlobalHandler: DIHandler = {
       value: Number(value ?? kDefaultSliderValue)
     }
 
+    if (globalManager?.getValueByName(globalSnapshot.name)) {
+      return { success: false, values: { error: t("V3.DI.Error.globalDuplicateName") } }
+    }
+
     const global = globalManager?.addValueSnapshot(globalSnapshot)
     if (global) {
       return { success: true, values: valuesFromGlobal(global) }
