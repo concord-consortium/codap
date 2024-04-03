@@ -107,7 +107,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         .attr("width", `${layout.plotWidth}px`)
         .attr("height", `${layout.plotHeight}px`)
 
-      pixiPoints && pixiPoints.resize(layout.plotWidth, layout.plotHeight)
+      pixiPoints?.resize(layout.plotWidth, layout.plotHeight)
     }
   }, [dataset, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
 
