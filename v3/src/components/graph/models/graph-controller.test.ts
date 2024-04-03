@@ -47,6 +47,9 @@ describe("GraphController", () => {
   let dotChartSnap: SnapshotIn<typeof Tree> | undefined
   let scatterPlotSnap: SnapshotIn<typeof Tree> | undefined
 
+  const pixiPointsArrayRef = { current: [{}] } as any
+  const emptyPixiPointsArrayRef = { current: undefined } as any
+
   function setup() {
     const _tree = Tree.create()
     const { model: graphModel, data: dataSet, metadata } = _tree
@@ -56,7 +59,6 @@ describe("GraphController", () => {
     mockGetMetadata.mockImplementation(() => metadata)
     const layout = new GraphLayout()
     const graphController = new GraphController({ layout, instanceId })
-    const pixiPointsArrayRef = { current: [{}] } as any
     graphController.setProperties({ graphModel, pixiPointsArrayRef })
     return { tree: _tree, model: graphModel, controller: graphController, data: dataSet }
   }
@@ -77,7 +79,7 @@ describe("GraphController", () => {
   }
 
   // Skipped because I (Bill) am not sure how to handle undefined properties in the GraphController
-  it.skip("methods bail appropriately when not fully defined", () => {
+  it("methods bail appropriately when not fully defined", () => {
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     const _controller = new GraphController({
       layout: undefined as any,
@@ -94,13 +96,13 @@ describe("GraphController", () => {
     _controller.handleAttributeAssignment("bottom", data.id, "bogusId")
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
-    _controller.setProperties({ graphModel: model, pixiPointsArrayRef: undefined as any })
+    _controller.setProperties({ graphModel: model, pixiPointsArrayRef: emptyPixiPointsArrayRef })
     _controller.initializeGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
-    _controller.setProperties({ graphModel: model, pixiPointsArrayRef: undefined as any })
+    _controller.setProperties({ graphModel: model, pixiPointsArrayRef: emptyPixiPointsArrayRef })
     _controller.initializeGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()
