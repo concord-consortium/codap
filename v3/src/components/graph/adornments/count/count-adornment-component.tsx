@@ -45,6 +45,9 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       if (graphModel.pointDisplayType === "bins") {
         const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = graphModel.binDetails()
         return [
+          // Build and spread an array of numeric values corresponding to the bin boundaries. Using totalNumberOfBins
+          // for length, start at minBinEdge and increment by binWidth using each bin's index. Afterward, add
+          // maxBinEdge to complete the region boundaries array.
           ...Array.from({ length: totalNumberOfBins }, (_, i) => minBinEdge + i * binWidth),
           maxBinEdge
         ]
@@ -90,6 +93,9 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     const regionCountParams: IRegionCountParams = {
       cellKey,
       dataConfig,
+      // Points whose values match a region's upper boundary are treated differently based on what defines the regions.
+      // For regions defined by bins, points matching the upper boundary are placed into the next bin. So we set
+      // `inclusiveMax` to false. Otherwise, such points are considered within the boundary and `inclusiveMax` is true.
       inclusiveMax: graphModel.pointDisplayType !== "bins",
       plotHeight,
       plotWidth,
@@ -145,7 +151,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
           model.setShowPercent(false)
         }
      }, { name: "CountAdornment.refreshPercentOption"}, model)
-  }, [adornmentsStore.subPlotsHaveRegions, dataConfig, graphModel.pointDisplayType, model])
+  }, [adornmentsStore, dataConfig, graphModel, model])
   prf.end("CountAdornment.render")
   return (
     <div
