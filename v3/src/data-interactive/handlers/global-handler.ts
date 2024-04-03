@@ -1,18 +1,10 @@
 import { kDefaultSliderName, kDefaultSliderValue } from "../../components/slider/slider-utils"
 import { appState } from "../../models/app-state"
-import { IGlobalValue } from "../../models/global/global-value"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIGlobal, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-
-function valuesFromGlobal(global: IGlobalValue) {
-  return {
-    name: global.name,
-    value: global.value,
-    id: global.id
-  }
-}
+import { valuesFromGlobal } from "../di-conversion-utils"
 
 const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.globalIllegalValue") } } as const
 
