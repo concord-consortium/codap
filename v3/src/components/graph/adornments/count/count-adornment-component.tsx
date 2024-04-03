@@ -88,9 +88,9 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     }
 
     const regionCountParams: IRegionCountParams = {
-      binnedPoints: graphModel.pointDisplayType === "bins",
       cellKey,
       dataConfig,
+      inclusiveMax: graphModel.pointDisplayType !== "bins",
       plotHeight,
       plotWidth,
       scale,
