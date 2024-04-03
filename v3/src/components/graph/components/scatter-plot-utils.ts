@@ -2,13 +2,7 @@ import { ScaleBand, ScaleLinear } from "d3"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { ILineDescription, ISquareOfResidual } from "../adornments/shared-adornment-types"
-import { ICase } from "../../../models/data/data-set-types"
-
-export interface IConnectingLineDescription {
-  caseData: ICase
-  lineCoords: [number, number]
-  plotNum: number
-}
+import { IConnectingLineDescription } from "../../data-display/data-display-types"
 
 export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraphDataConfigurationModel) {
   const { dataset: data, yAttributeIDs: yAttrIDs = [], hasY2Attribute, numberOfPlots = 1 } = dataConfiguration || {}

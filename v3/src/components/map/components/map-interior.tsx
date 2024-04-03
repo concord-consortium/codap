@@ -8,6 +8,7 @@ import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointLayer} from "./map-point-layer"
 import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {MapPolygonLayer} from "./map-polygon-layer"
+import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
 interface IProps {
   pixiPointsArrayRef:  React.MutableRefObject<PixiPoints[]>
@@ -28,10 +29,15 @@ export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: I
   const renderMapLayerComponents = () => {
     return mapModel?.layers.map((layerModel, index) => {
       if (isMapPointLayerModel(layerModel)) {
-        return <MapPointLayer
-          key={`${kMapPointLayerType}-${index}`}
-          mapLayerModel={layerModel}
-          onSetPixiPointsForLayer={onSetPixiPointsForLayer}/>
+        return <DataConfigurationContext.Provider
+                 key={`${kMapPointLayerType}-${index}`}
+                 value={layerModel.dataConfiguration}
+               >
+                 <MapPointLayer
+                   mapLayerModel={layerModel}
+                   onSetPixiPointsForLayer={onSetPixiPointsForLayer}
+                 />
+               </DataConfigurationContext.Provider>
       }
       else if (isMapPolygonLayerModel(layerModel)) {
         return <MapPolygonLayer

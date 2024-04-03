@@ -310,4 +310,25 @@ context("Map UI", () => {
     mlh.selectCategoryColorForCategoricalLegend(arrayOfValues[0].values[1])
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[1], arrayOfValues[0].selected[1])
   })
+
+  it("shows connecting lines when Connecting Lines option is checked", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolshelf("map").click()
+    c.selectTile("map", 0)
+    cy.wait(2000)
+    cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
+    cy.get("[data-testid=map-display-values-button]").click()
+    cy.get("[data-testid=map-values-lines-checkbox]").should("be.visible")
+    // TODO: Once the bug causing two instances of the inspector palette to be rendered is fixed, the
+    // line below can be simplified by removing `{force: true, multiple: true}`.
+    cy.get("[data-testid=map-values-lines-checkbox]").find("input").click({force: true, multiple: true})
+    cy.wait(2000)
+    cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 1)
+    // TODO: Once the bug causing two instances of the inspector palette to be rendered is fixed, the
+    // line below can be simplified by removing `{force: true, multiple: true}`.
+    cy.get("[data-testid=map-values-lines-checkbox]").find("input").click({force: true, multiple: true})
+    cy.wait(2000)
+    cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
+  })
+
 })
