@@ -8,10 +8,6 @@ describe("DataInteractive GlobalHandler", () => {
   let globalValueManager: IGlobalValueManager | undefined
   beforeEach(() => {
     globalValueManager = GlobalValueManager.create({})
-    const content = { getFirstSharedModelManager: () => globalValueManager }
-    const document = { content }
-    const appState = { document }
-    jest.mock("../../models/app-state", () => { appState })
   })
 
   const name1 = "g1"
