@@ -10,7 +10,7 @@ function valuesFromGlobal(global: IGlobalValue) {
   return {
     name: global.name,
     value: global.value,
-    id: Number(global.id) // TODO This always returns null, which seems pretty useless
+    id: global.id
   }
 }
 
