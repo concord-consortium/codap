@@ -104,8 +104,8 @@ export function resolveResources(
 
   if (resourceSelector.global) {
     const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
-    result.global = globalManager?.getValueByName(resourceSelector.global)
-      || globalManager?.getValueById(resourceSelector.global)
+    result.global = globalManager?.getValueByName(resourceSelector.global) ||
+      globalManager?.getValueById(resourceSelector.global)
   }
 
   if ("dataContextList" in resourceSelector) {

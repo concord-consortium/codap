@@ -10,7 +10,8 @@ describe("DataInteractive GlobalHandler", () => {
     globalValueManager = GlobalValueManager.create({})
     const content = { getFirstSharedModelManager: () => globalValueManager }
     const document = { content }
-    jest.mock("../../models/app-state", () => { appState: () => { document } })
+    const appState = { document }
+    jest.mock("../../models/app-state", () => { appState })
   })
 
   const name1 = "g1"
@@ -23,7 +24,7 @@ describe("DataInteractive GlobalHandler", () => {
     // Values must be numbers
     expect(create({ name: name1, value: "a" } as DIValues)?.success).toBe(false)
     expect(create({ name: name1, value: value1 })?.success).toBe(true)
-    
+
     // Names must be unique
     expect(create({ name: name1, value: value2 })?.success).toBe(false)
     expect(create({ name: name2, value: value2 })?.success).toBe(true)
