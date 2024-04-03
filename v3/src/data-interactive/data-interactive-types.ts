@@ -13,6 +13,7 @@ export interface DIAttributes {
 export type DICase = unknown
 export type DIComponent  = unknown
 export interface DIGlobal {
+  name?: string
   value?: number
 }
 export interface DIInteractiveFrame {

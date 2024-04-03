@@ -1,5 +1,8 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 
+export const kDefaultSliderName = "v1"
+export const kDefaultSliderValue = .5
+
 export function valueChangeNotification(value: number, name?: string) {
   const action = "notify"
   const resource = `global[${name ?? ""}]`
