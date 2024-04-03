@@ -51,7 +51,7 @@ export function parseResourceSelector(iResource: string) {
 
 /**
  *
- * @param {DIResourceSelector} resourceSelector  ResourceSelector returned by parseREsourceSelector
+ * @param {DIResourceSelector} resourceSelector  ResourceSelector returned by parseResourceSelector
  * @param {string} action                        Action name: get, create, update, delete, notify
  * @param {ITileModel} interactiveFrame          Model of web view tile communicating with plugin
  * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
@@ -156,10 +156,6 @@ export function resolveResources(
   //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
   //   result.itemByID = dataSet &&
   //       serializeItem(dataSet,dataSet.getDataItemByID(resourceSelector.itemByID));
-  // }
-
-  // if (resourceSelector.itemCount != null) {
-  //   result.itemCount = result.dataContext && result.dataContext.get('itemCount');
   // }
 
   // if (resourceSelector.itemSearch) {
