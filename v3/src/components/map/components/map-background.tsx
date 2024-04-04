@@ -24,12 +24,12 @@ export const MapBackground = observer(function MapBackground({ mapModel, pixiPoi
         if (marqueeMode === 'selected') {
           // disable leaflet event handlers when marquee-selecting
           mapModel.leafletMapState.disableDefaultEventHandlers()
-          mapModel.setDeselectionIsDisabled(true)
+          mapModel.ignoreLeafletClicks(true)
         }
         else {
           // enable leaflet event handlers when not marquee-selecting
           mapModel.leafletMapState.enableDefaultEventHandlers()
-          mapModel.setDeselectionIsDisabled(false)
+          mapModel.ignoreLeafletClicks(false)
         }
       }, { name: "MapBackground.marqueeMode" }, mapModel)
   }, [mapModel])

@@ -63,7 +63,12 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoi
       // point deselection on map click, but it needs to be addressed better.
       event.stopPropagation()
       // We prevent the default action to avoid the map click handler deselecting the point
-      mapModel.setDeselectionIsDisabled(true)
+      const wasIgnoringClicks = mapModel._ignoreLeafletClicks
+      if (!wasIgnoringClicks) {
+        mapModel.ignoreLeafletClicks(true)
+        // restore click handling once the current click has been handled
+        setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
+      }
     }
   }, [dataConfiguration.dataset, mapModel])
 

@@ -44,7 +44,7 @@ export const MapContentModel = DataDisplayContentModel
     // used to track whether a given change was initiated by leaflet or CODAP
     syncFromLeafletCount: 0,
     syncFromLeafletResponseCount: 0,
-    deselectionIsDisabled: false,
+    _ignoreLeafletClicks: false,
   }))
   .views(self => ({
     get latLongBounds() {
@@ -127,18 +127,13 @@ export const MapContentModel = DataDisplayContentModel
     setBaseMapLayerVisibility(isVisible: boolean) {
       self.baseMapLayerIsVisible = isVisible
     },
-    setDeselectionIsDisabled(isDisabled: boolean) {
-      self.deselectionIsDisabled = isDisabled
+    ignoreLeafletClicks(ignore: boolean) {
+      self._ignoreLeafletClicks = ignore
     },
     deselectAllCases() {
-      if (!self.deselectionIsDisabled) {
-        self.layers.forEach(layer => {
-          layer.dataConfiguration.dataset?.selectAll(false)
-        })
-      }
-      else {
-        this.setDeselectionIsDisabled(false)
-      }
+      self.layers.forEach(layer => {
+        layer.dataConfiguration.dataset?.selectAll(false)
+      })
     }
   }))
   .actions(self => ({
@@ -205,10 +200,6 @@ export const MapContentModel = DataDisplayContentModel
           }
         }, {name: "MapContentModel.reaction [sync mapModel => leaflet map]", equals: comparer.structural}
       ))
-
-      self.leafletMapState.setOnClickCallback((event: MouseEvent) => {
-        if (!event.shiftKey && !event.metaKey) self.deselectAllCases()
-      })
     },
     afterAttachToDocument() {
       // Monitor coming and going of shared datasets

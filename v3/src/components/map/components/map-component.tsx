@@ -22,9 +22,11 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   useEffect(() => {
     if (mapModel) {
       mapModel.leafletMapState.setOnClickCallback((event: MouseEvent) => {
-        if (!event.shiftKey && !event.metaKey) mapModel.deselectAllCases()
+        if (!event.shiftKey && !event.metaKey && !mapModel._ignoreLeafletClicks) {
+          mapModel.deselectAllCases()
+        }
       })
-      return mapModel.leafletMapState.setOnClickCallback()
+      return () => mapModel.leafletMapState.setOnClickCallback()
     }
   }, [mapModel])
 
