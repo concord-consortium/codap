@@ -576,7 +576,7 @@ context("Graph adornments", () => {
       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=plotted-function-control-label]").should("exist").should("have.text", "f() =")
+    cy.get("[data-testid=plotted-function-control-label]").should("exist").should("have.text", "Mass")
     cy.get("[data-testid=plotted-function-control-value]").should("exist").should("have.text", "")
     cy.wait(250)
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").click()
@@ -598,7 +598,7 @@ context("Graph adornments", () => {
       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=plotted-function-control-label]").should("exist").should("have.text", "f() =")
+    cy.get("[data-testid=plotted-function-control-label]").should("exist").should("have.text", "Mass")
     cy.get("[data-testid=plotted-function-control-value]").should("exist").should("have.text", "")
     cy.wait(250)
 
