@@ -8,7 +8,6 @@ import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 
 import "./axis.scss"
 
@@ -28,10 +27,8 @@ const axisDragHints = [t("DG.CellLinearAxisView.lowerPanelTooltip"),
 export const NumericAxisDragRects = observer(
   function NumericAxisDragRects({axisModel, axisWrapperElt, numSubAxes = 1, subAxisIndex = 0}: IProps) {
     const rectRef = useRef() as React.RefObject<SVGGElement>,
-      place = axisModel.place,
-      layout = useAxisLayoutContext(),
-      dataDisplayModel = useDataDisplayModelContext(),
-      hasFixedMinAxis = dataDisplayModel.hasFixedMinAxis(axisModel)
+      { lockZero, place } = axisModel,
+      layout = useAxisLayoutContext()
 
     useEffect(function createRects() {
       let multiScale: MultiScale | undefined,
@@ -130,10 +127,10 @@ export const NumericAxisDragRects = observer(
         // Add rects which the user can drag to dilate or translate the axis scale. If the data display
         // model has a fixed zero axis, only add one draggable rect. Otherwise, add three.
         const classPrefix = place === 'bottom' ? 'h' : 'v',
-          numbering: RectIndices = hasFixedMinAxis
+          numbering: RectIndices = lockZero
                 ? [0]
                 : place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
-          classPostfixes = hasFixedMinAxis
+          classPostfixes = lockZero
                              ? ['upper-dilate']
                              : place === 'bottom'
                                ? ['lower-dilate', 'translate', 'upper-dilate']
@@ -169,7 +166,7 @@ export const NumericAxisDragRects = observer(
           )
         numbering.forEach((behaviorIndex, axisIndex) => {
           const indexedRects = selectDragRects(rectRef.current, `.${classPrefix}-${classPostfixes[axisIndex]}`)
-          if (hasFixedMinAxis) {
+          if (lockZero) {
             indexedRects?.call(
               drag<any, any>()
                 .on("start", onDilateStart)
@@ -181,7 +178,7 @@ export const NumericAxisDragRects = observer(
           }
         })
       }
-    }, [axisModel, place, layout, numSubAxes, subAxisIndex, hasFixedMinAxis])
+    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero])
 
     // update layout of axis drag rects when axis bounds change
     useEffect(() => {
@@ -193,10 +190,10 @@ export const NumericAxisDragRects = observer(
           const
             length = layout.getAxisLength(place) / numSubAxes,
             start = subAxisIndex * length,
-            numbering = hasFixedMinAxis
+            numbering = lockZero
                           ? [0]
                           : place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
-            rectCount = hasFixedMinAxis ? 1 : 3
+            rectCount = lockZero ? 1 : 3
           if (length != null && axisBounds != null) {
             selectDragRects(rectRef.current)
               ?.data(numbering)// data signify lower, middle, upper rectangles
@@ -216,7 +213,7 @@ export const NumericAxisDragRects = observer(
         }, {name: "NumericAxisDragRects [axisBounds]", fireImmediately: true}
       )
       return () => disposer()
-    }, [axisModel, layout, axisWrapperElt, place, numSubAxes, subAxisIndex, hasFixedMinAxis])
+    }, [axisModel, layout, axisWrapperElt, place, numSubAxes, subAxisIndex, lockZero])
     return (
       <g className={'dragRectWrapper'} ref={rectRef}/>
     )

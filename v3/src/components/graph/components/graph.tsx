@@ -292,7 +292,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           dataset={dataset}
           getTipAttrs={getTipAttrs}
           pixiPoints={pixiPoints}
-          pointsFusedIntoBars={graphModel.pointsFusedIntoBars}
+          getTipText={graphModel.getTipText}
         />
       </div>
     </GraphDataConfigurationContext.Provider>

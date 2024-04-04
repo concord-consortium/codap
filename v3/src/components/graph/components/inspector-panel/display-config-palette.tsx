@@ -25,8 +25,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
   const plotType = graphModel?.plotType
   const plotHasExactlyOneCategoricalAxis = graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis
-  // TODO: Have separate showFuseIntoBars and showPointDisplayType? That may be a bit clearer and more flexible.
-  const showOnlyFuseIntoBars = plotType === "dotChart" && plotHasExactlyOneCategoricalAxis
+  const showPointDisplayType = plotType !== "dotChart" || !plotHasExactlyOneCategoricalAxis
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -63,10 +62,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const handleSetFuseIntoBars = (fuseIntoBars: boolean) => {
     graphModel?.setPointsFusedIntoBars(fuseIntoBars)
     if (fuseIntoBars) {
-      graphModel?.setPointConfig("bars")
       graphModel?.pointDescription.setPointStrokeSameAsFill(true)
     } else {
-      graphModel?.setPointConfig("points")
       graphModel?.pointDescription.setPointStrokeSameAsFill(false)
     }
   }
@@ -80,7 +77,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
-      {!showOnlyFuseIntoBars && (
+      {showPointDisplayType && (
         <RadioGroup defaultValue={pointDisplayType}>
           <Stack>
             <Radio
@@ -110,7 +107,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           </Stack>
         </RadioGroup>
       )}
-        {!showOnlyFuseIntoBars && pointDisplayType === "bins" && (
+        {showPointDisplayType && pointDisplayType === "bins" && (
           <Stack>
             <Box className="inline-input-group" data-testid="graph-bin-width-setting">
               <FormLabel className="form-label">
@@ -146,6 +143,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         // be available for univariate plot graphs as well.
         plotHasExactlyOneCategoricalAxis &&
           <Checkbox
+            data-testid="bar-chart-checkbox"
             mt="6px" isChecked={pointsFusedIntoBars}
             onChange={e => handleSetFuseIntoBars(e.target.checked)}>
             {t("DG.Inspector.graphBarChart")}

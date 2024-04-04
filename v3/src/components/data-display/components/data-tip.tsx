@@ -3,19 +3,11 @@ import * as PIXI from "pixi.js"
 import { computePosition, offset, useFloating } from "@floating-ui/react"
 import { IDataSet } from "../../../models/data/data-set"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
-import { getCaseTipText, getFusedCasesTipText } from "../data-display-utils"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
+import { IGetTipTextProps } from "../data-display-types"
 
 import "./data-tip.scss"
-
-export interface IDataTipProps {
-  dataConfiguration?: IDataConfigurationModel
-  dataset?: IDataSet
-  getTipAttrs: (plotNum: number) => string[]
-  pixiPoints?: PixiPoints
-  pointsFusedIntoBars?: boolean
-}
 
 interface IDataTipHelperProps {
   dataConfiguration?: IDataConfigurationModel
@@ -23,7 +15,15 @@ interface IDataTipHelperProps {
   getTipAttrs: (plotNum: number) => string[]
   legendAttrID?: string
   metadata: IPixiPointMetadata
-  pointsFusedIntoBars?: boolean
+  getTipText: any
+}
+
+export interface IDataTipProps {
+  dataConfiguration?: IDataConfigurationModel
+  dataset?: IDataSet
+  getTipAttrs: (plotNum: number) => string[]
+  pixiPoints?: PixiPoints
+  getTipText: (props: IGetTipTextProps) => string
 }
 
 const createVirtualElement = (event: PointerEvent) => {
@@ -45,17 +45,15 @@ const createVirtualElement = (event: PointerEvent) => {
 }
 
 const tipText = (props: IDataTipHelperProps) => {
-  const {dataConfiguration, dataset, getTipAttrs, legendAttrID, metadata, pointsFusedIntoBars} = props
+  const {dataConfiguration, dataset, getTipAttrs, legendAttrID, metadata, getTipText} = props
   const caseID = metadata.caseID
   const attributeIDs = getTipAttrs(metadata.plotNum)
-  const caseTipText = !pointsFusedIntoBars
-    ? getCaseTipText({caseID, attributeIDs, dataset})
-    : getFusedCasesTipText({caseID, legendAttrID, dataset, dataConfig: dataConfiguration})
+  const caseTipText = getTipText({caseID, attributeIDs, legendAttrID, dataset, dataConfig: dataConfiguration})
   return caseTipText
 }
 
 export const DataTip = (props: IDataTipProps) => {
-  const { dataConfiguration, dataset, getTipAttrs, pixiPoints, pointsFusedIntoBars } = props
+  const { dataConfiguration, dataset, getTipAttrs, pixiPoints, getTipText } = props
   const legendAttrID = dataConfiguration?.attributeID("legend")
   const tipTextLines = useRef<string[]>([])
   const [isTipOpen, setIsTipOpen] = useState(false)
@@ -77,9 +75,7 @@ export const DataTip = (props: IDataTipProps) => {
   const showDataTip = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
     event.stopPropagation()
     // Get the text to display in the data tip
-    const tipTextString = tipText(
-      {dataset, metadata, getTipAttrs, pointsFusedIntoBars, legendAttrID, dataConfiguration}
-    )
+    const tipTextString = tipText({dataset, metadata, getTipAttrs, legendAttrID, dataConfiguration, getTipText})
     tipTextLines.current = tipTextString.split("<br>")
     // Create the virtual element to use as a reference for positioning the data tip
     const virtualElement = createVirtualElement(event)

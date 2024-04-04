@@ -375,7 +375,6 @@ export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
 export interface ISetPointSelection {
   pixiPoints?: PixiPoints
   dataConfiguration: IDataConfigurationModel
-  fusedIntoBars?: boolean
   pointRadius: number,
   pointsFusedIntoBars?: boolean,
   selectedPointRadius: number,
@@ -448,9 +447,6 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
             // getWidth and getHeight are not provided, we use pointRadius * 2 for these values.
             width: getWidth?.(caseID) ?? pointRadius * 2,
             height: getHeight?.(caseID, plotNum) ?? pointRadius * 2
-          }
-          if (props.pointDisplayType) {
-            pixiPoints.displayType = props.pointDisplayType
           }
           pixiPoints.setPointStyle(point, style)
           pixiPoints.setPositionOrTransition(point, style, getScreenX(caseID) || 0, getScreenY(caseID, plotNum) || 0)

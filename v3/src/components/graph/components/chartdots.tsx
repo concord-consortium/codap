@@ -43,6 +43,7 @@ const renderBarCovers = (props: IRenderBarCoverProps) => {
     .data(barCovers)
     .join((enter) => enter.append("rect")
       .attr("class", (d) => d.class)
+      .attr("data-testid", "bar-cover")
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y)
       .attr("width", (d) => d.width)
@@ -66,7 +67,7 @@ const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const primaryCellWidth = layout.getAxisLength(primaryAxisPlace) / (primCatsArray.length ?? 1)
   const primarySubCellWidth = primaryCellWidth / numExtraPrimaryBands
   const offsetExtraPrimary = extraPrimeCatIndex * primaryCellWidth
-  const primaryInvertedIndex = numExtraPrimaryBands - 1 - primeCatIndex
+  const primaryInvertedIndex = primCatsArray.length - 1 - primeCatIndex
   const offsetPrimary = primaryIsBottom
                           ? primeCatIndex * primarySubCellWidth + offsetExtraPrimary
                           : primaryInvertedIndex * primarySubCellWidth + offsetExtraPrimary
@@ -257,7 +258,8 @@ export const ChartDots = function ChartDots(props: PlotProps) {
         : undefined
       const pointDisplayType = graphModel?.pointsFusedIntoBars ? "bars" : "points"
 
-    if (dataConfiguration && graphModel?.pointsFusedIntoBars && abovePointsGroupRef?.current) {
+    if (pixiPoints && dataConfiguration && graphModel?.pointsFusedIntoBars && abovePointsGroupRef?.current) {
+      pixiPoints.displayType = pointDisplayType
       const barCovers: IBarCover[] = []
       const bins = dataConfiguration?.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole) ?? {}
       Object.entries(catMap).forEach(([primeCat, secCats]) => {

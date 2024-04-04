@@ -73,6 +73,7 @@ export const NumericAxisModel = AxisModel
   .props({
     type: types.optional(types.literal("numeric"), "numeric"),
     scale: types.optional(types.enumeration([...ScaleTypes]), "linear"),
+    lockZero: false,
     min: types.number,
     max: types.number
   })
@@ -110,6 +111,9 @@ export const NumericAxisModel = AxisModel
       self.max = max
       self.dynamicMin = undefined
       self.dynamicMax = undefined
+    },
+    setLockZero(lockZero: boolean) {
+      self.lockZero = lockZero
     }
   }))
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}

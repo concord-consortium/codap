@@ -1,4 +1,3 @@
-import {format} from "d3"
 import {measureText} from "../../hooks/use-measure-text"
 import {between} from "../../utilities/math-utils"
 import {
@@ -13,9 +12,6 @@ import {
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
-import { t } from "../../utilities/translation/translate"
-import { IGraphDataConfigurationModel } from "../graph/models/graph-data-configuration-model"
-import { ICase } from "../../models/data/data-set-types"
 import { IBarCover } from "../graph/graphing-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
@@ -49,87 +45,6 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
     case "select":
       return result + pointRadiusSelectionAddend
   }
-}
-
-export interface IGetTipTextProps {
-  attributeIDs?: string[]
-  caseID: string
-  dataset?: IDataSet
-  dataConfig?: IDataConfigurationModel
-  legendAttrID?: string
-}
-
-export function getCaseTipText(props: IGetTipTextProps) {
-  const { attributeIDs, caseID, dataset } = props
-  const float = format('.3~f'),
-    attrArray = (attributeIDs?.map(attrID => {
-      const attribute = dataset?.attrFromID(attrID),
-        name = attribute?.name,
-        numValue = dataset?.getNumeric(caseID, attrID),
-        value = numValue != null && isFinite(numValue) ? float(numValue)
-          : dataset?.getValue(caseID, attrID)
-      return value ? `${name}: ${value}` : ''
-    }))
-  // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
-  return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
-}
-
-export function getFusedCasesTipText(props: IGetTipTextProps) {
-  const { caseID, legendAttrID, dataset, dataConfig } = props
-  const float = format('.1~f')
-  const primaryRole = (dataConfig as IGraphDataConfigurationModel)?.primaryRole
-  const primaryAttrID = primaryRole && dataConfig?.attributeID(primaryRole)
-  const topSplitAttrID = dataConfig?.attributeID("topSplit")
-  const rightSplitAttrID = dataConfig?.attributeID("rightSplit")
-  const casePrimaryValue = primaryAttrID && dataset?.getStrValue(caseID, primaryAttrID)
-  const caseTopSplitValue = topSplitAttrID && dataset?.getStrValue(caseID, topSplitAttrID)
-  const caseRightSplitValue = rightSplitAttrID && dataset?.getStrValue(caseID, rightSplitAttrID)
-  const caseLegendValue = legendAttrID && dataset?.getStrValue(caseID, legendAttrID)
-
-  const getMatchingCases = (attrID?: string, value?: string, _allCases?: ICase[]) => {
-    const allCases = _allCases ?? dataset?.cases
-    const matchingCases = attrID && value
-      ? allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrID) === value) ?? []
-      : []
-    return matchingCases as ICase[]
-  }
-
-  // for each existing attribute, get the cases that have the same value as the current case 
-  const primaryMatches = getMatchingCases(primaryAttrID, casePrimaryValue)
-  const topSplitMatches = getMatchingCases(topSplitAttrID, caseTopSplitValue)
-  const rightSplitMatches = getMatchingCases(rightSplitAttrID, caseRightSplitValue)
-  const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
-  const legendMatches = getMatchingCases(legendAttrID, caseLegendValue, primaryMatches)
-
-  const cellKey: Record<string, string> = {
-    ...(casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
-    ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
-    ...(caseRightSplitValue && {[rightSplitAttrID]: caseRightSplitValue})
-  }
-  const casesInSubPlot = (dataConfig as IGraphDataConfigurationModel)?.subPlotCases(cellKey).length
-  const totalCases = [
-    legendMatches.length,
-    bothSplitMatches.length,
-    topSplitMatches.length,
-    rightSplitMatches.length,
-    dataset?.cases.length ?? 0
-  ].find(length => length > 0) ?? 0
-  const percent = totalCases ? float((casesInSubPlot / totalCases) * 100) : 100
-  const caseCategoryString = caseLegendValue !== ""
-    ? casePrimaryValue
-    : ""
-  const caseLegendCategoryString = caseLegendValue !== ""
-    ? caseLegendValue
-    : casePrimaryValue
-  const firstCount = legendAttrID ? totalCases : casesInSubPlot
-  const secondCount = legendAttrID ? casesInSubPlot : totalCases
-
-  // <n> of <m> <category> (<p>%) are <legend category>
-  const attrArray = [
-    firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
-  ]
-
-  return t("DG.BarChartModel.cellTipPlural", {vars: attrArray})
 }
 
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {

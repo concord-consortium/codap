@@ -4,6 +4,7 @@
  */
 import {when} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { format } from "d3"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
 import {ISharedModel} from "../../../models/shared/shared-model"
@@ -18,7 +19,8 @@ import {computePointRadius} from "../../data-display/data-display-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
-import {axisPlaceToAttrRole, GraphAttrRole, PointDisplayType} from "../../data-display/data-display-types"
+import { axisPlaceToAttrRole, GraphAttrRole, IGetTipTextProps,
+        PointDisplayType } from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
 import {IDomainOptions, PlotType, PlotTypes} from "../graphing-types"
@@ -30,6 +32,8 @@ import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel,
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
+import { ICase } from "../../../models/data/data-set-types"
+import { t } from "../../../utilities/translation/translate"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -297,14 +301,63 @@ export const GraphContentModel = DataDisplayContentModel
       self.setBinAlignment(binAlignment)
       self.setBinWidth(binWidth)
     },
-    hasFixedMinAxis(axisModel: IAxisModelUnion): boolean {
-      if (isNumericAxisModel(axisModel)) {
-        const secondaryRole = self.dataConfiguration.primaryRole === "x" ? "y" : "x"
-        const secondaryAttrPlace = secondaryRole === "y" ? "left" : "bottom"
-        return self.pointsFusedIntoBars && secondaryAttrPlace === axisModel.place
-      } else {
-        return false
+    fusedCasesTipText(caseID: string, legendAttrID?: string) {
+      const dataConfig = self.dataConfiguration
+      const dataset = dataConfig.dataset
+      const float = format('.1~f')
+      const primaryRole = dataConfig?.primaryRole
+      const primaryAttrID = primaryRole && dataConfig?.attributeID(primaryRole)
+      const topSplitAttrID = dataConfig?.attributeID("topSplit")
+      const rightSplitAttrID = dataConfig?.attributeID("rightSplit")
+      const casePrimaryValue = primaryAttrID && dataset?.getStrValue(caseID, primaryAttrID)
+      const caseTopSplitValue = topSplitAttrID && dataset?.getStrValue(caseID, topSplitAttrID)
+      const caseRightSplitValue = rightSplitAttrID && dataset?.getStrValue(caseID, rightSplitAttrID)
+      const caseLegendValue = legendAttrID && dataset?.getStrValue(caseID, legendAttrID)
+    
+      const getMatchingCases = (attrID?: string, value?: string, _allCases?: ICase[]) => {
+        const allCases = _allCases ?? dataset?.cases
+        const matchingCases = attrID && value
+          ? allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrID) === value) ?? []
+          : []
+        return matchingCases as ICase[]
       }
+    
+      // for each existing attribute, get the cases that have the same value as the current case 
+      const primaryMatches = getMatchingCases(primaryAttrID, casePrimaryValue)
+      const topSplitMatches = getMatchingCases(topSplitAttrID, caseTopSplitValue)
+      const rightSplitMatches = getMatchingCases(rightSplitAttrID, caseRightSplitValue)
+      const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
+      const legendMatches = getMatchingCases(legendAttrID, caseLegendValue, primaryMatches)
+    
+      const cellKey: Record<string, string> = {
+        ...(casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
+        ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
+        ...(caseRightSplitValue && {[rightSplitAttrID]: caseRightSplitValue})
+      }
+      const casesInSubPlot = dataConfig?.subPlotCases(cellKey).length
+      const totalCases = [
+        legendMatches.length,
+        bothSplitMatches.length,
+        topSplitMatches.length,
+        rightSplitMatches.length,
+        dataset?.cases.length ?? 0
+      ].find(length => length > 0) ?? 0
+      const percent = totalCases ? float((casesInSubPlot / totalCases) * 100) : 100
+      const caseCategoryString = caseLegendValue !== ""
+        ? casePrimaryValue
+        : ""
+      const caseLegendCategoryString = caseLegendValue !== ""
+        ? caseLegendValue
+        : casePrimaryValue
+      const firstCount = legendAttrID ? totalCases : casesInSubPlot
+      const secondCount = legendAttrID ? casesInSubPlot : totalCases
+    
+      // <n> of <m> <category> (<p>%) are <legend category>
+      const attrArray = [
+        firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
+      ]
+    
+      return t("DG.BarChartModel.cellTipPlural", {vars: attrArray})
     }
   }))
   .actions(self => ({
@@ -384,24 +437,36 @@ export const GraphContentModel = DataDisplayContentModel
       const extraPrimAttrRole = primaryRole === "x" ? "topSplit" : "rightSplit"
       const extraSecAttrRole = primaryRole === "x" ? "rightSplit" : "topSplit"
       const maxCellCaseCount = maxOverAllCells(extraPrimAttrRole, extraSecAttrRole)
-      const countAxis = NumericAxisModel.create({scale: "linear", place: secondaryPlace, min: 0, max: maxCellCaseCount})
+      const countAxis = NumericAxisModel.create({
+        scale: "linear",
+        place: secondaryPlace,
+        min: 0,
+        max: maxCellCaseCount,
+        lockZero: true
+      })
       setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
       self.setAxis(secondaryPlace, countAxis)
     },
     unsetBarCountAxis() {
       const { secondaryRole } = self.dataConfiguration
       const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
-      self.setAxis(secondaryPlace, EmptyAxisModel.create({ place: secondaryPlace }))
+      if (isNumericAxisModel(self.getAxis(secondaryPlace))) {
+        self.setAxis(secondaryPlace, EmptyAxisModel.create({ place: secondaryPlace }))
+      }
     }
   }))
   .actions(self => ({
     setPointsFusedIntoBars(fuseIntoBars: boolean) {
-      if (fuseIntoBars) {
-        self.setBarCountAxis()
-      } else {
-        self.unsetBarCountAxis()
+      if (fuseIntoBars !== self.pointsFusedIntoBars) {
+        if (fuseIntoBars) {
+          self.setPointConfig("bars")
+          self.setBarCountAxis()
+        } else {
+          self.setPointConfig("points")
+          self.unsetBarCountAxis()
+        }
+        self.pointsFusedIntoBars = fuseIntoBars
       }
-      self.pointsFusedIntoBars = fuseIntoBars
     },
   }))
   .views(self => ({
@@ -410,6 +475,14 @@ export const GraphContentModel = DataDisplayContentModel
         !AxisPlaces.find((axisPlace: AxisPlace) => {
           return isNumericAxisModel(self.getAxis(axisPlace))
         })
+    },
+    getTipText(props: IGetTipTextProps) {
+      const { attributeIDs, caseID, dataset, legendAttrID } = props
+      if (self.pointsFusedIntoBars) {
+        return self.fusedCasesTipText(caseID, legendAttrID)
+      } else {
+        return self.caseTipText(attributeIDs, caseID, dataset)
+      }
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

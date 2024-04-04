@@ -349,16 +349,17 @@ export const DataConfigurationModel = types
           extraPrimaryAttrID = self.attributeID(extraPrimaryAttrRole),
           extraSecondaryAttrID = self.attributeID(extraSecondaryAttrRole)
 
-        const selection = primaryAttrID ? self.caseDataArray.filter((aCaseData: CaseData) => {
-              return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
-                (secondaryValue === "__main__" ||
-                 dataset?.getValue(aCaseData.caseID, secondaryAttrID) === secondaryValue) &&
-                (extraPrimaryValue === "__main__" ||
-                 dataset?.getValue(aCaseData.caseID, extraPrimaryAttrID) === extraPrimaryValue) &&
-                (extraSecondaryValue === "__main__" ||
-                  dataset?.getValue(aCaseData.caseID, extraSecondaryAttrID) === extraSecondaryValue)
-            }).map((aCaseData: CaseData) => aCaseData.caseID)
-            : []
+        const selection = primaryAttrID
+          ? self.caseDataArray.filter((aCaseData: CaseData) => {
+            return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
+              (secondaryValue === "__main__" ||
+                dataset?.getStrValue(aCaseData.caseID, secondaryAttrID) === secondaryValue) &&
+              (extraPrimaryValue === "__main__" ||
+                dataset?.getStrValue(aCaseData.caseID, extraPrimaryAttrID) === extraPrimaryValue) &&
+              (extraSecondaryValue === "__main__" ||
+                dataset?.getStrValue(aCaseData.caseID, extraSecondaryAttrID) === extraSecondaryValue)
+          }).map((aCaseData: CaseData) => aCaseData.caseID)
+          : []
 
         if (selection) {
           if (extend) dataset?.selectCases(selection)

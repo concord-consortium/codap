@@ -8,7 +8,7 @@ import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {transitionDuration} from "../../data-display/data-display-types"
-import {getCaseTipText, handleClickOnCase} from "../../data-display/data-display-utils"
+import {handleClickOnCase} from "../../data-display/data-display-utils"
 import { PixiBackgroundPassThroughEvent } from "../../graph/utilities/pixi-points"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -81,7 +81,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
             const tFeature = mapLayerModel.features[caseIndex],
               attributeIDs = (dataConfiguration.uniqueTipAttributes ?? [])
                 .map(aPair => aPair.attributeID),
-              tipText = getCaseTipText({caseID, attributeIDs, dataset})
+              tipText = mapModel.getTipText({attributeIDs, caseID, dataset})
             infoPopup = popup({
                 closeButton: false,
                 autoPan: false,

@@ -238,4 +238,46 @@ context("Graph UI", () => {
       expect(valueNum).to.be.closeTo(4, 0.1)
     })
   })
+  it("shows a bar graph when there's one categorical attr on primary axis and 'Fuse Dots into Bars' is checked", () => {
+    cy.dragAttributeToTarget("table", "Habitat", "bottom")
+    cy.get("[data-testid=bar-cover]").should("not.exist")
+    graph.getDisplayConfigButton().click()
+    cy.get("[data-testid=bar-chart-checkbox]").find("input").should("exist").and("have.attr", "type", "checkbox")
+      .and("not.be.checked")
+    cy.get("[data-testid=bar-chart-checkbox]").click()
+    cy.get("[data-testid=bar-chart-checkbox]").find("input").should("be.checked")
+    // TODO: It would be better to check for the exact number of bars, but the number seems to vary depending on whether
+    // you're running the test locally or in CI for some mysterious reason.
+    // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)
+    cy.get("[data-testid=bar-cover]").should("exist")
+    cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
+    cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("not.exist")
+    cy.get("[data-testid=bar-cover]").eq(1).click()
+    cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length.greaterThan", 0)
+    // TODO: Enable these checks once the number of bars is consistent. See comment above.
+    // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 2)
+    // cy.get("[data-testid=bar-cover]").eq(2).click({ shiftKey: true })
+    // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 3)
+    cy.dragAttributeToTarget("table", "Diet", "top")
+    // TODO: See comment above regarding number of bars.
+    // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 9)
+    cy.get("[data-testid=bar-cover]").should("exist")
+    cy.get("[data-testid=axis-legend-attribute-button-top").click()
+    cy.get("[role=menuitem]").contains("Remove Side-by-side Layout by Diet").click()
+    graph.getDisplayConfigButton().click()
+    cy.get("[data-testid=bar-chart-checkbox]").click()
+    cy.get("[data-testid=bar-chart-checkbox]").find("input").should("not.be.checked")
+    cy.get("[data-testid=bar-cover]").should("not.exist")
+    cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("not.exist")
+    // For some reason, at this point Cypress seems to think the checkbox is covered by its container
+    // (`codap-inspector-palette`) so we resort to using `force: true`
+    cy.get("[data-testid=bar-chart-checkbox]").find("input").click({ force: true})
+    cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
+    // TODO: See comment above regarding number of bars.
+    // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)
+    cy.get("[data-testid=bar-cover]").should("exist")
+    cy.dragAttributeToTarget("table", "Sleep", "left")
+    cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Sleep")
+    cy.get("[data-testid=bar-cover]").should("not.exist")
+  })
 })
