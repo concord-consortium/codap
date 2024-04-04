@@ -10,7 +10,11 @@ export type DIAttribute = Partial<ICodapV2Attribute>
 export interface DIAttributes {
   attrs?: DIAttribute[]
 }
-export type DICase = unknown
+export interface DICase {
+  collectionID?: string
+  collectionName?: string
+  caseID?: string
+}
 export type DIComponent  = unknown
 export interface DIInteractiveFrame {
   dimensions?: {
@@ -50,7 +54,7 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAttribute | DIAttributes | DIInteractiveFrame
+export type DISingleValues = DIAttribute | DIAttributes | DICase | DIInteractiveFrame
 
 export type DIValues = DISingleValues | DISingleValues[] | number
 
