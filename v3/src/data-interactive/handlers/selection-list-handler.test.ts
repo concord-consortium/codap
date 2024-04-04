@@ -1,5 +1,5 @@
 import { DataSet, IDataSet } from "../../models/data/data-set"
-import { DICase } from "../data-interactive-types"
+import { DICase, DIValues } from "../data-interactive-types"
 import { diSelectionListHandler } from "./selection-list-handler"
 
 describe("DataInteractive SelectionListHandler", () => {
@@ -37,6 +37,9 @@ describe("DataInteractive SelectionListHandler", () => {
     // Unused case ids are ignored and empty lists clear selection
     expect(create([caseIdUnused])?.success).toBe(true)
     expect(selection().length).toBe(0)
+
+    // Illegal values fail
+    expect(handler.create?.({ dataContext: dataset }, caseId1 as DIValues).success).toBe(false)
   })
 
   it("update works as expected", () => {
@@ -47,5 +50,8 @@ describe("DataInteractive SelectionListHandler", () => {
     expect(selection().length).toBe(2)
     expect(dataset.selection.has(caseId1)).toBe(true)
     expect(dataset.selection.has(caseId2)).toBe(true)
+
+    // Illegal values fail
+    expect(handler.update?.({ dataContext: dataset }, caseId1 as DIValues).success).toBe(false)
   })
 })
