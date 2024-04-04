@@ -474,8 +474,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>, inclusiveMax = true) {
       return self.subPlotCases(cellKey)?.filter(caseId => {
         const caseValue = self.dataset?.getNumeric(caseId, attrId)
-        const upperRangeBoundary = inclusiveMax ? max : max * 0.999999
-        if (isFiniteNumber(caseValue) && caseValue >= min && caseValue <= upperRangeBoundary) {
+        if (!isFiniteNumber(caseValue)) return false
+        const isWithinRange = caseValue >= min && (inclusiveMax ? caseValue <= max : caseValue < max)
+        if (isWithinRange) {
           return caseId
         }
       })
