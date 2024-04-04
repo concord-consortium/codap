@@ -185,7 +185,7 @@ export class GraphController {
         }
           break
         case 'empty': {
-          if (!(place === secondaryPlace && graphModel.pointsFusedIntoBars)) {
+          if (currentType !== 'empty') {
             layout.setAxisScaleType(place, 'ordinal')
             if (['left', 'bottom'].includes(place)) {
               graphModel.setAxis(place, EmptyAxisModel.create({place}))

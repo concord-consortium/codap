@@ -19,7 +19,15 @@ interface IDataTipBaseProps {
 interface IDataTipHelperProps extends IDataTipBaseProps {
   legendAttrID?: string
   metadata: IPixiPointMetadata
-  pointsFusedIntoBars?: boolean
+  getTipText: any
+}
+
+export interface IDataTipProps {
+  dataConfiguration?: IDataConfigurationModel
+  dataset?: IDataSet
+  getTipAttrs: (plotNum: number) => string[]
+  pixiPoints?: PixiPoints
+  getTipText: (props: IGetTipTextProps) => string
 }
 
 export interface IDataTipProps extends IDataTipBaseProps {

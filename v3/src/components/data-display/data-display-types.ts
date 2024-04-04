@@ -1,6 +1,7 @@
 import React from "react"
 import {AxisPlace} from "../axis/axis-types"
 import {GraphPlace} from "../axis-graph-shared"
+import { IDataSet } from "../../models/data/data-set"
 
 export type Point = { x: number, y: number }
 export type CPLine = { slope: number, intercept: number, pivot1?: Point, pivot2?: Point }
@@ -24,6 +25,13 @@ export interface rTreeRect { x: number, y: number, w: number, h: number }
 export interface counterProps {
   counter: number,
   setCounter: React.Dispatch<React.SetStateAction<number>>
+}
+
+export interface IGetTipTextProps {
+  attributeIDs: string[]
+  caseID: string
+  dataset?: IDataSet
+  legendAttrID?: string
 }
 
 export const

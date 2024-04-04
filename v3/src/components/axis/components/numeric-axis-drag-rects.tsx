@@ -8,7 +8,6 @@ import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {INumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 
 import "./axis.scss"
 
