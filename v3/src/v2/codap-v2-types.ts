@@ -365,7 +365,7 @@ export interface ICodapV2MapLayerStorage {
   transparency?: number
   strokeTransparency?: number
   pointsShouldBeVisible?: boolean
-  grid?: { gridMultiplier: number, isVisible: boolean }
+  grid: { gridMultiplier: number, isVisible: boolean }
   connectingLines: { isVisible: boolean, enableMeasuresForSelection: boolean }
 }
 
