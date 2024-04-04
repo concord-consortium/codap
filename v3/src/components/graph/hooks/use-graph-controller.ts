@@ -11,6 +11,6 @@ export interface IUseGraphControllerProps {
 
 export const useGraphController = ({graphController, graphModel, pixiPointsArrayRef}: IUseGraphControllerProps) => {
   useEffect(() => {
-    graphModel && graphController.setProperties({graphModel, pixiPointsArrayRef})
+    graphModel && graphController.setProperties(graphModel, pixiPointsArrayRef.current?.[0])
   }, [graphController, graphModel, pixiPointsArrayRef])
 }

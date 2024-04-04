@@ -1,7 +1,7 @@
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import {IPixiPointsArrayRef, PixiPoints} from "../utilities/pixi-points"
+import {PixiPoints} from "../utilities/pixi-points"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
@@ -19,14 +19,9 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
   categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
 }
 
-interface IGraphControllerConstructorProps {
+interface IGraphControllerProps {
   layout: GraphLayout
   instanceId: string
-}
-
-interface IGraphControllerProps {
-  graphModel: IGraphContentModel
-  pixiPointsArrayRef: IPixiPointsArrayRef
 }
 
 export class GraphController {
@@ -38,18 +33,20 @@ export class GraphController {
   // initializeGraph needs to do anything or not, e.g. when handling undo/redo.
   attrConfigForInitGraph = ""
 
-  constructor({layout, instanceId}: IGraphControllerConstructorProps) {
+  constructor({layout, instanceId}: IGraphControllerProps) {
     this.layout = layout
     this.instanceId = instanceId
   }
 
-  setProperties(props: IGraphControllerProps) {
-    this.graphModel = props.graphModel
-    this.pixiPoints = props.pixiPointsArrayRef.current?.[0] ?? undefined
-    if (this.graphModel.dataConfiguration.dataset !== this.graphModel.dataset) {
-      this.graphModel.dataConfiguration.setDataset(
-        this.graphModel.dataset, this.graphModel.metadata)
+  setProperties(graphModel: IGraphContentModel, pixiPoints?: PixiPoints) {
+    this.graphModel = graphModel
+    this.pixiPoints = pixiPoints
+
+    const { dataset, metadata } = graphModel
+    if (this.graphModel.dataConfiguration.dataset !== dataset) {
+      this.graphModel.dataConfiguration.setDataset(dataset, metadata)
     }
+
     this.initializeGraph()
   }
 

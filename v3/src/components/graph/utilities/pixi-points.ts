@@ -24,7 +24,6 @@ export enum PixiBackgroundPassThroughEvent {
   PointerDown = "pointerdown",
 }
 
-export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
 export type IPixiPointsArrayRef = React.MutableRefObject<PixiPoints[]>
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void

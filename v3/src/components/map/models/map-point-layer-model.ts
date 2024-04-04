@@ -16,9 +16,6 @@ export const MapPointLayerModel = MapLayerModel
     pointsAreVisible: true, // This is different than layer visibility
     connectingLinesAreVisible: false,
   })
-  .volatile(() => ({
-    setDeselectionIsDisabled: (isDisabled: boolean) => {},
-  }))
   .actions(self => ({
     afterCreate() {
       self.gridModel.setDataConfiguration(self.dataConfiguration)
@@ -34,9 +31,6 @@ export const MapPointLayerModel = MapLayerModel
     },
     setConnectingLinesAreVisible(isVisible: boolean) {
       self.connectingLinesAreVisible = isVisible
-    },
-    setSetDeselectionIsDisabled(settingFunction: (isDisabled: boolean) => void) {
-      self.setDeselectionIsDisabled = settingFunction
     }
   }))
   .views(self => ({
@@ -59,4 +53,3 @@ export interface IMapPointLayerModelSnapshot extends SnapshotIn<typeof MapPointL
 export function isMapPointLayerModel(layerModel?: IDataDisplayLayerModel): layerModel is IMapPointLayerModel {
   return layerModel?.type === kMapPointLayerType
 }
-

@@ -1,4 +1,4 @@
-import { LatLng, LatLngBoundsExpression, LatLngExpression, Map as LeafletMap } from 'leaflet'
+import { LatLng, LatLngBoundsExpression, LatLngExpression, Map as LeafletMap, LeafletMouseEvent } from 'leaflet'
 import { debounce } from 'lodash'
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 
@@ -34,10 +34,31 @@ export class LeafletMapState {
   // if not set, then changes are not considered undoable
   undoStringKey = ""
   redoStringKey = ""
-  deselectFunction: () => void = () => {}
+  // Callback function to be called on clicks
+  onClick?: (event: MouseEvent) => void
+  // bound event handlers for passing to leaflet
+  handleClickBound: (event: LeafletMouseEvent) => void
+  handleMoveStartBound: () => void
+  handleMoveBound: () => void
+  handleMoveEndBound: () => void
+  handleZoomStartBound: () => void
+  handleZoomBound: () => void
+  handleZoomEndBound: () => void
 
   constructor(leafletMap?: LeafletMap) {
     this.setLeafletMap(leafletMap)
+
+    // For on/off to work correctly, the same function must be passed to both.
+    // By default, leaflet callbacks are called with `this` set to the map instance.
+    // By binding `this` for these function instances we can override the leaflet
+    // behavior, allowing these functions to be passed to on/off.
+    this.handleClickBound = this.handleClick.bind(this)
+    this.handleMoveStartBound = this.handleMoveStart.bind(this)
+    this.handleMoveBound = this.handleMove.bind(this)
+    this.handleMoveEndBound = this.handleMoveEnd.bind(this)
+    this.handleZoomStartBound = this.handleZoomStart.bind(this)
+    this.handleZoomBound = this.handleZoom.bind(this)
+    this.handleZoomEndBound = this.handleZoomEnd.bind(this)
 
     makeObservable(this)
   }
@@ -64,8 +85,13 @@ export class LeafletMapState {
     return this.isMoving || this.isZooming || this.isLeafletInteracting || this.isMapViewChanging
   }
 
-  handleClick(event:MouseEvent) {
-    if (!event.shiftKey) this.deselectFunction()
+  @action
+  setOnClickCallback(onClick?: (event: MouseEvent) => void) {
+    this.onClick = onClick
+  }
+
+  handleClick(event: LeafletMouseEvent) {
+    this.onClick?.(event.originalEvent)
   }
 
   @action
@@ -104,26 +130,48 @@ export class LeafletMapState {
 
   installHandlers() {
     this.leafletMap?.on({
-      "click": () => this.handleClick(event as MouseEvent),
-      "movestart": () => this.handleMoveStart(),
-      "move": () => this.handleMove(),
-      "moveend": () => this.handleMoveEnd(),
-      "zoomstart": () => this.handleZoomStart(),
-      "zoom": () => this.handleZoom(),
-      "zoomend": () => this.handleZoomEnd()
+      "click": this.handleClickBound,
+      "movestart": this.handleMoveStartBound,
+      "move": this.handleMoveBound,
+      "moveend": this.handleMoveEndBound,
+      "zoomstart": this.handleZoomStartBound,
+      "zoom": this.handleZoomBound,
+      "zoomend": this.handleZoomEndBound
     })
   }
 
   removeHandlers() {
     this.leafletMap?.off({
-      "click": () => this.handleClick(event as MouseEvent),
-      "movestart": () => this.handleMoveStart(),
-      "move": () => this.handleMove(),
-      "moveend": () => this.handleMoveEnd(),
-      "zoomstart": () => this.handleZoomStart(),
-      "zoom": () => this.handleZoom(),
-      "zoomend": () => this.handleZoomEnd()
+      "click": this.handleClickBound,
+      "movestart": this.handleMoveStartBound,
+      "move": this.handleMoveBound,
+      "moveend": this.handleMoveEndBound,
+      "zoomstart": this.handleZoomStartBound,
+      "zoom": this.handleZoomBound,
+      "zoomend": this.handleZoomEndBound
     })
+  }
+
+  enableDefaultEventHandlers() {
+    if (this.leafletMap) {
+      this.leafletMap.dragging.enable()
+      this.leafletMap.touchZoom.enable()
+      this.leafletMap.doubleClickZoom.enable()
+      this.leafletMap.scrollWheelZoom.enable()
+      this.leafletMap.boxZoom.enable()
+      this.leafletMap.keyboard.enable()
+    }
+  }
+
+  disableDefaultEventHandlers() {
+    if (this.leafletMap) {
+      this.leafletMap.dragging.disable()
+      this.leafletMap.touchZoom.disable()
+      this.leafletMap.doubleClickZoom.disable()
+      this.leafletMap.scrollWheelZoom.disable()
+      this.leafletMap.boxZoom.disable()
+      this.leafletMap.keyboard.disable()
+    }
   }
 
   @action

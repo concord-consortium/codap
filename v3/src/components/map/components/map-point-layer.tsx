@@ -63,9 +63,9 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoi
       // point deselection on map click, but it needs to be addressed better.
       event.stopPropagation()
       // We prevent the default action to avoid the map click handler deselecting the point
-      mapLayerModel.setDeselectionIsDisabled(true)
+      mapModel.setDeselectionIsDisabled(true)
     }
-  }, [dataConfiguration.dataset, mapLayerModel])
+  }, [dataConfiguration.dataset, mapModel])
 
   if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)

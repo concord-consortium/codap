@@ -47,9 +47,6 @@ describe("GraphController", () => {
   let dotChartSnap: SnapshotIn<typeof Tree> | undefined
   let scatterPlotSnap: SnapshotIn<typeof Tree> | undefined
 
-  const pixiPointsArrayRef = { current: [{}] } as any
-  const emptyPixiPointsArrayRef = { current: undefined } as any
-
   function setup() {
     const _tree = Tree.create()
     const { model: graphModel, data: dataSet, metadata } = _tree
@@ -59,7 +56,7 @@ describe("GraphController", () => {
     mockGetMetadata.mockImplementation(() => metadata)
     const layout = new GraphLayout()
     const graphController = new GraphController({ layout, instanceId })
-    graphController.setProperties({ graphModel, pixiPointsArrayRef })
+    graphController.setProperties(graphModel, {} as any)
     return { tree: _tree, model: graphModel, controller: graphController, data: dataSet }
   }
 
@@ -78,7 +75,6 @@ describe("GraphController", () => {
     controller.handleAttributeAssignment(place!, data.id, attrId)
   }
 
-  // Skipped because I (Bill) am not sure how to handle undefined properties in the GraphController
   it("methods bail appropriately when not fully defined", () => {
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     const _controller = new GraphController({
@@ -96,13 +92,13 @@ describe("GraphController", () => {
     _controller.handleAttributeAssignment("bottom", data.id, "bogusId")
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
-    _controller.setProperties({ graphModel: model, pixiPointsArrayRef: emptyPixiPointsArrayRef })
+    _controller.setProperties(model)
     _controller.initializeGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
-    _controller.setProperties({ graphModel: model, pixiPointsArrayRef: emptyPixiPointsArrayRef })
+    _controller.setProperties(model)
     _controller.initializeGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()

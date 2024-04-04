@@ -1,20 +1,18 @@
-import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
 import {MapContainer, TileLayer} from "react-leaflet"
-import {PixiPoints} from "../../graph/utilities/pixi-points"
 import {kPortalClass} from "../../data-display/data-display-types"
 import {BaseMapKeys, kMapAttribution, kMapUrls} from "../map-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {MarqueeState} from "../../data-display/models/marquee-state"
-import {Background} from "../../data-display/components/background"
-import {MapInterior} from "./map-interior"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
+import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
 import {DroppableMapArea} from "./droppable-map-area"
-import {Marquee} from "../../data-display/components/marquee"
+import {MapBackground} from "./map-background"
+import {MapInterior} from "./map-interior"
 import {MapMarqueeSelectButton} from "./map-marquee-select-button"
 import {IDataSet} from "../../../models/data/data-set"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
@@ -34,8 +32,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({width: 0, height: 0, legend: 0}),
     forceUpdate = useForceUpdate(),
-    marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
-    pixiPointsArrayRef = useRef<PixiPoints[]>([])
+    pixiPointsArrayRef = usePixiPointsArray()
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
@@ -79,51 +76,6 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     }
   }, [mapModel, mapRef])
 
-  const disableLeaflet = useCallback(() => {
-    const leafletMap = mapModel.leafletMap
-    if (leafletMap) {
-      leafletMap.dragging.disable()
-      leafletMap.touchZoom.disable()
-      leafletMap.doubleClickZoom.disable()
-      leafletMap.scrollWheelZoom.disable()
-      leafletMap.boxZoom.disable()
-      leafletMap.keyboard.disable()
-    }
-  }, [mapModel.leafletMap])
-
-  const enableLeaflet = useCallback(() => {
-    const leafletMap = mapModel.leafletMap
-    if (leafletMap) {
-      leafletMap.dragging.enable()
-      leafletMap.touchZoom.enable()
-      leafletMap.doubleClickZoom.enable()
-      leafletMap.scrollWheelZoom.enable()
-      leafletMap.boxZoom.enable()
-      leafletMap.keyboard.enable()
-    }
-  }, [mapModel.leafletMap])
-
-  const renderBackgroundIfAppropriate = useCallback(() => {
-    if (mapModel.marqueeMode === 'selected') {
-      disableLeaflet()
-      mapModel.setDeselectionIsDisabled(true)
-      return (
-        <div style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', cursor: "crosshair"}}>
-          <svg className="map-background-container">
-            <Background
-              ref={interiorDivRef}
-              marqueeState={marqueeState}
-              pixiPointsArrayRef={pixiPointsArrayRef}
-            />
-            <Marquee marqueeState={marqueeState}/>
-          </svg>
-        </div>
-      )
-    } else {
-      enableLeaflet()
-    }
-  }, [disableLeaflet, enableLeaflet, mapModel, marqueeState])
-
   return (
     <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
@@ -140,7 +92,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
           </>
           <MapInterior pixiPointsArrayRef={pixiPointsArrayRef}/>
         </MapContainer>
-        {renderBackgroundIfAppropriate()}
+        <MapBackground mapModel={mapModel} pixiPointsArrayRef={pixiPointsArrayRef}/>
       </div>
       {renderSliderIfAppropriate()}
       <DroppableMapArea

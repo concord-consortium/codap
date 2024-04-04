@@ -15,7 +15,7 @@ import {
 import {GraphPlace} from '../../axis-graph-shared'
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
-import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
+import {MapPointLayerModel} from "./map-point-layer-model"
 import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
 import {LeafletMapState} from './leaflet-map-state'
 import {isMapLayerModel} from "./map-layer-model"
@@ -144,7 +144,6 @@ export const MapContentModel = DataDisplayContentModel
   .actions(self => ({
     addPointLayer(dataSet: IDataSet) {
       const newPointLayer = MapPointLayerModel.create({layerIndex: self.layers.length})
-      newPointLayer.setSetDeselectionIsDisabled(self.setDeselectionIsDisabled)
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPointLayer.dataConfiguration,
         {latId, longId} = latLongAttributesFromDataSet(dataSet)
@@ -207,10 +206,8 @@ export const MapContentModel = DataDisplayContentModel
         }, {name: "MapContentModel.reaction [sync mapModel => leaflet map]", equals: comparer.structural}
       ))
 
-      self.leafletMapState.deselectFunction = self.deselectAllCases
-      // Pass setDeselectionIsDisabled to each point layer
-      self.layers.forEach(layer => {
-          isMapPointLayerModel(layer) && layer.setSetDeselectionIsDisabled(self.setDeselectionIsDisabled)
+      self.leafletMapState.setOnClickCallback((event: MouseEvent) => {
+        if (!event.shiftKey && !event.metaKey) self.deselectAllCases()
       })
     },
     afterAttachToDocument() {

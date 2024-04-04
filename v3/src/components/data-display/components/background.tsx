@@ -1,5 +1,6 @@
 import {autorun} from "mobx"
-import React, {forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
@@ -27,9 +28,9 @@ interface caseObject {
 }
 
 interface SelectionSpec {
-  dataset:IDataSet,
-  caseIDsToSelect:string[],
-  caseIDsToDeselect:string[]
+  dataset: IDataSet
+  caseIDsToSelect: string[]
+  caseIDsToDeselect: string[]
 }
 
 interface SelectionMap {
