@@ -18,6 +18,7 @@ function updateSelection(
   if (!values || !Array.isArray(values)) return illegalValuesResult(action)
 
   const caseIds = values.map(value => value.toString()).filter(caseID => !!dataSet.getCase(caseID))
+  // TODO Filter based on collection
   applySelection(caseIds)
   return { success: true }
 }
@@ -34,7 +35,7 @@ export const diSelectionListHandler: DIHandler = {
     const caseIds = Array.from(dataContext.selection)
     // TODO Include collectionID and collectionName
     const values = caseIds.map(caseID => ({ caseID }))
-    // TODO Filter based on collection?
+    // TODO Filter based on collection
     return {
       success: true,
       values
