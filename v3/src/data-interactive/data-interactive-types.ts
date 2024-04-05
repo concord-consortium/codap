@@ -25,8 +25,16 @@ export type DIAttribute = Partial<ICodapV2Attribute>
 export interface DIAttributes {
   attrs?: DIAttribute[]
 }
-export type DICase = unknown
+export interface DICase {
+  collectionID?: string
+  collectionName?: string
+  caseID?: string
+}
 export type DIComponent  = unknown
+export interface DIGlobal {
+  name?: string
+  value?: number
+}
 export interface DIInteractiveFrame {
   dimensions?: {
     height?: number
@@ -65,9 +73,9 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DIInteractiveFrame
+export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame
 
-export type DIValues = DISingleValues | DISingleValues[] | number
+export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 export interface DIMetadata {
   dirtyDocument?: boolean

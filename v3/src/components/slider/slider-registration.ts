@@ -13,6 +13,7 @@ import { ISliderSnapshot, SliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
 import SliderIcon from '../../assets/icons/icon-slider.svg'
+import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
 
 export const kSliderIdPrefix = "SLID"
 
@@ -24,8 +25,8 @@ registerTileContentInfo({
     // create and register the global value along with the slider
     const sharedModelManager = options?.env?.sharedModelManager
     const globalValueManager = getGlobalValueManager(sharedModelManager)
-    const name = globalValueManager?.uniqueName() || "v1"
-    const globalValue = globalValueManager?.addValueSnapshot({ name, value: 0.5 })
+    const name = globalValueManager?.uniqueName() || kDefaultSliderName
+    const globalValue = globalValueManager?.addValueSnapshot({ name, value: kDefaultSliderValue })
     const sliderTileSnap: SetRequired<ISliderSnapshot, "type"> = {
       type: kSliderTileType, globalValue: globalValue?.id ?? ""
     }
