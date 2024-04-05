@@ -44,6 +44,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
 */
       } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
+    if (!data?.dataSet) return
 
     if (legendAttributeId) {
       _attributeDescriptions.legend = {
@@ -61,7 +62,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         */
       } = v2LayerModel
       // V2 point layers don't store their lat/long attributes, so we need to find them in the dataset
-      const {latId, longId} = latLongAttributesFromDataSet(data?.dataSet as IDataSet)
+      const {latId, longId} = latLongAttributesFromDataSet(data.dataSet)
       _attributeDescriptions.lat = {attributeID: latId, type: 'numeric'}
       _attributeDescriptions.long = {attributeID: longId, type: 'numeric'}
       const pointLayerSnapshot: IMapPointLayerModelSnapshot = {
@@ -97,7 +98,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         */
       } = v2LayerModel
       // V2 polygon layers don't store their boundary attribute, so we need to find it in the dataset
-      _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(data?.dataSet as IDataSet)}
+      _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(data.dataSet)}
       const polygonLayerSnapshot: IMapPolygonLayerModelSnapshot = {
         type: kMapPolygonLayerType,
         layerIndex,
