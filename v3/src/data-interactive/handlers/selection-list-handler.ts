@@ -4,7 +4,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 
 const unknownDataContextResult =
-  { success: false, values: { error: t("V3.DI.Error.dataContextUnknown")} } as const
+  { success: false, values: { error: t("V3.DI.Error.dataContextNotFound")} } as const
 function illegalValuesResult(action: string) {
   return { success: false, values: {
     error: t("V3.DI.Error.selectionListIllegalValues", { vars: [action] })
