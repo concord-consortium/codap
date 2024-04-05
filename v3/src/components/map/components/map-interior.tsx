@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite"
-import React from "react"
+import React, {useCallback} from "react"
 import {PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useMapModel} from "../hooks/use-map-model"
@@ -18,6 +18,10 @@ export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: I
 
   useMapModel()
 
+  const onSetPixiPointsForLayer = useCallback((pixiPoints: PixiPoints, layerIndex: number) => {
+    pixiPointsArrayRef.current[layerIndex] = pixiPoints
+  }, [pixiPointsArrayRef])
+
   /**
    * Note that we don't have to worry about layer order because polygons will be sent to the back
    */
@@ -27,10 +31,7 @@ export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: I
         return <MapPointLayer
           key={`${kMapPointLayerType}-${index}`}
           mapLayerModel={layerModel}
-          stashPixiPoints={(pixiPoints: PixiPoints, layerIndex) => {
-            pixiPointsArrayRef.current[layerIndex] = pixiPoints
-          }
-        }/>
+          onSetPixiPointsForLayer={onSetPixiPointsForLayer}/>
       }
       else if (isMapPolygonLayerModel(layerModel)) {
         return <MapPolygonLayer

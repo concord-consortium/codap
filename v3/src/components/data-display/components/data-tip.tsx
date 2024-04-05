@@ -11,7 +11,7 @@ import "./data-tip.scss"
 export interface IDataTipProps {
   dataset?: IDataSet
   getTipAttrs: (plotNum: number) => string[]
-  pixiPoints: PixiPoints | undefined
+  pixiPoints?: PixiPoints
 }
 
 interface IDataTipHelperProps {

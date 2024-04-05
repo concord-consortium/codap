@@ -24,10 +24,10 @@ import {MapPointGrid} from "./map-point-grid"
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
-  stashPixiPoints: (pixiPoints: PixiPoints, layerIndex: number) => void
+  onSetPixiPointsForLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
 }
 
-export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoints}: IProps) {
+export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPointsForLayer}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
@@ -37,7 +37,7 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoi
     pixiContainerRef = useRef<HTMLDivElement>(null),
     pixiPointsRef = useRef<PixiPoints>()
 
-  useEffect(() => {
+  useEffect(function createPixiPoints() {
     if (!pixiContainerRef.current) {
       return
     }
@@ -49,8 +49,8 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoi
         elementToHide: pixiContainerRef.current
       }
     })
-    return () => pixiPointsRef.current?.dispose()
-  }, [])
+    onSetPixiPointsForLayer(pixiPointsRef.current, mapLayerModel.layerIndex)
+  }, [mapLayerModel.layerIndex, onSetPixiPointsForLayer])
 
   useEffect(() => {
     if (!pixiPointsRef.current) {
@@ -251,13 +251,6 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, stashPixiPoi
       {name: "MapPointLayer.respondToPointVisualChange"}, mapLayerModel
     )
   }, [callMatchCirclesToData, mapLayerModel])
-
-  useEffect(function _stashPixiPoints() {
-    if (pixiPointsRef.current) {
-      stashPixiPoints(pixiPointsRef.current, mapLayerModel.layerIndex)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])  // only run once on mount
 
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = mapLayerModel.dataConfiguration
