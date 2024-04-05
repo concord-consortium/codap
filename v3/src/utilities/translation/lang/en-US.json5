@@ -75,7 +75,12 @@
     "V3.DI.Error.fieldRequired": "%@1 %@2: %@3 required",
     "V3.DI.Error.dataContextNotFound": "DataContext not found",
     "V3.DI.Error.collectionNotFound": "Collection not found",
+    "V3.DI.Error.globalCreation": "error creating global value",
+    "V3.DI.Error.globalDuplicateName": "globals must have unique names",
+    "V3.DI.Error.globalIllegalValue": "global values must be numbers",
+    "V3.DI.Error.globalNotFound": "missing global or value",
     "V3.DI.Error.interactiveFrameNotFound": "Interactive Frame not found",
+    "V3.DI.Error.notFound": "Not found",
     "V3.DI.Error.selectionListIllegalValues": "%@1 selectionList requires a list of case IDs.",
 
     // CFM/File menu

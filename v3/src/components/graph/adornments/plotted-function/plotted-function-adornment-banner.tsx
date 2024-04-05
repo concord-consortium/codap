@@ -14,6 +14,9 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
 ) {
   const model = props.model as IPlottedFunctionAdornmentModel
   const graphModel = useGraphContentModelContext()
+  const dataset = graphModel.dataset
+  const yAttrID = graphModel.dataConfiguration.attributeID('y')
+  const yAttrName = dataset?.attrIDMap.get(yAttrID)?.name ?? t("DG.PlottedFunction.formulaPrompt")
   const { expression, error } = model
   const formulaModal = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
@@ -49,16 +52,19 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
       >
         <div className="plotted-function-control-row">
           <div className="plotted-function-control-label" data-testid="plotted-function-control-label">
-            { t("DG.PlottedFunction.formulaPrompt") }
+            {yAttrName}
+          </div>
+          <div className="equals-sign">
+            =
           </div>
           <div className="plotted-function-control-value" data-testid="plotted-function-control-value">
             {expression}
           </div>
         </div>
-        { error && <div className="plotted-function-error" data-testid="plotted-function-error">{error}</div> }
+        {error && <div className="plotted-function-error" data-testid="plotted-function-error">{error}</div>}
       </Button>
-      { modalIsOpen &&
-        <EditFormulaModal
+      {modalIsOpen &&
+         <EditFormulaModal
           isOpen={formulaModal.isOpen}
           currentValue={expression}
           onClose={handleEditExpressionClose} />

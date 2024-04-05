@@ -16,6 +16,10 @@ export interface DICase {
   caseID?: string
 }
 export type DIComponent  = unknown
+export interface DIGlobal {
+  name?: string
+  value?: number
+}
 export interface DIInteractiveFrame {
   dimensions?: {
     height?: number
@@ -54,7 +58,7 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAttribute | DIAttributes | DICase | DIInteractiveFrame
+export type DISingleValues = DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame
 
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
