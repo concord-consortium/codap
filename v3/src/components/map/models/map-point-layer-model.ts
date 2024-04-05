@@ -53,4 +53,3 @@ export interface IMapPointLayerModelSnapshot extends SnapshotIn<typeof MapPointL
 export function isMapPointLayerModel(layerModel?: IDataDisplayLayerModel): layerModel is IMapPointLayerModel {
   return layerModel?.type === kMapPointLayerType
 }
-

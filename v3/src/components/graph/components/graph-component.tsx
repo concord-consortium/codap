@@ -1,7 +1,8 @@
 import {useDndContext, useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
-import React, {useEffect, useMemo, useRef} from "react"
+import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
+import {useMemo} from 'use-memo-one'
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
@@ -12,36 +13,28 @@ import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {AxisProviderContext} from '../../axis/hooks/use-axis-provider-context'
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
+import {usePixiPointsArray} from '../../data-display/hooks/use-pixi-points-array'
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
-import {PixiPoints} from "../utilities/pixi-points"
 import "../register-adornment-types"
 
-export const GraphComponent = observer(function GraphComponent({ tile }: ITileBaseProps) {
+export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("graph")
-  const { data } = useDataSet(graphModel?.dataset)
+  const {data} = useDataSet(graphModel?.dataset)
   const layout = useInitGraphLayout(graphModel)
-  // Removed debouncing, but we can bring it back if we find we need it
   const graphRef = useRef<HTMLDivElement | null>(null)
-  const { width, height } = useResizeDetector<HTMLDivElement>({ targetRef: graphRef })
-  const pixiPointsRef = useRef<PixiPoints>()
-  // TODO PIXI: PJ: probably should be fixed and become a ref, as memoization is meant for performance optimization
-  // and it's not guaranteed to be maintained across renders.
+  const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: graphRef})
+  const pixiPointsArrayRef = usePixiPointsArray({ addInitialPixiPoints: true })
   const graphController = useMemo(
-    () => new GraphController({ layout, instanceId }),
+    () => new GraphController({layout, instanceId}),
     [layout, instanceId]
   )
 
-  useEffect(() => {
-    pixiPointsRef.current = new PixiPoints()
-    return () => pixiPointsRef.current?.dispose()
-  }, [])
-
-  useGraphController({ graphController, graphModel, pixiPointsRef })
+  useGraphController({graphController, graphModel, pixiPointsArrayRef})
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setTileExtent(width, height)
@@ -55,10 +48,10 @@ export const GraphComponent = observer(function GraphComponent({ tile }: ITileBa
 
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
-  const { setNodeRef } = useDroppable({ id: dropId })
+  const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(graphRef.current ?? null)
 
-  const { active } = useDndContext()
+  const {active} = useDndContext()
   const overlayDragId = active && `${active.id}`.startsWith(instanceId)
     ? `${active.id}` : undefined
 
@@ -74,10 +67,10 @@ export const GraphComponent = observer(function GraphComponent({ tile }: ITileBa
                 <Graph
                   graphController={graphController}
                   graphRef={graphRef}
-                  pixiPointsRef={pixiPointsRef}
+                  pixiPointsArrayRef={pixiPointsArrayRef}
                 />
               </AxisProviderContext.Provider>
-              <AttributeDragOverlay activeDragId={overlayDragId} />
+              <AttributeDragOverlay activeDragId={overlayDragId}/>
             </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>

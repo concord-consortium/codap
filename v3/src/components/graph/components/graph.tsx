@@ -3,6 +3,9 @@ import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
+import {mstReaction} from "../../../utilities/mst-reaction"
+import {onAnyAction} from "../../../utilities/mst-utils"
+import {IPixiPointsArrayRef} from "../utilities/pixi-points"
 import {GraphAttrRole, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
@@ -10,13 +13,13 @@ import {GraphAxis} from "./graph-axis"
 import {kGraphClass} from "../graphing-types"
 import {GraphController} from "../models/graph-controller"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
-import {Background} from "./background"
+import {Background} from "../../data-display/components/background"
 import {DroppablePlot} from "./droppable-plot"
 import {ScatterDots} from "./scatterdots"
 import {CaseDots} from "./casedots"
 import {ChartDots} from "./chartdots"
 import { DotPlotDots } from "./dotplotdots"
-import {Marquee} from "./marquee"
+import {Marquee} from "../../data-display/components/marquee"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
@@ -27,7 +30,7 @@ import {setNiceDomain} from "../utilities/graph-utils"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import {MarqueeState} from "../models/marquee-state"
+import {MarqueeState} from "../../data-display/models/marquee-state"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
@@ -35,9 +38,6 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import {onAnyAction} from "../../../utilities/mst-utils"
-import {IPixiPointsRef} from "../utilities/pixi-points"
 import {Adornments} from "../adornments/adornments"
 
 import "./graph.scss"
@@ -45,12 +45,13 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  pixiPointsRef: IPixiPointsRef
+  pixiPointsArrayRef: IPixiPointsArrayRef
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, pixiPointsRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArrayRef}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
+    pixiPoints = pixiPointsArrayRef.current?.[0],
     {startAnimation} = useDataDisplayAnimation(),
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
@@ -65,9 +66,9 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
 
-  if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
-    pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
-    pixiPointsRef.current.setupBackgroundEventDistribution({
+  if (pixiPoints && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+    pixiContainerRef.current.appendChild(pixiPoints.canvas)
+    pixiPoints.setupBackgroundEventDistribution({
       elementToHide: pixiContainerRef.current
     })
   }
@@ -106,9 +107,9 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         .attr("width", `${layout.plotWidth}px`)
         .attr("height", `${layout.plotHeight}px`)
 
-      pixiPointsRef.current?.resize(layout.plotWidth, layout.plotHeight)
+      pixiPoints?.resize(layout.plotWidth, layout.plotHeight)
     }
-  }, [dataset, layout, layout.plotHeight, layout.plotWidth, xScale, pixiPointsRef])
+  }, [dataset, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
@@ -185,7 +186,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   }, [graphController, layout, graphModel, startAnimation])
 
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, pixiPoints: pixiPointsRef.current, abovePointsGroupRef},
+    const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
         dotChart: <ChartDots {...props}/>,
@@ -231,7 +232,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     return droppables
   }
 
-  useGraphModel({pixiPointsRef, graphModel, instanceId})
+  useGraphModel({pixiPoints, graphModel, instanceId})
 
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = graphModel.dataConfiguration
@@ -251,7 +252,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           <Background
             ref={backgroundSvgRef}
             marqueeState={marqueeState}
-            pixiPointsRef={pixiPointsRef}
+            pixiPointsArrayRef={pixiPointsArrayRef}
           />
 
           {renderGraphAxes()}
@@ -286,7 +287,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         />
         {renderDroppableAddAttributes()}
         <Adornments/>
-        <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPointsRef={pixiPointsRef}/>
+        <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPoints={pixiPoints}/>
       </div>
     </GraphDataConfigurationContext.Provider>
   )
