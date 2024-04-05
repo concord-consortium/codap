@@ -546,7 +546,8 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .views(self => ({
-  getCasesForCollection(collectionId?: string) {
+  // TODO any type
+  getCaseInformationForCollection(formatter: (group: CaseGroup, index: number) => any, collectionId?: string) {
     if (collectionId && self.getCollection(collectionId)) {
       for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
         const collectionGroup = self.collectionGroups[i]
@@ -554,11 +555,34 @@ export const DataSet = V2Model.named("DataSet").props({
           console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
         }
         else if (collectionGroup.collection.id === collectionId) {
-          return collectionGroup.groups.map(group => group.pseudoCase)
+          return collectionGroup.groups.map(formatter)
         }
       }
     }
-    return self.childCases()
+  }
+}))
+.views(self => ({
+  getCasesForCollection(collectionId?: string) {
+    const formatter = (group: CaseGroup) => group.pseudoCase
+    return self.getCaseInformationForCollection(formatter, collectionId) ?? self.childCases()
+    // if (collectionId && self.getCollection(collectionId)) {
+    //   for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
+    //     const collectionGroup = self.collectionGroups[i]
+    //     if (!isAlive(collectionGroup.collection)) {
+    //       console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
+    //     }
+    //     else if (collectionGroup.collection.id === collectionId) {
+    //       return collectionGroup.groups.map(group => group.pseudoCase)
+    //     }
+    //   }
+    // }
+    // return self.childCases()
+  },
+  getCasesWithIndeciesForCollection(collectionId?: string) {
+    const formatter = (group: CaseGroup, index: number) => ({ case: group.pseudoCase, index })
+    const collectionCases = self.getCaseInformationForCollection(formatter, collectionId)
+    return collectionCases ??
+      self.childCases().map((c: IGroupedCase, index: number) => ({ case: c, index }))
   },
   getCollectionGroupForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes
