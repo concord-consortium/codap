@@ -70,7 +70,7 @@ export const boundaryAttributeFromDataSet = (dataSet: IDataSet) => {
  */
 export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => {
   const getRationalLongitudeBounds = (longs: number[]) => {
-      longs.sort()
+      longs.sort((v1:number, v2:number) => (v1 - v2))
       let tLength = longs.length,
         tMin = longs[0],
         tMax = longs[tLength - 1],
@@ -139,7 +139,7 @@ export const expandLatLngBounds = (bounds: LatLngBounds, fraction: number) => {
   return latLngBounds([southWest, northEast])
 }
 
-export const getCaseCountString = (dataset: IDataSet, latLngAttrID:string, numCases:number) => {
+export const getCaseCountString = (dataset: IDataSet, latLngAttrID: string, numCases: number) => {
   const collectionName = (dataset.getCollectionForAttribute(latLngAttrID)?.name ??
     translate('DG.DataContext.pluralCaseName')) || (dataset.name ?? '')
   const caseName = numCases === 1 ? singular(collectionName) : collectionName
@@ -148,7 +148,7 @@ export const getCaseCountString = (dataset: IDataSet, latLngAttrID:string, numCa
 
 export const getCategoryBreakdownHtml = (dataset: IDataSet, iCases: string[], iLegendAttrID: string) => {
   const tCategories: { [key: string]: number } = {}
-  let  tTotalCount = 0,
+  let tTotalCount = 0,
     tResult = ''
   iCases.forEach((iCase) => {
     const tValue = dataset.getStrValue(iCase, iLegendAttrID)
