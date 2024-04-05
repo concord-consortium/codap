@@ -20,21 +20,24 @@ export const diAllCasesHandler: DIHandler = {
     const { collection, dataContext } = resources
     if (!collection || !dataContext) return { success: false }
 
-    const col = dataContext.getGroupedCollection(collection.id)
-    const attributes = col?.attributes ?? dataContext.ungroupedAttributes
-    const cases = dataContext.getCasesWithIndeciesForCollection(collection.id).map(info => {
-      const { case: c, index: caseIndex } = info
+    const actualCollection = dataContext.getGroupedCollection(collection.id)
+    const attributes = actualCollection?.attributes ?? dataContext.ungroupedAttributes
+    const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
       const values: Record<string, string | number | undefined> = {}
       attributes.map(attribute => {
         if (attribute?.name) {
-          values[attribute.name] = attribute?.value(caseIndex)
+          const val = c.pseudoCase[attribute.id] ?? attribute?.value(caseIndex)
+          values[attribute.name] = typeof val === "boolean" ? undefined : val
         }
       })
+      // iphone-frame was throwing an error when Array.from() wasn't used here for some reason.
+      const childPseudoCaseIds = c.childPseudoCaseIds && Array.from(c.childPseudoCaseIds)
+      const childCaseIds = c.childCaseIds && Array.from(c.childCaseIds)
       return {
         case: {
-          id: c.__id__,
+          id: c.pseudoCase.__id__,
           // parent: c[symParent],
-          // children: 
+          children: childPseudoCaseIds ?? childCaseIds ?? [],
           values
         },
         caseIndex
