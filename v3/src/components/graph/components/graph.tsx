@@ -73,17 +73,17 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     })
   }
 
-  useEffect(function handleFilteredCasesLengthChange() {
+  useEffect(function handleFilteredCasesChange() {
     return mstReaction(
-      () => graphModel.dataConfiguration.filteredCases.length,
-      length => {
+      () => graphModel.dataConfiguration.filteredCases.map(({ id }) => id),
+      filteredCasesIds => {
         // filtered cases become empty when DataSet is deleted, for instance
-        if ((length === 0) && !isUndoingOrRedoing()) {
+        if ((filteredCasesIds.length === 0) && !isUndoingOrRedoing()) {
           graphController.clearGraph()
         } else {
           graphController.callMatchCirclesToData()
         }
-      }, {name: "Graph.useEffect.handleFilteredCasesLengthChange"}, graphModel
+      }, {name: "Graph.handleFilteredCasesChange"}, graphModel
     )
   }, [graphController, graphModel])
 
