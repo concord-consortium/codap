@@ -7,6 +7,7 @@ import { DIGlobal, DIHandler, DIResources, DIValues } from "../data-interactive-
 import { valuesFromGlobal } from "../di-conversion-utils"
 
 const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.globalIllegalValue") } } as const
+const isIllegalValue = (value: any) => !isFinite(value)
 
 export const diGlobalHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
@@ -15,10 +16,10 @@ export const diGlobalHandler: DIHandler = {
     const { name, value } = values as DIGlobal
 
     const _value = Number(value ?? kDefaultSliderValue)
-    if (isNaN(_value)) return illegalValueResult
+    if (isIllegalValue(_value)) return illegalValueResult
 
     const globalSnapshot = {
-      name: (name ?? globalManager?.uniqueName() ?? kDefaultSliderName).toString(),
+      name: (name || globalManager?.uniqueName() || kDefaultSliderName).toString(),
       value: _value
     }
 
@@ -49,7 +50,7 @@ export const diGlobalHandler: DIHandler = {
     if (!global || !value) return { success: false, values: { error: t("V3.DI.Error.globalNotFound") } }
 
     const _value = Number(value)
-    if (isNaN(_value)) return illegalValueResult
+    if (isIllegalValue(_value)) return illegalValueResult
 
     document.applyUndoableAction(
       () => global.setValue(_value)
