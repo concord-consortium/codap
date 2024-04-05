@@ -233,6 +233,7 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
       ({layerIsVisible, pointsAreVisible}) => {
         if (layerIsVisible && pointsAreVisible && !pixiPointsRef.current?.isVisible) {
           pixiPointsRef.current?.setVisibility(true)
+          refreshPoints(false)
         }
         else if (!(layerIsVisible && pointsAreVisible) && pixiPointsRef.current?.isVisible) {
           pixiPointsRef.current?.setVisibility(false)
