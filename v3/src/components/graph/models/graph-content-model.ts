@@ -19,8 +19,8 @@ import {computePointRadius} from "../../data-display/data-display-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
-import { axisPlaceToAttrRole, GraphAttrRole, IGetTipTextProps,
-        PointDisplayType } from "../../data-display/data-display-types"
+import { axisPlaceToAttrRole, GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
+import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
 import {IDomainOptions, PlotType, PlotTypes} from "../graphing-types"
@@ -202,7 +202,7 @@ export const GraphContentModel = DataDisplayContentModel
       // to the maximum data value, adding a small constant to ensure the max value is contained.
       const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
       const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
-    
+
       return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
     }
   }))
@@ -313,7 +313,7 @@ export const GraphContentModel = DataDisplayContentModel
       const caseTopSplitValue = topSplitAttrID && dataset?.getStrValue(caseID, topSplitAttrID)
       const caseRightSplitValue = rightSplitAttrID && dataset?.getStrValue(caseID, rightSplitAttrID)
       const caseLegendValue = legendAttrID && dataset?.getStrValue(caseID, legendAttrID)
-    
+
       const getMatchingCases = (attrID?: string, value?: string, _allCases?: ICase[]) => {
         const allCases = _allCases ?? dataset?.cases
         const matchingCases = attrID && value
@@ -321,14 +321,14 @@ export const GraphContentModel = DataDisplayContentModel
           : []
         return matchingCases as ICase[]
       }
-    
-      // for each existing attribute, get the cases that have the same value as the current case 
+
+      // for each existing attribute, get the cases that have the same value as the current case
       const primaryMatches = getMatchingCases(primaryAttrID, casePrimaryValue)
       const topSplitMatches = getMatchingCases(topSplitAttrID, caseTopSplitValue)
       const rightSplitMatches = getMatchingCases(rightSplitAttrID, caseRightSplitValue)
       const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
       const legendMatches = getMatchingCases(legendAttrID, caseLegendValue, primaryMatches)
-    
+
       const cellKey: Record<string, string> = {
         ...(casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
         ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
@@ -351,12 +351,12 @@ export const GraphContentModel = DataDisplayContentModel
         : casePrimaryValue
       const firstCount = legendAttrID ? totalCases : casesInSubPlot
       const secondCount = legendAttrID ? casesInSubPlot : totalCases
-    
+
       // <n> of <m> <category> (<p>%) are <legend category>
       const attrArray = [
         firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
       ]
-    
+
       return t("DG.BarChartModel.cellTipPlural", {vars: attrArray})
     }
   }))

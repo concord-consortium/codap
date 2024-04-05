@@ -5,25 +5,24 @@ import { IDataSet } from "../../../models/data/data-set"
 import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
-import { IGetTipTextProps } from "../data-display-types"
+import { IGetTipTextProps } from "../data-tip-types"
 
 import "./data-tip.scss"
 
-interface IDataTipHelperProps {
+interface IDataTipBaseProps {
   dataConfiguration?: IDataConfigurationModel
   dataset?: IDataSet
   getTipAttrs: (plotNum: number) => string[]
-  legendAttrID?: string
-  metadata: IPixiPointMetadata
-  getTipText: any
+  getTipText: (props: IGetTipTextProps) => string
 }
 
-export interface IDataTipProps {
-  dataConfiguration?: IDataConfigurationModel
-  dataset?: IDataSet
-  getTipAttrs: (plotNum: number) => string[]
+interface IDataTipHelperProps extends IDataTipBaseProps {
+  legendAttrID?: string
+  metadata: IPixiPointMetadata
+}
+
+export interface IDataTipProps extends IDataTipBaseProps {
   pixiPoints?: PixiPoints
-  getTipText: (props: IGetTipTextProps) => string
 }
 
 const createVirtualElement = (event: PointerEvent) => {

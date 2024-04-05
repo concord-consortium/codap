@@ -17,7 +17,8 @@ import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
-import { IGetTipTextProps, MarqueeMode, PointDisplayTypes } from "../data-display-types"
+import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
+import { IGetTipTextProps } from "../data-tip-types"
 import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 
 export const DataDisplayContentModel = TileContentModel
