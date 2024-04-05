@@ -325,15 +325,21 @@ DG = SC.Application.create((function () // closure
      * and only if the 'di-override' string is found within the specified URL.
      */
     finalGameUrl: function(iGameUrl) {
-      if (!iGameUrl || !DG._diOverrideURL || !DG._dataInteractiveOverride)
-        return iGameUrl;
+      var gameUrl = iGameUrl;
+        // TODO: this list should be configurable, e.g. in a loaded JSON file
+      var transforms = [{ from: "../../../../extn/plugins/NOAA-weather/index.html", to: "../../../../extn/plugins/noaa-codap-plugin/index.html" }];
+      transforms.forEach(function(transform) {
+        if (gameUrl === transform.from) gameUrl = transform.to;
+      });
+      if (!gameUrl || !DG._diOverrideURL || !DG._dataInteractiveOverride)
+        return gameUrl;
       var hashIndex = iGameUrl.indexOf('#'),
           gameUrlNoHash = hashIndex >= 0 ? iGameUrl.substring(0, hashIndex) : iGameUrl,
           gameUrlHash = hashIndex >= 0 ? iGameUrl.substring(hashIndex) : '',
           matchIndex = gameUrlNoHash.indexOf(DG._dataInteractiveOverride);
       return matchIndex >= 0
               ? DG._diOverrideURL + gameUrlHash
-              : iGameUrl;
+              : gameUrl;
     },
 
     /**
