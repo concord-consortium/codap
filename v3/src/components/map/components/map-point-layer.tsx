@@ -50,6 +50,8 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
       }
     })
     onSetPixiPointsForLayer(pixiPointsRef.current, mapLayerModel.layerIndex)
+
+    return () => pixiPointsRef.current?.dispose()
   }, [mapLayerModel.layerIndex, onSetPixiPointsForLayer])
 
   useEffect(() => {

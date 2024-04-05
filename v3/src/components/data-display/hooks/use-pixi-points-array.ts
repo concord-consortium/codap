@@ -11,11 +11,11 @@ export function usePixiPointsArray(props?: IProps) {
 
   useEffect(() => {
     const pixiPointsArray = pixiPointsRef.current
-    if (addInitialPixiPoints) {
-      pixiPointsArray.push(new PixiPoints())
-    }
+    const initialPixiPoints = addInitialPixiPoints ? new PixiPoints() : undefined
+    initialPixiPoints && pixiPointsArray.push(initialPixiPoints)
     return () => {
-      pixiPointsArray.forEach(pixiPoints => pixiPoints.dispose())
+      // if we created it, we destroy it
+      initialPixiPoints?.dispose()
       pixiPointsArray.length = 0
     }
   }, [addInitialPixiPoints])
