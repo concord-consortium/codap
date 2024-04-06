@@ -18,30 +18,33 @@ export const diAllCasesHandler: DIHandler = {
     const { collection, dataContext } = resources
     if (!collection || !dataContext) return { success: false }
 
-    const actualCollection = dataContext.getGroupedCollection(collection.id)
-    const attributes = actualCollection?.attributes ?? dataContext.ungroupedAttributes
+    const attributes = dataContext.getGroupedCollection(collection.id)?.attributes
+      ?? dataContext.ungroupedAttributes
+
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
-      const values: DICaseValues = {}
       const id = c.pseudoCase.__id__
-      const pureCaseIndex = dataContext.cases.findIndex(cas => cas.__id__ === id)
-      attributes.map(attribute => {
-        if (attribute?.name) {
-          values[attribute.name] = c.pseudoCase[attribute.id] ?? attribute?.value(pureCaseIndex)
-        }
-      })
+
+      const parent = dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__
+
       // iphone-frame was throwing an error when Array.from() wasn't used here for some reason.
       const childPseudoCaseIds = c.childPseudoCaseIds && Array.from(c.childPseudoCaseIds)
       const childCaseIds = c.childCaseIds && Array.from(c.childCaseIds)
+      const children = childPseudoCaseIds ?? childCaseIds ?? []
+
+      const values: DICaseValues = {}
+      const actualCaseIndex = dataContext.cases.findIndex(actualCase => actualCase.__id__ === id)
+      attributes.map(attribute => {
+        if (attribute?.name) {
+          values[attribute.name] = c.pseudoCase[attribute.id] ?? attribute?.value(actualCaseIndex)
+        }
+      })
+
       return {
-        case: {
-          id,
-          parent: dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__,
-          children: childPseudoCaseIds ?? childCaseIds ?? [],
-          values
-        },
+        case: { id, parent, children, values },
         caseIndex
       }
     })
+    
     return { success: true, values: {
       collection: {
         name: collection.name,
