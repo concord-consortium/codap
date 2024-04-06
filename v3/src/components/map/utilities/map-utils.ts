@@ -70,7 +70,7 @@ export const boundaryAttributeFromDataSet = (dataSet: IDataSet) => {
  */
 export const getLatLongBounds = (dataConfiguration: IDataConfigurationModel) => {
   const getRationalLongitudeBounds = (longs: number[]) => {
-      longs.sort((v1:number, v2:number) => (v1 - v2))
+      longs.sort((v1: number, v2: number) => (v1 - v2))
       let tLength = longs.length,
         tMin = longs[0],
         tMax = longs[tLength - 1],
