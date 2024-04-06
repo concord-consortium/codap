@@ -1,7 +1,5 @@
-// import { t } from "../../utilities/translation/translate"
-// import { symIndex, symParent } from "../../models/data/data-set-types"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources } from "../data-interactive-types"
+import { DICaseValues, DIHandler, DIResources } from "../data-interactive-types"
 
 export const diAllCasesHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -23,11 +21,12 @@ export const diAllCasesHandler: DIHandler = {
     const actualCollection = dataContext.getGroupedCollection(collection.id)
     const attributes = actualCollection?.attributes ?? dataContext.ungroupedAttributes
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
-      const values: Record<string, string | number | undefined> = {}
+      const values: DICaseValues = {}
+      const id = c.pseudoCase.__id__
+      const pureCaseIndex = dataContext.cases.findIndex(cas => cas.__id__ === id)
       attributes.map(attribute => {
         if (attribute?.name) {
-          const val = c.pseudoCase[attribute.id] ?? attribute?.value(caseIndex)
-          values[attribute.name] = typeof val === "boolean" ? undefined : val
+          values[attribute.name] = c.pseudoCase[attribute.id] ?? attribute?.value(pureCaseIndex)
         }
       })
       // iphone-frame was throwing an error when Array.from() wasn't used here for some reason.
@@ -35,8 +34,8 @@ export const diAllCasesHandler: DIHandler = {
       const childCaseIds = c.childCaseIds && Array.from(c.childCaseIds)
       return {
         case: {
-          id: c.pseudoCase.__id__,
-          // parent: c[symParent],
+          id,
+          parent: dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__,
           children: childPseudoCaseIds ?? childCaseIds ?? [],
           values
         },
@@ -52,21 +51,5 @@ export const diAllCasesHandler: DIHandler = {
     } }
   }
 }
-
-// var serializeCase = function (iCase) {
-//   var caseValues = {};
-//   collection.forEachAttribute(function (attr) {
-//     caseValues[attr.name] = iCase.getValue(attr.id);
-//   });
-//   return {
-//     'case': {
-//       id: iCase.id,
-//       parent: (iCase.parent && iCase.parent.id),
-//       children: iCase.children.map(function (child) {return child.id;}),
-//       values: caseValues
-//     },
-//     caseIndex: collection.getCaseIndexByID(iCase.get('id'))
-//   };
-// }.bind(this);
 
 registerDIHandler("allCases", diAllCasesHandler)

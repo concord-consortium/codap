@@ -564,11 +564,31 @@ export const DataSet = V2Model.named("DataSet").props({
       collectionId: self.ungrouped.id,
       pseudoCase: c
     }))
+  },
+  getParentCollectionGroup(collectionId?: string) {
+    if (collectionId && self.collectionGroups.length) {
+      if (self.ungrouped.id === collectionId) {
+        return self.collectionGroups[self.collectionGroups.length - 1]
+      } else if (self.getCollection(collectionId)) {
+        return self.collectionGroups.find((_collectionGroup, index) => {
+          return index < self.collectionGroups.length - 1 &&
+            self.collectionGroups[index + 1].collection.id === collectionId
+        })
+      }
+    }
   }
 }))
 .views(self => ({
   getCasesForCollection(collectionId?: string) {
     return self.getGroupsForCollection(collectionId)?.map(group => group.pseudoCase)
+  },
+  getParentCase(caseId: string, collectionId?: string) {
+    const parentCollectionGroup = self.getParentCollectionGroup(collectionId)
+    return parentCollectionGroup?.groups.find(group =>
+      collectionId === self.ungrouped.id
+        ? group.childCaseIds.includes(caseId)
+        : group.childPseudoCaseIds?.includes(caseId)
+    )
   },
   getCollectionGroupForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes

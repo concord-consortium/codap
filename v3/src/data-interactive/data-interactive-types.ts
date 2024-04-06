@@ -6,13 +6,15 @@ import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionPropsModel } from "../models/data/collection"
 
+export type DICaseValue = string | number | boolean | undefined
+export type DICaseValues = Record<string, DICaseValue>
 export interface DIAllCases {
   cases?: {
     case?: {
       children?: string[],
       id?: string,
       parent?: string,
-      values?: Record<string, any>
+      values?: DICaseValues
     },
     caseIndex?: number
   }[]
