@@ -1,4 +1,3 @@
-import { IAttribute } from "../../models/data/attribute"
 import { CollectionModel, ICollectionModel } from "../../models/data/collection"
 import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
 import { DIAllCases, DIHandlerFnResult } from "../data-interactive-types"
