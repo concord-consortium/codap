@@ -56,7 +56,7 @@ git pull
 echo '    * remove tmp directory'
 rm -rf tmp
 echo '    * npm packages are up to date'
-npm install
+npm install --legacy-peer-deps
 echo '    * extension directories clean'
 ./bin/check_clean_codeline "$CODAP_DATA_HOME" "$EXP_CODAP_BRANCH" ||
     error "Extn codeline check failed: $CODAP_DATA_HOME"
