@@ -27,9 +27,9 @@ describe("DataInteractive AllCasesHandler", () => {
     c2 = CollectionModel.create({ name: "collection2" })
     dataset.addCollection(c1)
     dataset.addCollection(c2)
-    a1 = dataset.addAttribute({ name: "a1" }, { collection: c1.id })
-    a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })
-    a3 = dataset.addAttribute({ name: "a3" })
+    dataset.addAttribute({ name: "a1" }, { collection: c1.id })
+    dataset.addAttribute({ name: "a2" }, { collection: c2.id })
+    dataset.addAttribute({ name: "a3" })
     dataset.addCases(toCanonical(dataset, cases))
   }
 
