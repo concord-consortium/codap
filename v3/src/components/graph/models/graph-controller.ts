@@ -153,10 +153,14 @@ export class GraphController {
       const attrRole = graphPlaceToAttrRole[place],
         attributeID = dataConfig.attributeID(attrRole),
         attr = attributeID ? dataset?.attrFromID(attributeID) : undefined,
-        attrType = dataConfig.attributeType(attrRole) ?? 'empty',
+        primaryRole = dataConfig.primaryRole,
+        secondaryPlace = primaryRole === 'x' ? 'left' : 'bottom',
+        attrType = dataConfig.attributeType(attrRole),
+        fallbackType = (place === secondaryPlace && graphModel.pointsFusedIntoBars) ? 'numeric' : 'empty',
+        requiredType = attrType ?? fallbackType,
         currAxisModel = graphModel.getAxis(place),
         currentType = currAxisModel?.type ?? 'empty'
-      switch (attrType) {
+      switch (requiredType) {
         case 'numeric': {
           if (!currAxisModel || !isNumericAxisModel(currAxisModel)) {
             const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})

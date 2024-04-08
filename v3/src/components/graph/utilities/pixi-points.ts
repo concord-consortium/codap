@@ -97,6 +97,7 @@ export class PixiPoints {
   caseDataToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
   displayType = "points"
+  pointsFusedIntoBars = false
   anchor = circleAnchor
   displayTypeTransitionState: IDisplayTypeTransitionState = {
     isActive: false
@@ -557,8 +558,10 @@ export class PixiPoints {
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (this.displayType === "bars") {
-        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
-        this.setPointStyle(sprite, newStyle)
+        if (!this.pointsFusedIntoBars) {
+          const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
+          this.setPointStyle(sprite, newStyle)
+        }
       } else {
         this.transition(() => {
           this.setPointScale(sprite, hoverRadiusFactor)
@@ -572,8 +575,10 @@ export class PixiPoints {
     }
     const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (this.displayType === "bars") {
-        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
-        this.setPointStyle(sprite, newStyle)
+        if (!this.pointsFusedIntoBars) {
+          const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
+          this.setPointStyle(sprite, newStyle)
+        }
       } else {
         this.transition(() => {
           this.setPointScale(sprite, 1)

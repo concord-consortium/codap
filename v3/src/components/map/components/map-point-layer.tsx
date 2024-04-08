@@ -266,7 +266,12 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
     <>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
-      <DataTip dataset={dataset} getTipAttrs={getTipAttrs} pixiPoints={pixiPointsRef.current}/>
+      <DataTip
+        dataset={dataset}
+        getTipAttrs={getTipAttrs}
+        pixiPoints={pixiPointsRef.current}
+        getTipText={mapModel.getTipText}
+      />
     </>
   )
 }

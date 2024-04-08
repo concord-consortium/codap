@@ -45,7 +45,7 @@ export type AxisScaleType = ScaleNumericBaseType | ScaleOrdinal<string, any> | S
 //  RectIndices: type of data attached to selected element
 //  SVGGElement: type of parent element selected by initial/global select
 //  unknown: type of data attached to parent element (none in this case)
-export type RectIndices = [number, number, number]  // data signify lower, middle, upper rectangles
+export type RectIndices = [number, number?, number?]  // data signify lower, middle, upper rectangles
 export type DragRectSelection = Selection<SVGRectElement, RectIndices, SVGGElement, unknown>
 
 // selects all `.dragRect` elements, optionally with additional classes, e.g. `.dragRect.additional.classes`

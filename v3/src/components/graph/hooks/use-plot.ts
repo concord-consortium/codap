@@ -101,6 +101,20 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         if (graphModel?.plotType !== "dotPlot") {
           graphModel?.setPointConfig("points")
         }
+        // If points are fused into bars and a secondary attribute is added or the primary attribute is removed,
+        // unfuse the points. Otherwise, if a primary attribute exists, make sure the bar graph's count axis gets
+        // updated.
+        const { primaryRole } = dataConfiguration
+        const primaryAttrID = primaryRole && dataConfiguration.attributeID(primaryRole)
+        const secondaryRole = primaryRole === "x" ? "y" : "x"
+        const secondaryAttrID = dataConfiguration.attributeID(secondaryRole)
+        if (graphModel.pointsFusedIntoBars) {
+          if (secondaryAttrID || !primaryAttrID) {
+            graphModel.setPointsFusedIntoBars(false)
+          } else if (primaryAttrID) {
+            graphModel.setBarCountAxis()
+          }
+        }
         startAnimation()
         callRefreshPointPositions(false)
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
@@ -197,6 +211,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => graphModel.pointDisplayType,
       () => {
         if (!pixiPoints) return
+
         matchCirclesToData({
           dataConfiguration,
           pointRadius: graphModel.getPointRadius(),

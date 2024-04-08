@@ -42,7 +42,8 @@ export const GraphAttributeLabel =
     }, [dataConfiguration, graphModel.plotType, place])
 
     const getClickHereCue = useCallback(() => {
-      const useClickHereCue = dataConfiguration?.placeCanShowClickHereCue(place) ?? false
+      const useClickHereCue =
+        dataConfiguration?.placeCanShowClickHereCue(place, graphModel.pointsFusedIntoBars) ?? false
       const hideClickHereCue = useClickHereCue &&
         !dataConfiguration?.placeAlwaysShowsClickHereCue(place) && !isTileSelected()
       const className = useClickHereCue ? 'empty-label' : 'attribute-label'
@@ -50,7 +51,7 @@ export const GraphAttributeLabel =
       const visibility = hideClickHereCue ? 'hidden' : 'visible'
       const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont
       return { useClickHereCue, className, unusedClassName, labelFont, visibility }
-    }, [dataConfiguration, isTileSelected, place])
+    }, [dataConfiguration, graphModel, isTileSelected, place])
 
     const getLabel = useCallback(() => {
       const { useClickHereCue } = getClickHereCue()
@@ -58,9 +59,14 @@ export const GraphAttributeLabel =
         return t('DG.AxisView.emptyGraphCue')
       }
       const attrIDs = getAttributeIDs()
+      const secondaryPlace = dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
+      if (graphModel.pointsFusedIntoBars && place === secondaryPlace) {
+        return t("DG.CountAxisView.countLabel")
+      }
       return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
-    }, [dataset, getAttributeIDs, getClickHereCue])
+    }, [dataConfiguration?.secondaryRole, dataset, getAttributeIDs, getClickHereCue,
+        graphModel.pointsFusedIntoBars, place])
 
     const refreshAxisTitle = useCallback(() => {
       const {labelFont, className, visibility} = getClickHereCue(),

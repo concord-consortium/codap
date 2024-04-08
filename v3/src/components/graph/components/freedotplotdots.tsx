@@ -151,6 +151,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         // For bar graphs, the secondary coordinate will be determined simply by the order of the cases in the dataset,
         // not by any value the cases possess.
         if (pointDisplayType === "bars") return getBarPositionInSubPlot(anID)
+        if (!binMap[anID]) return null
 
         const { category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin } = binMap[anID]
         const onePixelOffset = primaryIsBottom ? -1 : 1
@@ -159,9 +160,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
           numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryAxisScale,
           secondaryBandwidth, secondaryCat, secondarySign
         }
-        return binMap[anID]
-          ? computeSecondaryCoord(computeSecondaryCoordProps) + onePixelOffset
-          : null
+        return computeSecondaryCoord(computeSecondaryCoordProps) + onePixelOffset
       }
 
       const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord

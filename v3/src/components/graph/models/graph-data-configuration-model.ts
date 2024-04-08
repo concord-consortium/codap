@@ -11,6 +11,7 @@ import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnaps
 import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { CaseData } from "../../data-display/d3-types"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -86,9 +87,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
         self.attributeID(graphPlaceToAttrRole[place]) === ''
     },
-    placeCanShowClickHereCue(place: GraphPlace) {
+    placeCanShowClickHereCue(place: GraphPlace, pointsFusedIntoBars = false) {
       const role = graphPlaceToAttrRole[place]
-      return ['left', 'bottom'].includes(place) && !self.attributeID(role)
+      const isSecondaryRole = (place === 'left' || place === 'bottom') && self.primaryRole !== role
+      return ['left', 'bottom'].includes(place) && !self.attributeID(role) && !(isSecondaryRole && pointsFusedIntoBars)
     },
     placeAlwaysShowsClickHereCue(place: GraphPlace) {
       return this.placeCanShowClickHereCue(place) &&
@@ -230,6 +232,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const attrTypes = self.attrTypes
       return Object.values(attrTypes).filter(a => a === "categorical").length
     },
+    get hasExactlyOneCategoricalAxis() {
+      const attrTypes = self.attrTypes
+      const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
+      const yHasCategorical = attrTypes.left === "categorical"
+      const hasOnlyOneCategoricalAxis = (xHasCategorical && !yHasCategorical) || (!xHasCategorical && yHasCategorical)
+      return hasOnlyOneCategoricalAxis
+    },
     get hasExactlyTwoPerpendicularCategoricalAttrs() {
       const attrTypes = self.attrTypes
       const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
@@ -263,6 +272,54 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
+    cellMap(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+      type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
+      const primAttrID = self.primaryRole ? self.attributeID(self.primaryRole) : "",
+        secAttrID = self.secondaryRole ? self.attributeID(self.secondaryRole) : "",
+        extraPrimAttrID = self.attributeID(extraPrimaryAttrRole) ?? '',
+        extraSecAttrID = self.attributeID(extraSecondaryAttrRole) ?? '',
+        valueQuads = (self.caseDataArray || []).map((aCaseData: CaseData) => {
+          return {
+            primary: (primAttrID && self.dataset?.getValue(aCaseData.caseID, primAttrID)) ?? '',
+            secondary: (secAttrID && self.dataset?.getValue(aCaseData.caseID, secAttrID)) ?? '__main__',
+            extraPrimary: (extraPrimAttrID && self.dataset?.getValue(aCaseData.caseID, extraPrimAttrID)) ?? '__main__',
+            extraSecondary: (extraSecAttrID && self.dataset?.getValue(aCaseData.caseID, extraSecAttrID)) ?? '__main__'
+          }
+        }),
+        bins: BinMap = {}
+      valueQuads?.forEach((aValue: any) => {
+        if (bins[aValue.primary] === undefined) {
+          bins[aValue.primary] = {}
+        }
+        if (bins[aValue.primary][aValue.secondary] === undefined) {
+          bins[aValue.primary][aValue.secondary] = {}
+        }
+        if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary] === undefined) {
+          bins[aValue.primary][aValue.secondary][aValue.extraPrimary] = {}
+        }
+        if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
+          bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
+        }
+        bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
+      })
+
+      return bins
+    }
+  }))
+  .views(self => ({
+    maxOverAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
+      // Now find and return the maximum value in the bins
+      return Object.keys(bins).reduce((hMax, hKey) => {
+        return Math.max(hMax, Object.keys(bins[hKey]).reduce((vMax, vKey) => {
+          return Math.max(vMax, Object.keys(bins[hKey][vKey]).reduce((epMax, epKey) => {
+            return Math.max(epMax, Object.keys(bins[hKey][vKey][epKey]).reduce((esMax, esKey) => {
+              return Math.max(esMax, bins[hKey][vKey][epKey][esKey])
+            }, 0))
+          }, 0))
+        }, 0))
+      }, 0)
+    },
     cellKey(index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.getCategoriesOptions()
       const rightCatCount = rightCats.length || 1
