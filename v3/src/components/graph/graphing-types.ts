@@ -29,6 +29,10 @@ export interface IBarCover {
   height: string
 }
 
+export type CellType = { p: number, s: number, ep: number, es: number }
+type CellRecordType = Record<string, { cell: CellType, numSoFar: number }>
+export type CatMapType = Record<string, Record<string, Record<string, CellRecordType>>>
+
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 

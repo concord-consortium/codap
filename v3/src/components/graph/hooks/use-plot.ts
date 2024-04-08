@@ -98,7 +98,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
         // if plot is not univariate and the attribute type changes, we need to update the pointConfig
-        if (graphModel?.plotType !== "dotPlot") {
+        if (graphModel?.plotType !== "dotPlot" && !graphModel?.pointsFusedIntoBars) {
           graphModel?.setPointConfig("points")
         }
         // If points are fused into bars and a secondary attribute is added or the primary attribute is removed,

@@ -22,14 +22,6 @@ interface IDataTipHelperProps extends IDataTipBaseProps {
   getTipText: any
 }
 
-export interface IDataTipProps {
-  dataConfiguration?: IDataConfigurationModel
-  dataset?: IDataSet
-  getTipAttrs: (plotNum: number) => string[]
-  pixiPoints?: PixiPoints
-  getTipText: (props: IGetTipTextProps) => string
-}
-
 export interface IDataTipProps extends IDataTipBaseProps {
   pixiPoints?: PixiPoints
 }
