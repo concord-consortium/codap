@@ -1267,5 +1267,7 @@ SC.stringsFor("en", {
     "DG.plugin.Choosy.title": "Choosy",
     "DG.plugin.Choosy.description": "Organize and simplify datasets with many attributes.",
     "DG.plugin.Transformers.title": "Transformers",
-    "DG.plugin.Transformers.description": "Transform datasets with a collection of powerful tools."
+    "DG.plugin.Transformers.description": "Transform datasets with a collection of powerful tools.",
+    "DG.plugin.Testimate.name": "Testimate",
+    "DG.plugin.Testimate.description": "Test hypotheses using classical inferential methods."
 });

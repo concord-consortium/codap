@@ -1129,5 +1129,7 @@ SC.stringsFor("he", {
               "DG.plugin.Sampler.measures.percent": "אחוז",
               "DG.plugin.Sampler.measures.percent-formula-pt-1": "100 * count",
               "DG.plugin.Sampler.measures.percent-formula-pt-2": " / count( )",
-              "DG.plugin.Sampler.measures.name-label": "Name the measure: "
+              "DG.plugin.Sampler.measures.name-label": "Name the measure: ",
+              "DG.plugin.Testimate.name": "Testimate",
+              "DG.plugin.Testimate.description": "Test hypotheses using classical inferential methods."
 });
