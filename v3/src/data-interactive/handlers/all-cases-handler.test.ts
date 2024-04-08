@@ -10,9 +10,6 @@ describe("DataInteractive AllCasesHandler", () => {
   let dataset: IDataSet | undefined
   let c1: ICollectionModel | undefined
   let c2: ICollectionModel | undefined
-  let a3: IAttribute | undefined
-  let a2: IAttribute | undefined
-  let a1: IAttribute | undefined
   const cases = [
     { a1: "a", a2: "x", a3: 1 },
     { a1: "b", a2: "y", a3: 2 },
