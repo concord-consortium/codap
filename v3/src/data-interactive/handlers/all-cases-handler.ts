@@ -18,8 +18,8 @@ export const diAllCasesHandler: DIHandler = {
     const { collection, dataContext } = resources
     if (!collection || !dataContext) return { success: false }
 
-    const attributes = dataContext.getGroupedCollection(collection.id)?.attributes
-      ?? dataContext.ungroupedAttributes
+    const attributes = dataContext.getGroupedCollection(collection.id)?.attributes ??
+      dataContext.ungroupedAttributes
 
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
       const id = c.pseudoCase.__id__
@@ -44,7 +44,7 @@ export const diAllCasesHandler: DIHandler = {
         caseIndex
       }
     })
-    
+
     return { success: true, values: {
       collection: {
         name: collection.name,
