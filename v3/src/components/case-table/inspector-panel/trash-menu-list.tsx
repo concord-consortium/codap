@@ -11,7 +11,12 @@ export const TrashMenuList = () => {
   }
 
   const handleDeleteSelectedCases = () => {
-    data?.removeCases(Array.from(data.selection))
+    data?.applyUndoableAction(() => {
+      data?.removeCases(Array.from(data.selection))
+    }, {
+      undoStringKey: "undo deleting cases",
+      redoStringKey: "redo deleting cases"
+    })
   }
 
    const handleDeleteUnselectedCases = () => {

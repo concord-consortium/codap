@@ -5,11 +5,12 @@ import { getTileEnvironment } from "../tiles/tile-environment"
 import { withUndoRedoStrings } from "./codap-undo-types"
 import { withoutUndo } from "./without-undo"
 
+interface INotification {
+  message: DIMessage
+  callback?: iframePhone.ListenerCallback
+}
 export interface IApplyActionOptions {
-  notification?: {
-    message: DIMessage
-    callback?: iframePhone.ListenerCallback
-  }
+  notification?: INotification | (() => INotification)
   redoStringKey?: string
   undoStringKey?: string
 }
@@ -31,7 +32,8 @@ export function applyUndoableAction(self: IAnyStateTreeNode) {
       // Broadcast notification to plugins
       if (options?.notification) {
         const tileEnv = getTileEnvironment(self)
-        const { message, callback } = options.notification
+        const { notification } = options
+        const { message, callback } = notification instanceof Function ? notification() : notification
         tileEnv?.notify?.(message, callback ?? (() => null))
       }
 
