@@ -144,11 +144,17 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    toggleTileVisibility(tileType: string) {
+    toggleSingletonTileVisibility(tileType: string) {
       const tiles = self?.getTilesOfType(tileType)
-      if (tiles && tiles.length > 0) {
-        const tileId = tiles[0].id
+      // There's supposed to be at most one tile of this type. Enforce this. (But an assert would be nice!)
+      while (tiles && tiles.length > 1) {
+        const tileId = tiles[1].id
         self?.deleteTile(tileId)
+      }
+      if (tiles && tiles.length > 0) {
+        const singletonId = tiles[0].id,
+          freeTileLayout = self.getFreeTileLayoutById(singletonId)
+          freeTileLayout?.setHidden(!freeTileLayout.isHidden)
       } else {
         return self.createTile(tileType)
       }
@@ -159,7 +165,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
-          self.toggleTileVisibility(tileType)
+          self.toggleSingletonTileVisibility(tileType)
         } else {
           return self.createTile(tileType, options)
         }
