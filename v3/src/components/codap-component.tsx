@@ -15,6 +15,7 @@ import "./codap-component.scss"
 export interface IProps extends ITileBaseProps {
   tile: ITileModel
   isMinimized?: boolean
+  isHidden?: boolean
   onMinimizeTile?: () => void
   onCloseTile: (tileId: string) => void
   onBottomRightPointerDown?: (e: React.PointerEvent) => void
@@ -25,7 +26,7 @@ export interface IProps extends ITileBaseProps {
 }
 
 export const CodapComponent = observer(function CodapComponent({
-  tile, isMinimized, onMinimizeTile, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
+  tile, isMinimized, isHidden, onMinimizeTile, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
   onRightPointerDown, onBottomPointerDown, onLeftPointerDown
 }: IProps) {
   const info = getTileComponentInfo(tile.content.type)
@@ -39,7 +40,7 @@ export const CodapComponent = observer(function CodapComponent({
     }
   }
 
-  if (!info) return null
+  if (!info || isHidden) return null
 
   const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
   const classes = clsx("codap-component", tileEltClass, { minimized: isMinimized })
