@@ -1,5 +1,6 @@
 import { action, computed, makeObservable, observable } from "mobx"
 import { ISerializedActionCall } from "mobx-state-tree"
+import { typedId } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { IDataSet } from "./data-set"
 import { isSetCaseValuesAction } from "./data-set-actions"
@@ -23,6 +24,7 @@ interface IProps {
 }
 
 export class FilteredCases {
+  public readonly id = typedId("FICA")
   private source: IDataSet
   private collectionID: string | undefined
   private casesArrayNumber: number

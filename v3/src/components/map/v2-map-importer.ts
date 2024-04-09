@@ -2,10 +2,11 @@ import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {typedId} from "../../utilities/js-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {isV2MapComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
-import {GraphAttrRole} from "../data-display/data-display-types"
+import {AttrRole} from "../data-display/data-display-types"
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"
 import {kMapIdPrefix, kMapTileType} from "./map-defs"
+import {boundaryAttributeFromDataSet, latLongAttributesFromDataSet} from "./utilities/map-utils"
 import {IMapPointLayerModelSnapshot} from "./models/map-point-layer-model"
 import {BaseMapKey, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
 import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
@@ -15,7 +16,8 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
   if (!isV2MapComponent(v2Component)) return
 
   const {title = "", mapModelStorage} = v2Component.componentStorage
-  const {center, zoom, baseMapLayerName: v2BaseMapLayerName, layerModels: v2LayerModels} = mapModelStorage
+  const {center, zoom, baseMapLayerName: v2BaseMapLayerName,
+    layerModels: v2LayerModels} = mapModelStorage
   const baseMapKeyMap: Record<string, BaseMapKey> = { Topographic: 'topo', Streets: 'streets', Oceans: 'oceans' }
   const baseMapLayerName = baseMapKeyMap[v2BaseMapLayerName]
 
@@ -24,7 +26,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
   v2LayerModels.forEach((v2LayerModel, layerIndex) => {
     // Pull out stuff from _links_ and decide if it's a point layer or polygon layer
     const contextId = v2LayerModel._links_.context.id,
-      _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {},
+      _attributeDescriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {},
       hiddenCases = v2LayerModel._links_.hiddenCases,
       // legendCollectionId = v2LayerModel._links_.legendColl?.id,
       v2LegendAttribute = Array.isArray(v2LayerModel._links_.legendAttr)
@@ -41,6 +43,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
 */
       } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
+    if (!data?.dataSet) return
 
     if (legendAttributeId) {
       _attributeDescriptions.legend = {
@@ -52,12 +55,15 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     if (isPoints) {
       const {
         pointColor, strokeColor, pointSizeMultiplier,
+        grid, pointsShouldBeVisible, connectingLines
         /* Present in v2 layer model but not yet used in V3 layer model:
-        transparency, strokeTransparency, pointsShouldBeVisible,
-        grid, connectingLines,
+        transparency, strokeTransparency
         */
       } = v2LayerModel
-
+      // V2 point layers don't store their lat/long attributes, so we need to find them in the dataset
+      const {latId, longId} = latLongAttributesFromDataSet(data.dataSet)
+      _attributeDescriptions.lat = {attributeID: latId, type: 'numeric'}
+      _attributeDescriptions.long = {attributeID: longId, type: 'numeric'}
       const pointLayerSnapshot: IMapPointLayerModelSnapshot = {
         type: kMapPointLayerType,
         layerIndex,
@@ -73,7 +79,13 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           _itemColors: pointColor ? [pointColor] : [],
           _itemStrokeColor: strokeColor,
           _pointSizeMultiplier: pointSizeMultiplier,
-        }
+        },
+        gridModel: {
+          isVisible: grid.isVisible,
+          _gridMultiplier: grid.gridMultiplier,
+        },
+        pointsAreVisible: pointsShouldBeVisible,
+        connectingLinesAreVisible: connectingLines.isVisible
       }
       layers.push(pointLayerSnapshot)
     }
@@ -84,7 +96,8 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         areaTransparency, strokeTransparency, areaStrokeTransparency
         */
       } = v2LayerModel
-
+      // V2 polygon layers don't store their boundary attribute, so we need to find it in the dataset
+      _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(data.dataSet)}
       const polygonLayerSnapshot: IMapPolygonLayerModelSnapshot = {
         type: kMapPolygonLayerType,
         layerIndex,

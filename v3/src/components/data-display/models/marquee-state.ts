@@ -1,5 +1,5 @@
 import {action, makeObservable, observable} from "mobx"
-import {Rect} from "../../data-display/data-display-types"
+import {Rect} from "../data-display-types"
 
 
 export class MarqueeState {

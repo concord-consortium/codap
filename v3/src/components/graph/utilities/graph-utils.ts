@@ -376,6 +376,7 @@ export interface ISetPointSelection {
   pixiPoints?: PixiPoints
   dataConfiguration: IDataConfigurationModel
   pointRadius: number,
+  pointsFusedIntoBars?: boolean,
   selectedPointRadius: number,
   pointColor: string,
   pointStrokeColor: string,
@@ -387,6 +388,7 @@ export interface ISetPointCoordinates {
   anchor?: Point
   dataset?: IDataSet
   pixiPoints?: PixiPoints
+  pointsFusedIntoBars?: boolean
   selectedOnly?: boolean
   pointRadius: number
   selectedPointRadius: number
@@ -406,9 +408,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
   const {
     anchor, dataset, pixiPoints, selectedOnly = false, pointRadius, selectedPointRadius,
     pointStrokeColor, pointColor, getPointColorAtIndex, getScreenX, getScreenY, getLegendColor, getAnimationEnabled,
-    getWidth, getHeight
+    getWidth, getHeight, pointsFusedIntoBars
   } = props
-
 
   const lookupLegendColor = (caseData: CaseData): string => {
     const { caseID } = caseData
@@ -438,7 +439,8 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
           const style = {
             radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
             fill: lookupLegendColor(metadata),
-            stroke: getLegendColor && dataset?.isCaseSelected(caseID) ? defaultSelectedStroke : pointStrokeColor,
+            stroke: (getLegendColor || pointsFusedIntoBars) && dataset?.isCaseSelected(caseID)
+              ? defaultSelectedStroke : pointStrokeColor,
             strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
               ? defaultSelectedStrokeWidth : defaultStrokeWidth,
             // Points are circles by default but can be changed to bars, so we need to set a width and height. If

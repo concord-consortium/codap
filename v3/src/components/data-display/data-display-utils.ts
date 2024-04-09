@@ -1,4 +1,3 @@
-import {format} from "d3"
 import {measureText} from "../../hooks/use-measure-text"
 import {between} from "../../utilities/math-utils"
 import {
@@ -13,6 +12,7 @@ import {
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
+import { IBarCover } from "../graph/graphing-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -47,23 +47,10 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
   }
 }
 
-export function getCaseTipText(caseID: string, attributeIDs: string[], dataset?: IDataSet) {
-  const float = format('.3~f'),
-    attrArray = (attributeIDs.map(attrID => {
-      const attribute = dataset?.attrFromID(attrID),
-        name = attribute?.name,
-        numValue = dataset?.getNumeric(caseID, attrID),
-        value = numValue != null && isFinite(numValue) ? float(numValue)
-          : dataset?.getValue(caseID, attrID)
-      return value ? `${name}: ${value}` : ''
-    }))
-  // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
-  return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
-}
-
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
+
   if (!caseIsSelected) {
     if (extendSelection) { // case is not selected and Shift key is down => add case to selection
       dataset?.selectCases([caseID])
@@ -75,11 +62,29 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
   }
 }
 
+interface IHandleClickOnBarProps {
+  event: PointerEvent
+  dataConfiguration: IDataConfigurationModel
+  primaryAttrRole: "x" | "y"
+  barCover: IBarCover
+}
+
+export const handleClickOnBar = ({ event, dataConfiguration, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
+  const { extraPrimeCat, extraSecCat, primeCat, secCat } = barCover
+  const extendSelection = event.shiftKey
+  if (primeCat) {
+    dataConfiguration?.selectCasesForCategoryValues(
+      primaryAttrRole, primeCat, secCat, extraPrimeCat, extraSecCat, extendSelection
+    )
+  }
+}
+
 export interface IMatchCirclesProps {
   dataConfiguration: IDataConfigurationModel
   pointRadius: number
   pointColor: string
   pointDisplayType?: PointDisplayType
+  pointsFusedIntoBars?: boolean
   pointStrokeColor: string
   startAnimation: () => void
   instanceId: string | undefined
@@ -93,7 +98,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
   startAnimation()
 
-  pixiPoints?.matchPointsToData(allCaseData, pointDisplayType, {
+  pixiPoints?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,
     stroke: pointStrokeColor,
@@ -105,7 +110,7 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
 export function setPointSelection(props: ISetPointSelection) {
   const { pixiPoints, dataConfiguration, pointRadius, selectedPointRadius,
-    pointColor, pointStrokeColor, getPointColorAtIndex } = props
+    pointColor, pointStrokeColor, getPointColorAtIndex, pointsFusedIntoBars } = props
   const dataset = dataConfiguration.dataset
   const legendID = dataConfiguration.attributeID('legend')
   if (!pixiPoints) {
@@ -115,6 +120,7 @@ export function setPointSelection(props: ISetPointSelection) {
     const { caseID, plotNum } = metadata
     const isSelected = !!dataset?.isCaseSelected(caseID)
     const isSelectedAndLegendIsPresent = isSelected && legendID
+    const isSelectedAndPointsFusedIntoBars = isSelected && pointsFusedIntoBars
     // This `fill` logic is directly translated from the old D3 code.
     let fill: string
     if (isSelected && !legendID) {
@@ -127,7 +133,11 @@ export function setPointSelection(props: ISetPointSelection) {
     const style: Partial<IPixiPointStyle> = {
       fill,
       radius: isSelected ? selectedPointRadius : pointRadius,
-      stroke: isSelectedAndLegendIsPresent ? defaultSelectedStroke : pointStrokeColor,
+      stroke: isSelectedAndLegendIsPresent
+        ? defaultSelectedStroke
+        : isSelectedAndPointsFusedIntoBars
+          ? defaultSelectedColor
+          : pointStrokeColor,
       strokeWidth: isSelectedAndLegendIsPresent ? defaultSelectedStrokeWidth : defaultStrokeWidth,
       strokeOpacity: isSelectedAndLegendIsPresent ? defaultSelectedStrokeOpacity : defaultStrokeOpacity
     }

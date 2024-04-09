@@ -24,11 +24,12 @@ export enum PixiBackgroundPassThroughEvent {
   PointerDown = "pointerdown",
 }
 
-export type IPixiPointsRef = React.MutableRefObject<PixiPoints | undefined>
+export type IPixiPointsArrayRef = React.MutableRefObject<PixiPoints[]>
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
 export interface IPixiPointMetadata extends CaseData {
+  datasetID: string
   style: IPixiPointStyle
 }
 
@@ -96,6 +97,7 @@ export class PixiPoints {
   caseDataToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
   displayType = "points"
+  pointsFusedIntoBars = false
   anchor = circleAnchor
   displayTypeTransitionState: IDisplayTypeTransitionState = {
     isActive: false
@@ -556,8 +558,10 @@ export class PixiPoints {
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (this.displayType === "bars") {
-        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
-        this.setPointStyle(sprite, newStyle)
+        if (!this.pointsFusedIntoBars) {
+          const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
+          this.setPointStyle(sprite, newStyle)
+        }
       } else {
         this.transition(() => {
           this.setPointScale(sprite, hoverRadiusFactor)
@@ -571,8 +575,10 @@ export class PixiPoints {
     }
     const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
       if (this.displayType === "bars") {
-        const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
-        this.setPointStyle(sprite, newStyle)
+        if (!this.pointsFusedIntoBars) {
+          const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
+          this.setPointStyle(sprite, newStyle)
+        }
       } else {
         this.transition(() => {
           this.setPointScale(sprite, 1)
@@ -621,7 +627,7 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(caseData: CaseData[], _displayType: string, style: IPixiPointStyle) {
+  matchPointsToData(datasetID:string, caseData: CaseData[], _displayType: string, style: IPixiPointStyle) {
     // If the display type has changed, we need to prepare for the transition between types
     // For now, the only display type values PixiPoints supports are "points" and "bars", so
     // all other display type values passed to this method will be treated as "points".
@@ -670,7 +676,7 @@ export class PixiPoints {
       if (!currentCaseDataSet.has(caseDataKey(caseDataItem))) {
         const sprite = this.getNewSprite(texture)
         this.pointsContainer.addChild(sprite)
-        this.pointMetadata.set(sprite, { ...caseDataItem, style })
+        this.pointMetadata.set(sprite, { ...caseDataItem, datasetID, style })
         this.setPointForCaseData(caseDataItem, sprite)
       }
     }

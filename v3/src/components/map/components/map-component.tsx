@@ -20,6 +20,17 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: mapRef})
 
   useEffect(() => {
+    if (mapModel) {
+      mapModel.leafletMapState.setOnClickCallback((event: MouseEvent) => {
+        if (!event.shiftKey && !event.metaKey && !mapModel._ignoreLeafletClicks) {
+          mapModel.deselectAllCases()
+        }
+      })
+      return () => mapModel.leafletMapState.setOnClickCallback()
+    }
+  }, [mapModel])
+
+  useEffect(() => {
     (width != null) && (height != null) && layout.setTileExtent(width, height)
   }, [width, height, layout])
 

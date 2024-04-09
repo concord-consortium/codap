@@ -1,7 +1,7 @@
 import {getDataSetFromId} from "../../../models/shared/shared-data-utils"
 import {axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
-import {IPixiPointsRef} from "../utilities/pixi-points"
+import {PixiPoints} from "../utilities/pixi-points"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphContentModel} from "./graph-content-model"
 import {GraphLayout} from "./graph-layout"
@@ -19,50 +19,47 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
   categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
 }
 
-interface IGraphControllerConstructorProps {
+interface IGraphControllerProps {
   layout: GraphLayout
   instanceId: string
 }
 
-interface IGraphControllerProps {
-  graphModel: IGraphContentModel
-  pixiPointsRef: IPixiPointsRef
-}
-
 export class GraphController {
   graphModel?: IGraphContentModel
-  pixiPointsRef?: IPixiPointsRef
+  pixiPoints?: PixiPoints
   layout: GraphLayout
   instanceId: string
   // tracks the currently configured attribute descriptions so that we know whether
   // initializeGraph needs to do anything or not, e.g. when handling undo/redo.
   attrConfigForInitGraph = ""
 
-  constructor({layout, instanceId}: IGraphControllerConstructorProps) {
+  constructor({layout, instanceId}: IGraphControllerProps) {
     this.layout = layout
     this.instanceId = instanceId
   }
 
-  setProperties(props: IGraphControllerProps) {
-    this.graphModel = props.graphModel
-    this.pixiPointsRef = props.pixiPointsRef
-    if (this.graphModel.dataConfiguration.dataset !== this.graphModel.dataset) {
-      this.graphModel.dataConfiguration.setDataset(
-        this.graphModel.dataset, this.graphModel.metadata)
+  setProperties(graphModel: IGraphContentModel, pixiPoints?: PixiPoints) {
+    this.graphModel = graphModel
+    this.pixiPoints = pixiPoints
+
+    const { dataset, metadata } = graphModel
+    if (this.graphModel.dataConfiguration.dataset !== dataset) {
+      this.graphModel.dataConfiguration.setDataset(dataset, metadata)
     }
+
     this.initializeGraph()
   }
 
   callMatchCirclesToData() {
-    const {graphModel, pixiPointsRef, instanceId} = this
-    if (graphModel && pixiPointsRef?.current) {
+    const {graphModel, pixiPoints, instanceId} = this
+    if (graphModel && pixiPoints) {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius(),
         pointDisplayType = graphModel.pointDisplayType,
         startAnimation = graphModel.startAnimation
       dataConfiguration && matchCirclesToData({
-        dataConfiguration, pixiPoints: pixiPointsRef.current, pointDisplayType,
+        dataConfiguration, pixiPoints, pointDisplayType,
         pointRadius, startAnimation, instanceId, pointColor, pointStrokeColor
       })
     }
@@ -156,10 +153,14 @@ export class GraphController {
       const attrRole = graphPlaceToAttrRole[place],
         attributeID = dataConfig.attributeID(attrRole),
         attr = attributeID ? dataset?.attrFromID(attributeID) : undefined,
-        attrType = dataConfig.attributeType(attrRole) ?? 'empty',
+        primaryRole = dataConfig.primaryRole,
+        secondaryPlace = primaryRole === 'x' ? 'left' : 'bottom',
+        attrType = dataConfig.attributeType(attrRole),
+        fallbackType = (place === secondaryPlace && graphModel.pointsFusedIntoBars) ? 'numeric' : 'empty',
+        requiredType = attrType ?? fallbackType,
         currAxisModel = graphModel.getAxis(place),
         currentType = currAxisModel?.type ?? 'empty'
-      switch (attrType) {
+      switch (requiredType) {
         case 'numeric': {
           if (!currAxisModel || !isNumericAxisModel(currAxisModel)) {
             const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})

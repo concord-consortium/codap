@@ -4,6 +4,7 @@
  */
 import {comparer, reaction} from "mobx"
 import {addDisposer, Instance, types} from "mobx-state-tree"
+import { format } from "d3"
 import {TileContentModel} from "../../../models/tiles/tile-content"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
@@ -15,7 +16,9 @@ import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IDataConfigurationModel } from "./data-configuration-model"
-import { PointDisplayTypes } from "../data-display-types"
+import {defaultBackgroundColor} from "../../../utilities/color-utils"
+import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
+import { IGetTipTextProps } from "../data-tip-types"
 import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 
 export const DataDisplayContentModel = TileContentModel
@@ -23,10 +26,13 @@ export const DataDisplayContentModel = TileContentModel
   .props({
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
-    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points")
+    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
+    plotBackgroundColor: defaultBackgroundColor,
+    isTransparent: false,
   })
   .volatile(() => ({
     animationEnabled: false,
+    marqueeMode: 'unclicked' as MarqueeMode,
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -44,6 +50,30 @@ export const DataDisplayContentModel = TileContentModel
     get dataConfiguration(): IDataConfigurationModel | undefined {
       // derived models should override
       return undefined
+    },
+    get datasetsArray(): IDataSet[] {
+      // derived models should override
+      return []
+    },
+    caseTipText(attributeIDs: string[], caseID: string, dataset?: IDataSet) {
+      const float = format('.3~f')
+      const attrArray = (attributeIDs?.map(attrID => {
+        const attribute = dataset?.attrFromID(attrID),
+          name = attribute?.name,
+          numValue = dataset?.getNumeric(caseID, attrID),
+          value = numValue != null && isFinite(numValue) ? float(numValue)
+            : dataset?.getValue(caseID, attrID)
+        return value ? `${name}: ${value}` : ''
+      }))
+      // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
+      return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
+    }
+  }))
+  .views(self => ({
+    getTipText(props: IGetTipTextProps) {
+      const { attributeIDs, caseID, dataset } = props
+      // derived models may override in certain circumstances
+      return self.caseTipText(attributeIDs, caseID, dataset)
     }
   }))
   .actions(self => ({
@@ -99,6 +129,9 @@ export const DataDisplayContentModel = TileContentModel
           fireImmediately: true
         }
       ))
+    },
+    setMarqueeMode(mode: MarqueeMode) {
+      self.marqueeMode = mode
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}

@@ -8,9 +8,12 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {MapInterior} from "./map-interior"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
+import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
 import {DroppableMapArea} from "./droppable-map-area"
+import {MapBackground} from "./map-background"
+import {MapInterior} from "./map-interior"
+import {MapMarqueeSelectButton} from "./map-marquee-select-button"
 import {IDataSet} from "../../../models/data/data-set"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapGridSlider} from "./map-grid-slider"
@@ -27,8 +30,9 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
     interiorDivRef = useRef<HTMLDivElement>(null),
-    prevMapSize = useRef<{ width: number, height: number, legend: number }>({ width: 0, height: 0, legend: 0 }),
-    forceUpdate = useForceUpdate()
+    prevMapSize = useRef<{ width: number, height: number, legend: number }>({width: 0, height: 0, legend: 0}),
+    forceUpdate = useForceUpdate(),
+    pixiPointsArrayRef = usePixiPointsArray()
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
@@ -53,15 +57,15 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   useEffect(() => {
     const mapBounds = interiorDivRef.current?.getBoundingClientRect()
     if (mapBounds) {
-      const { width: prevWidth, height: prevHeight, legend: prevLegend } = prevMapSize.current
+      const {width: prevWidth, height: prevHeight, legend: prevLegend} = prevMapSize.current
       const width = Math.round(mapBounds.width)
       const height = Math.round(mapBounds.height)
       const legend = Math.round(layout.tileHeight - layout.contentHeight)
       // if the size of the map has changed, let leaflet know about it
       if (width !== prevWidth || height !== prevHeight || legend !== prevLegend) {
-        mapModel.leafletMapState.adjustMapView({ invalidateSize: true, animate: legend !== prevLegend })
+        mapModel.leafletMapState.adjustMapView({invalidateSize: true, animate: legend !== prevLegend})
         // remember the current sizes for comparison
-        prevMapSize.current = { width, height, legend }
+        prevMapSize.current = {width, height, legend}
       }
     }
   }) // no dependencies so it runs after every render
@@ -86,8 +90,9 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
               })
             }
           </>
-          <MapInterior/>
+          <MapInterior pixiPointsArrayRef={pixiPointsArrayRef}/>
         </MapContainer>
+        <MapBackground mapModel={mapModel} pixiPointsArrayRef={pixiPointsArrayRef}/>
       </div>
       {renderSliderIfAppropriate()}
       <DroppableMapArea
@@ -99,6 +104,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
         divElt={mapRef.current}
         onDropAttribute={callHandleChangeAttribute}
       />
+      <MapMarqueeSelectButton mapRef={mapRef} mapModel={mapModel}/>
     </div>
   )
 })

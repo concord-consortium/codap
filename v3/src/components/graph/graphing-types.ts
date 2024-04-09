@@ -17,6 +17,18 @@ export interface IDomainOptions {
   clampPosMinAtZero?: boolean
 }
 
+export interface IBarCover {
+  class: string
+  primeCat: string
+  secCat: string
+  extraPrimeCat: string
+  extraSecCat: string
+  x: string
+  y: string
+  width: string
+  height: string
+}
+
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
