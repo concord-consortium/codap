@@ -218,6 +218,24 @@ context("Test graph axes with various attribute types", () => {
     cy.wait(500)
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
   })
+  it("will test graph with numeric x-axis and two numeric y-attributes", () => {
+    cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // Lifespan => x-axis
+    cy.wait(500)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
+    cy.wait(500)
+    cy.dragAttributeToTarget("data-summary", arrayOfAttributes[5], "yplus") // Sleep => left split
+    cy.wait(500)
+
+    // checks for multiple y-axis labels
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyYAxisTickMarksDisplayed()
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    ah.verifyAxisTickLabel("left", "0", 0)
+    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+
+    // TODO: add checks for undo/redo
+  })
   it("will adjust axis domain when points are changed to bars with undo/redo", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
     // axis of a univariate plot showing bars should start at zero.
