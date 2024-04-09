@@ -103,5 +103,10 @@ context("codap plugins", () => {
     slider.changeVariableValue(8)
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     webView.clearAPITesterResponses()
+
+    slider.playSliderButton()
+    webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
+    slider.pauseSliderButton()
+    webView.clearAPITesterResponses()
   })
 })
