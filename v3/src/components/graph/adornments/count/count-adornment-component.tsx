@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { mstReaction } from "../../../../utilities/mst-reaction"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { getAxisDomains } from "../adornment-utils"
 import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
@@ -36,6 +37,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const defaultFontSize = graphModel.adornmentsStore.defaultFontSize
   let fontSize = defaultFontSize
   const prevCellWidth = useRef(plotWidth)
+  const prevSubPlotRegionWidth = useRef(plotWidth)
   const [displayCount, setDisplayCount] = useState(<div>{textContent}</div>)
 
   const subPlotRegionBoundaries = useCallback(() => {
@@ -62,10 +64,16 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     const maxFontSize = kDefaultFontSize
     const textOffset = 5
     const textWidth = measureText(textContent, `${fontSize}px Lato, sans-serif`) + textOffset
+    const subPlotRegionWidth = plotWidth / subPlotRegionBoundariesRef.current.length
+    const textWidthIsTooWide = textWidth > plotWidth || textWidth > subPlotRegionWidth
+    const isContainerShrinking = prevCellWidth.current > plotWidth ||
+                                 prevSubPlotRegionWidth.current > subPlotRegionWidth
+    const isContainerGrowing = prevCellWidth.current < plotWidth ||
+                               prevSubPlotRegionWidth.current < subPlotRegionWidth
 
-    if (prevCellWidth.current > plotWidth && textWidth > plotWidth && fontSize > minFontSize) {
+    if (isContainerShrinking && textWidthIsTooWide && fontSize > minFontSize) {
       fontSize--
-    } else if (prevCellWidth.current < plotWidth && textWidth < plotWidth && fontSize < maxFontSize) {
+    } else if (isContainerGrowing && !textWidthIsTooWide && fontSize < maxFontSize) {
       fontSize++
     }
 
@@ -140,6 +148,18 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         plotCaseCounts()
       }, { name: "Count.refreshBoundariesAndCaseCounts" }, model)
   }, [model, plotCaseCounts, subPlotRegionBoundaries, xAxis, yAxis])
+
+  useEffect(function refreshOnSubPlotRegionChange() {
+    return mstReaction(
+      () => graphModel.binWidth,
+      () => {
+        if (graphModel.pointDisplayType === "bins") {
+          resizeText()
+          prevSubPlotRegionWidth.current = plotWidth / subPlotRegionBoundariesRef.current.length
+        }
+      }, { name: "CountAdornment.refreshOnSubPlotRegionChange" }, graphModel
+    )
+  }, [graphModel, plotWidth, resizeText])
 
   useEffect(function refreshShowPercentOption() {
     return mstAutorun(
