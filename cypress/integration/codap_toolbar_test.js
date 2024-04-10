@@ -68,7 +68,7 @@ context('codap toolbar', ()=>{
     it('will open WeatherX Plugin', ()=>{
         codap.openTile('plugin','NOAA Weather')
         cy.wait(2000);
-        cy.getPluginIframe().find('#wx-get-button').should('be.visible')
+        cy.getPluginIframe().find('.attribute-selection-container').should('be.visible')
         codap.closeTile('plugin', 'NOAA Weather'); //close the tile because it interferes with later tests
     })
     it('will focus table tile from Tile list', ()=>{
@@ -76,14 +76,14 @@ context('codap toolbar', ()=>{
         cy.get('.dg-hier-table-view').siblings('.dg-titlebar-selected').should('exist')
     })
     it('will display a webpage', ()=>{
-        var url='https://concord.org'
+        var url='https://seismic-explorer.concord.org/'
         codap.openTile('option', 'Display Web Page')
         codap.getSingleDialog().should('exist')
         codap.singleDialogEntry(url);
         //need to verify iframe with webpage
         // cy.wait(7000);
         cy.wait(5000);
-        cy.getWebviewIframe().find('.concord-logo').should('be.visible')
+        cy.getWebviewIframe().find('[data-test=cc-logo]').should('be.visible')
         codap.closeTile('option', 'Web Page'); //close the tile because it interferes with later tests
     })
     it('will open Help tile', ()=>{
