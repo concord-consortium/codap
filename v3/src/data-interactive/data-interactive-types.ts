@@ -6,6 +6,23 @@ import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionPropsModel } from "../models/data/collection"
 
+export type DICaseValue = string | number | boolean | undefined
+export type DICaseValues = Record<string, DICaseValue>
+export interface DIAllCases {
+  cases?: {
+    case?: {
+      children?: string[],
+      id?: string,
+      parent?: string,
+      values?: DICaseValues
+    },
+    caseIndex?: number
+  }[]
+  collection?: {
+    name?: string,
+    id?: string
+  }
+}
 export type DIAttribute = Partial<ICodapV2Attribute>
 export interface DIAttributes {
   attrs?: DIAttribute[]
@@ -58,7 +75,7 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame
+export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame
 
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
