@@ -10,14 +10,11 @@ export const diCaseHandler: DIHandler = {
   //   const cases = Array.isArray(values) ? values : [values]
   // },
   update(resources: DIResources, values?: DIValues) {
-    const { dataContext, collection } = resources
+    const { dataContext } = resources
     if (!dataContext) return { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } }
-    if (!collection) return { success: false, values: { error: t("V3.DI.Error.collectionNotFound") } }
 
-    // TODO Should we make sure values is of the correct type?
     const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
     const caseIDs: string[] = []
-    let success = true
     dataContext.applyUndoableAction(() => {
       cases.forEach(aCase => {
         const { id } = aCase
@@ -26,13 +23,8 @@ export const diCaseHandler: DIHandler = {
           const updatedAttributes: DICaseValues = {}
           Object.keys(aCase.values).forEach(attrName => {
             const attrId = dataContext.attrIDFromName(attrName)
-            // TODO Should we check to make sure types match up properly?
             if (attrId) {
               updatedAttributes[attrId] = aCase.values?.[attrName]
-            } else {
-              // If any attrbitues fail to update, we return success: false,
-              // even if we successfully make many other updates
-              success = false
             }
           })
           dataContext.setCaseValues([{ ...updatedAttributes, __id__: id }])
@@ -40,7 +32,7 @@ export const diCaseHandler: DIHandler = {
       })
     })
 
-    if (caseIDs.length > 0) return { success, caseIDs }
+    if (caseIDs.length > 0) return { success: true, caseIDs }
 
     return { success: false }
   }
@@ -121,6 +113,95 @@ export const diCaseHandler: DIHandler = {
 //     }
 //   });
 //   return {success: success, values: IDs};
+// },
+
+// doCreateCases: function (iChange) {
+//   function createOneCase(iValues) {
+//     var properties = {};
+//     var newCase;
+//     if (iChange.properties) {
+//       DG.ObjectMap.copy(properties, iChange.properties);
+//     }
+//     if (Array.isArray(iValues)) {
+//       newCase = collection.createCase(properties);
+//       if (newCase) {
+//         collection.setCaseValuesFromArray(newCase, iValues);
+//       }
+//     } else {
+//       properties.values = iValues;
+//       newCase = collection.createCase(properties);
+//     }
+//     if (newCase) {
+//       result.success = true;
+//       result.caseIDs.push(newCase.get('id'));
+//       result.itemIDs.push(newCase.item.id);
+//     }
+//   }
+
+//   /**
+//    * returns true if either the collection is a child collection or the parentKey
+//    * resolves to an existing parent.
+//    * @param parentKey {number}
+//    */
+//   var validateParent = function (collection, parentKey) {
+//     var rslt = true;
+//     var parentCollectionID = collection.getParentCollectionID();
+//     if (parentCollectionID) {
+//       rslt = !SC.none(this.getCaseByID(parentKey));
+//       if (!rslt) {
+//         DG.logWarn('Cannot create case with invalid or deleted parent: ' + parentKey);
+//       }
+//     }
+//     return rslt;
+//   }.bind(this);
+
+//   var collection,
+//       valuesArrays,
+//       parentIsValid = true,
+//       result = {success: false, caseIDs: [], itemIDs: []};
+
+//   if (!iChange.collection) {
+//     iChange.collection = this.get('childCollection');
+//   }
+//   if( !iChange.collection.casesController)
+//     iChange.collection = iChange.collection.get('name');
+
+//   if (typeof iChange.collection === "string") {
+//     collection = this.getCollectionByName( iChange.collection);
+//     iChange.collection = collection;  // Because we'll need it as an object later
+//   } else {
+//     collection = iChange.collection;
+//   }
+
+//   // we hold off on observers because of performance issues adding many
+//   // cases when some cases are selected
+//   collection.casesController.beginPropertyChanges();
+//   try {
+//     if (!iChange.properties) {
+//       iChange.properties = {};
+//     }
+
+//     if (typeof iChange.properties.parent !== 'object') {
+//       parentIsValid = validateParent(collection, iChange.properties.parent);
+//     }
+//     if (collection && parentIsValid) {
+//       valuesArrays = iChange.values || [[]];
+//       valuesArrays.forEach(createOneCase);
+//       if (result.caseIDs && (result.caseIDs.length > 0)) {
+//         result.caseID = result.caseIDs[0];
+//       }
+//       if (result.itemIDs && (result.itemIDs.length > 0)) {
+//         result.itemID = result.itemIDs[0];
+//       }
+//     }
+//   } finally {
+//     collection.casesController.endPropertyChanges();
+//   }
+
+//   // invalidate dependents; aggregate functions may need to recalculate
+//   this.invalidateAttrsOfCollections([collection], iChange);
+
+//   return result;
 // },
 
 registerDIHandler("case", diCaseHandler)
