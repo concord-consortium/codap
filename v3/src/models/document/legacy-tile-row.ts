@@ -76,6 +76,9 @@ export const LegacyTileRowModel = TileRowModel
       const layout = (index >= 0) && (index < self.tiles.length) ? self.tiles[index] : undefined
       return layout?.tileId
     },
+    getTileLayout(tileId: string): ILegacyTileLayoutModel | undefined {
+      return self.tiles.find(tile => tile.tileId === tileId)
+    },
     hasTile(tileId: string) {
       return self.tiles.findIndex(tileRef => tileRef.tileId === tileId) >= 0
     },

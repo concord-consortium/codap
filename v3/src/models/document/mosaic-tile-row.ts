@@ -70,6 +70,10 @@ export const MosaicTileRow = TileRowModel
     hasTile(tileId: string) {
       return self.tiles.has(tileId)
     },
+    getTileLayout(tileId: string): IMosaicTileNode | undefined {
+      const nodeId = self.tiles.get(tileId)
+      return nodeId ? self.nodes.get(nodeId) : undefined
+    },
     get tileCount() {
       return self.tiles.size
     }

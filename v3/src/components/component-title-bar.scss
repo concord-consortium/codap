@@ -9,14 +9,13 @@
   &.focusTile {
     background-color: $codap-teal-dark;
   }
-  &:hover {
+  &:hover, &:active {
     .header-right {
       visibility: visible;
-    }
-  }
-  &:active {
-    .header-right {
-      visibility: visible;
+
+      &.disabled {
+        visibility: hidden;
+      }
     }
   }
 

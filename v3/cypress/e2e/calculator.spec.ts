@@ -30,9 +30,7 @@ context("Calculator", () => {
      // toolbar.getRedoTool().click()
      // c.getComponentTitle("calculator").should("have.text", newCalculatorName)
   })
-  // Skip until we figure out how to check that the calculator is no longer in the dom as opposed to no longer
-  // in existence.
-  it.skip("close calculator from toolshelf with undo/redo", () => {
+  it("close calculator from toolshelf with undo/redo", () => {
     const newCalculatorName = "my calc"
     c.getComponentTitle("calculator").should("contain", calculatorName)
     c.changeComponentTitle("calculator", newCalculatorName)
@@ -51,9 +49,9 @@ context("Calculator", () => {
 
     c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
-    c.getComponentTitle("calculator").should("contain", calculatorName)
+    c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
-  it.skip("close calculator from close button with undo/redo", () => {
+  it("close calculator from close button with undo/redo", () => {
     const newCalculatorName = "my calc"
     c.getComponentTitle("calculator").should("contain", calculatorName)
     c.changeComponentTitle("calculator", newCalculatorName)
@@ -72,7 +70,7 @@ context("Calculator", () => {
 
     c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
-    c.getComponentTitle("calculator").should("contain", calculatorName)
+    c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
   it("checks all calculator tooltips", () => {
     c.selectTile("calculator")

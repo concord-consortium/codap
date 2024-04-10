@@ -125,9 +125,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     <div className={classes} style={style} key={tileId} ref={setNodeRef}>
       {tile && rowTile &&
         <CodapComponent tile={tile}
+          isHidden={rowTile.isHidden}
           isMinimized={rowTile.isMinimized}
           onMinimizeTile={handleMinimizeTile}
-          isHidden={rowTile.isHidden}
           onCloseTile={onCloseTile}
           onBottomRightPointerDown={handleBottomRightPointerDown}
           onBottomLeftPointerDown={handleBottomLeftPointerDown}

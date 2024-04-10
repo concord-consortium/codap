@@ -1,7 +1,7 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
-import { isFreeTileRow } from "./free-tile-row"
+import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
@@ -147,14 +147,15 @@ export const DocumentContentModel = BaseDocumentContentModel
     toggleSingletonTileVisibility(tileType: string) {
       const tiles = self?.getTilesOfType(tileType)
       // There's supposed to be at most one tile of this type. Enforce this. (But an assert would be nice!)
-      while (tiles && tiles.length > 1) {
-        const tileId = tiles[1].id
-        self?.deleteTile(tileId)
+      if (tiles.length > 1) {
+        console.error("DocumentContent.toggleSingletonTileVisibility:",
+                      `encountered ${tiles.length} tiles of type ${tileType}`)
       }
       if (tiles && tiles.length > 0) {
-        const singletonId = tiles[0].id,
-          freeTileLayout = self.getFreeTileLayoutById(singletonId)
-          freeTileLayout?.setHidden(!freeTileLayout.isHidden)
+        const tileLayout = self.getTileLayoutById(tiles[0].id)
+        if (isFreeTileLayout(tileLayout)) {
+          tileLayout.setHidden(!tileLayout.isHidden)
+        }
       } else {
         return self.createTile(tileType)
       }

@@ -1,10 +1,10 @@
-import {getType, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {ISharedModel, SharedModel} from "../shared/shared-model"
-import {isPlaceholderTile} from "../tiles/placeholder/placeholder-content"
-import {ITileModel, ITileModelSnapshotIn, TileModel} from "../tiles/tile-model"
-import {ITileInRowOptions} from "./tile-row"
-import {ITileRowModelUnion, TileRowModelUnion} from "./tile-row-union"
-import {SharedModelEntry, SharedModelMap} from "./shared-model-entry"
+import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { ISharedModel, SharedModel } from "../shared/shared-model"
+import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
+import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model"
+import { ITileInRowOptions } from "./tile-row"
+import { ITileLayoutUnion, ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
+import { SharedModelEntry, SharedModelMap } from "./shared-model-entry"
 
 export const BaseDocumentContentModel = types
   .model("BaseDocumentContent", {
@@ -64,8 +64,8 @@ export const BaseDocumentContentModel = types
       // returns last visible row or last row
       if (!self.rowOrder.length) return -1
       const lastVisibleRowId = self.visibleRows.length
-        ? self.visibleRows[self.visibleRows.length - 1]
-        : self.rowOrder[self.rowOrder.length - 1]
+                                ? self.visibleRows[self.visibleRows.length - 1]
+                                : self.rowOrder[self.rowOrder.length - 1]
       return self.rowOrder.indexOf(lastVisibleRowId)
     },
     getFirstSharedModelByType<IT extends typeof SharedModel>(
@@ -81,13 +81,10 @@ export const BaseDocumentContentModel = types
       const sharedModelEntries = Array.from(self.sharedModelMap.values())
       return sharedModelEntries.map(entry => entry.sharedModel).filter(model => model.type === type)
     },
-    getFreeTileLayoutById(tileId: string) {
-      let result: any // typeof FreeTileLayout | undefined
+    getTileLayoutById(tileId: string): ITileLayoutUnion | undefined {
+      let result: ITileLayoutUnion | undefined
       self.rowMap.forEach(row => {
-        if (result) return
-        if (row.type === "free") {
-          result = row.tiles.get(tileId)
-        }
+        if (!result) result = row.getTileLayout(tileId) as ITileLayoutUnion
       })
       return result
     }
@@ -135,7 +132,8 @@ export const BaseDocumentContentModel = types
       self.rowMap.put(row)
       if ((rowIndex != null) && (rowIndex < self.rowOrder.length)) {
         self.rowOrder.splice(rowIndex, 0, row.id)
-      } else {
+      }
+      else {
         self.rowOrder.push(row.id)
       }
     },
@@ -232,9 +230,5 @@ export const BaseDocumentContentModel = types
       }
     }
   }))
-
-export interface IBaseDocumentContentModel extends Instance<typeof BaseDocumentContentModel> {
-}
-
-export interface IBaseDocumentContentSnapshotIn extends SnapshotIn<typeof BaseDocumentContentModel> {
-}
+export interface IBaseDocumentContentModel extends Instance<typeof BaseDocumentContentModel> {}
+export interface IBaseDocumentContentSnapshotIn extends SnapshotIn<typeof BaseDocumentContentModel> {}
