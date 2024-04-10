@@ -48,6 +48,10 @@ export const TileRowModel = types
       // "derived" models should override
       return false
     },
+    getTileLayout(tileId: string): unknown | undefined {
+      // "derived" models should override
+      return undefined
+    },
     getTileDimensions(tileId: string) {
       // "derived" models should override
       return undefined

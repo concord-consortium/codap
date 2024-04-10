@@ -1,3 +1,4 @@
+import { DndContext } from "@dnd-kit/core"
 import React from "react"
 import { act, render, screen } from "@testing-library/react"
 import { ComponentTitleBar } from "./component-title-bar"
@@ -25,12 +26,12 @@ describe("ComponentTitleBar", () => {
     // getTitle() is called on every render, so we use it to trigger our counter
     const getTitle = () => titleRenderCounter()
     return (
-      <>
+      <DndContext>
         <ComponentTitleBar tile={tile} getTitle={getTitle}>
           <RenderCounter label="Child" fn={childRenderCounter} />
         </ComponentTitleBar>
         <RenderCounter label="Parent" fn={parentRenderCounter} />
-      </>
+      </DndContext>
     )
   }
 

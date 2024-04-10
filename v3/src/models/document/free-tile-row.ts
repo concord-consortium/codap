@@ -13,7 +13,6 @@ import { withUndoRedoStrings } from "../history/codap-undo-types"
   v2/v3 time frame, however, a CODAP document is represented by a single such "row".
  */
 
-
 export const FreeTileLayout = types.model("FreeTileLayout", {
   // not types.identifier because it's not unique within the document tree
   tileId: types.string,
@@ -21,6 +20,7 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   y: types.number,
   width: types.maybe(types.number),
   height: types.maybe(types.number),
+  isHidden: types.maybe(types.boolean),
   isMinimized: types.maybe(types.boolean)
 })
 .views(self => ({
@@ -42,6 +42,10 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
     self.height = height
     withUndoRedoStrings("DG.Undo.componentResize", "DG.Redo.componentResize")
   },
+  setHidden(isHidden: boolean) {
+    // only store it if it's true
+    self.isHidden = isHidden || undefined
+  },
   setMinimized(isMinimized: boolean) {
     // only store it if it's true
     self.isMinimized = isMinimized || undefined
@@ -49,6 +53,11 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
 }))
 export interface IFreeTileLayout extends Instance<typeof FreeTileLayout> {}
 export interface IFreeTileLayoutSnapshot extends SnapshotIn<typeof FreeTileLayout> {}
+
+export function isFreeTileLayout(layout?: any): layout is IFreeTileLayout {
+  return !!layout && typeof layout === "object" && !!layout.tileId &&
+          Number.isFinite(layout.x) && Number.isFinite(layout.y)
+}
 
 export interface IFreeTileInRowOptions extends ITileInRowOptions {
   x: number
@@ -102,6 +111,9 @@ export const FreeTileRow = TileRowModel
     },
     hasTile(tileId: string) {
       return self.tiles.has(tileId)
+    },
+    getTileLayout(tileId: string): IFreeTileLayout | undefined {
+      return self.tiles.get(tileId)
     },
     getTileDimensions(tileId: string) {
       const freeTileLayout = self.getNode(tileId)

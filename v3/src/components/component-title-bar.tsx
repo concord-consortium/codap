@@ -1,8 +1,9 @@
 import { Button, CloseButton, Editable, EditableInput, EditablePreview, Flex } from "@chakra-ui/react"
-import { useDndContext, useDraggable } from "@dnd-kit/core"
+import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
+import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
@@ -19,9 +20,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
   const dragging = !!active
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
-  const draggableId = `${tileType}-${tileId}`
-  const draggableOptions = {id: draggableId, disabled: isEditing}
-  const {attributes, listeners, setActivatorNodeRef} = useDraggable(draggableOptions)
+  const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
+  const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
 
   const handleChangeTitle = (nextValue?: string) => {
@@ -41,7 +41,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
         <EditablePreview className="title-text"/>
         <EditableInput className="title-text-input" data-testid="title-text-input"/>
       </Editable>
-      <Flex className="header-right">
+      <Flex className={clsx("header-right", { disabled: isEditing })}>
         <Button className="component-minimize-button" title={t("DG.Component.minimizeComponent.toolTip")}
           data-testid="component-minimize-button">
           <MinimizeIcon className="component-minimize-icon" onPointerDown={onMinimizeTile}/>

@@ -3,7 +3,7 @@ import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
 import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model"
 import { ITileInRowOptions } from "./tile-row"
-import { ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
+import { ITileLayoutUnion, ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
 import { SharedModelEntry, SharedModelMap } from "./shared-model-entry"
 
 export const BaseDocumentContentModel = types
@@ -66,7 +66,7 @@ export const BaseDocumentContentModel = types
       const lastVisibleRowId = self.visibleRows.length
                                 ? self.visibleRows[self.visibleRows.length - 1]
                                 : self.rowOrder[self.rowOrder.length - 1]
-      return  self.rowOrder.indexOf(lastVisibleRowId)
+      return self.rowOrder.indexOf(lastVisibleRowId)
     },
     getFirstSharedModelByType<IT extends typeof SharedModel>(
       modelType: IT, tileId?: string): IT["Type"] | undefined {
@@ -80,6 +80,13 @@ export const BaseDocumentContentModel = types
     getSharedModelsByType<IT extends typeof SharedModel>(type: string): IT["Type"][] {
       const sharedModelEntries = Array.from(self.sharedModelMap.values())
       return sharedModelEntries.map(entry => entry.sharedModel).filter(model => model.type === type)
+    },
+    getTileLayoutById(tileId: string): ITileLayoutUnion | undefined {
+      let result: ITileLayoutUnion | undefined
+      self.rowMap.forEach(row => {
+        if (!result) result = row.getTileLayout(tileId) as ITileLayoutUnion
+      })
+      return result
     }
   }))
   .views(self => ({
