@@ -1,4 +1,5 @@
 import { ScaleBand, ScaleLinear, select } from "d3"
+import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { CellType, IBarCover, PlotProps } from "../graphing-types"
@@ -7,7 +8,7 @@ import { handleClickOnBar } from "../../data-display/data-display-utils"
 import { setPointCoordinates } from "../utilities/graph-utils"
 import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
-import { AxisPlace } from "../../axis/axis-types"
+import { SubPlotCells } from "../models/sub-plot-cells"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { useChartDots } from "../hooks/use-chart-dots"
 
@@ -19,16 +20,11 @@ interface IRenderBarCoverProps {
 }
 
 interface IBarCoverDimensionsProps {
+  subPlotCells: SubPlotCells
   cellIndices: CellType
   layout: GraphLayout
-  extraPrimaryAxisPlace: AxisPlace
   maxInCell: number
-  numExtraSecondaryBands: number
-  primaryAxisPlace: AxisPlace
-  primaryIsBottom: boolean
   primCatsCount: number
-  secondaryAxisPlace: AxisPlace
-  secondaryCellHeight: number
 }
 
 const renderBarCovers = (props: IRenderBarCoverProps) => {
@@ -52,10 +48,13 @@ const renderBarCovers = (props: IRenderBarCoverProps) => {
 }
 
 const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
-  const { cellIndices, extraPrimaryAxisPlace, layout, maxInCell, numExtraSecondaryBands, primCatsCount,
-          primaryAxisPlace, primaryIsBottom, secondaryAxisPlace, secondaryCellHeight } = props
+  const { subPlotCells, cellIndices, layout, maxInCell, primCatsCount } = props
+  const {
+    primaryAxisPlace, primaryIsBottom, primarySplitAxisPlace,
+    secondaryAxisPlace, secondaryCellHeight, numSecondarySplitBands
+  } = subPlotCells
   const { p: primeCatIndex, ep: extraPrimeCatIndex, es: extraSecCatIndex } = cellIndices
-  const extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryAxisPlace) as ScaleBand<string>
+  const extraPrimaryAxisScale = layout.getAxisScale(primarySplitAxisPlace) as ScaleBand<string>
   const secondaryAxisScale = layout.getAxisScale(secondaryAxisPlace) as ScaleLinear<number, number>
   const numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1)
   const primaryCellWidth = layout.getAxisLength(primaryAxisPlace) / (primCatsCount ?? 1)
@@ -66,11 +65,11 @@ const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
                           ? primeCatIndex * primarySubCellWidth + offsetExtraPrimary
                           : primaryInvertedIndex * primarySubCellWidth + offsetExtraPrimary
   const secondaryCoord = secondaryAxisScale(maxInCell)
-  const invertedSecondaryIndex = numExtraSecondaryBands - 1 - extraSecCatIndex
+  const invertedSecondaryIndex = numSecondarySplitBands - 1 - extraSecCatIndex
   const offsetSecondary = invertedSecondaryIndex * secondaryCellHeight
-  const adjustedSecondaryCoord = Math.abs(secondaryCoord / numExtraSecondaryBands + offsetSecondary)
+  const adjustedSecondaryCoord = Math.abs(secondaryCoord / numSecondarySplitBands + offsetSecondary)
   const primaryDimension = primarySubCellWidth / 2
-  const secondaryDimension = Math.abs(secondaryCoord - secondaryAxisScale(0)) / numExtraSecondaryBands
+  const secondaryDimension = Math.abs(secondaryCoord - secondaryAxisScale(0)) / numSecondarySplitBands
   const barWidth = primaryIsBottom ? primaryDimension : secondaryDimension
   const barHeight = primaryIsBottom ? secondaryDimension : primaryDimension
   const primaryCoord = offsetPrimary + (primarySubCellWidth / 2 - primaryDimension / 2)
@@ -80,21 +79,23 @@ const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   return { x, y, barWidth, barHeight }
 }
 
-export const BarChartDots = function BarChartDots({ abovePointsGroupRef, pixiPoints }: PlotProps) {
-  const { dataConfig, dataset, extraPrimaryAttrRole, extraSecondaryAttrRole, graphModel, isAnimating, layout,
-          pointColor, pointPositionSpecs, pointStrokeColor, primaryAttrRole, primaryAxisPlace, primaryIsBottom,
-          refreshPointSelection } = useChartDots(pixiPoints)
+export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef, pixiPoints }: PlotProps) {
+  const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
+          refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
   const barCoversRef = useRef<SVGGElement>(null)
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    const { extraPrimaryAxisPlace, getLegendColor, numExtraSecondaryBands, primaryCellWidth,
-            primaryHeight, primaryScreenCoord, secondaryAxisPlace, secondaryAxisScale, secondaryCellHeight,
-            secondaryScreenCoord } = pointPositionSpecs()
-    const { catMap, numPointsInRow } = graphModel.cellParams(primaryCellWidth, primaryHeight)
+    const {
+      dataConfig, primaryAttrRole, primaryCellWidth, primaryCellHeight, primaryIsBottom,
+      primarySplitAttrRole, secondarySplitAttrRole, secondaryNumericUnitLength } = subPlotCells
+    const { catMap, numPointsInRow } = graphModel.cellParams(primaryCellWidth, primaryCellHeight)
     const cellIndices = graphModel.mapOfIndicesByCase(catMap, numPointsInRow)
+    const {pointColor, pointStrokeColor} = graphModel.pointDescription
     const pointRadius = graphModel.getPointRadius()
+    const legendAttrID = dataConfig?.attributeID('legend')
+    const getLegendColor = legendAttrID ? dataConfig?.getLegendColorForCase : undefined
     const pointDisplayType = "bars"
-    
+
     const getPrimaryScreenCoord = (anID: string) => primaryScreenCoord({cellIndices, numPointsInRow}, anID)
     const getSecondaryScreenCoord = (anID: string) => secondaryScreenCoord({cellIndices}, anID)
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
@@ -102,15 +103,15 @@ export const BarChartDots = function BarChartDots({ abovePointsGroupRef, pixiPoi
 
     const getWidth = () => primaryIsBottom
       ? primaryCellWidth / 2
-      : (Math.abs(secondaryAxisScale(1) - secondaryAxisScale(0))) / numExtraSecondaryBands
+      : secondaryNumericUnitLength
     const getHeight = () => primaryIsBottom
-      ? (Math.abs(secondaryAxisScale(1) - secondaryAxisScale(0))) / numExtraSecondaryBands
+      ? secondaryNumericUnitLength
       : primaryCellWidth / 2
 
     // build and render bar cover elements that will handle pointer events for the fused points
     if (dataConfig && abovePointsGroupRef?.current) {
       const barCovers: IBarCover[] = []
-      const bins = dataConfig?.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole) ?? {}
+      const bins = dataConfig?.cellMap(primarySplitAttrRole, secondarySplitAttrRole) ?? {}
       const primCatsArray = primaryAttrRole
         ? Array.from(dataConfig.categoryArrayForAttrRole(primaryAttrRole))
         : []
@@ -124,9 +125,7 @@ export const BarChartDots = function BarChartDots({ abovePointsGroupRef, pixiPoi
               const exSecCatKey = extraSecCat === "__main__" ? "" : extraSecCat
               const maxInCell = bins[primeCat]?.[secCatKey]?.[exPrimeCatKey]?.[exSecCatKey] ?? 0
               const { x, y, barWidth, barHeight } = barCoverDimensions({
-                cellIndices: cellData.cell, primaryAxisPlace, layout, numExtraSecondaryBands,
-                primCatsCount, primaryIsBottom, secondaryAxisPlace, secondaryCellHeight, maxInCell,
-                extraPrimaryAxisPlace
+                subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell
               })
               barCovers.push({
                 class: `bar-cover ${primeCat} ${secCatKey} ${exPrimeCatKey} ${exSecCatKey}`,
@@ -147,9 +146,8 @@ export const BarChartDots = function BarChartDots({ abovePointsGroupRef, pixiPoi
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
       pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
     })
-  }, [pointPositionSpecs, primaryIsBottom, layout, graphModel, dataConfig, abovePointsGroupRef, dataset,
-      pixiPoints, pointColor, pointStrokeColor, isAnimating, extraPrimaryAttrRole, extraSecondaryAttrRole,
-      primaryAttrRole, primaryAxisPlace])
+  }, [abovePointsGroupRef, dataset, graphModel, isAnimating, layout, pixiPoints,
+      primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
@@ -181,4 +179,4 @@ export const BarChartDots = function BarChartDots({ abovePointsGroupRef, pixiPoi
       )}
     </>
   )
-}
+})

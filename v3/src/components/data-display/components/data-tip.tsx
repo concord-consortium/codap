@@ -19,7 +19,6 @@ interface IDataTipBaseProps {
 interface IDataTipHelperProps extends IDataTipBaseProps {
   legendAttrID?: string
   metadata: IPixiPointMetadata
-  getTipText: any
 }
 
 export interface IDataTipProps extends IDataTipBaseProps {
