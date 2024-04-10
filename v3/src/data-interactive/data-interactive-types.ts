@@ -8,14 +8,15 @@ import { ICollectionPropsModel } from "../models/data/collection"
 
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
+export interface DIFullCase {
+  children?: string[],
+  id?: string,
+  parent?: string,
+  values?: DICaseValues
+}
 export interface DIAllCases {
   cases?: {
-    case?: {
-      children?: string[],
-      id?: string,
-      parent?: string,
-      values?: DICaseValues
-    },
+    case?: DIFullCase,
     caseIndex?: number
   }[]
   collection?: {
@@ -86,6 +87,7 @@ export interface DIMetadata {
 interface DISuccessResult {
   success: true
   values?: DIValues
+  caseIDs?: string[]
 }
 
 interface DIErrorResult {

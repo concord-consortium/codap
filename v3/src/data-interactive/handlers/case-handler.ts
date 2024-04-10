@@ -1,0 +1,126 @@
+import { t } from "../../utilities/translation/translate"
+import { registerDIHandler } from "../data-interactive-handler"
+import { DICaseValues, DIFullCase, DIHandler, DIResources, DIValues } from "../data-interactive-types"
+
+export const diCaseHandler: DIHandler = {
+  // create(resources: DIResources, values: DIValues) {
+  //   const { dataContext, collection } = resources
+  //   if (!collection) return { success: false, values: { error: t("V3.DI.Error.collectionNotFound") } }
+
+  //   const cases = Array.isArray(values) ? values : [values]
+  // },
+  update(resources: DIResources, values?: DIValues) {
+    const { dataContext, collection } = resources
+    if (!dataContext) return { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } }
+    if (!collection) return { success: false, values: { error: t("V3.DI.Error.collectionNotFound") } }
+
+    // TODO Should we make sure values is of the correct type?
+    const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
+    const caseIDs: string[] = []
+    let success = true
+    dataContext.applyUndoableAction(() => {
+      cases.forEach(aCase => {
+        const { id } = aCase
+        if (id && aCase.values && (dataContext.getCase(id) || dataContext.pseudoCaseMap.get(id))) {
+          caseIDs.push(id)
+          const updatedAttributes: DICaseValues = {}
+          Object.keys(aCase.values).forEach(attrName => {
+            const attrId = dataContext.attrIDFromName(attrName)
+            // TODO Should we check to make sure types match up properly?
+            if (attrId) {
+              updatedAttributes[attrId] = aCase.values?.[attrName]
+            } else {
+              // If any attrbitues fail to update, we return success: false,
+              // even if we successfully make many other updates
+              success = false
+            }
+          })
+          dataContext.setCaseValues([{ ...updatedAttributes, __id__: id }])
+        }
+      })
+    })
+
+    if (caseIDs.length > 0) return { success, caseIDs }
+
+    return { success: false }
+  }
+}
+
+// createCases: function( iResources, iValues, iRequesterID) {
+
+//   function convertDate( iValue) {
+//     if (iValue instanceof Date) {
+//       iValue.valueOf = function () {
+//         return Date.prototype.valueOf.apply(this) / 1000;
+//       };
+//     }
+//   }
+
+//   function fixDates(iCase) {
+//     if( Array.isArray( iCase.values)) {
+//       iCase.values.forEach(function (iValue) {
+//         convertDate( iValue);
+//       });
+//     }
+//     else if ( typeof iCase.values === 'object') {
+//       DG.ObjectMap.forEach( iCase.values, function( iKey, iValue) {
+//         convertDate( iValue);
+//       });
+//     }
+//   }
+
+//   function createOrAppendRequest(iCase) {
+//     fixDates(iCase);
+//     var parent = iCase.parent;
+//     var values = iCase.values;
+//     var req = requests.find(function (request) {
+//       return request.properties.parent === parent;
+//     });
+//     if (!req) {
+//       req = {
+//         operation: 'createCases',
+//         collection: collection,
+//         properties: {
+//           parent: parent
+//         },
+//         values: [],
+//         requester: requester
+//       };
+//       requests.push(req);
+//     }
+//     req.values.push(values);
+//   }
+//   if (!iResources.collection) {
+//     return {success: false, values: {error: 'Collection not found'}};
+//   }
+//   // ------------------createCases-----------------
+//   var success = true;
+//   var context = iResources.dataContext;
+//   var collection = iResources.collection;
+//   var cases = Array.isArray(iValues)?iValues: [iValues];
+//   var IDs = [];
+//   var requester = iRequesterID;
+//   var requests = [];
+
+//   // We wish to minimize the number of change requests submitted,
+//   // but create case change requests are not structured like cases.
+//   // we must reformat the Plugin API create/case to some number of
+//   // change requests, one for each parent referred to in the create/case
+//   // object.
+//   cases.forEach(createOrAppendRequest);
+//   requests.forEach(function (req) {
+//     var changeResult = context.applyChange(req);
+//     var success = success && (changeResult && changeResult.success);
+//     var index;
+//     if (changeResult.success) {
+//       for (index = 0; index < changeResult.caseIDs.length; index++) {
+//         var caseid = changeResult.caseIDs[index];
+//         var itemid = (index <= changeResult.itemIDs.length) ? changeResult.itemIDs[index] : null;
+//         IDs.push({id: caseid, itemID: itemid});
+//       }
+//     }
+//   });
+//   return {success: success, values: IDs};
+// },
+
+registerDIHandler("case", diCaseHandler)
