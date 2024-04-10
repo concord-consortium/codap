@@ -1,7 +1,8 @@
 import { useInterval } from "@chakra-ui/react"
 import { useCallback, useEffect, useRef } from "react"
 import { ISliderModel } from "./slider-model"
-import { kAnimationDefaults } from "./slider-types"
+import { FixValueFn, kAnimationDefaults } from "./slider-types"
+import { valueChangeNotification } from "./slider-utils"
 
 interface IUseSliderAnimationProps {
   sliderModel?: ISliderModel
@@ -26,10 +27,29 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (!sliderModel) return 0
     const [axisMin, axisMax] = getAxisDomain()
     const testValue = val || sliderModel.value
-    if (animationDirection === "lowToHigh" && testValue >= axisMax) sliderModel.setValue(axisMin)
-    if (animationDirection === "highToLow" && testValue <= axisMin) sliderModel.setValue(axisMax)
+    if (animationDirection === "lowToHigh" && testValue >= axisMax) {
+      sliderModel.applyUndoableAction(
+        () => sliderModel.setValue(axisMin),
+        { notification: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+      )
+    }
+    if (animationDirection === "highToLow" && testValue <= axisMin) {
+      sliderModel.applyUndoableAction(
+        () => sliderModel.setValue(axisMax),
+        { notification: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+      )
+    }
     return sliderModel.value
   }, [animationDirection, getAxisDomain, sliderModel])
+
+  const updateSlider = useCallback((val: number, min: FixValueFn, max: FixValueFn) => {
+    if (sliderModel) {
+      sliderModel.applyUndoableAction(
+        () => sliderModel.setValue(sliderModel.validateValue(val, min, max)),
+        { notification: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+      )
+    }
+  }, [sliderModel])
 
   useEffect(()=> {
     running && resetSlider()
@@ -75,7 +95,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     const belowMin = (val: number) => {
       return axisMin
     }
-    sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
+    updateSlider(newValue, belowMin, aboveMax)
   }
 
   const handleHighToLowAnimation = (newValue: number) => {
@@ -92,7 +112,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
         return resetSlider(newValue)
       }
     }
-    sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
+    updateSlider(newValue, belowMin, aboveMax)
   }
 
   const handleBackAndForthAnimation = (newValue: number) => {
@@ -120,6 +140,6 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       setRunning(false)
       maxMinHitsRef.current = 0
     }
-    sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
+    updateSlider(newValue, belowMin, aboveMax)
   }
 }
