@@ -96,7 +96,6 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       return axisMin
     }
     updateSlider(newValue, belowMin, aboveMax)
-    // sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 
   const handleHighToLowAnimation = (newValue: number) => {
@@ -114,7 +113,6 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       }
     }
     updateSlider(newValue, belowMin, aboveMax)
-    // sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 
   const handleBackAndForthAnimation = (newValue: number) => {
@@ -143,6 +141,5 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       maxMinHitsRef.current = 0
     }
     updateSlider(newValue, belowMin, aboveMax)
-    // sliderModel?.setValue(sliderModel.validateValue(newValue, belowMin, aboveMax))
   }
 }
