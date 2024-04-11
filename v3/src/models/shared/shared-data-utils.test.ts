@@ -54,7 +54,7 @@ describe("SharedDataUtils", () => {
     const orphan = TileModel.create({ content: TestTileContent.create() })
     expect(getTileSharedModels(orphan.content)).toEqual([])
     expect(getDataSetFromId(orphan.content, sharedDataSet.dataSet.id)).toBeUndefined()
-    linkTileToDataSet(orphan.content, sharedDataSet.dataSet)
+    linkTileToDataSet(orphan, sharedDataSet.dataSet)
     expect(isTileLinkedToDataSet(orphan.content, sharedDataSet.dataSet)).toBe(false)
     expect(getTileSharedModels(orphan.content)).toEqual([])
     unlinkTileFromDataSets(orphan.content)
@@ -76,7 +76,7 @@ describe("SharedDataUtils", () => {
   })
 
   it("can link/unlink tiles to/from data sets and shared case metadata", () => {
-    linkTileToDataSet(tile.content, sharedDataSet.dataSet)
+    linkTileToDataSet(tile, sharedDataSet.dataSet)
     expect(document.content?.sharedModelMap.size).toBe(2)
     expect(getTileSharedModels(tile.content).length).toEqual(2)
     expect(isTileLinkedToDataSet(tile.content, sharedDataSet.dataSet)).toBe(true)
@@ -99,13 +99,13 @@ describe("SharedDataUtils", () => {
     sharedMetadata2.setData(sharedDataSet2.dataSet)
     expect(document.content?.sharedModelMap.size).toBe(4)
 
-    linkTileToDataSet(tile.content, sharedDataSet.dataSet)
+    linkTileToDataSet(tile, sharedDataSet.dataSet)
     expect(isTileLinkedToDataSet(tile.content, sharedDataSet.dataSet)).toBe(true)
     expect(isTileLinkedToDataSet(tile.content, sharedDataSet2.dataSet)).toBe(false)
     expect(getTileDataSet(tile.content)).toBe(sharedDataSet.dataSet)
     expect(getTileCaseMetadata(tile.content)).toBe(sharedMetadata)
 
-    linkTileToDataSet(tile.content, sharedDataSet2.dataSet)
+    linkTileToDataSet(tile, sharedDataSet2.dataSet)
     expect(getTileSharedModels(tile.content).length).toEqual(2)
     expect(isTileLinkedToDataSet(tile.content, sharedDataSet.dataSet)).toBe(false)
     expect(isTileLinkedToDataSet(tile.content, sharedDataSet2.dataSet)).toBe(true)

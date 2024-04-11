@@ -52,6 +52,7 @@ export function addDefaultComponents() {
     content.insertTileInRow(tableTile, row, tableOptions)
     sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
     caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
+    caseMetadata?.setCaseTableTileId(tableTile.id)
   }
   else {
     const tableTile = createDefaultTileOfType(kCaseTableTileType)
@@ -62,6 +63,7 @@ export function addDefaultComponents() {
     content.insertTileInRow(tableTile, row, tableOptions)
     sharedData && manager?.addTileSharedModel(tableTile.content, sharedData)
     caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata)
+    caseMetadata?.setCaseTableTileId(tableTile.id)
 
     const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
     if (!calculatorTile) return

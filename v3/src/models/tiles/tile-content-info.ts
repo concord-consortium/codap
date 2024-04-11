@@ -27,7 +27,8 @@ export interface ITileContentInfo {
   defaultContent: (options?: IDefaultContentOptions) => ITileContentSnapshotWithType;
   titleBase?: string;
   metadataClass?: typeof TileMetadataModel;
-  isSingleton?: boolean; // Only one instance of a tile is open per document
+  isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
+  doesNotGetDestroyedOnClose?: boolean; // Tile is not destroyed when closed (case table and card)
   addSidecarNotes?: boolean;
   defaultHeight?: number;
   exportNonDefaultHeight?: boolean;

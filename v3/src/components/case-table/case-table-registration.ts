@@ -1,3 +1,4 @@
+import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
@@ -8,7 +9,7 @@ import { CaseTableTitleBar } from "./case-table-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
 import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
-import { isV2TableComponent } from "../../v2/codap-v2-types"
+import { isCodapV2Attribute, isV2TableComponent } from "../../v2/codap-v2-types"
 import { CaseTableInspector } from "./case-table-inspector"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
 
@@ -18,6 +19,7 @@ registerTileContentInfo({
   type: kCaseTableTileType,
   prefix: kCaseTableIdPrefix,
   modelClass: CaseTableModel,
+  doesNotGetDestroyedOnClose: true,
   defaultContent: () => ({ type: kCaseTableTileType })
 })
 
@@ -41,19 +43,31 @@ registerTileComponentInfo({
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
-  const { title = "", _links_ } = v2Component.componentStorage
+  const { title = "", _links_, attributeWidths } = v2Component.componentStorage
 
-  const content: ICaseTableSnapshot = {
-    type: kCaseTableTileType
+  const content: SetRequired<ICaseTableSnapshot, "columnWidths"> = {
+    type: kCaseTableTileType,
+    columnWidths: {}
   }
+  const contextId = _links_.context.id
+  const { data, metadata } = v2Document.getDataAndMetadata(contextId)
+
+  // stash the table's column widths in the content
+  attributeWidths?.forEach(entry => {
+    const v2Attr = v2Document.getV2Attribute(entry._links_.attr.id)
+    if (isCodapV2Attribute(v2Attr)) {
+      const attrId = data?.dataSet.attrIDFromName(v2Attr.name)
+      if (attrId && entry.width) {
+        content.columnWidths[attrId] = entry.width
+      }
+    }
+  })
 
   const tableTileSnap: ITileModelSnapshotIn = { id: typedId(kCaseTableIdPrefix), title, content }
   const tableTile = insertTile(tableTileSnap)
 
   // add links to shared models
   if (tableTile) {
-    const contextId = _links_.context.id
-    const { data, metadata } = v2Document.getDataAndMetadata(contextId)
     data && sharedModelManager?.addTileSharedModel(tableTile.content, data, true)
     metadata && sharedModelManager?.addTileSharedModel(tableTile.content, metadata, true)
   }

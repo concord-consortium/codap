@@ -21,10 +21,10 @@ export const SharedCaseMetadata = SharedModel
     collections: types.map(CollectionTableMetadata),
     // key is attribute id
     categories: types.map(CategorySet),
-    // key is attribute id; value is width
-    columnWidths: types.map(types.number),
     // key is attribute id; value is true (false values are deleted)
-    hidden: types.map(types.boolean)
+    hidden: types.map(types.boolean),
+    caseTableTileId: types.maybe(types.string),
+    caseCardTileId: types.maybe(types.string)
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -36,9 +36,6 @@ export const SharedCaseMetadata = SharedModel
     provisionalCategories: observable.map<string, ICategorySet>()
   }))
   .views(self => ({
-    columnWidth(attrId: string) {
-      return self.columnWidths.get(attrId)
-    },
     // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
       const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}
@@ -53,13 +50,11 @@ export const SharedCaseMetadata = SharedModel
     setData(data?: IDataSet) {
       self.data = data
     },
-    setColumnWidth(attrId: string, width?: number) {
-      if (width) {
-        self.columnWidths.set(attrId, width)
-      }
-      else {
-        self.columnWidths.delete(attrId)
-      }
+    setCaseTableTileId(tileId?: string) {
+      self.caseTableTileId = tileId
+    },
+    setCaseCardTileId(tileId?: string) {
+      self.caseCardTileId = tileId
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
       const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}

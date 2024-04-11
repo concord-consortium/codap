@@ -1,4 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { applyUndoableAction } from "../../models/history/apply-undoable-action"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -8,7 +9,9 @@ import { CollectionTableModel } from "./collection-table-model"
 export const CaseTableModel = TileContentModel
   .named("CaseTableModel")
   .props({
-    type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
+    type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType),
+    // key is attribute id; value is width
+    columnWidths: types.map(types.number),
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
@@ -20,7 +23,10 @@ export const CaseTableModel = TileContentModel
     },
     get metadata() {
       return getTileCaseMetadata(self)
-    }
+    },
+    columnWidth(attrId: string) {
+      return self.columnWidths.get(attrId)
+    },
   }))
   .views(self => {
     const collectionTableModels = new Map<string, CollectionTableModel>()
@@ -37,6 +43,14 @@ export const CaseTableModel = TileContentModel
     }
   })
   .actions(self => ({
+    setColumnWidth(attrId: string, width?: number) {
+      if (width) {
+        self.columnWidths.set(attrId, width)
+      }
+      else {
+        self.columnWidths.delete(attrId)
+      }
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
@@ -44,6 +58,7 @@ export const CaseTableModel = TileContentModel
       self.scrollLeft = scrollLeft
     }
   }))
+  .actions(applyUndoableAction)
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
 export interface ICaseTableSnapshot extends SnapshotIn<typeof CaseTableModel> {}
 

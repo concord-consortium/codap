@@ -1,22 +1,25 @@
-import React, { useRef, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { isCaseTableModel } from "./case-table-model"
 import { ComponentTitleBar } from "../component-title-bar"
 import { Box, useOutsideClick } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { t } from "../../utilities/translation/translate"
+import { useDocumentContent } from "../../hooks/use-document-content"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 import "./case-table-title-bar.scss"
 
-export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, ...others}: ITileTitleBarProps) {
+export const CaseTableTitleBar =
+  observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
   const data = isCaseTableModel(tile?.content) ? tile?.content.data : undefined
   // case table title reflects DataSet title
   const getTitle = () => data?.title ?? ""
   const [showSwitchMessage, setShowSwitchMessage] = useState(false)
   const [showCaseCard, setShowCaseCard] = useState(false)
   const cardTableToggleRef = useRef(null)
+  const documentContent = useDocumentContent()
 
   useOutsideClick({
     ref: cardTableToggleRef,
@@ -40,13 +43,22 @@ export const CaseTableTitleBar = observer(function CaseTableTitleBar({tile, ...o
     }
   }
 
+  const closeCaseTable = useCallback(() => {
+    documentContent?.applyUndoableAction(() => {
+      documentContent?.toggleNonDestroyableTileVisibility(tile?.id)
+    }, {
+      undoStringKey: "V3.Undo.caseTable.hide",
+      redoStringKey: "V3.Redo.caseTable.hide"
+    })
+  }, [documentContent, tile?.id])
+
   const cardTableToggleString = showCaseCard
                                   ? t("DG.DocumentController.toggleToCaseTable")
                                   : t("DG.DocumentController.toggleToCaseCard")
 
   return (
     <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
-        onHandleTitleChange={handleChangeTitle}>
+        onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTable}>
       <div className="header-left"
             title={cardTableToggleString}
             onClick={handleShowCardTableToggleMessage}
