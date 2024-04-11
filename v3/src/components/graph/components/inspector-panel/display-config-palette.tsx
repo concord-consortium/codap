@@ -18,6 +18,7 @@ interface IProps {
   buttonRect?: DOMRect
   setShowPalette: (palette: string | undefined) => void;
 }
+
 export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -26,6 +27,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const plotType = graphModel?.plotType
   const plotHasExactlyOneCategoricalAxis = graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis
   const showPointDisplayType = plotType !== "dotChart" || !plotHasExactlyOneCategoricalAxis
+  const showFuseIntoBars = plotType === "dotChart" && plotHasExactlyOneCategoricalAxis
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -141,7 +143,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         )}
       { // For now this option is only available for dot charts, but it should eventually
         // be available for univariate plot graphs as well.
-        plotHasExactlyOneCategoricalAxis &&
+        showFuseIntoBars &&
           <Checkbox
             data-testid="bar-chart-checkbox"
             mt="6px" isChecked={pointsFusedIntoBars}
