@@ -342,7 +342,6 @@ export const GraphContentModel = DataDisplayContentModel
         rightSplitMatches.length,
         dataset?.cases.length ?? 0
       ].find(length => length > 0) ?? 0
-      const percent = totalCases ? float((casesInSubPlot / totalCases) * 100) : 100
       const caseCategoryString = caseLegendValue !== ""
         ? casePrimaryValue
         : ""
@@ -351,6 +350,7 @@ export const GraphContentModel = DataDisplayContentModel
         : casePrimaryValue
       const firstCount = legendAttrID ? totalCases : casesInSubPlot
       const secondCount = legendAttrID ? casesInSubPlot : totalCases
+      const percent = float(firstCount / secondCount * 100)
       // <n> of <m> <category> (<p>%) are <legend category>
       const attrArray = [
         firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
