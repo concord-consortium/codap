@@ -19,6 +19,7 @@ registerTileContentInfo({
   type: kCaseTableTileType,
   prefix: kCaseTableIdPrefix,
   modelClass: CaseTableModel,
+  doesNotGetDestroyedOnClose: true,
   defaultContent: () => ({ type: kCaseTableTileType })
 })
 

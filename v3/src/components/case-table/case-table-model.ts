@@ -1,4 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { applyUndoableAction } from "../../models/history/apply-undoable-action"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -57,6 +58,7 @@ export const CaseTableModel = TileContentModel
       self.scrollLeft = scrollLeft
     }
   }))
+  .actions(applyUndoableAction)
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
 export interface ICaseTableSnapshot extends SnapshotIn<typeof CaseTableModel> {}
 
