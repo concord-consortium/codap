@@ -350,7 +350,7 @@ export const GraphContentModel = DataDisplayContentModel
         : casePrimaryValue
       const firstCount = legendAttrID ? totalCases : casesInSubPlot
       const secondCount = legendAttrID ? casesInSubPlot : totalCases
-      const percent = float(firstCount / secondCount * 100)
+      const percent = float(100 * firstCount / secondCount)
       // <n> of <m> <category> (<p>%) are <legend category>
       const attrArray = [
         firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString

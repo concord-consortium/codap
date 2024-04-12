@@ -1,4 +1,4 @@
-import { ScaleBand, ScaleLinear, select } from "d3"
+import { select } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
@@ -49,27 +49,22 @@ const renderBarCovers = (props: IRenderBarCoverProps) => {
 }
 
 const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
-  const { subPlotCells, cellIndices, layout, maxInCell, minInCell = 0, primCatsCount } = props
+  const { subPlotCells, cellIndices, maxInCell, minInCell = 0, primCatsCount } = props
   const {
-    primaryAxisPlace, primaryIsBottom, primarySplitAxisPlace, primarySplitCellWidth,
-    secondaryAxisPlace, secondaryCellHeight, numSecondarySplitBands
+    numPrimarySplitBands, numSecondarySplitBands, primaryCellWidth, primaryIsBottom, primarySplitCellWidth,
+    secondaryCellHeight, secondaryNumericScale
   } = subPlotCells
   const { p: primeCatIndex, ep: primeSplitCatIndex, es: secSplitCatIndex } = cellIndices
-  const primarySplitAxisScale = layout.getAxisScale(primarySplitAxisPlace) as ScaleBand<string>
-  const secondaryAxisScale = layout.getAxisScale(secondaryAxisPlace) as ScaleLinear<number, number>
-  const numPrimarySplitBands = Math.max(1, primarySplitAxisScale?.domain().length ?? 1)
-  const primaryCellWidth = layout.getAxisLength(primaryAxisPlace) / (primCatsCount ?? 1)
-  const primarySubCellWidth = primaryCellWidth / numPrimarySplitBands
   const adjustedPrimeSplitIndex = primaryIsBottom
           ? primeSplitCatIndex
           : numPrimarySplitBands - 1 - primeSplitCatIndex
   const offsetPrimarySplit = adjustedPrimeSplitIndex * primarySplitCellWidth
   const primaryInvertedIndex = primCatsCount - 1 - primeCatIndex
   const offsetPrimary = primaryIsBottom
-          ? primeCatIndex * primarySubCellWidth + offsetPrimarySplit
-          : primaryInvertedIndex * primarySubCellWidth + offsetPrimarySplit
-  const secondaryCoord = secondaryAxisScale(maxInCell)
-  const secondaryBaseCoord = secondaryAxisScale(minInCell)
+          ? primeCatIndex * primaryCellWidth + offsetPrimarySplit
+          : primaryInvertedIndex * primaryCellWidth + offsetPrimarySplit
+  const secondaryCoord = secondaryNumericScale?.(maxInCell) ?? 0
+  const secondaryBaseCoord = secondaryNumericScale?.(minInCell) ?? 0
   const secondaryIndex = primaryIsBottom
           ? numSecondarySplitBands - 1 - secSplitCatIndex
           : secSplitCatIndex
@@ -77,11 +72,11 @@ const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const adjustedSecondaryCoord = primaryIsBottom
           ? Math.abs(secondaryCoord / numSecondarySplitBands + offsetSecondary)
           : secondaryBaseCoord / numSecondarySplitBands + offsetSecondary
-  const primaryDimension = primarySubCellWidth / 2
+  const primaryDimension = primaryCellWidth / 2
   const secondaryDimension = Math.abs(secondaryCoord - secondaryBaseCoord) / numSecondarySplitBands
   const barWidth = primaryIsBottom ? primaryDimension : secondaryDimension
   const barHeight = primaryIsBottom ? secondaryDimension : primaryDimension
-  const primaryCoord = offsetPrimary + (primarySubCellWidth / 2 - primaryDimension / 2)
+  const primaryCoord = offsetPrimary + (primaryCellWidth / 2 - primaryDimension / 2)
   const x = primaryIsBottom ? primaryCoord : adjustedSecondaryCoord
   const y = primaryIsBottom ? adjustedSecondaryCoord : primaryCoord
 

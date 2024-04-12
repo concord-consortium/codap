@@ -120,6 +120,11 @@ export class SubPlotCells {
   }
 
   @computed
+  get numPrimarySplitBands() {
+    return Math.max(1, this.primarySplitScale?.domain().length ?? 1)
+  }
+
+  @computed
   get secondarySplitScale() {
     return this.layout.getBandScale(this.secondarySplitAxisPlace)
   }
