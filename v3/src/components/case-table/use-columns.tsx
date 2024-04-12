@@ -12,6 +12,7 @@ import { parseColor } from "../../utilities/color-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
+import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
 
 // cache d3 number formatters so we don't have to generate them on every render
@@ -87,7 +88,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, type, isEditable }) => ({ id, name, type, isEditable }))
+        return visible.map(({ id, name, type, userType, isEditable }) => ({ id, name, type, userType, isEditable }))
       },
       entries => {
         // column definitions
@@ -95,7 +96,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
           ? [
               ...(indexColumn ? [indexColumn] : []),
               // attribute column definitions
-              ...entries.map(({ id, name, isEditable }): TColumn => ({
+              ...entries.map(({ id, name, userType, isEditable }): TColumn => ({
                 key: id,
                 name,
                 // If a default column width isn't supplied, RDG defaults to "auto",
@@ -106,7 +107,11 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderHeaderCell: ColumnHeader,
                 cellClass: "codap-data-cell",
                 renderCell: RenderCell,
-                renderEditCell: isEditable ? CellTextEditor : undefined
+                renderEditCell: isEditable
+                                  // if users haven't assigned a non-color type, then color swatches
+                                  // may be displayed and should be edited with swatches.
+                                  ? userType == null || userType === "color" ? ColorCellTextEditor : CellTextEditor
+                                  : undefined
               }))
           ]
           : []
