@@ -2,6 +2,7 @@
  * A GraphContentModel is the top level model for the Graph component.
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
+import {cloneDeep} from "lodash"
 import {when} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
@@ -33,6 +34,7 @@ import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
 import { ICase } from "../../../models/data/data-set-types"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
@@ -84,6 +86,18 @@ export const GraphContentModel = DataDisplayContentModel
     dynamicBinWidth: undefined as number | undefined,
     prevDataSetId: ""
   }))
+  .preProcessSnapshot(snap => {
+    // some properties were historically written out as null because NaN => null in JSON
+    const nullCheckProps: Array<keyof typeof snap> = ["_binAlignment", "_binWidth"]
+    // are there any `null` properties?
+    if (nullCheckProps.some(prop => snap[prop] === null)) {
+      // if so, clone the snapshot
+      snap = cloneDeep(snap)
+      // and delete the `null` properties
+      nullCheckProps.forEach(prop => (snap[prop] === null) && delete snap[prop])
+    }
+    return snap
+  })
   .actions(self => ({
     addLayer(aLayer: IGraphPointLayerModel) {
       self.layers.push(aLayer)
@@ -250,14 +264,14 @@ export const GraphContentModel = DataDisplayContentModel
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
     },
     setBinAlignment(alignment: number) {
-      self._binAlignment = alignment
+      self._binAlignment = isFiniteNumber(alignment) ? alignment : undefined
       self.dynamicBinAlignment = undefined
     },
     setDynamicBinAlignment(alignment: number) {
       self.dynamicBinAlignment = alignment
     },
     setBinWidth(width: number) {
-      self._binWidth = width
+      self._binWidth = isFiniteNumber(width) ? width : undefined
       self.dynamicBinWidth = undefined
     },
     setDynamicBinWidth(width: number) {
