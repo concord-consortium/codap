@@ -19,10 +19,11 @@ export interface IDomainOptions {
 
 export interface IBarCover {
   class: string
+  legendCat?: string
   primeCat: string
   secCat: string
-  extraPrimeCat: string
-  extraSecCat: string
+  primeSplitCat: string
+  secSplitCat: string
   x: string
   y: string
   width: string

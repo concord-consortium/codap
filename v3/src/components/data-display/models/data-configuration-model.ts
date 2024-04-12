@@ -338,7 +338,7 @@ export const DataConfigurationModel = types
 
       selectCasesForCategoryValues(
         primaryAttrRole: AttrRole, primaryValue: string, secondaryValue?: string, extraPrimaryValue?: string,
-        extraSecondaryValue?: string, extend = false
+        extraSecondaryValue?: string, legendCat?: string, extend = false
       ) {
         const dataset = self.dataset,
           primaryAttrID = self.attributeID(primaryAttrRole),
@@ -357,7 +357,9 @@ export const DataConfigurationModel = types
               (extraPrimaryValue === "__main__" ||
                 dataset?.getStrValue(aCaseData.caseID, extraPrimaryAttrID) === extraPrimaryValue) &&
               (extraSecondaryValue === "__main__" ||
-                dataset?.getStrValue(aCaseData.caseID, extraSecondaryAttrID) === extraSecondaryValue)
+                dataset?.getStrValue(aCaseData.caseID, extraSecondaryAttrID) === extraSecondaryValue) &&
+              (!legendCat || legendCat === "" ||
+                dataset?.getStrValue(aCaseData.caseID, self.attributeID("legend")) === legendCat)
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 

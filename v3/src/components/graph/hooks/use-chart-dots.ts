@@ -21,7 +21,8 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     dataConfig = useGraphDataConfigurationContext(),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
-    subPlotCells = useMemo(() => new SubPlotCells(layout, dataConfig), [dataConfig, layout])
+    subPlotCells = useMemo(() => new SubPlotCells(layout, dataConfig), [dataConfig, layout]),
+    baselineOffset = 0.5
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
@@ -41,8 +42,8 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     if (cellIndices[anID]) {
       const { column } = cellIndices[anID],
         { p, ep } = cellIndices[anID].cell
-      return primaryBaseCoord + signForOffset * ((p + 0.5) * primaryCellWidth + ep * primarySplitCellWidth) +
-        (column + 0.5) * pointDiameter - numPointsInRow * pointDiameter / 2
+      return primaryBaseCoord + signForOffset * ((p + baselineOffset) * primaryCellWidth + ep * primarySplitCellWidth) +
+        (column + baselineOffset) * pointDiameter - numPointsInRow * pointDiameter / 2
     } else {
       return 0
     }
@@ -63,14 +64,14 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     const { s, es } = cellIndices[anID].cell
     const barHeight = secondaryNumericUnitLength
     const baseHeight = pointsFusedIntoBars
-      ? (row + .25) * barHeight - barHeight / 4
-      : (row + 0.5) * pointDiameter + row * overlap
+      ? (row + baselineOffset) * barHeight - barHeight
+      : (row + baselineOffset) * pointDiameter + row * overlap
     const baseSecScreenCoord = secondaryBaseCoord -
       signForOffset * (s * primaryCellHeight + es * secondarySplitCellWidth + baseHeight)
 
     return primaryIsBottom && pointsFusedIntoBars
-      ? baseSecScreenCoord - barHeight / 4
-      : baseSecScreenCoord + (pointsFusedIntoBars ? barHeight / 4 : 0)
+      ? baseSecScreenCoord - barHeight
+      : baseSecScreenCoord + (pointsFusedIntoBars ? barHeight : 0)
   }, [graphModel, subPlotCells])
 
   return {

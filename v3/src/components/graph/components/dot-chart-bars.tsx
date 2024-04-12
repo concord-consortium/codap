@@ -15,7 +15,7 @@ import { useChartDots } from "../hooks/use-chart-dots"
 interface IRenderBarCoverProps {
   barCovers: IBarCover[]
   barCoversRef: React.RefObject<SVGGElement>
-  dataConfiguration: IDataConfigurationModel
+  dataConfig: IDataConfigurationModel
   primaryAttrRole: "x" | "y"
 }
 
@@ -24,11 +24,12 @@ interface IBarCoverDimensionsProps {
   cellIndices: CellType
   layout: GraphLayout
   maxInCell: number
+  minInCell?: number
   primCatsCount: number
 }
 
 const renderBarCovers = (props: IRenderBarCoverProps) => {
-  const { barCovers, barCoversRef, dataConfiguration, primaryAttrRole } = props
+  const { barCovers, barCoversRef, dataConfig, primaryAttrRole } = props
   select(barCoversRef.current).selectAll("rect").remove()
   select(barCoversRef.current).selectAll("rect")
     .data(barCovers)
@@ -42,38 +43,46 @@ const renderBarCovers = (props: IRenderBarCoverProps) => {
       .on("mouseover", function() { select(this).classed("active", true) })
       .on("mouseout", function() { select(this).classed("active", false) })
       .on("click", function(event, d) {
-        dataConfiguration && handleClickOnBar({event, dataConfiguration, primaryAttrRole, barCover: d})
+        dataConfig && handleClickOnBar({event, dataConfig, primaryAttrRole, barCover: d})
       })
     )
 }
 
 const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
-  const { subPlotCells, cellIndices, layout, maxInCell, primCatsCount } = props
+  const { subPlotCells, cellIndices, layout, maxInCell, minInCell = 0, primCatsCount } = props
   const {
-    primaryAxisPlace, primaryIsBottom, primarySplitAxisPlace,
+    primaryAxisPlace, primaryIsBottom, primarySplitAxisPlace, primarySplitCellWidth,
     secondaryAxisPlace, secondaryCellHeight, numSecondarySplitBands
   } = subPlotCells
-  const { p: primeCatIndex, ep: extraPrimeCatIndex, es: extraSecCatIndex } = cellIndices
-  const extraPrimaryAxisScale = layout.getAxisScale(primarySplitAxisPlace) as ScaleBand<string>
+  const { p: primeCatIndex, ep: primeSplitCatIndex, es: secSplitCatIndex } = cellIndices
+  const primarySplitAxisScale = layout.getAxisScale(primarySplitAxisPlace) as ScaleBand<string>
   const secondaryAxisScale = layout.getAxisScale(secondaryAxisPlace) as ScaleLinear<number, number>
-  const numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1)
+  const numPrimarySplitBands = Math.max(1, primarySplitAxisScale?.domain().length ?? 1)
   const primaryCellWidth = layout.getAxisLength(primaryAxisPlace) / (primCatsCount ?? 1)
-  const primarySubCellWidth = primaryCellWidth / numExtraPrimaryBands
-  const offsetExtraPrimary = extraPrimeCatIndex * primaryCellWidth
+  const primarySubCellWidth = primaryCellWidth / numPrimarySplitBands
+  const adjustedPrimeSplitIndex = primaryIsBottom
+          ? primeSplitCatIndex
+          : numPrimarySplitBands - 1 - primeSplitCatIndex
+  const offsetPrimarySplit = adjustedPrimeSplitIndex * primarySplitCellWidth
   const primaryInvertedIndex = primCatsCount - 1 - primeCatIndex
   const offsetPrimary = primaryIsBottom
-                          ? primeCatIndex * primarySubCellWidth + offsetExtraPrimary
-                          : primaryInvertedIndex * primarySubCellWidth + offsetExtraPrimary
+          ? primeCatIndex * primarySubCellWidth + offsetPrimarySplit
+          : primaryInvertedIndex * primarySubCellWidth + offsetPrimarySplit
   const secondaryCoord = secondaryAxisScale(maxInCell)
-  const invertedSecondaryIndex = numSecondarySplitBands - 1 - extraSecCatIndex
-  const offsetSecondary = invertedSecondaryIndex * secondaryCellHeight
-  const adjustedSecondaryCoord = Math.abs(secondaryCoord / numSecondarySplitBands + offsetSecondary)
+  const secondaryBaseCoord = secondaryAxisScale(minInCell)
+  const secondaryIndex = primaryIsBottom
+          ? numSecondarySplitBands - 1 - secSplitCatIndex
+          : secSplitCatIndex
+  const offsetSecondary = secondaryIndex * secondaryCellHeight
+  const adjustedSecondaryCoord = primaryIsBottom
+          ? Math.abs(secondaryCoord / numSecondarySplitBands + offsetSecondary)
+          : secondaryBaseCoord / numSecondarySplitBands + offsetSecondary
   const primaryDimension = primarySubCellWidth / 2
-  const secondaryDimension = Math.abs(secondaryCoord - secondaryAxisScale(0)) / numSecondarySplitBands
+  const secondaryDimension = Math.abs(secondaryCoord - secondaryBaseCoord) / numSecondarySplitBands
   const barWidth = primaryIsBottom ? primaryDimension : secondaryDimension
   const barHeight = primaryIsBottom ? secondaryDimension : primaryDimension
   const primaryCoord = offsetPrimary + (primarySubCellWidth / 2 - primaryDimension / 2)
-  const x = primaryIsBottom ? primaryCoord : secondaryAxisScale(0)
+  const x = primaryIsBottom ? primaryCoord : adjustedSecondaryCoord
   const y = primaryIsBottom ? adjustedSecondaryCoord : primaryCoord
 
   return { x, y, barWidth, barHeight }
@@ -108,7 +117,7 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
       ? secondaryNumericUnitLength
       : primaryCellWidth / 2
 
-    // build and render bar cover elements that will handle pointer events for the fused points
+    // build and render bar cover elements that will handle click events for the fused points
     if (dataConfig && abovePointsGroupRef?.current) {
       const barCovers: IBarCover[] = []
       const bins = dataConfig?.cellMap(primarySplitAttrRole, secondarySplitAttrRole) ?? {}
@@ -116,28 +125,71 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
         ? Array.from(dataConfig.categoryArrayForAttrRole(primaryAttrRole))
         : []
       const primCatsCount = primCatsArray.length
+      const legendCats = dataConfig.categorySetForAttrRole("legend")?.values ?? []
       Object.entries(catMap).forEach(([primeCat, secCats]) => {
-        Object.entries(secCats).forEach(([secCat, extraPrimCats]) => {
-          Object.entries(extraPrimCats).forEach(([extraPrimeCat, extraSecCats]) => {
-            Object.entries(extraSecCats).forEach(([extraSecCat, cellData]) => {
+        Object.entries(secCats).forEach(([secCat, primSplitCats]) => {
+          Object.entries(primSplitCats).forEach(([primeSplitCat, secSplitCats]) => {
+            Object.entries(secSplitCats).forEach(([secSplitCat, cellData]) => {
               const secCatKey = secCat === "__main__" ? "" : secCat
-              const exPrimeCatKey = extraPrimeCat === "__main__" ? "" : extraPrimeCat
-              const exSecCatKey = extraSecCat === "__main__" ? "" : extraSecCat
-              const maxInCell = bins[primeCat]?.[secCatKey]?.[exPrimeCatKey]?.[exSecCatKey] ?? 0
-              const { x, y, barWidth, barHeight } = barCoverDimensions({
-                subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell
-              })
-              barCovers.push({
-                class: `bar-cover ${primeCat} ${secCatKey} ${exPrimeCatKey} ${exSecCatKey}`,
-                primeCat, secCat, extraPrimeCat, extraSecCat,
-                x: x.toString(), y: y.toString(),
-                width: barWidth.toString(), height: barHeight.toString()
-              })
+              const exPrimeCatKey = primeSplitCat === "__main__" ? "" : primeSplitCat
+              const exSecCatKey = secSplitCat === "__main__" ? "" : secSplitCat
+
+              if (legendAttrID && legendCats?.length > 0) {
+                let minInCell = 0
+
+                // Create a map of cases grouped by legend value so we don't need to filter all cases per value when
+                // creating the bar covers.
+                const caseGroups = new Map()
+                dataset?.cases.forEach(aCase => {
+                  const legendValue = dataset?.getStrValue(aCase.__id__, legendAttrID)
+                  const primaryValue = dataset?.getStrValue(aCase.__id__, dataConfig.attributeID(primaryAttrRole))
+                  const primarySplitValue =
+                    dataset?.getStrValue(aCase.__id__, dataConfig.attributeID(primarySplitAttrRole))
+                  const secondarySplitValue =
+                    dataset?.getStrValue(aCase.__id__, dataConfig.attributeID(secondarySplitAttrRole))
+                  const caseGroupKey =
+                    `${legendValue}-${primaryValue}-${primarySplitValue}-${secondarySplitValue}`
+                  if (!caseGroups.has(caseGroupKey)) {
+                    caseGroups.set(caseGroupKey, [])
+                  }
+                  caseGroups.get(caseGroupKey).push(aCase)
+                })
+                
+                // For each legend value, create a bar cover
+                legendCats.forEach((legendCat: string) => {
+                  const matchingCases =
+                    caseGroups.get(`${legendCat}-${primeCat}-${exPrimeCatKey}-${exSecCatKey}`) ?? []
+                  const maxInCell = minInCell + matchingCases.length
+                  if (maxInCell !== minInCell) {
+                    const { x, y, barWidth, barHeight } = barCoverDimensions({
+                      subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell, minInCell
+                    })
+                    barCovers.push({
+                      class: `bar-cover ${primeCat} ${secCatKey} ${exPrimeCatKey} ${exSecCatKey} ${legendCat}`,
+                      primeCat, secCat, primeSplitCat, secSplitCat, legendCat,
+                      x: x.toString(), y: y.toString(),
+                      width: barWidth.toString(), height: barHeight.toString()
+                    })
+                  }
+                  minInCell = maxInCell
+                })
+              } else {
+                const maxInCell = bins[primeCat]?.[secCatKey]?.[exPrimeCatKey]?.[exSecCatKey] ?? 0
+                const { x, y, barWidth, barHeight } = barCoverDimensions({
+                  subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell
+                })
+                barCovers.push({
+                  class: `bar-cover ${primeCat} ${secCatKey} ${exPrimeCatKey} ${exSecCatKey}`,
+                  primeCat, secCat, primeSplitCat, secSplitCat,
+                  x: x.toString(), y: y.toString(),
+                  width: barWidth.toString(), height: barHeight.toString()
+                })
+              }
             })
           })
         })
       })
-      renderBarCovers({ barCovers, barCoversRef, dataConfiguration: dataConfig, primaryAttrRole })
+      renderBarCovers({ barCovers, barCoversRef, dataConfig, primaryAttrRole })
     }
 
     setPointCoordinates({
