@@ -44,7 +44,7 @@ export interface DIInteractiveFrame {
     width?: number
   }
   externalUndoAvailable?: boolean
-  id?: number
+  id?: string | number
   name?: string
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
