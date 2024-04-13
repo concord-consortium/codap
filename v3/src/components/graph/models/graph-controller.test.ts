@@ -2,7 +2,7 @@ import { applySnapshot, getSnapshot, SnapshotIn, types } from "mobx-state-tree"
 import { GraphContentModel } from "./graph-content-model"
 import { GraphController } from "./graph-controller"
 import { GraphLayout } from "./graph-layout"
-import { DataSet } from "../../../models/data/data-set"
+import { DataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../../../models/data/data-set"
 import { SharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../../data-display/data-display-types"
 import { isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
@@ -35,7 +35,7 @@ describe("GraphController", () => {
         { id: "yId", name: "y", values: ["4", "5", "6"] },
         { id: "y2Id", name: "y2", values: ["7", "8", "9"] },
         { id: "cId", name: "c", values: ["a", "b", "c"] }
-      ]
+      ] as LEGACY_ATTRIBUTES_ARRAY_ANY
     })),
     metadata: types.optional(SharedCaseMetadata, () => SharedCaseMetadata.create())
   })

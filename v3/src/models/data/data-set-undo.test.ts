@@ -33,20 +33,37 @@ describe("DataSet undo/redo", () => {
 
     expect(data.attributes.map(attr => attr.name)).toEqual(["b", "a"])
 
+    // wait for action to complete
     let timedOut = false
     try {
-      await when(
-        () => treeManager.activeHistoryEntries.length === 0,
-        {timeout: 100})
+      await when(() => treeManager.activeHistoryEntries.length === 0, {timeout: 100})
     } catch (e) {
       timedOut = true
     }
     expect(timedOut).toBe(false)
 
     undoManager?.undo()
+
+    // wait for undo to complete
+    try {
+      await when(() => treeManager.activeHistoryEntries.length === 0, {timeout: 100})
+    } catch (e) {
+      timedOut = true
+    }
+    expect(timedOut).toBe(false)
+
     expect(data.attributes.map(attr => attr.name)).toEqual(["a", "b"])
 
     undoManager?.redo()
+
+    // wait for redo to complete
+    try {
+      await when(() => treeManager.activeHistoryEntries.length === 0, {timeout: 100})
+    } catch (e) {
+      timedOut = true
+    }
+    expect(timedOut).toBe(false)
+
     expect(data.attributes.map(attr => attr.name)).toEqual(["b", "a"])
   })
 

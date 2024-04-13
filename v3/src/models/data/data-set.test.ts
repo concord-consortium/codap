@@ -2,7 +2,7 @@ import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
 import { CollectionModel, CollectionPropsModel } from "./collection"
-import { DataSet, fromCanonical, toCanonical } from "./data-set"
+import { DataSet, LEGACY_ATTRIBUTES_ARRAY_ANY, fromCanonical, toCanonical } from "./data-set"
 import { CaseID, ICaseID } from "./data-set-types"
 
 let message = () => ""
@@ -165,19 +165,23 @@ test("DataSet basic functionality", () => {
   // add/remove attribute
   dataset.addAttribute({ name: "redShirt" }, { before: numAttrID })
   const redShirtID = dataset.attributes[1].id
+  expect(dataset.attributesMap.size).toBe(3)
   expect(dataset.attributes.length).toBe(3)
   const redShirt = dataset.attrFromID(redShirtID)
   expect(redShirt?.name).toBe("redShirt")
   dataset.removeAttribute(redShirtID)
+  expect(dataset.attributesMap.size).toBe(2)
   expect(dataset.attributes.length).toBe(2)
   expect(dataset.attrFromID(redShirtID)).toBeUndefined()
   expect(dataset.attrFromName("redShirt")).toBeUndefined()
   dataset.addAttribute({ name: "goner" }, { before: "bogus" })
+  expect(dataset.attributesMap.size).toBe(3)
   expect(dataset.attributes.length).toBe(3)
   expect(dataset.attributes[2].name).toBe("goner")
   dataset.removeAttribute(dataset.attributes[2].id)
   // removing a non-existent attribute is a no-op
   dataset.removeAttribute("")
+  expect(dataset.attributesMap.size).toBe(2)
   expect(dataset.attributes.length).toBe(2)
 
   // move first attribute to the end
@@ -192,7 +196,7 @@ test("DataSet basic functionality", () => {
   dataset.moveAttribute(strAttrID, { after: numAttrID })
   expect(dataset.attributes[0].name).toBe("num")
   expect(dataset.attributes[1].name).toBe("str")
-  // move attribute to bugus location moves it to end
+  // move attribute to bogus location moves it to end
   dataset.moveAttribute(numAttrID, { after: "bogus" })
   expect(dataset.attributes[0].name).toBe("str")
   expect(dataset.attributes[1].name).toBe("num")
@@ -415,7 +419,7 @@ test("hierarchical collection support", () => {
 test("Canonical case functionality", () => {
   const dataset = DataSet.create({
                     name: "data",
-                    attributes: [{ name: "str" }, { name: "num" }]
+                    attributes: [{ name: "str" }, { name: "num" }] as LEGACY_ATTRIBUTES_ARRAY_ANY
                   }),
         strAttrID = dataset.attributes[0].id,
         numAttrID = dataset.attributes[1].id

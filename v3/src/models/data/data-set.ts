@@ -55,15 +55,20 @@ import {
   symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
-import {
-  IMoveAttributeCustomPatch, ISetCaseValuesCustomPatch, moveAttributeCustomUndoRedo, setCaseValuesCustomUndoRedo
-} from "./data-set-undo"
+import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
 import { applyUndoableAction } from "../history/apply-undoable-action"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { typedId } from "../../utilities/js-utils"
 import { prf } from "../../utilities/profiler"
 import { V2Model } from "./v2-model"
+
+// For testing purposes, it is convenient to build a DataSet using just the legacy `attributes`
+// array format, trusting that the preProcessSnapshot handler will convert the array to its
+// corresponding `attributesMap` and `attributes` references array properties. Rather than
+// forcing those tests to be rewritten, this type makes it explicit that these tests are relying
+// on this mechanism in a way that allows the resulting code to pass the TypeScript compiler.
+export type LEGACY_ATTRIBUTES_ARRAY_ANY = any
 
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
@@ -79,7 +84,7 @@ export function fromCanonicalCase(ds: IDataSet, canonical: ICase | ICaseCreation
   for (const id in canonical) {
     if (id !== "__id__") {
       // if we can't find a name, just use the id
-      const name = ds.attrFromID(id)?.name || id
+      const name = ds.getAttribute(id)?.name || id
       aCase[name] = canonical[id]
     }
   }
@@ -143,7 +148,8 @@ export const DataSet = V2Model.named("DataSet").props({
   collections: types.array(CollectionModel),
   // ungrouped (child-most) collection has properties, but no grouping attributes
   ungrouped: types.optional(CollectionPropsModel, () => CollectionPropsModel.create()),
-  attributes: types.array(Attribute),
+  attributesMap: types.map(Attribute),
+  attributes: types.array(types.reference(Attribute)),
   cases: types.array(CaseID),
   sourceName: types.maybe(types.string),
   description: types.maybe(types.string),
@@ -183,15 +189,23 @@ export const DataSet = V2Model.named("DataSet").props({
     }
   }
 })
-.views(self => ({
-  // map from attribute id to attribute
-  get attrIDMap() {
-    const idMap = new Map<string, IAttribute>()
-    self.attributes.forEach(attr => {
-      idMap.set(attr.id, attr)
+.preProcessSnapshot(snap => {
+  // convert legacy array of attribute models to attributesMap and array of references
+  if (snap.attributes?.length && typeof snap.attributes[0] === "object") {
+    const { attributes: _attributes, ...others } = snap
+    const legacyAttributes = _attributes as unknown as Array<IAttributeSnapshot>
+    const attributesMap: Record<string, IAttributeSnapshot> = {}
+    const attributes: string[] = []
+    legacyAttributes.forEach(attr => {
+      const attrId = attr.id || typedId("ATTR")
+      attributesMap[attrId] = { id: attrId, ...attr }
+      attributes.push(attrId)
     })
-    return idMap
-  },
+    return { attributesMap, attributes, ...others }
+  }
+  return snap
+})
+.views(self => ({
   // map from attribute name to attribute id
   get attrNameMap() {
     const nameMap: Record<string, string> = {}
@@ -199,7 +213,6 @@ export const DataSet = V2Model.named("DataSet").props({
       nameMap[attr.name] = attr.id
     })
     return nameMap
-
   },
   attrIndexFromID(id: string) {
     const index = self.attributes.findIndex(attr => attr.id === id)
@@ -214,41 +227,45 @@ export const DataSet = V2Model.named("DataSet").props({
 }))
 .views(self => ({
   getAttribute(id: string) {
-    return self.attrIDMap.get(id)
+    return self.attributesMap.get(id)
   },
   getAttributeByName(name: string) {
-    return self.attrIDMap.get(self.attrNameMap[name])
+    return self.attributesMap.get(self.attrNameMap[name])
   }
 }))
 .actions(self => ({
   // change the attribute order within the data set itself; doesn't handle collections
   moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
-    const beforeAttrIndex = options?.before ? self.attrIndexFromID(options.before) : undefined
-    const afterAttrIndex = options?.after ? self.attrIndexFromID(options.after) : undefined
-    const found = self.attributes.find(attr => attr.id === attributeID)
-    if (found) {
-      const srcAttrIndex = self.attrIndexFromID(attributeID)
-      const nextAttrId = srcAttrIndex != null && srcAttrIndex < self.attributes.length - 1
-                          ? self.attributes[srcAttrIndex + 1].id
-                          : undefined
-      // removing an MST model from an MST array calls destroy() on it, so the only way
-      // to change the order without destroying any of the elements is to sort the array
-      const dstOrder: Record<string, number> = {}
-      // collect the current indices of each attribute in the array
-      self.attributes.forEach((attr, i) => dstOrder[attr.id] = i)
-      // assign the moved attribute an "index" value corresponding to its destination
-      dstOrder[attributeID] = beforeAttrIndex != null
-                                ? beforeAttrIndex - 0.5
-                                : afterAttrIndex != null
-                                    ? afterAttrIndex + 0.5
-                                    : self.attributes.length
-      // sort the attributes by the adjusted "indices"
-      self.attributes.sort((a, b) => dstOrder[a.id] - dstOrder[b.id])
-
-      !options?.withoutCustomUndo && withCustomUndoRedo<IMoveAttributeCustomPatch>({
-        type: "DataSet.moveAttribute",
-        data: { dataId: self.id, attrId: attributeID, before: { before: nextAttrId }, after: options }
-      }, moveAttributeCustomUndoRedo)
+    const attribute = self.getAttribute(attributeID)
+    const attrIndex = self.attrIndexFromID(attributeID)
+    if (attribute && attrIndex != null) {
+      if (options?.before) {
+        let beforeAttrIndex = self.attrIndexFromID(options.before)
+        if (beforeAttrIndex != null) {
+          if (beforeAttrIndex !== attrIndex && beforeAttrIndex !== attrIndex + 1) {
+            self.attributes.remove(attribute)
+            if (attrIndex < beforeAttrIndex) --beforeAttrIndex
+            self.attributes.splice(beforeAttrIndex, 0, attribute)
+          }
+          return
+        }
+      }
+      if (options?.after) {
+        let afterAttrIndex = self.attrIndexFromID(options.after)
+        if (afterAttrIndex != null) {
+          if (afterAttrIndex !== attrIndex && afterAttrIndex !== attrIndex - 1) {
+            self.attributes.remove(attribute)
+            if (attrIndex > afterAttrIndex) ++afterAttrIndex
+            self.attributes.splice(afterAttrIndex, 0, attribute)
+          }
+          return
+        }
+      }
+      // no before/after -- move attribute to end
+      if (attrIndex !== self.attributes.length - 1) {
+        self.attributes.remove(attribute)
+        self.attributes.push(attribute)
+      }
     }
   }
 }))
@@ -451,10 +468,8 @@ export const DataSet = V2Model.named("DataSet").props({
         }
 
         // clear map from pseudo-case id to pseudo-case
-        // can't assign empty object because we're not an action
-        for (const id in self.pseudoCaseMap) {
-          self.pseudoCaseMap.delete(id)
-        }
+        self.pseudoCaseMap.clear()
+
         // update map from pseudo-case id to pseudo-case
         newCollectionGroups.forEach(collectionGroup => {
           collectionGroup.groups.forEach(caseGroup => {
@@ -696,7 +711,7 @@ export const DataSet = V2Model.named("DataSet").props({
     if (index == null) { return }
     for (const key in caseValues) {
       if (key !== "__id__") {
-        const attribute = self.attrIDMap.get(key)
+        const attribute = self.getAttribute(key)
         if (attribute) {
           const value = caseValues[key]
           attribute.setValue(index, value != null ? value : undefined)
@@ -710,12 +725,14 @@ export const DataSet = V2Model.named("DataSet").props({
      * public views
      */
     views: {
+      // [DEPRECATED] use getAttribute() instead
       attrFromID(id: string) {
-        return self.attrIDMap.get(id)
+        return self.getAttribute(id)
       },
+      // [DEPRECATED] use getAttributeByName() instead
       attrFromName(name: string) {
         const id = self.attrNameMap[name]
-        return id ? self.attrIDMap.get(id) : undefined
+        return id ? self.getAttribute(id) : undefined
       },
       attrIDFromName,
       caseIndexFromID(id: string) {
@@ -747,7 +764,7 @@ export const DataSet = V2Model.named("DataSet").props({
               return cachedCase[attributeID]
             }
           }
-          const attr = self.attrIDMap.get(attributeID)
+          const attr = self.getAttribute(attributeID)
           return attr?.value(index)
       },
       getStrValue(caseID: string, attributeID: string) {
@@ -767,7 +784,7 @@ export const DataSet = V2Model.named("DataSet").props({
             return cachedCase[attributeID]?.toString()
           }
         }
-        const attr = self.attrIDMap.get(attributeID)
+        const attr = self.getAttribute(attributeID)
         return attr?.value(index) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
@@ -787,7 +804,7 @@ export const DataSet = V2Model.named("DataSet").props({
             return Number(cachedCase[attributeID])
           }
         }
-        const attr = self.attrIDMap.get(attributeID)
+        const attr = self.getAttribute(attributeID)
         return attr?.numeric(index)
       },
       getCase,
@@ -888,17 +905,24 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       addAttribute(snapshot: IAttributeSnapshot, options?: IAddAttributeOptions) {
         const { before: beforeID, collection: collectionId } = options || {}
-        let beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
+
+        // add attribute to attributesMap
+        const attribute = self.attributesMap.put(snapshot)
+
+        // add attribute reference to attributes array
+        const beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeIndex >= 0) {
-          self.attributes.splice(beforeIndex, 0, snapshot)
+          self.attributes.splice(beforeIndex, 0, attribute.id)
         }
         else {
-          beforeIndex = self.attributes.push(snapshot) - 1
+          self.attributes.push(attribute.id)
         }
-        const attribute = self.attributes[beforeIndex]
+
+        // fill out any missing values
         for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
           attribute.addValue()
         }
+        // add the attribute to the specified collection (if any)
         if (collectionId) {
           const collection = self.getGroupedCollection(collectionId)
           collection?.addAttribute(attribute)
@@ -907,7 +931,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       setAttributeName(attributeID: string, name: string | (() => string)) {
-        const attribute = attributeID && self.attrIDMap.get(attributeID)
+        const attribute = attributeID && self.getAttribute(attributeID)
         if (attribute) {
           const nameStr = typeof name === "string" ? name : name()
           attribute.setName(nameStr)
@@ -915,10 +939,9 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       removeAttribute(attributeID: string) {
-        const attrIndex = self.attrIndexFromID(attributeID),
-              attribute = attributeID ? self.attrIDMap.get(attributeID) : undefined
+        const attribute = self.getAttribute(attributeID)
 
-        if (attribute && attrIndex != null) {
+        if (attribute) {
           // remove attribute from any collection
           const collection = self.getCollectionForAttribute(attributeID)
           if (isCollectionModel(collection)) {
@@ -930,8 +953,10 @@ export const DataSet = V2Model.named("DataSet").props({
             }
           }
 
-          // remove attribute from data set
-          self.attributes.splice(attrIndex, 1)
+          // remove attribute from attributes array
+          self.attributes.remove(attribute)
+          // remove attribute from attributesMap
+          self.attributesMap.delete(attribute.id)
         }
       },
 

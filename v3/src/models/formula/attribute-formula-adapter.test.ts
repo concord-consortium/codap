@@ -1,9 +1,11 @@
-import { DataSet, IDataSet } from "../data/data-set"
+import { DataSet, IDataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../data/data-set"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const getTestEnv = () => {
-  const dataSet = DataSet.create({ attributes: [{ name: "foo", formula: { display: "1 + 2", canonical: "1 + 2" } }] })
+  const dataSet = DataSet.create({
+    attributes: [{ name: "foo", formula: { display: "1 + 2", canonical: "1 + 2" } }] as LEGACY_ATTRIBUTES_ARRAY_ANY
+  })
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
   const formula = attribute.formula!
@@ -54,7 +56,7 @@ describe("AttributeFormulaAdapter", () => {
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
-        ]
+        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
       })
       dataSet.attributes[0].formula!.setCanonicalExpression(
         `${localAttrIdToCanonical(dataSet.attrIDFromName("bar"))} + 1`
@@ -86,7 +88,7 @@ describe("AttributeFormulaAdapter", () => {
         attributes: [
           { name: "foo", formula: { display: "1 + 2", canonical: "1 + 2" } },
           { name: "bar" }
-        ]
+        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
       })
       dataSet.addCases([{ __id__: "1" }])
       const attribute = dataSet.attributes[0]

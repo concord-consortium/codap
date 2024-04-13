@@ -1,5 +1,5 @@
 import { observable, runInAction } from "mobx"
-import { DataSet, IDataSet } from "../data/data-set"
+import { DataSet, IDataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../data/data-set"
 import { Formula, IFormula } from "./formula"
 import { FormulaManager } from "./formula-manager"
 import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./utils/name-mapping-utils"
@@ -26,7 +26,7 @@ const getFakeAdapter = (formula: IFormula, dataSet: IDataSet) => {
 }
 
 const getManagerWithFakeAdapter = () => {
-  const dataSet = DataSet.create({ attributes: [{ name: "foo" }] })
+  const dataSet = DataSet.create({ attributes: [{ name: "foo" }] as LEGACY_ATTRIBUTES_ARRAY_ANY })
   const formula = Formula.create({ display: formulaDisplay })
   const adapter = getFakeAdapter(formula, dataSet)
   const manager = new FormulaManager()
@@ -83,7 +83,7 @@ describe("FormulaManager", () => {
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
-        ]
+        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
       })
       dataSet.addCases([{ __id__: "1" }])
       const manager = new FormulaManager()

@@ -2,37 +2,9 @@ import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
 import { HistoryEntryType } from "../history/history"
 import { ICustomPatch } from "../history/tree-types"
 import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
-import { ICase, IMoveAttributeOptions } from "./data-set-types"
+import { ICase } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { DataSet } from "./data-set"
-
-export interface IMoveAttributeCustomPatch extends ICustomPatch {
-  type: "DataSet.moveAttribute",
-  data: {
-    dataId: string
-    attrId: string
-    before?: IMoveAttributeOptions
-    after?: IMoveAttributeOptions
-  }
-}
-function isMoveAttributeCustomPatch(patch: ICustomPatch): patch is IMoveAttributeCustomPatch {
-  return patch.type === "DataSet.moveAttribute"
-}
-
-export const moveAttributeCustomUndoRedo: ICustomUndoRedoPatcher = {
-  undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
-    if (isMoveAttributeCustomPatch(patch)) {
-      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
-      data?.moveAttribute(patch.data.attrId, patch.data.before)
-    }
-  },
-  redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
-    if (isMoveAttributeCustomPatch(patch)) {
-      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
-      data?.moveAttribute(patch.data.attrId, patch.data.after)
-    }
-  }
-}
 
 export interface ISetCaseValuesCustomPatch extends ICustomPatch {
   type: "DataSet.setCaseValues"
