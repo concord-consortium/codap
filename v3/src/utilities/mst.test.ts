@@ -3,6 +3,59 @@ import { Instance, onAction, onPatch, onSnapshot, types } from "mobx-state-tree"
 
 describe("Mobx State Tree", () => {
 
+  it("MST references and safeReferences works in predictable ways", () => {
+    const Item = types.model("Item", {
+      id: types.identifier
+    })
+    const Container = types.model("Container", {
+      itemMap: types.map(Item),
+      itemRefs: types.array(types.reference(Item)),
+      itemSafeRefs: types.array(types.safeReference(Item))
+    })
+    .actions(self => ({
+      addItem(item: Instance<typeof Item>) {
+        self.itemMap.put(item)
+        self.itemRefs.push(item)
+        self.itemSafeRefs.push(item)
+      },
+      clear() {
+        self.itemMap.clear()
+        self.itemRefs.clear()
+        self.itemSafeRefs.clear()
+      },
+      removeItem(itemId: string) {
+        self.itemMap.delete(itemId)
+      },
+      removeReferences(item: Instance<typeof Item>) {
+        self.itemRefs.remove(item)
+        self.itemSafeRefs.remove(item)
+      }
+    }))
+
+    const c = Container.create()
+    const i1 = Item.create({ id: "I1" })
+    c.addItem(i1)
+    expect(c.itemMap.size).toBe(1)
+    expect(c.itemRefs.length).toBe(1)
+    expect(c.itemSafeRefs.length).toBe(1)
+    // removing item from the map destroys it
+    c.removeItem(i1.id)
+    expect(c.itemMap.size).toBe(0)
+    // destroyed item is _not_ automatically removed from arrays of references
+    expect(c.itemRefs.length).toBe(1)
+    // destroyed item _is_ automatically removed from arrays of safeReferences
+    expect(c.itemSafeRefs.length).toBe(0)
+    c.clear()
+
+    const i2 = Item.create({ id: "I2" })
+    c.addItem(i2)
+    // references and safeReferences can be removed with remove(item)
+    c.removeReferences(i2)
+    expect(c.itemMap.size).toBe(1)
+    expect(c.itemRefs.length).toBe(0)
+    expect(c.itemSafeRefs.length).toBe(0)
+  })
+
   it("MST destroys objects when removing them from arrays", () => {
     const jestBeforeDestroy = jest.fn()
     const Entry = types.model("Entry", {})

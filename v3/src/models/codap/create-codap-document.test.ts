@@ -70,13 +70,16 @@ describe("createCodapDocument", () => {
           sharedModel: {
             dataSet: {
               name: "New Dataset",
-              attributes: [{
-                clientKey: "",
-                id: "test-8",
-                name: "a",
-                editable: true,
-                values: ["1", "2", "3"]
-              }],
+              attributesMap: {
+                "test-8": {
+                  clientKey: "",
+                  id: "test-8",
+                  name: "a",
+                  editable: true,
+                  values: ["1", "2", "3"]
+                }
+              },
+              attributes: ["test-8"],
               cases: [{ __id__: "CASEorder-9" }, { __id__: "CASEorder-10" }, { __id__: "CASEorder-11" }],
               collections: [],
               ungrouped: { id: "test-6", name: "Cases" },

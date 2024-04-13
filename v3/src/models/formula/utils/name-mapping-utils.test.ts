@@ -3,7 +3,7 @@ import {
   idToCanonical, isCanonicalName, localAttrIdToCanonical, rmCanonicalPrefix, safeSymbolName
 } from "./name-mapping-utils"
 import { getFormulaTestEnv } from "../test-utils/formula-test-utils"
-import { DataSet } from "../../data/data-set"
+import { DataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../../data/data-set"
 import { GlobalValueManager } from "../../global/global-value-manager"
 import { basicCanonicalNameToDependency } from "./formula-dependency-utils"
 
@@ -136,7 +136,7 @@ describe("getDisplayNameMap", () => {
         name: "dataSet",
         attributes: [
           { id: "DATA_SET_ATTR_ID", name: "caseIndex" },
-        ]
+        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
       })
       const nameMap = getDisplayNameMap({
         localDataSet: dataSet,
@@ -160,7 +160,7 @@ describe("getDisplayNameMap", () => {
         name: "dataSet",
         attributes: [
           { id: "DATA_SET_ATTR_ID", name: "fooBar" },
-        ]
+        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
       })
       const nameMap = getDisplayNameMap({
         localDataSet: dataSet,
