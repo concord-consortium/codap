@@ -54,6 +54,10 @@ export interface DIInteractiveFrame {
   version?: string
 }
 export type DIItem = unknown
+export interface DINewCase {
+  id?: string
+  itemID?: string
+}
 
 export interface DIResources {
   attribute?: IAttribute
@@ -76,7 +80,7 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame
+export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame | DINewCase
 
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 

@@ -4,6 +4,7 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DICaseValues, DIFullCase, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 
+// Converts an attributeName => value dictionary to attributeId => value
 function attrNamesToIds(values: DICaseValues, dataSet: IDataSet) {
   const caseValues: ICaseCreation = {}
   Object.keys(values).forEach(attrName => {
@@ -18,8 +19,8 @@ export const diCaseHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } }
 
-    const caseIDs: string[] = []
-    const newCases: string[][] = []
+    let itemIds: string[] = []
+    const newCaseData: ICaseCreation[] = []
     const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
     dataContext.applyUndoableAction(() => {
       cases.forEach(aCase => {
@@ -27,22 +28,14 @@ export const diCaseHandler: DIHandler = {
           const { parent } = aCase
           const parentValues = parent ? dataContext.getParentValues(parent) : {}
           const caseValues = attrNamesToIds(aCase.values, dataContext)
-          const ids = dataContext.addCases([{ ...caseValues, ...parentValues }])
-          if (ids.length > 0) {
-            newCases.push([ids[0], parent ?? "noparent"])
-            // const itemId = ids[0]
-            // const childId = parent ? dataContext.getChildCaseWithItem(parent, itemId) : itemId
-            // caseIDs.push(childId)
-          }
+          newCaseData.push({ ...caseValues, ...parentValues })
         }
       })
-      newCases.forEach(newCaseIds => {
-        const [itemId, parentId] = newCaseIds
-        const childId = parentId === "noparent" ? itemId : dataContext.getChildCaseWithItem(parentId, itemId)
-        caseIDs.push(childId)
-      })
+      itemIds = dataContext.addCases(newCaseData)
     })
-    return { success: true, values: caseIDs.map(id => ({ id })) }
+
+    // TODO Include case ids as id in the returned values
+    return { success: true, values: itemIds.map(id => ({ itemID: id })) }
   },
   update(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
@@ -53,7 +46,7 @@ export const diCaseHandler: DIHandler = {
     dataContext.applyUndoableAction(() => {
       cases.forEach(aCase => {
         const { id } = aCase
-        if (id && aCase.values && (dataContext.getCase(id) || dataContext.getPseudoCaseMap().get(id))) {
+        if (id && aCase.values && (dataContext.getCase(id) || dataContext.pseudoCaseMap.get(id))) {
           caseIDs.push(id)
           const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
           dataContext.setCaseValues([{ ...updatedAttributes, __id__: id }])

@@ -45,7 +45,7 @@
 import { observable, reaction, runInAction } from "mobx"
 import { addDisposer, addMiddleware, getEnv, Instance, isAlive, SnapshotIn, types } from "mobx-state-tree"
 import pluralize from "pluralize"
-import { Attribute, IAttribute, IAttributeSnapshot, IValueType } from "./attribute"
+import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
 } from "./collection"
@@ -335,15 +335,6 @@ export const DataSet = V2Model.named("DataSet").props({
         }
         return _childCases
       },
-      getPseudoCaseMap() {
-        console.log(`!!! isValidCollectionGroups`, isValidCollectionGroups.get())
-        if (!isValidCollectionGroups.get()) {
-          console.log(` !! rebuilding collection groups`)
-          // childCases array cache is built by collectionGroups()
-          this.collectionGroups // eslint-disable-line no-unused-expressions
-        }
-        return self.pseudoCaseMap
-      },
       // the resulting collection groups
       get collectionGroups() {
         if (isValidCollectionGroups.get()) return _collectionGroups.get()
@@ -461,25 +452,16 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // clear map from pseudo-case id to pseudo-case
         // can't assign empty object because we're not an action
-        console.log(`*** pseudoCases`, Array.from(self.pseudoCaseMap.values()).length)
-        Array.from(self.pseudoCaseMap.keys()).forEach(id => {
-        // for (const id in self.pseudoCaseMap.keys()) {
-          console.log(`@@@ deleting`, id)
-          self.pseudoCaseMap.delete(id)
-        // }
-        })
-        console.log(` ** pseudoCases`, Array.from(self.pseudoCaseMap.values()).length)
+        self.pseudoCaseMap.clear()
         // update map from pseudo-case id to pseudo-case
         newCollectionGroups.forEach(collectionGroup => {
           collectionGroup.groups.forEach(caseGroup => {
             self.pseudoCaseMap.set(caseGroup.pseudoCase.__id__, caseGroup)
           })
         })
-        console.log(`  * pseudoCases`, Array.from(self.pseudoCaseMap.values()).length)
 
         runInAction(() => {
           _collectionGroups.set(newCollectionGroups)
-          console.log(`  . updated collection groups`)
           isValidCollectionGroups.set(true)
         })
         return _collectionGroups.get()
@@ -487,7 +469,6 @@ export const DataSet = V2Model.named("DataSet").props({
     },
     actions: {
       invalidateCollectionGroups() {
-        console.log(`... invalidating collection groups`)
         isValidCollectionGroups.set(false)
       },
       setUngroupedCollection(collection: ICollectionPropsModel) {
@@ -563,16 +544,6 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .views(self => ({
-  getPseudoCaseForTrueCase(c: IGroupedCase) {
-    return {
-      childCaseIds: [] as string[],
-      childPseudoCaseIds: [] as string[],
-      collectionId: self.ungrouped.id,
-      pseudoCase: c
-    }
-  }
-}))
-.views(self => ({
   getGroupsForCollection(collectionId?: string) {
     if (collectionId && self.getCollection(collectionId)) {
       for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
@@ -585,7 +556,12 @@ export const DataSet = V2Model.named("DataSet").props({
         }
       }
     }
-    return self.childCases().map(c => self.getPseudoCaseForTrueCase(c))
+    return self.childCases().map(c => ({
+      childCaseIds: [] as string[],
+      childPseudoCaseIds: [] as string[],
+      collectionId: self.ungrouped.id,
+      pseudoCase: c
+    }))
   },
   getParentCollectionGroup(collectionId?: string) {
     if (collectionId && self.collectionGroups.length) {
@@ -644,15 +620,8 @@ export const DataSet = V2Model.named("DataSet").props({
 }))
 .views(self => ({
   getParentValues(parentId: string) {
-    let parentValues: Record<string, IValueType> = {}
-    let parentCase = self.pseudoCaseMap.get(parentId)
-    while (parentCase) {
-      const { collectionId, pseudoCase } = parentCase
-      parentValues = { ...parentValues, ...pseudoCase }
-      parentCase = self.getParentCase(pseudoCase.__id__, collectionId)
-    }
-    delete parentValues.__id__
-    return parentValues
+    const parentCase = self.pseudoCaseMap.get(parentId)
+    return parentCase ? JSON.parse(parentCase.valuesJson) : {}
   }
 }))
 .extend(self => {
@@ -1101,32 +1070,6 @@ export const DataSet = V2Model.named("DataSet").props({
     }
   }
 })
-.views(self => ({
-  // Returns the id of the immediate descendent of the pseudoCase with parentId that ultimately has
-  // the case with itemId. This might be the case with itemId itself.
-  getChildCaseWithItem(parentId: string, itemId: string) {
-    console.log(`--- Finding child case`, parentId, itemId)
-    console.log(` -- pseudoCaseMap`, self.pseudoCaseMap)
-    const parent = self.getPseudoCaseMap().get(parentId)
-    console.log(` -- parent`, parent, parent?.childPseudoCaseIds)
-    if (parent) {
-      if (parent.childPseudoCaseIds) {
-        const childId = parent.childPseudoCaseIds.find(aChildId => {
-          console.log(`ooo Checking`, aChildId)
-          const child = self.pseudoCaseMap.get(aChildId)
-          console.log(` oo child`, child)
-          console.log(` oo contains`, itemId, child?.childCaseIds.includes(itemId))
-          return child?.childCaseIds.includes(itemId)
-        })
-        console.log(`  - found`, childId)
-        if (childId) return childId
-      }
-    }
-
-    console.log(`  - bailing`, itemId)
-    return itemId
-  }
-}))
 .actions(self => ({
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
