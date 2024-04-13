@@ -80,7 +80,8 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame | DINewCase
+export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal |
+  DIInteractiveFrame | DINewCase
 
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
