@@ -452,7 +452,9 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // clear map from pseudo-case id to pseudo-case
         // can't assign empty object because we're not an action
-        self.pseudoCaseMap.clear()
+        for (const id in self.pseudoCaseMap) {
+          self.pseudoCaseMap.delete(id)
+        }
         // update map from pseudo-case id to pseudo-case
         newCollectionGroups.forEach(collectionGroup => {
           collectionGroup.groups.forEach(caseGroup => {
