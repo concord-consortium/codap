@@ -84,7 +84,7 @@ export function fromCanonicalCase(ds: IDataSet, canonical: ICase | ICaseCreation
   for (const id in canonical) {
     if (id !== "__id__") {
       // if we can't find a name, just use the id
-      const name = ds.attributesMap.get(id)?.name || id
+      const name = ds.getAttribute(id)?.name || id
       aCase[name] = canonical[id]
     }
   }
@@ -711,7 +711,7 @@ export const DataSet = V2Model.named("DataSet").props({
     if (index == null) { return }
     for (const key in caseValues) {
       if (key !== "__id__") {
-        const attribute = self.attributesMap.get(key)
+        const attribute = self.getAttribute(key)
         if (attribute) {
           const value = caseValues[key]
           attribute.setValue(index, value != null ? value : undefined)
@@ -727,12 +727,12 @@ export const DataSet = V2Model.named("DataSet").props({
     views: {
       // [DEPRECATED] use getAttribute() instead
       attrFromID(id: string) {
-        return self.attributesMap.get(id)
+        return self.getAttribute(id)
       },
       // [DEPRECATED] use getAttributeByName() instead
       attrFromName(name: string) {
         const id = self.attrNameMap[name]
-        return id ? self.attributesMap.get(id) : undefined
+        return id ? self.getAttribute(id) : undefined
       },
       attrIDFromName,
       caseIndexFromID(id: string) {
@@ -764,7 +764,7 @@ export const DataSet = V2Model.named("DataSet").props({
               return cachedCase[attributeID]
             }
           }
-          const attr = self.attributesMap.get(attributeID)
+          const attr = self.getAttribute(attributeID)
           return attr?.value(index)
       },
       getStrValue(caseID: string, attributeID: string) {
@@ -784,7 +784,7 @@ export const DataSet = V2Model.named("DataSet").props({
             return cachedCase[attributeID]?.toString()
           }
         }
-        const attr = self.attributesMap.get(attributeID)
+        const attr = self.getAttribute(attributeID)
         return attr?.value(index) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
@@ -804,7 +804,7 @@ export const DataSet = V2Model.named("DataSet").props({
             return Number(cachedCase[attributeID])
           }
         }
-        const attr = self.attributesMap.get(attributeID)
+        const attr = self.getAttribute(attributeID)
         return attr?.numeric(index)
       },
       getCase,
@@ -931,7 +931,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       setAttributeName(attributeID: string, name: string | (() => string)) {
-        const attribute = attributeID && self.attributesMap.get(attributeID)
+        const attribute = attributeID && self.getAttribute(attributeID)
         if (attribute) {
           const nameStr = typeof name === "string" ? name : name()
           attribute.setName(nameStr)
@@ -939,7 +939,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       removeAttribute(attributeID: string) {
-        const attribute = self.attributesMap.get(attributeID)
+        const attribute = self.getAttribute(attributeID)
 
         if (attribute) {
           // remove attribute from any collection
