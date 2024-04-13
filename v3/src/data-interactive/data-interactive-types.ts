@@ -89,13 +89,13 @@ export interface DIMetadata {
   dirtyDocument?: boolean
 }
 
-interface DISuccessResult {
+export interface DISuccessResult {
   success: true
   values?: DIValues
   caseIDs?: string[]
 }
 
-interface DIErrorResult {
+export interface DIErrorResult {
   success: false
   values?: {
     error: string

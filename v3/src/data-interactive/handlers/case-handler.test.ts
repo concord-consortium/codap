@@ -1,6 +1,6 @@
 import { CollectionModel, ICollectionModel } from "../../models/data/collection"
 import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
-import { DINewCase } from "../data-interactive-types"
+import { DINewCase, DISuccessResult, DIValues } from "../data-interactive-types"
 import { diCaseHandler } from "./case-handler"
 
 describe("DataInteractive CaseHandler", () => {
@@ -52,11 +52,11 @@ describe("DataInteractive CaseHandler", () => {
         parent: dataset?.getCasesForCollection(c2!.id)[0].__id__,
         values: { a3: 8 }
       }
-    ])
-    expect(result.success).toBe(true)
+    ] as DIValues)
+    expect(result?.success).toBe(true)
     expect(dataset?.cases.length).toBe(8)
     expect(dataset?.getCasesForCollection(c2!.id).length).toBe(5)
-    const newCases = result.values as DINewCase[]
+    const newCases = result!.values as DINewCase[]
     newCases.forEach(confirmNewCase)
 
     // Creating a single case
@@ -64,12 +64,12 @@ describe("DataInteractive CaseHandler", () => {
       {
         parent: dataset?.getCasesForCollection(c1!.id)[0].__id__,
         values: { a2: "d", a3: 8 }
-      }
+      } as DIValues
     )
-    expect(result.success).toBe(true)
+    expect(result2?.success).toBe(true)
     expect(dataset?.cases.length).toBe(9)
     expect(dataset?.getCasesForCollection(c2!.id).length).toBe(6)
-    const newCases2 = result2.values as DINewCase[]
+    const newCases2 = result2!.values as DINewCase[]
     newCases2.forEach(confirmNewCase)
   })
 
@@ -81,10 +81,10 @@ describe("DataInteractive CaseHandler", () => {
 
     // Update single case
     const caseId0 = dataset?.cases[0].__id__
-    const result = handler.update?.({ dataContext: dataset }, { id: caseId0, values: { a3: 10 } })
-    expect(result.success).toBe(true)
+    const result = handler.update?.({ dataContext: dataset }, { id: caseId0, values: { a3: 10 } } as DIValues)
+    expect(result?.success).toBe(true)
     expect(dataset?.getAttributeByName("a3")?.value(0)).toBe("10")
-    expect(result.caseIDs.includes(caseId0)).toBe(true)
+    expect((result as DISuccessResult).caseIDs?.includes(caseId0!)).toBe(true)
 
     // Update multiple cases
     const caseId1 = dataset?.cases[1].__id__
@@ -92,12 +92,13 @@ describe("DataInteractive CaseHandler", () => {
     const result2 = handler.update?.({ dataContext: dataset }, [
       { id: caseId1, values: { a2: "w" } },
       { id: caseId2, values: { a1: "c", a2: "c", a3: "c" } }
-    ])
-    expect(result2.success).toBe(true)
+    ] as DIValues)
+    expect(result2?.success).toBe(true)
     expect(dataset?.getAttributeByName("a2")?.value(1)).toBe("w")
-    expect(result2.caseIDs.includes(caseId1)).toBe(true)
+    const caseIDs = (result2 as DISuccessResult).caseIDs!
+    expect(caseIDs.includes(caseId1!)).toBe(true)
     const attrs = ["a1", "a2", "a3"]
     attrs.forEach(attrName => expect(dataset?.getAttributeByName(attrName)?.value(2)).toBe("c"))
-    expect(result2.caseIDs.includes(caseId2)).toBe(true)
+    expect(caseIDs.includes(caseId2!)).toBe(true)
   })
 })
