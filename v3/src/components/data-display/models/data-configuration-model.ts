@@ -337,8 +337,8 @@ export const DataConfigurationModel = types
       },
 
       selectCasesForCategoryValues(
-        primaryAttrRole: AttrRole, primaryValue: string, secondaryValue?: string, extraPrimaryValue?: string,
-        extraSecondaryValue?: string, extend = false
+        primaryAttrRole: AttrRole, primaryValue: string, secondaryValue?: string, primarySplitValue?: string,
+        secondarySplitValue?: string, legendCat?: string, extend = false
       ) {
         const dataset = self.dataset,
           primaryAttrID = self.attributeID(primaryAttrRole),
@@ -354,10 +354,12 @@ export const DataConfigurationModel = types
             return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
               (secondaryValue === "__main__" ||
                 dataset?.getStrValue(aCaseData.caseID, secondaryAttrID) === secondaryValue) &&
-              (extraPrimaryValue === "__main__" ||
-                dataset?.getStrValue(aCaseData.caseID, extraPrimaryAttrID) === extraPrimaryValue) &&
-              (extraSecondaryValue === "__main__" ||
-                dataset?.getStrValue(aCaseData.caseID, extraSecondaryAttrID) === extraSecondaryValue)
+              (primarySplitValue === "__main__" ||
+                dataset?.getStrValue(aCaseData.caseID, extraPrimaryAttrID) === primarySplitValue) &&
+              (secondarySplitValue === "__main__" ||
+                dataset?.getStrValue(aCaseData.caseID, extraSecondaryAttrID) === secondarySplitValue) &&
+              (!legendCat ||
+                dataset?.getStrValue(aCaseData.caseID, self.attributeID("legend")) === legendCat)
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 

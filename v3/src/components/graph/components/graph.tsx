@@ -17,7 +17,7 @@ import {Background} from "../../data-display/components/background"
 import {DroppablePlot} from "./droppable-plot"
 import {ScatterDots} from "./scatterdots"
 import {CaseDots} from "./casedots"
-import {ChartDots} from "./chartdots"
+import {DotChart} from "./dot-chart"
 import { DotPlotDots } from "./dotplotdots"
 import {Marquee} from "../../data-display/components/marquee"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
@@ -189,7 +189,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
       typeToPlotComponentMap = {
         casePlot: <CaseDots {...props}/>,
-        dotChart: <ChartDots {...props}/>,
+        dotChart: <DotChart {...props}/>,
         dotPlot: <DotPlotDots {...props}/>,
         scatterPlot: <ScatterDots {...props}/>
       }
