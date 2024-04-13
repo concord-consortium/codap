@@ -38,7 +38,14 @@ export const Container: React.FC = () => {
     if (dragTileId) {
       if (isFreeTileRow(row)) {
         const rowTile = row.getNode(dragTileId)
-        rowTile?.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
+        if (rowTile) {
+          documentContent?.applyUndoableAction(() => {
+            rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
+          }, {
+            undoStringKey: "DG.Undo.componentMove",
+            redoStringKey: "DG.Redo.componentMove"
+          })
+        }
       }
     }
   })

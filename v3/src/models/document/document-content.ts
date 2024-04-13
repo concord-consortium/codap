@@ -1,7 +1,7 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
-import { isFreeTileRow } from "./free-tile-row"
+import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
@@ -144,11 +144,18 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    toggleTileVisibility(tileType: string) {
+    toggleSingletonTileVisibility(tileType: string) {
       const tiles = self?.getTilesOfType(tileType)
+      // There's supposed to be at most one tile of this type. Enforce this. (But an assert would be nice!)
+      if (tiles.length > 1) {
+        console.error("DocumentContent.toggleSingletonTileVisibility:",
+                      `encountered ${tiles.length} tiles of type ${tileType}`)
+      }
       if (tiles && tiles.length > 0) {
-        const tileId = tiles[0].id
-        self?.deleteTile(tileId)
+        const tileLayout = self.getTileLayoutById(tiles[0].id)
+        if (isFreeTileLayout(tileLayout)) {
+          tileLayout.setHidden(!tileLayout.isHidden)
+        }
       } else {
         return self.createTile(tileType)
       }
@@ -159,7 +166,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
-          self.toggleTileVisibility(tileType)
+          self.toggleSingletonTileVisibility(tileType)
         } else {
           return self.createTile(tileType, options)
         }

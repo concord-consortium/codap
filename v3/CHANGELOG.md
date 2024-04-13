@@ -1,4 +1,38 @@
 # Changelog
+## Version 3.0.0-pre.1521 - April 12, 2024
+
+### ✨ Features & Improvements:
+- **PT-186957008:** Automation for Undo/Redo: axis
+- **PT-187319504:** Add Cypress checks for multiple y-attributes
+- **PT-187338385:** V2 name/title and id/guid/cid compatibility
+- **PT-187354366:** DI create/get/update global and get globalList
+- **PT-187367138:** DI basic create/get/update selectionList
+- **PT-187346867:** DI get itemCount and get caseCount
+- **PT-187372266:** DI get/delete allCases
+- **PT-187263404:** Initial notify request: global
+- **PT-187255353:** A marquee select tool in maps allows users to select points
+- **PT-187152587:** The label for a plotted function in a scatterplot uses the name of the attribute on the y-axis
+- **PT-187391638:** Calculator position is saved and restored on close and reopen
+- **PT-187233618:** Count adornment should show a count per bin when Group into Bins is selected
+- **PT-181915881:** Dot chart with one categorical axis can be converted to a **bar chart**
+
+### 🐞 Bug Fixes:
+- **PT-187333857:** Missing numbers on Slider axis
+- **PT-187326232:** Fix Getting Started with CODAP example document
+- **PT-187326224:** Fix Markov Game example document
+- **PT-187296100:** "Roller Coasters" file fails to open in Example Docs menu
+- **PT-187374319:** Imported V2 maps have a problem when adding a legend
+- **PT-187348852:** Can't create graph from second dataset
+- **PT-187128104:** Changes in point size aren't discrete wrt undo/redo
+- **PT-187381311:** Map grid unable to handle us-cities dataset
+- **PT-187399465:** GitHub Pull Requests no longer show coverage
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  156316 bytes |                            6.08% |
+|  index.js | 5198791 bytes |                            0.57% |
+
 ## Version 3.0.0-pre.1520 - March 28, 2024
 
 ### ✨ Features & Improvements:

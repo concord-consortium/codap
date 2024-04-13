@@ -69,6 +69,12 @@ export class MultiScale {
       : undefined
   }
 
+  @computed get bandScale() {
+    return this.scaleType === "band"
+      ? this.scale as ScaleBand<string>
+      : undefined
+  }
+
   @computed get categoricalScale() {
     return this.scaleType === "ordinal"
       ? this.scale as ScaleOrdinal<string, any>

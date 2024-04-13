@@ -2,6 +2,7 @@
  * A GraphContentModel is the top level model for the Graph component.
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
+import {cloneDeep} from "lodash"
 import {when} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
@@ -19,11 +20,12 @@ import {computePointRadius} from "../../data-display/data-display-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
-import { axisPlaceToAttrRole, GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
+import { attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole,
+         PointDisplayType } from "../../data-display/data-display-types"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
-import {IDomainOptions, PlotType, PlotTypes} from "../graphing-types"
+import { CatMapType, CellType, IDomainOptions, PlotType, PlotTypes } from "../graphing-types"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
@@ -33,7 +35,9 @@ import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
 import { ICase } from "../../../models/data/data-set-types"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
+import { CaseData } from "../../data-display/d3-types"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
@@ -84,6 +88,18 @@ export const GraphContentModel = DataDisplayContentModel
     dynamicBinWidth: undefined as number | undefined,
     prevDataSetId: ""
   }))
+  .preProcessSnapshot(snap => {
+    // some properties were historically written out as null because NaN => null in JSON
+    const nullCheckProps: Array<keyof typeof snap> = ["_binAlignment", "_binWidth"]
+    // are there any `null` properties?
+    if (nullCheckProps.some(prop => snap[prop] === null)) {
+      // if so, clone the snapshot
+      snap = cloneDeep(snap)
+      // and delete the `null` properties
+      nullCheckProps.forEach(prop => (snap[prop] === null) && delete snap[prop])
+    }
+    return snap
+  })
   .actions(self => ({
     addLayer(aLayer: IGraphPointLayerModel) {
       self.layers.push(aLayer)
@@ -250,14 +266,14 @@ export const GraphContentModel = DataDisplayContentModel
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
     },
     setBinAlignment(alignment: number) {
-      self._binAlignment = alignment
+      self._binAlignment = isFiniteNumber(alignment) ? alignment : undefined
       self.dynamicBinAlignment = undefined
     },
     setDynamicBinAlignment(alignment: number) {
       self.dynamicBinAlignment = alignment
     },
     setBinWidth(width: number) {
-      self._binWidth = width
+      self._binWidth = isFiniteNumber(width) ? width : undefined
       self.dynamicBinWidth = undefined
     },
     setDynamicBinWidth(width: number) {
@@ -313,7 +329,6 @@ export const GraphContentModel = DataDisplayContentModel
       const caseTopSplitValue = topSplitAttrID && dataset?.getStrValue(caseID, topSplitAttrID)
       const caseRightSplitValue = rightSplitAttrID && dataset?.getStrValue(caseID, rightSplitAttrID)
       const caseLegendValue = legendAttrID && dataset?.getStrValue(caseID, legendAttrID)
-
       const getMatchingCases = (attrID?: string, value?: string, _allCases?: ICase[]) => {
         const allCases = _allCases ?? dataset?.cases
         const matchingCases = attrID && value
@@ -328,7 +343,6 @@ export const GraphContentModel = DataDisplayContentModel
       const rightSplitMatches = getMatchingCases(rightSplitAttrID, caseRightSplitValue)
       const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
       const legendMatches = getMatchingCases(legendAttrID, caseLegendValue, primaryMatches)
-
       const cellKey: Record<string, string> = {
         ...(casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
         ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
@@ -342,7 +356,6 @@ export const GraphContentModel = DataDisplayContentModel
         rightSplitMatches.length,
         dataset?.cases.length ?? 0
       ].find(length => length > 0) ?? 0
-      const percent = totalCases ? float((casesInSubPlot / totalCases) * 100) : 100
       const caseCategoryString = caseLegendValue !== ""
         ? casePrimaryValue
         : ""
@@ -351,13 +364,106 @@ export const GraphContentModel = DataDisplayContentModel
         : casePrimaryValue
       const firstCount = legendAttrID ? totalCases : casesInSubPlot
       const secondCount = legendAttrID ? casesInSubPlot : totalCases
-
+      const percent = float(100 * firstCount / secondCount)
       // <n> of <m> <category> (<p>%) are <legend category>
       const attrArray = [
         firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
       ]
-
       return t("DG.BarChartModel.cellTipPlural", {vars: attrArray})
+    }
+  }))
+  .views(self => ({
+    cellParams(primaryCellWidth: number, primaryHeight: number) {
+      const pointDiameter = 2 * self.getPointRadius()
+      const catMap: CatMapType = {}
+      const dataConfig = self.dataConfiguration
+      const primaryAttrRole = dataConfig.primaryRole
+      const secondaryAttrRole = dataConfig.secondaryRole
+      const extraPrimaryAttrRole = primaryAttrRole === 'x' ? 'topSplit' : 'rightSplit'
+      const extraSecondaryAttrRole = primaryAttrRole === 'x' ? 'rightSplit' : 'topSplit'
+      const primCatsArray: string[] = (primaryAttrRole)
+        ? Array.from(dataConfig.categoryArrayForAttrRole(primaryAttrRole)) : []
+      const secCatsArray: string[] = (secondaryAttrRole)
+        ? Array.from(dataConfig.categoryArrayForAttrRole(secondaryAttrRole)) : []
+      const extraPrimCatsArray: string[] = (extraPrimaryAttrRole)
+        ? Array.from(dataConfig.categoryArrayForAttrRole(extraPrimaryAttrRole)) : []
+      const extraSecCatsArray: string[] = (extraSecondaryAttrRole)
+        ? Array.from(dataConfig.categoryArrayForAttrRole(extraSecondaryAttrRole)) : []
+
+      primCatsArray.forEach((primCat, i) => {
+        if (!catMap[primCat]) {
+          catMap[primCat] = {}
+        }
+        secCatsArray.forEach((secCat, j) => {
+          if (!catMap[primCat][secCat]) {
+            catMap[primCat][secCat] = {}
+          }
+          extraPrimCatsArray.forEach((exPrimeCat, k) => {
+            if (!catMap[primCat][secCat][exPrimeCat]) {
+              catMap[primCat][secCat][exPrimeCat] = {}
+            }
+            extraSecCatsArray.forEach((exSecCat, l) => {
+              if (!catMap[primCat][secCat][exPrimeCat][exSecCat]) {
+                catMap[primCat][secCat][exPrimeCat][exSecCat] =
+                  {cell: {p: i, s: j, ep: k, es: l}, numSoFar: 0}
+              }
+            })
+          })
+        })
+      })
+
+      const secondaryGap = self.pointsFusedIntoBars ? 0 : 5
+      const maxInCell = dataConfig.maxOverAllCells(extraPrimaryAttrRole, extraSecondaryAttrRole) ?? 0
+      const allowedPointsPerColumn = Math.max(1, Math.floor((primaryHeight - secondaryGap) / pointDiameter))
+      const primaryGap = self.pointsFusedIntoBars ? 0 : 18
+      const allowedPointsPerRow = Math.max(1, Math.floor((primaryCellWidth - primaryGap) / pointDiameter))
+      const numPointsInRow = self.pointsFusedIntoBars
+        ? 1
+        : Math.max(1, Math.min(allowedPointsPerRow, Math.ceil(maxInCell / allowedPointsPerColumn)))
+      const actualPointsPerColumn = self.pointsFusedIntoBars
+        ? Math.ceil(maxInCell)
+        : Math.ceil(maxInCell / numPointsInRow)
+      const overlap =
+        -Math.max(0, ((actualPointsPerColumn + 1) * pointDiameter - primaryHeight) / actualPointsPerColumn)
+      
+      return { catMap, numPointsInRow, overlap }
+    }
+  }))
+  .views(self => ({
+    mapOfIndicesByCase(catMap: CatMapType, numPointsInRow: number) {
+      const dataConfig = self.dataConfiguration
+      const dataset = dataConfig.dataset
+      const indices: Record<string, {
+        cell: CellType,
+        row: number, column: number
+      }> = {}
+      const primaryAttrRole = dataConfig.primaryRole
+      const primaryAttrID = primaryAttrRole ? dataConfig.attributeID(primaryAttrRole) : ''
+      const secondaryAttrID = dataConfig.secondaryRole ? dataConfig.attributeID(dataConfig.secondaryRole) : ''
+      const extraPrimaryAttrRole: keyof typeof attrRoleToAxisPlace = primaryAttrRole === 'x' ? 'topSplit' : 'rightSplit'
+      const extraSecondaryAttrRole: keyof typeof attrRoleToAxisPlace = primaryAttrRole === 'x'
+        ? 'rightSplit' : 'topSplit'
+      const extraSecondaryAttrID = dataConfig?.attributeID(extraSecondaryAttrRole) ?? ''
+      const extraPrimaryAttrID = dataConfig.attributeID(extraPrimaryAttrRole)
+
+      primaryAttrID && (dataConfig.caseDataArray || []).forEach((aCaseData: CaseData) => {
+        const anID = aCaseData.caseID,
+          hCat = dataset?.getStrValue(anID, primaryAttrID),
+          vCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : '__main__',
+          extraHCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : '__main__',
+          extraVCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : '__main__'
+        if (hCat && vCat && extraHCat && extraVCat &&
+          catMap[hCat]?.[vCat]?.[extraHCat]?.[extraVCat]) {
+          const mapEntry = catMap[hCat][vCat][extraHCat][extraVCat]
+          const numInCell = mapEntry.numSoFar++
+          const row = self.pointsFusedIntoBars
+                        ? Math.floor(numInCell)
+                        : Math.floor(numInCell / numPointsInRow)
+          const column = self.pointsFusedIntoBars ? 0 : numInCell % numPointsInRow
+          indices[anID] = {cell: mapEntry.cell, row, column}
+        }
+      })
+      return indices
     }
   }))
   .actions(self => ({

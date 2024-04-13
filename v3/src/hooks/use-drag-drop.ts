@@ -96,10 +96,10 @@ export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
   tileId: string
 }
 export const useDraggableTile =
-  ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag: (active: Active)=>void) => {
+  ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag?: (active: Active) => void) => {
   const data: IDragTileData = { type: "tile", tileId }
   const dragId = `${prefix}-${tileId}`
-  useTileDragStartHandler(dragId, onStartDrag)
+  useTileDragStartHandler(dragId, onStartDrag ?? (() => null))
   return useDraggable({ ...others, id: dragId, data })
 }
 
@@ -121,8 +121,11 @@ export const useContainerDroppable = (
 
 export const useTileDropHandler = (dropId: string, onDrop: (event: DragEndEvent) => void) => {
   useDndMonitor({ onDragEnd: (event: DragEndEvent) => {
-    // only call onDrop for the handler that registered it
-    (event.over?.id === dropId) && onDrop(event)
+    // only call onDrop for the handler that registered it (if available)
+    // note that sometimes the over.id can be undefined ¯\_(ツ)_/¯
+    if (!event.over?.id || event.over.id === dropId) {
+      onDrop(event)
+    }
   }})
 }
 

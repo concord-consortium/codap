@@ -64,17 +64,17 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
 
 interface IHandleClickOnBarProps {
   event: PointerEvent
-  dataConfiguration: IDataConfigurationModel
+  dataConfig: IDataConfigurationModel
   primaryAttrRole: "x" | "y"
   barCover: IBarCover
 }
 
-export const handleClickOnBar = ({ event, dataConfiguration, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
-  const { extraPrimeCat, extraSecCat, primeCat, secCat } = barCover
+export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
+  const { primeSplitCat, secSplitCat, legendCat, primeCat, secCat } = barCover
   const extendSelection = event.shiftKey
   if (primeCat) {
-    dataConfiguration?.selectCasesForCategoryValues(
-      primaryAttrRole, primeCat, secCat, extraPrimeCat, extraSecCat, extendSelection
+    dataConfig?.selectCasesForCategoryValues(
+      primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat, extendSelection
     )
   }
 }

@@ -49,7 +49,7 @@ context("Calculator", () => {
 
     c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
-    c.getComponentTitle("calculator").should("contain", calculatorName)
+    c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
   it("close calculator from close button with undo/redo", () => {
     const newCalculatorName = "my calc"
@@ -70,7 +70,7 @@ context("Calculator", () => {
 
     c.getIconFromToolshelf("calc").click()
     c.checkComponentExists("calculator")
-    c.getComponentTitle("calculator").should("contain", calculatorName)
+    c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
   it("checks all calculator tooltips", () => {
     c.selectTile("calculator")
