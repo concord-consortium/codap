@@ -1,5 +1,6 @@
 import "./handlers/all-cases-handler"
 import "./handlers/attribute-handler"
+import "./handlers/case-handler"
 import "./handlers/case-count-handler"
 import "./handlers/data-context-list-handler"
 import "./handlers/global-handler"

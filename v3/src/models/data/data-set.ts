@@ -635,6 +635,12 @@ export const DataSet = V2Model.named("DataSet").props({
     }
   }
 }))
+.views(self => ({
+  getParentValues(parentId: string) {
+    const parentCase = self.pseudoCaseMap.get(parentId)
+    return parentCase ? JSON.parse(parentCase.valuesJson) : {}
+  }
+}))
 .extend(self => {
   /*
    * private closure
@@ -962,6 +968,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
       addCases(cases: ICaseCreation[], options?: IAddCaseOptions) {
         const { before, after } = options || {}
+        const ids: string[] = []
         cases.forEach((aCase, index) => {
           // shouldn't ever have to assign an id here since the middleware should do so
           const { __id__ = uniqueCaseId() } = aCase
@@ -971,9 +978,11 @@ export const DataSet = V2Model.named("DataSet").props({
             attr.addValue(value != null ? value : undefined, insertPosition)
           })
           insertCaseIDAtIndex(__id__, insertPosition ?? 0)
+          ids.push(__id__)
         })
         // invalidate collectionGroups (including childCases)
         self.invalidateCollectionGroups()
+        return ids
       },
 
       // Supports regular cases or pseudo-cases, but not mixing the two.

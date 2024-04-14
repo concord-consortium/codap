@@ -8,14 +8,15 @@ import { ICollectionPropsModel } from "../models/data/collection"
 
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
+export interface DIFullCase {
+  children?: string[],
+  id?: string,
+  parent?: string,
+  values?: DICaseValues
+}
 export interface DIAllCases {
   cases?: {
-    case?: {
-      children?: string[],
-      id?: string,
-      parent?: string,
-      values?: DICaseValues
-    },
+    case?: DIFullCase,
     caseIndex?: number
   }[]
   collection?: {
@@ -43,7 +44,7 @@ export interface DIInteractiveFrame {
     width?: number
   }
   externalUndoAvailable?: boolean
-  id?: number
+  id?: string | number
   name?: string
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
@@ -53,6 +54,10 @@ export interface DIInteractiveFrame {
   version?: string
 }
 export type DIItem = unknown
+export interface DINewCase {
+  id?: string
+  itemID?: string
+}
 
 export interface DIResources {
   attribute?: IAttribute
@@ -75,7 +80,8 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal | DIInteractiveFrame
+export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal |
+  DIInteractiveFrame | DINewCase
 
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
@@ -83,12 +89,13 @@ export interface DIMetadata {
   dirtyDocument?: boolean
 }
 
-interface DISuccessResult {
+export interface DISuccessResult {
   success: true
   values?: DIValues
+  caseIDs?: string[]
 }
 
-interface DIErrorResult {
+export interface DIErrorResult {
   success: false
   values?: {
     error: string
