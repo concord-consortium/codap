@@ -1,0 +1,49 @@
+@use "../vars.scss";
+
+.card-icon {
+  background-color: white;
+  fill: vars.$codap-teal-dark;
+  height: 16px;
+  width: 13px;
+  border-radius: 2px;
+  &:hover {
+    height: 18px;
+    width: 14px;
+  }
+  &:active {
+    background-color: black;
+  }
+}
+
+.table-icon {
+  background-color: vars.$codap-teal-dark;
+  fill: white;
+  color: white;
+  margin-top: 2px;
+  height: 16px;
+  width: 25px;
+  &:hover {
+    height: 18px;
+  }
+  &:active {
+    fill: black;
+  }
+}
+
+.card-table-toggle-message {
+  font-size: 12px;
+  font-family: "museo-sans", sans-serif;
+  position: absolute;
+  left: 10px;
+  top: 5px;
+  width: 235px;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.90);
+  border-radius: 6px;
+  color: black;
+  padding: 5px 10px;
+  z-index: 5;
+  &:hover {
+    color: #3366CC
+  }
+}

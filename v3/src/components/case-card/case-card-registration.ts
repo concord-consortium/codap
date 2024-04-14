@@ -1,0 +1,77 @@
+import { SetRequired } from "type-fest"
+import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { CaseCardComponent } from "./case-card-component"
+import { kCaseCardTileType } from "./case-card-defs"
+import { CaseCardModel, ICaseCardSnapshot } from "./case-card-model"
+import { CaseCardTitleBar } from "./case-card-title-bar"
+import CardIcon from '../../assets/icons/icon-case-card.svg'
+/*
+import { CaseCardInspector } from "./case-card-inspector"
+*/
+
+export const kCaseCardIdPrefix = "TABL"
+
+registerTileContentInfo({
+  type: kCaseCardTileType,
+  prefix: kCaseCardIdPrefix,
+  modelClass: CaseCardModel,
+  defaultContent: () => ({ type: kCaseCardTileType })
+})
+
+registerTileComponentInfo({
+  type: kCaseCardTileType,
+  TitleBar: CaseCardTitleBar,
+  Component: CaseCardComponent,
+  // InspectorPanel: CaseCardInspector,
+  tileEltClass: "codap-case-card",
+  Icon: CardIcon,
+/*
+  shelf: {
+    ButtonComponent: CaseCardToolShelfButton,
+    position: 1,
+    labelKey: "DG.ToolButtonData.cardButton.title",
+    hintKey: "DG.ToolButtonData.cardButton.toolTip"
+  },
+*/
+  defaultWidth: 580,
+  defaultHeight: 275
+})
+
+/*
+registerV2TileImporter("DG.CardView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
+  if (!isV2CardComponent(v2Component)) return
+
+  const { title = "", _links_, attributeWidths } = v2Component.componentStorage
+
+  const content: SetRequired<ICaseCardSnapshot, "columnWidths"> = {
+    type: kCaseCardTileType,
+    columnWidths: {}
+  }
+  const contextId = _links_.context.id
+  const { data, metadata } = v2Document.getDataAndMetadata(contextId)
+
+  // stash the card's column widths in the content
+  attributeWidths?.forEach(entry => {
+    const v2Attr = v2Document.getV2Attribute(entry._links_.attr.id)
+    if (isCodapV2Attribute(v2Attr)) {
+      const attrId = data?.dataSet.attrIDFromName(v2Attr.name)
+      if (attrId && entry.width) {
+        content.columnWidths[attrId] = entry.width
+      }
+    }
+  })
+
+  const cardTileSnap: ITileModelSnapshotIn = { id: typedId(kCaseCardIdPrefix), title, content }
+  const cardTile = insertTile(cardTileSnap)
+
+  // add links to shared models
+  if (cardTile) {
+    data && sharedModelManager?.addTileSharedModel(cardTile.content, data, true)
+    metadata && sharedModelManager?.addTileSharedModel(cardTile.content, metadata, true)
+  }
+
+  return cardTile
+})
+*/
