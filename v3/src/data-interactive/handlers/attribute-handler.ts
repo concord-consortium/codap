@@ -1,45 +1,12 @@
 import { IAttribute, IAttributeSnapshot, isAttributeType } from "../../models/data/attribute"
-import { IDataSet } from "../../models/data/data-set"
 import { v2ModelSnapshotFromV2ModelStorage } from "../../models/data/v2-model"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { v3TypeFromV2TypeString } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
+import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
 import { DIAttribute, DIHandler, DIResources, DISingleValues, DIValues } from "../data-interactive-types"
-
-function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): DIAttribute {
-  const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { name, type, title, description, editable, id, precision } = attribute
-  return {
-    name,
-    type,
-    title,
-    cid: id,
-    // defaultMin: self.defaultMin, // TODO Where should this come from?
-    // defaultMax: self.defaultMax, // TODO Where should this come from?
-    description,
-    // _categoryMap: self.categoryMap, // TODO What is this?
-    // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
-    editable,
-    hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
-    renameable: true, // TODO What should this be?
-    deleteable: true, // TODO What should this be?
-    formula: attribute.formula?.display,
-    // deletedFormula: self.deletedFormula, // TODO What should this be?
-    guid: Number(id), // TODO This is different than v2
-    id: Number(id), // TODO This is different than v2
-    precision,
-    unit: attribute.units
-  }
-}
-
-function convertAttributeToV2FromResources(resources: DIResources) {
-  const { attribute, dataContext } = resources
-  if (attribute) {
-    return convertAttributeToV2(attribute, dataContext)
-  }
-}
 
 function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
