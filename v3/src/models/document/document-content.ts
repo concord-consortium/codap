@@ -11,7 +11,7 @@ import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
-import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
+import { IDataSet, IDataSetSnapshot } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyUndoableAction } from "../history/apply-undoable-action"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
@@ -174,16 +174,6 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    createStarterDataset() {
-      const attributeName = t("DG.AppController.createDataSet.initialAttribute")
-      const newData = [{[attributeName]: ""}]
-      const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
-      ds.addAttribute({ name: attributeName })
-      ds.addCases(toCanonical(ds, newData))
-      gDataBroker.addDataSet(ds)
-      // Add dataset to the formula manager
-      getFormulaManager(self)?.addDataSet(ds)
-    },
     importDataSet(data: IDataSet, options?: IImportDataSetOptions) {
       const { createDefaultTile = true, defaultTileType = kCaseTableTileType } = options || {}
       // add data set
