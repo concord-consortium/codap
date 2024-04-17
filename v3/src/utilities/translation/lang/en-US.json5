@@ -33,8 +33,6 @@
     "V3.Redo.caseTable.create": "Redo adding case table",
     "V3.Undo.caseTable.delete": "Undo deleting case table",
     "V3.Redo.caseTable.delete": "Redo deleting case table",
-    "V3.Undo.caseTable.show": "Undo showing case table",
-    "V3.Redo.caseTable.show": "Redo showing case table",
     "V3.Undo.caseTable.hide": "Undo hiding case table",
     "V3.Redo.caseTable.hide": "Redo hiding case table",
     "V3.Undo.import.data": "Undo import of data",
