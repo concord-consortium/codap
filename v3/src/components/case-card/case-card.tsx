@@ -1,12 +1,7 @@
-import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useCallback, useEffect, useRef } from "react"
-import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
+import React, { CSSProperties, useRef } from "react"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
-import { IDataSet } from "../../models/data/data-set"
 import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
@@ -17,20 +12,23 @@ interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
 }
 export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
+/*
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-card"
+*/
   const data = useDataSetContext()
   const cardModel = useCaseCardModel()
-  const { isTileSelected } = useTileModelContext()
-  const isFocused = isTileSelected()
+  // const { isTileSelected } = useTileModelContext()
+  // const isFocused = isTileSelected()
   const contentRef = useRef<HTMLDivElement | null>(null)
-  const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
+  // const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
   function setTableRef(elt: HTMLDivElement | null) {
     contentRef.current = elt?.querySelector((".case-table-content")) ?? null
     setNodeRef(elt)
   }
 
+/*
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
       dataSet.applyUndoableAction(() => {
@@ -44,6 +42,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       })
     }
   }, [])
+*/
 
   return prf.measure("Table.render", () => {
     // disable the overlay for the index column

@@ -3,6 +3,7 @@ import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
 import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
+import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
@@ -16,7 +17,8 @@ import { gDataBroker } from "../data/data-broker"
 import { applyUndoableAction } from "../history/apply-undoable-action"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
-import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
+import {getSharedDataSetFromDataSetId, getSharedDataSets, getTileCaseMetadata, linkTileToDataSet}
+  from "../shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 
 /**
@@ -46,6 +48,8 @@ export interface IImportDataSetOptions {
 }
 
 export interface INewTileOptions {
+  x?: number
+  y?: number
   height?: number
   width?: number
 }
@@ -127,7 +131,9 @@ export const DocumentContentModel = BaseDocumentContentModel
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
-            const {x, y} = getPositionOfNewComponent(newTileSize)
+            const computedPosition = getPositionOfNewComponent(newTileSize)
+            const x = options?.x ?? computedPosition.x
+            const y = options?.y ?? computedPosition.y
             const tileOptions = { x, y, width, height }
             const newTile = self.insertTileSnapshotInRow(newTileSnapshot, row, tileOptions)
             if (newTile) {
@@ -176,6 +182,42 @@ export const DocumentContentModel = BaseDocumentContentModel
           self.toggleSingletonTileVisibility(tileType)
         } else {
           return self.createTile(tileType, options)
+        }
+      }
+    }
+  }))
+  .actions(self => ({
+    // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
+    toggleCardTable(tileID: string, tileType: "CaseTable" | "CaseCard") {
+      const tileModel = self.getTile(tileID),
+        tileLayout = self.getTileLayoutById(tileID)
+      if (tileLayout && tileModel && isFreeTileLayout(tileLayout)) {
+        const otherTileType = tileType === kCaseTableTileType ? kCaseCardTileType : kCaseTableTileType,
+          caseMetadata = getTileCaseMetadata(tileModel.content),
+          datasetID = caseMetadata?.data?.id ?? "",
+          sharedData = getSharedDataSetFromDataSetId(caseMetadata, datasetID),
+          otherTileId = tileType === kCaseTableTileType
+            ? caseMetadata?.caseCardTileId : caseMetadata?.caseTableTileId
+        self.toggleNonDestroyableTileVisibility(tileID)
+        if (otherTileId) {
+          self.toggleNonDestroyableTileVisibility(otherTileId)
+          caseMetadata?.setLastShownTableOrCardTileId(otherTileId)
+        } else {
+          const componentInfo = getTileComponentInfo(otherTileType),
+            { x, y } = tileLayout,
+            options = {x, y, width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight },
+            otherTile = self.createTile(otherTileType, options)
+            if (otherTile && caseMetadata && sharedData) {
+            if (tileType === kCaseTableTileType) {
+              caseMetadata.setCaseCardTileId(otherTile.id)
+            } else {
+              caseMetadata.setCaseTableTileId(otherTile.id)
+            }
+            caseMetadata.setLastShownTableOrCardTileId(otherTile.id)
+            const manager = getTileEnvironment(tileModel)?.sharedModelManager
+            manager?.addTileSharedModel(otherTile.content, sharedData, true)
+            manager?.addTileSharedModel(otherTile.content, caseMetadata, true)
+          }
         }
       }
     }

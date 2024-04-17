@@ -1,8 +1,10 @@
 import { makeObservable, observable } from "mobx"
 
+/*
 const kDefaultRowHeaderHeight = 30
 const kDefaultRowHeight = 18
 const kDefaultRowCount = 12
+*/
 export class CollectionCardModel {
   collectionId: string
   // RDG grid element

@@ -1,11 +1,9 @@
-import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseCardComponent } from "./case-card-component"
 import { kCaseCardTileType } from "./case-card-defs"
-import { CaseCardModel, ICaseCardSnapshot } from "./case-card-model"
-import { CaseCardTitleBar } from "./case-card-title-bar"
+import { CaseCardModel } from "./case-card-model"
+import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import CardIcon from '../../assets/icons/icon-case-card.svg'
 /*
 import { CaseCardInspector } from "./case-card-inspector"
@@ -22,7 +20,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kCaseCardTileType,
-  TitleBar: CaseCardTitleBar,
+  TitleBar: CaseTableCardTitleBar,
   Component: CaseCardComponent,
   // InspectorPanel: CaseCardInspector,
   tileEltClass: "codap-case-card",
@@ -35,8 +33,8 @@ registerTileComponentInfo({
     hintKey: "DG.ToolButtonData.cardButton.toolTip"
   },
 */
-  defaultWidth: 580,
-  defaultHeight: 275
+  defaultWidth: 200,
+  defaultHeight: 400
 })
 
 /*

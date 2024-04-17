@@ -5,7 +5,7 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType } from "./case-table-defs"
 import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
-import { CaseTableTitleBar } from "./case-table-title-bar"
+import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
 import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
@@ -24,7 +24,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kCaseTableTileType,
-  TitleBar: CaseTableTitleBar,
+  TitleBar: CaseTableCardTitleBar,
   Component: CaseTableComponent,
   InspectorPanel: CaseTableInspector,
   tileEltClass: "codap-case-table",
@@ -36,7 +36,7 @@ registerTileComponentInfo({
     hintKey: "DG.ToolButtonData.tableButton.toolTip"
   },
   defaultWidth: 580,
-  defaultHeight: 275
+  defaultHeight: 200
 })
 
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
