@@ -1,3 +1,4 @@
+import { appState } from "../models/app-state"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
@@ -109,7 +110,7 @@ export function convertDataSetToV2(dataSet: IDataSet) {
 
   return {
     type: "DG.DataContext",
-    // document,
+    document: appState.document.key,
     guid: id,
     id,
     // flexibleGroupChangeFlag,

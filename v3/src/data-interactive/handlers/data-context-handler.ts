@@ -1,13 +1,13 @@
+import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
+import { DataSet } from "../../models/data/data-set"
+import { ISharedDataSet, kSharedDataSetType } from "../../models/shared/shared-data-set"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIDataContext, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { convertDataSetToV2 } from "../data-interactive-type-utils"
-import { DataSet, IDataSet } from "../../models/data/data-set"
-import { appState } from "../../models/app-state"
-import { ISharedDataSet, kSharedDataSetType } from "../../models/shared/shared-data-set"
 import { createCollection } from "./di-handler-utils"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
 const contextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 
@@ -49,7 +49,7 @@ export const diDataContextHandler: DIHandler = {
     dataContext.applyUndoableAction(() => {
       gDataBroker.removeDataSet(dataContext.id)
     })
-    
+
     return { success: true }
   },
 
