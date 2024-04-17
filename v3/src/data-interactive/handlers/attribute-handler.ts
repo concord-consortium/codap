@@ -4,7 +4,7 @@ import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
-import { DIAttribute, DIHandler, DIResources, DISingleValues, DIValues } from "../data-interactive-types"
+import { DIAttribute, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { createAttribute } from "./di-handler-utils"
 
 const attributeNotFoundResult = { success: false, values: { error: t("V3.DI.Error.attributeNotFound") } } as const
