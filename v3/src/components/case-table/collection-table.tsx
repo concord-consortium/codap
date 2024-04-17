@@ -2,6 +2,7 @@ import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
+import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
@@ -12,6 +13,7 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
@@ -65,6 +67,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   // rows
   const { handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
+
+  const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
     const attr = dataSet.attrFromID(attrId)
@@ -122,7 +126,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   if (!data || !rows) return null
 
   return (
-    <div className={`collection-table collection-${collectionId}`}>
+    <div className={`collection-table collection-${collectionId}`} ref={setNodeRef}>
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <CollectionTitle />

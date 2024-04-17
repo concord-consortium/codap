@@ -19,7 +19,7 @@
       ]
     },
     {
-      "testName": "Move a numerical attribute to a parent collection",
+      "testName": "Move a numeric attribute to a parent collection",
       "collections": [
         {
           "name": "Speeds (18 cases)",

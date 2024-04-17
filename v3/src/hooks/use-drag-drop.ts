@@ -57,7 +57,7 @@ export const useTileDropOverlay = (baseId: string, dropProps?: UseDroppableArgum
 // Passes its dropProps argument to useDroppable and returns an object with the return value
 // of useDroppable plus the generated id.
 export const useTileDroppable = (
-  baseId: string, onDrop: (active: Active) => void, dropProps?: UseDroppableArguments
+  baseId: string, onDrop?: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
   const instanceId = useInstanceIdContext()
   const id = `${instanceId}-${baseId}-drop`
@@ -65,12 +65,12 @@ export const useTileDroppable = (
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
 
-export const useDropHandler = (dropId: string, onDrop: (active: Active) => void) => {
+export const useDropHandler = (dropId: string, onDrop?: (active: Active) => void) => {
   const { selectTile } = useTileModelContext()
   useDndMonitor({ onDragEnd: ({ active, over }) => {
     // only call onDrop for the handler that registered it
     if (over?.id === dropId) {
-      onDrop(active)
+      onDrop?.(active)
       selectTile()
     }
   }})

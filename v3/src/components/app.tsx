@@ -8,6 +8,7 @@ import { importV2Document } from "../v2/import-v2-document"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/use-cloud-file-manager"
 import { appState } from "../models/app-state"
+import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
@@ -78,14 +79,23 @@ export const App = observer(function App() {
       // create the initial sample data (if specified) or a new data set
       if (gDataBroker.dataSets.size === 0) {
         const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
+        const isDashboard = urlParams.dashboard !== undefined
         if (sample) {
           try {
             const data = await importSample(sample)
-            appState.document.content?.importDataSet(data, { createDefaultTile: true })
+            // show case table if not showing a complete dashboard
+            appState.document.content?.importDataSet(data, { createDefaultTile: !isDashboard })
           }
           catch (e) {
             console.warn(`Failed to import sample "${sample}"`)
           }
+        }
+        else if (isDashboard) {
+          // we have to create a new starter data set only if none is imported to show the dashboard
+          appState.document.content?.createStarterDataset()
+        }
+        if (isDashboard) {
+          addDefaultComponents()
         }
       }
       appState.enableUndoRedoMonitoring()
