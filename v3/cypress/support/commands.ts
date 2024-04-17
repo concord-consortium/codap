@@ -4,7 +4,6 @@ Cypress.Commands.add("clickMenuItem", text => {
 
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
   const el = {
-    tableHeader: ".codap-data-summary .data-attributes .draggable-attribute",
     tableColumnHeader:
       `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
     caseCardHeader: ".react-data-card-attribute",
@@ -30,9 +29,6 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
   let source_el = "", target_el = ""
 
   switch (source) {
-    case ("data-summary"):
-      source_el = el.tableHeader
-      break
     case ("table"):
     case ("attribute"):
       source_el = el.tableColumnHeader
@@ -70,9 +66,6 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
   }
 
   switch (target) {
-    case ("table"):
-      target_el = el.tableHeader
-      break
     case ("card"):
       target_el = el.caseCardHeaderDropZone
       break
@@ -197,9 +190,9 @@ Cypress.Commands.add("pointerMoveBy",
       newCollection: ".collection-table-spacer.parentMost",
       prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
     }
-  
+
     let source_el = "", target_el = ""
-  
+
     switch (source) {
       case ("table"):
       case ("attribute"):
@@ -224,7 +217,7 @@ Cypress.Commands.add("pointerMoveBy",
         source_el = el.yPlusAxis
         break
     }
-  
+
     switch (target) {
       case ("card"):
         target_el = el.caseCardHeaderDropZone
@@ -266,7 +259,7 @@ Cypress.Commands.add("pointerMoveBy",
         target_el = el.tableColumnHeader
         break
     }
-  
+
     cy.log("target_el", target_el)
     cy.get(source_el).contains(attribute)
       .trigger("mousedown", { force: true })

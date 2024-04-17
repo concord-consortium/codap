@@ -3,7 +3,6 @@ import "./models/tiles/placeholder/placeholder-registration"
 import "./models/tiles/unknown-content-registration"
 
 import "./components/case-table/case-table-registration"
-import "./components/data-summary/data-summary-registration"
 import "./components/graph/graph-registration"
 import "./components/slider/slider-registration"
 import "./components/calculator/calculator-registration"

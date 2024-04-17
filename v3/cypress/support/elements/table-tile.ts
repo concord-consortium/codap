@@ -199,7 +199,7 @@ export const TableTileElements = {
     })
   },
   moveAttributeToParent(name, moveType) {
-    cy.dragAttributeToTarget("data-summary", name, moveType)
+    cy.dragAttributeToTarget("table", name, moveType)
   },
   getExpandAllGroupsButton(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[title=\"expand all groups\"]")

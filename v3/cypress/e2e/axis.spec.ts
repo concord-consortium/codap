@@ -224,7 +224,7 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
     cy.wait(500)
-    cy.dragAttributeToTarget("data-summary", arrayOfAttributes[5], "yplus") // Sleep => left split
+    cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
     cy.wait(500)
 
     // checks for multiple y-axis labels
