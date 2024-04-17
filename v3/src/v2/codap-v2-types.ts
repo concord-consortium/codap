@@ -75,6 +75,9 @@ export interface ICodapV2Collection {
   type: "DG.Collection"
 }
 
+export interface ICodapV2DataContextMetadata {
+  description?: string
+}
 export interface ICodapV2DataContext {
   type: "DG.DataContext"
   document?: number // id of containing document
@@ -85,7 +88,7 @@ export interface ICodapV2DataContext {
   title: string
   collections: ICodapV2Collection[]
   description?: string
-  // metadata: this.metadata,
+  metadata?: ICodapV2DataContextMetadata,
   // preventReorg: boolean
   // setAsideItems: this.get('dataSet').archiveSetAsideItems(),
   // contextStorage: this.contextStorage

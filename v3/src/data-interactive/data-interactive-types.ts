@@ -1,6 +1,6 @@
 import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
-import { ICodapV2Attribute } from "../v2/codap-v2-types"
+import { ICodapV2Attribute, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -38,6 +38,7 @@ export interface DIGlobal {
   name?: string
   value?: number
 }
+export type DIDataContext = Partial<ICodapV2DataContext>
 export interface DIInteractiveFrame {
   dimensions?: {
     height?: number
@@ -80,8 +81,8 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal |
-  DIInteractiveFrame | DINewCase
+export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIDataContext |
+  DIGlobal | DIInteractiveFrame | DINewCase
 
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
