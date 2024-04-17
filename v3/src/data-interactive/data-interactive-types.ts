@@ -1,6 +1,6 @@
 import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
-import { ICodapV2Attribute, ICodapV2DataContext } from "../v2/codap-v2-types"
+import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -33,6 +33,7 @@ export interface DICase {
   collectionName?: string
   caseID?: string
 }
+export type DICollection = Partial<ICodapV2Collection>
 export type DIComponent  = unknown
 export interface DIGlobal {
   name?: string

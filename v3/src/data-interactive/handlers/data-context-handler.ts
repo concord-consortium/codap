@@ -3,33 +3,75 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIDataContext, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { convertDataSetToV2 } from "../data-interactive-type-utils"
+import { DataSet, IDataSet } from "../../models/data/data-set"
+import { appState } from "../../models/app-state"
+import { ISharedDataSet, kSharedDataSetType } from "../../models/shared/shared-data-set"
+import { createCollection } from "./di-handler-utils"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
 const contextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 
 export const diDataContextHandler: DIHandler = {
+  create(_resources: DIResources, _values?: DIValues) {
+    const values = _values as DIDataContext
+    const { collections, description, name, title } = values
+    const document = appState.document
+
+    // Return the existing dataset if the name is already being used
+    const sharedDataSets = document.content?.getSharedModelsByType(kSharedDataSetType)
+    const sameName = sharedDataSets?.find(sharedDataSet => (sharedDataSet as ISharedDataSet).dataSet.name === name)
+    if (sameName) return { success: true, values: convertDataSetToV2((sameName as ISharedDataSet).dataSet) }
+
+    return document.applyUndoableAction(() => {
+      // Create dataset
+      const dataSet = DataSet.create({ description, name, _title: title })
+      gDataBroker.addDataSet(dataSet)
+      const metadata = getSharedCaseMetadataFromDataset(dataSet)
+
+      // Create and add collections and attributes
+      collections?.forEach(v2collection => createCollection(v2collection, dataSet, metadata))
+
+      return {
+        success: true,
+        values: {
+          name: dataSet.name,
+          id: dataSet.id,
+          title: dataSet.title
+        }
+      }
+    })
+  },
+
   delete(resources: DIResources) {
     const { dataContext } = resources
     if (!dataContext) return contextNotFoundResult
 
-    gDataBroker.removeDataSet(dataContext.id)
+    dataContext.applyUndoableAction(() => {
+      gDataBroker.removeDataSet(dataContext.id)
+    })
+    
     return { success: true }
   },
+
   get(resources: DIResources) {
     const { dataContext } = resources
     if (!dataContext) return contextNotFoundResult
 
     return { success: true, values: convertDataSetToV2(dataContext) }
   },
+
   update(resources: DIResources, _values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return contextNotFoundResult
 
     const values = _values as DIDataContext
     if (values) {
-      const { metadata, title } = values
-      const description = metadata?.description
-      if (description) dataContext.setDescription(description)
-      if (title) dataContext.setTitle(title)
+      dataContext.applyUndoableAction(() => {
+        const { metadata, title } = values
+        const description = metadata?.description
+        if (description) dataContext.setDescription(description)
+        if (title) dataContext.setTitle(title)
+      })
     }
 
     return { success: true }
