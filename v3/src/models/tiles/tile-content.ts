@@ -2,6 +2,7 @@ import iframePhone from "iframe-phone"
 import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
+import { applyUndoableAction } from "../history/apply-undoable-action"
 import { ISharedModel } from "../shared/shared-model"
 import { SharedModelChangeType } from "../shared/shared-model-manager"
 import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
@@ -76,6 +77,7 @@ export const TileContentModel = types.model("TileContentModel", {
   }))
   // Add an empty api so the api methods can be used on this generic type
   .actions(self => tileModelHooks({}))
+  .actions(applyUndoableAction)
 
 export interface ITileContentModel extends Instance<typeof TileContentModel> {}
 export interface ITileContentSnapshot extends SnapshotIn<typeof TileContentModel> {}

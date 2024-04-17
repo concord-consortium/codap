@@ -10,6 +10,7 @@ import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata }
   from "../../models/shared/shared-case-metadata"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { gDataBroker } from "../../models/data/data-broker"
+import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { kCaseTableTileType } from "./case-table-defs"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
@@ -35,13 +36,19 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   const [modalOpen, setModalOpen] = useState(false)
   const [dataSetIdToDeleteId, setDataSetIdToDelete] = useState("")
 
-  if (!row) return null
+  if (!row || !content) return null
 
   const openTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
+    const caseTableTileId = caseMetadata.caseTableTileId
+    if (caseTableTileId) {
+      content?.toggleNonDestroyableTileVisibility(caseTableTileId)
+      return
+    }
     const tile = createDefaultTileOfType(kCaseTableTileType)
     if (!tile) return
     manager?.addTileSharedModel(tile.content, model, true)
     manager?.addTileSharedModel(tile.content, caseMetadata, true)
+    caseMetadata.setCaseTableTileId(tile.id)
 
     const width = kDefaultTableSize.width
     const height = kDefaultTableSize.height
@@ -70,15 +77,17 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   const handleOpenDataSetTable = (dataset: ISharedDataSet) => {
     const model = manager?.getSharedModelsByType("SharedDataSet")
-                    .find(m =>  m.id === dataset.id) as ISharedDataSet | undefined
+      .find(m => m.id === dataset.id) as ISharedDataSet | undefined
     const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
     if (!model || !caseMetadata) return
-    const tiles = manager?.getSharedModelTiles(model)
-    const tableTile = tiles?.find(tile => tile.content.type === kCaseTableTileType)
-    if (tableTile) { // a case table for the data set already exists in document
-      uiState.setFocusedTile(tableTile.id)
-    }
-    else { // opens a table for the selected dataset and add it to the shared model manager
+    const existingTileId = caseMetadata.caseTableTileId
+    if (existingTileId) { // We already have a case table so make sure it's visible and has focus
+      const existingCaseTableTile = content.getTileLayoutById(existingTileId)
+      if (isFreeTileLayout(existingCaseTableTile) && existingCaseTableTile.isHidden) {
+        content?.toggleNonDestroyableTileVisibility(existingTileId)
+      }
+      uiState.setFocusedTile(existingTileId)
+    } else {  // We don't already have a table for this dataset
       openTableForDataset(model, caseMetadata)
     }
   }
@@ -91,7 +100,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   return (
     <>
       <MenuList>
-        {datasets?.map((dataset, idx) => {
+        {datasets?.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
