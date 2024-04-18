@@ -2,6 +2,7 @@ import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIDataContext, DIHandler, DIResources, DIValues } from "../data-interactive-types"
@@ -63,9 +64,8 @@ export const diDataContextHandler: DIHandler = {
     if (values) {
       dataContext.applyUndoableAction(() => {
         const { metadata, title } = values
-        const description = metadata?.description
-        if (description) dataContext.setDescription(description)
-        if (title) dataContext.setTitle(title)
+        if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
+        if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
       })
     }
 
