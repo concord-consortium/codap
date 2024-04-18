@@ -4,6 +4,7 @@ import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ICodapV2DataContext } from "../../v2/codap-v2-types"
+import { DIDataContext, DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
 
 describe("DataInteractive DataContextHandler", () => {
@@ -68,11 +69,11 @@ describe("DataInteractive DataContextHandler", () => {
           attrs: [{ name: "attr3" }, { name: "attr4" }]
         }
       ]
-    })
+    } as DIValues)
     expect(result3?.success).toBe(true)
     expect(gDataBroker.length).toBe(1)
     const defaultName = "Data_Set_1"
-    expect(result3?.values.name).toBe(defaultName)
+    expect((result3?.values as DIDataContext)?.name).toBe(defaultName)
     dataset = gDataBroker.getDataSetByName(defaultName)
     expect(dataset?.collections.length).toBe(2)
     expect(dataset?.attributes.length).toBe(4)
