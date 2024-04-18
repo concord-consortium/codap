@@ -97,7 +97,6 @@ context("case table ui", () => {
   })
 
   describe("case table header attribute menu", () => {
-    let name = 'formAttr'
     it("verify add attribute with undo and redo",()=>{
       // Add new attribute using Add New Attribute button (+)
         table.addNewAttribute("cases").click({force:true})
