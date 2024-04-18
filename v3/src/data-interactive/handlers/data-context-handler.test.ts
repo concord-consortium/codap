@@ -3,6 +3,7 @@ import { CollectionModel, ICollectionModel } from "../../models/data/collection"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { ICodapV2DataContext } from "../../v2/codap-v2-types"
 import { diDataContextHandler } from "./data-context-handler"
 
 describe("DataInteractive DataContextHandler", () => {
@@ -40,12 +41,12 @@ describe("DataInteractive DataContextHandler", () => {
 
     // Create works
     const result = handler.create?.({}, dataSetInfo)
-    expect(result.success).toBe(true)
+    expect(result?.success).toBe(true)
     expect(gDataBroker.length).toBe(1)
 
     // Cannot create a dataset with a duplicate name
     const result2 = handler.create?.({}, dataSetInfo)
-    expect(result2.success).toBe(true)
+    expect(result2?.success).toBe(true)
     expect(gDataBroker.length).toBe(1)
 
     // Delete requires a dataContext
@@ -62,10 +63,11 @@ describe("DataInteractive DataContextHandler", () => {
     expect(handler.get?.({}).success).toBe(false)
 
     const result = handler.get?.({ dataContext: dataset })
-    expect(result.success).toBe(true)
-    expect(result.values.name).toBe("data")
-    expect(result.values.collections.length).toBe(3)
-    expect(result.values.collections[0].attrs.length).toBe(1)
+    expect(result?.success).toBe(true)
+    const dataContext = result?.values as ICodapV2DataContext
+    expect(dataContext?.name).toBe("data")
+    expect(dataContext?.collections.length).toBe(3)
+    expect(dataContext?.collections[0].attrs.length).toBe(1)
   })
 
   it("update works as expected", () => {
