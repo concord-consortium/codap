@@ -58,18 +58,12 @@ describe("SharedCaseMetadata", () => {
   })
 
   it("stores column widths and hidden attributes", () => {
-    expect(tree.metadata.columnWidth("foo")).toBeUndefined()
     expect(tree.metadata.isHidden("foo")).toBe(false)
-    tree.metadata.setColumnWidth("foo", 10)
     tree.metadata.setIsHidden("foo", true)
-    expect(tree.metadata.columnWidth("foo")).toBe(10)
     expect(tree.metadata.isHidden("foo")).toBe(true)
-    tree.metadata.setColumnWidth("foo")
     tree.metadata.setIsHidden("foo", false)
-    expect(tree.metadata.columnWidth("foo")).toBeUndefined()
     expect(tree.metadata.isHidden("foo")).toBe(false)
     // falsy values are removed from map
-    expect(tree.metadata.columnWidths.size).toBe(0)
     expect(tree.metadata.hidden.size).toBe(0)
     // can show all hidden attributes
     tree.metadata.setIsHidden("foo", true)

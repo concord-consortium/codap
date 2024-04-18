@@ -8,7 +8,9 @@ import { CollectionTableModel } from "./collection-table-model"
 export const CaseTableModel = TileContentModel
   .named("CaseTableModel")
   .props({
-    type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType)
+    type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType),
+    // key is attribute id; value is width
+    columnWidths: types.map(types.number),
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
@@ -20,7 +22,10 @@ export const CaseTableModel = TileContentModel
     },
     get metadata() {
       return getTileCaseMetadata(self)
-    }
+    },
+    columnWidth(attrId: string) {
+      return self.columnWidths.get(attrId)
+    },
   }))
   .views(self => {
     const collectionTableModels = new Map<string, CollectionTableModel>()
@@ -37,6 +42,14 @@ export const CaseTableModel = TileContentModel
     }
   })
   .actions(self => ({
+    setColumnWidth(attrId: string, width?: number) {
+      if (width) {
+        self.columnWidths.set(attrId, width)
+      }
+      else {
+        self.columnWidths.delete(attrId)
+      }
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },

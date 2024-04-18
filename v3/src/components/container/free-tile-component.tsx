@@ -121,11 +121,13 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
   const classes = clsx("free-tile-component", { minimized: rowTile?.isMinimized })
+
+  if (!info || rowTile?.isHidden) return null
+
   return (
     <div className={classes} style={style} key={tileId} ref={setNodeRef}>
       {tile && rowTile &&
         <CodapComponent tile={tile}
-          isHidden={rowTile.isHidden}
           isMinimized={rowTile.isMinimized}
           onMinimizeTile={handleMinimizeTile}
           onCloseTile={onCloseTile}

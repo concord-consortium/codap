@@ -146,7 +146,6 @@ export const DocumentContentModel = BaseDocumentContentModel
   .actions(self => ({
     toggleSingletonTileVisibility(tileType: string) {
       const tiles = self?.getTilesOfType(tileType)
-      // There's supposed to be at most one tile of this type. Enforce this. (But an assert would be nice!)
       if (tiles.length > 1) {
         console.error("DocumentContent.toggleSingletonTileVisibility:",
                       `encountered ${tiles.length} tiles of type ${tileType}`)
@@ -158,6 +157,14 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       } else {
         return self.createTile(tileType)
+      }
+    },
+    toggleNonDestroyableTileVisibility(tileLayoutId: string | undefined) {
+      if (tileLayoutId) {
+        const tileLayout = self.getTileLayoutById(tileLayoutId)
+        if (isFreeTileLayout(tileLayout)) {
+          tileLayout.setHidden(!tileLayout.isHidden)
+        }
       }
     }
   }))
@@ -193,7 +200,7 @@ export const DocumentContentModel = BaseDocumentContentModel
         const newTile = self.createOrShowTile(defaultTileType)
         if (newTile) {
           // link the case table to the new data set
-          linkTileToDataSet(newTile.content, sharedData.dataSet)
+          linkTileToDataSet(newTile, sharedData.dataSet)
         }
       }
       // Add dataset to the formula manager

@@ -1,6 +1,5 @@
 import { kCalculatorTileType } from "../../components/calculator/calculator-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { kDataSummaryTileType } from "../../components/data-summary/data-summary-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
@@ -53,31 +52,24 @@ export function addDefaultComponents() {
     content.insertTileInRow(tableTile, row, tableOptions)
     sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
     caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
+    caseMetadata?.setCaseTableTileId(tableTile.id)
   }
   else {
-    const summaryTile = createDefaultTileOfType(kDataSummaryTileType)
-    if (!summaryTile) return
-    const summaryOptions: ILayoutOptions = isMosaicTileRow(row)
-            ? undefined
-            : { x: 2, y: 2, width: kFullWidth, height: kFullHeight }
-    content.insertTileInRow(summaryTile, row, summaryOptions)
-    sharedData && manager?.addTileSharedModel(summaryTile.content, sharedData)
-    caseMetadata && manager?.addTileSharedModel(summaryTile.content, caseMetadata)
-
     const tableTile = createDefaultTileOfType(kCaseTableTileType)
     if (!tableTile) return
     const tableOptions: ILayoutOptions = isMosaicTileRow(row)
-            ? { splitTileId: summaryTile.id, direction: "column" }
-            : { x: 2, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
+            ? undefined
+            : { x: 2, y: 2, width: kFullWidth, height: kFullHeight }
     content.insertTileInRow(tableTile, row, tableOptions)
-    sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
-    caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
+    sharedData && manager?.addTileSharedModel(tableTile.content, sharedData)
+    caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata)
+    caseMetadata?.setCaseTableTileId(tableTile.id)
 
     const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
     if (!calculatorTile) return
     if (calculatorTile) {
       const calcOptions = isMosaicTileRow(row)
-              ? { splitTileId: summaryTile.id, direction: "row" }
+              ? { splitTileId: tableTile.id, direction: "row" }
               : { x: kFullWidth + kGap, y: 2 }
       content.insertTileInRow(calculatorTile, row, calcOptions)
     }
@@ -94,7 +86,7 @@ export function addDefaultComponents() {
     if (graphTile) {
       const graphOptions = isMosaicTileRow(row)
               ? { splitTileId: tableTile.id, direction: "row" }
-              : { x: kFullWidth + kGap, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
+              : { x: 2, y: kFullHeight + kGap, width: kFullWidth, height: kFullHeight }
       content.insertTileInRow(graphTile, row, graphOptions)
       if (isGraphContentModel(graphTile.content)) {
         const dataConfiguration = graphTile.content.layers[0]?.dataConfiguration

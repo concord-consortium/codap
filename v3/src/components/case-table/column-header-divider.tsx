@@ -7,6 +7,7 @@ import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
+import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 import { kIndexColumnKey } from "./case-table-types"
 
 interface IProps {
@@ -15,7 +16,7 @@ interface IProps {
 }
 export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const collectionId = useCollectionContext()
-  const droppableId = `attribute-divider:${collectionId}:${columnKey}`
+  const droppableId = `${kAttributeDividerDropZoneBaseId}:${collectionId}:${columnKey}`
   const data = useDataSetContext()
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()

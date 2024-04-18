@@ -1,6 +1,7 @@
 import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
 import { IDataSet } from "../data/data-set"
 import { ITileContentModel } from "../tiles/tile-content"
+import { ITileModel } from "../tiles/tile-model"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import {
   ISharedCaseMetadata, isSharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
@@ -75,20 +76,22 @@ export function unlinkTileFromDataSets(tile: ITileContentModel) {
 }
 
 // adds references to the specified tile to the specified SharedDataSet and its SharedCaseMetadata
-export function linkTileToDataSet(tile: ITileContentModel, dataSet: IDataSet) {
-  if (isTileLinkedToOtherDataSet(tile, dataSet)) {
-    unlinkTileFromDataSets(tile)
+export function linkTileToDataSet(tile: ITileModel, dataSet: IDataSet) {
+  const tileContent = tile.content
+  if (isTileLinkedToOtherDataSet(tileContent, dataSet)) {
+    unlinkTileFromDataSets(tileContent)
   }
 
   const sharedModelManager = getSharedModelManager(tile)
   const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
   const sharedDataSet = sharedDataSets?.find(model => model.dataSet.id === dataSet.id) as ISharedDataSet | undefined
   if (sharedModelManager && sharedDataSet) {
-    sharedModelManager.addTileSharedModel(tile, sharedDataSet)
+    sharedModelManager.addTileSharedModel(tileContent, sharedDataSet)
 
     const sharedMetadata = sharedModelManager.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
     const sharedCaseMetadata: ISharedCaseMetadata | undefined =
             sharedMetadata.find(model => model.data?.id === dataSet.id)
-    sharedCaseMetadata && sharedModelManager.addTileSharedModel(tile, sharedCaseMetadata)
+    sharedCaseMetadata && sharedModelManager.addTileSharedModel(tileContent, sharedCaseMetadata)
+    sharedCaseMetadata?.setCaseTableTileId(tile.id)
   }
 }

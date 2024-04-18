@@ -83,7 +83,6 @@ export const App = observer(function App() {
         if (sample) {
           try {
             const data = await importSample(sample)
-            // show case table if not showing a complete dashboard
             appState.document.content?.importDataSet(data, { createDefaultTile: !isDashboard })
           }
           catch (e) {

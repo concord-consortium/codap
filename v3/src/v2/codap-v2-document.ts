@@ -6,8 +6,7 @@ import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared
 import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
 import {
   CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson,
-  isCodapV2Attribute, isV2TableComponent, v3TypeFromV2TypeString
-} from "./codap-v2-types"
+  v3TypeFromV2TypeString } from "./codap-v2-types"
 
 export class CodapV2Document {
   private document: ICodapV2DocumentJson
@@ -67,22 +66,6 @@ export class CodapV2Document {
     components?.forEach(component => {
       const { guid, type } = component
       this.guidMap.set(guid, { type, object: component })
-
-      // extract table metadata (e.g. column widths)
-      if (isV2TableComponent(component)) {
-        const { _links_, attributeWidths } = component.componentStorage
-        const data = this.dataMap.get(_links_.context.id)?.dataSet
-        const metadata = this.metadataMap.get(_links_.context.id)
-        attributeWidths?.forEach(entry => {
-          const v2Attr = this.guidMap.get(entry._links_.attr.id)
-          if (isCodapV2Attribute(v2Attr)) {
-            const attrId = data?.attrIDFromName(v2Attr.name)
-            if (attrId && entry.width) {
-              metadata?.setColumnWidth(attrId, entry.width)
-            }
-          }
-        })
-      }
     })
   }
 

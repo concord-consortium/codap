@@ -2,6 +2,7 @@ import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
+import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
@@ -9,12 +10,13 @@ import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedRows } from "./use-selected-rows"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IDataSet } from "../../models/data/data-set"
+import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { mstReaction } from "../../utilities/mst-reaction"
 
@@ -32,8 +34,8 @@ interface IProps {
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const { onMount, onNewCollectionDrop, onTableScroll, onScrollClosestRowIntoView } = props
   const data = useDataSetContext()
-  const metadata = useCaseMetadata()
   const collectionId = useCollectionContext()
+  const caseTableModel = useCaseTableModel()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
@@ -66,6 +68,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { handleRowsChange } = useRows()
   const rowKey = (row: TRow) => row.__id__
 
+  const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
+
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
     const attr = dataSet.attrFromID(attrId)
     attr && onNewCollectionDrop(dataSet, attrId, collectionId)
@@ -84,11 +88,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // respond to column width changes in shared metadata (e.g. undo/redo)
   useEffect(() => {
-    return metadata && mstReaction(
+    return caseTableModel && mstReaction(
       () => {
         const newColumnWidths = new Map<string, number>()
         columns.forEach(column => {
-          const width = metadata?.columnWidths.get(column.key) ?? column.width
+          const width = caseTableModel.columnWidths.get(column.key) ?? column.width
           if (width != null && typeof width === "number") {
             newColumnWidths.set(column.key, width)
           }
@@ -100,8 +104,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         forceUpdate()
       },
       { name: "CollectionTable.updateColumnWidths", fireImmediately: true, equals: comparer.structural },
-      metadata)
-  }, [columns, forceUpdate, metadata])
+      caseTableModel)
+  }, [caseTableModel, columns, forceUpdate])
 
   // respond to column width changes from RDG
   const handleColumnResize = useCallback(
@@ -109,20 +113,20 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       const attrId = columns[idx].key
       columnWidths.current.set(attrId, width)
       if (isComplete) {
-        metadata?.applyUndoableAction(() => {
-          metadata.columnWidths.set(attrId, width)
+        caseTableModel?.applyUndoableAction(() => {
+          caseTableModel?.columnWidths.set(attrId, width)
         }, {
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
         })
       }
-    }, [columns, metadata])
+    }, [columns, caseTableModel])
 
   const rows = collectionTableModel?.rows
   if (!data || !rows) return null
 
   return (
-    <div className={`collection-table collection-${collectionId}`}>
+    <div className={`collection-table collection-${collectionId}`} ref={setNodeRef}>
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <CollectionTitle />
