@@ -139,7 +139,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
   }
 
-  const refreshConnectingLines = useCallback(async () => {
+  const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const connectingLines = connectingLinesForCases()
     const parentAttr = dataset?.collections[0]?.attributes[0]
@@ -167,13 +167,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     pointDescription?.pointColor, pointDescription?.pointStrokeColor])
 
   const refreshPointSelection = useCallback(() => {
+    refreshConnectingLines()
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       pixiPoints: pixiPointsRef.current, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
     })
-  }, [pointDescription, mapLayerModel, dataConfiguration])
+  }, [refreshConnectingLines, pointDescription, mapLayerModel, dataConfiguration])
 
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const lookupLegendColor = (aCaseData: CaseData) => {

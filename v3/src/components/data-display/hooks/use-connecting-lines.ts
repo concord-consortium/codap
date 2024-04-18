@@ -60,12 +60,27 @@ export const useConnectingLines = (props: IProps) => {
     onConnectingLinesClick?.(event)
 
     const linesPath = event.target && select(event.target as HTMLElement)
-    if (linesPath?.classed("selected")) {
-      linesPath?.classed("selected", false).attr("stroke-width", 2)
-      dataset?.setSelectedCases([])
-    } else {
-      linesPath?.classed("selected", true).attr("stroke-width", 4)
-      dataset?.setSelectedCases(caseIDs)
+    if (linesPath) {
+      const alreadySelectedCases = Array.from(dataset?.selection ?? [])
+      const isSelected = linesPath.classed("selected")
+      // If the line is already selected and `caseIDs` contains exactly the same as the set of IDs as
+      // `alreadySelectedCases`, we'll deselect the line. Otherwise, we'll select the line and deselect all others.
+      const caseIDsSet = new Set(caseIDs)
+      const lineCasesAlreadySelected = alreadySelectedCases.length === caseIDs.length &&
+        alreadySelectedCases.every(caseID => caseIDsSet.has(caseID))
+      const shouldDeselect = isSelected && lineCasesAlreadySelected
+      const selected = shouldDeselect ? false : !isSelected
+      const strokeWidth = shouldDeselect ? 2 : 4
+      linesPath.classed("selected", selected).attr("stroke-width", strokeWidth)
+      let newSelection: string[] = []
+      if (!shouldDeselect) {
+        if (event.shiftKey) {
+          newSelection = [...caseIDs, ...alreadySelectedCases]
+        } else {
+          newSelection = caseIDs
+        }
+      }
+      dataset?.setSelectedCases(newSelection)
     }
   }, [dataset, onConnectingLinesClick])
 

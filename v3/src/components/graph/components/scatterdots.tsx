@@ -298,7 +298,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
         refreshSquares()
       }
     }, { name: "ScatterDots.updateSquares" })
-  }, [adornmentsStore, refreshSquares])
+  }, [adornmentsStore.showSquaresOfResiduals, refreshSquares])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
