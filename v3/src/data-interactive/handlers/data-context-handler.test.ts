@@ -55,6 +55,26 @@ describe("DataInteractive DataContextHandler", () => {
     // Delete works
     expect(handler.delete?.({ dataContext: gDataBroker.getDataSetByName(name) }).success).toBe(true)
     expect(gDataBroker.length).toBe(0)
+
+    // Can create a more complex dataset
+    const result3 = handler.create?.({}, {
+      ...dataSetInfo,
+      collections: [
+        {
+          name: "collection1",
+          attrs: [{ name: "attr1" }, { name: "attr2" }]
+        },
+        {
+          name: "collection2",
+          attrs: [{ name: "attr3" }, { name: "attr4" }]
+        }
+      ]
+    })
+    expect(result3.success).toBe(true)
+    expect(gDataBroker.length).toBe(1)
+    dataset = gDataBroker.getDataSetByName(name)
+    expect(dataset?.collections.length).toBe(2)
+    expect(dataset?.attributes.length).toBe(4)
   })
 
   it("get works as expected", () => {
