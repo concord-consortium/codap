@@ -1,7 +1,6 @@
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
-import { ISharedDataSet, kSharedDataSetType } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -14,13 +13,13 @@ const contextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.
 export const diDataContextHandler: DIHandler = {
   create(_resources: DIResources, _values?: DIValues) {
     const values = _values as DIDataContext
-    const { collections, description, name, title } = values
+    const { collections, description, name: _name, title } = values
+    const name = _name || gDataBroker.newDataSetName
     const document = appState.document
 
     // Return the existing dataset if the name is already being used
-    const sharedDataSets = document.content?.getSharedModelsByType(kSharedDataSetType)
-    const sameName = sharedDataSets?.find(sharedDataSet => (sharedDataSet as ISharedDataSet).dataSet.name === name)
-    if (sameName) return { success: true, values: convertDataSetToV2((sameName as ISharedDataSet).dataSet) }
+    const sameName = gDataBroker.getDataSetByName(name)
+    if (sameName) return { success: true, values: convertDataSetToV2(sameName) }
 
     return document.applyUndoableAction(() => {
       // Create dataset

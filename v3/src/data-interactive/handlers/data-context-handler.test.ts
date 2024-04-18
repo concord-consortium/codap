@@ -58,7 +58,6 @@ describe("DataInteractive DataContextHandler", () => {
 
     // Can create a more complex dataset
     const result3 = handler.create?.({}, {
-      ...dataSetInfo,
       collections: [
         {
           name: "collection1",
@@ -70,9 +69,11 @@ describe("DataInteractive DataContextHandler", () => {
         }
       ]
     })
-    expect(result3.success).toBe(true)
+    expect(result3?.success).toBe(true)
     expect(gDataBroker.length).toBe(1)
-    dataset = gDataBroker.getDataSetByName(name)
+    const defaultName = "Data_Set_1"
+    expect(result3?.values.name).toBe(defaultName)
+    dataset = gDataBroker.getDataSetByName(defaultName)
     expect(dataset?.collections.length).toBe(2)
     expect(dataset?.attributes.length).toBe(4)
   })
