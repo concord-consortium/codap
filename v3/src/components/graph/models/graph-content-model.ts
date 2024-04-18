@@ -348,7 +348,7 @@ export const GraphContentModel = DataDisplayContentModel
         ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
         ...(caseRightSplitValue && {[rightSplitAttrID]: caseRightSplitValue})
       }
-      const casesInSubPlot = dataConfig?.subPlotCases(cellKey).length
+      const casesInSubPlot = dataConfig?.subPlotCases(cellKey) ?? []
       const totalCases = [
         legendMatches.length,
         bothSplitMatches.length,
@@ -356,14 +356,13 @@ export const GraphContentModel = DataDisplayContentModel
         rightSplitMatches.length,
         dataset?.cases.length ?? 0
       ].find(length => length > 0) ?? 0
-      const caseCategoryString = caseLegendValue !== ""
-        ? casePrimaryValue
-        : ""
-      const caseLegendCategoryString = caseLegendValue !== ""
-        ? caseLegendValue
-        : casePrimaryValue
-      const firstCount = legendAttrID ? totalCases : casesInSubPlot
-      const secondCount = legendAttrID ? casesInSubPlot : totalCases
+      const legendMatchesInSubplot = legendAttrID 
+        ? casesInSubPlot.filter(aCaseID => dataset?.getStrValue(aCaseID, legendAttrID) === caseLegendValue).length
+        :  0
+      const caseCategoryString = caseLegendValue ? casePrimaryValue : ""
+      const caseLegendCategoryString = caseLegendValue || casePrimaryValue
+      const firstCount = legendAttrID ? legendMatchesInSubplot : casesInSubPlot.length
+      const secondCount = legendAttrID ? casesInSubPlot.length : totalCases
       const percent = float(100 * firstCount / secondCount)
       // <n> of <m> <category> (<p>%) are <legend category>
       const attrArray = [
