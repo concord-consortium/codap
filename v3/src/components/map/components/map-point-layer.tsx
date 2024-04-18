@@ -165,7 +165,6 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
   }, [pointDescription, mapLayerModel, dataConfiguration])
 
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
-    // refreshConnectingLines()
     const lookupLegendColor = (aCaseData: CaseData) => {
         return dataConfiguration.attributeID('legend')
           ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
