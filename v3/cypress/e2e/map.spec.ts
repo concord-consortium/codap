@@ -319,14 +319,10 @@ context("Map UI", () => {
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
     cy.get("[data-testid=map-display-values-button]").click()
     cy.get("[data-testid=map-values-lines-checkbox]").should("be.visible")
-    // TODO: Once the bug causing two instances of the inspector palette to be rendered is fixed, the
-    // line below can be simplified by removing `{force: true, multiple: true}`.
-    cy.get("[data-testid=map-values-lines-checkbox]").find("input").click({force: true, multiple: true})
+    cy.get("[data-testid=map-values-lines-checkbox]").click()
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 1)
-    // TODO: Once the bug causing two instances of the inspector palette to be rendered is fixed, the
-    // line below can be simplified by removing `{force: true, multiple: true}`.
-    cy.get("[data-testid=map-values-lines-checkbox]").find("input").click({force: true, multiple: true})
+    cy.get("[data-testid=map-values-lines-checkbox]").click()
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
   })
