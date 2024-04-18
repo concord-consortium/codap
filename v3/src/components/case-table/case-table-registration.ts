@@ -65,6 +65,10 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   const tableTileSnap: ITileModelSnapshotIn = { id: typedId(kCaseTableIdPrefix), title, content }
   const tableTile = insertTile(tableTileSnap)
 
+  // Make sure metadata knows this is the table tile and it is the last shown
+  metadata?.setLastShownTableOrCardTileId(tableTile?.id)
+  metadata?.setCaseTableTileId(tableTile?.id)
+
   // add links to shared models
   if (tableTile) {
     data && sharedModelManager?.addTileSharedModel(tableTile.content, data, true)
