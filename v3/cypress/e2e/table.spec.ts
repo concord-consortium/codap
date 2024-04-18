@@ -97,6 +97,34 @@ context("case table ui", () => {
   })
 
   describe("case table header attribute menu", () => {
+    let name = 'formAttr'
+    it("verify add attribute with undo and redo",()=>{
+      // Add new attribute using Add New Attribute button (+)
+        table.addNewAttribute("cases").click({force:true})
+
+        // verify new attribute exists
+        table.getColumnHeaders().should("have.length.be.within", 10, 11)
+        table.getAttribute("newAttr").should("exist")
+        table.getAttribute("newAttr").click()
+        table.getAttribute("newAttr").should("have.text", "newAttr")
+
+        // Perform Undo operation
+        toolbar.getUndoTool().click()
+
+        // Test if attribute is removed
+        table.getColumnHeaders().should("have.length.be.within", 9, 10)
+        table.getAttribute("newAttr").should("not.exist")
+
+        // Perform Redo operation
+        toolbar.getRedoTool().click()
+
+        // verify new attribute exists
+        table.getColumnHeaders().should("have.length.be.within", 10, 11)
+        table.getAttribute("newAttr").should("exist")
+        table.getAttribute("newAttr").click()
+        table.getAttribute("newAttr").should("have.text", "newAttr")
+
+    })
     it("verify rename attribute with undo and redo", () => {
 
       // Verify initial state
