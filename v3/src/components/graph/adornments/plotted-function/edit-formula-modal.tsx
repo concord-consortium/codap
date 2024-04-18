@@ -8,12 +8,15 @@ import { t } from "../../../../utilities/translation/translate"
 
 interface IProps {
   currentValue?: string
+  leftHandSideLabel?: string
   isOpen: boolean
   onClose: (value: string) => void
 }
 
-export const EditFormulaModal = ({ currentValue="", isOpen, onClose }: IProps) => {
+export const EditFormulaModal = ({ currentValue="", isOpen, onClose, leftHandSideLabel }: IProps) => {
   const [value, setValue] = useState(currentValue)
+
+  const formulaPrompt = leftHandSideLabel || t("DG.PlottedFunction.formulaPrompt")
 
   const applyValue = () => {
     closeModal()
@@ -50,7 +53,7 @@ export const EditFormulaModal = ({ currentValue="", isOpen, onClose }: IProps) =
       <ModalBody>
         <FormControl display="flex" flexDirection="column" data-testid="edit-formula-value-form">
           <FormLabel>
-            {t("DG.PlottedFunction.formulaPrompt")}
+            {formulaPrompt}
           </FormLabel>
           <Textarea size="xs" value={value} onChange={handleValueChange}
             placeholder={t("DG.PlottedFunction.formulaHint")}
