@@ -3,16 +3,18 @@ import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../u
 import abaloneCsv from "./abalone.csv"
 import catsCsv from "./cats.csv"
 import coastersCsv from "./roller-coasters.csv"
+import colorsCsv from "./colors.csv"
 import mammalsCsv from "./mammals.csv"
 import fourCsv from "./four.csv"
 
-export const sampleData = ["Abalone", "Cats", "Coasters", "Mammals", "Four"] as const
+export const sampleData = ["Abalone", "Cats", "Coasters", "Colors", "Four", "Mammals"] as const
 export type SampleType = typeof sampleData[number]
 
 const sampleMap: Record<SampleType, string> = {
   Abalone: abaloneCsv,
   Cats: catsCsv,
   Coasters: coastersCsv,
+  Colors: colorsCsv,
   Four: fourCsv,
   Mammals: mammalsCsv
 }

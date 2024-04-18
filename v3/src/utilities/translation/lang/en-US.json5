@@ -29,6 +29,8 @@
 
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
+    "V3.CaseTable.colorPalette.setColor": "Set Color",
+    "V3.CaseTable.colorPalette.cancel": "Cancel",
     "V3.Undo.caseTable.create": "Undo adding case table",
     "V3.Redo.caseTable.create": "Redo adding case table",
     "V3.Undo.caseTable.delete": "Undo deleting case table",
