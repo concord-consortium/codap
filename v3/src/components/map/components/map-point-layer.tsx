@@ -81,9 +81,20 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     return lineDescriptions
   }, [connectingLine, dataset?.cases])
 
+  const handleConnectingLinesClick = useCallback(() => {
+    // temporarily ignore leaflet clicks to prevent the map click handler
+    // from deselecting the points.
+    const wasIgnoringClicks = mapModel._ignoreLeafletClicks
+    if (!wasIgnoringClicks) {
+      mapModel.ignoreLeafletClicks(true)
+      // Restore leaflet click handling once the current click has been handled
+      setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
+    }
+  }, [mapModel])
+
   const { renderConnectingLines } = useConnectingLines({
-    pixiPoints: pixiPointsRef.current, connectingLinesSvg: connectingLinesRef.current,
-    connectingLinesActivatedRef
+    clientType: "map", pixiPoints: pixiPointsRef.current, connectingLinesSvg: connectingLinesRef.current,
+    connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
   })
 
   useEffect(function createPixiPoints() {

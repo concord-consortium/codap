@@ -4,9 +4,7 @@ import { useCallback } from "react"
 import { useDataConfigurationContext } from "./use-data-configuration-context"
 import { PixiBackgroundPassThroughEvent, PixiPoints } from "../../graph/utilities/pixi-points"
 import { t } from "../../../utilities/translation/translate"
-import { isGraphDataConfigurationModel } from "../../graph/models/graph-data-configuration-model"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
-import { useMapModelContext } from "../../map/hooks/use-map-model-context"
 
 interface IMouseOverProps {
   caseIDs: string[]
@@ -34,18 +32,23 @@ interface IPrepareLineProps {
 }
 
 interface IProps {
+  clientType: "graph" | "map"
   connectingLinesActivatedRef: React.MutableRefObject<boolean>
   connectingLinesSvg: SVGGElement | null
   pixiPoints?: PixiPoints
+  yAttrCount?: number
+  isCaseInSubPlot?: (cellKey: Record<string, string>, caseData: Record<string, any>) => void
+  onConnectingLinesClick?: (event: MouseEvent) => void
 }
 
 export const useConnectingLines = (props: IProps) => {
-  const { connectingLinesSvg, connectingLinesActivatedRef, pixiPoints } = props
+  const {
+    clientType, connectingLinesSvg, connectingLinesActivatedRef, pixiPoints, yAttrCount = 0,
+    isCaseInSubPlot, onConnectingLinesClick
+  } = props
   const dataConfig = useDataConfigurationContext()
   const dataset = dataConfig?.dataset
   const connectingLinesArea = select(connectingLinesSvg)
-  const mapModel = useMapModelContext()
-  const clientType = isGraphDataConfigurationModel(dataConfig) ? "graph" : "map"
 
   const dataTip = d3tip().attr("class", `${clientType}-d3-tip`)
     .attr("data-testid", `${clientType}-connecting-lines-data-tip`)
@@ -54,16 +57,7 @@ export const useConnectingLines = (props: IProps) => {
     })
 
   const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
-    // In the case of the map, temporarily ignore leaflet clicks to prevent the map click handler
-    // from deselecting the points.
-    if (clientType === "map") {
-      const wasIgnoringClicks = mapModel._ignoreLeafletClicks
-      if (!wasIgnoringClicks) {
-        mapModel.ignoreLeafletClicks(true)
-        // Restore leaflet click handling once the current click has been handled
-        setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
-      }
-    }
+    onConnectingLinesClick?.(event)
 
     const linesPath = event.target && select(event.target as HTMLElement)
     if (linesPath?.classed("selected")) {
@@ -73,7 +67,7 @@ export const useConnectingLines = (props: IProps) => {
       linesPath?.classed("selected", true).attr("stroke-width", 4)
       dataset?.setSelectedCases(caseIDs)
     }
-  }, [clientType, dataset, mapModel])
+  }, [dataset, onConnectingLinesClick])
 
   const handleConnectingLinesMouseOver = useCallback((mouseOverProps: IMouseOverProps) => {
     const { caseIDs, event, parentAttrName, primaryAttrValue } = mouseOverProps
@@ -141,7 +135,7 @@ export const useConnectingLines = (props: IProps) => {
   const prepareConnectingLines = useCallback((prepareLineProps: IPrepareLineProps) => {
     const { connectingLines, parentAttrID, cellKey, parentAttrName, showConnectingLines } = prepareLineProps
     if (!dataConfig) return
-    
+
     connectingLinesArea.selectAll("path").remove()
     // In a graph, each plot can have multiple groups of connecting lines. The number of groups is determined by the
     // number of Y attributes or the presence of a parent attribute and the number of unique values for that attribute.
@@ -151,10 +145,7 @@ export const useConnectingLines = (props: IProps) => {
     // lists of connecting lines and case IDs for each group.
     const lineGroups: Record<string, IConnectingLineDescription[]> = {}
     const allLineCaseIds: Record<string, string[]> = {}
-    const yAttrCount = cellKey && isGraphDataConfigurationModel(dataConfig)
-                         ? dataConfig?.yAttributeIDs?.length ?? 0
-                         : 0
-  
+
     connectingLines.forEach((lineDescription: IConnectingLineDescription) => {
       const parentAttrValue = parentAttrID ? String(lineDescription.caseData[parentAttrID]) : undefined
       // Set default groupKey for both graph and map, then adjust as needed for graph cases with multiple Y attributes
@@ -166,9 +157,7 @@ export const useConnectingLines = (props: IProps) => {
 
       // Include the line if there is no cellKey specified (we're not connecting points on a graph), or if the line is
       // in the graph's sub plot that corresponds to the specified cellKey.
-      const includeLine = !cellKey ||
-                          (isGraphDataConfigurationModel(dataConfig) &&
-                           dataConfig.isCaseInSubPlot(cellKey, lineDescription.caseData))
+      const includeLine = !cellKey || isCaseInSubPlot?.(cellKey, lineDescription.caseData)
       if (includeLine) {
         lineGroups[groupKey] ||= []
         allLineCaseIds[groupKey] ||= []
@@ -176,9 +165,9 @@ export const useConnectingLines = (props: IProps) => {
         allLineCaseIds[groupKey].push(lineDescription.caseData.__id__)
       }
     })
-  
+
     return { allLineCaseIds, lineGroups, parentAttrID, parentAttrName, showConnectingLines }
-  }, [connectingLinesArea, dataConfig])
+  }, [connectingLinesArea, dataConfig, isCaseInSubPlot, yAttrCount])
 
   const renderConnectingLines = useCallback((renderLineProps: IPrepareLineProps) => {
     const { pointColorAtIndex } = renderLineProps

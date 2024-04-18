@@ -61,8 +61,14 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const showConnectingLines = adornmentsStore.showConnectingLines
   const connectingLinesRef = useRef<SVGGElement>(null)
   const connectingLinesActivatedRef = useRef(false)
+
+  const isCaseInSubPlot = useCallback((cellKey: Record<string, string>, caseData: Record<string, any>) => {
+    return dataConfiguration?.isCaseInSubPlot(cellKey, caseData)
+  }, [dataConfiguration])
+
   const { renderConnectingLines } = useConnectingLines({
-    pixiPoints, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef
+    clientType: "graph", pixiPoints, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
+    yAttrCount: dataConfiguration?.yAttributeIDs?.length, isCaseInSubPlot
   })
 
   secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
@@ -288,9 +294,11 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   // Movable Line adornment is being dragged.
   useEffect(function updateSquares() {
     return autorun(() => {
-      showSquares && refreshSquares()
+      if (adornmentsStore.showSquaresOfResiduals) {
+        refreshSquares()
+      }
     }, { name: "ScatterDots.updateSquares" })
-  }, [refreshSquares, showSquares])
+  }, [adornmentsStore, refreshSquares])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
