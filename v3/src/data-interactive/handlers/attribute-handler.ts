@@ -41,11 +41,13 @@ export const diAttributeHandler: DIHandler = {
 
     // Create the attributes
     const attributes: IAttribute[] = []
-    attributeValues.forEach(attributeValue => {
-      if (attributeValue) {
-        const attribute = createAttribute(attributeValue, dataContext, metadata)
-        if (attribute) attributes.push(attribute)
-      }
+    dataContext.applyUndoableAction(() => {
+      attributeValues.forEach(attributeValue => {
+        if (attributeValue) {
+          const attribute = createAttribute(attributeValue, dataContext, metadata)
+          if (attribute) attributes.push(attribute)
+        }
+      })
     })
     return { success: true, values: {
       attrs: attributes.map(attribute => convertAttributeToV2(attribute, dataContext))

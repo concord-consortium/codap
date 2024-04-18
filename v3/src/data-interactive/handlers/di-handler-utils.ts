@@ -6,15 +6,13 @@ import { DIAttribute, DICollection } from "../data-interactive-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
 export function createAttribute(value: DIAttribute, dataContext: IDataSet, metadata?: ISharedCaseMetadata) {
-  return dataContext.applyUndoableAction(() => {
-    const attributeSnapshot = convertValuesToAttributeSnapshot(value)
-    if (attributeSnapshot) {
-      const attribute = dataContext.addAttribute(attributeSnapshot)
-      if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
-      metadata?.setIsHidden(attribute.id, !!value.hidden)
-      return attribute
-    }
-  })
+  const attributeSnapshot = convertValuesToAttributeSnapshot(value)
+  if (attributeSnapshot) {
+    const attribute = dataContext.addAttribute(attributeSnapshot)
+    if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
+    metadata?.setIsHidden(attribute.id, !!value.hidden)
+    return attribute
+  }
 }
 
 export function createCollection(v2collection: DICollection, dataContext: IDataSet, metadata?: ISharedCaseMetadata) {
@@ -30,4 +28,6 @@ export function createCollection(v2collection: DICollection, dataContext: IDataS
     const attribute = createAttribute(attr, dataContext, metadata)
     if (attribute) collection.addAttribute(attribute)
   })
+
+  return collection
 }
