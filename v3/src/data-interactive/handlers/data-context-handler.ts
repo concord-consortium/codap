@@ -5,7 +5,7 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIDataContext, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { convertDataSetToV2 } from "../data-interactive-type-utils"
+import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { createCollection } from "./di-handler-utils"
 
 const contextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
@@ -19,7 +19,7 @@ export const diDataContextHandler: DIHandler = {
 
     // Return the existing dataset if the name is already being used
     const sameName = gDataBroker.getDataSetByName(name)
-    if (sameName) return { success: true, values: convertDataSetToV2(sameName) }
+    if (sameName) return { success: true, values: basicDataSetInfo(sameName) }
 
     return document.applyUndoableAction(() => {
       // Create dataset
@@ -32,11 +32,7 @@ export const diDataContextHandler: DIHandler = {
 
       return {
         success: true,
-        values: {
-          name: dataSet.name,
-          id: dataSet.id,
-          title: dataSet.title
-        }
+        values: basicDataSetInfo(dataSet)
       }
     })
   },

@@ -124,3 +124,11 @@ export function convertDataSetToV2(dataSet: IDataSet) {
     // contextStorage
   }
 }
+
+export function basicDataSetInfo(dataSet: IDataSet) {
+  return {
+    name: dataSet.name,
+    id: dataSet.id,
+    title: dataSet.title
+  }
+}
