@@ -67,7 +67,9 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
          <EditFormulaModal
           isOpen={formulaModal.isOpen}
           currentValue={expression}
-          onClose={handleEditExpressionClose} />
+          onClose={handleEditExpressionClose}
+          leftHandSideLabel={`${yAttrName} =`}
+         />
       }
     </>
   )
