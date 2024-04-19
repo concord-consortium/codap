@@ -167,14 +167,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     pointDescription?.pointColor, pointDescription?.pointStrokeColor])
 
   const refreshPointSelection = useCallback(() => {
-    refreshConnectingLines()
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       pixiPoints: pixiPointsRef.current, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
     })
-  }, [refreshConnectingLines, pointDescription, mapLayerModel, dataConfiguration])
+  }, [pointDescription, mapLayerModel, dataConfiguration])
 
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const lookupLegendColor = (aCaseData: CaseData) => {
@@ -261,9 +260,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
       },
       () => {
         refreshPoints(false)
+        refreshConnectingLines()
       }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
     )
-  }, [layout, mapModel.leafletMapState, refreshPoints])
+  }, [layout, mapModel.leafletMapState, refreshConnectingLines, refreshPoints])
 
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
