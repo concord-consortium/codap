@@ -33,6 +33,12 @@ export interface DICase {
 }
 export type DICollection = Partial<ICodapV2Collection>
 export type DIComponent = ITileModel
+export interface DIComponentInfo {
+  id?: string
+  name?: string
+  title?: string
+  type?: string
+}
 export interface DIGlobal {
   name?: string
   value?: number
@@ -90,7 +96,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultAttributes = { attrs: ICodapV2AttributeV3[] }
-export type DIResultSingleValues = DICase | DIGlobal | DIInteractiveFrame
+export type DIResultSingleValues = DICase | DIComponentInfo | DIGlobal | DIInteractiveFrame
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
                               DIAllCases | DIResultAttributes | number
 
