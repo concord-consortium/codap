@@ -32,7 +32,7 @@ export interface DICase {
   itemID?: string
 }
 export type DICollection = Partial<ICodapV2Collection>
-export type DIComponent  = unknown
+export type DIComponent = ITileModel
 export interface DIGlobal {
   name?: string
   value?: number
@@ -58,6 +58,9 @@ export interface DINewCase {
   id?: string
   itemID?: string
 }
+export interface DINotification {
+  request?: string
+}
 
 export interface DIResources {
   attribute?: IAttribute
@@ -82,7 +85,7 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DINewCase
+  DIGlobal | DIInteractiveFrame | DINewCase | DINotification
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API

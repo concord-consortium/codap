@@ -96,11 +96,10 @@ export function resolveResources(
 
   const dataContext = result.dataContext
 
-  // if (resourceSelector.component) {
-  //   result.component = document.getComponentByName(resourceSelector.component)
-  //     || (!isNaN(Number(resourceSelector.component))
-  //       && document.getComponentByID(resourceSelector.component))
-  // }
+  if (resourceSelector.component) {
+    // TODO Get tile by name?
+    result.component = document.content?.getTile(resourceSelector.component)
+  }
 
   if (resourceSelector.global) {
     const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
