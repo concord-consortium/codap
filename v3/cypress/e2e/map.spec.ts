@@ -310,4 +310,21 @@ context("Map UI", () => {
     mlh.selectCategoryColorForCategoricalLegend(arrayOfValues[0].values[1])
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[1], arrayOfValues[0].selected[1])
   })
+
+  it("shows connecting lines when Connecting Lines option is checked", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolshelf("map").click()
+    c.selectTile("map", 0)
+    cy.wait(2000)
+    cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
+    cy.get("[data-testid=map-display-values-button]").click()
+    cy.get("[data-testid=map-values-lines-checkbox]").should("be.visible")
+    cy.get("[data-testid=map-values-lines-checkbox]").click()
+    cy.wait(2000)
+    cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 1)
+    cy.get("[data-testid=map-values-lines-checkbox]").click()
+    cy.wait(2000)
+    cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
+  })
+
 })

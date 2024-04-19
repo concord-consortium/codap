@@ -95,9 +95,6 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
           <SaveImageMenuList tile={tile}/>
         </InspectorMenu>
         {renderPaletteIfAny()}
-      {showPalette === "measure" &&
-         <MapMeasurePalette tile={tile} setShowPalette={setShowPalette}
-                              panelRect={panelRect} buttonRect={buttonRect}/>}
       </InspectorPanel>
     )
   }

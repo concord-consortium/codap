@@ -1,10 +1,8 @@
 import * as PIXI from "pixi.js"
-import {ScaleLinear, curveLinear, line, select} from "d3"
+import {ScaleLinear, select} from "d3"
 import React, {useCallback, useEffect, useRef, useState} from "react"
-import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import { t } from "../../../utilities/translation/translate"
 import {appState} from "../../../models/app-state"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
@@ -20,8 +18,9 @@ import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
-import {IConnectingLineDescription, scatterPlotFuncs} from "./scatter-plot-utils"
-import {IPixiPointMetadata, PixiBackgroundPassThroughEvent} from "../utilities/pixi-points"
+import { scatterPlotFuncs } from "./scatter-plot-utils"
+import { IPixiPointMetadata } from "../utilities/pixi-points"
+import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
 import { transitionDuration } from "../../data-display/data-display-types"
 
 export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
@@ -62,6 +61,15 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   const showConnectingLines = adornmentsStore.showConnectingLines
   const connectingLinesRef = useRef<SVGGElement>(null)
   const connectingLinesActivatedRef = useRef(false)
+
+  const isCaseInSubPlot = useCallback((cellKey: Record<string, string>, caseData: Record<string, any>) => {
+    return dataConfiguration?.isCaseInSubPlot(cellKey, caseData)
+  }, [dataConfiguration])
+
+  const { renderConnectingLines } = useConnectingLines({
+    clientType: "graph", pixiPoints, connectingLinesSvg: connectingLinesRef.current, connectingLinesActivatedRef,
+    yAttrCount: dataConfiguration?.yAttributeIDs?.length, isCaseInSubPlot
+  })
 
   secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
   pointRadiusRef.current = graphModel.getPointRadius()
@@ -106,7 +114,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           deltaY = Number(yScaleRef.current?.invert(dy)) - Number(yScaleRef.current?.invert(0)),
           caseValues: ICase[] = [],
           { selection } = dataConfiguration || {}
-        selection?.forEach(anID => {
+        selection?.forEach((anID: string) => {
           const currX = Number(dataset?.getNumeric(anID, xAttrID)),
             currY = Number(dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]))
           if (isFinite(currX) && isFinite(currY)) {
@@ -162,129 +170,22 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       })
   }, [dataConfiguration, graphModel, pixiPoints])
 
-  const handleConnectingLinesClick = useCallback((event: MouseEvent, caseIDs: string[]) => {
-    const linesPath = event.target && select(event.target as HTMLElement)
-    if (linesPath?.classed("selected")) {
-      linesPath?.classed("selected", false)
-      linesPath?.attr("stroke-width", 2)
-      dataset?.setSelectedCases([])
-    } else {
-      linesPath?.classed("selected", true)
-      linesPath?.attr("stroke-width", 4)
-      dataset?.setSelectedCases(caseIDs)
-    }
-  }, [dataset])
-
-  const dataTip = d3tip().attr("class", "graph-d3-tip")
-    .attr("data-testid", "graph-connecting-lines-data-tip")
-    .html((d: string) => {
-      return `<p>${d}</p>`
-    })
-
-  const handleConnectingLinesMouseOver = useCallback((
-    event: MouseEvent, caseIDs: string[], parentAttrName?: string, parentAttrValue?: string
-  ) => {
-    if (pixiPoints) {
-      pixiPoints.canvas.style.cursor = "pointer"
-    }
-    // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
-    // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
-    // localization for this. When a parent attribute is present, the tool tip should look like:
-    //   <category attribute name>: <category>
-    //   with <number of points> points (<collection name>) on this line
-    // And when a parent attribute is not present, the tool tip should look like:
-    //   <number of points> points (<collection name>) on this line
-    if (!parentAttrName || !parentAttrValue) return // For now, do nothing if these are undefined
-    const caseIdCount = caseIDs?.length ?? 0
-    const datasetName = dataset?.name ?? ""
-    const vars = [parentAttrName, parentAttrValue, caseIdCount, datasetName]
-    const dataTipContent = t("DG.DataTip.connectingLine", {vars})
-    dataTip.show(dataTipContent, event.target)
-  }, [dataTip, dataset?.name, pixiPoints])
-
-  const handleConnectingLinesMouseOut = useCallback(() => {
-    if (pixiPoints) {
-      pixiPoints.canvas.style.cursor = ""
-    }
-    dataTip.hide()
-  }, [dataTip, pixiPoints])
-
   const refreshConnectingLines = useCallback(async () => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
-
-    const connectingLinesArea = select(connectingLinesRef.current)
-    const curve = line().curve(curveLinear)
     const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
     const connectingLines = connectingLinesForCases()
     const parentAttr = dataset?.collections[0]?.attributes[0]
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
-    const parentAttrValues = parentAttrID && dataConfiguration?.metadata?.getCategorySet(parentAttrID)?.values
     const cellKeys = dataConfiguration?.getAllCellKeys()
+    const pointColorAtIndex = graphModel.pointDescription.pointColorAtIndex
 
-    connectingLinesArea.selectAll("path").remove()
     cellKeys?.forEach((cellKey) => {
-      // Each plot can have multiple groups of connecting lines. The number of groups is determined by the number of Y
-      // attributes or the presence of a parent attribute and the number of unique values for that attribute. If there
-      // are multiple Y attributes, the number of groups matches the number of Y attributes. Otherwise, if there's a
-      // parent attribute, the number of groups matches the number of unique values for that attribute. If there's only
-      // one Y attribute and no parent attribute, then there's only a single group. The code below builds lists of
-      // connecting lines and case IDs for each group.
-      const lineGroups: Record<string, IConnectingLineDescription[]> = {}
-      const allLineCaseIds: Record<string, string[]> = {}
-      const yAttrCount = dataConfiguration?.yAttributeIDs?.length ?? 0
-      connectingLines.forEach((lineDescription: IConnectingLineDescription) => {
-        const parentAttrValue = parentAttrID ? String(lineDescription.caseData[parentAttrID]) : undefined
-        const groupKey = yAttrCount > 1
-          ? lineDescription.plotNum
-          : parentAttrValues && parentAttrValue
-            ? parentAttrValue
-            : 0
-
-        if (dataConfiguration?.isCaseInSubPlot(cellKey, lineDescription.caseData)) {
-          lineGroups[groupKey] ||= []
-          allLineCaseIds[groupKey] ||= []
-          lineGroups[groupKey].push(lineDescription)
-          allLineCaseIds[groupKey].push(lineDescription.caseData.__id__)
-        }
+      renderConnectingLines({
+        cellKey, connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines
       })
-
-      // For each group of lines, draw a path using the lines' coordinates
-      for (const [linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
-        const allLineCoords = cases.map((l) => l.lineCoords)
-        const lineCaseIds = allLineCaseIds[primaryAttrValue]
-        const allCasesSelected = lineCaseIds?.every(caseID => dataConfiguration?.selection.includes(caseID))
-        const legendID = dataConfiguration?.attributeID("legend")
-        const color = parentAttrID && legendID
-          ? graphModel.pointDescription.pointColorAtIndex(linesIndex)
-          : graphModel.pointDescription.pointColorAtIndex(0)
-
-        connectingLinesArea
-          .append("path")
-          .data([allLineCoords])
-          .attr("d", d => curve(d))
-          .classed("interactive-graph-element", true) // for dots canvas event passing
-          .classed("selected", allCasesSelected)
-          .on(PixiBackgroundPassThroughEvent.Click, (e) => handleConnectingLinesClick(e, lineCaseIds))
-          .on(PixiBackgroundPassThroughEvent.MouseOver, (e) =>
-            handleConnectingLinesMouseOver(e, lineCaseIds, parentAttrName, primaryAttrValue)
-          )
-          .on(PixiBackgroundPassThroughEvent.MouseOut, handleConnectingLinesMouseOut)
-          .call(dataTip)
-          .attr("fill", "none")
-          .attr("stroke", color)
-          .attr("stroke-width", allCasesSelected ? 4 : 2)
-          .style("cursor", "pointer")
-          .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
-          .transition()
-          .duration(transitionDuration)
-          .style("opacity", showConnectingLines ? 1 : 0)
-          .on("end", () => {
-            connectingLinesActivatedRef.current = showConnectingLines
-            !showConnectingLines && select(connectingLinesRef.current).selectAll("path").remove()
-          })
-      }
     })
+
     // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
     // revert to original point size when Connecting Lines are deactivated.
     if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
@@ -296,9 +197,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       await pixiPoints?.setAllPointsScale(scaleFactor, transitionDuration)
       graphModel.pointDescription.setPointSizeMultiplier(origPointSizeMultiplier.current)
     }
-  }, [dataConfiguration, dataset?.collections, dataTip, graphModel.pointDescription,
-      handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver, layout,
-      pixiPoints, pointSizeMultiplier, showConnectingLines])
+  }, [showConnectingLines, layout, dataConfiguration, dataset?.collections, pointSizeMultiplier, renderConnectingLines,
+      graphModel, pixiPoints])
 
   const refreshSquares = useCallback(() => {
 
@@ -392,18 +292,20 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   // Call refreshSquares when Squares of Residuals option is switched on and when a
   // Movable Line adornment is being dragged.
-  useEffect(function renderSquares() {
+  useEffect(function updateSquares() {
     return autorun(() => {
-      showSquares && refreshSquares()
-    }, { name: "ScatterDots.renderSquares" })
-  }, [refreshSquares, showSquares])
+      if (adornmentsStore.showSquaresOfResiduals) {
+        refreshSquares()
+      }
+    }, { name: "ScatterDots.updateSquares" })
+  }, [adornmentsStore.showSquaresOfResiduals, refreshSquares])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
-  useEffect(function renderConnectingLines() {
+  useEffect(function updateConnectingLines() {
     return autorun(() => {
       refreshConnectingLines()
-    }, { name: "ScatterDots.renderConnectingLines" })
+    }, { name: "ScatterDots.updateConnectingLines" })
   }, [dataConfiguration?.selection, refreshConnectingLines, showConnectingLines])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})

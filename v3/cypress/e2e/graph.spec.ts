@@ -269,9 +269,7 @@ context("Graph UI", () => {
     cy.get("[data-testid=bar-chart-checkbox]").find("input").should("not.be.checked")
     cy.get("[data-testid=bar-cover]").should("not.exist")
     cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("not.exist")
-    // For some reason, at this point Cypress seems to think the checkbox is covered by its container
-    // (`codap-inspector-palette`) so we resort to using `force: true`
-    cy.get("[data-testid=bar-chart-checkbox]").find("input").click({ force: true})
+    cy.get("[data-testid=bar-chart-checkbox]").click()
     cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
     // TODO: See comment above regarding number of bars.
     // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)

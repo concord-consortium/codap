@@ -151,3 +151,14 @@
   }
 
 }
+
+.map-d3-tip {
+  font-size: small;
+  line-height: 1.2;
+  padding: 5px;
+  pointer-events: none !important;
+  color: #203d5d;
+  box-shadow: 0 4px 20px 4px rgba(0, 20, 60, .1), 0 4px 80px -8px rgba(0, 20, 60, .2);
+  background-color: rgba(251, 251, 176, 0.7);
+  border-radius: 4px;
+}

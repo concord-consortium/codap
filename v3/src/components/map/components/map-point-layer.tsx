@@ -1,8 +1,9 @@
+import React, {useCallback, useEffect, useRef} from "react"
 import {comparer, reaction} from "mobx"
+import { observer } from "mobx-react-lite"
 import * as PIXI from "pixi.js"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import React, {useCallback, useEffect, useRef} from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useMap} from "react-leaflet"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
@@ -12,7 +13,7 @@ import {CaseData} from "../../data-display/d3-types"
 import {
   computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
-import {transitionDuration} from "../../data-display/data-display-types"
+import { IConnectingLineDescription, transitionDuration } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
@@ -21,21 +22,80 @@ import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
+import { mstAutorun } from "../../../utilities/mst-autorun"
+import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
+import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
   onSetPixiPointsForLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
 }
 
-export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPointsForLayer}: IProps) {
+export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onSetPixiPointsForLayer}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
     layout = useDataDisplayLayout(),
+    instanceId = useInstanceIdContext(),
     pixiContainerRef = useRef<HTMLDivElement>(null),
-    pixiPointsRef = useRef<PixiPoints>()
+    pixiPointsRef = useRef<PixiPoints>(),
+    showConnectingLines = mapLayerModel.connectingLinesAreVisible,
+    connectingLinesRef = useRef<SVGGElement>(null),
+    connectingLinesActivatedRef = useRef(false)
+
+  const connectingLine = useCallback((caseID: string) => {
+    if (!dataset) return
+    const {latId, longId} = latLongAttributesFromDataSet(dataset)
+    const getCoords = (anID: string) => {
+      const long = dataset.getNumeric(anID, longId) || 0,
+        lat = dataset?.getNumeric(anID, latId) || 0
+      return leafletMap.latLngToContainerPoint([lat, long])
+    },
+    getScreenX = (anID: string) => {
+      const coords = getCoords(anID)
+      return coords.x
+    },
+    getScreenY = (anID: string) => {
+      const coords = getCoords(anID)
+      return coords.y
+    }
+    const xValue = getScreenX(caseID)
+    const yValue = getScreenY(caseID)
+    if (isFinite(xValue) && isFinite(yValue)) {
+      const caseData = dataset?.getCase(caseID, { numeric: false })
+      if (caseData) {
+        const lineCoords: [number, number] = [xValue, yValue]
+        return { caseData, lineCoords }
+      }
+    }
+  }, [dataset, leafletMap])
+
+  const connectingLinesForCases = useCallback(() => {
+    const lineDescriptions: IConnectingLineDescription[] = []
+    dataset?.cases.forEach(c => {
+        const cLine = connectingLine(c.__id__)
+        cLine && lineDescriptions.push(cLine)
+    })
+    return lineDescriptions
+  }, [connectingLine, dataset?.cases])
+
+  const handleConnectingLinesClick = useCallback(() => {
+    // temporarily ignore leaflet clicks to prevent the map click handler
+    // from deselecting the points.
+    const wasIgnoringClicks = mapModel._ignoreLeafletClicks
+    if (!wasIgnoringClicks) {
+      mapModel.ignoreLeafletClicks(true)
+      // Restore leaflet click handling once the current click has been handled
+      setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
+    }
+  }, [mapModel])
+
+  const { renderConnectingLines } = useConnectingLines({
+    clientType: "map", pixiPoints: pixiPointsRef.current, connectingLinesSvg: connectingLinesRef.current,
+    connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
+  })
 
   useEffect(function createPixiPoints() {
     if (!pixiContainerRef.current) {
@@ -78,6 +138,18 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
     pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
     pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
   }
+
+  const refreshConnectingLines = useCallback(() => {
+    if (!showConnectingLines && !connectingLinesActivatedRef.current) return
+    const connectingLines = connectingLinesForCases()
+    const parentAttr = dataset?.collections[0]?.attributes[0]
+    const parentAttrID = parentAttr?.id
+    const parentAttrName = parentAttr?.name
+    const pointColorAtIndex = mapModel.pointDescription.pointColorAtIndex
+
+    renderConnectingLines({ connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines })
+  }, [connectingLinesForCases, dataset?.collections, mapModel.pointDescription.pointColorAtIndex, renderConnectingLines,
+      showConnectingLines])
 
   const callMatchCirclesToData = useCallback(() => {
     if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
@@ -188,9 +260,10 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
       },
       () => {
         refreshPoints(false)
+        refreshConnectingLines()
       }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
     )
-  }, [layout, mapModel.leafletMapState, refreshPoints])
+  }, [layout, mapModel.leafletMapState, refreshConnectingLines, refreshPoints])
 
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
@@ -255,6 +328,14 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
     )
   }, [callMatchCirclesToData, mapLayerModel])
 
+  // Call refreshConnectingLines when Connecting Lines option is switched on and when all
+  // points are selected.
+  useEffect(function updateConnectingLines() {
+    return mstAutorun(() => {
+      refreshConnectingLines()
+    }, { name: "MapPointLayer.updateConnectingLines" }, mapLayerModel)
+  }, [dataConfiguration.selection, mapLayerModel, refreshConnectingLines, showConnectingLines])
+
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = mapLayerModel.dataConfiguration
     const roleAttrIDPairs = dataConfig.uniqueTipAttributes ?? []
@@ -264,6 +345,9 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
 
   return (
     <>
+      <svg style={{height: "100%", position: "absolute", width: "100%", zIndex: 11}}>
+        <g data-testid={`connecting-lines-${instanceId}`} className="connecting-lines" ref={connectingLinesRef}/>
+      </svg>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
       <DataTip
@@ -274,4 +358,4 @@ export const MapPointLayer = function MapPointLayer({mapLayerModel, onSetPixiPoi
       />
     </>
   )
-}
+})
