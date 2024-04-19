@@ -48,6 +48,7 @@ export class MultiScale {
   @observable orientation: "horizontal" | "vertical"
   @observable changeCount = 0
   @observable categorySet: ICategorySet | undefined
+  @observable categoryValues: string[] = []
   // SubAxes copy this scale to do their rendering because they need to change the range.
   scale: AxisScaleType  // d3 scale whose range is the entire axis length.
   categoriesReactionDisposer?: () => void

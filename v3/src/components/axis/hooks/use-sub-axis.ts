@@ -9,7 +9,7 @@ import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
-import {isAliveSafe} from "../../../utilities/mst-utils"
+import {isAliveSafe, onAnyAction} from "../../../utilities/mst-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
         getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
@@ -156,7 +156,8 @@ export const useSubAxis = ({
             {rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
               collision),
             duration = (isAnimating() && !swapInProgress.current &&
-              dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
+              dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0,
+            hasCategories = !(categories.length === 1 && categories[0] === "__main__")
 
           // Fill out dragInfo for use in drag callbacks
           const dI = dragInfo.current
