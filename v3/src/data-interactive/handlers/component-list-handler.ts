@@ -11,11 +11,11 @@ export const diComponentListHandler: DIHandler = {
       // TODO Should we add names to tiles?
       // TODO Tiles sometimes show titles different than tile.title. Should we return those?
       const { content, id, title } = tile
-      const type = isWebViewModel(content) ?
-        content.isPlugin ?
-          kV2GameType :
-          kV2WebViewType :
-        kComponentTypeV3ToV2Map[content.type]
+      const type = isWebViewModel(content)
+        ? content.isPlugin
+          ? kV2GameType
+          : kV2WebViewType
+        : kComponentTypeV3ToV2Map[content.type]
       values.push({ id, title, type })
     })
 

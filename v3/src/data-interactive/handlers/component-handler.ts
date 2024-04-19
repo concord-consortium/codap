@@ -4,7 +4,7 @@ import { DIHandler, DINotification, DIResources, DIValues } from "../data-intera
 import { uiState } from "../../models/ui-state"
 import { appState } from "../../models/app-state"
 
-const componentNotFoundResult = { success: false , values: { error: t("V3.DI.Error.componentNotFound") } } as const
+const componentNotFoundResult = { success: false, values: { error: t("V3.DI.Error.componentNotFound") } } as const
 
 export const diComponentHandler: DIHandler = {
   delete(resources: DIResources) {
