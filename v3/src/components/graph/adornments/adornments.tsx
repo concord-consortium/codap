@@ -51,18 +51,18 @@ export const Adornments = observer(function Adornments() {
 
   const xAttrId = dataConfig?.attributeID("x")
   const xAttrType = dataConfig?.attributeType("x")
-  const xCatSet = layout.getAxisMultiScale('bottom').categorySet
-  const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
+  const xCatValues = layout.getAxisMultiScale('bottom').categoryValues
+  const xCats = xAttrType === "categorical" && xCatValues ? xCatValues : [""]
   const yAttrId = dataConfig?.attributeID("y")
   const yAttrType = dataConfig?.attributeType("y")
-  const yCatSet = layout.getAxisMultiScale("left").categorySet
-  const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
+  const yCatValues = layout.getAxisMultiScale("left").categoryValues
+  const yCats = yAttrType === "categorical" && yCatValues ? yCatValues : [""]
   const topAttrId = dataConfig?.attributeID("topSplit")
-  const topCatSet = layout.getAxisMultiScale("top").categorySet
-  const topCats = topCatSet ? Array.from(topCatSet.values) : [""]
+  const topCatValues = layout.getAxisMultiScale("top").categoryValues
+  const topCats = topCatValues ?? [""]
   const rightAttrId = dataConfig?.attributeID("rightSplit")
-  const rightCatSet = layout.getAxisMultiScale("rightCat").categorySet
-  const rightCats = rightCatSet ? Array.from(rightCatSet.values) : [""]
+  const rightCatValues = layout.getAxisMultiScale("rightCat").categoryValues
+  const rightCats = rightCatValues ?? [""]
 
   // When a graph contains multiple sub-plots, each adornment needs to be rendered once per sub-plot.
   // For placing the adornments, we build a CSS grid where each cell corresponds to a subplot of the

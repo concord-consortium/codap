@@ -180,7 +180,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         selectedPointRadius: graphModel.getPointRadius('select'),
         pixiPoints, selectedOnly, pointColor, pointStrokeColor,
         getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
-        pointDisplayType, getWidth, getHeight, anchor
+        pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },
     [primaryIsBottom, layout, dataConfig, primaryAttrRole, graphModel, secondaryAttrRole, dataset, pointDisplayType,

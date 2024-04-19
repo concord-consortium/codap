@@ -160,6 +160,24 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
+          // If there are hidden cases in the graph that are then selected in a different tile, remove them from
+          // the hiddenCases array and make sure their positions are set.
+          if (dataConfiguration?.hiddenCases.length > 0) {
+            const selectedCases = Array.from(dataset.selection)
+            const allCases = dataset.cases.map(c => c.__id__)
+            const updatedHiddenCases = allCases.filter(caseID => !selectedCases.includes(caseID))
+            dataConfiguration?.setHiddenCases(updatedHiddenCases)
+            pixiPoints && matchCirclesToData({
+              dataConfiguration,
+              pointRadius: graphModel.getPointRadius(),
+              pointColor: graphModel.pointDescription.pointColor,
+              pointDisplayType: graphModel.pointDisplayType,
+              pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+              pixiPoints,
+              startAnimation, instanceId
+            })
+            callRefreshPointPositions(false)
+          }
           refreshPointSelection()
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
@@ -174,7 +192,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       })
       return () => disposer()
     }
-  }, [dataset, callRefreshPointPositions, refreshPointSelection])
+  }, [dataset, callRefreshPointPositions, refreshPointSelection, dataConfiguration, pixiPoints, graphModel,
+      startAnimation, instanceId])
 
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {

@@ -235,7 +235,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
       selectedPointRadius: graphModel.getPointRadius("select"),
       pixiPoints, selectedOnly, pointColor, pointStrokeColor,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
-      pointDisplayType, anchor: circleAnchor
+      pointDisplayType, anchor: circleAnchor, dataset
     })
   },
   [dataConfig, primaryIsBottom, graphModel, primaryPlace, layout, primaryAttrRole, secondaryAttrRole,

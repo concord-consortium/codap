@@ -47,6 +47,7 @@ export class MultiScale {
   @observable orientation: "horizontal" | "vertical"
   @observable changeCount = 0
   @observable categorySet: ICategorySet | undefined
+  @observable categoryValues: string[] = []
   // SubAxes copy this scale to do their rendering because they need to change the range.
   scale: AxisScaleType  // d3 scale whose range is the entire axis length.
   disposers: IReactionDisposer[] = []
@@ -56,7 +57,7 @@ export class MultiScale {
     this.orientation = orientation
     this.scale = scaleTypeToD3Scale(scaleType)
     makeObservable(this)
-    this.disposers.push(this.reactToCategorySetChange())
+    this.disposers.push(this.reactToCategoryValuesChange())
   }
 
   cleanup() {
@@ -99,10 +100,6 @@ export class MultiScale {
     return this.scale.range()
   }
 
-  @computed get categorySetValues() {
-    return this.categorySet?.values ?? []
-  }
-
   _setRangeFromLength() {
     this.scale.range(this.orientation === 'horizontal' ? [0, this.length] : [this.length, 0])
   }
@@ -117,7 +114,11 @@ export class MultiScale {
 
   @action setCategorySet(categorySet: ICategorySet | undefined) {
     this.categorySet = categorySet
-    this.categoricalScale?.domain(categorySet?.values ?? [])
+    this.setCategoryValues(categorySet?.values ?? [])
+  }
+
+  @action setCategoryValues(values: string[]) {
+    this.categoryValues = values
     this.incrementChangeCount()
   }
 
@@ -139,13 +140,13 @@ export class MultiScale {
     this.incrementChangeCount()
   }
 
-  @action reactToCategorySetChange() {
+  @action reactToCategoryValuesChange() {
     return reaction(() => {
-      return Array.from(this.categorySetValues)
+      return this.categoryValues
     }, (categories) => {
       this.setCategoricalDomain(categories)
       this.incrementChangeCount()
-    }, { name: "MultiScale.reactToCategorySetChange"})
+    }, { name: "MultiScale.reactToCategoryValuesChange"})
   }
 
   @action incrementChangeCount() {

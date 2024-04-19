@@ -46,6 +46,7 @@ export const DataConfigurationModel = types
     dataset: types.safeReference(DataSet),
     metadata: types.safeReference(SharedCaseMetadata),
     hiddenCases: types.array(types.string),
+    displayOnlySelectedCases: types.optional(types.boolean, false)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -652,6 +653,13 @@ export const DataConfigurationModel = types
     },
     clearHiddenCases() {
       self.hiddenCases.replace([])
+    },
+    setHiddenCases(hiddenCases: string[]) {
+      self.hiddenCases.replace(hiddenCases)
+    },
+    setDisplayOnlySelectedCases(displayOnlySelectedCases: boolean) {
+      self.displayOnlySelectedCases = displayOnlySelectedCases
+      self.clearCasesCache()
     }
   }))
   .actions(self => ({
