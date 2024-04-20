@@ -36,7 +36,7 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute) {
   if (color) {
     return (
       <div className="cell-color-swatch" >
-        <div className="cell-color-swatch-center" style={{ background: color }} />
+        <div className="cell-color-swatch-interior" style={{ background: color }} />
       </div>
     )
   }

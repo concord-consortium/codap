@@ -117,17 +117,17 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
             closeOnBlur={false}
           >
             <PopoverTrigger>
-              <button className="color-swatch"
+              <button className="cell-edit-color-swatch"
                 onPointerDown={handleSwatchPointerDown}
                 onClick={handleSwatchClick}>
-                <div className="color-swatch-interior" style={swatchStyle}/>
+                <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
               </button>
             </PopoverTrigger>
             <PopoverAnchor>
               { inputElt }
             </PopoverAnchor>
             <Portal>
-              <PopoverContent width={"inherit"}>
+              <PopoverContent className="text-editor-color-picker" width={"inherit"}>
                 <PopoverArrow />
                 <PopoverBody>
                   <ColorPicker color={hexColor} onChange={updateValue} />
@@ -136,10 +136,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
                   <Flex>
                     <Spacer/>
                     <ButtonGroup>
-                      <Button size="xs" fontWeight="normal" onClick={rejectValue}>
+                      <Button className="cancel-button" size="xs" fontWeight="normal" onClick={rejectValue}>
                         {t("V3.CaseTable.colorPalette.cancel")}
                       </Button>
-                      <Button size="xs" fontWeight="normal" onClick={acceptValue}>
+                      <Button className="set-color-button" size="xs" fontWeight="normal" onClick={acceptValue}>
                         {t("V3.CaseTable.colorPalette.setColor")}
                       </Button>
                     </ButtonGroup>

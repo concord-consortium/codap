@@ -30,12 +30,12 @@ export const TableTileElements = {
   // getColumnHeaderTooltip() {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
-  getIndexRow(rowNum, collectionIndex = 1) {
+  getIndexRow(rowNum: number, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid]
       [role=row][aria-rowindex="${rowNum}"]
       [data-testid=codap-index-content-button]`)
   },
-  openIndexMenuForRow(rowNum, collectionIndex = 1) {
+  openIndexMenuForRow(rowNum: number, collectionIndex = 1) {
     this.getIndexRow(rowNum, collectionIndex).click("top")
   },
   getIndexMenu() {
@@ -136,8 +136,26 @@ export const TableTileElements = {
     }
     this.getApplyButton().click()
   },
-  getCell(line, row, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${line}"] .cell-span`)
+  getGridCell(row: number, column: number, collection = 1) {
+    return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
+  },
+  // returns the .cell-span within the cell
+  getCell(column: number, row: number, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"] .cell-span`)
+  },
+  verifyCellSwatchColor(row: number, column: number, rgbColorStr: string, collection = 1) {
+    this.getGridCell(row, column, collection).find(".cell-color-swatch-interior").then($el => {
+      return window.getComputedStyle($el[0])
+    })
+    .invoke("getPropertyValue", "background")
+    .should("contain", rgbColorStr)
+  },
+  verifyEditCellSwatchColor(row: number, column: number, rgbColorStr: string, collection = 1) {
+    this.getGridCell(row, column, collection).find(".cell-edit-color-swatch-interior").then($el => {
+      return window.getComputedStyle($el[0])
+    })
+    .invoke("getPropertyValue", "background")
+    .should("contain", rgbColorStr)
   },
   verifyRowSelected(row) {
     cy.get(`[data-testid=case-table] [aria-rowindex="${row}"]`).invoke("attr", "aria-selected")
