@@ -98,7 +98,7 @@ context("case table ui", () => {
   })
 
   describe("case table header attribute menu", () => {
-    it("verify add attribute with undo and redo",()=>{
+    it("verify add attribute with undo and redo", ()=>{
       // Add new attribute using Add New Attribute button (+)
       fh.addNewAttribute()
 
