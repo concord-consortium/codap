@@ -1,6 +1,7 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
 const numOfAttributes = 10
 const firstRowIndex = 2
@@ -99,30 +100,29 @@ context("case table ui", () => {
   describe("case table header attribute menu", () => {
     it("verify add attribute with undo and redo",()=>{
       // Add new attribute using Add New Attribute button (+)
-        table.addNewAttribute("cases").click({force:true})
+      fh.addNewAttribute()
 
-        // verify new attribute exists
-        table.getColumnHeaders().should("have.length.be.within", 10, 11)
-        table.getAttribute("newAttr").should("exist")
-        table.getAttribute("newAttr").click()
-        table.getAttribute("newAttr").should("have.text", "newAttr")
+      // verify new attribute exists
+      table.getColumnHeaders().should("have.length.be.within", 10, 11)
+      table.getAttribute("newAttr").should("exist")
+      table.getAttribute("newAttr").click()
+      table.getAttribute("newAttr").should("have.text", "newAttr")
 
-        // Perform Undo operation
-        toolbar.getUndoTool().click()
+      // Perform Undo operation
+      toolbar.getUndoTool().click()
 
-        // Test if attribute is removed
-        table.getColumnHeaders().should("have.length.be.within", 9, 10)
-        table.getAttribute("newAttr").should("not.exist")
+      // Test if attribute is removed
+      table.getColumnHeaders().should("have.length.be.within", 9, 10)
+      table.getAttribute("newAttr").should("not.exist")
 
-        // Perform Redo operation
-        toolbar.getRedoTool().click()
+      // Perform Redo operation
+      toolbar.getRedoTool().click()
 
-        // verify new attribute exists
-        table.getColumnHeaders().should("have.length.be.within", 10, 11)
-        table.getAttribute("newAttr").should("exist")
-        table.getAttribute("newAttr").click()
-        table.getAttribute("newAttr").should("have.text", "newAttr")
-
+     // verify new attribute exists
+     table.getColumnHeaders().should("have.length.be.within", 10, 11)
+     table.getAttribute("newAttr").should("exist")
+     table.getAttribute("newAttr").click()
+      table.getAttribute("newAttr").should("have.text", "newAttr")
     })
     it("verify rename attribute with undo and redo", () => {
 
