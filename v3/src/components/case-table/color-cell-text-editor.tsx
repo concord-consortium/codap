@@ -1,8 +1,14 @@
-import React, { useEffect, useRef, useState } from "react"
+import {
+  Button, ButtonGroup, Flex, forwardRef, Popover, PopoverAnchor, PopoverArrow, PopoverBody,
+  PopoverContent, PopoverFooter, PopoverTrigger, Portal, Spacer, useDisclosure, useMergeRefs
+} from "@chakra-ui/react"
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { parseColor } from "../../utilities/color-utils"
+import { parseColor, parseColorToHex } from "../../utilities/color-utils"
+import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
+import { ColorPicker } from "./color-picker"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -22,52 +28,126 @@ function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.select()
 }
 
+const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'>((props, ref) => {
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const mergeRefs = useMergeRefs(ref, inputRef)
+
+  useEffect(() => {
+    autoFocusAndSelect(inputRef.current)
+  }, [])
+
+  return (
+    <input data-testid="cell-text-editor" className={textEditorClassname} ref={mergeRefs} {...props} />
+  )
+})
+
 export default function ColorCellTextEditor({ row, column, onRowChange, onClose }: TRenderEditCellProps) {
   const data = useDataSetContext()
   const attributeId = column.key
   const attribute = data?.getAttribute(attributeId)
-  const initialValueRef = useRef(data?.getStrValue(row.__id__, attributeId))
-  const [inputValue, setInputValue] = useState(initialValueRef.current)
+  const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
   const colorNames = attribute?.userType === "color"
   const color = supportColors && inputValue ? parseColor(inputValue, { colorNames }) : undefined
+  const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
   // show the color swatch if the initial value appears to be a color (no change mid-edit)
-  const showColorSwatch = useRef(!!color)
+  const showColorSwatch = useRef(!!hexColor)
 
   useEffect(() => {
     data?.setSelectedCases([])
   }, [data])
 
-  function handleAccept() {
-    // commits the change and closes the editor
+  // commits the change and closes the editor
+  const acceptValue = useCallback(() => {
     onRowChange({ ...row, [column.key]: inputValue }, true)
+  }, [column, inputValue, onRowChange, row])
+
+  // updates the value locally without committing the changes
+  const updateValue = useCallback((value: string) => {
+    setInputValue(value)
+    onRowChange({ ...row, [column.key]: value })
+  }, [column, onRowChange, row])
+
+  // rejects any local changes and closes the editor
+  const rejectValue = useCallback(() => {
+    onClose()
+  }, [onClose])
+
+  const { isOpen: isPaletteOpen, onToggle: togglePalette } = useDisclosure()
+
+  function handleSwatchPointerDown(event: React.PointerEvent) {
+    // prevent blurring the input
+    event.preventDefault()
   }
 
-  function handleKeyDown(event: React.KeyboardEvent) {
-    if (event.key === "Enter") handleAccept()
-    if (event.key === "Escape") onClose()
+  function handleSwatchClick(event: React.MouseEvent) {
+    togglePalette()
+  }
+
+  function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
+    updateValue(event.target.value)
+  }
+
+  function handleInputKeyDown(event: React.KeyboardEvent) {
+    if (event.key === "Enter") acceptValue()
+    if (event.key === "Escape") rejectValue()
+  }
+
+  function handleInputBlur() {
+    !isPaletteOpen && acceptValue()
   }
 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  const inputElt = <input
-                    data-testid="cell-text-editor"
-                    className={textEditorClassname}
-                    ref={autoFocusAndSelect}
+  const inputElt = <InputElt
                     value={inputValue}
-                    onKeyDown={handleKeyDown}
-                    onChange={event => setInputValue(event.target.value)}
-                    onBlur={() => handleAccept()}
+                    onKeyDown={handleInputKeyDown}
+                    onChange={handleInputColorChange}
+                    onBlur={handleInputBlur}
                   />
 
   return swatchStyle
     ? (
         <div className={"color-cell-text-editor"}>
-          <div className="color-swatch">
-            <div className="color-swatch-interior" style={swatchStyle}/>
-          </div>
-          { inputElt }
+          <Popover
+            isLazy={true}
+            isOpen={isPaletteOpen}
+            placement="right"
+            closeOnBlur={false}
+          >
+            <PopoverTrigger>
+              <button className="cell-edit-color-swatch"
+                onPointerDown={handleSwatchPointerDown}
+                onClick={handleSwatchClick}>
+                <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
+              </button>
+            </PopoverTrigger>
+            <PopoverAnchor>
+              { inputElt }
+            </PopoverAnchor>
+            <Portal>
+              <PopoverContent className="text-editor-color-picker" width={"inherit"}>
+                <PopoverArrow />
+                <PopoverBody>
+                  <ColorPicker color={hexColor} onChange={updateValue} />
+                </PopoverBody>
+                <PopoverFooter>
+                  <Flex>
+                    <Spacer/>
+                    <ButtonGroup>
+                      <Button className="cancel-button" size="xs" fontWeight="normal" onClick={rejectValue}>
+                        {t("V3.CaseTable.colorPalette.cancel")}
+                      </Button>
+                      <Button className="set-color-button" size="xs" fontWeight="normal" onClick={acceptValue}>
+                        {t("V3.CaseTable.colorPalette.setColor")}
+                      </Button>
+                    </ButtonGroup>
+                  </Flex>
+                </PopoverFooter>
+              </PopoverContent>
+            </Portal>
+          </Popover>
         </div>
       )
     // if we don't have a valid color, just a simple text editor

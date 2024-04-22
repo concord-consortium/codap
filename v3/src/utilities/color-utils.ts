@@ -54,11 +54,28 @@ export interface ParseColorOptions {
  *
  * @param str string to be parsed for its color
  * @param options { colorNames?: boolean } whether or not to recognize color names when parsing
- * @returns canonicalized color string or empty string
+ * @returns canonicalized color name or string or empty string
  */
 export function parseColor(str: string, options?: ParseColorOptions) {
   // if it's a valid color name, return it
   if (options?.colorNames && parseColorName(str)) return str.toLowerCase()
+  // if it's a valid color string, return its hex equivalent
+  return getColorFormat(str) ? colord(str).toHex() : ""
+}
+
+/**
+ * parseColorToHex
+ *
+ * @param str string to be parsed for its color
+ * @param options { colorNames?: boolean } whether or not to recognize color names when parsing
+ * @returns canonicalized color string or empty string
+ */
+export function parseColorToHex(str: string, options?: ParseColorOptions) {
+  // if it's a valid color name, return its hex equivalent
+  if (options?.colorNames) {
+    const parsed = parseColorName(str)
+    if (parsed) return colord(parsed).toHex()
+  }
   // if it's a valid color string, return its hex equivalent
   return getColorFormat(str) ? colord(str).toHex() : ""
 }

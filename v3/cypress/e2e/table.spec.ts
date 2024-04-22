@@ -641,4 +641,44 @@ context("case table ui", () => {
       })
     })
   })
+
+  describe("table cell editing", () => {
+    it("edits cells", () => {
+      cy.log("checking cell contents")
+      table.getGridCell(2, 2).should("contain", "African Elephant")
+      cy.log("double-clicking the cell")
+      // double-click to initiate editing cell
+      table.getGridCell(2, 2).dblclick()
+      cy.log("check the editing cell contents")
+      table.getGridCell(2, 2).find("input").should("have.value", "African Elephant")
+      // type a color string
+      table.getGridCell(2, 2).find("input").type("#ff00ff{enter}")
+      // verify that cell shows color swatch of appropriate color
+      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
+      // double-click to begin editing cell
+      table.getGridCell(2, 2).dblclick()
+      // click color swatch to bring up color palette
+      table.getGridCell(2, 2).get(".cell-edit-color-swatch").click()
+      // click hue bar to change color
+      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).click()
+      // verify that the color actually changed
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      // type escape key to dismiss color palette
+      cy.get(".react-colorful").type("{esc}")
+      // verify that cell displays original color
+      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
+      // double-click to begin editing cell
+      table.getGridCell(2, 2).dblclick()
+      // click color swatch to bring up color palette
+      table.getGridCell(2, 2).get(".cell-edit-color-swatch").click()
+      // click hue bar to change color
+      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).click()
+      // verify that the color actually changed
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      // click Set Color button to dismiss color palette and change color
+      cy.get(".text-editor-color-picker .set-color-button").click()
+      // verify that the color actually changed
+      table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
+    })
+  })
 })
