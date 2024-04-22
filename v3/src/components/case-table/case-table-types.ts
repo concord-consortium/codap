@@ -1,6 +1,6 @@
 import {
-  CalculatedColumn, CellClickArgs, ColSpanArgs, Column, RenderEditCellProps, RenderCellProps, RenderHeaderCellProps,
-  RenderRowProps, RowsChangeData
+  CalculatedColumn, CellClickArgs, ColSpanArgs, Column, RenderCellProps, RenderEditCellProps, Renderers,
+  RenderHeaderCellProps, RenderRowProps, RowsChangeData
 } from "react-data-grid"
 import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
 
@@ -18,6 +18,7 @@ export interface TRow extends IGroupedCase {
 export interface TRowsChangeData extends RowsChangeData<TRow> {}
 export interface TColumn extends Column<TRow> {}
 export interface TCalculatedColumn extends CalculatedColumn<TRow> {}
+export interface TRenderers extends Renderers<TRow, unknown> {}
 export interface TRenderEditCellProps extends RenderEditCellProps<TRow> {}
 export interface TRenderCellProps extends RenderCellProps<TRow> {}
 export interface TRenderHeaderCellProps extends RenderHeaderCellProps<TRow> {}

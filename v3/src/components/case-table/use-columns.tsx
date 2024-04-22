@@ -28,27 +28,33 @@ export const getNumFormatter = (formatStr: string) => {
   return formatter
 }
 
-export function renderValue(str = "", num = NaN, attr?: IAttribute) {
+export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
   const { type, userType } = attr || {}
 
   // colors
   const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
   if (color) {
-    return (
-      <div className="cell-color-swatch" >
-        <div className="cell-color-swatch-interior" style={{ background: color }} />
-      </div>
-    )
+    return {
+      value: color,
+      content: (
+        <div className="cell-color-swatch" key={key}>
+          <div className="cell-color-swatch-interior" style={{ background: color }} />
+        </div>
+      )
+    }
   }
 
   // numbers
   if (isFinite(num)) {
     const formatStr = attr?.format ?? kDefaultFormatStr
     const formatter = getNumFormatter(formatStr)
-    if (formatter) return formatter(num)
+    if (formatter) str = formatter(num)
   }
 
-  return str
+  return {
+    value: str,
+    content: <span className="cell-span" key={key}>{str}</span>
+  }
 }
 
 interface IUseColumnsProps {
@@ -63,20 +69,20 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
 
   // cell renderer
   const RenderCell = useCallback(function({ column, row }: TRenderCellProps) {
-    const str = (data?.getStrValue(row.__id__, column.key) ?? "").trim()
-    const isParentCollapsed = row[symParent] ? caseMetadata?.isCollapsed(row[symParent]) : false
-    const output = isParentCollapsed
-                    ? ""
-                    : renderValue(str, data?.getNumeric(row.__id__, column.key), data?.attrFromID(column.key))
-    const tooltip = typeof output === "string" ? output : str
+    const strValue = (data?.getStrValue(row.__id__, column.key) ?? "").trim()
+    const numValue = data?.getNumeric(row.__id__, column.key)
     // if this is the first React render after performance rendering, add a
     // random key to force React to render the contents for synchronization
     const key = row[symDom]?.has(column.key) ? Math.random() : undefined
     row[symDom]?.delete(column.key)
+    const isParentCollapsed = row[symParent] ? caseMetadata?.isCollapsed(row[symParent]) : false
+    const { value, content } = isParentCollapsed
+                                ? { value: "", content: null }
+                                : renderValue(strValue, numValue, data?.attrFromID(column.key), key)
     return (
-      <Tooltip label={tooltip} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
+      <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
         openDelay={1000} placement="bottom" bottom="10px" left="15px">
-        <span className="cell-span" key={key}>{output}</span>
+        {content}
       </Tooltip>
     )
   }, [caseMetadata, data])
