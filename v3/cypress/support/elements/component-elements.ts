@@ -38,6 +38,13 @@ export const ComponentElements = {
       return element.eq(index)
     })
   },
+  getComponentTitleBar(component, index = 0) {
+    return this.getComponentTile(component, index).find(".component-title-bar")
+  },
+  checkComponentFocused(component, focused = true, index = 0) {
+    const check = `${focused ? "" : "not."}have.class`
+    this.getComponentTitleBar(component, index).should(check, "focusTile")
+  },
   getComponentTitle(component, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=editable-component-title]")
   },
