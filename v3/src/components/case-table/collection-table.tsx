@@ -3,9 +3,10 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
-import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRow } from "./case-table-types"
+import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRenderers, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
+import { customRenderRow } from "./custom-row"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
@@ -24,6 +25,9 @@ import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+
+// custom renderers for use with RDG
+const renderers: TRenderers = { renderRow: customRenderRow }
 
 interface IProps {
   onMount: (collectionId: string) => void
@@ -130,7 +134,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title">
         <CollectionTitle />
-        <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid"
+        <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           columnWidths={columnWidths.current} onColumnResize={handleColumnResize}

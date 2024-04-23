@@ -255,19 +255,17 @@ $table-body-font-size: 8pt;
         }
       }
 
-      .cell-span {
-        .cell-color-swatch {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+      .cell-color-swatch {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-          .cell-color-swatch-interior {
-            width: calc(100% - 4px);
-            height: calc(100% - 8px);
-            margin-top: 0.5px;
-          }
+        .cell-color-swatch-interior {
+          width: calc(100% - 4px);
+          height: calc(100% - 8px);
+          margin-top: 0.5px;
         }
       }
 
