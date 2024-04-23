@@ -1,4 +1,10 @@
+import { SetOptional } from "type-fest"
 import {AttributeType} from "../models/data/attribute"
+
+export type AllowStringIds<T> = Omit<T, "guid" | "id"> & {
+  guid: number | string
+  id: number | string
+}
 
 export interface ICodapV2Attribute {
   guid: number
@@ -25,6 +31,8 @@ export interface ICodapV2Attribute {
   precision?: number | string | null
   unit?: string | null
 }
+// when exporting a v3 attribute to v2
+export type ICodapV2AttributeV3 = AllowStringIds<ICodapV2Attribute>
 
 export function isCodapV2Attribute(o: any): o is ICodapV2Attribute {
   return o.type === "DG.Attribute"
@@ -74,6 +82,12 @@ export interface ICodapV2Collection {
   title: string
   type: "DG.Collection"
 }
+// when exporting a v3 collection to v2
+type CollectionNotYetExported = "cases" | "caseName" | "childAttrName" | "collapseChildren"
+export interface ICodapV2CollectionV3
+  extends SetOptional<Omit<AllowStringIds<ICodapV2Collection>, "attrs">, CollectionNotYetExported> {
+  attrs: ICodapV2AttributeV3[]
+}
 
 export interface ICodapV2DataContextMetadata {
   description?: string
@@ -92,6 +106,13 @@ export interface ICodapV2DataContext {
   // preventReorg: boolean
   // setAsideItems: this.get('dataSet').archiveSetAsideItems(),
   // contextStorage: this.contextStorage
+}
+// when exporting a v3 data set to v2 data context
+type DCNotYetExported = "flexibleGroupingChangeFlag"
+export interface ICodapV2DataContextV3
+  extends SetOptional<Omit<AllowStringIds<ICodapV2DataContext>, "document" | "collections">, DCNotYetExported> {
+  document: number | string
+  collections: ICodapV2CollectionV3[]
 }
 
 export interface ICodapV2GlobalValue {

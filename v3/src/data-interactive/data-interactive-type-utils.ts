@@ -4,7 +4,9 @@ import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
-import { ICodapV2Attribute, v3TypeFromV2TypeString } from "../v2/codap-v2-types"
+import {
+  ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
+} from "../v2/codap-v2-types"
 import { DIAttribute, DIResources, DISingleValues } from "./data-interactive-types"
 
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
@@ -30,7 +32,7 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
   }
 }
 
-export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): DIAttribute {
+export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
   const { name, type, title, description, editable, id, precision } = attribute
   return {
@@ -49,8 +51,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     deleteable: true, // TODO What should this be?
     formula: attribute.formula?.display,
     // deletedFormula: self.deletedFormula, // TODO What should this be?
-    guid: Number(id), // TODO This is different than v2
-    id: Number(id), // TODO This is different than v2
+    guid: id,
+    id,
     precision,
     unit: attribute.units
   }
@@ -63,12 +65,12 @@ export function convertAttributeToV2FromResources(resources: DIResources) {
   }
 }
 
-export function convertCollectionToV2(collection: ICollectionModel, dataContext?: IDataSet) {
+export function convertCollectionToV2(collection: ICollectionModel, dataContext?: IDataSet): ICodapV2CollectionV3 {
   const { name, title, id } = collection
   const v2Attrs = collection.attributes.map(attribute => {
     if (attribute) return convertAttributeToV2(attribute, dataContext)
   })
-  const attrs: Partial<ICodapV2Attribute>[] = []
+  const attrs: ICodapV2AttributeV3[] = []
   v2Attrs.forEach(attr => attr && attrs.push(attr))
   return {
     // areParentChildLinksConfigured,
@@ -86,24 +88,27 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
   }
 }
 
-export function convertUngroupedCollectionToV2(dataContext: IDataSet) {
+export function convertUngroupedCollectionToV2(dataContext: IDataSet): ICodapV2CollectionV3 | undefined {
   // TODO This will probably need to be reworked after upcoming v3 collection overhaul,
   // so I'm leaving it bare bones for now.
+  const { name, title, id } = dataContext.ungrouped
   const ungroupedAttributes = dataContext.ungroupedAttributes
   if (ungroupedAttributes.length > 0) {
     return {
+      guid: id,
+      id,
+      name,
+      title,
       attrs: ungroupedAttributes.map(attr => convertAttributeToV2(attr, dataContext)),
-      name: dataContext.name,
-      title: dataContext.title,
       type: "DG.Collection"
     }
   }
 }
 
-export function convertDataSetToV2(dataSet: IDataSet) {
+export function convertDataSetToV2(dataSet: IDataSet): ICodapV2DataContextV3 {
   const { name, title, id, description } = dataSet
 
-  const collections: unknown[] =
+  const collections: ICodapV2CollectionV3[] =
     dataSet.collectionGroups.map(collectionGroup => convertCollectionToV2(collectionGroup.collection, dataSet))
   const ungroupedCollection = convertUngroupedCollectionToV2(dataSet)
   if (ungroupedCollection) collections.push(ungroupedCollection)
