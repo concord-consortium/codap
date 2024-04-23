@@ -4,6 +4,7 @@ import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
 import { observer } from "mobx-react-lite"
 import { t } from "../../utilities/translation/translate"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { appState } from "../../models/app-state"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata }
@@ -23,8 +24,6 @@ import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 
 import "../tool-shelf/tool-shelf.scss"
 
-const kDefaultTableSize = { width: 186, height: 200 }
-
 export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMenuList() {
   const document = appState.document
   const content = document.content
@@ -40,6 +39,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   const openTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
     const caseTableTileId = caseMetadata.caseTableTileId
+    const caseTableComponentInfo = getTileComponentInfo(kCaseTableTileType)
+    if (!caseTableComponentInfo) return
     if (caseTableTileId) {
       content?.toggleNonDestroyableTileVisibility(caseTableTileId)
       return
@@ -50,8 +51,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     manager?.addTileSharedModel(tile.content, caseMetadata, true)
     caseMetadata.setCaseTableTileId(tile.id)
 
-    const width = kDefaultTableSize.width
-    const height = kDefaultTableSize.height
+    const width = caseTableComponentInfo.defaultWidth
+    const height = caseTableComponentInfo.defaultHeight
     const {x, y} = getPositionOfNewComponent({width, height})
     content?.insertTileInRow(tile, row, {x, y, width, height})
     uiState.setFocusedTile(tile.id)
@@ -80,10 +81,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       .find(m => m.id === dataset.id) as ISharedDataSet | undefined
     const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
     if (!model || !caseMetadata) return
-    const existingTileId = caseMetadata.caseTableTileId
+    const existingTileId = caseMetadata.lastShownTableOrCardTileId
     if (existingTileId) { // We already have a case table so make sure it's visible and has focus
-      const existingCaseTableTile = content.getTileLayoutById(existingTileId)
-      if (isFreeTileLayout(existingCaseTableTile) && existingCaseTableTile.isHidden) {
+      const existingTile = content.getTileLayoutById(existingTileId)
+      if (isFreeTileLayout(existingTile) && existingTile.isHidden) {
         content?.toggleNonDestroyableTileVisibility(existingTileId)
       }
       uiState.setFocusedTile(existingTileId)

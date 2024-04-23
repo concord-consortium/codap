@@ -1,0 +1,10 @@
+@use "../vars.scss";
+
+$table-body-font-size: 8pt;
+
+.case-card {
+  position: relative;
+  width: 100%;
+  height: calc(100% - vars.$title-bar-height);
+  background-color: white;
+}

@@ -24,7 +24,8 @@ export const SharedCaseMetadata = SharedModel
     // key is attribute id; value is true (false values are deleted)
     hidden: types.map(types.boolean),
     caseTableTileId: types.maybe(types.string),
-    caseCardTileId: types.maybe(types.string)
+    caseCardTileId: types.maybe(types.string),
+    lastShownTableOrCardTileId: types.maybe(types.string) // used to restore the last shown tile both have been hidden
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -55,6 +56,9 @@ export const SharedCaseMetadata = SharedModel
     },
     setCaseCardTileId(tileId?: string) {
       self.caseCardTileId = tileId
+    },
+    setLastShownTableOrCardTileId(tileId?: string) {
+      self.lastShownTableOrCardTileId = tileId
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
       const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}
