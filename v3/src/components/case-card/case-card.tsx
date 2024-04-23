@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useRef } from "react"
+import React, { CSSProperties } from "react"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCaseCardModel } from "./use-case-card-model"
@@ -20,13 +20,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const cardModel = useCaseCardModel()
   // const { isTileSelected } = useTileModelContext()
   // const isFocused = isTileSelected()
-  const contentRef = useRef<HTMLDivElement | null>(null)
   // const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
-
-  function setTableRef(elt: HTMLDivElement | null) {
-    contentRef.current = elt?.querySelector((".case-table-content")) ?? null
-    setNodeRef(elt)
-  }
 
 /*
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
@@ -56,7 +50,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
     const collections = data.collectionModels
     return (
       <>
-        <div ref={setTableRef} className="case-card" data-testid="case-card">
+        <div ref={setNodeRef} className="case-card" data-testid="case-card">
           <div className="case-card-content">
             {collections.map((collection, i) => {
               const key = collection.id

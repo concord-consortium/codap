@@ -1,23 +1,57 @@
-import React, { useCallback, useRef, useState } from "react"
-import { ComponentTitleBar } from "../component-title-bar"
 import { Box, useOutsideClick } from "@chakra-ui/react"
+import React, { SVGProps, useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { t } from "../../utilities/translation/translate"
-import { useDocumentContent } from "../../hooks/use-document-content"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
-import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { useDocumentContent } from "../../hooks/use-document-content"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { t } from "../../utilities/translation/translate"
+import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
-import { isCaseTableModel } from "../case-table/case-table-model"
-import { isCaseCardModel } from "../case-card/case-card-model"
+import { ComponentTitleBar } from "../component-title-bar"
+import { ITileTitleBarProps } from "../tiles/tile-base-props"
 
 import "./case-table-card-title-bar.scss"
 
+interface TableCardInfo {
+  thisType: typeof kCaseCardTileType | typeof kCaseTableTileType
+  otherType: typeof kCaseCardTileType | typeof kCaseTableTileType
+  thisSuffix: string
+  otherSuffix: string
+  toggleSuffix: string
+  Icon: React.FC<SVGProps<SVGSVGElement>>
+  iconClass: string
+}
+
+const tileInfoMap: Record<string, TableCardInfo> = {
+  [kCaseCardTileType]: {
+    thisType: kCaseCardTileType,
+    otherType: kCaseTableTileType,
+    thisSuffix: "Card",
+    otherSuffix: "Table",
+    toggleSuffix: "CardToTable",
+    Icon: CardIcon,
+    iconClass: "card-icon"
+  },
+  [kCaseTableTileType]: {
+    thisType: kCaseTableTileType,
+    otherType: kCaseCardTileType,
+    thisSuffix: "Table",
+    otherSuffix: "Card",
+    toggleSuffix: "TableToCard",
+    Icon: TableIcon,
+    iconClass: "table-icon"
+  }
+}
+
+function getTileInfo(tileType?: string) {
+  return (tileType ? tileInfoMap[tileType] : null) ?? tileInfoMap[kCaseTableTileType]
+}
+
 export const CaseTableCardTitleBar =
   observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
-    const type = tile?.content.type as "CaseTable" | "CaseCard"
-    const data = (isCaseTableModel(tile?.content) || isCaseCardModel(tile?.content))
-      ? tile.content.data : undefined
+    const tileInfo = getTileInfo(tile?.content.type)
+    const data = tile?.content && getTileDataSet(tile?.content)
     // title reflects DataSet title
     const getTitle = () => data?.title ?? ""
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)
@@ -34,10 +68,10 @@ export const CaseTableCardTitleBar =
     }
 
     const handleToggleCardTable = (e: React.MouseEvent) => {
-      const suffix = type === kCaseTableTileType ? "TableToCard" : "CardToTable"
+      const suffix = tileInfo.toggleSuffix
       e.stopPropagation()
       documentContent?.applyUndoableAction(() => {
-        tile && documentContent?.toggleCardTable(tile.id, type)
+        tile && documentContent?.toggleCardTable(tile.id, tileInfo.thisType)
       }, {
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
@@ -52,30 +86,32 @@ export const CaseTableCardTitleBar =
     }
 
     const closeCaseTableOrCard = useCallback(() => {
-      const suffix = type === kCaseTableTileType ? "Table" : "Card"
+      const suffix = tileInfo.thisSuffix
       documentContent?.applyUndoableAction(() => {
         documentContent?.toggleNonDestroyableTileVisibility(tile?.id)
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`
       })
-    }, [documentContent, tile?.id, type])
+    }, [documentContent, tile?.id, tileInfo])
 
-    const cardTableOrCardToggleString =
-      t(`DG.DocumentController.toggleToCase${type===kCaseTableTileType?'Card':'Table'}`)
+    const caseTableOrCardToggleString =
+      t(`DG.DocumentController.toggleToCase${tileInfo.otherSuffix}`)
+    const CardOrTableIcon = tileInfo.Icon
+    const cardOrTableIconClass = tileInfo.iconClass
 
     return (
       <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}>
         <div className="header-left"
-             title={cardTableOrCardToggleString}
+             title={caseTableOrCardToggleString}
              onClick={handleShowCardTableToggleMessage}
              data-testid={"case-table-toggle-view"}>
-          {type === kCaseTableTileType ? <CardIcon className="card-icon"/> : <TableIcon className = "table-icon"/>}
+          <CardOrTableIcon className={`${cardOrTableIconClass}`}/>
           {showSwitchMessage &&
              <Box ref={cardTableToggleRef} className={`card-table-toggle-message`}
                   onClick={handleToggleCardTable}>
-               {cardTableOrCardToggleString}
+               {caseTableOrCardToggleString}
              </Box>
           }
         </div>

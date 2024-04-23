@@ -9,7 +9,7 @@ import CardIcon from '../../assets/icons/icon-case-card.svg'
 import { CaseCardInspector } from "./case-card-inspector"
 */
 
-export const kCaseCardIdPrefix = "TABL"
+export const kCaseCardIdPrefix = "CARD"
 
 registerTileContentInfo({
   type: kCaseCardTileType,
@@ -25,14 +25,6 @@ registerTileComponentInfo({
   // InspectorPanel: CaseCardInspector,
   tileEltClass: "codap-case-card",
   Icon: CardIcon,
-/*
-  shelf: {
-    ButtonComponent: CaseCardToolShelfButton,
-    position: 1,
-    labelKey: "DG.ToolButtonData.cardButton.title",
-    hintKey: "DG.ToolButtonData.cardButton.toolTip"
-  },
-*/
   defaultWidth: 200,
   defaultHeight: 400
 })

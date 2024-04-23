@@ -188,7 +188,7 @@ export const DocumentContentModel = BaseDocumentContentModel
   }))
   .actions(self => ({
     // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
-    toggleCardTable(tileID: string, tileType: "CaseTable" | "CaseCard") {
+    toggleCardTable(tileID: string, tileType: typeof kCaseCardTileType | typeof kCaseTableTileType) {
       const tileModel = self.getTile(tileID),
         tileLayout = self.getTileLayoutById(tileID)
       if (tileLayout && tileModel && isFreeTileLayout(tileLayout)) {
