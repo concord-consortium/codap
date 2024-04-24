@@ -244,7 +244,17 @@ export const DataConfigurationModel = types
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.allCaseIDs)
         const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
-        return allValues.filter(aValue => aValue) as string[]
+        // Put items in allValues into the same order as the items would be for unfiltered cases so the order
+        // of values remains consistent no matter how many cases are filtered out.
+        const unfilteredCaseIDs = dataset?.cases
+        const allUnfilteredValues = attrID
+          ? unfilteredCaseIDs?.map(aCase => dataset?.getStrValue(aCase.__id__, attrID))
+          : []
+        const orderedValues = allUnfilteredValues?.map(aValue => {
+          const index = allValues.indexOf(aValue)
+          return allValues[index]
+        }) ?? []
+        return orderedValues.filter(aValue => aValue) as string[]
       }
     })
   }))
