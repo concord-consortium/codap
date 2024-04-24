@@ -19,7 +19,7 @@ const Controls = () => {
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueAdornmentModel
 
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
       {
         undoStringKey: kMovableValueUndoAddKey,
@@ -31,7 +31,7 @@ const Controls = () => {
   const handleRemoveMovableValue = () => {
     const adornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
 
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => {
           adornmentsStore.updateAdornment(() => { adornment?.deleteValue() })
           if (!adornment?.hasValues) adornment?.setVisibility(false)

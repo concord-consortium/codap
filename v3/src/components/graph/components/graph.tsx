@@ -138,7 +138,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       {
         undoStringKey: "DG.Undo.axisAttributeChange",
@@ -163,7 +163,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   }, [dataset, graphModel, handleChangeAttribute])
 
   const handleTreatAttrAs = useCallback((place: GraphPlace, attrId: string, treatAs: AttributeType) => {
-    dataset && graphModel.applyUndoableAction(() => {
+    dataset && graphModel.applyModelChange(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
     }, {

@@ -42,7 +42,7 @@ const Controls = () => {
       : () => handleShowPercent(adornment, checked)
 
     if (checked) {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => {
           adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions())
           setShowAdornment()
@@ -53,7 +53,7 @@ const Controls = () => {
         }
       )
     } else {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => adornmentsStore.updateAdornment(setShowAdornment),
         {
           undoStringKey: undoRemoveKey,

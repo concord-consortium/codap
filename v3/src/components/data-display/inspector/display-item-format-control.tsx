@@ -75,7 +75,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                     defaultValue={displayItemDescription.pointSizeMultiplier} step={0.01}
                     onChange={(val) => displayItemDescription.setDynamicPointSizeMultiplier(val)}
                     onChangeEnd={(val) => {
-                      displayItemDescription.applyUndoableAction(
+                      displayItemDescription.applyModelChange(
                         () => displayItemDescription.setPointSizeMultiplier(val),
                         {
                           undoStringKey: "DG.Undo.graph.changePointSize",
@@ -103,7 +103,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
           <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
           <Input type="color" className="color-picker-thumb" value={displayItemDescription.pointStrokeColor}
                  onChange={(e) => {
-                   displayItemDescription.applyUndoableAction(
+                   displayItemDescription.applyModelChange(
                      () => displayItemDescription.setPointStrokeColor(e.target.value),
                      {
                        undoStringKey: "DG.Undo.graph.changeStrokeColor",
@@ -138,7 +138,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                 <Input type="color" className="color-picker-thumb"
                        value={displayItemDescription.pointColor}
                        onChange={e => {
-                         displayItemDescription.applyUndoableAction(
+                         displayItemDescription.applyModelChange(
                            () => displayItemDescription.setPointColor(e.target.value),
                            {
                              undoStringKey: "DG.Undo.graph.changePointColor",
@@ -154,7 +154,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
         <Checkbox
           mt="6px" isChecked={displayItemDescription.pointStrokeSameAsFill}
           onChange={e => {
-            displayItemDescription.applyUndoableAction(
+            displayItemDescription.applyModelChange(
               () => displayItemDescription.setPointStrokeSameAsFill(e.target.checked),
               {
                 undoStringKey: "DG.Undo.graph.changeStrokeColor",

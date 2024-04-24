@@ -1,5 +1,5 @@
 import {Instance, SnapshotIn, isAlive, types} from "mobx-state-tree"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
 
 export const AxisModel = types.model("AxisModel", {
@@ -36,7 +36,7 @@ export const AxisModel = types.model("AxisModel", {
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)
 
 export interface IAxisModel extends Instance<typeof AxisModel> {
 }

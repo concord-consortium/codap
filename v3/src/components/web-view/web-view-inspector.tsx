@@ -26,7 +26,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    documentContent?.applyUndoableAction(() => {
+    documentContent?.applyModelChange(() => {
       webViewModel?.setUrl(url)
     }, {
       undoStringKey: "V3.Undo.webView.changeUrl",

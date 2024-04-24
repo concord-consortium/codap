@@ -22,7 +22,7 @@ export const diDataContextHandler: DIHandler = {
     const sameName = gDataBroker.getDataSetByName(name)
     if (sameName) return { success: true, values: basicDataSetInfo(sameName) }
 
-    return document.applyUndoableAction(() => {
+    return document.applyModelChange(() => {
       // Create dataset
       const dataSet = DataSet.create({ description, name, _title: title })
       gDataBroker.addDataSet(dataSet)
@@ -42,7 +42,7 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return contextNotFoundResult
 
-    dataContext.applyUndoableAction(() => {
+    dataContext.applyModelChange(() => {
       gDataBroker.removeDataSet(dataContext.id)
     })
 
@@ -62,7 +62,7 @@ export const diDataContextHandler: DIHandler = {
 
     const values = _values as DIDataContext
     if (values) {
-      dataContext.applyUndoableAction(() => {
+      dataContext.applyModelChange(() => {
         const { metadata, title } = values
         if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)

@@ -6,7 +6,7 @@ export const diAllCasesHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return { success: false }
 
-    dataContext.applyUndoableAction(() => {
+    dataContext.applyModelChange(() => {
       dataContext.removeCases(dataContext.cases.map(c => c.__id__))
     }, {
       undoStringKey: "DG.Undo.data.deleteCases",

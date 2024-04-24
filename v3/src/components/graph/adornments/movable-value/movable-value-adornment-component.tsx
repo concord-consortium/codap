@@ -134,7 +134,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model
     if (isDragging) {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => model.endDrag(dragValue, instanceKey, dragIndex),
         {
           undoStringKey: "DG.Undo.graph.moveMovableValue",

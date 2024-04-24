@@ -28,7 +28,7 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
     const undoRedoKeys = componentContentInfo.undoRedoKeys ?? defaultUndoRedoKeys
 
     if (checked) {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
         {
           undoStringKey: undoRedoKeys.undoAdd,
@@ -36,7 +36,7 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
         }
       )
     } else {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => adornmentsStore.hideAdornment(adornment.type),
         {
           undoStringKey: undoRedoKeys.undoRemove,

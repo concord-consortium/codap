@@ -114,7 +114,7 @@ export const NumericAxisDragRects = observer(
           select(this)
             .classed('dragging', false)
           // move "dynamic" values to model on drop
-          axisModel.applyUndoableAction(
+          axisModel.applyModelChange(
             () => axisModel.setDomain(...axisModel.domain), {
               undoStringKey: dilating ? "DG.Undo.axisDilate" : "DG.Undo.axisDrag",
               redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag"

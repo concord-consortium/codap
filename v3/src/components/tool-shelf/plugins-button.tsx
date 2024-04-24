@@ -34,7 +34,7 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
   const documentContent = useDocumentContent()
 
   function handleClick() {
-    documentContent?.applyUndoableAction(
+    documentContent?.applyModelChange(
       () => {
         const baseUrl = `${kRootPluginUrl}${pluginData.path}`
         const url = processPluginUrl(baseUrl)

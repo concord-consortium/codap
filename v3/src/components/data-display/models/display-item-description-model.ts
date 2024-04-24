@@ -1,5 +1,5 @@
 import {Instance, types} from "mobx-state-tree"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {defaultPointColor, defaultStrokeColor, kellyColors} from "../../../utilities/color-utils"
 
 export const DisplayItemDescriptionModel = types
@@ -64,7 +64,7 @@ export const DisplayItemDescriptionModel = types
 
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)
 
 export interface IDisplayItemDescriptionModel extends Instance<typeof DisplayItemDescriptionModel> {
 }

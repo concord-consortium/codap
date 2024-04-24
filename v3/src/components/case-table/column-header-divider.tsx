@@ -35,7 +35,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     if (collection === srcCollection) {
       if (isCollectionModel(collection)) {
         // move the attribute within a collection
-        data.applyUndoableAction(
+        data.applyModelChange(
           () => collection.moveAttribute(dragAttrId, options),
           {
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
@@ -45,7 +45,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
       }
       else {
         // move an ungrouped attribute within the DataSet
-        data.applyUndoableAction(
+        data.applyModelChange(
           () => data.moveAttribute(dragAttrId, options),
           {
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
@@ -56,7 +56,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     }
     else {
       // move the attribute to a new collection
-      data.applyUndoableAction(
+      data.applyModelChange(
         () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
         {
           undoStringKey: "DG.Undo.dataContext.moveAttribute",

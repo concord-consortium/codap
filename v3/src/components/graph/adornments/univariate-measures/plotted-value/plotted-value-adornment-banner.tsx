@@ -30,7 +30,7 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
   const handleEditExpressionClose = (newExpression: string) => {
     formulaModal.onClose()
     handleModalOpen(false)
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => model.setExpression(newExpression),
       {
         undoStringKey: "DG.Undo.graph.changePlotValue",

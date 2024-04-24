@@ -41,7 +41,7 @@ export const App = observer(function App() {
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
       let sharedData: ISharedDataSet | undefined
-      appState.document.content?.applyUndoableAction(() => {
+      appState.document.content?.applyModelChange(() => {
         sharedData = appState.document.content?.importDataSet(data, options)
       }, {
         undoStringKey: "V3.Undo.import.data",

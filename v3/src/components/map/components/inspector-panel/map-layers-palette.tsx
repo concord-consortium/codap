@@ -45,7 +45,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
               defaultChecked={layer.isVisible}
               onChange={() => {
                 const op = layer.isVisible ? 'hide' : 'show'
-                layer.applyUndoableAction(() => {
+                layer.applyModelChange(() => {
                   layer.setVisibility(!layer.isVisible)
                 }, {
                   undoStringKey: `V3.Undo.map.${op}Layer`,

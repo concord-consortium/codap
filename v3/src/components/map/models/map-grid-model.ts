@@ -1,5 +1,5 @@
 import {addDisposer, types} from "mobx-state-tree"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {LatLngGrid} from "../utilities/lat-lng-grid"
 import {getLatLongBounds} from "../utilities/map-utils"
 import {reaction} from "mobx"
@@ -51,7 +51,7 @@ export const MapGridModel = types.model("MapGridModel", {
         self.dataConfiguration ? getLatLongBounds(self.dataConfiguration) : undefined,
         self.setGridSize, () => self.gridSize)
     }
-    
+
     const computeCounts = () => {
       if (self.dataConfiguration) {
         const {
@@ -141,4 +141,4 @@ export const MapGridModel = types.model("MapGridModel", {
     },
 
   }))
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)

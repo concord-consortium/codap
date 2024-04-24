@@ -56,7 +56,7 @@ import {
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
-import { applyUndoableAction } from "../history/apply-undoable-action"
+import { applyModelChange } from "../history/apply-model-change"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { typedId } from "../../utilities/js-utils"
@@ -1109,7 +1109,7 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 // performs the specified action so that response actions are included and undo/redo strings assigned
-.actions(applyUndoableAction)
+.actions(applyModelChange)
 
 export interface IDataSet extends Instance<typeof DataSet> {}
 export interface IDataSetSnapshot extends SnapshotIn<typeof DataSet> {}

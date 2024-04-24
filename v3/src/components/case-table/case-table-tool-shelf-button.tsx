@@ -59,7 +59,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   }
 
   const handleCreateNewDataSet = () => {
-    document.applyUndoableAction(() => {
+    document.applyModelChange(() => {
       const newData = [{ AttributeName: "" }]
       const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
@@ -161,7 +161,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
     setModalOpen(false)
     onClose()
     if (dataSetId) {
-      document.applyUndoableAction(() => {
+      document.applyModelChange(() => {
         manager?.removeSharedModel(dataSetId)
         getFormulaManager(document)?.removeDataSet(dataSetId)
       }, {

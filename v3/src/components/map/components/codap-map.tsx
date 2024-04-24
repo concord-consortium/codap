@@ -38,7 +38,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   useEffect(() => forceUpdate(), [forceUpdate])
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
-    mapModel.applyUndoableAction(
+    mapModel.applyModelChange(
       () => mapModel.setLegendAttributeID(dataSet.id, attrId),
       {
         undoStringKey: "V3.Undo.mapLegendAttributeChange",

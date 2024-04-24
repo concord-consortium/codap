@@ -30,7 +30,7 @@ import { parseColor } from "../../utilities/color-utils"
 import { typedId } from "../../utilities/js-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
-import { applyUndoableAction } from "../history/apply-undoable-action"
+import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { V2Model } from "./v2-model"
 
@@ -330,7 +330,7 @@ export const Attribute = V2Model.named("Attribute").props({
     }
   }
 }))
-.actions(applyUndoableAction)
+.actions(applyModelChange)
 
 export interface IAttribute extends Instance<typeof Attribute> {}
 export interface IAttributeSnapshot extends SnapshotIn<typeof Attribute> {}

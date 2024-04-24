@@ -37,7 +37,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     })
   }
   const handleHideAttribute = () => {
-    caseMetadata?.applyUndoableAction(
+    caseMetadata?.applyModelChange(
       () => caseMetadata?.setIsHidden(column.key, true),
       {
         undoStringKey: "DG.Undo.caseTable.hideAttribute",
@@ -53,7 +53,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       // instantiate values so they're captured by undo/redo patches
       attributeToDelete.prepareSnapshot()
       // delete the attribute
-      data.applyUndoableAction(() => {
+      data.applyModelChange(() => {
         data.removeAttribute(attrId)
       }, {
         undoStringKey: "DG.Undo.caseTable.deleteAttribute",

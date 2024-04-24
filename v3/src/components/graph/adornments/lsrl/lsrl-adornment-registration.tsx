@@ -29,7 +29,7 @@ const Controls = observer(function Controls() {
     }
 
     if (checked) {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
         {
           undoStringKey: undoRedoKeys.undoAdd || "",
@@ -37,7 +37,7 @@ const Controls = observer(function Controls() {
         }
       )
     } else {
-      graphModel.applyUndoableAction(
+      graphModel.applyModelChange(
         () => adornmentsStore.hideAdornment(adornment.type),
         {
           undoStringKey: undoRedoKeys.undoRemove || "",

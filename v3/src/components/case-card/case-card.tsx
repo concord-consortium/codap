@@ -25,7 +25,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
 /*
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
-      dataSet.applyUndoableAction(() => {
+      dataSet.applyModelChange(() => {
         const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
         if (collection) {
           lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }

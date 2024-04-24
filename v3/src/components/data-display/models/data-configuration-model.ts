@@ -1,6 +1,6 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {comparer, reaction} from "mobx"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
@@ -669,7 +669,7 @@ export const DataConfigurationModel = types
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)
 
 export interface IDataConfigurationModel extends Instance<typeof DataConfigurationModel> {
 }

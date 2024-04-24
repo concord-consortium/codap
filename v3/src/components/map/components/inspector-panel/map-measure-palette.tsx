@@ -30,7 +30,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                       defaultChecked={layer.gridModel.isVisible}
                       onChange={() => {
                         const op = layer.gridModel.isVisible ? 'hide' : 'show'
-                        layer.gridModel.applyUndoableAction(() => {
+                        layer.gridModel.applyModelChange(() => {
                           layer.gridModel.setIsVisible(!layer.gridModel.isVisible)
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Grid`,
@@ -44,7 +44,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                       defaultChecked={layer.pointsAreVisible}
                       onChange={() => {
                         const op = layer.pointsAreVisible ? 'hide' : 'show'
-                        layer.applyUndoableAction(() => {
+                        layer.applyModelChange(() => {
                           layer.setPointsAreVisible(!layer.pointsAreVisible)
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Points`,
@@ -58,7 +58,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                       defaultChecked={layer.connectingLinesAreVisible}
                       onChange={() => {
                         const op = layer.connectingLinesAreVisible ? 'hide' : 'show'
-                        layer.applyUndoableAction(() => {
+                        layer.applyModelChange(() => {
                           layer.setConnectingLinesAreVisible(!layer.connectingLinesAreVisible)
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Lines`,
