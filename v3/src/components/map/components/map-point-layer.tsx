@@ -18,7 +18,7 @@ import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
-import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
+import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"

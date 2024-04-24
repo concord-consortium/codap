@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { PixiPoints } from "../../graph/utilities/pixi-points"
+import { PixiPoints } from "../pixi/pixi-points"
 
 interface IProps {
   addInitialPixiPoints?: boolean

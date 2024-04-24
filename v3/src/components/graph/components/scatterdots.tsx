@@ -19,7 +19,7 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
-import { IPixiPointMetadata } from "../utilities/pixi-points"
+import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
 import { transitionDuration } from "../../data-display/data-display-types"
 

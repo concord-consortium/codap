@@ -5,7 +5,7 @@ import {select} from "d3"
 import {clsx} from "clsx"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import {IPixiPointsArrayRef} from "../utilities/pixi-points"
+import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
 import {GraphAttrRole, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
   from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"

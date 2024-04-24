@@ -1,4 +1,4 @@
-import { PixiPoints } from "./utilities/pixi-points"
+import { PixiPoints } from "../data-display/pixi/pixi-points"
 
 export interface PlotProps {
   pixiPoints?: PixiPoints

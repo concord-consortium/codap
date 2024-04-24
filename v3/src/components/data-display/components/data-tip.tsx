@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useEffect, useRef, useState } from "react
 import * as PIXI from "pixi.js"
 import { computePosition, offset, useFloating } from "@floating-ui/react"
 import { IDataSet } from "../../../models/data/data-set"
-import {IPixiPointMetadata, PixiPoints} from "../../graph/utilities/pixi-points"
+import {IPixiPointMetadata, PixiPoints} from "../pixi/pixi-points"
 import { urlParams } from "../../../utilities/url-params"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IGetTipTextProps } from "../data-tip-types"

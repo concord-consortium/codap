@@ -4,7 +4,7 @@ import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-displ
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { ScaleLinear } from "d3"
-import { IPixiPointMetadata } from "../utilities/pixi-points"
+import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
 import { appState } from "../../../models/app-state"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
 import { useRef, useState } from "react"
