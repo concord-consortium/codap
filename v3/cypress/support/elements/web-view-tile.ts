@@ -49,8 +49,11 @@ export const WebViewTileElements = {
     WebViewTileElements.getIFrame().find(`.di-message-area`).type(command)
     WebViewTileElements.getIFrame().find(`.di-send-button`).click()
   },
+  getAPITesterResponse() {
+    return WebViewTileElements.getIFrame().find(`.di-log-message`)
+  },
   confirmAPITesterResponseContains(response: string | RegExp) {
-    WebViewTileElements.getIFrame().find(`.di-log-message`).contains(response).should("exist")
+    WebViewTileElements.getAPITesterResponse().contains(response).should("exist")
   },
   toggleAPITesterFilter() {
     WebViewTileElements.getIFrame().find(`#filter-button`).click()

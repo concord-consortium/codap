@@ -1,4 +1,3 @@
-import { TableTileElements as table } from "../support/elements/table-tile"
 
 beforeEach(() => {
   // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`

@@ -1,3 +1,4 @@
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
@@ -15,6 +16,7 @@ context("codap plugins", () => {
     webView.enterUrl(url)
     cy.wait(1000)
   }
+
   it('will handle plugin requests', () => {
     openAPITester()
 
@@ -95,6 +97,50 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"values":\s\[\s{\s"name":\s*"Mammals"/)
     webView.clearAPITesterResponses()
   })
+
+  it('will handle component related requests', () => {
+    openAPITester()
+
+    cy.log("Handle get componentList request")
+    const cmd1 = `{
+      "action": "get",
+      "resource": "componentList"
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.getAPITesterResponse().then((value: any) => {
+      // Find the id of the table component
+      const response = JSON.parse(value.eq(1).text())
+      const tableInfo = response.values.find((info: any) => info.type === "caseTable")
+      const tableId = tableInfo.id
+
+      cy.log("Select component using notify component command")
+      c.checkComponentFocused("table", false)
+      const cmd2 = `{
+        "action": "notify",
+        "resource": "component[${tableId}]",
+        "values": {
+          "request": "select"
+        }
+      }`
+      webView.clearAPITesterResponses()
+      webView.sendAPITesterCommand(cmd2, cmd1)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
+      webView.clearAPITesterResponses()
+      c.checkComponentFocused("table")
+
+      cy.log("Delete component using delete component command")
+      const cmd3 = `{
+        "action": "delete",
+        "resource": "component[${tableId}]"
+      }`
+      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
+      webView.clearAPITesterResponses()
+      c.checkComponentDoesNotExist("table")
+    })
+  })
+
   it('will broadcast notifications', () => {
     openAPITester()
     webView.toggleAPITesterFilter()

@@ -16,6 +16,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       const values: DIInteractiveFrame = {
         dimensions,
         externalUndoAvailable: true,
+        id: interactiveFrame.id,
         name: interactiveFrame.title,
         preventBringToFront: false,
         preventDataContextReorg: false,
