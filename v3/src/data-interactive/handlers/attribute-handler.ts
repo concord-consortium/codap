@@ -41,7 +41,7 @@ export const diAttributeHandler: DIHandler = {
 
     // Create the attributes
     const attributes: IAttribute[] = []
-    dataContext.applyUndoableAction(() => {
+    dataContext.applyModelChange(() => {
       attributeValues.forEach(attributeValue => {
         if (attributeValue) {
           const attribute = createAttribute(attributeValue, dataContext, metadata)
@@ -58,7 +58,7 @@ export const diAttributeHandler: DIHandler = {
     if (!attribute || Array.isArray(_values)) return attributeNotFoundResult
 
     const values = _values as DIAttribute
-    attribute.applyUndoableAction(() => {
+    attribute.applyModelChange(() => {
       if (values?.description != null) attribute.setDescription(values.description)
       if (values?.editable != null) attribute.setEditable(!!values.editable)
       if (values?.formula != null) attribute.setDisplayExpression(values.formula)
@@ -95,7 +95,7 @@ export const diAttributeHandler: DIHandler = {
     if (!attribute) return attributeNotFoundResult
     if (!dataContext) return dataContextNotFoundResult
 
-    dataContext.applyUndoableAction(() => {
+    dataContext.applyModelChange(() => {
       dataContext.removeAttribute(attribute.id)
     })
     return { success: true }

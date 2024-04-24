@@ -23,7 +23,7 @@ export const OptionsShelfButton = () => {
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    documentContent?.applyUndoableAction(() => {
+    documentContent?.applyModelChange(() => {
       const tile = documentContent?.createOrShowTile?.(kWebViewTileType)
       isWebViewModel(tile?.content) && tile?.content.setUrl(url)
     }, {

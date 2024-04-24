@@ -117,7 +117,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       const attrId = columns[idx].key
       columnWidths.current.set(attrId, width)
       if (isComplete) {
-        caseTableModel?.applyUndoableAction(() => {
+        caseTableModel?.applyModelChange(() => {
           caseTableModel?.columnWidths.set(attrId, width)
         }, {
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",

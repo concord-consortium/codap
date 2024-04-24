@@ -11,7 +11,7 @@ export const CalculatorTitleBar =
     const getTitle = () => tile?.title || t("DG.DocumentController.calculatorTitle")
     const documentContent = useDocumentContent()
     const closeCalculator = useCallback(() => {
-      documentContent?.applyUndoableAction(() => {
+      documentContent?.applyModelChange(() => {
         documentContent?.toggleSingletonTileVisibility(kCalculatorTileType)
       }, {
         undoStringKey: "DG.Undo.toggleComponent.delete.calcView",

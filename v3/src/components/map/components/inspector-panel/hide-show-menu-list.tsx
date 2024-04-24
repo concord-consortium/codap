@@ -29,7 +29,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
                               : t("DG.DataDisplayMenu.hideUnselectedPlural")
 
   const hideSelectedCases = () => {
-    mapModel?.applyUndoableAction(
+    mapModel?.applyModelChange(
       () => mapModel?.hideSelectedCases(),
       {
         undoStringKey: "DG.Undo.hideSelectedCases",
@@ -39,7 +39,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const hideUnselectedCases = () => {
-    mapModel?.applyUndoableAction(
+    mapModel?.applyModelChange(
       () => mapModel?.hideUnselectedCases(),
       {
         undoStringKey: "DG.Undo.hideUnselectedCases",
@@ -49,7 +49,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const showAllCases = () => {
-    mapModel?.applyUndoableAction(
+    mapModel?.applyModelChange(
       () => mapModel?.clearHiddenCases(),
       {
         undoStringKey: "DG.Undo.showAllCases",

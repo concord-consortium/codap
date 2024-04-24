@@ -27,7 +27,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
         ? "V3.Undo.map.inspector.showMapLayer" : "V3.Undo.map.inspector.hideMapLayer",
       redoString = isVisible
         ? "V3.Redo.map.inspector.showMapLayer" : "V3.Redo.map.inspector.hideMapLayer"
-    mapModel.applyUndoableAction(
+    mapModel.applyModelChange(
       () => mapModel.setBaseMapLayerVisibility(e.target.checked), {
         undoStringKey: undoString,
         redoStringKey: redoString
@@ -36,7 +36,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
   }
 
   const changeBaseMapLayer = (layerName: BaseMapKey) => {
-    mapModel.applyUndoableAction(
+    mapModel.applyModelChange(
       () => mapModel.setBaseMapLayerName(layerName),
       {
         undoStringKey: "V3.Undo.map.inspector.changeMapBaseLayer",

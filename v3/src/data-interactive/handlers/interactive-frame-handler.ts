@@ -38,7 +38,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(_values)) return { success: true }
 
     const values = _values as DIInteractiveFrame
-    interactiveFrame.applyUndoableAction(() => {
+    interactiveFrame.applyModelChange(() => {
       if (values?.title) interactiveFrame.setTitle(values.title)
       if (values?.dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, values.dimensions)

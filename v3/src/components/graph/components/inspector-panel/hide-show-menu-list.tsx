@@ -24,7 +24,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     })
   }
   const hideSelectedCases = () => {
-    dataConfiguration?.applyUndoableAction(
+    dataConfiguration?.applyModelChange(
       () => dataConfiguration?.addNewHiddenCases(
         dataConfiguration?.selection ?? []
       ),
@@ -36,7 +36,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const hideUnselectedCases = () => {
-    dataConfiguration?.applyUndoableAction(
+    dataConfiguration?.applyModelChange(
       () => dataConfiguration?.addNewHiddenCases(
         dataConfiguration?.unselectedCases ?? []
       ),
@@ -48,7 +48,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const showAllCases = () => {
-    dataConfiguration?.applyUndoableAction(
+    dataConfiguration?.applyModelChange(
       () => dataConfiguration?.clearHiddenCases(),
       {
         undoStringKey: "DG.Undo.showAllCases",

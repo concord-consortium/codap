@@ -18,7 +18,7 @@ export const MapGridSlider = function MapGridSlider(props: {
   }
 
   const handleChangeEnd = (value: number) => {
-    mapModel.applyUndoableAction(() => {
+    mapModel.applyModelChange(() => {
         mapModel.layers.forEach(layer => {
           if (isMapPointLayerModel(layer) && layer.gridModel.isVisible) {
             layer.gridModel.setGridMultiplier(value)

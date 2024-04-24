@@ -14,12 +14,12 @@ export interface IApplyActionOptions {
   redoStringKey?: string
   undoStringKey?: string
 }
-// returns an object which defines the `applyUndoableAction` method on an MST model
-// designed to be passed to `.actions()`, i.e. `.actions(applyUndoableAction)`
-export function applyUndoableAction(self: IAnyStateTreeNode) {
+// returns an object which defines the `applyModelChange` method on an MST model
+// designed to be passed to `.actions()`, i.e. `.actions(applyModelChange)`
+export function applyModelChange(self: IAnyStateTreeNode) {
   return ({
     // performs the specified action so that response actions are included and undo/redo strings assigned
-    applyUndoableAction<TResult = unknown>(actionFn: () => TResult, options?: IApplyActionOptions) {
+    applyModelChange<TResult = unknown>(actionFn: () => TResult, options?: IApplyActionOptions) {
       const result = actionFn()
 
       // Add strings to undoable action or keep out of the undo stack

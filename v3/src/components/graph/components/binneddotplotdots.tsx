@@ -108,7 +108,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   }, [dataConfig, graphModel, primaryIsBottom])
 
   const handleDragBinBoundaryEnd = useCallback(() => {
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => {
         if (graphModel.binAlignment && graphModel.binWidth) {
           graphModel.endBinBoundaryDrag(graphModel.binAlignment, graphModel.binWidth)
@@ -204,7 +204,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
       return primaryScreenCoord
     }
-    
+
     const getSecondaryScreenCoord = (anID: string) => {
       const { category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin } = binMap[anID]
       const onePixelOffset = primaryIsBottom ? -1 : 1
@@ -223,10 +223,10 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
 
       return secondaryScreenCoord
     }
-      
+
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
     const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
-    
+
     const getLegendColor = dataConfig?.attributeID("legend")
       ? dataConfig?.getLegendColorForCase : undefined
 
@@ -261,7 +261,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     if (!dataConfig) return
     if (graphModel.binWidth === undefined || graphModel.binAlignment === undefined) {
       const { binAlignment, binWidth } = graphModel.binDetails({ initialize: true })
-      graphModel.applyUndoableAction(() => {
+      graphModel.applyModelChange(() => {
         graphModel.setBinWidth(binWidth)
         graphModel.setBinAlignment(binAlignment)
       })

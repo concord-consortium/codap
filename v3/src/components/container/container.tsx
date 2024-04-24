@@ -19,7 +19,7 @@ export const Container: React.FC = () => {
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
 
   const handleCloseTile = useCallback((tileId: string) => {
-    documentContent?.applyUndoableAction(() => {
+    documentContent?.applyModelChange(() => {
       const manager = getSharedModelManager(documentContent)
       const tile = getTile(tileId)
       const sharedModels = manager?.getTileSharedModels(tile?.content)
@@ -39,7 +39,7 @@ export const Container: React.FC = () => {
       if (isFreeTileRow(row)) {
         const rowTile = row.getNode(dragTileId)
         if (rowTile) {
-          documentContent?.applyUndoableAction(() => {
+          documentContent?.applyModelChange(() => {
             rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
           }, {
             undoStringKey: "DG.Undo.componentMove",

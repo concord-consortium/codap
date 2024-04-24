@@ -2,7 +2,7 @@ import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from '../../../models/history/without-undo'
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
@@ -96,7 +96,7 @@ export const MapContentModel = DataDisplayContentModel
     },
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)
   .actions(self => ({
     syncLeafletResponseCount(count: number) {
       self.syncFromLeafletResponseCount = count
@@ -167,7 +167,7 @@ export const MapContentModel = DataDisplayContentModel
           if (!isChanging) {
             // if undo/redo strings are specified, then treat change as undoable
             if (self.leafletMapState.undoStringKey && self.leafletMapState.redoStringKey) {
-              self.applyUndoableAction(() => {
+              self.applyModelChange(() => {
                 self.syncCenterAndZoomFromMap()
               }, {
                 undoStringKey: self.leafletMapState.undoStringKey,

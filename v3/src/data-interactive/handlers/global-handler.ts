@@ -52,7 +52,7 @@ export const diGlobalHandler: DIHandler = {
     const _value = Number(value)
     if (isIllegalValue(_value)) return illegalValueResult
 
-    document.applyUndoableAction(
+    document.applyModelChange(
       () => global.setValue(_value)
     )
     return { success: true }

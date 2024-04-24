@@ -14,7 +14,7 @@ import { typedId } from "../../utilities/js-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
-import { applyUndoableAction } from "../history/apply-undoable-action"
+import { applyModelChange } from "../history/apply-model-change"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import {getSharedDataSetFromDataSetId, getSharedDataSets, getTileCaseMetadata, linkTileToDataSet}
@@ -252,7 +252,7 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)
 
 export type IDocumentContentModel = Instance<typeof DocumentContentModel>
 export type IDocumentContentSnapshotIn = SnapshotIn<typeof DocumentContentModel>

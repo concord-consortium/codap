@@ -70,7 +70,7 @@ export const CaseTableCardTitleBar =
     const handleToggleCardTable = (e: React.MouseEvent) => {
       const suffix = tileInfo.toggleSuffix
       e.stopPropagation()
-      documentContent?.applyUndoableAction(() => {
+      documentContent?.applyModelChange(() => {
         tile && documentContent?.toggleCardTable(tile.id, tileInfo.thisType)
       }, {
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
@@ -87,7 +87,7 @@ export const CaseTableCardTitleBar =
 
     const closeCaseTableOrCard = useCallback(() => {
       const suffix = tileInfo.thisSuffix
-      documentContent?.applyUndoableAction(() => {
+      documentContent?.applyModelChange(() => {
         documentContent?.toggleNonDestroyableTileVisibility(tile?.id)
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,

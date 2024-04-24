@@ -33,7 +33,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
   const handleEditExpressionClose = (newExpression: string) => {
     formulaModal.onClose()
     handleModalOpen(false)
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => model.setExpression(newExpression),
       {
         undoStringKey: "DG.Undo.graph.changePlotFunction",

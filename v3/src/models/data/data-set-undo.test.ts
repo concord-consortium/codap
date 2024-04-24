@@ -27,7 +27,7 @@ describe("DataSet undo/redo", () => {
   it("can undo/redo moving an attribute", async () => {
     const { data, treeManager, undoManager } = setupDocument()
 
-    data.applyUndoableAction(
+    data.applyModelChange(
       () => data.moveAttribute("bId", { before: "aId" }),
       { undoStringKey: "Undo move attribute", redoStringKey: "Redo move attribute" })
 
@@ -70,7 +70,7 @@ describe("DataSet undo/redo", () => {
   it("can undo/redo setting case values", async () => {
     const { data, treeManager, undoManager } = setupDocument()
 
-    data.applyUndoableAction(
+    data.applyModelChange(
       () => data.setCaseValues([{ __id__: "caseId", "aId": 2, "bId": 3 }]),
       { undoStringKey: "Undo edit value", redoStringKey: "Redo edit value" })
     expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })

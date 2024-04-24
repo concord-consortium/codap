@@ -103,7 +103,7 @@ describe("SliderModel", () => {
     expect(slider.globalValue._value).toBe(initialValue)
     slider.setDynamicValueIfDynamic(dynamicValue2)
     expect(slider.value).toBe(dynamicValue2)
-    slider.applyUndoableAction(() => slider.setValue(finalValue), {
+    slider.applyModelChange(() => slider.setValue(finalValue), {
       undoStringKey: "Undo slider change", redoStringKey: "Redo slider change"
     })
     expect(slider.isUpdatingDynamically).toBe(false)

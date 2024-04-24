@@ -44,7 +44,7 @@ export const LegendAttributeLabel =
     }, [dataConfiguration])
 
     const handleRemoveAttribute = useCallback(() => {
-      dataConfiguration?.applyUndoableAction(
+      dataConfiguration?.applyModelChange(
         () => dataConfiguration.setAttribute('legend', {attributeID: ''}),
         {
           undoStringKey: "V3.Undo.legendAttributeRemove",
@@ -54,7 +54,7 @@ export const LegendAttributeLabel =
     }, [dataConfiguration])
 
     const handleTreatAttributeAs = useCallback((_place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
-      dataConfiguration?.applyUndoableAction(
+      dataConfiguration?.applyModelChange(
         () => dataConfiguration.setAttributeType('legend', treatAs),
         {
           undoStringKey: "V3.Undo.attributeTreatAs",

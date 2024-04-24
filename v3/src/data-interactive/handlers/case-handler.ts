@@ -22,7 +22,7 @@ export const diCaseHandler: DIHandler = {
     let itemIds: string[] = []
     const newCaseData: ICaseCreation[] = []
     const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
-    dataContext.applyUndoableAction(() => {
+    dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
         if (aCase.values) {
           const { parent } = aCase
@@ -43,7 +43,7 @@ export const diCaseHandler: DIHandler = {
 
     const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
     const caseIDs: string[] = []
-    dataContext.applyUndoableAction(() => {
+    dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
         const { id } = aCase
         if (id && aCase.values && (dataContext.getCase(id) || dataContext.pseudoCaseMap.get(id))) {

@@ -7,7 +7,7 @@ import {when} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
 import {mstAutorun} from "../../../utilities/mst-autorun"
-import {applyUndoableAction} from "../../../models/history/apply-undoable-action"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {ISharedModel} from "../../../models/shared/shared-model"
 import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
 import {typedId} from "../../../utilities/js-utils"
@@ -356,7 +356,7 @@ export const GraphContentModel = DataDisplayContentModel
         rightSplitMatches.length,
         dataset?.cases.length ?? 0
       ].find(length => length > 0) ?? 0
-      const legendMatchesInSubplot = legendAttrID 
+      const legendMatchesInSubplot = legendAttrID
         ? casesInSubPlot.filter(aCaseID => dataset?.getStrValue(aCaseID, legendAttrID) === caseLegendValue).length
         :  0
       const caseCategoryString = caseLegendValue ? casePrimaryValue : ""
@@ -424,7 +424,7 @@ export const GraphContentModel = DataDisplayContentModel
         : Math.ceil(maxInCell / numPointsInRow)
       const overlap =
         -Math.max(0, ((actualPointsPerColumn + 1) * pointDiameter - primaryHeight) / actualPointsPerColumn)
-      
+
       return { catMap, numPointsInRow, overlap }
     }
   }))
@@ -591,7 +591,7 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyUndoableAction)
+  .actions(applyModelChange)
 
 export interface IGraphContentModel extends Instance<typeof GraphContentModel> {
 }

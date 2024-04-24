@@ -83,7 +83,7 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
     const xValue = Math.round(xScale.invert(xPoint * xSubAxesCount) * 10) / 10
     const yValue = Math.round(yScale.invert(yPoint * ySubAxesCount) * 10) / 10
 
-    graphModel.applyUndoableAction(
+    graphModel.applyModelChange(
       () => model.setPoint({x: xValue, y: yValue}, instanceKey),
       {
         undoStringKey: "DG.Undo.graph.moveMovablePoint",
