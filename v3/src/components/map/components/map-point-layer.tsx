@@ -134,10 +134,12 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     }
   }, [dataConfiguration.dataset, mapModel])
 
-  if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
-    pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
-    pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
-  }
+  useEffect(() => {
+    if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+      pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
+      pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
+    }
+  }, [layout.contentWidth, layout.contentHeight])
 
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
