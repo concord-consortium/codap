@@ -118,10 +118,10 @@ context("case table ui", () => {
       // Perform Redo operation
       toolbar.getRedoTool().click()
 
-     // verify new attribute exists
-     table.getColumnHeaders().should("have.length.be.within", 10, 11)
-     table.getAttribute("newAttr").should("exist")
-     table.getAttribute("newAttr").click()
+      // verify new attribute exists
+      table.getColumnHeaders().should("have.length.be.within", 10, 11)
+      table.getAttribute("newAttr").should("exist")
+      table.getAttribute("newAttr").click()
       table.getAttribute("newAttr").should("have.text", "newAttr")
     })
     it("verify rename attribute with undo and redo", () => {
