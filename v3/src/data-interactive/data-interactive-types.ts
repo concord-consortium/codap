@@ -1,6 +1,6 @@
 import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
-import { ICodapV2Attribute } from "../v2/codap-v2-types"
+import { ICodapV2Attribute, ICodapV2AttributeV3, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -25,19 +25,19 @@ export interface DIAllCases {
   }
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
-export interface DIAttributes {
-  attrs?: DIAttribute[]
-}
 export interface DICase {
   collectionID?: string
   collectionName?: string
   caseID?: string
+  itemID?: string
 }
+export type DICollection = Partial<ICodapV2Collection>
 export type DIComponent  = unknown
 export interface DIGlobal {
   name?: string
   value?: number
 }
+export type DIDataContext = Partial<ICodapV2DataContext>
 export interface DIInteractiveFrame {
   dimensions?: {
     height?: number
@@ -80,10 +80,16 @@ export interface DIResources {
   itemSearch?: DIItem[]
 }
 
-export type DISingleValues = DIAllCases | DIAttribute | DIAttributes | DICase | DIGlobal |
-  DIInteractiveFrame | DINewCase
-
+// types for values accepted as inputs by the API
+export type DISingleValues = DIAttribute | DICase | DIDataContext |
+  DIGlobal | DIInteractiveFrame | DINewCase
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
+
+// types returned as outputs by the API
+export type DIResultAttributes = { attrs: ICodapV2AttributeV3[] }
+export type DIResultSingleValues = DICase | DIGlobal | DIInteractiveFrame
+export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
+                              DIAllCases | DIResultAttributes | number
 
 export interface DIMetadata {
   dirtyDocument?: boolean
@@ -91,7 +97,7 @@ export interface DIMetadata {
 
 export interface DISuccessResult {
   success: true
-  values?: DIValues
+  values?: DIResultValues
   caseIDs?: string[]
 }
 

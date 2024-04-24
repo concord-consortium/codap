@@ -3,6 +3,7 @@ import { ISharedCaseMetadata, SharedCaseMetadata } from "../shared/shared-case-m
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { IDataSet } from "./data-set"
+import { t } from "../../utilities/translation/translate"
 import "../shared/shared-data-set-registration"
 import "../shared/shared-case-metadata-registration"
 
@@ -66,6 +67,18 @@ export class DataBroker {
     for (const ds of this.dataSets.values()) {
       if (ds.name === name) return ds
     }
+  }
+
+  get newDataSetName(): string {
+    let i = 1
+    let name = ""
+    const tryName = () => name = t("DG.DataContext.baseName", { vars: [i] })
+    tryName()
+    while (this.getDataSetByName(name)) {
+      i++
+      tryName()
+    }
+    return name
   }
 
   @action

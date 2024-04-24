@@ -906,7 +906,7 @@ export const DataSet = V2Model.named("DataSet").props({
       setImportDate(date: string) {
         self.importDate = date
       },
-      setDescription(description: string) {
+      setDescription(description?: string) {
         self.description = description
       },
       addAttribute(snapshot: IAttributeSnapshot, options?: IAddAttributeOptions) {

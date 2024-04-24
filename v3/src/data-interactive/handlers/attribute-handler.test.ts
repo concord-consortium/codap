@@ -1,6 +1,6 @@
 import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
-import { DIAttributes } from "../data-interactive-types"
+import { DIResultAttributes } from "../data-interactive-types"
 import { DataSet } from "../../models/data/data-set"
 
 describe("DataInteractive AttributeHandler", () => {
@@ -28,7 +28,7 @@ describe("DataInteractive AttributeHandler", () => {
     const name3 = "test3"
     const results = handler.create?.(resources, [{ name: name2 }, { name: name3 }])
     expect(results?.success).toEqual(true)
-    expect((results?.values as DIAttributes)?.attrs?.length).toBe(2)
+    expect((results?.values as DIResultAttributes)?.attrs?.length).toBe(2)
     expect(dataContext.attributes.length).toBe(3)
     expect(dataContext.attributes[1].name).toBe(name2)
     expect(dataContext.attributes[2].name).toBe(name3)
@@ -46,7 +46,7 @@ describe("DataInteractive AttributeHandler", () => {
     const result = handler.update?.({ attribute },
       { name, title, description, unit, formula, editable, type, precision })
     expect(result?.success).toBe(true)
-    const values = result?.values as DIAttributes
+    const values = result?.values as DIResultAttributes
     const resultAttr = values.attrs?.[0]
     expect(resultAttr?.name).toBe(name)
     expect(resultAttr?.title).toBe(title)
@@ -58,7 +58,7 @@ describe("DataInteractive AttributeHandler", () => {
     expect(resultAttr?.precision).toBe(precision)
 
     const result2 = handler.update?.({ attribute }, { type: "fake type" })
-    const values2 = result2?.values as DIAttributes
+    const values2 = result2?.values as DIResultAttributes
     const resultAttr2 = values2.attrs?.[0]
     expect(resultAttr2?.type).toBe(type)
   })
