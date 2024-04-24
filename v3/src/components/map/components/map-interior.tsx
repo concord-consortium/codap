@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite"
 import React, {useCallback} from "react"
-import {PixiPoints} from "../../graph/utilities/pixi-points"
+import {PixiPoints} from "../../data-display/pixi/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useMapModel} from "../hooks/use-map-model"
 import {kMapPointLayerType, kMapPolygonLayerType} from "../map-types"

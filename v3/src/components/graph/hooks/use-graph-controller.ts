@@ -1,7 +1,7 @@
 import {useEffect} from "react"
 import {GraphController} from "../models/graph-controller"
 import {IGraphContentModel} from "../models/graph-content-model"
-import {IPixiPointsArrayRef} from "../utilities/pixi-points"
+import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
 
 export interface IUseGraphControllerProps {
   graphController: GraphController,

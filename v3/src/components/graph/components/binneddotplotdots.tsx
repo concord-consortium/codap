@@ -12,7 +12,7 @@ import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configur
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {circleAnchor} from "../utilities/pixi-points"
+import {circleAnchor} from "../../data-display/pixi/pixi-points"
 import { setPointCoordinates } from "../utilities/graph-utils"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord, adjustCoordForStacks,

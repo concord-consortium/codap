@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js"
-import { CaseData } from "../../data-display/d3-types"
+import { CaseData } from "../d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
-import { hoverRadiusFactor, transitionDuration } from "../../data-display/data-display-types"
+import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 
 const DEFAULT_Z_INDEX = 0

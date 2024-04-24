@@ -5,7 +5,7 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
-import {PixiPoints} from "../utilities/pixi-points"
+import {PixiPoints} from "../../data-display/pixi/pixi-points"
 import {IGraphContentModel} from "../models/graph-content-model"
 import {INumericAxisModel} from "../../axis/models/axis-model"
 
