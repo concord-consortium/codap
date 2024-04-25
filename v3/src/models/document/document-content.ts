@@ -184,6 +184,21 @@ export const DocumentContentModel = BaseDocumentContentModel
           return self.createTile(tileType, options)
         }
       }
+    },
+    deleteOrHideTile(tileId: string) {
+      const tile = self.getTile(tileId)
+      if (tile) {
+        const tileType = tile.content.type
+        const tileInfo = getTileContentInfo(tileType)
+        if (tileInfo?.isSingleton) {
+          const tileLayout = self.getTileLayoutById(tileId)
+          if (isFreeTileLayout(tileLayout)) {
+            tileLayout.setHidden(true)
+          }
+        } else {
+          self.deleteTile(tileId)
+        }
+      }
     }
   }))
   .actions(self => ({
