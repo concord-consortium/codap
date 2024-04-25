@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
-import { collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCasesNotification } from "../../models/data/data-set-utils"
+import {
+  collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCasesNotification
+} from "../../models/data/data-set-utils"
 import { OnScrollClosestRowIntoViewFn, TCellClickArgs } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCollectionContext } from "../../hooks/use-collection-context"

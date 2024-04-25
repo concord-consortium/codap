@@ -135,7 +135,7 @@ export const MapContentModel = DataDisplayContentModel
       self.layers.forEach(layer => {
         const dataset = layer.dataConfiguration.dataset
         dataset?.applyModelChange(() => {
-          dataset?.selectAll(false)
+          dataset.selectAll(false)
         }, {
           notification: () => selectCasesNotification(dataset)
         })
