@@ -185,20 +185,18 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       }
     },
+    // Hide the tile if it's a singleton and can be hidden. Otherwise, delete it.
     deleteOrHideTile(tileId: string) {
       const tile = self.getTile(tileId)
-      if (tile) {
-        const tileType = tile.content.type
-        const tileInfo = getTileContentInfo(tileType)
-        if (tileInfo?.isSingleton) {
-          const tileLayout = self.getTileLayoutById(tileId)
-          if (isFreeTileLayout(tileLayout)) {
-            tileLayout.setHidden(true)
-          }
-        } else {
-          self.deleteTile(tileId)
+      const tileInfo = getTileContentInfo(tile?.content.type)
+      if (tileInfo?.isSingleton) {
+        const tileLayout = self.getTileLayoutById(tileId)
+        if (isFreeTileLayout(tileLayout)) {
+          tileLayout.setHidden(true)
+          return
         }
       }
+      self.deleteTile(tileId)
     }
   }))
   .actions(self => ({
