@@ -1,7 +1,7 @@
 import {extent, format} from "d3"
 import {isInteger} from "lodash"
 import * as PIXI from "pixi.js"
-import {IPixiPointMetadata, PixiPoints} from "./pixi-points"
+import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"

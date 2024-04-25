@@ -9,7 +9,7 @@ interface INotification {
   message: DIMessage
   callback?: iframePhone.ListenerCallback
 }
-export interface IApplyActionOptions {
+export interface IApplyModelChangeOptions {
   notification?: INotification | (() => INotification | undefined)
   redoStringKey?: string
   undoStringKey?: string
@@ -19,7 +19,7 @@ export interface IApplyActionOptions {
 export function applyModelChange(self: IAnyStateTreeNode) {
   return ({
     // performs the specified action so that response actions are included and undo/redo strings assigned
-    applyModelChange<TResult = unknown>(actionFn: () => TResult, options?: IApplyActionOptions) {
+    applyModelChange<TResult = unknown>(actionFn: () => TResult, options?: IApplyModelChangeOptions) {
       const result = actionFn()
 
       // Add strings to undoable action or keep out of the undo stack

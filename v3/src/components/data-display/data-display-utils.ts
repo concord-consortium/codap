@@ -11,7 +11,7 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
-import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
+import {IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
 import { IBarCover } from "../graph/graphing-types"
 import { selectCasesNotification } from "../../models/data/data-set-utils"
 

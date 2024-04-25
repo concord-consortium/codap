@@ -7,7 +7,7 @@ import { PlotProps } from "../graphing-types"
 import { useChartDots } from "../hooks/use-chart-dots"
 import { usePlotResponders } from "../hooks/use-plot"
 import { setPointCoordinates } from "../utilities/graph-utils"
-import { IPixiPointMetadata, PixiPointEventHandler } from "../utilities/pixi-points"
+import { IPixiPointMetadata, PixiPointEventHandler } from "../../data-display/pixi/pixi-points"
 
 export const DotChartPoints = observer(function DotChartPoints({ pixiPoints }: PlotProps) {
   const { dataset, graphModel, isAnimating, primaryScreenCoord, secondaryScreenCoord,

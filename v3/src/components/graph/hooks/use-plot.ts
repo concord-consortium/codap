@@ -12,7 +12,7 @@ import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import { PixiPointEventHandler, PixiPoints } from "../utilities/pixi-points"
+import { PixiPointEventHandler, PixiPoints } from "../../data-display/pixi/pixi-points"
 
 export interface IPixiDragHandlers {
   start: PixiPointEventHandler

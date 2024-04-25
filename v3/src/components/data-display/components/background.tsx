@@ -9,7 +9,7 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {IPixiPointMetadata, IPixiPointsArrayRef, PixiBackgroundPassThroughEvent, PixiPoints}
-  from "../../graph/utilities/pixi-points"
+  from "../pixi/pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
 import {MarqueeState} from "../models/marquee-state"
 import {appState} from "../../../models/app-state"
