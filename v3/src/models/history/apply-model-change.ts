@@ -10,7 +10,7 @@ interface INotification {
   callback?: iframePhone.ListenerCallback
 }
 export interface IApplyActionOptions {
-  notification?: INotification | (() => INotification)
+  notification?: INotification | (() => INotification | undefined)
   redoStringKey?: string
   undoStringKey?: string
 }
@@ -33,8 +33,11 @@ export function applyModelChange(self: IAnyStateTreeNode) {
       if (options?.notification) {
         const tileEnv = getTileEnvironment(self)
         const { notification } = options
-        const { message, callback } = notification instanceof Function ? notification() : notification
-        tileEnv?.notify?.(message, callback ?? (() => null))
+        const _notification = notification instanceof Function ? notification() : notification
+        if (_notification) {
+          const { message, callback } = _notification
+          tileEnv?.notify?.(message, callback ?? (() => null))
+        }
       }
 
       return result

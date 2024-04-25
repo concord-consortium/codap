@@ -1,6 +1,7 @@
 import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { selectCasesNotification } from '../../../models/data/data-set-utils'
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from '../../../models/history/without-undo'
@@ -132,7 +133,12 @@ export const MapContentModel = DataDisplayContentModel
     },
     deselectAllCases() {
       self.layers.forEach(layer => {
-        layer.dataConfiguration.dataset?.selectAll(false)
+        const dataset = layer.dataConfiguration.dataset
+        dataset?.applyModelChange(() => {
+          dataset?.selectAll(false)
+        }, {
+          notification: () => selectCasesNotification(dataset)
+        })
       })
     }
   }))

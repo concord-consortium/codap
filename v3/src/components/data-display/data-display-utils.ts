@@ -13,6 +13,7 @@ import {
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "../graph/utilities/pixi-points"
 import { IBarCover } from "../graph/graphing-types"
+import { selectCasesNotification } from "../../models/data/data-set-utils"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -51,15 +52,19 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
 
-  if (!caseIsSelected) {
-    if (extendSelection) { // case is not selected and Shift key is down => add case to selection
-      dataset?.selectCases([caseID])
-    } else { // case is not selected and Shift key is up => only this case should be selected
-      dataset?.setSelectedCases([caseID])
+  dataset?.applyModelChange(() => {
+    if (!caseIsSelected) {
+      if (extendSelection) { // case is not selected and Shift key is down => add case to selection
+        dataset.selectCases([caseID])
+      } else { // case is not selected and Shift key is up => only this case should be selected
+        dataset.setSelectedCases([caseID])
+      }
+    } else if (extendSelection) { // case is selected and Shift key is down => deselect case
+      dataset.selectCases([caseID], false)
     }
-  } else if (extendSelection) { // case is selected and Shift key is down => deselect case
-    dataset?.selectCases([caseID], false)
-  }
+  }, {
+    notification: () => selectCasesNotification(dataset)
+  })
 }
 
 interface IHandleClickOnBarProps {

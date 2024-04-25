@@ -1,9 +1,10 @@
+import {reaction} from "mobx"
 import {addDisposer, types} from "mobx-state-tree"
+import { selectCasesNotification } from "../../../models/data/data-set-utils"
 import {applyModelChange} from "../../../models/history/apply-model-change"
+import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {LatLngGrid} from "../utilities/lat-lng-grid"
 import {getLatLongBounds} from "../utilities/map-utils"
-import {reaction} from "mobx"
-import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 
 export const MapGridModel = types.model("MapGridModel", {
   isVisible: false,
@@ -118,11 +119,15 @@ export const MapGridModel = types.model("MapGridModel", {
       const dataset = self.dataConfiguration?.dataset,
         rect = self.latLngGrid.getGridCell(longIndex, latIndex)
       if (rect) {
-        if (extend) {
-          dataset?.selectCases(rect.cases, select)
-        } else {
-          dataset?.setSelectedCases(rect.cases)
-        }
+        dataset?.applyModelChange(() => {
+          if (extend) {
+            dataset.selectCases(rect.cases, select)
+          } else {
+            dataset.setSelectedCases(rect.cases)
+          }
+        }, {
+          notification: () => selectCasesNotification(dataset)
+        })
       }
     },
     selectCasesInRect(longIndex: number, latIndex: number, select: boolean, extend: boolean) {
@@ -137,7 +142,12 @@ export const MapGridModel = types.model("MapGridModel", {
       this._selectCasesInRect(longIndex, latIndex, false, false)
     },
     deselectAll() {
-      self.dataConfiguration?.dataset?.selectAll(false)
+      const dataset = self.dataConfiguration?.dataset
+      dataset?.applyModelChange(() => {
+        dataset.selectAll(false)
+      }, {
+        notification: () => selectCasesNotification(dataset)
+      })
     },
 
   }))
