@@ -392,12 +392,12 @@ export const DataConfigurationModel = types
             : []
         }
         if (selection) {
-          dataset?.applyModelChange(() => {
-            if (extend) dataset.selectCases(selection)
-            else dataset.setSelectedCases(selection)
-          }, {
-            notification: () => selectCasesNotification(dataset)
-          })
+          // dataset?.applyModelChange(() => {
+            if (extend) dataset?.selectCases(selection)
+            else dataset?.setSelectedCases(selection)
+          // }, {
+          //   notification: () => selectCasesNotification(dataset)
+          // })
         }
       },
       allCasesForCategoryAreSelected: cachedFnWithArgsFactory({
@@ -428,12 +428,12 @@ export const DataConfigurationModel = types
         const selection = this.selectedCasesForLegendQuantile(quantile)
         if (selection) {
           const dataset = self.dataset
-          dataset?.applyModelChange(() => {
-            if (extend) dataset.selectCases(selection)
-            else dataset.setSelectedCases(selection)
-          }, {
-            notification: () => selectCasesNotification(dataset)
-          })
+          // dataset?.applyModelChange(() => {
+            if (extend) dataset?.selectCases(selection)
+            else dataset?.setSelectedCases(selection)
+          // }, {
+          //   notification: () => selectCasesNotification(dataset)
+          // })
         }
       },
       casesInQuantileAreSelected(quantile: number): boolean {

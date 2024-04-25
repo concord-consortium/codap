@@ -103,11 +103,13 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       width.current = 0
       height.current = 0
       if (!event.shiftKey) {
-        datasetsArray.forEach(dataset => dataset.applyModelChange(() => {
-          dataset.setSelectedCases([])
-        }, {
-          notification: () => selectCasesNotification(dataset)
-        }))
+        datasetsArray.forEach(dataset => {
+          // dataset.applyModelChange(() => {
+            dataset.setSelectedCases([])
+          // }, {
+          //   notification: () => selectCasesNotification(dataset)
+          // })
+        })
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
     }, [datasetsArray, marqueeState, pixiPointsArrayRef]),
