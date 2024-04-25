@@ -13,7 +13,7 @@ export const diComponentHandler: DIHandler = {
 
     const { document } = appState
     document.applyModelChange(() => {
-      appState.document.content?.deleteOrHideTile(component.id)
+      document.content?.deleteOrHideTile(component.id)
     })
 
     return { success: true }
