@@ -1,4 +1,7 @@
 # Changelog
+
+## Version 3.0.0-pre.1522 - April 26, 2024
+
 ### ✨ Features & Improvements:
 - **PT-187425753:** DataSet: add attributesMap to simplify attribute ordering
 - **PT-187391005:** In case table, show swatch when editing a color value
