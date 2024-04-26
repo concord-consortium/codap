@@ -1,4 +1,4 @@
-import {action, computed, IReactionDisposer, makeObservable, observable, reaction} from "mobx"
+import {action, computed, IReactionDisposer, makeObservable, observable} from "mobx"
 import {
   format, NumberValue, ScaleBand, scaleBand, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
@@ -57,7 +57,6 @@ export class MultiScale {
     this.orientation = orientation
     this.scale = scaleTypeToD3Scale(scaleType)
     makeObservable(this)
-    this.disposers.push(this.reactToCategoryValuesChange())
   }
 
   cleanup() {
@@ -118,8 +117,20 @@ export class MultiScale {
   }
 
   @action setCategoryValues(values: string[]) {
-    this.categoryValues = values
-    this.incrementChangeCount()
+    const sortedValues: string[] = []
+    if (this.categorySet) {
+      const valuesSet = new Set(values)
+      this.categorySet.values.forEach(category => {
+        if (valuesSet.has(category)) {
+          sortedValues.push(category)
+        }
+      })
+      this.categoryValues = sortedValues
+    }
+    else {
+      this.categoryValues = values
+    }
+    this.setCategoricalDomain(this.categoryValues)
   }
 
   @action setLength(length: number) {
@@ -138,15 +149,6 @@ export class MultiScale {
   @action setCategoricalDomain(domain: Iterable<string>) {
     this.categoricalScale?.domain(domain)
     this.incrementChangeCount()
-  }
-
-  @action reactToCategoryValuesChange() {
-    return reaction(() => {
-      return this.categoryValues
-    }, (categories) => {
-      this.setCategoricalDomain(categories)
-      this.incrementChangeCount()
-    }, { name: "MultiScale.reactToCategoryValuesChange"})
   }
 
   @action incrementChangeCount() {

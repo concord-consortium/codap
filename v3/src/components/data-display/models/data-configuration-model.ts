@@ -46,7 +46,7 @@ export const DataConfigurationModel = types
     dataset: types.safeReference(DataSet),
     metadata: types.safeReference(SharedCaseMetadata),
     hiddenCases: types.array(types.string),
-    displayOnlySelectedCases: types.optional(types.boolean, false)
+    displayOnlySelectedCases: types.maybe(types.boolean)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -243,17 +243,7 @@ export const DataConfigurationModel = types
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.allCaseIDs)
         const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
-        // Put items in allValues into the same order as the items would be for unfiltered cases so the order
-        // of values remains consistent no matter how many cases are filtered out.
-        const unfilteredCaseIDs = dataset?.cases
-        const allUnfilteredValues = attrID
-          ? unfilteredCaseIDs?.map(aCase => dataset?.getStrValue(aCase.__id__, attrID))
-          : []
-        const orderedValues = allUnfilteredValues?.map(aValue => {
-          const index = allValues.indexOf(aValue)
-          return allValues[index]
-        }) ?? []
-        return orderedValues.filter(aValue => aValue) as string[]
+        return allValues.filter(aValue => aValue) as string[]
       }
     })
   }))
@@ -267,7 +257,9 @@ export const DataConfigurationModel = types
         const attributeID = self.attributeID(role) || ''
         return self.metadata.getCategorySet(attributeID)
       }
-    },
+    }
+  }))
+  .views(self => ({
     /**
      * @param role
      * @param emptyCategoryArray
@@ -275,11 +267,20 @@ export const DataConfigurationModel = types
     categoryArrayForAttrRole: cachedFnWithArgsFactory<(role: AttrRole, emptyCategoryArray?: string[]) => string[]>({
       key: (role: AttrRole, emptyCategoryArray = ['__main__']) => JSON.stringify({ role, emptyCategoryArray }),
       calculate: (role: AttrRole, emptyCategoryArray = ['__main__']) => {
-        let categoryArray = Array.from(new Set(self.valuesForAttrRole(role)))
-        if (categoryArray.length === 0) {
-          categoryArray = emptyCategoryArray
-        }
-        return categoryArray
+        const valuesSet = new Set(self.valuesForAttrRole(role))
+        if (valuesSet.size === 0) return emptyCategoryArray
+        // category set maintains the canonical order of categories
+        const allCategorySet = self.categorySetForAttrRole(role)
+        // if we don't have a category set just return the values
+        if (!allCategorySet) return Array.from(valuesSet)
+        // return the categories in canonical order
+        const orderedCategories: string[] = []
+        allCategorySet.values.forEach(category => {
+          if (valuesSet.has(category)) {
+            orderedCategories.push(category)
+          }
+        })
+        return orderedCategories
       }
     })
   }))
@@ -668,7 +669,7 @@ export const DataConfigurationModel = types
       self.hiddenCases.replace(hiddenCases)
     },
     setDisplayOnlySelectedCases(displayOnlySelectedCases: boolean) {
-      self.displayOnlySelectedCases = displayOnlySelectedCases
+      self.displayOnlySelectedCases = displayOnlySelectedCases || undefined
       self.clearCasesCache()
     }
   }))

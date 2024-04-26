@@ -9,13 +9,12 @@ import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {between} from "../../../utilities/math-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
-import {isAliveSafe, onAnyAction} from "../../../utilities/mst-utils"
+import {isAliveSafe} from "../../../utilities/mst-utils"
 import {kAxisTickLength} from "../../graph/graphing-types"
 import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
         getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
-import { isSelectionAction } from "../../../models/data/data-set-actions"
 import { mstReaction } from "../../../utilities/mst-reaction"
 
 export interface IUseSubAxis {
@@ -401,36 +400,33 @@ export const useSubAxis = ({
     }
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
 
-  // respond to selection changes
-  useEffect(() => {
-    if (dataConfig?.dataset) {
-      const disposer = onAnyAction(dataConfig?.dataset, action => {
-        if (isSelectionAction(action)) {
-          const role = axisPlaceToAttrRole[axisPlace]
-          const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
-          layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
-          setupCategories()
-          renderSubAxis()
-        }
-      })
-      return () => disposer()
-    }
+  const updateCategoriesAndRenderSubAxis = useCallback(() => {
+    const role = axisPlaceToAttrRole[axisPlace]
+    const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
+    layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
+    setupCategories()
+    renderSubAxis()
   }, [axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
+
+  useEffect(function respondToSelectionChanges() {
+    if (dataConfig?.dataset) {
+      return mstReaction(
+        () => dataConfig.displayOnlySelectedCases && dataConfig?.dataset?.selectionChanges,
+        () => updateCategoriesAndRenderSubAxis(),
+        {name: "useSubAxis.respondToSelectionChanges"}, dataConfig
+      )
+    }
+  }, [dataConfig, updateCategoriesAndRenderSubAxis])
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
       return mstReaction(
         () => dataConfig.hiddenCases.length,
-        () => {
-          const role = axisPlaceToAttrRole[axisPlace]
-          const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
-          layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
-          setupCategories()
-          renderSubAxis()
-        }, {name: "respondToHiddenCasesChange"}, dataConfig
+        () => updateCategoriesAndRenderSubAxis(),
+        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
       )
     }
-  }, [axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
+  }, [dataConfig, updateCategoriesAndRenderSubAxis])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {

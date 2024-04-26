@@ -162,6 +162,7 @@ export const DataSet = V2Model.named("DataSet").props({
   caseIDMap: new Map<string, number>(),
   // MobX-observable set of selected case IDs
   selection: observable.set<string>(),
+  selectionChanges: 0,
   // map from pseudo-case ID to the CaseGroup it represents
   pseudoCaseMap: new Map<string, CaseGroup>(),
   transactionCount: 0
@@ -1060,6 +1061,7 @@ export const DataSet = V2Model.named("DataSet").props({
         else {
           self.selection.clear()
         }
+        ++self.selectionChanges
       },
 
       selectCases(caseIds: string[], select = true) {
@@ -1080,6 +1082,7 @@ export const DataSet = V2Model.named("DataSet").props({
             self.selection.delete(id)
           }
         })
+        ++self.selectionChanges
       },
 
       setSelectedCases(caseIds: string[]) {
@@ -1093,6 +1096,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         })
         self.selection.replace(ids)
+        ++self.selectionChanges
       }
     }
   }

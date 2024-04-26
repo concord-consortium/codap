@@ -162,7 +162,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         if (isSelectionAction(action)) {
           // If there are hidden cases in the graph that are then selected in a different tile, remove them from
           // the hiddenCases array and make sure their positions are set.
-          if (dataConfiguration?.hiddenCases.length > 0) {
+          if (dataConfiguration.displayOnlySelectedCases && dataConfiguration?.hiddenCases.length > 0) {
             const selectedCases = Array.from(dataset.selection)
             const allCases = dataset.cases.map(c => c.__id__)
             const updatedHiddenCases = allCases.filter(caseID => !selectedCases.includes(caseID))
