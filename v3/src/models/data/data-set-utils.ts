@@ -58,3 +58,18 @@ export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, un
     debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${attrIDs}:`, JSON.stringify(response))
   }
 }
+
+export function moveAttributeNotification(data?: IDataSet) {
+  const action = "notify"
+  const resource = `dataContextChangeNotice[${data?.name}]`
+  const operation = "moveAttribute"
+  const values = {
+    operation,
+    result: {
+      success: true
+    }
+  }
+  return { message: { action, resource, values }, callback: (response: any) =>
+    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation}:`, JSON.stringify(response))
+  }
+}

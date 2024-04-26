@@ -3,7 +3,7 @@ import { createPortal } from "react-dom"
 import { IAttribute } from "../../models/data/attribute"
 import { isCollectionModel } from "../../models/data/collection"
 import { IMoveAttributeOptions } from "../../models/data/data-set-types"
-import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import { getCollectionAttrs, moveAttributeNotification } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
@@ -32,12 +32,14 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: firstAttr?.id }
                                             : { after: columnKey }
+    const notification = moveAttributeNotification(data)
     if (collection === srcCollection) {
       if (isCollectionModel(collection)) {
         // move the attribute within a collection
         data.applyModelChange(
           () => collection.moveAttribute(dragAttrId, options),
           {
+            notification,
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
             redoStringKey: "DG.Redo.dataContext.moveAttribute"
           }
@@ -48,6 +50,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
         data.applyModelChange(
           () => data.moveAttribute(dragAttrId, options),
           {
+            notification,
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
             redoStringKey: "DG.Redo.dataContext.moveAttribute"
           }
@@ -59,6 +62,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
       data.applyModelChange(
         () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
         {
+          notification,
           undoStringKey: "DG.Undo.dataContext.moveAttribute",
           redoStringKey: "DG.Redo.dataContext.moveAttribute"
         }
