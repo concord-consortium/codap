@@ -19,6 +19,7 @@ import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
+import { kTitleBarHeight } from "../../constants"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -37,7 +38,8 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   useGraphController({graphController, graphModel, pixiPointsArrayRef})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setTileExtent(width, height)
+    (width != null) && width >= 0 && (height != null) &&
+      height >= kTitleBarHeight && layout.setTileExtent(width, height)
   }, [width, height, layout])
 
   useEffect(function cleanup() {

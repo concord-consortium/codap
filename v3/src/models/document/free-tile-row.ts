@@ -2,7 +2,7 @@ import { observable } from "mobx"
 import { Instance, SnapshotIn, addDisposer, onPatch, types } from "mobx-state-tree"
 import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
 import { withoutUndo } from "../history/without-undo"
-import { withUndoRedoStrings } from "../history/codap-undo-types"
+import { applyModelChange } from "../history/apply-model-change"
 
 /*
   Represents the layout of a set of tiles/components with arbitrary rectangular bounds that can
@@ -35,12 +35,10 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   setPosition(x: number, y: number) {
     self.x = x
     self.y = y
-    withUndoRedoStrings("DG.Undo.componentMove", "DG.Redo.componentMove")
   },
   setSize(width?: number, height?: number) {
     self.width = width
     self.height = height
-    withUndoRedoStrings("DG.Undo.componentResize", "DG.Redo.componentResize")
   },
   setHidden(isHidden: boolean) {
     // only store it if it's true
@@ -51,6 +49,8 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
     self.isMinimized = isMinimized || undefined
   }
 }))
+.actions(applyModelChange)
+
 export interface IFreeTileLayout extends Instance<typeof FreeTileLayout> {}
 export interface IFreeTileLayoutSnapshot extends SnapshotIn<typeof FreeTileLayout> {}
 

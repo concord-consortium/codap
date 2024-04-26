@@ -6,8 +6,11 @@ import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { ComponentRect } from "../../utilities/animation-utils"
+import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { CodapComponent } from "../codap-component"
 import { kTitleBarHeight } from "../constants"
+import { ISetPositionSizeCustomPatch, setContainerPositionSizeCustomUndoRedo } from "./container-undo"
 
 interface IProps {
   row: IFreeTileRow;
@@ -75,8 +78,21 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
       document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
-      mtile.setSize(resizingWidth, resizingHeight)
-      mtile.setPosition(resizingLeft, mtile.y)
+      const before: ComponentRect = { x: mtile.x, y: mtile.y,
+          width: mtile.width || 0, height: mtile.height || 0 },
+        after: ComponentRect = { x: resizingLeft, y: mtile.y,
+          width: resizingWidth || 0, height: resizingHeight || 0 }
+      mtile.applyModelChange(() => {
+        withCustomUndoRedo<ISetPositionSizeCustomPatch>({
+          type: "Container.setPositionSize",
+          data: { tileId: mtile.tileId, before, after }
+        }, setContainerPositionSizeCustomUndoRedo)
+        mtile.setSize(resizingWidth, resizingHeight)
+        mtile.setPosition(resizingLeft, mtile.y)
+      }, {
+        undoStringKey: "DG.Undo.componentResize",
+        redoStringKey: "DG.Redo.componentResize"
+      })
       setResizingTileId("")
     }
 

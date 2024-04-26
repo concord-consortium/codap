@@ -5,6 +5,8 @@ import { observer } from "mobx-react-lite"
 import { t } from "../../utilities/translation/translate"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { kTitleBarHeight } from "../constants"
+import { animateEaseInOut, ComponentRect, kDefaultAnimationDuration } from "../../utilities/animation-utils"
 import { appState } from "../../models/app-state"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata }
@@ -51,11 +53,19 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     manager?.addTileSharedModel(tile.content, caseMetadata, true)
     caseMetadata.setCaseTableTileId(tile.id)
 
-    const width = caseTableComponentInfo.defaultWidth
-    const height = caseTableComponentInfo.defaultHeight
+    const width = caseTableComponentInfo.defaultWidth || 0
+    const height = caseTableComponentInfo.defaultHeight || 0
     const {x, y} = getPositionOfNewComponent({width, height})
-    content?.insertTileInRow(tile, row, {x, y, width, height})
+    const from: ComponentRect = { x: 0, y: 0, width: 0, height: kTitleBarHeight },
+      to: ComponentRect = { x, y, width, height: height + kTitleBarHeight}
+    content?.insertTileInRow(tile, row, from)
     uiState.setFocusedTile(tile.id)
+    const tileLayout = content.getTileLayoutById(tile.id)
+    if (!isFreeTileLayout(tileLayout)) return
+    animateEaseInOut(kDefaultAnimationDuration, from, to, (rect: ComponentRect) => {
+      tileLayout.setPosition(rect.x, rect.y)
+      tileLayout.setSize(rect.width, rect.height)
+    })
   }
 
   const handleCreateNewDataSet = () => {
