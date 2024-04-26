@@ -1,4 +1,5 @@
 import { isAlive } from "mobx-state-tree"
+import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
@@ -39,5 +40,21 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
   for (let i = collections.length - 1; i >= 0; --i) {
     const collection = collections[i]
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
+  }
+}
+
+export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, unhide?: boolean) {
+  const action = "notify"
+  const resource = `dataContextChangeNotice[${data?.name}]`
+  const operation = unhide ? "unhideAttributes" : "hideAttributes"
+  const values = {
+    operation,
+    result: {
+      success: true,
+      attrIDs
+    }
+  }
+  return { message: { action, resource, values }, callback: (response: any) =>
+    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${attrIDs}:`, JSON.stringify(response))
   }
 }
