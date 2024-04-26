@@ -185,11 +185,11 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       }
     },
-    // Hide the tile if it's a singleton and can be hidden. Otherwise, delete it.
+    // Hide the tile if it should hide on close or is a singleton and can be hidden. Otherwise, delete it.
     deleteOrHideTile(tileId: string) {
       const tile = self.getTile(tileId)
       const tileInfo = getTileContentInfo(tile?.content.type)
-      if (tileInfo?.isSingleton) {
+      if (tileInfo?.hideOnClose || tileInfo?.isSingleton) {
         const tileLayout = self.getTileLayoutById(tileId)
         if (isFreeTileLayout(tileLayout)) {
           tileLayout.setHidden(true)
