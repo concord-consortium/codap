@@ -28,6 +28,7 @@ export interface ITileContentInfo {
   titleBase?: string;
   metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
+  hideOnClose?: boolean;
   addSidecarNotes?: boolean;
   defaultHeight?: number;
   exportNonDefaultHeight?: boolean;

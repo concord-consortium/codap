@@ -19,7 +19,8 @@ registerTileContentInfo({
   type: kCaseTableTileType,
   prefix: kCaseTableIdPrefix,
   modelClass: CaseTableModel,
-  defaultContent: () => ({ type: kCaseTableTileType })
+  defaultContent: () => ({ type: kCaseTableTileType }),
+  hideOnClose: true
 })
 
 registerTileComponentInfo({

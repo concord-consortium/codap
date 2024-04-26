@@ -34,6 +34,7 @@ export interface DICase {
 export type DICollection = Partial<ICodapV2Collection>
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
+  hidden?: boolean
   id?: string
   name?: string
   title?: string
