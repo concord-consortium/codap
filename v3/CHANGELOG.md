@@ -1,4 +1,32 @@
 # Changelog
+
+## Version 3.0.0-pre.1522 - April 26, 2024
+
+### ✨ Features & Improvements:
+- **PT-187425753:** DataSet: add attributesMap to simplify attribute ordering
+- **PT-187391005:** In case table, show swatch when editing a color value
+- **PT-187444366:** Dashboard no longer displays DataSummary component
+- **PT-187381638:** A basic Case Card component can be made to appear
+- **PT-187020075:** In case table/card, a **color picker** can be used to edit a color value
+- **PT-181915881:** Dot chart with one categorical axis can be converted to a **bar chart**
+- **PT-181962645:** Points on maps can be connected with lines
+- **PT-187020220:** Color attributes color rows in case table
+- **PT-185315409:** Automation for new attribute in case table
+- **PT-187371422:** DI create/update cases
+- **PT-187440921:** DI create/delete/get/update dataContext
+- **PT-187458550:** DI initial component requests
+
+### 🐞 Bug Fixes:
+- **PT-187423678:** Document fails to open after manipulating Mammals graph
+- **PT-187185393:** Close and reopen case table should restore position and size
+- **PT-187401360:** Function Label Does Not Update to Variable Name in Graph Plot
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  156316 bytes |                            0.24% |
+|  index.js | 5198791 bytes |                            0.79% |
+
 ## Version 3.0.0-pre.1521 - April 12, 2024
 
 ### ✨ Features & Improvements:
