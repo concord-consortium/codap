@@ -3,6 +3,7 @@ import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
+import { convertAttributeToV2 } from "../../data-interactive/data-interactive-type-utils"
 
 export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
   if (collection && !isAlive(collection)) {
@@ -43,19 +44,26 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
   }
 }
 
-function attributeNotification(operation: string, data?: IDataSet, attrIDs?: string[]) {
+function attributeNotification(
+  operation: string, data?: IDataSet, attrIDs?: string[], attributes?: IAttribute[]
+) {
   const action = "notify"
   const resource = `dataContextChangeNotice[${data?.name}]`
   const values = {
     operation,
     result: {
       success: true,
+      attrs: attributes?.map(attr => convertAttributeToV2(attr, data)),
       attrIDs
     }
   }
   return { message: { action, resource, values }, callback: (response: any) =>
     debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${attrIDs ?? ""}`, JSON.stringify(response))
   }
+}
+
+export function createAttributesNotification(attributes: IAttribute[], data?: IDataSet) {
+  return attributeNotification("createAttributes", data, attributes.map(attr => attr.id), attributes)
 }
 
 export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, unhide?: boolean) {

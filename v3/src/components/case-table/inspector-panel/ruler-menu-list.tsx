@@ -1,6 +1,8 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { IAttribute } from "../../../models/data/attribute"
+import { createAttributesNotification } from "../../../models/data/data-set-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 
@@ -18,10 +20,15 @@ export const RulerMenuList = () => {
   }
 
   const handleAddNewAttribute = () => {
-    const newAttrName = uniqueName("newAttr",
-      (aName: string) => !data?.attributes.find(attr => aName === attr.name)
-     )
-    data?.addAttribute({name: newAttrName})
+    let attribute: IAttribute | undefined
+    data?.applyModelChange(() => {
+      const newAttrName = uniqueName("newAttr",
+        (aName: string) => !data?.attributes.find(attr => aName === attr.name)
+      )
+      attribute = data?.addAttribute({name: newAttrName})
+    }, {
+      notification: () => createAttributesNotification(attribute ? [attribute] : [], data)
+    })
   }
 
   return (
