@@ -7,7 +7,7 @@ import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { t } from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
-import { hideAttributeNotification } from "../../../models/data/data-set-utils"
+import { hideAttributeNotification, removeAttributesNotification } from "../../../models/data/data-set-utils"
 
 interface IProps {
   column: TCalculatedColumn
@@ -58,6 +58,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       data.applyModelChange(() => {
         data.removeAttribute(attrId)
       }, {
+        notification: removeAttributesNotification([attrId], data),
         undoStringKey: "DG.Undo.caseTable.deleteAttribute",
         redoStringKey: "DG.Redo.caseTable.deleteAttribute"
       })

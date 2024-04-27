@@ -43,10 +43,9 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
   }
 }
 
-export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, unhide?: boolean) {
+function attributeNotification(operation: string, data?: IDataSet, attrIDs?: string[]) {
   const action = "notify"
   const resource = `dataContextChangeNotice[${data?.name}]`
-  const operation = unhide ? "unhideAttributes" : "hideAttributes"
   const values = {
     operation,
     result: {
@@ -55,21 +54,19 @@ export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, un
     }
   }
   return { message: { action, resource, values }, callback: (response: any) =>
-    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${attrIDs}:`, JSON.stringify(response))
+    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${attrIDs ?? ""}`, JSON.stringify(response))
   }
 }
 
+export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, unhide?: boolean) {
+  const operation = unhide ? "unhideAttributes" : "hideAttributes"
+  return attributeNotification(operation, data, attrIDs)
+}
+
 export function moveAttributeNotification(data?: IDataSet) {
-  const action = "notify"
-  const resource = `dataContextChangeNotice[${data?.name}]`
-  const operation = "moveAttribute"
-  const values = {
-    operation,
-    result: {
-      success: true
-    }
-  }
-  return { message: { action, resource, values }, callback: (response: any) =>
-    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation}:`, JSON.stringify(response))
-  }
+  return attributeNotification("moveAttribute", data)
+}
+
+export function removeAttributesNotification(attrIDs: string[], data?: IDataSet) {
+  return attributeNotification("deleteAttributes", data, attrIDs)
 }
