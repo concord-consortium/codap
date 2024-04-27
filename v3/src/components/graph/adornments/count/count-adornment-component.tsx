@@ -168,7 +168,12 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
                                         graphModel.pointDisplayType === "bins"
         if (!shouldShowPercentOption && model?.showPercent) {
-          model.setShowPercent(false)
+          graphModel.applyModelChange(() => {
+            model.setShowPercent(false)
+          }, {
+            undoStringKey: "DG.Undo.graph.hidePercent",
+            redoStringKey: "DG.Redo.graph.hidePercent"
+          })
         }
      }, { name: "CountAdornment.refreshPercentOption"}, model)
   }, [adornmentsStore, dataConfig, graphModel, model])
