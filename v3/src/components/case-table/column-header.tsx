@@ -10,6 +10,7 @@ import { CaseTablePortal } from "./case-table-portal"
 import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
+import { updateAttributesNotification } from "../../models/data/data-set-utils"
 
 export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">) {
   const { active } = useDndContext()
@@ -68,9 +69,19 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
   const handleClose = (accept: boolean) => {
     const trimTitle = editingAttrName?.trim()
     if (accept && editingAttrId && trimTitle) {
-      data?.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
-        (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
-       ))
+      const editingAttribute = data?.getAttribute(editingAttrId)
+      const oldName = editingAttribute?.name
+      data?.applyModelChange(() => {
+        data?.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
+          (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
+        ))
+      }, {
+        notifications: () => {
+          if (editingAttribute && editingAttribute?.name !== oldName) {
+            return updateAttributesNotification([editingAttribute], data)
+          }
+        }
+      })
     }
     setEditingAttrId("")
     setEditingAttrName("")

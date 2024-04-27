@@ -10,7 +10,7 @@ interface INotification {
   callback?: iframePhone.ListenerCallback
 }
 export interface IApplyModelChangeOptions {
-  notifications?: INotification | INotification[] | (() => (INotification | INotification[]))
+  notifications?: INotification | INotification[] | (() => (INotification | INotification[] | undefined))
   redoStringKey?: string
   undoStringKey?: string
 }
@@ -35,15 +35,16 @@ export function applyModelChange(self: IAnyStateTreeNode) {
 
         // Convert notifications to INotification[]
         const { notifications } = options
-        const funcNotifications = notifications instanceof Function ? notifications() : undefined
-        const eitherNotifications = funcNotifications ?? notifications as INotification | INotification[]
-        const notificationArray = Array.isArray(eitherNotifications) ? eitherNotifications : [eitherNotifications]
+        const actualNotifications = notifications instanceof Function ? notifications() : notifications
+        if (actualNotifications) {
+          const notificationArray = Array.isArray(actualNotifications) ? actualNotifications : [actualNotifications]
 
-        // Actually broadcast the notifications
-        notificationArray.forEach(_notification => {
-          const { message, callback } = _notification
-          tileEnv?.notify?.(message, callback ?? (() => null))
-        })
+          // Actually broadcast the notifications
+          notificationArray.forEach(_notification => {
+            const { message, callback } = _notification
+            tileEnv?.notify?.(message, callback ?? (() => null))
+          })
+        }
       }
 
       return result

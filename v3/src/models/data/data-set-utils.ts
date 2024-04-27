@@ -45,7 +45,7 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
 }
 
 function attributeNotification(
-  operation: string, data?: IDataSet, attrIDs?: string[], attributes?: IAttribute[]
+  operation: string, data?: IDataSet, attrIDs?: string[], attrs?: IAttribute[]
 ) {
   const action = "notify"
   const resource = `dataContextChangeNotice[${data?.name}]`
@@ -53,7 +53,7 @@ function attributeNotification(
     operation,
     result: {
       success: true,
-      attrs: attributes?.map(attr => convertAttributeToV2(attr, data)),
+      attrs: attrs?.map(attr => convertAttributeToV2(attr, data)),
       attrIDs
     }
   }
@@ -62,8 +62,8 @@ function attributeNotification(
   }
 }
 
-export function createAttributesNotification(attributes: IAttribute[], data?: IDataSet) {
-  return attributeNotification("createAttributes", data, attributes.map(attr => attr.id), attributes)
+export function createAttributesNotification(attrs: IAttribute[], data?: IDataSet) {
+  return attributeNotification("createAttributes", data, attrs.map(attr => attr.id), attrs)
 }
 
 export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, unhide?: boolean) {
@@ -77,4 +77,8 @@ export function moveAttributeNotification(data?: IDataSet) {
 
 export function removeAttributesNotification(attrIDs: string[], data?: IDataSet) {
   return attributeNotification("deleteAttributes", data, attrIDs)
+}
+
+export function updateAttributesNotification(attrs: IAttribute[], data?: IDataSet) {
+  return attributeNotification("updateAttributes", data, attrs.map(attr => attr.id), attrs)
 }
