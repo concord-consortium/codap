@@ -27,7 +27,7 @@ export const RulerMenuList = () => {
       )
       attribute = data?.addAttribute({name: newAttrName})
     }, {
-      notification: () => createAttributesNotification(attribute ? [attribute] : [], data)
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data)
     })
   }
 

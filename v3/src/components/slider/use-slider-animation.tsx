@@ -30,13 +30,13 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (animationDirection === "lowToHigh" && testValue >= axisMax) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMin),
-        { notification: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { notifications: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
       )
     }
     if (animationDirection === "highToLow" && testValue <= axisMin) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMax),
-        { notification: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { notifications: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
       )
     }
     return sliderModel.value
@@ -46,7 +46,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
     if (sliderModel) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(sliderModel.validateValue(val, min, max)),
-        { notification: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { notifications: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
       )
     }
   }, [sliderModel])

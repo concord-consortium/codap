@@ -84,7 +84,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
       )
       attribute = data?.addAttribute({ name: newAttrName }, { collection: collectionId })
     }, {
-      notification: () => createAttributesNotification(attribute ? [attribute] : [], data)
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data)
     })
   }
 
