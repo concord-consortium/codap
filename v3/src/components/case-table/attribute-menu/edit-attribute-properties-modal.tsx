@@ -6,6 +6,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { uniqueName } from "../../../utilities/js-utils"
 import { CodapModal } from "../../codap-modal"
 import { t } from "../../../utilities/translation/translate"
+import { updateAttributesNotification } from "../../../models/data/data-set-utils"
 
 // for use in menus of attribute types
 const selectableAttributeTypes = ["none", ...attributeTypes] as const
@@ -65,6 +66,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           attribute.setEditable(editable === "yes")
         }
       }, {
+        notifications: updateAttributesNotification([attribute], data),
         undoStringKey: "DG.Undo.caseTable.editAttribute",
         redoStringKey: "DG.Redo.caseTable.editAttribute"
       })

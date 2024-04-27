@@ -7,6 +7,7 @@ import { observer } from "mobx-react-lite"
 import { CodapModal } from "../../codap-modal"
 import { t } from "../../../utilities/translation/translate"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { updateAttributesNotification } from "../../../models/data/data-set-utils"
 
 interface IProps {
   attributeId: string
@@ -24,7 +25,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   }, [attribute?.formula?.display])
 
   const applyFormula = () => {
-    attribute?.setDisplayExpression(formula)
+    if (attribute) {
+      dataSet?.applyModelChange(() => {
+        attribute?.setDisplayExpression(formula)
+      }, {
+        // TODO Should also broadcast notify component edit forumla and notify updateCases notifications
+        notifications: updateAttributesNotification([attribute], dataSet)
+      })
+    }
     closeModal()
   }
 
