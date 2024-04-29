@@ -1,5 +1,7 @@
+import { useMergeRefs } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
+import { useResizeDetector } from "react-resize-detector"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
@@ -11,8 +13,6 @@ import "./case-card.v2"
 const DGCaseCard = (DG.React as any).CaseCard
 
 import "./case-card.scss"
-import { useMergeRefs } from "@floating-ui/react"
-import { useResizeDetector } from "react-resize-detector"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
@@ -25,7 +25,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const data = useDataSetContext()
   const cardModel = useCaseCardModel()
   const containerRef = useRef<HTMLDivElement>(null)
-  const mergeRefs = useMergeRefs([containerRef, setNodeRef])
+  const mergeRefs = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
 
   const { width, height } = useResizeDetector({ targetRef: containerRef })
 
