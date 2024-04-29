@@ -59,7 +59,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   return (
-    <MenuList data-testid="trash-menu-list">
+    <MenuList data-testid="hide-show-menu-list">
       <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
         {hideSelectedString}
       </MenuItem>

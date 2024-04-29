@@ -55,7 +55,7 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
               <HideShowMenuList />
             </InspectorMenu>
             <InspectorMenu tooltip={t("DG.Inspector.attributes.toolTip")}
-              icon={<ValuesIcon className="inspector-menu-icon"/>} testId="table-attributes-button">
+              icon={<ValuesIcon className="inspector-menu-icon"/>} testId="ruler-button">
               <RulerMenuList />
             </InspectorMenu>
             {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}

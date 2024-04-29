@@ -6,7 +6,7 @@ import { WebViewTileElements as webView } from "../support/elements/web-view-til
 
 context("codap plugins", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    const url = `${Cypress.config("index")}?sample=mammals&dashboard`
     cy.visit(url)
   })
   const openAPITester = () => {
@@ -144,6 +144,58 @@ context("codap plugins", () => {
   it('will broadcast notifications', () => {
     openAPITester()
     webView.toggleAPITesterFilter()
+
+    cy.log("Broadcast attribute notifications")
+
+    cy.log("Broadcast hideAttribute notifications")
+    c.selectTile("table", 0)
+    table.openAttributeMenu("Mammal")
+    table.selectMenuItemFromAttributeMenu("Hide Attribute")
+    webView.confirmAPITesterResponseContains(/"operation":\s"hideAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast unhideAttribute notifications")
+    table.showAllAttributes()
+    webView.confirmAPITesterResponseContains(/"operation":\s"unhideAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast createAttributes notifications")
+    // + button in collection header
+    table.addNewAttribute()
+    webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
+    webView.clearAPITesterResponses()
+    // New Attribute button in ruler menu
+    table.getRulerButton().click()
+    table.selectItemFromRulerMenu("New Attribute")
+    webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteAttributes notifications")
+    table.deleteAttrbute("newAttr2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateAttributes notifications")
+    // Rename attribute
+    const newName = "newerAttr"
+    table.renameAttribute("newAttr", newName)
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+    // Edit attribute properties
+    table.editAttributeProperties(newName, "", null, null, null, null, null)
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+    // Edit formula
+    table.editFormula(newName, "Mass * 2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+
+    // TODO Figure out how to test moveAttribute notifications
+    // cy.log("Broadcast moveAttribute notifications")
+    // table.moveAttributeToParent("Sleep", "newCollection")
+    // table.moveAttributeToParent(newName, "targetAttribute", "Speed")
+    // webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    // webView.clearAPITesterResponses()
 
     cy.log("Broadcast global value change notifications")
     slider.changeVariableValue(8)

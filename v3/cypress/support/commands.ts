@@ -2,10 +2,12 @@ Cypress.Commands.add("clickMenuItem", text => {
   cy.get("button[role=menuitem]").contains(text).click()
 })
 
-Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
+Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, targetAttribute) => {
   const el = {
     tableColumnHeader:
       `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
+    targetAttributeHeader:
+      `.codap-case-table [data-testid="codap-attribute-button ${targetAttribute}"]`,
     caseCardHeader: ".react-data-card-attribute",
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
@@ -106,6 +108,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target) => {
       break
     case ("prevCollection"):
       target_el = el.prevCollection
+      break
+    case ("targetAttribute"):
+      target_el = el.targetAttributeHeader
       break
     default:
       target_el = el.tableColumnHeader

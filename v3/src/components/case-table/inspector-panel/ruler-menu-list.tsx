@@ -32,7 +32,7 @@ export const RulerMenuList = () => {
   }
 
   return (
-    <MenuList data-testid="trash-menu-list">
+    <MenuList data-testid="ruler-menu-list">
       <MenuItem
         onClick={handleAddNewAttribute}>{t("DG.Inspector.newAttribute", { vars: [data?.name || ""] })}
       </MenuItem>

@@ -663,7 +663,7 @@ context("case table ui", () => {
       table.getHideShowButton().then($element => {
         c.checkToolTip($element, c.tooltips.tableHideShowButton)
       })
-      table.getAttributesButton().then($element => {
+      table.getRulerButton().then($element => {
         c.checkToolTip($element, c.tooltips.tableAttributesButton)
       })
     })

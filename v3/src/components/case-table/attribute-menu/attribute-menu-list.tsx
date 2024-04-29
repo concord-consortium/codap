@@ -29,6 +29,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const rerandomizeDisabled = !attribute?.formula?.isRandomFunctionPresent
 
   const handleMenuItemClick = (menuItem: string) => {
+    // TODO Don't forget to broadcast notifications as these menu items are implemented!
     toast({
       title: 'Menu item clicked',
       description: `You clicked on ${menuItem} on ${columnName}`,

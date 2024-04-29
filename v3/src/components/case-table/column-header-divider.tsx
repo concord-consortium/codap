@@ -32,14 +32,14 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: firstAttr?.id }
                                             : { after: columnKey }
-    const notification = moveAttributeNotification(data)
+    const notifications = moveAttributeNotification(data)
     if (collection === srcCollection) {
       if (isCollectionModel(collection)) {
         // move the attribute within a collection
         data.applyModelChange(
           () => collection.moveAttribute(dragAttrId, options),
           {
-            notifications: notification,
+            notifications,
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
             redoStringKey: "DG.Redo.dataContext.moveAttribute"
           }
@@ -50,7 +50,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
         data.applyModelChange(
           () => data.moveAttribute(dragAttrId, options),
           {
-            notifications: notification,
+            notifications,
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
             redoStringKey: "DG.Redo.dataContext.moveAttribute"
           }
@@ -62,7 +62,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
       data.applyModelChange(
         () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
         {
-          notifications: notification,
+          notifications,
           undoStringKey: "DG.Undo.dataContext.moveAttribute",
           redoStringKey: "DG.Redo.dataContext.moveAttribute"
         }
