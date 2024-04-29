@@ -27,7 +27,9 @@ export const RulerMenuList = () => {
       )
       attribute = data?.addAttribute({name: newAttrName})
     }, {
-      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data)
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+      undoStringKey: "DG.Undo.caseTable.createAttribute",
+      redoStringKey: "DG.Redo.caseTable.createAttribute"
     })
   }
 

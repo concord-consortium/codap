@@ -84,7 +84,9 @@ export const CollectionTitle = observer(function CollectionTitle() {
       )
       attribute = data?.addAttribute({ name: newAttrName }, { collection: collectionId })
     }, {
-      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data)
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+      undoStringKey: "DG.Undo.caseTable.createAttribute",
+      redoStringKey: "DG.Redo.caseTable.createAttribute"
     })
   }
 

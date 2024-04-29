@@ -80,7 +80,9 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
           if (editingAttribute && editingAttribute?.name !== oldName) {
             return updateAttributesNotification([editingAttribute], data)
           }
-        }
+        },
+        undoStringKey: "DG.Undo.caseTable.editAttribute",
+        redoStringKey: "DG.Redo.caseTable.editAttribute"
       })
     }
     setEditingAttrId("")

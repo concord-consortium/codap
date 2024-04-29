@@ -12,7 +12,7 @@ export const MapTileElements = {
   },
   selectHideShowButton() {
     c.getInspectorPanel().find("[data-testid=map-hide-show-button]").click()
-    c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("be.visible")
+    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible")
   },
   getDisplayValuesButton() {
     return c.getInspectorPanel().find("[data-testid=map-display-values-button]")
@@ -36,30 +36,30 @@ export const MapTileElements = {
     return c.getInspectorPanel().find("[data-testid=hide-selected-cases]")
   },
   selectHideSelectedCases() {
-    c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("be.visible").then(() => {
+    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
       c.getInspectorPanel().find("[data-testid=hide-selected-cases]").click()
       c.getInspectorPanel().find("[data-testid=hide-selected-cases]").should("not.exist")
-      c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("not.be.visible")
+      c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("not.be.visible")
     })
   },
   getHideUnselectedCases() {
     return c.getInspectorPanel().find("[data-testid=hide-unselected-cases]")
   },
   selectHideUnselectedCases() {
-    c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("be.visible").then(() => {
+    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
       c.getInspectorPanel().find("[data-testid=hide-unselected-cases]").click()
       c.getInspectorPanel().find("[data-testid=hide-unselected-cases]").should("not.exist")
-      c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("not.be.visible")
+      c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("not.be.visible")
     })
   },
   getShowAllCases() {
     return c.getInspectorPanel().find("[data-testid=show-all-cases]")
   },
   selectShowAllCases() {
-    c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("be.visible").then(() => {
+    c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
       c.getInspectorPanel().find("[data-testid=show-all-cases]").click()
       c.getInspectorPanel().find("[data-testid=show-all-cases]").should("not.exist")
-      c.getInspectorPanel().find("[data-testid=trash-menu-list]").should("not.be.visible")
+      c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("not.be.visible")
     })
   }
 }
