@@ -38,15 +38,7 @@ const Controls = () => {
     const redoRemoveKey = checkBoxType === "count" ? "DG.Redo.graph.hideCount" : "DG.Redo.graph.hidePercent"
 
     const setShowAdornment = checkBoxType === "count"
-      ? () => {
-        graphModel.applyModelChange(
-          () => {
-            adornment.setShowCount(checked)
-          }, {
-            undoStringKey: undoAddKey,
-            redoStringKey: redoAddKey
-          })
-      }
+      ? () => adornment.setShowCount(checked)
       : () => handleShowPercent(adornment, checked)
 
     if (checked) {
