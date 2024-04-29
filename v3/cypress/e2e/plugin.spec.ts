@@ -147,14 +147,14 @@ context("codap plugins", () => {
 
     cy.log("Broadcast attribute notifications")
 
-    cy.log("Broadcast hideAttribute notifications")
+    cy.log("Broadcast hideAttributes notifications")
     c.selectTile("table", 0)
     table.openAttributeMenu("Mammal")
     table.selectMenuItemFromAttributeMenu("Hide Attribute")
     webView.confirmAPITesterResponseContains(/"operation":\s"hideAttributes/)
     webView.clearAPITesterResponses()
 
-    cy.log("Broadcast unhideAttribute notifications")
+    cy.log("Broadcast unhideAttributes notifications")
     table.showAllAttributes()
     webView.confirmAPITesterResponseContains(/"operation":\s"unhideAttributes/)
     webView.clearAPITesterResponses()

@@ -72,7 +72,7 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
       const editingAttribute = data?.getAttribute(editingAttrId)
       const oldName = editingAttribute?.name
       data?.applyModelChange(() => {
-        data?.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
+        data.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
           (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
         ))
       }, {

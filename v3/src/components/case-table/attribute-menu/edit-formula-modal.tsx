@@ -27,10 +27,12 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   const applyFormula = () => {
     if (attribute) {
       dataSet?.applyModelChange(() => {
-        attribute?.setDisplayExpression(formula)
+        attribute.setDisplayExpression(formula)
       }, {
         // TODO Should also broadcast notify component edit forumla and notify updateCases notifications
-        notifications: updateAttributesNotification([attribute], dataSet)
+        notifications: updateAttributesNotification([attribute], dataSet),
+        undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
+        redoStringKey: "DG.Redo.caseTable.createAttribute"
       })
     }
     closeModal()

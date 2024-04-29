@@ -80,9 +80,9 @@ export const CollectionTitle = observer(function CollectionTitle() {
     let attribute: IAttribute | undefined
     data?.applyModelChange(() => {
       const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
-        (aName: string) => !data?.attributes.find(attr => aName === attr.name)
+        (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
-      attribute = data?.addAttribute({ name: newAttrName }, { collection: collectionId })
+      attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
     }, {
       notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",

@@ -23,9 +23,9 @@ export const RulerMenuList = () => {
     let attribute: IAttribute | undefined
     data?.applyModelChange(() => {
       const newAttrName = uniqueName("newAttr",
-        (aName: string) => !data?.attributes.find(attr => aName === attr.name)
+        (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
-      attribute = data?.addAttribute({name: newAttrName})
+      attribute = data.addAttribute({name: newAttrName})
     }, {
       notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
