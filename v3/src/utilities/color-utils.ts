@@ -79,3 +79,27 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
   // if it's a valid color string, return its hex equivalent
   return getColorFormat(str) ? colord(str).toHex() : ""
 }
+
+/*
+ * TinyColor class, tinycolor function
+ *
+ * v2 used a library called tinycolor to handle color values.
+ * This class and function emulate the parts of tinycolor required.
+ */
+export class TinyColor {
+  color: Colord
+
+  constructor(color: string) {
+    this.color = colord(color)
+  }
+
+  toString(format: string) {
+    switch (format) {
+      case "rgb": return this.color.toRgbString()
+    }
+    return this.color.toHex()
+  }
+}
+export function tinycolor(color: string) {
+  return new TinyColor(color)
+}

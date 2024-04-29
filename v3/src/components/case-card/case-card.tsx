@@ -1,12 +1,18 @@
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties } from "react"
-import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
+import React, { useRef } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
-import { t } from "../../utilities/translation/translate"
+
+import { DG } from "../../v2/dg-compat.v2"
+import { DGDataContext } from "../../models/v2/dg-data-context"
+
+import "./case-card.v2"
+const DGCaseCard = (DG.React as any).CaseCard
 
 import "./case-card.scss"
+import { useMergeRefs } from "@floating-ui/react"
+import { useResizeDetector } from "react-resize-detector"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
@@ -18,6 +24,11 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
 */
   const data = useDataSetContext()
   const cardModel = useCaseCardModel()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const mergeRefs = useMergeRefs([containerRef, setNodeRef])
+
+  const { width, height } = useResizeDetector({ targetRef: containerRef })
+
   // const { isTileSelected } = useTileModelContext()
   // const isFocused = isTileSelected()
   // const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
@@ -38,56 +49,89 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   }, [])
 */
 
-  return prf.measure("Table.render", () => {
+  if (!cardModel || !data) return null
+
+  // access observable properties that should trigger re-renders
+  data.collectionModels.map(({ name }) => name)
+  data.attributes.map(({ name }) => name)
+  data.cases.map(({ __id__ }) => __id__)
+  data.selectionChanges   // eslint-disable-line no-unused-expressions
+
+  return prf.measure("CaseCard.render", () => {
     // disable the overlay for the index column
 /*
     const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
                             ? `${active.id}` : undefined
 */
 
-    if (!cardModel || !data) return null
+    const context = new DGDataContext(data)
+    const columnWidths: Record<string, number> = {}
+    cardModel.attributeColumnWidths.forEach((colWidth, id) => {
+      const collection = data.getCollection(`${id}`)
+      if (collection) {
+        columnWidths[collection.name] = colWidth
+      }
+    })
 
-    const collections = data.collectionModels
+    function handleResizeColumn(name: string, colWidth: number) {
+      const collection = data?.getCollectionByName(name)
+      if (collection) {
+        data?.applyModelChange(() => {
+          cardModel?.setAttributeColumnWidth(collection.id, colWidth)
+        }, {
+          undoStringKey: "DG.Undo.caseCard.columnWidthChange",
+          redoStringKey: "DG.Redo.caseCard.columnWidthChange",
+        })
+      }
+    }
+
     return (
       <>
-        <div ref={setNodeRef} className="case-card" data-testid="case-card">
-          <div className="case-card-content">
-            {collections.map((collection, i) => {
-              const key = collection.id
-              const parent = i > 0 ? collections[i - 1] : undefined
-              return (
-                <ParentCollectionContext.Provider key={key} value={parent?.id}>
-                  <CollectionContext.Provider value={collection.id}>
-{/*
-                    <CollectionCard onMount={handleCollectionCardMount}
-                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
-                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
-*/}
-                  </CollectionContext.Provider>
-                </ParentCollectionContext.Provider>
-              )
-            })}
-            {/*<AttributeDragOverlay activeDragId={overlayDragId} />*/}
-          </div>
+        <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
+          <DGCaseCard
+            size={{ width, height }}
+            context={context}
+            columnWidthMap={columnWidths}
+            isSelectedCallback={() => false}
+            onResizeColumn={handleResizeColumn}
+          />
         </div>
-        <NoCasesMessage />
       </>
     )
   })
 })
 
-// temporary until we have an input row
-export const NoCasesMessage = () => {
-  const data = useDataSetContext()
-  const style: CSSProperties = {
-    position: "absolute",
-    top: 54,
-    width: "100%",
-    textAlign: "center",
-    fontSize: 14,
-    fontStyle: "italic"
-  }
-  return !data?.cases.length
-          ? <div className="no-cases-message" style={style}>{t("V3.caseTable.noCases")}</div>
-          : null
-}
+          // {/* <div className="case-card-content">
+          //   {collections.map((collection, i) => {
+          //     const key = collection.id
+          //     const parent = i > 0 ? collections[i - 1] : undefined
+          //     const collectionClient = new V2CollectionClient(data, collection.id)
+
+          //     return (
+          //       <ParentCollectionContext.Provider key={key} value={parent?.id}>
+          //         <CollectionContext.Provider value={collection.id}>
+          //           <div className="case-card-collection">
+          //             <CaseCard
+          //             <table>
+          //               <tbody>
+          //                 <CollectionHeader
+          //                   index={undefined}
+          //                   collClient={collectionClient}
+          //                   caseID={undefined}
+          //                   columnWidthPct={0.5}
+          //                   // onCollectionNameChange={}
+          //                   // onHeaderWidthChange={}
+          //                   // dragStatus={undefined}
+          //                   />
+          //               </tbody>
+          //             </table>
+          //           </div>
+          //           <CollectionCard onMount={handleCollectionCardMount}
+          //             onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
+          //             onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
+          //         </CollectionContext.Provider>
+          //       </ParentCollectionContext.Provider>
+          //     )
+          //   })}
+          //   {<AttributeDragOverlay activeDragId={overlayDragId} />}
+          // </div> */}
