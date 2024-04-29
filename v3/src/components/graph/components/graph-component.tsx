@@ -17,9 +17,9 @@ import {usePixiPointsArray} from '../../data-display/hooks/use-pixi-points-array
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
+import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
-import { kTitleBarHeight } from "../../constants"
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined

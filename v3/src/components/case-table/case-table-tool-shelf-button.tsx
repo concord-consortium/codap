@@ -6,7 +6,7 @@ import { t } from "../../utilities/translation/translate"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { kTitleBarHeight } from "../constants"
-import { animateEaseInOut, ComponentRect, kDefaultAnimationDuration } from "../../utilities/animation-utils"
+import { ComponentRect } from "../../utilities/animation-utils"
 import { appState } from "../../models/app-state"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata }
@@ -62,9 +62,13 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     uiState.setFocusedTile(tile.id)
     const tileLayout = content.getTileLayoutById(tile.id)
     if (!isFreeTileLayout(tileLayout)) return
-    animateEaseInOut(kDefaultAnimationDuration, from, to, (rect: ComponentRect) => {
-      tileLayout.setPosition(rect.x, rect.y)
-      tileLayout.setSize(rect.width, rect.height)
+    // use setTimeout to push the change into a subsequent action
+    setTimeout(() => {
+      // use applyModelChange to wrap into a single non-undoable action without undo string
+      content.applyModelChange(() => {
+        tileLayout.setPosition(to.x, to.y)
+        tileLayout.setSize(to.width, to.height)
+      })
     })
   }
 

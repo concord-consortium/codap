@@ -11,7 +11,7 @@ import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "..
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
-import { animateEaseInOut, ComponentRect, kDefaultAnimationDuration } from "../../utilities/animation-utils"
+import { ComponentRect } from "../../utilities/animation-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
@@ -57,6 +57,8 @@ export interface INewTileOptions {
 
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyModelChange)
   .actions(self => ({
     async prepareSnapshot() {
       // prepare each row for serialization
@@ -141,9 +143,13 @@ export const DocumentContentModel = BaseDocumentContentModel
             if (newTile) {
               const rowTile = row.tiles.get(newTile.id)
               if (width && height && rowTile) {
-                animateEaseInOut(kDefaultAnimationDuration, from, to, (rect: ComponentRect) => {
-                  rowTile.setPosition(rect.x, rect.y)
-                  rowTile.setSize(rect.width, rect.height)
+                // use setTimeout to push the change into a subsequent action
+                setTimeout(() => {
+                  // use applyModelChange to wrap into a single non-undoable action without undo string
+                  self.applyModelChange(() => {
+                    rowTile.setPosition(to.x, to.y)
+                    rowTile.setSize(to.width, to.height)
+                  })
                 })
               }
               return newTile
@@ -255,8 +261,6 @@ export const DocumentContentModel = BaseDocumentContentModel
       return sharedData
     }
   }))
-  // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyModelChange)
 
 export type IDocumentContentModel = Instance<typeof DocumentContentModel>
 export type IDocumentContentSnapshotIn = SnapshotIn<typeof DocumentContentModel>

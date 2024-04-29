@@ -1,7 +1,6 @@
 import { clsx } from "clsx"
 import React, { useCallback } from "react"
 import { useDocumentContent } from "../../hooks/use-document-content"
-import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
@@ -9,8 +8,6 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { urlParams } from "../../utilities/url-params"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
-import { ComponentRect } from "../../utilities/animation-utils"
-import { ISetPositionSizeCustomPatch, setContainerPositionSizeCustomUndoRedo } from "./container-undo"
 
 import "./container.scss"
 
@@ -41,17 +38,9 @@ export const Container: React.FC = () => {
     if (dragTileId) {
       if (isFreeTileRow(row)) {
         const rowTile = row.getNode(dragTileId)
-        if (rowTile) {
-          const before: ComponentRect = { x: rowTile.x, y: rowTile.y,
-            width: rowTile.width || 0, height: rowTile.height || 0 },
-            after: ComponentRect = { x: rowTile.x + evt.delta.x, y: rowTile.y + evt.delta.y,
-              width: rowTile.width || 0, height: rowTile.height || 0 }
+        if (rowTile && (evt.delta.x || evt.delta.y)) {
           documentContent?.applyModelChange(() => {
-            withCustomUndoRedo<ISetPositionSizeCustomPatch>({
-              type: "Container.setPositionSize",
-              data: { tileId: dragTileId, before, after }
-            }, setContainerPositionSizeCustomUndoRedo)
-            rowTile.setPosition(after.x, after.y)
+            rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
           }, {
             undoStringKey: "DG.Undo.componentMove",
             redoStringKey: "DG.Redo.componentMove"
