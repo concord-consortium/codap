@@ -40,6 +40,7 @@ import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {Adornments} from "../adornments/adornments"
 import { t } from "../../../utilities/translation/translate"
+import { ParentToggles } from "./parent-toggles"
 
 import "./graph.scss"
 
@@ -274,6 +275,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
       <div className={clsx(kGraphClass, kPortalClass)} ref={graphRef} data-testid="graph">
+        {graphModel.showParentToggles && <ParentToggles/>}
         <svg className='graph-svg' ref={svgRef}>
           <Background
             ref={backgroundSvgRef}
