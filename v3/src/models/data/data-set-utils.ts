@@ -81,3 +81,18 @@ export function removeAttributesNotification(attrIDs: string[], data?: IDataSet)
 export function updateAttributesNotification(attrs: IAttribute[], data?: IDataSet) {
   return attributeNotification("updateAttributes", data, attrs.map(attr => attr.id), attrs)
 }
+
+export function updateCasesNotification(data: IDataSet) {
+  const action = "notify"
+  const resource = `dataContextChangeNotice[${data?.name}]`
+  const operation = "updateCases"
+  const values = {
+    operation,
+    result: {
+      success: true
+    }
+  }
+  return { message: { action, resource, values }, callback: (response: any) =>
+    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation}`, JSON.stringify(response))
+  }
+}
