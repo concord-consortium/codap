@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { goodTickValue } from "./math-utils"
 
 /**
@@ -175,8 +176,10 @@ DateUtilities.formatDate = function(x, precision, useShortFormat) {
     'day': {year: 'numeric', month: 'numeric', day: 'numeric'},
     'hour': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric'},
     'minute': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'},
-    'second': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'},
-    'millisecond': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3}
+    'second': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
+      second: 'numeric'},
+    'millisecond': {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
+      second: 'numeric', fractionalSecondDigits: 3}
   }
 
   var precisionFormat = formatPrecisions[precision] || formatPrecisions.minute
@@ -323,14 +326,18 @@ DateUtilities.dateParser = (function () {
   var daysOfWeekArray = daysOfWeek.concat(daysOfWeekAbbr)
 
   // yyyy-MM-dd hh:mm:ss.SSSZ
-  var isoDateTimeRE = /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|(?:[+-]\d\d:?\d\d?)| ?[a-zA-Z]{1,4}T)?)?)?$/
+  var isoDateTimeRE =
+  // eslint-disable-next-line max-len
+  /^(\d{4})-([01]\d)(?:-([0-3]\d)(?:[T ]([0-2]\d)(?::([0-5]\d)(?::([0-5]\d)(?:[.,](\d+))?)?)?(Z|(?:[+-]\d\d:?\d\d?)| ?[a-zA-Z]{1,4}T)?)?)?$/
   var isoDateTimeGroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, timezone: 8}
 
   // MM/dd/yyyy hh:mm:ss.SSS PM
+  // eslint-disable-next-line max-len
   var localDateTimeRE = /^([01]?\d)\/([0-3]?\d)\/(\d{4}|\d{2})(?:,? (\d\d?)(?::(\d\d?)(?::(\d\d)(?:\.(\d+))?)?)?(?: ?(am|pm|AM|PM))?)?$/
   var localDateTimeGroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8, timezone: 9}
 
   // dd MMM, yyyy or MMM, yyyy
+  // eslint-disable-next-line max-len
   var  dateVar1 = new RegExp('^(\\d\\d?) (' + monthsArrayRE.join('|') + '),? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i')
   var dateVar1GroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, ampm: 8}
 
@@ -340,6 +347,7 @@ DateUtilities.dateParser = (function () {
   var dateVar2GroupMap = {year:1, month:2, day:3, hour:4, min:5, sec: 6, subsec: 7, ampm: 8}
 
   // MMM dd, yyyy or MMM yyyy
+  // eslint-disable-next-line max-len
   var dateVar3 = new RegExp('^(?:(?:' + daysOfWeekArray.join('|') + '),? )?(' + monthsArrayRE.join('|') + ')(?: (\\d\\d?),)? (\\d{4})(?: ' + timePart + '(?: (am|pm))?)?$', 'i')
   var dateVar3GroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, ampm: 8}
 
@@ -348,13 +356,16 @@ DateUtilities.dateParser = (function () {
   var dateVar4GroupMap = {year:5, month: 6, day: 7, hour: 1, min: 2, sec: 3, ampm: 4}
 
   // unix dates: Tue Jul  9 18:16:04 PDT 2019
+  // eslint-disable-next-line max-len
   var unixDate = new RegExp('^(?:(?:' + daysOfWeekAbbr.join('|') + ') )?(' + monthsAbbr.join('|') + ') ([ \\d]\\d) ([ \\d]\\d):(\\d\\d):(\\d\\d) ([A-Z]{3}) (\\d{4})$', 'i')
   var unixDateGroupMap = {year: 7, month: 1, day: 2, hour: 3, min: 4, sec:5, timezone: 6}
 
   // new Date().toString(), most browsers
+  // eslint-disable-next-line max-len
   var browserDate = new RegExp('^(?:' + daysOfWeekAbbr.join('|') + ') (' + monthsAbbr.join('|') + ') (\\d\\d?),? (\\d{4})(?: ' + timePart + ' (GMT(?:[+-]\\d{4})?(?: \\([\\w ]+\\))?))', 'i')
   var browserDateGroupMap = {year:3, month:1, day:2, hour:4, min:5, sec: 6, subsec: 7, timezone: 8}
 
+  // eslint-disable-next-line max-len
   var utcDate = new RegExp('^(?:' + daysOfWeekAbbr.join('|') + '),? (\\d\\d?) (' + monthsAbbr.join('|') + ') (\\d{4}) ' + timePart + ' GMT$', 'i')
   var utcDateGroupMap = {year:3, month:2, day:1, hour:4, min:5, sec: 6, subsec: 7, timezone: 8}
 
@@ -491,3 +502,5 @@ DateUtilities.dateParser = (function () {
 
 parseDate = DateUtilities.dateParser.parseDate
 */
+/* eslint-enable max-len */
+
