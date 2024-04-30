@@ -13,6 +13,9 @@
     // https://stackoverflow.com/a/17117992
     transition: all 0.4s ease-in-out 0s;
     transition-property: left, top, width, height;
+    &.disable-animation {
+      transition: none;
+    }
     &.minimized {
       height: $title-bar-height;
     }

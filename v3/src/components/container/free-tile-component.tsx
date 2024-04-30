@@ -8,6 +8,7 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { CodapComponent } from "../codap-component"
 import { kTitleBarHeight } from "../constants"
+import { urlParams } from "../../utilities/url-params"
 
 interface IProps {
   row: IFreeTileRow;
@@ -125,7 +126,10 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const info = getTileComponentInfo(tileType)
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
-  const classes = clsx("free-tile-component", { minimized: rowTile?.isMinimized })
+  const disableAnimation = urlParams.noComponentAnimation !== undefined
+  const classes = clsx("free-tile-component", {
+    minimized: rowTile?.isMinimized,
+    "disable-animation": disableAnimation })
 
   if (!info || rowTile?.isHidden) return null
 
