@@ -1,4 +1,3 @@
-import { appState } from "../models/app-state"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
@@ -105,7 +104,7 @@ export function convertUngroupedCollectionToV2(dataContext: IDataSet): ICodapV2C
   }
 }
 
-export function convertDataSetToV2(dataSet: IDataSet): ICodapV2DataContextV3 {
+export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): ICodapV2DataContextV3 {
   const { name, title, id, description } = dataSet
 
   const collections: ICodapV2CollectionV3[] =
@@ -115,7 +114,7 @@ export function convertDataSetToV2(dataSet: IDataSet): ICodapV2DataContextV3 {
 
   return {
     type: "DG.DataContext",
-    document: appState.document.key,
+    document: docId,
     guid: id,
     id,
     // flexibleGroupChangeFlag,
