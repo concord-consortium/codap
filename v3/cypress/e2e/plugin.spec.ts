@@ -190,13 +190,6 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
     webView.clearAPITesterResponses()
 
-    // TODO Figure out how to test moveAttribute notifications
-    // cy.log("Broadcast moveAttribute notifications")
-    // table.moveAttributeToParent("Sleep", "newCollection")
-    // table.moveAttributeToParent(newName, "targetAttribute", "Speed")
-    // webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
-    // webView.clearAPITesterResponses()
-
     cy.log("Broadcast global value change notifications")
     slider.changeVariableValue(8)
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
@@ -205,6 +198,29 @@ context("codap plugins", () => {
     slider.playSliderButton()
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
+    webView.clearAPITesterResponses()
+  })
+
+  it('will broadcast notifications involving dragging', () => {
+    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    cy.visit(url)
+
+    openAPITester()
+    webView.toggleAPITesterFilter()
+
+    cy.log("Broadcast moveAttribute notifications")
+    table.moveAttributeToParent("Sleep", "newCollection")
+    // Move attribute within the ungrouped collection
+    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+    // Move attribute to a different collection
+    table.moveAttributeToParent("Diet", "prevCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+    // Move attribute within a true collection
+    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
   })
 })

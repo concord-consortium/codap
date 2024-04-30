@@ -222,8 +222,8 @@ export const TableTileElements = {
       })
     })
   },
-  moveAttributeToParent(name: string, moveType: string, targetAttribute?: string) {
-    cy.dragAttributeToTarget("table", name, moveType, targetAttribute)
+  moveAttributeToParent(name: string, moveType: string, targetNumber?: number) {
+    cy.dragAttributeToTarget("table", name, moveType, targetNumber)
   },
   getExpandAllGroupsButton(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[title=\"expand all groups\"]")
