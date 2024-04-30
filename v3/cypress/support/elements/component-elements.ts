@@ -28,7 +28,7 @@ export const ComponentElements = {
     tableResizeButton: "Resize all columns to fit data",
     tableDeleteCasesButton: "Delete selected or unselected cases",
     tableHideShowButton: "Show all cases or hide selected/unselected cases",
-    tableAttributesButton: "Make new attributes. Export case data."
+    tableRulerButton: "Make new attributes. Export case data."
   },
   getComponentSelector(component) {
     return cy.get(`.codap-component[data-testid$=${component}]`)

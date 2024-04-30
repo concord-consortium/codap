@@ -664,7 +664,7 @@ context("case table ui", () => {
         c.checkToolTip($element, c.tooltips.tableHideShowButton)
       })
       table.getRulerButton().then($element => {
-        c.checkToolTip($element, c.tooltips.tableAttributesButton)
+        c.checkToolTip($element, c.tooltips.tableRulerButton)
       })
     })
   })
