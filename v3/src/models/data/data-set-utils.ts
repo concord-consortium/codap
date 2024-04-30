@@ -66,8 +66,7 @@ export function createAttributesNotification(attrs: IAttribute[], data?: IDataSe
   return attributeNotification("createAttributes", data, attrs.map(attr => attr.id), attrs)
 }
 
-export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, unhide?: boolean) {
-  const operation = unhide ? "unhideAttributes" : "hideAttributes"
+export function hideAttributeNotification(attrIDs: string[], data?: IDataSet, operation: string = "hideAttributes") {
   return attributeNotification(operation, data, attrIDs)
 }
 

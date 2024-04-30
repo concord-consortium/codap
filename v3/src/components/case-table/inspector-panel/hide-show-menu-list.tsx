@@ -46,11 +46,15 @@ export const HideShowMenuList = () => {
   }
 
   const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
+  const hiddenAttrIds = hiddenAttributes?.map(attr => attr.id) ?? []
   const handleShowAllAttributes = () => {
     caseMetadata?.applyModelChange(
       () => caseMetadata?.showAllAttributes(),
       {
-        notifications: hideAttributeNotification(hiddenAttributes?.map(attr => attr.id) ?? [], data, true),
+        notifications: [
+          hideAttributeNotification(hiddenAttrIds, data, "unhideAttributes"),
+          hideAttributeNotification(hiddenAttrIds, data, "showAttributes")
+        ],
         undoStringKey: "DG.Undo.caseTable.showAllHiddenAttributes",
         redoStringKey: "DG.Redo.caseTable.showAllHiddenAttributes"
       }
