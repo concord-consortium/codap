@@ -53,7 +53,7 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return contextNotFoundResult
 
-    return { success: true, values: convertDataSetToV2(dataContext) }
+    return { success: true, values: convertDataSetToV2(dataContext, appState.document.key) }
   },
 
   update(resources: DIResources, _values?: DIValues) {
