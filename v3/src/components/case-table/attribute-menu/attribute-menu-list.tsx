@@ -7,6 +7,7 @@ import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { t } from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
+import { hideAttributeNotification, removeAttributesNotification } from "../../../models/data/data-set-utils"
 
 interface IProps {
   column: TCalculatedColumn
@@ -28,6 +29,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const rerandomizeDisabled = !attribute?.formula?.isRandomFunctionPresent
 
   const handleMenuItemClick = (menuItem: string) => {
+    // TODO Don't forget to broadcast notifications as these menu items are implemented!
     toast({
       title: 'Menu item clicked',
       description: `You clicked on ${menuItem} on ${columnName}`,
@@ -40,6 +42,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     caseMetadata?.applyModelChange(
       () => caseMetadata?.setIsHidden(column.key, true),
       {
+        notifications: hideAttributeNotification([column.key], data),
         undoStringKey: "DG.Undo.caseTable.hideAttribute",
         redoStringKey: "DG.Redo.caseTable.hideAttribute"
       }
@@ -56,6 +59,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       data.applyModelChange(() => {
         data.removeAttribute(attrId)
       }, {
+        notifications: removeAttributesNotification([attrId], data),
         undoStringKey: "DG.Undo.caseTable.deleteAttribute",
         redoStringKey: "DG.Redo.caseTable.deleteAttribute"
       })

@@ -6,7 +6,7 @@ import { WebViewTileElements as webView } from "../support/elements/web-view-til
 
 context("codap plugins", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    const url = `${Cypress.config("index")}?sample=mammals&dashboard`
     cy.visit(url)
   })
   const openAPITester = () => {
@@ -145,6 +145,51 @@ context("codap plugins", () => {
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast attribute notifications")
+
+    cy.log("Broadcast hideAttributes notifications")
+    c.selectTile("table", 0)
+    table.openAttributeMenu("Mammal")
+    table.selectMenuItemFromAttributeMenu("Hide Attribute")
+    webView.confirmAPITesterResponseContains(/"operation":\s"hideAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast unhideAttributes notifications")
+    table.showAllAttributes()
+    webView.confirmAPITesterResponseContains(/"operation":\s"unhideAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast createAttributes notifications")
+    // + button in collection header
+    table.addNewAttribute()
+    webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
+    webView.clearAPITesterResponses()
+    // New Attribute button in ruler menu
+    table.getRulerButton().click()
+    table.selectItemFromRulerMenu("New Attribute")
+    webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteAttributes notifications")
+    table.deleteAttrbute("newAttr2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateAttributes notifications")
+    // Rename attribute
+    const newName = "newerAttr"
+    table.renameAttribute("newAttr", newName)
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+    // Edit attribute properties
+    table.editAttributeProperties(newName, "", null, null, null, null, null)
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+    // Edit formula
+    table.editFormula(newName, "Mass * 2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast global value change notifications")
     slider.changeVariableValue(8)
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
@@ -153,6 +198,29 @@ context("codap plugins", () => {
     slider.playSliderButton()
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
+    webView.clearAPITesterResponses()
+  })
+
+  it('will broadcast notifications involving dragging', () => {
+    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    cy.visit(url)
+
+    openAPITester()
+    webView.toggleAPITesterFilter()
+
+    cy.log("Broadcast moveAttribute notifications")
+    table.moveAttributeToParent("Sleep", "newCollection")
+    // Move attribute within the ungrouped collection
+    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+    // Move attribute to a different collection
+    table.moveAttributeToParent("Diet", "prevCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+    // Move attribute within a true collection
+    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
   })
 })

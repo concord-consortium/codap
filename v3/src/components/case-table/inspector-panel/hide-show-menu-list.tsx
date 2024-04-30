@@ -3,6 +3,7 @@ import React from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { t } from "../../../utilities/translation/translate"
+import { hideAttributeNotification } from "../../../models/data/data-set-utils"
 
 export const HideShowMenuList = () => {
   const data = useDataSetContext()
@@ -44,10 +45,16 @@ export const HideShowMenuList = () => {
     })
   }
 
+  const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
+  const hiddenAttrIds = hiddenAttributes?.map(attr => attr.id) ?? []
   const handleShowAllAttributes = () => {
     caseMetadata?.applyModelChange(
       () => caseMetadata?.showAllAttributes(),
       {
+        notifications: [
+          hideAttributeNotification(hiddenAttrIds, data, "unhideAttributes"),
+          hideAttributeNotification(hiddenAttrIds, data, "showAttributes")
+        ],
         undoStringKey: "DG.Undo.caseTable.showAllHiddenAttributes",
         redoStringKey: "DG.Redo.caseTable.showAllHiddenAttributes"
       }
@@ -59,7 +66,7 @@ export const HideShowMenuList = () => {
   const setAsideCount = 0 // eventually will come from DataSet
   const restoreSetAsideCasesLabel = t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] })
 
-  const hiddenAttributeCount = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id)).length ?? 0
+  const hiddenAttributeCount = hiddenAttributes?.length ?? 0
   const showAllHiddenAttributesKey = {
     0: "DG.Inspector.attributes.showAllHiddenAttributesDisabled",
     1: "DG.Inspector.attributes.showAllHiddenAttributesSing"
