@@ -3,7 +3,7 @@ import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-intera
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
-import { ICollectionModel } from "./collection"
+import { ICollectionModel, ICollectionPropsModel } from "./collection"
 
 const action = "notify"
 function makeResource(dataSet?: IDataSet) {
@@ -33,6 +33,13 @@ export function deleteCollectionNotification(dataSet?: IDataSet) {
   const resource = makeResource(dataSet)
   const operation = "deleteCollection"
   const values = { operation, result: { success: true } }
+  return { message: { action, resource, values }, callback: makeCallback(operation) }
+}
+
+export function updateCollectionNotification(collection?: ICollectionPropsModel, dataSet?: IDataSet) {
+  const resource = makeResource(dataSet)
+  const operation = "updateCollection"
+  const values = { operation, result: { success: true, properties: { name: collection?.name } } }
   return { message: { action, resource, values }, callback: makeCallback(operation) }
 }
 
