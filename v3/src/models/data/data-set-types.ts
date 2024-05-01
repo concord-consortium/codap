@@ -58,6 +58,10 @@ export interface IMoveAttributeCollectionOptions extends IMoveAttributeOptions {
   collection?: string // id of destination collection; undefined => no collection (ungrouped)
 }
 
+export interface IAttributeChangeResult {
+  removedCollection?: boolean // True if changing the attribute resulted in its collection being removed
+}
+
 // remnant of derived DataSet implementation that isn't in active use
 export interface IDerivationSpec {
   attributeIDs?: string[];
