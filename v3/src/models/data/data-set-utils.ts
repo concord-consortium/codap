@@ -3,7 +3,8 @@ import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
-import { convertAttributeToV2 } from "../../data-interactive/data-interactive-type-utils"
+import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-interactive/data-interactive-type-utils"
+import { ICase } from "./data-set-types"
 
 export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
   if (collection && !isAlive(collection)) {
@@ -82,14 +83,17 @@ export function updateAttributesNotification(attrs: IAttribute[], data?: IDataSe
   return attributeNotification("updateAttributes", data, attrs.map(attr => attr.id), attrs)
 }
 
-export function updateCasesNotification(data: IDataSet) {
+export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   const action = "notify"
   const resource = `dataContextChangeNotice[${data?.name}]`
   const operation = "updateCases"
+  const caseIDs = cases?.map(c => c.__id__)
   const values = {
     operation,
     result: {
-      success: true
+      success: true,
+      caseIDs,
+      cases: cases?.map(c => convertCaseToV2FullCase(c, data))
     }
   }
   return { message: { action, resource, values }, callback: (response: any) =>

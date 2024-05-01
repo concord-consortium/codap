@@ -9,8 +9,9 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
-import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
+import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
+import { updateCasesNotification } from "../../models/data/data-set-utils"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -223,8 +224,11 @@ export const useRows = () => {
     // when rows change, e.g. after cell edits, update the dataset
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     data?.applyModelChange(
-      () => data?.setCaseValues(caseValues),
+      () => data.setCaseValues(caseValues),
       {
+        // TODO notificaitons should be () => updateCasesNotification, but that won't work well
+        // until pseudo case ids are persistent
+        notifications: updateCasesNotification(data, caseValues),
         undoStringKey: "DG.Undo.caseTable.editCellValue",
         redoStringKey: "DG.Redo.caseTable.editCellValue"
       }

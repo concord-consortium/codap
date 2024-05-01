@@ -9,18 +9,31 @@ import { ICollectionPropsModel } from "../models/data/collection"
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
 export interface DIFullCase {
-  children?: string[],
-  id?: string,
-  parent?: string,
+  children?: string[]
+  context?: {
+    id?: string
+    name?: string
+  }
+  collection?: {
+    id?: string
+    name?: string
+    parent?: {
+      id?: string
+      name?: string
+    }
+  }
+  id?: string
+  itemId?: string
+  parent?: string
   values?: DICaseValues
 }
 export interface DIAllCases {
   cases?: {
-    case?: DIFullCase,
+    case?: DIFullCase
     caseIndex?: number
   }[]
   collection?: {
-    name?: string,
+    name?: string
     id?: string
   }
 }
