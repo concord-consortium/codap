@@ -35,7 +35,7 @@ export const otherFunctions = {
     isRandomFunction: true,
     // Nothing to do here, Random.normal() has exactly the same signature as CODAP V2 randomNormal() function.
     evaluate: (...args: FValue[]) => {
-      return Number(randomGen.normal(...args as number[])())
+      return randomGen.normal(...args as number[])()
     }
   },
 
@@ -46,7 +46,7 @@ export const otherFunctions = {
     isRandomFunction: true,
     // Nothing to do here, Random.binomial() has exactly the same signature as CODAP V2 randomBinomial() function.
     evaluate: (...args: FValue[]) => {
-      return Number(randomGen.binomial(...args as number[])())
+      return randomGen.binomial(...args as number[])()
     }
   },
 
