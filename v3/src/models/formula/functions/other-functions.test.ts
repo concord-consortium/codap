@@ -38,3 +38,24 @@ describe("random", () => {
     expect(result).toBeLessThanOrEqual(20)
   })
 })
+
+describe("randomNormal", () => {
+  it("returns random numbers between with a mean of 10 and a standard deviation of 5", () => {
+    const fn = math.compile("randomNormal(10, 5)")
+    const numbers = Array.from({ length: 1000 }, () => fn.evaluate()),
+      mean = numbers.reduce((a, b) => a + b) / numbers.length,
+      stdDev = Math.sqrt(numbers.reduce((a, b) => a + (b - mean) ** 2) / numbers.length)
+    expect(mean).toBeGreaterThanOrEqual(9.5)
+    expect(mean).toBeLessThanOrEqual(10.5)
+    expect(stdDev).toBeGreaterThanOrEqual(4)
+    expect(stdDev).toBeLessThanOrEqual(6)
+  })
+})
+
+describe("randomBinomial", () => {
+  it("returns random integers between 0 and 5", () => {
+    const fn = math.compile("randomBinomial(5, 0.5)")
+    const integers = Array.from({ length: 100 }, () => fn.evaluate())
+    expect(integers.every((n) => Math.round(n) === n && n >= 0 && n <= 5)).toBeTruthy()
+  })
+})
