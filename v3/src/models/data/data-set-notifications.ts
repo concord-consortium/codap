@@ -6,56 +6,47 @@ import { ICase } from "./data-set-types"
 import { ICollectionModel, ICollectionPropsModel } from "./collection"
 
 const action = "notify"
-function makeResource(dataSet?: IDataSet) {
-  return `dataContextChangeNotice[${dataSet?.name}]`
-}
 function makeCallback(operation: string, other?: any) {
   return (response: any) =>
     debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${other ?? ""}`, JSON.stringify(response))
 }
 
+function notification(operation: string, result: any, dataSet?: IDataSet, _callback?: (result: any) => void) {
+  const resource = `dataContextChangeNotice[${dataSet?.name}]`
+  const values = { operation, result }
+  const callback = _callback ?? makeCallback(operation)
+  return { message: { action, resource, values }, callback }
+}
+
 export function createCollectionNotification(collection: ICollectionModel, dataSet?: IDataSet) {
-  const resource = makeResource(dataSet)
-  const operation = "createCollection"
-  const values = {
-    operation,
-    result: {
-      success: true,
-      collection: collection.id,
-      name: collection.name,
-      attribute: collection.attributes[0]?.name
-    }
+  const result = {
+    success: true,
+    collection: collection.id,
+    name: collection.name,
+    attribute: collection.attributes[0]?.name
   }
-  return { message: { action, resource, values }, callback: makeCallback(operation) }
+  return notification("createCollection", result, dataSet)
 }
 
 export function deleteCollectionNotification(dataSet?: IDataSet) {
-  const resource = makeResource(dataSet)
-  const operation = "deleteCollection"
-  const values = { operation, result: { success: true } }
-  return { message: { action, resource, values }, callback: makeCallback(operation) }
+  const result = { success: true }
+  return notification("deleteCollection", result, dataSet)
 }
 
 export function updateCollectionNotification(collection?: ICollectionPropsModel, dataSet?: IDataSet) {
-  const resource = makeResource(dataSet)
-  const operation = "updateCollection"
-  const values = { operation, result: { success: true, properties: { name: collection?.name } } }
-  return { message: { action, resource, values }, callback: makeCallback(operation) }
+  const result = { success: true, properties: { name: collection?.name } }
+  return notification("updateCollection", result, dataSet)
 }
 
 function attributeNotification(
   operation: string, data?: IDataSet, attrIDs?: string[], attrs?: IAttribute[]
 ) {
-  const resource = makeResource(data)
-  const values = {
-    operation,
-    result: {
-      success: true,
-      attrs: attrs?.map(attr => convertAttributeToV2(attr, data)),
-      attrIDs
-    }
+  const result = {
+    success: true,
+    attrs: attrs?.map(attr => convertAttributeToV2(attr, data)),
+    attrIDs
   }
-  return { message: { action, resource, values }, callback: makeCallback(operation, attrIDs) }
+  return notification(operation, result, data, makeCallback(operation, attrIDs))
 }
 
 export function createAttributesNotification(attrs: IAttribute[], data?: IDataSet) {
@@ -79,16 +70,11 @@ export function updateAttributesNotification(attrs: IAttribute[], data?: IDataSe
 }
 
 export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
-  const resource = makeResource(data)
-  const operation = "updateCases"
   const caseIDs = cases?.map(c => c.__id__)
-  const values = {
-    operation,
-    result: {
-      success: true,
-      caseIDs,
-      cases: cases?.map(c => convertCaseToV2FullCase(c, data))
-    }
+  const result = {
+    success: true,
+    caseIDs,
+    cases: cases?.map(c => convertCaseToV2FullCase(c, data))
   }
-  return { message: { action, resource, values }, callback: makeCallback(operation) }
+  return notification("updateCases", result, data)
 }
