@@ -161,8 +161,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         bgColor = String(color(plotBackgroundColor)),
         darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
         {numRows, numColumns} = layout,
-        cellWidth = plotWidth / numColumns,
-        cellHeight = plotHeight / numRows,
+        cellWidth = Math.max(0, plotWidth / numColumns),
+        cellHeight = Math.max(0, plotHeight / numRows),
         row = (index: number) => Math.floor(index / numColumns),
         col = (index: number) => index % numColumns,
         groupElement = bgRef.current

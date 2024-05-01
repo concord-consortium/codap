@@ -11,6 +11,7 @@ import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "..
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
 import { typedId } from "../../utilities/js-utils"
+import { ComponentRect } from "../../utilities/animation-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
@@ -56,6 +57,8 @@ export interface INewTileOptions {
 
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
+  // performs the specified action so that response actions are included and undo/redo strings assigned
+  .actions(applyModelChange)
   .actions(self => ({
     async prepareSnapshot() {
       // prepare each row for serialization
@@ -123,8 +126,8 @@ export const DocumentContentModel = BaseDocumentContentModel
     createTile(tileType: string, options?: INewTileOptions): ITileModel | undefined {
       const componentInfo = getTileComponentInfo(tileType)
       if (!componentInfo) return
-      const width = options?.width ?? componentInfo.defaultWidth
-      const height = options?.height ?? componentInfo.defaultHeight
+      const width = options?.width ?? (componentInfo.defaultWidth || 0)
+      const height = options?.height ?? (componentInfo.defaultHeight || 0)
       const row = self.getRowByIndex(0)
       if (row) {
         const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType)
@@ -134,13 +137,20 @@ export const DocumentContentModel = BaseDocumentContentModel
             const computedPosition = getPositionOfNewComponent(newTileSize)
             const x = options?.x ?? computedPosition.x
             const y = options?.y ?? computedPosition.y
-            const tileOptions = { x, y, width, height }
-            const newTile = self.insertTileSnapshotInRow(newTileSnapshot, row, tileOptions)
+            const from: ComponentRect = { x: 0, y: 0, width: 0, height: kTitleBarHeight },
+              to: ComponentRect = { x, y, width, height: height + kTitleBarHeight}
+            const newTile = self.insertTileSnapshotInRow(newTileSnapshot, row, from)
             if (newTile) {
               const rowTile = row.tiles.get(newTile.id)
-              if (width && height) {
-                rowTile?.setSize(width, height + kTitleBarHeight)
-                rowTile?.setPosition(tileOptions.x, tileOptions.y)
+              if (width && height && rowTile) {
+                // use setTimeout to push the change into a subsequent action
+                setTimeout(() => {
+                  // use applyModelChange to wrap into a single non-undoable action without undo string
+                  self.applyModelChange(() => {
+                    rowTile.setPosition(to.x, to.y)
+                    rowTile.setSize(to.width, to.height)
+                  })
+                })
               }
               return newTile
             }
@@ -264,8 +274,6 @@ export const DocumentContentModel = BaseDocumentContentModel
       return sharedData
     }
   }))
-  // performs the specified action so that response actions are included and undo/redo strings assigned
-  .actions(applyModelChange)
 
 export type IDocumentContentModel = Instance<typeof DocumentContentModel>
 export type IDocumentContentSnapshotIn = SnapshotIn<typeof DocumentContentModel>

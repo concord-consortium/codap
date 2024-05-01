@@ -38,7 +38,7 @@ export const Container: React.FC = () => {
     if (dragTileId) {
       if (isFreeTileRow(row)) {
         const rowTile = row.getNode(dragTileId)
-        if (rowTile) {
+        if (rowTile && (evt.delta.x || evt.delta.y)) {
           documentContent?.applyModelChange(() => {
             rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
           }, {

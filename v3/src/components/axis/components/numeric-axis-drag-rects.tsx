@@ -194,7 +194,7 @@ export const NumericAxisDragRects = observer(
                           ? [0]
                           : place === 'bottom' ? [0, 1, 2] : [2, 1, 0],
             rectCount = lockZero ? 1 : 3
-          if (length != null && axisBounds != null) {
+          if (length != null && length > 0 && axisBounds != null) {
             selectDragRects(rectRef.current)
               ?.data(numbering)// data signify lower, middle, upper rectangles
               .join(

@@ -17,6 +17,7 @@ import {usePixiPointsArray} from '../../data-display/hooks/use-pixi-points-array
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
+import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
 
@@ -37,7 +38,8 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   useGraphController({graphController, graphModel, pixiPointsArrayRef})
 
   useEffect(() => {
-    (width != null) && (height != null) && layout.setTileExtent(width, height)
+    (width != null) && width >= 0 && (height != null) &&
+      height >= kTitleBarHeight && layout.setTileExtent(width, height)
   }, [width, height, layout])
 
   useEffect(function cleanup() {
