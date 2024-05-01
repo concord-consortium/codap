@@ -50,10 +50,8 @@ const renderBarCovers = (props: IRenderBarCoverProps) => {
 
 const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const { subPlotCells, cellIndices, maxInCell, minInCell = 0, primCatsCount } = props
-  const {
-    numPrimarySplitBands, numSecondarySplitBands, primaryCellWidth, primaryIsBottom, primarySplitCellWidth,
-    secondaryCellHeight, secondaryNumericScale
-  } = subPlotCells
+  const { numPrimarySplitBands, numSecondarySplitBands, primaryCellWidth, primaryIsBottom, primarySplitCellWidth,
+          secondaryCellHeight, secondaryNumericScale } = subPlotCells
   const { p: primeCatIndex, ep: primeSplitCatIndex, es: secSplitCatIndex } = cellIndices
   const adjustedPrimeSplitIndex = primaryIsBottom
           ? primeSplitCatIndex
@@ -135,13 +133,13 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
                 // Create a map of cases grouped by legend value so we don't need to filter all cases per value when
                 // creating the bar covers.
                 const caseGroups = new Map()
-                dataset?.cases.forEach(aCase => {
-                  const legendValue = dataset?.getStrValue(aCase.__id__, legendAttrID)
-                  const primaryValue = dataset?.getStrValue(aCase.__id__, dataConfig.attributeID(primaryAttrRole))
+                dataConfig.caseDataArray.forEach(aCase => {
+                  const legendValue = dataset?.getStrValue(aCase.caseID, legendAttrID)
+                  const primaryValue = dataset?.getStrValue(aCase.caseID, dataConfig.attributeID(primaryAttrRole))
                   const primarySplitValue =
-                    dataset?.getStrValue(aCase.__id__, dataConfig.attributeID(primarySplitAttrRole))
+                    dataset?.getStrValue(aCase.caseID, dataConfig.attributeID(primarySplitAttrRole))
                   const secondarySplitValue =
-                    dataset?.getStrValue(aCase.__id__, dataConfig.attributeID(secondarySplitAttrRole))
+                    dataset?.getStrValue(aCase.caseID, dataConfig.attributeID(secondarySplitAttrRole))
                   const caseGroupKey =
                     `${legendValue}-${primaryValue}-${primarySplitValue}-${secondarySplitValue}`
                   if (!caseGroups.has(caseGroupKey)) {
@@ -149,6 +147,19 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
                   }
                   caseGroups.get(caseGroupKey).push(aCase)
                 })
+
+                // If the legend attribute is numeric, sort legendCats in descending order making sure to handle any NaN
+                // values for cases that don't have a numeric value for the legend attribute.
+                if (dataConfig.attributeType("legend") === "numeric") {
+                  legendCats.sort((cat1: string, cat2: string) => {
+                    const cat1Num = Number(cat1)
+                    const cat2Num = Number(cat2)
+                    if (isNaN(cat1Num) && isNaN(cat2Num)) return 0
+                    if (isNaN(cat2Num)) return -1
+                    if (isNaN(cat1Num)) return 1
+                    return cat2Num - cat1Num
+                  })
+                }
                 
                 // For each legend value, create a bar cover
                 legendCats.forEach((legendCat: string) => {
