@@ -4,10 +4,10 @@ import {
 } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { CodapModal } from "../../codap-modal"
-import { t } from "../../../utilities/translation/translate"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-utils"
+import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-notifications"
+import { t } from "../../../utilities/translation/translate"
+import { CodapModal } from "../../codap-modal"
 
 interface IProps {
   attributeId: string

@@ -4,13 +4,13 @@ import React, { useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTablePortal } from "./case-table-portal"
 import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
-import { updateAttributesNotification } from "../../models/data/data-set-utils"
 
 export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">) {
   const { active } = useDndContext()

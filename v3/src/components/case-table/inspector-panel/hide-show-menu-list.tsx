@@ -3,7 +3,7 @@ import React from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { t } from "../../../utilities/translation/translate"
-import { hideAttributeNotification } from "../../../models/data/data-set-utils"
+import { hideAttributeNotification } from "../../../models/data/data-set-notifications"
 
 export const HideShowMenuList = () => {
   const data = useDataSetContext()

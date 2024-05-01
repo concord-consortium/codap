@@ -7,7 +7,7 @@ import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { t } from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
-import { hideAttributeNotification, removeAttributesNotification } from "../../../models/data/data-set-utils"
+import { hideAttributeNotification, removeAttributesNotification } from "../../../models/data/data-set-notifications"
 
 interface IProps {
   column: TCalculatedColumn

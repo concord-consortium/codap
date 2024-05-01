@@ -10,7 +10,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { IAttribute } from "../../models/data/attribute"
-import { createAttributesNotification } from "../../models/data/data-set-utils"
+import { createAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 
