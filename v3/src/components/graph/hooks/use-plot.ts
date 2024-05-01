@@ -155,11 +155,12 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return () => disposer()
   }, [layout, callRefreshPointPositions])
 
-  // respond to selection and value changes
-  useEffect(() => {
+  // respond to selection changes
+  useEffect(function respondToSelectionChanges() {
     if (dataset) {
-      const disposer = onAnyAction(dataset, action => {
-        if (isSelectionAction(action)) {
+      return mstReaction(
+        () => dataset?.selectionChanges,
+        () => {
           // If there are hidden cases in the graph that are then selected in a different tile, remove them from
           // the hiddenCases array and make sure their positions are set.
           if (dataConfiguration.displayOnlySelectedCases && dataConfiguration?.hiddenCases.length > 0) {
@@ -179,7 +180,18 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
             callRefreshPointPositions(false)
           }
           refreshPointSelection()
-        } else if (isSetCaseValuesAction(action)) {
+        },
+        {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration
+      )
+    }
+  }, [callRefreshPointPositions, dataConfiguration, dataset, graphModel, instanceId, pixiPoints,
+      refreshPointSelection, startAnimation])
+
+  // respond to value changes
+  useEffect(() => {
+    if (dataset) {
+      const disposer = onAnyAction(dataset, action => {
+        if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
           callRefreshPointPositions(dataset.isCaching())
           // TODO: handling of add/remove cases was added specifically for the case plot.
@@ -192,8 +204,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       })
       return () => disposer()
     }
-  }, [dataset, callRefreshPointPositions, refreshPointSelection, dataConfiguration, pixiPoints, graphModel,
-      startAnimation, instanceId])
+  }, [dataset, callRefreshPointPositions])
 
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {
