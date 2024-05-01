@@ -7,7 +7,8 @@ import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-u
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
-import { DIAttribute, DICaseValues, DIResources, DISingleValues } from "./data-interactive-types"
+import { DIAttribute, DIResources, DISingleValues } from "./data-interactive-types"
+import { getCaseValues } from "./data-interactive-utils"
 
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
@@ -30,21 +31,6 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       units: values.unit ?? undefined
     }
   }
-}
-
-export function getCaseValues(caseId: string, collectionId: string, dataSet: IDataSet) {
-  const attributes = dataSet.getGroupedCollection(collectionId)?.attributes ??
-    dataSet.ungroupedAttributes
-
-  const values: DICaseValues = {}
-  const actualCaseIndex = dataSet.cases.findIndex(actualCase => actualCase.__id__ === caseId)
-  attributes.map(attribute => {
-    if (attribute?.name) {
-      values[attribute.name] = dataSet.pseudoCaseMap.get(caseId)?.pseudoCase[attribute.id] ?? attribute?.value(actualCaseIndex)
-    }
-  })
-
-  return values
 }
 
 export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {

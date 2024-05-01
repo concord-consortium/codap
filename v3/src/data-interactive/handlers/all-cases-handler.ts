@@ -1,5 +1,5 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { getCaseValues } from "../data-interactive-type-utils"
+import { getCaseValues } from "../data-interactive-utils"
 import { DIHandler, DIResources } from "../data-interactive-types"
 
 export const diAllCasesHandler: DIHandler = {
