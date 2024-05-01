@@ -198,6 +198,7 @@
     "pixi.js": "~7.3.3",
     "pluralize": "^8.0.0",
     "query-string": "^8.2.0",
+    "random": "^4.1.0",
     "react": "^18.2.0",
     "react-colorful": "^5.6.1",
     "react-data-grid": "7.0.0-beta.42",

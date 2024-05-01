@@ -1,5 +1,8 @@
-import { pickRandom, random } from "mathjs"
+import { pickRandom } from "mathjs"
+import { Random } from "random"
 import { FValue } from "../formula-types"
+
+const randomGen = new Random()
 
 export const otherFunctions = {
   // if(expression, value_if_true, value_if_false)
@@ -21,7 +24,30 @@ export const otherFunctions = {
   random: {
     numOfRequiredArguments: 0,
     isRandomFunction: true,
-    // Nothing to do here, mathjs.random() has exactly the same signature as CODAP V2 random() function.
-    evaluate: (...args: FValue[]) => random(...args as number[])
-  }
+    // Nothing to do here, Random.float() has exactly the same signature as CODAP V2 random() function.
+    evaluate: (...args: FValue[]) => randomGen.float(...args as number[])
+  },
+
+  // randomNormal(mean, standard_deviation) Returns a random number drawn from a normal distribution which, by default,
+  // has a mean of 0 and a standard deviation of 1.
+  randomNormal: {
+    numOfRequiredArguments: 0,
+    isRandomFunction: true,
+    // Nothing to do here, Random.normal() has exactly the same signature as CODAP V2 randomNormal() function.
+    evaluate: (...args: FValue[]) => {
+      return Number(randomGen.normal(...args as number[])())
+    }
+  },
+
+  // randomBinomial(n, p) Returns a random integer drawn from a binomial distribution with n independent draws
+  // (or experiments) each with probability p of success. Defaults are n = 1, p = 0.5.
+  randomBinomial: {
+    numOfRequiredArguments: 0,
+    isRandomFunction: true,
+    // Nothing to do here, Random.binomial() has exactly the same signature as CODAP V2 randomBinomial() function.
+    evaluate: (...args: FValue[]) => {
+      return Number(randomGen.binomial(...args as number[])())
+    }
+  },
+
 }
