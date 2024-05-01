@@ -10,7 +10,9 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
+import { createCollectionNotification } from "../../models/data/data-set-notifications"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
 
@@ -63,12 +65,16 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
+      let collection: ICollectionModel | undefined
       dataSet.applyModelChange(() => {
-        const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
+        collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
         if (collection) {
           lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
         }
       }, {
+        notifications: () => {
+          if (collection) return createCollectionNotification(collection, dataSet)
+        },
         undoStringKey: "DG.Undo.caseTable.createCollection",
         redoStringKey: "DG.Redo.caseTable.createCollection"
       })

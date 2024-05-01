@@ -3,6 +3,25 @@ import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-intera
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
+import { ICollectionModel } from "./collection"
+
+export function createCollectionNotification(collection: ICollectionModel, dataSet?: IDataSet) {
+  const action = "notify"
+  const resource = `dataContextChangeNotice[${dataSet?.name}]`
+  const operation = "createCollection"
+  const values = {
+    operation,
+    result: {
+      success: true,
+      collection: collection.id,
+      name: collection.name,
+      attribute: collection.attributes[0]?.name
+    }
+  }
+  return { message: { action, resource, values }, callback: (response: any) =>
+    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation}`, JSON.stringify(response))
+  }
+}
 
 function attributeNotification(
   operation: string, data?: IDataSet, attrIDs?: string[], attrs?: IAttribute[]
