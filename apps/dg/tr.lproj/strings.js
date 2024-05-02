@@ -1131,5 +1131,6 @@ SC.stringsFor("tr", {
               "DG.plugin.Sampler.measures.percent-formula-pt-2": " / sayı()",
               "DG.plugin.Sampler.measures.name-label": "Ölçümü isimlendir: ",
               "DG.plugin.Testimate.name": "İstatistiksel sınayıcı",
-              "DG.plugin.Testimate.description": "Bu eklentide klasik çıkarımsal yöntemleri kullanarak hipotezler test edebilirsiniz."
+              "DG.plugin.Testimate.description": "Bu eklentide klasik çıkarımsal yöntemleri kullanarak hipotezler test edebilirsiniz.",
+              "DG.plugin.PurpleAir.title": "Purple Air"
 });
