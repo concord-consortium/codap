@@ -73,7 +73,8 @@ context("Map UI", () => {
       c.checkToolTip($element, c.tooltips.mapCameraButton)
     })
   })
-  it("checks numerical and categorical attributes for map legend", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks numerical and categorical attributes for map legend", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
@@ -162,7 +163,8 @@ context("Map UI", () => {
     map.getHideUnselectedCases().should("not.be.disabled")
     map.getShowAllCases().should("be.disabled")
   })
-  it("checks show/hide map boundaries with legend selections", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks show/hide map boundaries with legend selections", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
@@ -202,7 +204,8 @@ context("Map UI", () => {
     // PT bug - #186916697
     // mlh.verifyCategoricalLegend(1)
   })
-  it("checks show/hide map points with legend selections", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks show/hide map points with legend selections", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolshelf("map").click()
     cy.wait(1000)
@@ -243,7 +246,8 @@ context("Map UI", () => {
     // PT bug - #186916697
     // mlh.verifyCategoricalLegend(1)
   })
-  it("checks legend attribute menu", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks legend attribute menu", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")

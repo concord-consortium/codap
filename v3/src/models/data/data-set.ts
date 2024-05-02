@@ -854,6 +854,11 @@ export const DataSet = V2Model.named("DataSet").props({
           self.caseIDMap.set(aCase.__id__, index)
         })
 
+        // make sure attributes have appropriate length, including attributes with formulas
+        self.attributesMap.forEach(attr => {
+          attr.setLength(self.cases.length)
+        })
+
         if (!srcDataSet) {
           // set up middleware to add ids to inserted attributes and cases
           // adding the ids in middleware makes them available as action arguments
@@ -925,9 +930,8 @@ export const DataSet = V2Model.named("DataSet").props({
         }
 
         // fill out any missing values
-        for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
-          attribute.addValue()
-        }
+        attribute.setLength(self.cases.length)
+
         // add the attribute to the specified collection (if any)
         if (collectionId) {
           const collection = self.getGroupedCollection(collectionId)
