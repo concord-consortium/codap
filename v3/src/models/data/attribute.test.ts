@@ -347,6 +347,13 @@ describe("Attribute", () => {
     expect(x2.values).toBeUndefined()
     expect(x2.strValues).toEqual([])
     expect(x2.numValues).toEqual([])
+
+    // after attributes with formulas restore without values, setLength initializes the values
+    // so that formula evaluation can fill them in later.
+    x2.setLength(3)
+    expect(x2.values).toBeUndefined()
+    expect(x2.strValues).toEqual(["", "", ""])
+    expect(x2.numValues).toEqual([NaN, NaN, NaN])
   })
 
   test("Serialization of an attribute with formula (production)", () => {
@@ -369,6 +376,13 @@ describe("Attribute", () => {
     expect(x2.values).toEqual([])
     expect(x2.strValues).toEqual([])
     expect(x2.numValues).toEqual([])
+
+    // after attributes with formulas restore without values, setLength initializes the values
+    // so that formula evaluation can fill them in later.
+    x2.setLength(3)
+    expect(x2.values).toEqual(["", "", ""])
+    expect(x2.strValues).toEqual(["", "", ""])
+    expect(x2.numValues).toEqual([NaN, NaN, NaN])
   })
 
   test("Attribute formulas", () => {
