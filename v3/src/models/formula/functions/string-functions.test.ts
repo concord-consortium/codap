@@ -15,6 +15,9 @@ describe("stringFunctions", () => {
     it("returns the character at the specified 1-based index in the text", () => {
       expect(stringFunctions.charAt.evaluate("Hello World", 1)).toBe("H")
     })
+    it("returns an error if the index is not an integer", () => {
+      expect(() => stringFunctions.charAt.evaluate("Hello World", 1.5)).toThrow()
+    })
   })
 
   describe("endsWith", () => {
@@ -79,6 +82,9 @@ describe("stringFunctions", () => {
     it("returns the text repeated n times", () => {
       expect(stringFunctions.repeatString.evaluate("Hello", 3)).toBe("HelloHelloHello")
     })
+    it("returns an error if the numRepetitions is not an integer", () => {
+      expect(() => stringFunctions.repeatString.evaluate("Hello World", 1.5)).toThrow()
+    })
   })
 
   describe("replaceChars", () => {
@@ -113,6 +119,9 @@ describe("stringFunctions", () => {
     it("returns undefined if the index is out of range", () => {
       expect(stringFunctions.split.evaluate("Hello World", " ", 3)).toBeUndefined()
     })
+    it("returns an error if the index is not an integer", () => {
+      expect(() => stringFunctions.split.evaluate("Hello World", " ", 1.5)).toThrow()
+    })
   })
 
   describe("stringLength", () => {
@@ -121,9 +130,15 @@ describe("stringFunctions", () => {
     })
   })
 
-describe("subString", () => {
-    it("returns the substring of the text starting from start and ending at end", () => {
+  describe("subString", () => {
+    it("returns the substring of the text starting from start with length characters", () => {
       expect(stringFunctions.subString.evaluate("Hello World", 7, 5)).toBe("World")
+    })
+    it("returns an error if the start is not an integer", () => {
+      expect(() => stringFunctions.subString.evaluate("Hello World", 7.1, 5)).toThrow()
+    })
+    it("returns an error if the length is not an integer", () => {
+      expect(() => stringFunctions.subString.evaluate("Hello World", 7, 5.1)).toThrow()
     })
   })
 

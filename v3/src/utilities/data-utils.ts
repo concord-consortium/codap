@@ -1,7 +1,7 @@
 import { isDate } from "mathjs"
 
 export const valueToString = function (iValue: any): string {
-  let valType:string = typeof iValue,
+  let valType: string = typeof iValue,
     value = iValue
   if (isDate(iValue)) {
     // treat dates as strings
@@ -9,7 +9,7 @@ export const valueToString = function (iValue: any): string {
     value = String(iValue)
     valType = "string"
   } else if (iValue instanceof Error) {
-    value = `${iValue.name  } ${  iValue.message}`
+    value = `${iValue.name} ${iValue.message}`
     valType = "string"
   } /* todo: handle map
   else if (iValue instanceof SimpleMap) {

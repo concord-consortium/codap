@@ -1,5 +1,7 @@
+import { t } from "../../../utilities/translation/translate"
 import { valueToString } from "../../../utilities/data-utils"
 import { FValue } from "../formula-types"
+import escapeStringRegexp from "escape-string-regexp"
 
 export const stringFunctions = {
   // beginsWith(text, prefix) Returns true if text begins with prefix, otherwise false.
@@ -17,6 +19,9 @@ export const stringFunctions = {
     numOfRequiredArguments: 2,
     evaluate: (...args: FValue[]) => {
       const text = valueToString(args[0]), index = Number(args[1])
+      if (!Number.isInteger(index)) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ index ] }))
+      }
       return text.charAt(index - 1) // 1-based index for CODAP string functions
     }
   },
@@ -29,8 +34,9 @@ export const stringFunctions = {
     }
   },
   // concat(string1, string2, …) Returns a string that is the concatenation of the string arguments.
+  // If 0 arguments are given, the result is the empty string. If 1 argument is given, the result is that argument.
   concat: {
-    numOfRequiredArguments: 2,
+    numOfRequiredArguments: 0,
     evaluate: (...args: FValue[]) => {
       return args.map(valueToString).join("")
     }
@@ -46,7 +52,7 @@ export const stringFunctions = {
     }
   },
   // findString(stringToLookIn, stringToFind, start) Takes three arguments, returning the position of
-  // stringToFind in stringToFind starting from start. The first character of stringToLookIn is numbered 1.
+  // stringToFind in stringToLookIn starting from start. The first character of stringToLookIn is numbered 1.
   // Returns 0 if stringToFind is not found. The third argument need not be present and defaults to 1.
   findString: {
     numOfRequiredArguments: 3,
@@ -54,6 +60,9 @@ export const stringFunctions = {
       const stringToLookIn = valueToString(args[0]),
         stringToFind = valueToString(args[1]),
         start = Number(args[2]) || 1
+      if (!Number.isInteger(start)) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ start ] }))
+      }
       return stringToLookIn.indexOf(stringToFind, start - 1) + 1
     }
   },
@@ -83,7 +92,7 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const stringToLookIn = valueToString(args[0]),
         pattern = valueToString(args[1])
-      return (stringToLookIn.match(new RegExp(pattern, "gmi")) || []).length
+      return (stringToLookIn.match(new RegExp(escapeStringRegexp(pattern), "gmi")) || []).length
     }
   },
   // repeatString(aString, numRepetitions) Takes two arguments, the first a string and the second an integer ≥ 0.
@@ -93,6 +102,9 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const aString = valueToString(args[0]),
         numRepetitions = Number(args[1])
+      if (!Number.isInteger(numRepetitions)) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ numRepetitions ] }))
+      }
       return aString.repeat(numRepetitions)
     }
   },
@@ -107,6 +119,12 @@ export const stringFunctions = {
         start = Number(args[1]),
         numChars = Number(args[2]),
         substituteString = valueToString(args[3])
+      if (!Number.isInteger(start) || start < 0) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ start ] }))
+      }
+      if (!Number.isInteger(numChars) || numChars < 0) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ numChars ] }))
+      }
       return aString.substring(0, start - 1) + substituteString + aString.substring(start + numChars - 1)
     }
   },
@@ -118,7 +136,7 @@ export const stringFunctions = {
       const aString = valueToString(args[0]),
         stringToFind = valueToString(args[1]),
         substituteString = valueToString(args[2])
-      return aString.replace(new RegExp(stringToFind, "g"), substituteString)
+      return aString.replace(new RegExp(escapeStringRegexp(stringToFind), "g"), substituteString)
     }
   },
   // sortItems(aString, delimiter) Treats the given string as a list. The default delimiter is ','.
@@ -147,6 +165,9 @@ export const stringFunctions = {
       const aString = valueToString(args[0]),
         separator = valueToString(args[1]),
         index = Number(args[2])
+      if (!Number.isInteger(index)) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ index ] }))
+      }
       return aString.split(separator)[index - 1]
     }
   },
@@ -166,6 +187,12 @@ export const stringFunctions = {
       const aString = valueToString(args[0]),
         position = Number(args[1]),
         length = Number(args[2])
+      if (!Number.isInteger(position) || position < 0) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ position ] }))
+      }
+      if (!Number.isInteger(length) || length < 0) {
+        throw new Error(t("DG.Formula.TypeError.description", { vars: [ length ] }))
+      }
       return aString.substring(position - 1, position + length - 1)
     }
   },
