@@ -1269,5 +1269,6 @@
     "DG.plugin.Transformers.title": "Transformers",
     "DG.plugin.Transformers.description": "Transform datasets with a collection of powerful tools.",
     "DG.plugin.Testimate.name": "Testimate",
-    "DG.plugin.Testimate.description": "Test hypotheses using classical inferential methods."
+    "DG.plugin.Testimate.description": "Test hypotheses using classical inferential methods.",
+    "DG.plugin.PurpleAir.title": "Purple Air"
 }
