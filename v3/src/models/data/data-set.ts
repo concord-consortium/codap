@@ -677,41 +677,6 @@ export const DataSet = V2Model.named("DataSet").props({
     return id ? getCase(id, options) : undefined
   }
 
-  function beforeIndexForInsert(index: number, beforeID?: string | string[]) {
-    if (!beforeID) { return self.cases.length }
-    return Array.isArray(beforeID)
-            ? self.caseIDMap.get(beforeID[index])
-            : self.caseIDMap.get(beforeID)
-  }
-
-  function afterIndexForInsert(index: number, afterID?: string | string[]) {
-    if (!afterID) { return self.cases.length }
-    return Array.isArray(afterID)
-            ? (self.caseIDMap.get(afterID[index]) || 0) + 1
-            : (self.caseIDMap.get(afterID) || 0) + 1
-  }
-
-  function insertCaseIDAtIndex(id: string, beforeIndex: number) {
-    const newCase = { __id__: id }
-    if ((beforeIndex != null) && (beforeIndex < self.cases.length)) {
-      self.cases.splice(beforeIndex, 0, newCase)
-      // increment indices of all subsequent cases
-      for (let i = beforeIndex + 1; i < self.cases.length; ++i) {
-        const aCase = self.cases[i]
-        const currentVal = self.caseIDMap.get(aCase.__id__)
-        if (currentVal != null) {
-          self.caseIDMap.set(aCase.__id__, currentVal + 1)
-        }
-      }
-    }
-    else {
-      self.cases.push(newCase)
-      beforeIndex = self.cases.length - 1
-    }
-    self.caseIDMap.set(self.cases[beforeIndex].__id__, beforeIndex)
-
-  }
-
   function setCaseValues(caseValues: ICase) {
     const index = self.caseIDMap.get(caseValues.__id__)
     if (index == null) { return }
@@ -972,18 +937,55 @@ export const DataSet = V2Model.named("DataSet").props({
 
       addCases(cases: ICaseCreation[], options?: IAddCaseOptions) {
         const { before, after } = options || {}
+
+        const beforePosition = before ? self.caseIDMap.get(before) : undefined
+        const _afterPosition = after ? self.caseIDMap.get(after) : undefined
+        const afterPosition = _afterPosition != null ? _afterPosition + 1 : undefined
+        const insertPosition = beforePosition ?? afterPosition ?? self.cases.length
+
+        // insert/append cases and empty values
         const ids: string[] = []
-        cases.forEach((aCase, index) => {
-          // shouldn't ever have to assign an id here since the middleware should do so
-          const { __id__ = uniqueCaseId() } = aCase
-          const insertPosition = after ? afterIndexForInsert(index, after) : beforeIndexForInsert(index, before)
-          self.attributes.forEach((attr: IAttribute) => {
-            const value = aCase[attr.id]
-            attr.addValue(value != null ? value : undefined, insertPosition)
-          })
-          insertCaseIDAtIndex(__id__, insertPosition ?? 0)
+        const _cases = cases.map(({ __id__ = uniqueCaseId() }) => {
           ids.push(__id__)
+          return { __id__ }
         })
+        const _values = new Array(cases.length)
+        if (insertPosition < self.cases.length) {
+          self.cases.splice(insertPosition, 0, ..._cases)
+          // update the indices of cases after the insert
+          self.caseIDMap.forEach((caseIndex, caseId) => {
+            if (caseIndex >= insertPosition) {
+              self.caseIDMap.set(caseId, caseIndex + cases.length)
+            }
+          })
+          // insert values for each attribute
+          self.attributesMap.forEach(attr => {
+            attr.addValues(_values, insertPosition)
+          })
+        }
+        else {
+          self.cases.push(..._cases)
+          // append values to each attribute
+          self.attributesMap.forEach(attr => {
+            attr.setLength(self.cases.length)
+          })
+        }
+        // update the indices for the appended cases
+        ids.forEach((caseId, index) => {
+          self.caseIDMap.set(caseId, insertPosition + index)
+        })
+
+        // copy any values provided
+        cases.forEach((aCase, index) => {
+          Object.keys(aCase).forEach(key => {
+            const attr = self.getAttribute(key)
+            const value = aCase[key]
+            if (attr && value != null) {
+              attr.setValue(insertPosition + index, value)
+            }
+          })
+        })
+
         // invalidate collectionGroups (including childCases)
         self.invalidateCollectionGroups()
         return ids
