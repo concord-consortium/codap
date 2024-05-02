@@ -188,7 +188,24 @@ context("codap plugins", () => {
     // Edit formula
     table.editFormula(newName, "Mass * 2")
     webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    // Edit formula also broadcasts an updateCases notification
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
     webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateCases notifications")
+    table.getGridCell(2, 2).dblclick()
+    table.getGridCell(2, 2).find("input").type("test{enter}")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateCollection notifications")
+    table.renameCollection("c1", "Mammals")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCollection/)
+    webView.clearAPITesterResponses()
+
+    // TODO Check for deleteCollection notifications when deleting the last attribute
+    // in a grouped or ungrouped collection. I couldn't figure out how to do this because
+    // attribute dropdown menus don't work with mouseSensor but dragging won't work without it
 
     cy.log("Broadcast global value change notifications")
     slider.changeVariableValue(8)
@@ -201,24 +218,48 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
     
     cy.log("Broadcast notifications involving dragging")
-    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
+    table.createNewTableFromToolshelf()
+    table.addNewAttribute()
+    table.addNewAttribute()
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast createCollection notifications")
+    table.moveAttributeToParent("newAttr2", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast moveAttribute notifications")
-    table.moveAttributeToParent("Sleep", "newCollection")
     // Move attribute within the ungrouped collection
-    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    table.moveAttributeToParent("newAttr", "headerDivider", 0)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
     // Move attribute to a different collection
-    table.moveAttributeToParent("Diet", "prevCollection")
+    table.moveAttributeToParent("newAttr", "prevCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
     // Move attribute within a true collection
-    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    table.moveAttributeToParent("newAttr", "headerDivider", 2)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteCollection notifications")
+    // Move the last attribute from the ungrouped collection to a new collection
+    table.moveAttributeToParent("AttributeName", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+    // Move the last attribute from a grouped collection to a new collection
+    table.moveAttributeToParent("AttributeName", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+    // Move the last attribute from a grouped collection to an existing collection
+    table.moveAttributeToParent("AttributeName", "headerDivider", 2)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.clearAPITesterResponses()
   })
 })

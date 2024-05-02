@@ -543,6 +543,7 @@ export const DataSet = V2Model.named("DataSet").props({
                                           .reduce((sum, collection) => sum += collection.attributes.length, 0)
             if (collectionAttrCount >= allAttrCount) {
               self.collections.splice(self.collections.length - 1, 1)
+              result.removedCollection = true
             }
           }
           this.invalidateCollectionGroups()

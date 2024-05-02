@@ -20,6 +20,15 @@ export const TableTileElements = {
   getCollectionTitle(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(".collection-title")
   },
+  renameCollection(collectionName: string, oldName?: string, collectionIndex = 1) {
+    this.getCollectionTitle(collectionIndex).click()
+    if (oldName) {
+      // NOTE This will leave the first letter of the old name until the UI for editing collection names is fixed
+      const deleteCommand = oldName.split("").reduce(cmd => `${cmd}{backspace}`, "")
+      this.getCollectionTitle(collectionIndex).find("input").type(deleteCommand)
+    }
+    this.getCollectionTitle(collectionIndex).find("input").type(`${collectionName}{enter}`)
+  },
   getColumnHeaders(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[role=columnheader]")
   },
