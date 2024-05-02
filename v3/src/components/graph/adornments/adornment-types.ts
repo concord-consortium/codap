@@ -10,6 +10,8 @@ import { IMeanAdornmentModel, MeanAdornmentModel } from "./univariate-measures/m
 import { IMedianAdornmentModel, MedianAdornmentModel } from "./univariate-measures/median/median-adornment-model"
 import { IStandardDeviationAdornmentModel, StandardDeviationAdornmentModel }
   from "./univariate-measures/standard-deviation/standard-deviation-adornment-model"
+import { IStandardErrorAdornmentModel, StandardErrorAdornmentModel }
+  from "./univariate-measures/standard-error/standard-error-adornment-model"
 import { IMeanAbsoluteDeviationAdornmentModel, MeanAbsoluteDeviationAdornmentModel }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
@@ -36,7 +38,11 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
     case "Plotted Function": return PlottedFunctionAdornmentModel
     case "Plotted Value": return PlottedValueAdornmentModel
     case "Standard Deviation": return StandardDeviationAdornmentModel
-    default: return UnknownAdornmentModel
+    case "Standard Error": return StandardErrorAdornmentModel
+    default: {
+      console.warn(`Unknown adornment type: ${adornmentSnap.type}`)
+      return UnknownAdornmentModel
+    }
   }
 }
 
@@ -44,11 +50,11 @@ export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispat
   BoxPlotAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
   MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
   MovablePointAdornmentModel, PlottedFunctionAdornmentModel, PlottedValueAdornmentModel,
-  StandardDeviationAdornmentModel, UnknownAdornmentModel)
+  StandardDeviationAdornmentModel, StandardErrorAdornmentModel, UnknownAdornmentModel)
 export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | ILSRLAdornmentModel |
   IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
   IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedFunctionAdornmentModel |
-  IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IUnknownAdornmentModel
+  IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IStandardErrorAdornmentModel | IUnknownAdornmentModel
 
 export const ParentAdornmentTypes = ["Univariate Measure"] as const
 export type ParentAdornmentType = typeof ParentAdornmentTypes[number]

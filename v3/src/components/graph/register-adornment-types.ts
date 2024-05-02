@@ -10,3 +10,4 @@ import "./adornments/univariate-measures/mean-absolute-deviation/mean-absolute-d
 import "./adornments/univariate-measures/median/median-adornment-registration"
 import "./adornments/univariate-measures/plotted-value/plotted-value-adornment-registration"
 import "./adornments/univariate-measures/standard-deviation/standard-deviation-adornment-registration"
+import "./adornments/univariate-measures/standard-error/standard-error-adornment-registration"
