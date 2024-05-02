@@ -34,10 +34,10 @@ export interface IGetCasesOptions extends IGetCaseOptions {
   count?: number;
 }
 export interface IAddCaseOptions {
-  // id(s) of case(s) before which to insert new cases
+  // id of case before/after which to insert new cases
   // if not specified, new cases are appended
-  before?: string | string[];
-  after?: string | string[];
+  before?: string;
+  after?: string;
 }
 
 export interface IAddAttributeOptions {
