@@ -12,7 +12,8 @@ import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
-import { createCollectionNotification } from "../../models/data/data-set-notifications"
+import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { INotification } from "../../models/history/apply-model-change"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
 
@@ -66,6 +67,19 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
       let collection: ICollectionModel | undefined
+
+      // Determine if the old collection will become empty and therefore get removed
+      const oldCollectionId = dataSet.getCollectionForAttribute(attrId)?.id
+      let removedOldCollection = false
+      if (oldCollectionId) {
+        if (oldCollectionId === dataSet.ungrouped.id) {
+          if (dataSet.ungroupedAttributes.length <= 1) removedOldCollection = true
+        } else {
+          const oldCollectionLength = dataSet.getGroupedCollection(oldCollectionId)?.attributes.length
+          if (oldCollectionLength && oldCollectionLength <= 1) removedOldCollection = true
+        }
+      }
+
       dataSet.applyModelChange(() => {
         collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
         if (collection) {
@@ -73,7 +87,10 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
         }
       }, {
         notifications: () => {
-          if (collection) return createCollectionNotification(collection, dataSet)
+          const notifications: INotification[] = []
+          if (removedOldCollection) notifications.push(deleteCollectionNotification(dataSet))
+          if (collection) notifications.push(createCollectionNotification(collection, dataSet))
+          return notifications
         },
         undoStringKey: "DG.Undo.caseTable.createCollection",
         redoStringKey: "DG.Redo.caseTable.createCollection"
