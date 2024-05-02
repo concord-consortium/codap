@@ -1130,6 +1130,6 @@ SC.stringsFor("tr", {
               "DG.plugin.Sampler.measures.percent-formula-pt-1": "100 * sayı",
               "DG.plugin.Sampler.measures.percent-formula-pt-2": " / sayı()",
               "DG.plugin.Sampler.measures.name-label": "Ölçümü isimlendir: ",
-              "DG.plugin.Testimate.name": "Testimate",
-              "DG.plugin.Testimate.description": "Test hypotheses using classical inferential methods."
+              "DG.plugin.Testimate.name": "İstatistiksel sınayıcı",
+              "DG.plugin.Testimate.description": "Bu eklentide klasik çıkarımsal yöntemleri kullanarak hipotezler test edebilirsiniz."
 });
