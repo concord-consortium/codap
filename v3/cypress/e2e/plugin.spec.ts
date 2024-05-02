@@ -199,12 +199,10 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
     webView.clearAPITesterResponses()
-  })
-
-  it('will broadcast notifications involving dragging', () => {
+    
+    cy.log("Broadcast notifications involving dragging")
     const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
     cy.visit(url)
-
     openAPITester()
     webView.toggleAPITesterFilter()
 
