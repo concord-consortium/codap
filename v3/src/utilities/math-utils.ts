@@ -105,3 +105,25 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
 export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }
+
+export function goodTickValue(iMin: number, iMax: number) {
+  const range = (iMin >= iMax) ? Math.abs(iMin) : iMax - iMin,
+    gap = range / 5
+  if (gap === 0) {
+    return 1
+  }
+  // We move to base 10, so we can get rid of the power of ten.
+  const logTrial = Math.log(gap) / Math.LN10,
+    floor = Math.floor(logTrial),
+    power = Math.pow(10.0, floor)
+
+  // Whatever is left is in the range 1 to 10. Choose desired number
+  let base = Math.pow(10.0, logTrial - floor)
+
+  if (base < 2) base = 1
+  else if (base < 5) base = 2
+  else base = 5
+
+  return Math.max(power * base, Number.MIN_VALUE)
+}
+

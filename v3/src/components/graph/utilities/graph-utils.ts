@@ -10,7 +10,7 @@ import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
   from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import { isFiniteNumber } from "../../../utilities/math-utils"
+import { goodTickValue, isFiniteNumber } from "../../../utilities/math-utils"
 import { IDomainOptions } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
@@ -24,27 +24,6 @@ import { t } from "../../../utilities/translation/translate"
  * This function closely follows V2's CellLinearAxisModel:_computeBoundsAndTickGap
  */
 export function computeNiceNumericBounds(min: number, max: number): { min: number, max: number } {
-
-  function computeTickGap(iMin: number, iMax: number) {
-    const range = (iMin >= iMax) ? Math.abs(iMin) : iMax - iMin,
-      gap = range / 5
-    if (gap === 0) {
-      return 1
-    }
-    // We move to base 10, so we can get rid of the power of ten.
-    const logTrial = Math.log(gap) / Math.LN10,
-      floor = Math.floor(logTrial),
-      power = Math.pow(10.0, floor)
-
-    // Whatever is left is in the range 1 to 10. Choose desired number
-    let base = Math.pow(10.0, logTrial - floor)
-
-    if (base < 2) base = 1
-    else if (base < 5) base = 2
-    else base = 5
-
-    return Math.max(power * base, Number.MIN_VALUE)
-  }
 
   const kAddend = 5,  // amount to extend scale
     kFactor = 2.5,
@@ -63,7 +42,7 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   } else if (min < 0 && max < 0 && max >= min / kFactor) {  // Snap to zero
     bounds.max = 0
   }
-  const tickGap = computeTickGap(bounds.min, bounds.max)
+  const tickGap = goodTickValue(bounds.min, bounds.max)
   if (tickGap !== 0) {
     bounds.min = (Math.floor(bounds.min / tickGap) - 0.5) * tickGap
     bounds.max = (Math.floor(bounds.max / tickGap) + 1.5) * tickGap
