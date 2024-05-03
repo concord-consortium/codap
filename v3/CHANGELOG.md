@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 3.0.0-pre.1628 - May 3, 2024
+
+### ✨ Features & Improvements:
+- **PT-187516358:** DI Attribute Notifications
+- **PT-187401278:** Components animate into position and size
+
+### 🐞 Bug Fixes:
+- **PT-187527563:** Document with an attribute computed by a formula does not restore properly
+- **PT-187533902:** Adding 10,000 cases to a dataset takes too long
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  156058 bytes |                            -0.2% |
+|  index.js | 5243162 bytes |                            0.85% |
+
 ## Version 3.0.0-pre.1522 - April 26, 2024
 
 ### ✨ Features & Improvements:
