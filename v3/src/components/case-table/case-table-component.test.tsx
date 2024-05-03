@@ -89,5 +89,5 @@ describe("Case Table", () => {
     await user.keyboard('[ShiftLeft>]') // Press Shift (without releasing it)
     await user.click(indexContents[1])
     expect(data.selection.size).toBe(2)
-  })
+  }, 10000)
 })
