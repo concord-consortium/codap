@@ -2,8 +2,8 @@ import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { t } from "../../../utilities/translation/translate"
 import { hideAttributeNotification } from "../../../models/data/data-set-notifications"
+import { t } from "../../../utilities/translation/translate"
 
 export const HideShowMenuList = () => {
   const data = useDataSetContext()

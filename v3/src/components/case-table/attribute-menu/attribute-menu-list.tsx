@@ -64,10 +64,9 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
         result = data.removeAttribute(attrId)
       }, {
         notifications: () => {
-          const raNotification = removeAttributesNotification([attrId], data)
-          return result?.removedCollection
-            ? [deleteCollectionNotification(data), raNotification]
-            : raNotification
+          const notifications = [removeAttributesNotification([attrId], data)]
+          if (result?.removedCollection) notifications.unshift(deleteCollectionNotification(data))
+          return notifications
         },
         undoStringKey: "DG.Undo.caseTable.deleteAttribute",
         redoStringKey: "DG.Redo.caseTable.deleteAttribute"
