@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 3.0.0-pre.1631 - May 3, 2024
+
+### ✨ Features & Improvements:
+- **PT-187458550:** DI initial component requests
+- **PT-187516358:** DI Attribute Notifications
+- **PT-187401278:** Components animate into position and size
+- **PT-187531276:** CODAP provides **randomBinomial** and **randomNormal**
+- **PT-181840375:** The menu bar displays the current Version and build number
+
+### 🐞 Bug Fixes:
+- **PT-187533902:** Adding 10,000 cases to a dataset takes too long
+- **PT-187527563:** Document with an attribute computed by a formula does not restore properly
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  156316 bytes |                           -0.17% |
+|  index.js | 5198791 bytes |                            1.09% |
+
 ## Version 3.0.0-pre.1522 - April 26, 2024
 
 ### ✨ Features & Improvements:
