@@ -22,7 +22,7 @@ export function getCaseValues(caseId: string, collectionId: string, dataSet: IDa
     dataSet.ungroupedAttributes
 
   const values: DICaseValues = {}
-  const actualCaseIndex = dataSet.cases.findIndex(actualCase => actualCase.__id__ === caseId)
+  const actualCaseIndex = dataSet.caseIDMap.get(caseId) ?? -1
   attributes.map(attribute => {
     if (attribute?.name) {
       values[attribute.name] = dataSet.pseudoCaseMap.get(caseId)?.pseudoCase[attribute.id] ??
