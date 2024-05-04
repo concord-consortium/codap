@@ -1,8 +1,8 @@
 import { t } from "../../utilities/translation/translate"
+import { appState } from "../../models/app-state"
+import { uiState } from "../../models/ui-state"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, DIResources, DIValues } from "../data-interactive-types"
-import { uiState } from "../../models/ui-state"
-import { appState } from "../../models/app-state"
 
 const componentNotFoundResult = { success: false, values: { error: t("V3.DI.Error.componentNotFound") } } as const
 
@@ -11,7 +11,10 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
-    appState.document.deleteTile(component.id)
+    const { document } = appState
+    document.applyModelChange(() => {
+      document.content?.deleteOrHideTile(component.id)
+    })
 
     return { success: true }
   },

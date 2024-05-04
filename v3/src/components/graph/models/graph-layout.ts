@@ -124,6 +124,9 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @override setTileExtent(width: number, height: number) {
+    if (width < 0 || height < 0) {
+      return
+    }
     super.setTileExtent(width, height)
     this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }

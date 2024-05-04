@@ -6,6 +6,7 @@ import {
 } from '../formula-types'
 import { equal, evaluateNode } from './function-utils'
 import { arithmeticFunctions } from './arithmetic-functions'
+import { stringFunctions } from './string-functions'
 import { lookupFunctions } from './lookup-functions'
 import { otherFunctions } from './other-functions'
 import { aggregateFunctions } from './aggregate-functions'
@@ -76,6 +77,8 @@ export const fnRegistry = {
   },
 
   ...arithmeticFunctions,
+
+  ...stringFunctions,
 
   ...lookupFunctions,
 

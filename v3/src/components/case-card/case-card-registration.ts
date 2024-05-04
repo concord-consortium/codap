@@ -15,7 +15,8 @@ registerTileContentInfo({
   type: kCaseCardTileType,
   prefix: kCaseCardIdPrefix,
   modelClass: CaseCardModel,
-  defaultContent: () => ({ type: kCaseCardTileType })
+  defaultContent: () => ({ type: kCaseCardTileType }),
+  hideOnClose: true
 })
 
 registerTileComponentInfo({

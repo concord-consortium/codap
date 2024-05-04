@@ -5,12 +5,14 @@ import throttle from "lodash/throttle"
 import {useResizeDetector} from "react-resize-detector"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { uniqueName } from "../../utilities/js-utils"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useCollectionContext } from "../../hooks/use-collection-context"
-import { t } from "../../utilities/translation/translate"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
+import { useCollectionContext } from "../../hooks/use-collection-context"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { IAttribute } from "../../models/data/attribute"
+import { createAttributesNotification, updateCollectionNotification } from "../../models/data/data-set-notifications"
+import { uniqueName } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 
 export const CollectionTitle = observer(function CollectionTitle() {
   const data = useDataSetContext()
@@ -70,15 +72,28 @@ export const CollectionTitle = observer(function CollectionTitle() {
 
   const handleChangeName = (newName?: string) => {
     if (newName) {
-      collection?.setName(newName)
+      data?.applyModelChange(() => {
+        collection?.setName(newName)
+      }, {
+        notifications: () => updateCollectionNotification(collection, data),
+        undoStringKey: "DG.Undo.caseTable.collectionNameChange",
+        redoStringKey: "DG.Redo.caseTable.collectionNameChange"
+      })
     }
   }
 
   const handleAddNewAttribute = () => {
-    const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
-      (aName: string) => !data?.attributes.find(attr => aName === attr.name)
-     )
-    data?.addAttribute({ name: newAttrName }, { collection: collectionId })
+    let attribute: IAttribute | undefined
+    data?.applyModelChange(() => {
+      const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
+        (aName: string) => !data.attributes.find(attr => aName === attr.name)
+      )
+      attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
+    }, {
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+      undoStringKey: "DG.Undo.caseTable.createAttribute",
+      redoStringKey: "DG.Redo.caseTable.createAttribute"
+    })
   }
 
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")

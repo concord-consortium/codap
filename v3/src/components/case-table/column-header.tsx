@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTablePortal } from "./case-table-portal"
@@ -68,9 +69,21 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
   const handleClose = (accept: boolean) => {
     const trimTitle = editingAttrName?.trim()
     if (accept && editingAttrId && trimTitle) {
-      data?.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
-        (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
-       ))
+      const editingAttribute = data?.getAttribute(editingAttrId)
+      const oldName = editingAttribute?.name
+      data?.applyModelChange(() => {
+        data.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
+          (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
+        ))
+      }, {
+        notifications: () => {
+          if (editingAttribute && editingAttribute?.name !== oldName) {
+            return updateAttributesNotification([editingAttribute], data)
+          }
+        },
+        undoStringKey: "DG.Undo.caseTable.editAttribute",
+        redoStringKey: "DG.Redo.caseTable.editAttribute"
+      })
     }
     setEditingAttrId("")
     setEditingAttrName("")

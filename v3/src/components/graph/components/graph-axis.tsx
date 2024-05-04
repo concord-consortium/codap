@@ -73,8 +73,8 @@ export const GraphAxis = observer(function GraphAxis(
         select(wrapperElt)
           .selectAll<SVGRectElement, number>('rect.axis-background')
           .attr('transform', transform)
-          .attr('width', width)
-          .attr('height', bounds.height)
+          .attr('width', Math.max(0, width))
+          .attr('height', Math.max(0, bounds.height))
       }
     }, { name: "GraphAxis.installBackground" })
   }, [layout, place, wrapperElt])

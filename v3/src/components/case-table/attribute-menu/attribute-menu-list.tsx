@@ -3,9 +3,13 @@ import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import {
+  deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
+} from "../../../models/data/data-set-notifications"
+import { IAttributeChangeResult } from "../../../models/data/data-set-types"
+import { t } from "../../../utilities/translation/translate"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
-import { t } from "../../../utilities/translation/translate"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {
@@ -28,6 +32,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const rerandomizeDisabled = !attribute?.formula?.isRandomFunctionPresent
 
   const handleMenuItemClick = (menuItem: string) => {
+    // TODO Don't forget to broadcast notifications as these menu items are implemented!
     toast({
       title: 'Menu item clicked',
       description: `You clicked on ${menuItem} on ${columnName}`,
@@ -40,6 +45,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     caseMetadata?.applyModelChange(
       () => caseMetadata?.setIsHidden(column.key, true),
       {
+        notifications: hideAttributeNotification([column.key], data),
         undoStringKey: "DG.Undo.caseTable.hideAttribute",
         redoStringKey: "DG.Redo.caseTable.hideAttribute"
       }
@@ -50,12 +56,18 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     const attrId = column.key
     const attributeToDelete = data?.attrFromID(attrId)
     if (data && attributeToDelete) {
+      let result: IAttributeChangeResult | undefined
       // instantiate values so they're captured by undo/redo patches
       attributeToDelete.prepareSnapshot()
       // delete the attribute
       data.applyModelChange(() => {
-        data.removeAttribute(attrId)
+        result = data.removeAttribute(attrId)
       }, {
+        notifications: () => {
+          const notifications = [removeAttributesNotification([attrId], data)]
+          if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
+          return notifications
+        },
         undoStringKey: "DG.Undo.caseTable.deleteAttribute",
         redoStringKey: "DG.Redo.caseTable.deleteAttribute"
       })

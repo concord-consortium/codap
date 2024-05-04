@@ -37,6 +37,7 @@ import { V2Model } from "./v2-model"
 export const kDefaultFormatStr = ".3~f"
 
 const isDevelopment = () => process.env.NODE_ENV !== "production"
+const isProduction = () => process.env.NODE_ENV === "production"
 
 export type IValueType = string | number | boolean | undefined
 
@@ -170,7 +171,7 @@ export const Attribute = V2Model.named("Attribute").props({
       withoutUndo({ suppressWarning: true })
       self.values = [...self.strValues]
     }
-    if (!isDevelopment() && !self.shouldSerializeValues) {
+    if (isProduction() && !self.shouldSerializeValues) {
       // In development, values is set to the volatile strValues (see .afterCreate()). If the attribute values should
       // NOT be serialized (non-empty formula) we need to temporarily set it to undefined.
       withoutUndo({ suppressWarning: true })
@@ -184,7 +185,7 @@ export const Attribute = V2Model.named("Attribute").props({
       withoutUndo({ suppressWarning: true })
       self.values = undefined
     }
-    if (!isDevelopment() && !self.shouldSerializeValues) {
+    if (isProduction() && !self.shouldSerializeValues) {
       // values should be set back to the volatile strValues in production mode.
       withoutUndo({ suppressWarning: true })
       self.values = self.strValues
@@ -315,6 +316,18 @@ export const Attribute = V2Model.named("Attribute").props({
       }
     }
     self.incChangeCount()
+  },
+  setLength(length: number) {
+    if (self.strValues.length < length) {
+      self.strValues = self.strValues.concat(new Array(length - self.strValues.length).fill(""))
+      if (isProduction()) {
+        // in production mode, `strValues` shares the `values` array since it isn't frozen
+        self.values = self.strValues
+      }
+    }
+    if (self.numValues.length < length) {
+      self.numValues = self.numValues.concat(new Array(length - self.numValues.length).fill(NaN))
+    }
   },
   removeValues(index: number, count = 1) {
     if ((index != null) && (index < self.strValues.length) && (count > 0)) {

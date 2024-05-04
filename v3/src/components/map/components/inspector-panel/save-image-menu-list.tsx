@@ -20,7 +20,7 @@ export const SaveImageMenuList = ({tile}: IProps) => {
   }
 
   return (
-    <MenuList data-testid="trash-menu-list">
+    <MenuList data-testid="save-image-menu-list">
       <MenuItem onClick={()=>handleMenuItemClick("Open in Draw Tool")}>
         {t('DG.DataDisplayMenu.copyAsImage')}
       </MenuItem>

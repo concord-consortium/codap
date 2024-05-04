@@ -1,3 +1,4 @@
+import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { TableTileElements as table } from "../support/elements/table-tile"
@@ -6,7 +7,7 @@ import { WebViewTileElements as webView } from "../support/elements/web-view-til
 
 context("codap plugins", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    const url = `${Cypress.config("index")}?sample=mammals&dashboard`
     cy.visit(url)
   })
   const openAPITester = () => {
@@ -145,6 +146,64 @@ context("codap plugins", () => {
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast attribute notifications")
+
+    cy.log("Broadcast hideAttributes notifications")
+    c.selectTile("table", 0)
+    table.openAttributeMenu("Mammal")
+    table.selectMenuItemFromAttributeMenu("Hide Attribute")
+    webView.confirmAPITesterResponseContains(/"operation":\s"hideAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast unhideAttributes notifications")
+    table.showAllAttributes()
+    webView.confirmAPITesterResponseContains(/"operation":\s"unhideAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast createAttributes notifications")
+    // + button in collection header
+    table.addNewAttribute()
+    webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
+    webView.clearAPITesterResponses()
+    // New Attribute button in ruler menu
+    table.getRulerButton().click()
+    table.selectItemFromRulerMenu("New Attribute")
+    webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteAttributes notifications")
+    table.deleteAttrbute("newAttr2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteAttributes/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateAttributes notifications")
+    // Rename attribute
+    const newName = "newerAttr"
+    table.renameAttribute("newAttr", newName)
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+    // Edit attribute properties
+    table.editAttributeProperties(newName, "", null, null, null, null, null)
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    webView.clearAPITesterResponses()
+    // Edit formula
+    table.editFormula(newName, "Mass * 2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    // Edit formula also broadcasts an updateCases notification
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateCases notifications")
+    table.getGridCell(2, 2).dblclick()
+    table.getGridCell(2, 2).find("input").type("test{enter}")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateCollection notifications")
+    table.renameCollection("c1", "Mammals")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCollection/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast global value change notifications")
     slider.changeVariableValue(8)
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
@@ -154,5 +213,66 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
     webView.clearAPITesterResponses()
+
+    cy.log("Broadcast notifications involving dragging")
+    const url = `${Cypress.config("index")}?mouseSensor`
+    cy.visit(url)
+    table.createNewTableFromToolshelf()
+    table.addNewAttribute()
+    table.addNewAttribute()
+    openAPITester()
+    webView.toggleAPITesterFilter()
+
+    cy.log("Broadcast createCollection notifications")
+    table.moveAttributeToParent("newAttr2", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast moveAttribute notifications")
+    // Move attribute within the ungrouped collection
+    table.moveAttributeToParent("newAttr", "headerDivider", 0)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+    // Move attribute to a different collection
+    table.moveAttributeToParent("newAttr", "prevCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+    // Move attribute within a true collection
+    table.moveAttributeToParent("newAttr", "headerDivider", 2)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteCollection notifications")
+    // Move the last attribute from the ungrouped collection to a new collection
+    table.moveAttributeToParent("AttributeName", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+    // Move the last attribute from a grouped collection to a new collection
+    table.moveAttributeToParent("AttributeName", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+    // Move the last attribute from a grouped collection to an existing collection
+    table.moveAttributeToParent("AttributeName", "headerDivider", 2)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.clearAPITesterResponses()
+  })
+
+  it("will broadcoast deleteCollection when deleting the last attribute from a collection", () => {
+    cy.log("Broadcast deleteCollection notifications when deleting the final attribute")
+    cfm.openExampleDocument("Four Seals")
+    cy.wait(2000)
+    table.getTableTile().should("contain.text", "Data_Set_1")
+    table.deleteAttrbute("species")
+    openAPITester()
+    webView.toggleAPITesterFilter()
+    table.deleteAttrbute("animal_id")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+
+    // TODO Check for deleteCollection notifications when deleting the last attribute
+    // in the ungrouped collection. This currently doesn't result in the ungrouped collection
+    // being removed.
   })
 })

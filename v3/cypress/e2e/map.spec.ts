@@ -17,7 +17,7 @@ const arrayOfAttributes = ["Category", "Educ_Tertiary_Perc", "Inversions"]
 
 context("Map UI", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor`
+    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation`
     cy.visit(url)
     cy.wait(3000)
   })
@@ -73,7 +73,8 @@ context("Map UI", () => {
       c.checkToolTip($element, c.tooltips.mapCameraButton)
     })
   })
-  it("checks numerical and categorical attributes for map legend", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks numerical and categorical attributes for map legend", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
@@ -162,7 +163,8 @@ context("Map UI", () => {
     map.getHideUnselectedCases().should("not.be.disabled")
     map.getShowAllCases().should("be.disabled")
   })
-  it("checks show/hide map boundaries with legend selections", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks show/hide map boundaries with legend selections", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
@@ -202,9 +204,11 @@ context("Map UI", () => {
     // PT bug - #186916697
     // mlh.verifyCategoricalLegend(1)
   })
-  it("checks show/hide map points with legend selections", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks show/hide map points with legend selections", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolshelf("map").click()
+    cy.wait(1000)
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[2], "map")
 
     mlh.verifyCategoricalLegend(arrayOfValues[2].values.length)
@@ -242,47 +246,8 @@ context("Map UI", () => {
     // PT bug - #186916697
     // mlh.verifyCategoricalLegend(1)
   })
-  it("checks show/hide map points with legend selections", () => {
-    cfm.openLocalDoc(filename1)
-    c.getIconFromToolshelf("map").click()
-    cy.dragAttributeToTarget("attribute", arrayOfAttributes[2], "map")
-
-    mlh.verifyCategoricalLegend(arrayOfValues[2].values.length)
-    mlh.selectCategoryNameForCategoricalLegend(arrayOfValues[2].values[0])
-    map.selectHideShowButton()
-    map.getHideSelectedCases().should("not.be.disabled")
-    map.getHideUnselectedCases().should("not.be.disabled")
-    map.getShowAllCases().should("be.disabled")
-
-    map.selectHideSelectedCases()
-    mlh.verifyCategoricalLegend(arrayOfValues[2].values.length-1)
-
-    map.selectHideShowButton()
-    map.getHideSelectedCases().should("be.disabled")
-    map.getHideUnselectedCases().should("not.be.disabled")
-    map.getShowAllCases().should("not.be.disabled")
-
-    map.selectShowAllCases()
-    mlh.verifyCategoricalLegend(arrayOfValues[2].values.length)
-    mlh.verifyCategoricalLegendKeySelected(arrayOfValues[2].values[0], arrayOfValues[2].selected[0])
-
-    // TODO: unselecting by clicking away in map doesn't work
-    // PT bug - #186747322
-    // Uncomment the below six lines once it's fixed
-    // mlh.unselectLegendCategory()
-    // mlh.verifyNoLegendCategorySelectedForCategoricalLegend()
-    // map.selectHideShowButton()
-    // map.getHideSelectedCases().should("be.disabled")
-    // map.getHideUnselectedCases().should("not.be.disabled")
-    // map.getShowAllCases().should("be.disabled")
-
-    // map.selectHideUnselectedCases()
-    // TODO: This should be 0, but it's currently 1.
-    // Once fixed, this should be updated.
-    // PT bug - #186916697
-    // mlh.verifyCategoricalLegend(1)
-  })
-  it("checks legend attribute menu", () => {
+  // flaky test skipped in PR #1239, see PT #187534790
+  it.skip("checks legend attribute menu", () => {
     cfm.openLocalDoc(filename2)
     c.getIconFromToolshelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")

@@ -5,12 +5,12 @@ import { getTileEnvironment } from "../tiles/tile-environment"
 import { withUndoRedoStrings } from "./codap-undo-types"
 import { withoutUndo } from "./without-undo"
 
-interface INotification {
+export interface INotification {
   message: DIMessage
   callback?: iframePhone.ListenerCallback
 }
 export interface IApplyModelChangeOptions {
-  notification?: INotification | (() => INotification | undefined)
+  notifications?: INotification | INotification[] | (() => (INotification | INotification[] | undefined))
   redoStringKey?: string
   undoStringKey?: string
 }
@@ -29,14 +29,21 @@ export function applyModelChange(self: IAnyStateTreeNode) {
         withoutUndo()
       }
 
-      // Broadcast notification to plugins
-      if (options?.notification) {
+      // Broadcast notifications to plugins
+      if (options?.notifications) {
         const tileEnv = getTileEnvironment(self)
-        const { notification } = options
-        const _notification = notification instanceof Function ? notification() : notification
-        if (_notification) {
-          const { message, callback } = _notification
-          tileEnv?.notify?.(message, callback ?? (() => null))
+
+        // Convert notifications to INotification[]
+        const { notifications } = options
+        const actualNotifications = notifications instanceof Function ? notifications() : notifications
+        if (actualNotifications) {
+          const notificationArray = Array.isArray(actualNotifications) ? actualNotifications : [actualNotifications]
+
+          // Actually broadcast the notifications
+          notificationArray.forEach(_notification => {
+            const { message, callback } = _notification
+            tileEnv?.notify?.(message, callback ?? (() => null))
+          })
         }
       }
 

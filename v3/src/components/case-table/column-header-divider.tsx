@@ -2,7 +2,8 @@ import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IAttribute } from "../../models/data/attribute"
 import { isCollectionModel } from "../../models/data/collection"
-import { IMoveAttributeOptions } from "../../models/data/data-set-types"
+import { IAttributeChangeResult, IMoveAttributeOptions } from "../../models/data/data-set-types"
+import { deleteCollectionNotification, moveAttributeNotification } from "../../models/data/data-set-notifications"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -32,12 +33,14 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
                                             ? { before: firstAttr?.id }
                                             : { after: columnKey }
+    const notifications = moveAttributeNotification(data)
     if (collection === srcCollection) {
       if (isCollectionModel(collection)) {
         // move the attribute within a collection
         data.applyModelChange(
           () => collection.moveAttribute(dragAttrId, options),
           {
+            notifications,
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
             redoStringKey: "DG.Redo.dataContext.moveAttribute"
           }
@@ -48,6 +51,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
         data.applyModelChange(
           () => data.moveAttribute(dragAttrId, options),
           {
+            notifications,
             undoStringKey: "DG.Undo.dataContext.moveAttribute",
             redoStringKey: "DG.Redo.dataContext.moveAttribute"
           }
@@ -56,9 +60,15 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     }
     else {
       // move the attribute to a new collection
+      let result: IAttributeChangeResult | undefined
       data.applyModelChange(
-        () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
+        () => {
+          result = data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options })
+        },
         {
+          notifications: () => result?.removedCollectionId
+            ? [deleteCollectionNotification(data), notifications]
+            : notifications,
           undoStringKey: "DG.Undo.dataContext.moveAttribute",
           redoStringKey: "DG.Redo.dataContext.moveAttribute"
         }

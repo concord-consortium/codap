@@ -20,6 +20,15 @@ export const TableTileElements = {
   getCollectionTitle(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(".collection-title")
   },
+  renameCollection(collectionName: string, oldName?: string, collectionIndex = 1) {
+    this.getCollectionTitle(collectionIndex).click()
+    if (oldName) {
+      // NOTE This will leave the first letter of the old name until the UI for editing collection names is fixed
+      const deleteCommand = oldName.split("").reduce(cmd => `${cmd}{backspace}`, "")
+      this.getCollectionTitle(collectionIndex).find("input").type(deleteCommand)
+    }
+    this.getCollectionTitle(collectionIndex).find("input").type(`${collectionName}{enter}`)
+  },
   getColumnHeaders(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[role=columnheader]")
   },
@@ -195,8 +204,14 @@ export const TableTileElements = {
   getHideShowButton() {
     return c.getInspectorPanel().find("[data-testid=hide-show-button]")
   },
-  getAttributesButton() {
-    return c.getInspectorPanel().find("[data-testid=table-attributes-button]")
+  getRulerButton() {
+    return c.getInspectorPanel().find("[data-testid=ruler-button]")
+  },
+  getRulerMenuItem(item: string) {
+    return cy.get("[data-testid=ruler-menu-list] button").contains(item)
+  },
+  selectItemFromRulerMenu(item: string) {
+    this.getRulerMenuItem(item).click({ force: true })
   },
   verifyAttributeValues(attributes, values, collectionIndex = 1) {
     attributes.forEach(a => {
@@ -216,8 +231,8 @@ export const TableTileElements = {
       })
     })
   },
-  moveAttributeToParent(name, moveType) {
-    cy.dragAttributeToTarget("table", name, moveType)
+  moveAttributeToParent(name: string, moveType: string, targetNumber?: number) {
+    cy.dragAttributeToTarget("table", name, moveType, targetNumber)
   },
   getExpandAllGroupsButton(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[title=\"expand all groups\"]")

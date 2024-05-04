@@ -104,8 +104,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       select(abovePointsGroupRef.current).attr("transform", translate)
       select(pixiContainerRef.current)
         .attr("x", x).attr("y", y) // translate won't work in Safari!
-        .attr("width", `${layout.plotWidth}px`)
-        .attr("height", `${layout.plotHeight}px`)
+        .attr("width", `${Math.max(0, layout.plotWidth)}px`)
+        .attr("height", `${Math.max(0, layout.plotHeight)}px`)
 
       pixiPoints?.resize(layout.plotWidth, layout.plotHeight)
     }
