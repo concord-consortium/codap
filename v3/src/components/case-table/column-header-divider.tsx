@@ -66,7 +66,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
           result = data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options })
         },
         {
-          notifications: () => result?.removedCollection
+          notifications: () => result?.removedCollectionId
             ? [deleteCollectionNotification(data), notifications]
             : notifications,
           undoStringKey: "DG.Undo.dataContext.moveAttribute",

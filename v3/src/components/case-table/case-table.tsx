@@ -69,6 +69,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
       let collection: ICollectionModel | undefined
 
       // Determine if the old collection will become empty and therefore get removed
+      // TODO Revisit this after collection overhaul. Can we just use dataSet.getCollection(oldCollectionId)
+      // to determine if the old collection still exists?
       const oldCollectionId = dataSet.getCollectionForAttribute(attrId)?.id
       let removedOldCollection = false
       if (oldCollectionId) {

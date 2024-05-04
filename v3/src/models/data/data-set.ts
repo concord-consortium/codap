@@ -523,8 +523,8 @@ export const DataSet = V2Model.named("DataSet").props({
             }
             // remove the entire collection if it was the last attribute
             else {
+              result.removedCollectionId = oldCollection.id
               this.removeCollection(oldCollection)
-              result.removedCollection = true
             }
           }
           if (newCollection) {
@@ -542,8 +542,8 @@ export const DataSet = V2Model.named("DataSet").props({
             const collectionAttrCount = self.collections
                                           .reduce((sum, collection) => sum += collection.attributes.length, 0)
             if (collectionAttrCount >= allAttrCount) {
+              result.removedCollectionId = self.ungrouped.id
               self.collections.splice(self.collections.length - 1, 1)
-              result.removedCollection = true
             }
           }
           this.invalidateCollectionGroups()
@@ -960,8 +960,8 @@ export const DataSet = V2Model.named("DataSet").props({
               collection.removeAttribute(attributeID)
             }
             else {
+              result.removedCollectionId = collection.id
               self.removeCollection(collection)
-              result.removedCollection = true
             }
           }
 

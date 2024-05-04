@@ -59,7 +59,7 @@ export interface IMoveAttributeCollectionOptions extends IMoveAttributeOptions {
 }
 
 export interface IAttributeChangeResult {
-  removedCollection?: boolean // True if changing the attribute resulted in its collection being removed
+  removedCollectionId?: string
 }
 
 // remnant of derived DataSet implementation that isn't in active use
