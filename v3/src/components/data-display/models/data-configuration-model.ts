@@ -368,7 +368,7 @@ export const DataConfigurationModel = types
             if (extend) dataset.selectCases(selection)
             else dataset.setSelectedCases(selection)
           }, {
-            notification: () => selectCasesNotification(dataset)
+            notifications: () => selectCasesNotification(dataset)
           })
         }
       },

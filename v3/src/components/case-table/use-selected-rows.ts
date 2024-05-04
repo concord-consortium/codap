@@ -32,7 +32,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
     data?.applyModelChange(() => {
       data.setSelectedCases(rows)
     }, {
-      notification: () => selectCasesNotification(data)
+      notifications: () => selectCasesNotification(data)
     })
     --syncCount.current
     _setSelectedRows(rowSet)
@@ -128,7 +128,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
           data?.applyModelChange(() => {
             data.selectCases(casesToSelect, true)
           }, {
-            notification: () => selectCasesNotification(data)
+            notifications: () => selectCasesNotification(data)
           })
         }
       }
@@ -138,7 +138,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       data?.applyModelChange(() => {
         data.selectCases([caseId], !isCaseSelected)
       }, {
-        notification: () => selectCasesNotification(data)
+        notifications: () => selectCasesNotification(data)
       })
       anchorCase.current = !isCaseSelected ? caseId : null
     }
@@ -146,7 +146,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       data?.applyModelChange(() => {
         data.setSelectedCases([caseId])
       }, {
-        notification: () => selectCasesNotification(data)
+        notifications: () => selectCasesNotification(data)
       })
       anchorCase.current = caseId
     }

@@ -126,7 +126,7 @@ export const MapGridModel = types.model("MapGridModel", {
             dataset.setSelectedCases(rect.cases)
           }
         }, {
-          notification: () => selectCasesNotification(dataset)
+          notifications: () => selectCasesNotification(dataset)
         })
       }
     },
@@ -146,7 +146,7 @@ export const MapGridModel = types.model("MapGridModel", {
       dataset?.applyModelChange(() => {
         dataset.selectAll(false)
       }, {
-        notification: () => selectCasesNotification(dataset)
+        notifications: () => selectCasesNotification(dataset)
       })
     },
 

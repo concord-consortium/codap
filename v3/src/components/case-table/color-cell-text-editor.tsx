@@ -60,7 +60,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     data?.applyModelChange(() => {
       data.setSelectedCases([])
     }, {
-      notification: () => selectCasesNotification(data)
+      notifications: () => selectCasesNotification(data)
     })
   }, [data])
 

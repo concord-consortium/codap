@@ -63,7 +63,7 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
       dataset.selectCases([caseID], false)
     }
   }, {
-    notification: () => selectCasesNotification(dataset)
+    notifications: () => selectCasesNotification(dataset)
   })
 }
 

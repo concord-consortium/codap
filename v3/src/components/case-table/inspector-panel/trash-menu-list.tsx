@@ -11,7 +11,7 @@ export const TrashMenuList = () => {
     data?.applyModelChange(() => {
       data.setSelectedCases(data.cases.map(c => c.__id__))
     }, {
-      notification: () => selectCasesNotification(data)
+      notifications: () => selectCasesNotification(data)
     })
   }
 

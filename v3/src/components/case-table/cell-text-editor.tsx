@@ -31,7 +31,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     data?.applyModelChange(() => {
     data?.setSelectedCases([])
   }, {
-    notification: () => selectCasesNotification(data)
+    notifications: () => selectCasesNotification(data)
   })
   }, [data])
 

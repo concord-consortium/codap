@@ -137,7 +137,7 @@ export const MapContentModel = DataDisplayContentModel
         dataset?.applyModelChange(() => {
           dataset.selectAll(false)
         }, {
-          notification: () => selectCasesNotification(dataset)
+          notifications: () => selectCasesNotification(dataset)
         })
       })
     }
