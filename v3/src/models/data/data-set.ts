@@ -50,9 +50,9 @@ import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
 } from "./collection"
 import {
-  CaseGroup, CaseID, IAddAttributeOptions, IAddCaseOptions, ICase, ICaseCreation, IDerivationSpec,
-  IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions, IMoveAttributeOptions,
-  symIndex, symParent, uniqueCaseId
+  CaseGroup, CaseID, IAddAttributeOptions, IAddCaseOptions, IAttributeChangeResult, ICase, ICaseCreation,
+  IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions,
+  IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
@@ -505,6 +505,7 @@ export const DataSet = V2Model.named("DataSet").props({
         self.collections.remove(collection)
       },
       setCollectionForAttribute(attributeId: string, options?: IMoveAttributeCollectionOptions) {
+        const result: IAttributeChangeResult = {}
         const attribute = self.attributes.find(attr => attr.id === attributeId)
         const newCollection = options?.collection ? getGroupedCollection(options.collection) : undefined
         const oldCollection = getCollectionForAttribute(attributeId)
@@ -522,6 +523,7 @@ export const DataSet = V2Model.named("DataSet").props({
             }
             // remove the entire collection if it was the last attribute
             else {
+              result.removedCollectionId = oldCollection.id
               this.removeCollection(oldCollection)
             }
           }
@@ -540,11 +542,13 @@ export const DataSet = V2Model.named("DataSet").props({
             const collectionAttrCount = self.collections
                                           .reduce((sum, collection) => sum += collection.attributes.length, 0)
             if (collectionAttrCount >= allAttrCount) {
+              result.removedCollectionId = self.ungrouped.id
               self.collections.splice(self.collections.length - 1, 1)
             }
           }
           this.invalidateCollectionGroups()
         }
+        return result
       },
       // if beforeCollectionId is not specified, new collection is last (child-most)
       moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
@@ -914,6 +918,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       removeAttribute(attributeID: string) {
+        const result: IAttributeChangeResult = {}
         const attribute = self.getAttribute(attributeID)
 
         if (attribute) {
@@ -924,6 +929,7 @@ export const DataSet = V2Model.named("DataSet").props({
               collection.removeAttribute(attributeID)
             }
             else {
+              result.removedCollectionId = collection.id
               self.removeCollection(collection)
             }
           }
@@ -933,6 +939,7 @@ export const DataSet = V2Model.named("DataSet").props({
           // remove attribute from attributesMap
           self.attributesMap.delete(attribute.id)
         }
+        return result
       },
 
       addCases(cases: ICaseCreation[], options?: IAddCaseOptions) {

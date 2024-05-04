@@ -5,7 +5,7 @@ import { getTileEnvironment } from "../tiles/tile-environment"
 import { withUndoRedoStrings } from "./codap-undo-types"
 import { withoutUndo } from "./without-undo"
 
-interface INotification {
+export interface INotification {
   message: DIMessage
   callback?: iframePhone.ListenerCallback
 }

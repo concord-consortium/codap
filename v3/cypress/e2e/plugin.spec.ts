@@ -1,3 +1,4 @@
+import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { TableTileElements as table } from "../support/elements/table-tile"
@@ -188,6 +189,19 @@ context("codap plugins", () => {
     // Edit formula
     table.editFormula(newName, "Mass * 2")
     webView.confirmAPITesterResponseContains(/"operation":\s"updateAttributes/)
+    // Edit formula also broadcasts an updateCases notification
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateCases notifications")
+    table.getGridCell(2, 2).dblclick()
+    table.getGridCell(2, 2).find("input").type("test{enter}")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast updateCollection notifications")
+    table.renameCollection("c1", "Mammals")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateCollection/)
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast global value change notifications")
@@ -199,28 +213,66 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
     webView.clearAPITesterResponses()
-  })
 
-  it('will broadcast notifications involving dragging', () => {
-    const url = `${Cypress.config("index")}?mouseSensor&sample=mammals&dashboard`
+    cy.log("Broadcast notifications involving dragging")
+    const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
-
+    table.createNewTableFromToolshelf()
+    table.addNewAttribute()
+    table.addNewAttribute()
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast createCollection notifications")
+    table.moveAttributeToParent("newAttr2", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast moveAttribute notifications")
-    table.moveAttributeToParent("Sleep", "newCollection")
     // Move attribute within the ungrouped collection
-    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    table.moveAttributeToParent("newAttr", "headerDivider", 0)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
     // Move attribute to a different collection
-    table.moveAttributeToParent("Diet", "prevCollection")
+    table.moveAttributeToParent("newAttr", "prevCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
     // Move attribute within a true collection
-    table.moveAttributeToParent("Diet", "headerDivider", 3)
+    table.moveAttributeToParent("newAttr", "headerDivider", 2)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteCollection notifications")
+    // Move the last attribute from the ungrouped collection to a new collection
+    table.moveAttributeToParent("AttributeName", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+    // Move the last attribute from a grouped collection to a new collection
+    table.moveAttributeToParent("AttributeName", "newCollection")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
+    webView.clearAPITesterResponses()
+    // Move the last attribute from a grouped collection to an existing collection
+    table.moveAttributeToParent("AttributeName", "headerDivider", 2)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+    webView.clearAPITesterResponses()
+  })
+
+  it("will broadcoast deleteCollection when deleting the last attribute from a collection", () => {
+    cy.log("Broadcast deleteCollection notifications when deleting the final attribute")
+    cfm.openExampleDocument("Four Seals")
+    cy.wait(2000)
+    table.getTableTile().should("contain.text", "Data_Set_1")
+    table.deleteAttrbute("species")
+    openAPITester()
+    webView.toggleAPITesterFilter()
+    table.deleteAttrbute("animal_id")
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
+
+    // TODO Check for deleteCollection notifications when deleting the last attribute
+    // in the ungrouped collection. This currently doesn't result in the ungrouped collection
+    // being removed.
   })
 })

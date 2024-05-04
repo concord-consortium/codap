@@ -1,12 +1,14 @@
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
+import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
 import { DIAttribute, DIResources, DISingleValues } from "./data-interactive-types"
+import { getCaseValues } from "./data-interactive-utils"
 
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
@@ -28,6 +30,44 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
       units: values.unit ?? undefined
     }
+  }
+}
+
+export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
+  const caseId = c.__id__
+
+  const context = {
+    id: dataContext.id,
+    name: dataContext.name
+  }
+
+  const caseGroup = dataContext.pseudoCaseMap.get(caseId)
+  const collectionId = caseGroup?.collectionId ?? dataContext.ungrouped.id
+
+  const parent = dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__
+
+  const _collection = dataContext.getCollection(collectionId)
+  const collectionIndex = dataContext.getCollectionIndex(collectionId)
+  const parentCollection = dataContext.collections[collectionIndex - 1]
+  const parentCollectionInfo = parentCollection ? {
+    id: parentCollection.id,
+    name: parentCollection.name
+  } : undefined
+  const collection = _collection ? {
+    id: _collection.id,
+    name: _collection.name,
+    parent: parentCollectionInfo
+  } : undefined
+
+  const values = getCaseValues(caseId, collectionId, dataContext)
+
+  return {
+    id: caseGroup?.pseudoCase.__id__,
+    itemId: dataContext.getCase(caseId)?.__id__,
+    parent,
+    context,
+    collection,
+    values
   }
 }
 

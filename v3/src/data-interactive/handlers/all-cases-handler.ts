@@ -1,5 +1,6 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { DICaseValues, DIHandler, DIResources } from "../data-interactive-types"
+import { getCaseValues } from "../data-interactive-utils"
+import { DIHandler, DIResources } from "../data-interactive-types"
 
 export const diAllCasesHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -18,9 +19,6 @@ export const diAllCasesHandler: DIHandler = {
     const { collection, dataContext } = resources
     if (!collection || !dataContext) return { success: false }
 
-    const attributes = dataContext.getGroupedCollection(collection.id)?.attributes ??
-      dataContext.ungroupedAttributes
-
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
       const id = c.pseudoCase.__id__
 
@@ -31,13 +29,7 @@ export const diAllCasesHandler: DIHandler = {
       const childCaseIds = c.childCaseIds && Array.from(c.childCaseIds)
       const children = childPseudoCaseIds ?? childCaseIds ?? []
 
-      const values: DICaseValues = {}
-      const actualCaseIndex = dataContext.cases.findIndex(actualCase => actualCase.__id__ === id)
-      attributes.map(attribute => {
-        if (attribute?.name) {
-          values[attribute.name] = c.pseudoCase[attribute.id] ?? attribute?.value(actualCaseIndex)
-        }
-      })
+      const values = getCaseValues(id, collection.id, dataContext)
 
       return {
         case: { id, parent, children, values },

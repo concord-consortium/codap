@@ -1,3 +1,6 @@
+import { IDataSet } from "../models/data/data-set"
+import { DICaseValues } from "./data-interactive-types"
+
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
   let tName = name ?? ""
   const tReg = /\([^)]*\)$/ // Identifies parenthesized substring at end
@@ -12,4 +15,20 @@ export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
     tName = 'attr'
   }
   return tName
+}
+
+export function getCaseValues(caseId: string, collectionId: string, dataSet: IDataSet) {
+  const attributes = dataSet.getGroupedCollection(collectionId)?.attributes ??
+    dataSet.ungroupedAttributes
+
+  const values: DICaseValues = {}
+  const actualCaseIndex = dataSet.caseIDMap.get(caseId) ?? -1
+  attributes.map(attribute => {
+    if (attribute?.name) {
+      values[attribute.name] = dataSet.pseudoCaseMap.get(caseId)?.pseudoCase[attribute.id] ??
+        attribute?.value(actualCaseIndex)
+    }
+  })
+
+  return values
 }

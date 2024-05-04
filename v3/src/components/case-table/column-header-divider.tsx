@@ -2,8 +2,9 @@ import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IAttribute } from "../../models/data/attribute"
 import { isCollectionModel } from "../../models/data/collection"
-import { IMoveAttributeOptions } from "../../models/data/data-set-types"
-import { getCollectionAttrs, moveAttributeNotification } from "../../models/data/data-set-utils"
+import { IAttributeChangeResult, IMoveAttributeOptions } from "../../models/data/data-set-types"
+import { deleteCollectionNotification, moveAttributeNotification } from "../../models/data/data-set-notifications"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
@@ -59,10 +60,15 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
     }
     else {
       // move the attribute to a new collection
+      let result: IAttributeChangeResult | undefined
       data.applyModelChange(
-        () => data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options }),
+        () => {
+          result = data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options })
+        },
         {
-          notifications,
+          notifications: () => result?.removedCollectionId
+            ? [deleteCollectionNotification(data), notifications]
+            : notifications,
           undoStringKey: "DG.Undo.dataContext.moveAttribute",
           redoStringKey: "DG.Redo.dataContext.moveAttribute"
         }

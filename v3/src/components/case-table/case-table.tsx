@@ -10,7 +10,10 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
+import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { INotification } from "../../models/history/apply-model-change"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
 
@@ -63,12 +66,34 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
+      let collection: ICollectionModel | undefined
+
+      // Determine if the old collection will become empty and therefore get removed
+      // TODO Revisit this after collection overhaul. Can we just use dataSet.getCollection(oldCollectionId)
+      // to determine if the old collection still exists?
+      const oldCollectionId = dataSet.getCollectionForAttribute(attrId)?.id
+      let removedOldCollection = false
+      if (oldCollectionId) {
+        if (oldCollectionId === dataSet.ungrouped.id) {
+          if (dataSet.ungroupedAttributes.length <= 1) removedOldCollection = true
+        } else {
+          const oldCollectionLength = dataSet.getGroupedCollection(oldCollectionId)?.attributes.length
+          if (oldCollectionLength && oldCollectionLength <= 1) removedOldCollection = true
+        }
+      }
+
       dataSet.applyModelChange(() => {
-        const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
+        collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
         if (collection) {
           lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
         }
       }, {
+        notifications: () => {
+          const notifications: INotification[] = []
+          if (removedOldCollection) notifications.push(deleteCollectionNotification(dataSet))
+          if (collection) notifications.push(createCollectionNotification(collection, dataSet))
+          return notifications
+        },
         undoStringKey: "DG.Undo.caseTable.createCollection",
         redoStringKey: "DG.Redo.caseTable.createCollection"
       })
