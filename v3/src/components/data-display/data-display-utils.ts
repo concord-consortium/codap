@@ -76,11 +76,16 @@ interface IHandleClickOnBarProps {
 
 export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
   const { primeSplitCat, secSplitCat, legendCat, primeCat, secCat } = barCover
+  const { dataset } = dataConfig
   const extendSelection = event.shiftKey
   if (primeCat) {
-    dataConfig?.selectCasesForCategoryValues(
-      primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat, extendSelection
-    )
+    dataset?.applyModelChange(() => {
+      dataConfig.selectCasesForCategoryValues(
+        primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat, extendSelection
+      )
+    }, {
+      notifications: () => selectCasesNotification(dataset)
+    })
   }
 }
 

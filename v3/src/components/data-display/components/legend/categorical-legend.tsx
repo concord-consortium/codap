@@ -3,6 +3,7 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
+// import { selectCasesNotification } from "../../../../models/data/data-set-utils"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
@@ -247,16 +248,26 @@ export const CategoricalLegend = observer(
                 .attr('width', keySize)
                 .attr('height', keySize)
                 .on('click', (event, i: number) => {
-                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                  // This is breaking the graph-legend cypress test
+                  // dataset?.applyModelChange(() => {
+                    dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                  // }, {
+                  //   notifications: () => selectCasesNotification(dataset)
+                  // })
                 })
               sel.append('text')
                 .on('click', (event, i: number) => {
-                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                  // This is breaking the graph-legend cypress test
+                  // dataset?.applyModelChange(() => {
+                    dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                  // }, {
+                  //   notifications: () => selectCasesNotification(dataset)
+                  // })
                 })
             }
           })
         }
-      }, [dataConfiguration, dragBehavior])
+      }, [dataConfiguration, /*dataset,*/ dragBehavior])
 
     useEffect(function respondToSelectionChange() {
       return onAnyAction(dataset, action => {

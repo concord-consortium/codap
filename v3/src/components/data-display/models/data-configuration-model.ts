@@ -6,7 +6,7 @@ import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
-import {idOfChildmostCollectionForAttributes, selectCasesNotification} from "../../../models/data/data-set-utils"
+import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
 import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -364,12 +364,8 @@ export const DataConfigurationModel = types
           : []
 
         if (selection) {
-          dataset?.applyModelChange(() => {
-            if (extend) dataset.selectCases(selection)
-            else dataset.setSelectedCases(selection)
-          }, {
-            notifications: () => selectCasesNotification(dataset)
-          })
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
         }
       },
 
@@ -392,12 +388,8 @@ export const DataConfigurationModel = types
             : []
         }
         if (selection) {
-          // dataset?.applyModelChange(() => {
-            if (extend) dataset?.selectCases(selection)
-            else dataset?.setSelectedCases(selection)
-          // }, {
-          //   notification: () => selectCasesNotification(dataset)
-          // })
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
         }
       },
       allCasesForCategoryAreSelected: cachedFnWithArgsFactory({
@@ -428,12 +420,8 @@ export const DataConfigurationModel = types
         const selection = this.selectedCasesForLegendQuantile(quantile)
         if (selection) {
           const dataset = self.dataset
-          // dataset?.applyModelChange(() => {
-            if (extend) dataset?.selectCases(selection)
-            else dataset?.setSelectedCases(selection)
-          // }, {
-          //   notification: () => selectCasesNotification(dataset)
-          // })
+          if (extend) dataset?.selectCases(selection)
+          else dataset?.setSelectedCases(selection)
         }
       },
       casesInQuantileAreSelected(quantile: number): boolean {

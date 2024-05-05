@@ -104,10 +104,11 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       height.current = 0
       if (!event.shiftKey) {
         datasetsArray.forEach(dataset => {
+          // This is breaking the graph-legend cypress test
           // dataset.applyModelChange(() => {
             dataset.setSelectedCases([])
           // }, {
-          //   notification: () => selectCasesNotification(dataset)
+          //   notifications: () => selectCasesNotification(dataset)
           // })
         })
       }

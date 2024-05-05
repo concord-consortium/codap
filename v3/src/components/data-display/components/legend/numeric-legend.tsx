@@ -1,6 +1,7 @@
 import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import { selectCasesNotification } from "../../../../models/data/data-set-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {getStringBounds} from "../../../axis/axis-utils"
@@ -51,7 +52,12 @@ export const NumericLegend =
             width: tileWidth,
             marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
             clickHandler: (quantile: number, extend: boolean) => {
-              dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
+              const dataset = dataConfiguration?.dataset
+              dataset?.applyModelChange(() => {
+                dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
+              }, {
+                notifications: () => selectCasesNotification(dataset)
+              })
             },
             casesInQuantileSelectedHandler: (quantile: number) => {
               return !!dataConfiguration?.casesInQuantileAreSelected(quantile)

@@ -2,14 +2,15 @@ import {useDndContext, useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
-import {CodapMap} from "./codap-map"
-import {isMapContentModel} from "../models/map-content-model"
+import { selectCasesNotification } from '../../../models/data/data-set-utils'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
+import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
+import {ITileBaseProps} from '../../tiles/tile-base-props'
+import {isMapContentModel} from "../models/map-content-model"
 import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
+import {CodapMap} from "./codap-map"
 
 export const MapComponent = observer(function MapComponent({tile}: ITileBaseProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
@@ -23,7 +24,12 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
     if (mapModel) {
       mapModel.leafletMapState.setOnClickCallback((event: MouseEvent) => {
         if (!event.shiftKey && !event.metaKey && !mapModel._ignoreLeafletClicks) {
-          mapModel.deselectAllCases()
+          const dataSet = mapModel.dataConfiguration?.dataset
+          dataSet?.applyModelChange(() => {
+            mapModel.deselectAllCases()
+          }, {
+            notifications: () => selectCasesNotification(dataSet)
+          })
         }
       })
       return () => mapModel.leafletMapState.setOnClickCallback()

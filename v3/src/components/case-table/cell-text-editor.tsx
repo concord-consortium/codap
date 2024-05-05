@@ -29,10 +29,10 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   useEffect(()=>{
     data?.applyModelChange(() => {
-    data?.setSelectedCases([])
-  }, {
-    notifications: () => selectCasesNotification(data)
-  })
+      data?.setSelectedCases([])
+    }, {
+      notifications: () => selectCasesNotification(data)
+    })
   }, [data])
 
   const handleChange = (value: string) => {
