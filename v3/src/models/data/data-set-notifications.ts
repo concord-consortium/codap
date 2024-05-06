@@ -18,6 +18,17 @@ function notification(operation: string, result: any, dataSet?: IDataSet, _callb
   return { message: { action, resource, values }, callback }
 }
 
+export function updateDataContextNotification(dataSet: IDataSet) {
+  const result = {
+    success: true,
+    description: dataSet.description,
+    importDate: dataSet.importDate,
+    name: dataSet.name,
+    sourceName: dataSet.sourceName
+  }
+  return notification("updateDataContext", result, dataSet)
+}
+
 export function createCollectionNotification(collection: ICollectionModel, dataSet?: IDataSet) {
   const result = {
     success: true,

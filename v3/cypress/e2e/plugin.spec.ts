@@ -146,6 +146,14 @@ context("codap plugins", () => {
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast updateDataContext notifications")
+    c.focusComponent("table")
+    table.getDatasetInfoButton().click()
+    table.getDatasetDescriptionTextArea().type("test")
+    table.submitDatasetInfo()
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateDataContext/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast attribute notifications")
 
     cy.log("Broadcast hideAttributes notifications")

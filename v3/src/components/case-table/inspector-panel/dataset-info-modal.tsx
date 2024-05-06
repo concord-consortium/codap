@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea,
   Tooltip } from "@chakra-ui/react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { updateDataContextNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 
@@ -20,11 +21,15 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const [description, setDescription] = useState(data?.description || "")
 
   const handleCloseInfoModal = () => {
-    data?.setName(datasetName)
-    data?.setSourceName(sourceName)
-    data?.setImportDate(importDate)
-    data?.setDescription(description)
-    setShowInfoModal(false)
+    data?.applyModelChange(() => {
+      data.setName(datasetName)
+      data.setSourceName(sourceName)
+      data.setImportDate(importDate)
+      data.setDescription(description)
+      setShowInfoModal(false)
+    }, {
+      notifications: () => updateDataContextNotification(data)
+    })
   }
 
   const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),

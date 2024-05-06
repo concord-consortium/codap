@@ -41,6 +41,9 @@ export const ComponentElements = {
   getComponentTitleBar(component, index = 0) {
     return this.getComponentTile(component, index).find(".component-title-bar")
   },
+  focusComponent(component, index = 0) {
+    this.getComponentTitleBar(component, index).click()
+  },
   checkComponentFocused(component, focused = true, index = 0) {
     const check = `${focused ? "" : "not."}have.class`
     this.getComponentTitleBar(component, index).should(check, "focusTile")

@@ -195,6 +195,12 @@ export const TableTileElements = {
   getDatasetInfoButton() {
     return c.getInspectorPanel().find("[data-testid=dataset-info-button]")
   },
+  getDatasetDescriptionTextArea() {
+    return cy.get("[data-testid=dataset-description-input")
+  },
+  submitDatasetInfo() {
+    cy.get("[data-testid=Apply-button]").click()
+  },
   getResizeButton() {
     return c.getInspectorPanel().find("[data-testid=resize-table-button]")
   },
