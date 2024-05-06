@@ -1,5 +1,6 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-interactive/data-interactive-type-utils"
+import { INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT } from "../../data-interactive/data-interactive-types"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
@@ -77,4 +78,8 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
     cases: cases?.map(c => convertCaseToV2FullCase(c, data))
   }
   return notification("updateCases", result, data)
+}
+
+export function selectCasesNotification(dataset: IDataSet) {
+  return () => notification("selectCases", INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT, dataset)
 }

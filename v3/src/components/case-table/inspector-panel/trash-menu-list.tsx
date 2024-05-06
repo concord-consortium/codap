@@ -1,7 +1,7 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { selectCasesNotification } from "../../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
 
 export const TrashMenuList = () => {
@@ -11,7 +11,7 @@ export const TrashMenuList = () => {
     data?.applyModelChange(() => {
       data.setSelectedCases(data.cases.map(c => c.__id__))
     }, {
-      notifications: () => selectCasesNotification(data)
+      notifications: selectCasesNotification(data)
     })
   }
 

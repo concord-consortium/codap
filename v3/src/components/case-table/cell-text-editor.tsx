@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
-import { selectCasesNotification } from "../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../models/data/data-set-notifications"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { TRenderEditCellProps } from "./case-table-types"
 
@@ -31,7 +31,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     data?.applyModelChange(() => {
       data?.setSelectedCases([])
     }, {
-      notifications: () => selectCasesNotification(data)
+      notifications: selectCasesNotification(data)
     })
   }, [data])
 

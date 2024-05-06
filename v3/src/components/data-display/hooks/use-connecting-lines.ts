@@ -1,7 +1,7 @@
 import { curveLinear, line, select } from "d3"
 import { tip as d3tip } from "d3-v6-tip"
 import { useCallback } from "react"
-import { selectCasesNotification } from "../../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../../models/data/data-set-notifications"
 import { useDataConfigurationContext } from "./use-data-configuration-context"
 import { PixiBackgroundPassThroughEvent, PixiPoints } from "../pixi/pixi-points"
 import { t } from "../../../utilities/translation/translate"

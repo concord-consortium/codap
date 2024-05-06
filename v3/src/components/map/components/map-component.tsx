@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import { selectCasesNotification } from '../../../models/data/data-set-utils'
+import { selectCasesNotification } from '../../../models/data/data-set-notifications'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
@@ -28,7 +28,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
           dataSet?.applyModelChange(() => {
             mapModel.deselectAllCases()
           }, {
-            notifications: () => selectCasesNotification(dataSet)
+            notifications: selectCasesNotification(dataSet)
           })
         }
       })

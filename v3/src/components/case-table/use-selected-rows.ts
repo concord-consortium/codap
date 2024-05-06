@@ -3,9 +3,8 @@ import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
-import {
-  collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCasesNotification
-} from "../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../models/data/data-set-notifications"
+import { collectionCaseIdFromIndex, collectionCaseIndexFromId } from "../../models/data/data-set-utils"
 import { OnScrollClosestRowIntoViewFn, TCellClickArgs } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCollectionContext } from "../../hooks/use-collection-context"
@@ -32,7 +31,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
     data?.applyModelChange(() => {
       data.setSelectedCases(rows)
     }, {
-      notifications: () => selectCasesNotification(data)
+      notifications: selectCasesNotification(data)
     })
     --syncCount.current
     _setSelectedRows(rowSet)
@@ -128,7 +127,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
           data?.applyModelChange(() => {
             data.selectCases(casesToSelect, true)
           }, {
-            notifications: () => selectCasesNotification(data)
+            notifications: selectCasesNotification(data)
           })
         }
       }
@@ -138,7 +137,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       data?.applyModelChange(() => {
         data.selectCases([caseId], !isCaseSelected)
       }, {
-        notifications: () => selectCasesNotification(data)
+        notifications: selectCasesNotification(data)
       })
       anchorCase.current = !isCaseSelected ? caseId : null
     }
@@ -146,7 +145,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       data?.applyModelChange(() => {
         data.setSelectedCases([caseId])
       }, {
-        notifications: () => selectCasesNotification(data)
+        notifications: selectCasesNotification(data)
       })
       anchorCase.current = caseId
     }

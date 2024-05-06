@@ -1,6 +1,4 @@
 import { isAlive } from "mobx-state-tree"
-import { INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT } from "../../data-interactive/data-interactive-types"
-import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
@@ -41,20 +39,5 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
   for (let i = collections.length - 1; i >= 0; --i) {
     const collection = collections[i]
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
-  }
-}
-
-export function selectCasesNotification(dataset: IDataSet) {
-  const action = "notify"
-  // This is the resource specified in the documentation.
-  // V2 returned the resource dataContextChangeNotice[${dataset.name}].
-  const resource = `dataContext[${dataset.name}].selectionList`
-  const values = {
-    operation: "selectCases",
-    result: INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT
-  }
-  return {
-    message: { action, resource, values },
-    callback: (response: any) => debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
   }
 }

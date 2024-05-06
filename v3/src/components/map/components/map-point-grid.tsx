@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
-import { selectCasesNotification } from "../../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../../models/data/data-set-notifications"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -58,7 +58,7 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
             dataset?.applyModelChange(() => {
               mapGridModel.selectCasesInRect(longIndex, latIndex, true, tExtend)
             }, {
-              notifications: () => selectCasesNotification(dataset)
+              notifications: selectCasesNotification(dataset)
             })
             return false
           },

@@ -13,7 +13,7 @@ import {
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
 import { IBarCover } from "../graph/graphing-types"
-import { selectCasesNotification } from "../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../models/data/data-set-notifications"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -63,7 +63,7 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
       dataset.selectCases([caseID], false)
     }
   }, {
-    notifications: () => selectCasesNotification(dataset)
+    notifications: selectCasesNotification(dataset)
   })
 }
 
@@ -84,7 +84,7 @@ export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover 
         primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat, extendSelection
       )
     }, {
-      notifications: () => selectCasesNotification(dataset)
+      notifications: selectCasesNotification(dataset)
     })
   }
 }

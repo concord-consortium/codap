@@ -4,7 +4,7 @@ import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
-import { selectCasesNotification } from "../../../models/data/data-set-utils"
+import { selectCasesNotification } from "../../../models/data/data-set-notifications"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
@@ -108,7 +108,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
           // dataset.applyModelChange(() => {
             dataset.setSelectedCases([])
           // }, {
-          //   notifications: () => selectCasesNotification(dataset)
+          //   notifications: selectCasesNotification(dataset)
           // })
         })
       }
@@ -148,7 +148,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
             dataset.selectCases(caseIDsToSelect, true)
             dataset.selectCases(caseIDsToDeselect, false)
           }, {
-            notifications: () => selectCasesNotification(dataset)
+            notifications: selectCasesNotification(dataset)
           })
         })
       }
