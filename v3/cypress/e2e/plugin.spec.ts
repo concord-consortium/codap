@@ -153,6 +153,9 @@ context("codap plugins", () => {
     table.submitDatasetInfo()
     webView.confirmAPITesterResponseContains(/"operation":\s"updateDataContext/)
     webView.clearAPITesterResponses()
+    c.changeComponentTitle("table", "Mammals2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateDataContext/)
+    webView.clearAPITesterResponses()
 
     cy.log("Broadcast attribute notifications")
 

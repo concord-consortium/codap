@@ -24,7 +24,8 @@ export function updateDataContextNotification(dataSet: IDataSet) {
     description: dataSet.description,
     importDate: dataSet.importDate,
     name: dataSet.name,
-    sourceName: dataSet.sourceName
+    sourceName: dataSet.sourceName,
+    title: dataSet._title
   }
   return notification("updateDataContext", result, dataSet)
 }
