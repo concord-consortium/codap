@@ -81,5 +81,21 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
 }
 
 export function selectCasesNotification(dataset: IDataSet) {
-  return () => notification("selectCases", INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT, dataset)
+  function mapFromArray(arr: string[]) {
+    const map: Record<string, boolean> = {}
+    arr.forEach(str => map[str] = true)
+    return map
+  }
+  
+  const oldSelection = Array.from(dataset.selection)
+  const oldSelectionMap = mapFromArray(oldSelection)
+  return () => {
+    const newSelection = Array.from(dataset.selection)
+    const newSelectionMap = mapFromArray(newSelection)
+    const addedCaseIds = newSelection.filter(caseId => !oldSelectionMap[caseId])
+    const removedCaseIds = oldSelection.filter(caseId => !newSelectionMap[caseId])
+    if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
+
+    return notification("selectCases", INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT, dataset)
+  }
 }
