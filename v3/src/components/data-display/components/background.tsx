@@ -148,7 +148,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
             dataset.selectCases(caseIDsToSelect, true)
             dataset.selectCases(caseIDsToDeselect, false)
           }, {
-            notifications: selectCasesNotification(dataset)
+            notifications: selectCasesNotification(dataset, true)
           })
         })
       }

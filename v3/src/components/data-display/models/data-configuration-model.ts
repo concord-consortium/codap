@@ -419,9 +419,8 @@ export const DataConfigurationModel = types
       selectCasesForLegendQuantile(quantile: number, extend = false) {
         const selection = this.selectedCasesForLegendQuantile(quantile)
         if (selection) {
-          const dataset = self.dataset
-          if (extend) dataset?.selectCases(selection)
-          else dataset?.setSelectedCases(selection)
+          if (extend) self.dataset?.selectCases(selection)
+          else self.dataset?.setSelectedCases(selection)
         }
       },
       casesInQuantileAreSelected(quantile: number): boolean {

@@ -132,8 +132,7 @@ export const MapContentModel = DataDisplayContentModel
     },
     deselectAllCases() {
       self.layers.forEach(layer => {
-        const dataset = layer.dataConfiguration.dataset
-        dataset?.selectAll(false)
+        layer.dataConfiguration.dataset?.selectAll(false)
       })
     }
   }))

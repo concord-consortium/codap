@@ -63,7 +63,7 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
       dataset.selectCases([caseID], false)
     }
   }, {
-    notifications: selectCasesNotification(dataset)
+    notifications: selectCasesNotification(dataset, extendSelection)
   })
 }
 
@@ -84,7 +84,7 @@ export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover 
         primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat, extendSelection
       )
     }, {
-      notifications: selectCasesNotification(dataset)
+      notifications: selectCasesNotification(dataset, extendSelection)
     })
   }
 }

@@ -58,7 +58,7 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
             dataset?.applyModelChange(() => {
               mapGridModel.selectCasesInRect(longIndex, latIndex, true, tExtend)
             }, {
-              notifications: selectCasesNotification(dataset)
+              notifications: selectCasesNotification(dataset, tExtend)
             })
             return false
           },

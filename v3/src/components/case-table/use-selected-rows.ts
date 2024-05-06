@@ -127,7 +127,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
           data?.applyModelChange(() => {
             data.selectCases(casesToSelect, true)
           }, {
-            notifications: selectCasesNotification(data)
+            notifications: selectCasesNotification(data, true)
           })
         }
       }
@@ -137,7 +137,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
       data?.applyModelChange(() => {
         data.selectCases([caseId], !isCaseSelected)
       }, {
-        notifications: selectCasesNotification(data)
+        notifications: selectCasesNotification(data, true)
       })
       anchorCase.current = !isCaseSelected ? caseId : null
     }

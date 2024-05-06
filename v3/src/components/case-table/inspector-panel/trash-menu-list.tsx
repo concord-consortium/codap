@@ -9,7 +9,7 @@ export const TrashMenuList = () => {
 
   const handleSelectAllCases = () => {
     data?.applyModelChange(() => {
-      data.setSelectedCases(data.cases.map(c => c.__id__))
+      data.selectAll()
     }, {
       notifications: selectCasesNotification(data)
     })

@@ -56,7 +56,7 @@ export const NumericLegend =
               dataset?.applyModelChange(() => {
                 dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
               }, {
-                notifications: selectCasesNotification(dataset)
+                notifications: selectCasesNotification(dataset, extend)
               })
             },
             casesInQuantileSelectedHandler: (quantile: number) => {

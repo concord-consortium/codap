@@ -137,8 +137,7 @@ export const MapGridModel = types.model("MapGridModel", {
       this._selectCasesInRect(longIndex, latIndex, false, false)
     },
     deselectAll() {
-      const dataset = self.dataConfiguration?.dataset
-      dataset?.selectAll(false)
+      self.dataConfiguration?.dataset?.selectAll(false)
     },
 
   }))
