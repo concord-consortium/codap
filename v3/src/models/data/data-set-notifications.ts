@@ -1,6 +1,5 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-interactive/data-interactive-type-utils"
-import { INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT } from "../../data-interactive/data-interactive-types"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
@@ -80,13 +79,13 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   return notification("updateCases", result, data)
 }
 
-export function selectCasesNotification(dataset: IDataSet) {
+export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   function mapFromArray(arr: string[]) {
     const map: Record<string, boolean> = {}
     arr.forEach(str => map[str] = true)
     return map
   }
-  
+
   const oldSelection = Array.from(dataset.selection)
   const oldSelectionMap = mapFromArray(oldSelection)
   return () => {
@@ -96,6 +95,20 @@ export function selectCasesNotification(dataset: IDataSet) {
     const removedCaseIds = oldSelection.filter(caseId => !newSelectionMap[caseId])
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
 
-    return notification("selectCases", INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT, dataset)
+    const convertCaseIdsToV2FullCases = (caseIds: string[]) => {
+      return caseIds.map(caseId => {
+        const c = dataset.getCase(caseId)
+        return c && convertCaseToV2FullCase(c, dataset)
+      }).filter(c => !!c)
+    }
+    const cases = convertCaseIdsToV2FullCases(extend ? addedCaseIds : newSelection)
+    const removedCases = extend ? convertCaseIdsToV2FullCases(removedCaseIds) : undefined
+    const result = {
+      success: true,
+      cases,
+      removedCases,
+      extend: !!extend
+    }
+    return notification("selectCases", result, dataset)
   }
 }

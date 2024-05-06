@@ -171,7 +171,3 @@ export interface DIAction {
 }
 export type DIRequest = DIAction | DIAction[]
 export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
-
-// This constant is used as a placeholder for select cases notification results,
-// which haven't been implemented yet
-export const INCOMPLETE_SELECT_CASES_NOTIFICATION_RESULT = undefined
