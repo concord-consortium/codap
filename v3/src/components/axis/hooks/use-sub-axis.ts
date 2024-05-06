@@ -151,13 +151,13 @@ export const useSubAxis = ({
             role = axisPlaceToAttrRole[axisPlace],
             categories: string[] = dataConfig?.categoryArrayForAttrRole(role) ?? [],
             numCategories = categories.length,
+            hasCategories = !(categories.length === 1 && categories[0] === "__main__"),
             bandWidth = subAxisLength / numCategories,
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
               collision),
             duration = (isAnimating() && !swapInProgress.current &&
-              dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0,
-            hasCategories = !(categories.length === 1 && categories[0] === "__main__")
+              dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
 
           // Fill out dragInfo for use in drag callbacks
           const dI = dragInfo.current
