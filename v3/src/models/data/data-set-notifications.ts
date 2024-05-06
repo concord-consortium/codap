@@ -93,6 +93,8 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
     const newSelectionMap = mapFromArray(newSelection)
     const addedCaseIds = newSelection.filter(caseId => !oldSelectionMap[caseId])
     const removedCaseIds = oldSelection.filter(caseId => !newSelectionMap[caseId])
+
+    // Only send a notification if the selection has actually changed
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
 
     const convertCaseIdsToV2FullCases = (caseIds: string[]) => {
@@ -101,14 +103,13 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
         return c && convertCaseToV2FullCase(c, dataset)
       }).filter(c => !!c)
     }
-    const cases = convertCaseIdsToV2FullCases(extend ? addedCaseIds : newSelection)
-    const removedCases = extend ? convertCaseIdsToV2FullCases(removedCaseIds) : undefined
-    const result = {
-      success: true,
-      cases,
-      removedCases,
-      extend: !!extend
-    }
+    const _cases = convertCaseIdsToV2FullCases(extend ? addedCaseIds : newSelection)
+    const cases = extend
+      ? _cases.length > 0 ? _cases : undefined
+      : _cases
+    const removedCases = extend && removedCaseIds.length > 0
+      ? convertCaseIdsToV2FullCases(removedCaseIds) : undefined
+    const result = { success: true, cases, removedCases, extend: !!extend }
     return notification("selectCases", result, dataset)
   }
 }
