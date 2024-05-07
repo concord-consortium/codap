@@ -1,9 +1,10 @@
-import {action, computed, IReactionDisposer, makeObservable, observable} from "mobx"
+import {action, comparer, computed, makeObservable, observable} from "mobx"
 import {
   format, NumberValue, ScaleBand, scaleBand, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
 import {AxisScaleType, IScaleType, ScaleNumericBaseType} from "../axis-types"
 import {ICategorySet} from "../../../models/data/category-set"
+import { mstReaction } from "../../../utilities/mst-reaction"
 
 interface IDataCoordinate {
   cell: number
@@ -47,10 +48,9 @@ export class MultiScale {
   @observable orientation: "horizontal" | "vertical"
   @observable changeCount = 0
   @observable categorySet: ICategorySet | undefined
-  @observable categoryValues: string[] = []
   // SubAxes copy this scale to do their rendering because they need to change the range.
   scale: AxisScaleType  // d3 scale whose range is the entire axis length.
-  disposers: IReactionDisposer[] = []
+  categoriesReactionDisposer?: () => void
 
   constructor({scaleType, orientation}: IMultiScaleProps) {
     this.scaleType = scaleType
@@ -60,7 +60,7 @@ export class MultiScale {
   }
 
   cleanup() {
-    this.disposers.forEach(disposer => disposer())
+    this.categoriesReactionDisposer?.()
   }
 
   @computed get numericScale() {
@@ -81,6 +81,10 @@ export class MultiScale {
       : this.scaleType === "band"
         ? this.scale as ScaleBand<string>
         : undefined
+  }
+
+  @computed get categoryValues() {
+    return this.categorySet?.valuesArray ?? []
   }
 
   @computed get cellLength() {
@@ -112,25 +116,22 @@ export class MultiScale {
   }
 
   @action setCategorySet(categorySet: ICategorySet | undefined) {
+    this.categoriesReactionDisposer?.()
+
     this.categorySet = categorySet
-    this.setCategoryValues(categorySet?.values ?? [])
+
+    if (categorySet) {
+      this.categoriesReactionDisposer = mstReaction(
+        () => this.categoryValues,
+        values => this.updateCategoricalDomain(values),
+        { name: "MultiScale.updateCategoricalDomain", equals: comparer.structural, fireImmediately: true },
+        this.categorySet
+      )
+    }
   }
 
-  @action setCategoryValues(values: string[]) {
-    const sortedValues: string[] = []
-    if (this.categorySet) {
-      const valuesSet = new Set(values)
-      this.categorySet.values.forEach(category => {
-        if (valuesSet.has(category)) {
-          sortedValues.push(category)
-        }
-      })
-      this.categoryValues = sortedValues
-    }
-    else {
-      this.categoryValues = values
-    }
-    this.setCategoricalDomain(this.categoryValues)
+  @action updateCategoricalDomain(values: string[]) {
+    this.setCategoricalDomain(values)
   }
 
   @action setLength(length: number) {

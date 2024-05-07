@@ -619,12 +619,6 @@ export const DataConfigurationModel = types
         data => self.handleDataSetChange(data),
         {name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
-      // respond to change of metadata.categories
-      addDisposer(self, reaction(
-        () => JSON.stringify(self.metadata?.categories),
-        () => self.clearCasesCache(),
-        {name: "DataConfigurationModel.afterCreate.reaction [metadata]", fireImmediately: true }
-      ))
       // respond to change of legend attribute
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),

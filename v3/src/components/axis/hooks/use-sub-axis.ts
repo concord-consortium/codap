@@ -252,8 +252,7 @@ export const useSubAxis = ({
      */
     onDrag = useCallback((event: any) => {
       const dI = dragInfo.current,
-        delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy,
-        multiScale = layout.getAxisMultiScale(axisPlace)
+        delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy
       if (delta !== 0) {
         const
           numCategories = dI.categories.length,
@@ -268,17 +267,16 @@ export const useSubAxis = ({
           // Figure out the label of the category before which the dragged category should be placed
           const moveToGreater = newCatIndex > dI.indexOfCategory,
             catToMoveBefore = moveToGreater
-              ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex + 1])
+              ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex])
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
-          multiScale?.setCategorySet(dI.categorySet)
         } else {
           renderSubAxis()
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [axisPlace, layout, renderSubAxis]),
+    }, [renderSubAxis]),
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current

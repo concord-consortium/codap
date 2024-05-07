@@ -253,6 +253,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
+    getAllCategoriesForRoles() {
+      const categories: Map<AttrRole, string[]> = new Map()
+      ;(["x", "y", "topSplit", "rightSplit"] as const).forEach(role => {
+        const categorySet = self.categorySetForAttrRole(role)
+        if (categorySet) {
+          categories.set(role, categorySet.valuesArray)
+        }
+      })
+      return categories
+    },
     getCategoriesOptions() {
       // Helper used often by adornments that usually ask about the same categories and their specifics.
       const xAttrType = self.attributeType("x")
@@ -638,6 +648,14 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
+        addDisposer(self, reaction(
+          () => self.getAllCategoriesForRoles(),
+          () => self.clearCasesCache(),
+          {
+            name: "GraphDataConfigurationModel.afterCreate.reaction [getAllCategoriesForRoles]",
+            equals: comparer.structural
+          }
+        ))
         addDisposer(self, reaction(
           () => self.getAllCellKeys(),
           () => self.clearGraphSpecificCasesCache(),
