@@ -11,6 +11,7 @@ import { GraphLayout } from "../models/graph-layout"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { useChartDots } from "../hooks/use-chart-dots"
+import { numericSortComparator } from "../../../utilities/data-utils"
 
 interface IRenderBarCoverProps {
   barCovers: IBarCover[]
@@ -152,12 +153,7 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
                 // values for cases that don't have a numeric value for the legend attribute.
                 if (dataConfig.attributeType("legend") === "numeric") {
                   legendCats.sort((cat1: string, cat2: string) => {
-                    const cat1Num = Number(cat1)
-                    const cat2Num = Number(cat2)
-                    if (isNaN(cat1Num) && isNaN(cat2Num)) return 0
-                    if (isNaN(cat2Num)) return -1
-                    if (isNaN(cat1Num)) return 1
-                    return cat2Num - cat1Num
+                    return numericSortComparator({a: Number(cat1), b: Number(cat2), order: "desc"})
                   })
                 }
                 

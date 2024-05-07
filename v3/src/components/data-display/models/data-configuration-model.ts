@@ -15,6 +15,7 @@ import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 import {GraphPlace} from "../../axis-graph-shared"
+import { numericSortComparator } from "../../../utilities/data-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -286,10 +287,7 @@ export const DataConfigurationModel = types
           caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
             const cd1Value = self.dataset?.getNumeric(cd1.caseID, legendAttrID) ?? NaN,
               cd2Value = self.dataset?.getNumeric(cd2.caseID, legendAttrID) ?? NaN
-            if (isNaN(cd1Value) && isNaN(cd2Value)) return 0
-            if (isNaN(cd2Value)) return -1
-            if (isNaN(cd1Value)) return 1
-            return cd2Value - cd1Value
+            return numericSortComparator({a: cd1Value, b: cd2Value, order: "desc"})
           })
         } else {
           const categories = Array.from(self.categoryArrayForAttrRole('legend'))
