@@ -27,6 +27,22 @@ beforeEach(() => {
 })
 
 context("case table ui", () => {
+  // TODO: move this to the bottom once the tests are robust
+ // describe("case table Inspector menu options", () => {
+   // it("should open dataset information button and make changes", () => {
+     // check for dataset information to open. make changes?
+     //table.getDatasetInfoButton()
+     // .should("contain", "source").click().(`foo{enter}`)
+     // table-tile.getDatasetInfoButton().should("contain", "source").click().should("contain", "foo")
+
+//   })
+
+    // does delete cases open? can we delete cases from the inspector menu? undo/redo?
+    // does set aside cases work? can we restore set aside cases? undo/redo?
+    // from the ruler menu, can we add a new attribute? undo/redo?
+    // from the ruler menu, does rerandomize all work? undo?
+    // is it possible to export case data? (not sure how this would work)
+  // })
   describe("table view", () => {
     it("populates title bar from sample data", () => {
       c.getComponentTitle("table").should("contain", collectionName)
@@ -708,4 +724,6 @@ context("case table ui", () => {
       table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
     })
   })
+
+
 })
