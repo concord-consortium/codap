@@ -98,7 +98,7 @@ export const CategoricalLegend = observer(
           lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
         })
         lod.maxWidth += keySize + padding
-        lod.numColumns = Math.floor(lod.fullWidth / lod.maxWidth)
+        lod.numColumns = Math.max(Math.floor(lod.fullWidth / lod.maxWidth), 1)
         lod.columnWidth = lod.fullWidth / lod.numColumns
         lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
         categoryData.current.length = 0
