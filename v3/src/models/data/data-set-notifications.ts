@@ -21,11 +21,13 @@ function notification(operation: string, result: any, dataSet?: IDataSet, _callb
 export function updateDataContextNotification(dataSet: IDataSet) {
   const result = {
     success: true,
-    description: dataSet.description,
-    importDate: dataSet.importDate,
-    name: dataSet.name,
-    sourceName: dataSet.sourceName,
-    title: dataSet._title
+    properties: {
+      description: dataSet.description,
+      importDate: dataSet.importDate,
+      name: dataSet.name,
+      sourceName: dataSet.sourceName,
+      title: dataSet._title
+    }
   }
   return notification("updateDataContext", result, dataSet)
 }
