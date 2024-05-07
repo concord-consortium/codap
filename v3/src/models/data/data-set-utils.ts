@@ -63,6 +63,11 @@ export function selectCases(caseIds: string[], data?: IDataSet, select?: boolean
   selectWithNotification(() => data?.selectCases(caseIds, select), data, true)
 }
 
+export function setOrExtendSelection(caseIds: string[], data?: IDataSet, extend = false, select?: boolean) {
+  if (extend) selectCases(caseIds, data, select)
+  else setSelectedCases(caseIds, data)
+}
+
 export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: string[], data?: IDataSet) {
   selectWithNotification(() => {
     data?.selectCases(addCaseIds)

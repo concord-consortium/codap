@@ -1,6 +1,6 @@
 import {measureText} from "../../hooks/use-measure-text"
 import {IDataSet} from "../../models/data/data-set"
-import { selectCases, setSelectedCases } from "../../models/data/data-set-utils"
+import { selectCases, setOrExtendSelection } from "../../models/data/data-set-utils"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
   defaultStrokeOpacity, defaultStrokeWidth
@@ -54,11 +54,7 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
 
   const caseIDs = [caseID]
   if (!caseIsSelected) {
-    if (extendSelection) { // case is not selected and Shift key is down => add case to selection
-      selectCases(caseIDs, dataset)
-    } else { // case is not selected and Shift key is up => only this case should be selected
-      setSelectedCases(caseIDs, dataset)
-    }
+    setOrExtendSelection(caseIDs, dataset, extendSelection)
   } else if (extendSelection) { // case is selected and Shift key is down => deselect case
     selectCases(caseIDs, dataset, false)
   }
@@ -79,8 +75,7 @@ export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover 
     const caseIDs = dataConfig.getCasesForCategoryValues(
       primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
     )
-    if (extendSelection) selectCases(caseIDs, dataset)
-    else setSelectedCases(caseIDs, dataset)
+    setOrExtendSelection(caseIDs, dataset, extendSelection)
   }
 }
 

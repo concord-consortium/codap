@@ -3,7 +3,7 @@ import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "l
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
+import { setOrExtendSelection } from "../../../models/data/data-set-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -58,12 +58,8 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
           const dataset = mapGridModel.dataConfiguration?.dataset
           const caseIDs = mapGridModel.casesInRect(longIndex, latIndex)
           if (caseIDs) {
-            if (tExtend) {
-              selectCases(caseIDs, dataset)
-            } else {
-              mapGridModel.clearGridSelection()
-              setSelectedCases(caseIDs, dataset)
-            }
+            if (tExtend) mapGridModel.clearGridSelection()
+            setOrExtendSelection(caseIDs, dataset, tExtend)
           }
           return false
         },
