@@ -28,21 +28,28 @@ beforeEach(() => {
 
 context("case table ui", () => {
   // TODO: move this to the bottom once the tests are robust
- // describe("case table Inspector menu options", () => {
-   // it("should open dataset information button and make changes", () => {
+ describe("case table Inspector menu options", () => {
+   //it("should open dataset information button and make changes", () => {
      // check for dataset information to open. make changes?
-     //table.getDatasetInfoButton()
-     // .should("contain", "source").click().(`foo{enter}`)
+     // Dataset info button doesn't appear in this CODAP document
+     // get the Dataset info button. Click to open the dialogue and change it.
+
+     // table.getDatasetInfoButton()
+
+     //.should("contain", "source").click().(`foo{enter}`)
      // table-tile.getDatasetInfoButton().should("contain", "source").click().should("contain", "foo")
 
-//   })
+  // })
 
     // does delete cases open? can we delete cases from the inspector menu? undo/redo?
+    it("Check delete cases from inspector menu with undo/redo", () => {
+      c.getComponentTitle("table").should("contain", collectionName)
+    })
     // does set aside cases work? can we restore set aside cases? undo/redo?
     // from the ruler menu, can we add a new attribute? undo/redo?
     // from the ruler menu, does rerandomize all work? undo?
     // is it possible to export case data? (not sure how this would work)
-  // })
+   })
   describe("table view", () => {
     it("populates title bar from sample data", () => {
       c.getComponentTitle("table").should("contain", collectionName)

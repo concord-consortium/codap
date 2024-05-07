@@ -193,7 +193,7 @@ export const TableTileElements = {
     return cy.get("[data-testid=case-table-toggle-view]")
   },
   getDatasetInfoButton() {
-    return c.getInspectorPanel().find("[data-testid=dataset-info-button]")
+    return c.getInspectorPanel().find("[data-testid=dataset-info-button]")//.click().find("[data-testid=dataset-name-input]")
   },
   getDatasetDescriptionTextArea() {
     return cy.get("[data-testid=dataset-description-input")
