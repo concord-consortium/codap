@@ -366,7 +366,7 @@ export const DataConfigurationModel = types
         return caseIDs
       },
 
-      selectCasesForLegendValue(aValue: string, extend = false) {
+      getCasesForLegendValue(aValue: string) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
           collectionGroup = dataset?.getCollectionForAttribute(legendID || '')
@@ -384,10 +384,7 @@ export const DataConfigurationModel = types
             }).map((aCaseData: CaseData) => aCaseData.caseID)
             : []
         }
-        if (selection) {
-          if (extend) dataset?.selectCases(selection)
-          else dataset?.setSelectedCases(selection)
-        }
+        return selection
       },
       allCasesForCategoryAreSelected: cachedFnWithArgsFactory({
         key: (cat: string) => cat,
