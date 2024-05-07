@@ -64,8 +64,7 @@ export const useSubAxis = ({
         console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model:", axisPlace)
         return
       }
-      const
-        multiScale = layout.getAxisMultiScale(axisPlace)
+      const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
       const subAxisLength = multiScale?.cellLength ?? 0,
@@ -253,7 +252,8 @@ export const useSubAxis = ({
      */
     onDrag = useCallback((event: any) => {
       const dI = dragInfo.current,
-        delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy
+        delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy,
+        multiScale = layout.getAxisMultiScale(axisPlace)
       if (delta !== 0) {
         const
           numCategories = dI.categories.length,
@@ -272,12 +272,13 @@ export const useSubAxis = ({
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
+          multiScale?.setCategorySet(dI.categorySet)
         } else {
           renderSubAxis()
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [renderSubAxis]),
+    }, [axisPlace, layout, renderSubAxis]),
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
