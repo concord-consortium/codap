@@ -1,15 +1,15 @@
+import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
-import { selectCasesNotification } from "../../../../models/data/data-set-notifications"
+import {isSelectionAction} from "../../../../models/data/data-set-actions"
+import { selectCases, setSelectedCases } from "../../../../models/data/data-set-utils"
+import {axisGap} from "../../../axis/axis-types"
+import {getStringBounds} from "../../../axis/axis-utils"
+import {kChoroplethHeight} from "../../data-display-types"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
-import {getStringBounds} from "../../../axis/axis-utils"
-import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
-import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import {kChoroplethHeight} from "../../data-display-types"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
-import {axisGap} from "../../../axis/axis-types"
 
 import vars from "../../../vars.scss"
 
@@ -53,11 +53,11 @@ export const NumericLegend =
             marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
             clickHandler: (quantile: number, extend: boolean) => {
               const dataset = dataConfiguration?.dataset
-              dataset?.applyModelChange(() => {
-                dataConfiguration?.selectCasesForLegendQuantile(quantile, extend)
-              }, {
-                notifications: selectCasesNotification(dataset, extend)
-              })
+              const quantileCases = dataConfiguration?.casesForLegendQuantile(quantile)
+              if (quantileCases) {
+                if (extend) selectCases(quantileCases, dataset)
+                else setSelectedCases(quantileCases, dataset)
+              }
             },
             casesInQuantileSelectedHandler: (quantile: number) => {
               return !!dataConfiguration?.casesInQuantileAreSelected(quantile)

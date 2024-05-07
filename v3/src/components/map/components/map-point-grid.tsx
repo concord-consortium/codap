@@ -2,13 +2,13 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
-import { selectCasesNotification } from "../../../models/data/data-set-notifications"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import {mstAutorun} from "../../../utilities/mst-autorun"
-import {onAnyAction} from "../../../utilities/mst-utils"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {getCaseCountString, getCategoryBreakdownHtml} from "../utilities/map-utils"
+import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
+import {mstAutorun} from "../../../utilities/mst-autorun"
+import {mstReaction} from "../../../utilities/mst-reaction"
+import {onAnyAction} from "../../../utilities/mst-utils"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
+import {getCaseCountString, getCategoryBreakdownHtml} from "../utilities/map-utils"
 
 export interface IMapPointGridProps {
   mapLayerModel: IMapPointLayerModel
@@ -51,33 +51,38 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
     if (mapLayerModel.isVisible && mapGridModel.isVisible) {
       mapGridModel.latLngGrid.forEachGridCell((rectRecord, longIndex, latIndex) => {
         const handleClick = (iEvent: LeafletMouseEvent) => {
-            const tExtend = iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey
-            // Below is the Leaflet Way to stop the click from propagating.
-            DomEvent.stopPropagation(iEvent)
-            const dataset = mapGridModel.dataConfiguration?.dataset
-            dataset?.applyModelChange(() => {
-              mapGridModel.selectCasesInRect(longIndex, latIndex, true, tExtend)
-            }, {
-              notifications: selectCasesNotification(dataset, tExtend)
-            })
-            return false
-          },
-          handleMouseOver = () => {
-            const dataset = mapGridModel.dataConfiguration?.dataset
-            if (!dataset) return
-            const legendAttrID = mapGridModel.dataConfiguration?.attributeID('legend') ?? '',
-              caseCountString = legendAttrID === ''
-                ? getCaseCountString(dataset, latAttrID, rectRecord.count)
-                : getCategoryBreakdownHtml(dataset, rectRecord.cases, legendAttrID)
-            leafletPopup.setLatLng(rectRecord.bounds.getCenter())
-              .setContent(caseCountString)
-              .openOn(leafletMap)
-            leafletMap.getContainer().style.cursor = 'pointer'
-          },
-          handleMouseOut = () => {
-            leafletMap.closePopup(leafletPopup)
-            leafletMap.getContainer().style.cursor = ''
+          // Below is the Leaflet Way to stop the click from propagating.
+          DomEvent.stopPropagation(iEvent)
+
+          const tExtend = iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey
+          const dataset = mapGridModel.dataConfiguration?.dataset
+          const caseIDs = mapGridModel.casesInRect(longIndex, latIndex)
+          if (caseIDs) {
+            if (tExtend) {
+              selectCases(caseIDs, dataset)
+            } else {
+              mapGridModel.clearGridSelection()
+              setSelectedCases(caseIDs, dataset)
+            }
           }
+          return false
+        },
+        handleMouseOver = () => {
+          const dataset = mapGridModel.dataConfiguration?.dataset
+          if (!dataset) return
+          const legendAttrID = mapGridModel.dataConfiguration?.attributeID('legend') ?? '',
+            caseCountString = legendAttrID === ''
+              ? getCaseCountString(dataset, latAttrID, rectRecord.count)
+              : getCategoryBreakdownHtml(dataset, rectRecord.cases, legendAttrID)
+          leafletPopup.setLatLng(rectRecord.bounds.getCenter())
+            .setContent(caseCountString)
+            .openOn(leafletMap)
+          leafletMap.getContainer().style.cursor = 'pointer'
+        },
+        handleMouseOut = () => {
+          leafletMap.closePopup(leafletPopup)
+          leafletMap.getContainer().style.cursor = ''
+        }
         options.fillOpacity = rectRecord.count / maxCount
         const leafletRect = rectangle(rectRecord.bounds, options)
           .on('click', handleClick)

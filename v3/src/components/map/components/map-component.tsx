@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import { selectCasesNotification } from '../../../models/data/data-set-notifications'
+import { selectAllCases } from '../../../models/data/data-set-utils'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
@@ -24,12 +24,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
     if (mapModel) {
       mapModel.leafletMapState.setOnClickCallback((event: MouseEvent) => {
         if (!event.shiftKey && !event.metaKey && !mapModel._ignoreLeafletClicks) {
-          const dataSet = mapModel.dataConfiguration?.dataset
-          dataSet?.applyModelChange(() => {
-            mapModel.deselectAllCases()
-          }, {
-            notifications: selectCasesNotification(dataSet)
-          })
+          mapModel.layers.forEach(layer => selectAllCases(layer.data, false))
         }
       })
       return () => mapModel.leafletMapState.setOnClickCallback()

@@ -250,19 +250,21 @@ export const CategoricalLegend = observer(
                 .on('click', (event, i: number) => {
                   // This is breaking the graph-legend cypress test
                   // dataset?.applyModelChange(() => {
-                    dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                  //   dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
                   // }, {
                   //   notifications: () => selectCasesNotification(dataset)
                   // })
+                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
                 })
               sel.append('text')
                 .on('click', (event, i: number) => {
                   // This is breaking the graph-legend cypress test
                   // dataset?.applyModelChange(() => {
-                    dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
+                  //  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
                   // }, {
                   //   notifications: () => selectCasesNotification(dataset)
                   // })
+                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
                 })
             }
           })

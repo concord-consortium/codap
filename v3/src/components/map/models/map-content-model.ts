@@ -129,11 +129,6 @@ export const MapContentModel = DataDisplayContentModel
     },
     ignoreLeafletClicks(ignore: boolean) {
       self._ignoreLeafletClicks = ignore
-    },
-    deselectAllCases() {
-      self.layers.forEach(layer => {
-        layer.dataConfiguration.dataset?.selectAll(false)
-      })
     }
   }))
   .actions(self => ({

@@ -1,11 +1,11 @@
 import { curveLinear, line, select } from "d3"
 import { tip as d3tip } from "d3-v6-tip"
 import { useCallback } from "react"
-import { selectCasesNotification } from "../../../models/data/data-set-notifications"
-import { useDataConfigurationContext } from "./use-data-configuration-context"
-import { PixiBackgroundPassThroughEvent, PixiPoints } from "../pixi/pixi-points"
+import { setSelectedCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
+import { PixiBackgroundPassThroughEvent, PixiPoints } from "../pixi/pixi-points"
+import { useDataConfigurationContext } from "./use-data-configuration-context"
 
 interface IMouseOverProps {
   caseIDs: string[]
@@ -81,11 +81,7 @@ export const useConnectingLines = (props: IProps) => {
           newSelection = caseIDs
         }
       }
-      dataset?.applyModelChange(() => {
-        dataset.setSelectedCases(newSelection)
-      }, {
-        notifications: selectCasesNotification(dataset)
-      })
+      setSelectedCases(newSelection, dataset)
     }
   }, [dataset, onConnectingLinesClick])
 

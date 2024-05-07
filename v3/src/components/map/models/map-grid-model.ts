@@ -42,6 +42,9 @@ export const MapGridModel = types.model("MapGridModel", {
     },
     get maxCount() {
       return self.latLngGrid.maxCount
+    },
+    casesInRect(longIndex: number, latIndex: number) {
+      return self.latLngGrid.getGridCell(longIndex, latIndex)?.cases
     }
   }))
   .extend((self) => {
@@ -92,6 +95,11 @@ export const MapGridModel = types.model("MapGridModel", {
             gridCell.selected = gridCell.cases.every((aCase) => self.dataConfiguration?.dataset?.isCaseSelected(aCase))
           })
         },
+        clearGridSelection() {
+          self.latLngGrid.forEachGridCell((gridCell) => {
+            gridCell.selected = false
+          })
+        }
       }
     }
   })
@@ -112,33 +120,5 @@ export const MapGridModel = types.model("MapGridModel", {
         {name: "MapGridModel.afterCreate.reaction [selection]"}
       ))
     },
-  }))
-  .views(self => ({
-    _selectCasesInRect(longIndex: number, latIndex: number, select: boolean, extend: boolean) {
-      const dataset = self.dataConfiguration?.dataset,
-        rect = self.latLngGrid.getGridCell(longIndex, latIndex)
-      if (rect) {
-        if (extend) {
-          dataset?.selectCases(rect.cases, select)
-        } else {
-          dataset?.setSelectedCases(rect.cases)
-        }
-      }
-    },
-    selectCasesInRect(longIndex: number, latIndex: number, select: boolean, extend: boolean) {
-      if (!extend) {
-        self.latLngGrid.forEachGridCell((gridCell) => {
-          gridCell.selected = false
-        })
-      }
-      this._selectCasesInRect(longIndex, latIndex, select, extend)
-    },
-    deselectCasesInRect(longIndex: number, latIndex: number) {
-      this._selectCasesInRect(longIndex, latIndex, false, false)
-    },
-    deselectAll() {
-      self.dataConfiguration?.dataset?.selectAll(false)
-    },
-
   }))
   .actions(applyModelChange)
