@@ -16,6 +16,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
   // perform all title-related model access here so only title is re-rendered when properties change
   const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
   const [isEditing, setIsEditing] = useState(false)
+  const [editingTitle, setEditingTitle] = useState(title)
   const { active } = useDndContext()
   const dragging = !!active
   const tileId = tile?.id || ""
@@ -30,16 +31,40 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
     }
   }
 
+  const handleChange = (nextValue: string) => {
+    setEditingTitle(nextValue)
+  }
+
+  const handleSubmit = (nextValue: string) => {
+    if (onHandleTitleChange) {
+      onHandleTitleChange(nextValue)
+    } else {
+      handleChangeTitle(nextValue)
+    }
+    // Assume the title was successfully changed if nextValue is not empty.
+    if (nextValue) {
+      setEditingTitle(nextValue)
+    } else {
+      setEditingTitle(title)
+    }
+    setIsEditing(false)
+  }
+
+  const handleCancel = (previousValue: string) => {
+    setEditingTitle(previousValue)
+    setIsEditing(false)
+  }
+
   return (
     <Flex className={classes}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
-      <Editable value={title} className="title-bar" isPreviewFocusable={!dragging} submitOnBlur={true}
-          onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)}
-          onChange={onHandleTitleChange || handleChangeTitle} onCancel={() => setIsEditing(false)}
-          data-testid="editable-component-title">
+      <Editable value={isEditing ? editingTitle : title} className="title-bar" isPreviewFocusable={!dragging}
+        submitOnBlur={true} onEdit={() => setIsEditing(true)} onSubmit={handleSubmit}
+        onChange={handleChange} onCancel={handleCancel} data-testid="editable-component-title"
+      >
         <EditablePreview className="title-text"/>
-        <EditableInput className="title-text-input" data-testid="title-text-input"/>
+        <EditableInput value={editingTitle} className="title-text-input" data-testid="title-text-input"/>
       </Editable>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
         <Button className="component-minimize-button" title={t("DG.Component.minimizeComponent.toolTip")}
