@@ -10,9 +10,9 @@ export const diDataContextListHandler: DIHandler = {
 
     return { success: true, values: resources.dataContextList.map(dataSet => ({
       name: dataSet.name,
-      guid: Number(dataSet.id), // TODO: This is wrong and there is no current equivalent to guid in v3
+      guid: dataSet.id,
       title: dataSet.name, // TODO: DataSets don't have titles in v3
-      id: Number(dataSet.id) // TODO: This is wrong and there is no current equivalent to v2's id in v3
+      id: dataSet.id
     }))}
   }
 }
