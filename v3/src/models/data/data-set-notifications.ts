@@ -93,6 +93,8 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   return notification("updateCases", result, data)
 }
 
+// selectCasesNotificaiton returns a function that will later be called to determine if the selection
+// actually changed and a notification is necessary to broadcast
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   function mapFromArray(arr: string[]) {
     const map: Record<string, boolean> = {}

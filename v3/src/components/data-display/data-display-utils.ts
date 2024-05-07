@@ -52,11 +52,10 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
 
-  const caseIDs = [caseID]
   if (!caseIsSelected) {
-    setOrExtendSelection(caseIDs, dataset, extendSelection)
+    setOrExtendSelection([caseID], dataset, extendSelection)
   } else if (extendSelection) { // case is selected and Shift key is down => deselect case
-    selectCases(caseIDs, dataset, false)
+    selectCases([caseID], dataset, false)
   }
 }
 
@@ -69,13 +68,12 @@ interface IHandleClickOnBarProps {
 
 export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
   const { primeSplitCat, secSplitCat, legendCat, primeCat, secCat } = barCover
-  const { dataset } = dataConfig
   const extendSelection = event.shiftKey
   if (primeCat) {
     const caseIDs = dataConfig.getCasesForCategoryValues(
       primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
     )
-    setOrExtendSelection(caseIDs, dataset, extendSelection)
+    setOrExtendSelection(caseIDs, dataConfig.dataset, extendSelection)
   }
 }
 

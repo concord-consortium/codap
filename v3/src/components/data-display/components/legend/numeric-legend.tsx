@@ -3,7 +3,7 @@ import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
-import { selectCases, setSelectedCases } from "../../../../models/data/data-set-utils"
+import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {kChoroplethHeight} from "../../data-display-types"
@@ -53,10 +53,9 @@ export const NumericLegend =
             marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
             clickHandler: (quantile: number, extend: boolean) => {
               const dataset = dataConfiguration?.dataset
-              const quantileCases = dataConfiguration?.casesForLegendQuantile(quantile)
+              const quantileCases = dataConfiguration?.getCasesForLegendQuantile(quantile)
               if (quantileCases) {
-                if (extend) selectCases(quantileCases, dataset)
-                else setSelectedCases(quantileCases, dataset)
+                setOrExtendSelection(quantileCases, dataset, extend)
               }
             },
             casesInQuantileSelectedHandler: (quantile: number) => {

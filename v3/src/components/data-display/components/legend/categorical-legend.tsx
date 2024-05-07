@@ -262,7 +262,7 @@ export const CategoricalLegend = observer(
             }
           })
         }
-      }, [dataConfiguration, /*dataset,*/ dragBehavior])
+      }, [dataConfiguration, dragBehavior])
 
     useEffect(function respondToSelectionChange() {
       return onAnyAction(dataset, action => {
