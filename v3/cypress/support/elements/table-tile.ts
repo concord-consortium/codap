@@ -116,6 +116,20 @@ export const TableTileElements = {
   selectAttributeEditableState(state) {
     cy.get("[data-testid=attr-editable-radio] span").contains(state).click()
   },
+  // Edit Dataset Information Dialog
+  //TODO: fill this in
+   enterInfoName(name) {
+     cy.get("[data-testid=dataset-name-input]").type(name)
+   },
+   enterInfoSource(source) {
+    cy.get("[data-testid=dataset-source-input]").type(source)
+  },
+  enterInfoDate(date) {
+    cy.get("[data-testid=dataset-date-input]").type(date)
+  },
+  enterInfoDescription(description) {
+    cy.get("[data-testid=dataset-description-input]").type(description)
+  },
   getApplyButton() {
     return cy.get("[data-testid=Apply-button]")
   },
@@ -145,6 +159,22 @@ export const TableTileElements = {
     }
     this.getApplyButton().click()
   },
+  editDatasetInformation(source, date, description) {
+    this.getDatasetInfoButton().click()
+   //  if (name !== "") {
+  //     this.enterInfoName(`{selectAll}{backspace}${name}`)
+  //   }
+    if (source != null) {
+       this.enterInfoSource(`{selectAll}{backspace}${source}`)
+      }
+      if (date != null) {
+        this.enterInfoDate(`{selectAll}{backspace}${date}`)
+      }
+     if (description != null) {
+       this.enterInfoDescription(`{selectAll}{backspace}${description}`)
+     }
+     this.getApplyButton().click()
+   },
   getGridCell(row: number, column: number, collection = 1) {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
   },

@@ -34,13 +34,18 @@ context("case table ui", () => {
      // Dataset info button doesn't appear in this CODAP document
      // get the Dataset info button. Click to open the dialogue and change it.
 
-     const infoname = "Rawr",
-        source = "The Internet",
-        importdate = "May 4",
-        description = "All about mammals"
+     const source = "The Internet",
+     date = "",
+     importDate = "May 4",
+     description = "All about mammals"
+
+     //infoname = "Rawr",
+
 
      c.selectTile("table", 0)
-    //  table.getDatasetInfoButton().click()
+     table.editDatasetInformation(source, importDate, description)
+     table.getDatasetInfoButton().click()
+     cy.get("[data-testid='dataset-date-input']").should("have.value", importDate)
 
      //.should("contain", "source").click().(`foo{enter}`)
      // table-tile.getDatasetInfoButton().should("contain", "source").click().should("contain", "foo")

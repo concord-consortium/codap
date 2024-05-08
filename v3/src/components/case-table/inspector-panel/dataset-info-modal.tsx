@@ -62,14 +62,14 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
           </FormLabel>
           <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.datasetMetadata.url")}
             <Input size="xs" ml={5} placeholder="source" value={sourceName} onFocus={(e) => e.target.select()}
-                  onChange={event => setSourceName(event.target.value)} data-testid="dataset-name-input"
+                  onChange={event => setSourceName(event.target.value)} data-testid="dataset-source-input"
                   onKeyDown={(e) => e.stopPropagation()}
             />
           </FormLabel>
           <FormLabel display="flex" flexDirection="row" overflow="no-wrap">
               {t("DG.CaseTable.datasetMetadata.creationDate")}
             <Input size="xs" ml={5} placeholder="date" value={importDate} onFocus={(e) => e.target.select()}
-                  onChange={event => setImportDate(event.target.value)} data-testid="dataset-name-input"
+                  onChange={event => setImportDate(event.target.value)} data-testid="dataset-date-input"
                   onKeyDown={(e) => e.stopPropagation()}
             />
           </FormLabel>
