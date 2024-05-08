@@ -15,6 +15,7 @@ import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 import {GraphPlace} from "../../axis-graph-shared"
+import { numericSortComparator } from "../../../utilities/data-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -282,12 +283,20 @@ export const DataConfigurationModel = types
       const caseDataArray = this.getUnsortedCaseDataArray(caseArrayNumber),
         legendAttrID = self.attributeID('legend')
       if (legendAttrID) {
-        const categories = Array.from(self.categoryArrayForAttrRole('legend'))
-        caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
-          const cd1_Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
-            cd2_value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
-          return categories.indexOf(cd1_Value) - categories.indexOf(cd2_value)
-        })
+        if (self.attributeType("legend") === "numeric") {
+          caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+            const cd1Value = self.dataset?.getNumeric(cd1.caseID, legendAttrID) ?? NaN,
+              cd2Value = self.dataset?.getNumeric(cd2.caseID, legendAttrID) ?? NaN
+            return numericSortComparator({a: cd1Value, b: cd2Value, order: "desc"})
+          })
+        } else {
+          const categories = Array.from(self.categoryArrayForAttrRole('legend'))
+          caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+            const cd1Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
+              cd2Value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
+            return categories.indexOf(cd1Value) - categories.indexOf(cd2Value)
+          })
+        }
       }
       return caseDataArray
     },
