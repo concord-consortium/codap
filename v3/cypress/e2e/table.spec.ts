@@ -29,21 +29,28 @@ beforeEach(() => {
 context("case table ui", () => {
   // TODO: move this to the bottom once the tests are robust
  describe("case table Inspector menu options", () => {
-   //it("should open dataset information button and make changes", () => {
+   it("should open dataset information button and make changes", () => {
      // check for dataset information to open. make changes?
      // Dataset info button doesn't appear in this CODAP document
      // get the Dataset info button. Click to open the dialogue and change it.
 
-     // table.getDatasetInfoButton()
+     const infoname = "Rawr",
+        source = "The Internet",
+        importdate = "May 4",
+        description = "All about mammals"
+
+     c.selectTile("table", 0)
+    //  table.getDatasetInfoButton().click()
 
      //.should("contain", "source").click().(`foo{enter}`)
      // table-tile.getDatasetInfoButton().should("contain", "source").click().should("contain", "foo")
 
-  // })
+   })
 
     // does delete cases open? can we delete cases from the inspector menu? undo/redo?
     it("Check delete cases from inspector menu with undo/redo", () => {
-      c.getComponentTitle("table").should("contain", collectionName)
+      c.selectTile("table", 0)
+      table.getDeleteCasesButton()
     })
     // does set aside cases work? can we restore set aside cases? undo/redo?
     // from the ruler menu, can we add a new attribute? undo/redo?
