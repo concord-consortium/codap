@@ -51,18 +51,11 @@ context("Graph UI", () => {
 
     // test for undo/redo when updating graph title
     toolbar.getUndoTool().click()
-    c.changeComponentTitle("graph", newCollectionName)
-    c.getComponentTitle("graph").should("have.text", newCollectionName)
-    // TODO: add a check after undo to make sure the title has reverted to
-    // the Collection Name. Blocker: PT #187033159
+    c.getComponentTitle("graph").should("have.text", collectionName)
 
     // use force:true so we don't have to worry about redo disabling
     toolbar.getRedoTool().click({force: true})
-    c.changeComponentTitle("graph", newCollectionName)
     c.getComponentTitle("graph").should("have.text", newCollectionName)
-    // TODO: add a check after undo to make sure the title has reverted to
-    // the Collection Name. Blocker: PT #187033159
-
   })
   it("tests undo/redo of creating graphs", () => {
 
