@@ -96,19 +96,14 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
 // selectCasesNotificaiton returns a function that will later be called to determine if the selection
 // actually changed and a notification is necessary to broadcast
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
-  function mapFromArray(arr: string[]) {
-    const map: Record<string, boolean> = {}
-    arr.forEach(str => map[str] = true)
-    return map
-  }
-
   const oldSelection = Array.from(dataset.selection)
-  const oldSelectionMap = mapFromArray(oldSelection)
+  const oldSelectionSet = new Set(oldSelection)
+  
   return () => {
     const newSelection = Array.from(dataset.selection)
-    const newSelectionMap = mapFromArray(newSelection)
-    const addedCaseIds = newSelection.filter(caseId => !oldSelectionMap[caseId])
-    const removedCaseIds = oldSelection.filter(caseId => !newSelectionMap[caseId])
+    const newSelectionSet = new Set(newSelection)
+    const addedCaseIds = newSelection.filter(caseId => !oldSelectionSet.has(caseId))
+    const removedCaseIds = oldSelection.filter(caseId => !newSelectionSet.has(caseId))
 
     // Only send a notification if the selection has actually changed
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
