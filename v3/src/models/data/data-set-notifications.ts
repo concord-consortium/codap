@@ -98,6 +98,7 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const oldSelection = Array.from(dataset.selection)
   const oldSelectionSet = new Set(oldSelection)
+  
   return () => {
     const newSelection = Array.from(dataset.selection)
     const newSelectionSet = new Set(newSelection)
