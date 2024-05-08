@@ -8,9 +8,9 @@ export function useAdornmentCategories() {
   const yAttrType = dataConfig?.attributeType("y")
   const xSubAxesCount = layout.getAxisMultiScale("bottom")?.repetitions ?? 1
   const ySubAxesCount = layout.getAxisMultiScale("left")?.repetitions ?? 1
-  const xCatSet = layout.getAxisMultiScale("bottom")?.categorySet
-  const xCats = xAttrType === "categorical" && xCatSet ? Array.from(xCatSet.values) : [""]
-  const yCatSet = layout.getAxisMultiScale("left")?.categorySet
-  const yCats = yAttrType === "categorical" && yCatSet ? Array.from(yCatSet.values) : [""]
+  const xCatValues = layout.getAxisMultiScale("bottom")?.categoryValues
+  const xCats = xAttrType === "categorical" && xCatValues ? xCatValues : [""]
+  const yCatValues = layout.getAxisMultiScale("left")?.categoryValues
+  const yCats = yAttrType === "categorical" && yCatValues ? yCatValues : [""]
   return { xSubAxesCount, ySubAxesCount, xCats, yCats }
 }

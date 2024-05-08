@@ -177,6 +177,9 @@ export const CategorySet = types.model("CategorySet", {
   }
 })
 .views(self => ({
+  get valuesArray() {
+    return Array.from(self.values)
+  },
   get userActionNames() {
     // list of actions that indicate deliberate action by the user
     // used to determine when to move provisional category sets into the document

@@ -137,6 +137,62 @@ context("Graph UI", () => {
     cy.wait(500)
     graph.getDisplayConfigButton().should("not.exist")
   })
+  it("hides and shows selected/unselected cases", () => {
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
+    // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
+    // and enabled as expected.
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").should("be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+  })
+  it("displays only selected cases and adjusts axes when 'Display Only Selected Cases' is selected", () => {
+    // TODO: Add more thorough checks to make sure cases are actually hidden and shown, and the axes adjust
+    // once Cypress is configured to interact with the PixiJS canvas. For now, we just check that the buttons
+    // are disabled and enabled as expected.
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+    cy.get("[data-testid=display-selected-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+  })
+  it("shows a warning when 'Display Only Selected Cases' is selected and no cases have been selected", () => {
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").click()
+    // The warning is made up of six individual strings rendered in their own separate text elements
+    cy.get("[data-testid=display-only-selected-warning]").should("exist").and("have.length", 6)
+    graph.getHideShowButton().click()
+    // Resorting to using force: true because the option's parent is reported as hidden in CI but not locally.
+    cy.get("[data-testid=show-all-cases]").click({force: true})
+    cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
+  })
   it("disables Point Size control when display type is bars", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)
@@ -245,7 +301,7 @@ context("Graph UI", () => {
     cy.get("[data-testid=bar-cover]").should("exist")
     cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
     cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("not.exist")
-    cy.get("[data-testid=bar-cover]").eq(1).click()
+    cy.get("[data-testid=bar-cover]").eq(1).click({ force: true })
     cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length.greaterThan", 0)
     // TODO: Enable these checks once the number of bars is consistent. See comment above.
     // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 2)

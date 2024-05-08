@@ -39,6 +39,7 @@ import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {Adornments} from "../adornments/adornments"
+import { t } from "../../../utilities/translation/translate"
 
 import "./graph.scss"
 
@@ -196,6 +197,31 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     return typeToPlotComponentMap[plotType]
   }
 
+  const renderDisplayOnlySelectedWarning = () => {
+    const { displayOnlySelectedCases, filteredCases } = graphModel.dataConfiguration
+    if (displayOnlySelectedCases && filteredCases[0].caseIds.length === 0) {
+      const TEXT_ELEMENT_COUNT = 6
+      const TEXT_LINE_HEIGHT = 16
+      const TEXT_Y_OFFSET = 32
+      return (
+        <>
+          {Array.from({ length: TEXT_ELEMENT_COUNT }).map((_, i) => (
+            <text
+              key={i}
+              x={layout.plotWidth / 2}
+              y={layout.plotHeight / 2 + i * TEXT_LINE_HEIGHT - TEXT_Y_OFFSET}
+              data-testid="display-only-selected-warning"
+              dominantBaseline="middle"
+              textAnchor="middle"
+            >
+              {t(`DG.PlotBackgroundView.msg${i}`)}
+            </text>
+          ))}
+        </>
+      )
+    }
+  }
+
   const renderGraphAxes = () => {
     const places = AxisPlaces.filter((place: AxisPlace) => {
       return !!graphModel.getAxis(place)
@@ -267,6 +293,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           */}
           <g className="below-points-group" ref={belowPointsGroupRef}>
             {/* Components rendered below the dots/points should be added to this group. */}
+            {renderDisplayOnlySelectedWarning()}
             {renderPlotComponent()}
           </g>
           <foreignObject ref={pixiContainerRef} />

@@ -86,7 +86,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @computed get categorySetArrays() {
-    return Array.from(this.axisScales.values()).map(scale => Array.from(scale.categorySetValues))
+    return Array.from(this.axisScales.values()).map(scale => Array.from(scale.categoryValues))
   }
 
   getAxisScale(place: AxisPlace) {
