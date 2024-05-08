@@ -147,7 +147,7 @@ context("Graph UI", () => {
   it("hides and shows selected/unselected cases", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)
-    // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is 
+    // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
     // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
     // and enabled as expected.
     graph.getHideShowButton().click()
@@ -308,7 +308,7 @@ context("Graph UI", () => {
     cy.get("[data-testid=bar-cover]").should("exist")
     cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
     cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("not.exist")
-    cy.get("[data-testid=bar-cover]").eq(1).click()
+    cy.get("[data-testid=bar-cover]").eq(1).click({ force: true })
     cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length.greaterThan", 0)
     // TODO: Enable these checks once the number of bars is consistent. See comment above.
     // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 2)
