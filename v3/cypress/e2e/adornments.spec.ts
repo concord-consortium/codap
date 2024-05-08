@@ -68,6 +68,7 @@ context("Graph adornments", () => {
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").should("be.visible").click()
+    cy.wait(250)
     cy.get("[data-testid=graph-adornments-grid]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]")
       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 9)
@@ -77,10 +78,10 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").first().should("have.text", "0%")
     cy.wait(250)
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").click()
+    cy.wait(250)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
     // add tests for undo and redo for percent checkbox
-
     toolbar.getUndoTool().click()
     cy.wait(250)
 
@@ -95,9 +96,8 @@ context("Graph adornments", () => {
 
     // The percent should be hidden after a redo
     toolbar.getRedoTool().click()
+    cy.wait(250)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-
-
   })
   it("adds mean adornment to graph when Mean checkbox is checked", () => {
     c.selectTile("graph", 0)
