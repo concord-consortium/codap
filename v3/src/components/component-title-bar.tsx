@@ -42,11 +42,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
       handleChangeTitle(nextValue)
     }
     // Assume the title was successfully changed if nextValue is not empty.
-    if (nextValue) {
-      setEditingTitle(nextValue)
-    } else {
-      setEditingTitle(title)
-    }
+    setEditingTitle(nextValue || title)
     setIsEditing(false)
   }
 
