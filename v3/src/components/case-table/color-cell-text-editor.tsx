@@ -5,6 +5,7 @@ import {
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { selectAllCases } from "../../models/data/data-set-utils"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
@@ -56,7 +57,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const showColorSwatch = useRef(!!hexColor)
 
   useEffect(() => {
-    data?.setSelectedCases([])
+    selectAllCases(data, false)
   }, [data])
 
   // commits the change and closes the editor

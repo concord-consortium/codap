@@ -146,6 +146,33 @@ context("codap plugins", () => {
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast select cases notifications")
+    table.getCell(2, 2).click()
+    webView.confirmAPITesterResponseContains(/"operation":\s"selectCases/)
+    webView.confirmAPITesterResponseContains(/"extend":\sfalse/)
+    webView.clearAPITesterResponses()
+    table.getCell(2, 3).click({ metaKey: true })
+    webView.confirmAPITesterResponseContains(/"operation":\s"selectCases/)
+    webView.confirmAPITesterResponseContains(/"extend":\strue/)
+    webView.clearAPITesterResponses()
+    table.getCell(2, 3).click({ metaKey: true })
+    webView.confirmAPITesterResponseContains(/"operation":\s"selectCases/)
+    webView.confirmAPITesterResponseContains(/"extend":\strue/)
+    webView.confirmAPITesterResponseContains(/"removedCases":/)
+    webView.clearAPITesterResponses()
+    // TODO There are many more ways to select cases that should be covered with tests.
+
+    cy.log("Broadcast update dataContext notifications")
+    c.selectTile("table")
+    table.getDatasetInfoButton().click()
+    table.getDatasetDescriptionTextArea().type("test")
+    table.submitDatasetInfo()
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateDataContext/)
+    webView.clearAPITesterResponses()
+    c.changeComponentTitle("table", "Mammals2")
+    webView.confirmAPITesterResponseContains(/"operation":\s"updateDataContext/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast attribute notifications")
 
     cy.log("Broadcast hideAttributes notifications")

@@ -1,13 +1,14 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { selectAllCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 
 export const TrashMenuList = () => {
   const data = useDataSetContext()
 
   const handleSelectAllCases = () => {
-    data?.setSelectedCases(data.cases.map(c => c.__id__))
+    selectAllCases(data)
   }
 
   const handleDeleteSelectedCases = () => {

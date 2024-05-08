@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { updateDataContextNotification } from "../../models/data/data-set-notifications"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { kCaseCardTileType } from "../case-card/case-card-defs"
@@ -81,7 +82,13 @@ export const CaseTableCardTitleBar =
     const handleChangeTitle = (newTitle?: string) => {
       if (newTitle) {
         // case table title reflects DataSet title
-        data?.setTitle(newTitle)
+        data?.applyModelChange(() => {
+          data.setTitle(newTitle)
+        }, {
+          notifications: () => updateDataContextNotification(data),
+          undoStringKey: "DG.Undo.component.componentTitleChange",
+          redoStringKey: "DG.Redo.component.componentTitleChange"
+        })
       }
     }
 

@@ -1,18 +1,19 @@
 import {measureText} from "../../hooks/use-measure-text"
-import {between} from "../../utilities/math-utils"
+import {IDataSet} from "../../models/data/data-set"
+import { selectCases, setOrExtendSelection } from "../../models/data/data-set-utils"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeOpacity, defaultSelectedStrokeWidth,
   defaultStrokeOpacity, defaultStrokeWidth
 } from "../../utilities/color-utils"
-import {IDataSet} from "../../models/data/data-set"
-import {IDataConfigurationModel } from "./models/data-configuration-model"
+import {between} from "../../utilities/math-utils"
+import { IBarCover } from "../graph/graphing-types"
+import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {
   hoverRadiusFactor, kDataDisplayFont, Point, PointDisplayType, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
-import {ISetPointSelection} from "../graph/utilities/graph-utils"
+import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
-import { IBarCover } from "../graph/graphing-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -52,13 +53,9 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
     caseIsSelected = dataset?.isCaseSelected(caseID)
 
   if (!caseIsSelected) {
-    if (extendSelection) { // case is not selected and Shift key is down => add case to selection
-      dataset?.selectCases([caseID])
-    } else { // case is not selected and Shift key is up => only this case should be selected
-      dataset?.setSelectedCases([caseID])
-    }
+    setOrExtendSelection([caseID], dataset, extendSelection)
   } else if (extendSelection) { // case is selected and Shift key is down => deselect case
-    dataset?.selectCases([caseID], false)
+    selectCases([caseID], dataset, false)
   }
 }
 
@@ -73,9 +70,10 @@ export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover 
   const { primeSplitCat, secSplitCat, legendCat, primeCat, secCat } = barCover
   const extendSelection = event.shiftKey
   if (primeCat) {
-    dataConfig?.selectCasesForCategoryValues(
-      primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat, extendSelection
+    const caseIDs = dataConfig.getCasesForCategoryValues(
+      primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
     )
+    setOrExtendSelection(caseIDs, dataConfig.dataset, extendSelection)
   }
 }
 

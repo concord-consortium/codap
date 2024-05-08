@@ -18,6 +18,20 @@ function notification(operation: string, result: any, dataSet?: IDataSet, _callb
   return { message: { action, resource, values }, callback }
 }
 
+export function updateDataContextNotification(dataSet: IDataSet) {
+  const result = {
+    success: true,
+    properties: {
+      description: dataSet.description,
+      importDate: dataSet.importDate,
+      name: dataSet.name,
+      sourceName: dataSet.sourceName,
+      title: dataSet._title
+    }
+  }
+  return notification("updateDataContext", result, dataSet)
+}
+
 export function createCollectionNotification(collection: ICollectionModel, dataSet?: IDataSet) {
   const result = {
     success: true,
@@ -77,4 +91,36 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
     cases: cases?.map(c => convertCaseToV2FullCase(c, data))
   }
   return notification("updateCases", result, data)
+}
+
+// selectCasesNotificaiton returns a function that will later be called to determine if the selection
+// actually changed and a notification is necessary to broadcast
+export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
+  const oldSelection = Array.from(dataset.selection)
+  const oldSelectionSet = new Set(oldSelection)
+  
+  return () => {
+    const newSelection = Array.from(dataset.selection)
+    const newSelectionSet = new Set(newSelection)
+    const addedCaseIds = newSelection.filter(caseId => !oldSelectionSet.has(caseId))
+    const removedCaseIds = oldSelection.filter(caseId => !newSelectionSet.has(caseId))
+
+    // Only send a notification if the selection has actually changed
+    if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
+
+    const convertCaseIdsToV2FullCases = (caseIds: string[]) => {
+      return caseIds.map(caseId => {
+        const c = dataset.getCase(caseId)
+        return c && convertCaseToV2FullCase(c, dataset)
+      }).filter(c => !!c)
+    }
+    const _cases = convertCaseIdsToV2FullCases(extend ? addedCaseIds : newSelection)
+    const cases = extend
+      ? _cases.length > 0 ? _cases : undefined
+      : _cases
+    const removedCases = extend && removedCaseIds.length > 0
+      ? convertCaseIdsToV2FullCases(removedCaseIds) : undefined
+    const result = { success: true, cases, removedCases, extend: !!extend }
+    return notification("selectCases", result, dataset)
+  }
 }

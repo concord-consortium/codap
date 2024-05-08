@@ -336,7 +336,7 @@ export const DataConfigurationModel = types
         return self.legendQuantileScale(value)
       },
 
-      selectCasesForCategoryValues(
+      getCasesForCategoryValues(
         primaryAttrRole: AttrRole, primaryValue: string, secondaryValue?: string, primarySplitValue?: string,
         secondarySplitValue?: string, legendCat?: string, extend = false
       ) {
@@ -349,7 +349,7 @@ export const DataConfigurationModel = types
           extraPrimaryAttrID = self.attributeID(extraPrimaryAttrRole),
           extraSecondaryAttrID = self.attributeID(extraSecondaryAttrRole)
 
-        const selection = primaryAttrID
+        const caseIDs = primaryAttrID
           ? self.caseDataArray.filter((aCaseData: CaseData) => {
             return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
               (secondaryValue === "__main__" ||
@@ -363,34 +363,28 @@ export const DataConfigurationModel = types
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 
-        if (selection) {
-          if (extend) dataset?.selectCases(selection)
-          else dataset?.setSelectedCases(selection)
-        }
+        return caseIDs
       },
 
-      selectCasesForLegendValue(aValue: string, extend = false) {
+      getCasesForLegendValue(aValue: string) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
           collectionGroup = dataset?.getCollectionForAttribute(legendID || '')
-        let selection: string[] = []
+        let caseIDs: string[] = []
         if (collectionGroup) {
           const parentCases = dataset?.getCasesForCollection(collectionGroup.id)
           parentCases?.forEach((aCase: ICase) => {
             if (dataset?.getValue(aCase.__id__, legendID || '') === aValue) {
-              selection?.push(aCase.__id__)
+              caseIDs?.push(aCase.__id__)
             }
           })
         } else {
-          selection = legendID ? self.caseDataArray.filter((aCaseData: CaseData) => {
+          caseIDs = legendID ? self.caseDataArray.filter((aCaseData: CaseData) => {
               return dataset?.getValue(aCaseData.caseID, legendID) === aValue
             }).map((aCaseData: CaseData) => aCaseData.caseID)
             : []
         }
-        if (selection) {
-          if (extend) dataset?.selectCases(selection)
-          else dataset?.setSelectedCases(selection)
-        }
+        return caseIDs
       },
       allCasesForCategoryAreSelected: cachedFnWithArgsFactory({
         key: (cat: string) => cat,
@@ -403,7 +397,7 @@ export const DataConfigurationModel = types
           return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
         }
       }),
-      selectedCasesForLegendQuantile(quantile: number) {
+      getCasesForLegendQuantile(quantile: number) {
         const dataset = self.dataset,
           legendID = self.attributeID('legend'),
           thresholds = self.legendQuantileScale.quantiles(),
@@ -416,15 +410,8 @@ export const DataConfigurationModel = types
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
       },
-      selectCasesForLegendQuantile(quantile: number, extend = false) {
-        const selection = this.selectedCasesForLegendQuantile(quantile)
-        if (selection) {
-          if (extend) self.dataset?.selectCases(selection)
-          else self.dataset?.setSelectedCases(selection)
-        }
-      },
       casesInQuantileAreSelected(quantile: number): boolean {
-        const selection = this.selectedCasesForLegendQuantile(quantile)
+        const selection = this.getCasesForLegendQuantile(quantile)
         return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
       }
     }))

@@ -3,13 +3,15 @@ import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
-import { collectionCaseIdFromIndex, collectionCaseIndexFromId } from "../../models/data/data-set-utils"
-import { OnScrollClosestRowIntoViewFn, TCellClickArgs } from "./case-table-types"
-import { useCollectionTableModel } from "./use-collection-table-model"
+import {
+  collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setSelectedCases
+} from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { OnScrollClosestRowIntoViewFn, TCellClickArgs } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface UseSelectedRows {
   gridRef: React.RefObject<DataGridHandle | null>
@@ -27,7 +29,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
   const setSelectedRows = useCallback((rowSet: ReadonlySet<string>) => {
     const rows = Array.from(rowSet)
     ++syncCount.current
-    data?.setSelectedCases(rows)
+    setSelectedCases(rows, data)
     --syncCount.current
     _setSelectedRows(rowSet)
   }, [data])
@@ -119,17 +121,16 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
         for (let i = start; i <= end; ++i) {
           const id = collectionCaseIdFromIndex(i, data, collectionId)
           id && casesToSelect.push(id)
-          data?.selectCases(casesToSelect, true)
+          selectCases(casesToSelect, data)
         }
       }
       anchorCase.current = caseId
     }
     else if (isExtending) {
-      data?.selectCases([caseId], !isCaseSelected)
-      anchorCase.current = !isCaseSelected ? caseId : null
+      selectCases([caseId], data, !isCaseSelected)
     }
     else if (!isCaseSelected) {
-      data?.setSelectedCases([caseId])
+      setSelectedCases([caseId], data)
       anchorCase.current = caseId
     }
   }, [collectionId, data])

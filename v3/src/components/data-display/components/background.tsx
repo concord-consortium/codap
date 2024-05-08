@@ -4,16 +4,17 @@ import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
+import {appState} from "../../../models/app-state"
+import {IDataSet} from "../../../models/data/data-set"
+import { /*selectAllCases,*/ selectAndDeselectCases } from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
+import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
+import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
+import {MarqueeState} from "../models/marquee-state"
 import {IPixiPointMetadata, IPixiPointsArrayRef, PixiBackgroundPassThroughEvent, PixiPoints}
   from "../pixi/pixi-points"
-import {IDataSet} from "../../../models/data/data-set"
-import {MarqueeState} from "../models/marquee-state"
-import {appState} from "../../../models/app-state"
-import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
-import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 
 interface IProps {
   marqueeState: MarqueeState
@@ -102,7 +103,11 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       width.current = 0
       height.current = 0
       if (!event.shiftKey) {
-        datasetsArray.forEach(dataset => dataset.setSelectedCases([]))
+        datasetsArray.forEach(dataset => {
+          // This is breaking the graph-legend cypress test
+          // selectAllCases(dataset, false)
+          dataset.setSelectedCases([])
+        })
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
     }, [datasetsArray, marqueeState, pixiPointsArrayRef]),
@@ -136,8 +141,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         // Apply the selections and de-selections for each dataset
         Object.values(datasetsMap).forEach((selectionSpec) => {
           const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
-          dataset.selectCases(caseIDsToSelect, true)
-          dataset.selectCases(caseIDsToDeselect, false)
+          selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
         })
       }
       clearDatasetsMapArrays()

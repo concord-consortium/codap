@@ -2,6 +2,7 @@ import { isAlive } from "mobx-state-tree"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
+import { selectCasesNotification } from "./data-set-notifications"
 
 export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
   if (collection && !isAlive(collection)) {
@@ -40,4 +41,36 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
     const collection = collections[i]
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
   }
+}
+
+function selectWithNotification(func: () => void, data?: IDataSet, extend?: boolean) {
+  data?.applyModelChange(() => {
+    func()
+  }, {
+    notifications: selectCasesNotification(data, extend)
+  })
+}
+
+export function selectAllCases(data?: IDataSet, select = true) {
+  selectWithNotification(() => data?.selectAll(select), data)
+}
+
+export function setSelectedCases(caseIds: string[], data?: IDataSet) {
+  selectWithNotification(() => data?.setSelectedCases(caseIds), data)
+}
+
+export function selectCases(caseIds: string[], data?: IDataSet, select?: boolean) {
+  selectWithNotification(() => data?.selectCases(caseIds, select), data, true)
+}
+
+export function setOrExtendSelection(caseIds: string[], data?: IDataSet, extend = false, select?: boolean) {
+  if (extend) selectCases(caseIds, data, select)
+  else setSelectedCases(caseIds, data)
+}
+
+export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: string[], data?: IDataSet) {
+  selectWithNotification(() => {
+    data?.selectCases(addCaseIds)
+    data?.selectCases(removeCaseIds, false)
+  }, data, true)
 }

@@ -3,6 +3,7 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
+// import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
 import {onAnyAction} from "../../../../utilities/mst-utils"
@@ -243,16 +244,21 @@ export const CategoricalLegend = observer(
             const sel = select<SVGGElement, number>(this),
               size = sel.selectAll<SVGRectElement, number>('rect').size()
             if (size === 0) {
+              const handleClick = (event: any, i: number) => {
+                const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
+                if (caseIds) {
+                  // This is breaking the graph-legend cypress test
+                  // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
+                  if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
+                  else dataConfiguration?.dataset?.setSelectedCases(caseIds)
+                }
+              }
               sel.append('rect')
                 .attr('width', keySize)
                 .attr('height', keySize)
-                .on('click', (event, i: number) => {
-                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
-                })
+                .on('click', handleClick)
               sel.append('text')
-                .on('click', (event, i: number) => {
-                  dataConfiguration?.selectCasesForLegendValue(categoryData.current[i].category, event.shiftKey)
-                })
+                .on('click', handleClick)
             }
           })
         }

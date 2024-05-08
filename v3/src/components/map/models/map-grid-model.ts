@@ -1,9 +1,9 @@
+import {reaction} from "mobx"
 import {addDisposer, types} from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
+import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {LatLngGrid} from "../utilities/lat-lng-grid"
 import {getLatLongBounds} from "../utilities/map-utils"
-import {reaction} from "mobx"
-import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 
 export const MapGridModel = types.model("MapGridModel", {
   isVisible: false,
@@ -42,6 +42,14 @@ export const MapGridModel = types.model("MapGridModel", {
     },
     get maxCount() {
       return self.latLngGrid.maxCount
+    },
+    casesInRect(longIndex: number, latIndex: number) {
+      return self.latLngGrid.getGridCell(longIndex, latIndex)?.cases
+    },
+    clearGridSelection() {
+      self.latLngGrid.forEachGridCell((gridCell) => {
+        gridCell.selected = false
+      })
     }
   }))
   .extend((self) => {
@@ -91,7 +99,7 @@ export const MapGridModel = types.model("MapGridModel", {
           self.latLngGrid.forEachGridCell((gridCell) => {
             gridCell.selected = gridCell.cases.every((aCase) => self.dataConfiguration?.dataset?.isCaseSelected(aCase))
           })
-        },
+        }
       }
     }
   })
@@ -112,33 +120,5 @@ export const MapGridModel = types.model("MapGridModel", {
         {name: "MapGridModel.afterCreate.reaction [selection]"}
       ))
     },
-  }))
-  .views(self => ({
-    _selectCasesInRect(longIndex: number, latIndex: number, select: boolean, extend: boolean) {
-      const dataset = self.dataConfiguration?.dataset,
-        rect = self.latLngGrid.getGridCell(longIndex, latIndex)
-      if (rect) {
-        if (extend) {
-          dataset?.selectCases(rect.cases, select)
-        } else {
-          dataset?.setSelectedCases(rect.cases)
-        }
-      }
-    },
-    selectCasesInRect(longIndex: number, latIndex: number, select: boolean, extend: boolean) {
-      if (!extend) {
-        self.latLngGrid.forEachGridCell((gridCell) => {
-          gridCell.selected = false
-        })
-      }
-      this._selectCasesInRect(longIndex, latIndex, select, extend)
-    },
-    deselectCasesInRect(longIndex: number, latIndex: number) {
-      this._selectCasesInRect(longIndex, latIndex, false, false)
-    },
-    deselectAll() {
-      self.dataConfiguration?.dataset?.selectAll(false)
-    },
-
   }))
   .actions(applyModelChange)
