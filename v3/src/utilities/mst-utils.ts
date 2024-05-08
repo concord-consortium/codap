@@ -15,6 +15,28 @@ export function typeField(typeName: string) {
   return types.optional(types.literal(typeName), typeName)
 }
 
+export function randomCodapId() {
+  // The maximum representable integer in JavaScript is ~9e15.
+  // We lower the ceiling a bit and raise the floor to avoid conflicting with
+  // generated SproutCore ids which auto-increment from 1.
+  const kFactor = 1e15
+  const kOffset = 1e10
+  return `${Math.floor(kFactor * Math.random()) + kOffset}`
+}
+
+/**
+ * This creates the definition for an identifier field in MST, which generates
+ * CODAP v2-compatible numeric ids if an id is not provided.
+ * The field is optional so it doesn't have to be specified when creating
+ * an instance.
+ *
+ * @param typeName the type
+ * @returns
+ */
+export function typeCodapId() {
+  return types.optional(types.identifier, () => `${randomCodapId()}`)
+}
+
 /**
  * Returns an ancestor of a node whose type name is `typeName`, if any.
  * This is like `getParentOfType(target, type)`, but allows us not to refer directly to the

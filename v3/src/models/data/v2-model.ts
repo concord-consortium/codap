@@ -1,7 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { typeCodapId } from "../../utilities/mst-utils"
 
 export const V2Model = types.model("V2Model", {
-  v2Id: types.maybe(types.number),
+  id: typeCodapId(),
   // required for objects in documents
   name: "",
   _title: types.maybe(types.string)
@@ -11,7 +12,8 @@ export const V2Model = types.model("V2Model", {
     return self._title ?? self.name
   },
   matchNameOrId(nameOrId: string | number) {
-    return (!!self.name && self.name === nameOrId) || (!!self.v2Id && self.v2Id === nameOrId)
+    // eslint-disable-next-line eqeqeq
+    return (!!self.name && self.name == nameOrId) || (self.id == nameOrId)
   }
 }))
 .actions(self => ({
@@ -23,13 +25,8 @@ export const V2Model = types.model("V2Model", {
     self._title = title
   }
 }))
-// derived models are expected to have their own string `id` property
-export interface IV2Model extends Instance<typeof V2Model> {
-  id: string
-}
-export interface IV2ModelSnapshot extends SnapshotIn<typeof V2Model> {
-  id?: string
-}
+export interface IV2Model extends Instance<typeof V2Model> {}
+export interface IV2ModelSnapshot extends SnapshotIn<typeof V2Model> {}
 
 export interface V2ModelStorage {
   id: number
@@ -49,10 +46,9 @@ export function v2NameTitleToV3Title(name: string, v2Title?: string | null) {
 }
 
 export function v2ModelSnapshotFromV2ModelStorage(storage: Partial<V2ModelStorage>) {
-  const { id, guid, cid, name = "", title } = storage
+  const { id, guid, name = "", title } = storage
   const v2ModelSnapshot: IV2ModelSnapshot = {
-    id: cid ?? undefined,
-    v2Id: id ?? guid,
+    id: id ? `${id}` : guid ? `${guid}` : undefined,
     name,
     _title: v2NameTitleToV3Title(name, title)
   }

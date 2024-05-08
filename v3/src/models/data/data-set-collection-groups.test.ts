@@ -1,3 +1,4 @@
+import { types } from "mobx-state-tree"
 import { CollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
 
@@ -7,6 +8,14 @@ jest.mock("../../utilities/js-utils", () => ({
   typedId: () => `test-${++mockNodeIdCount}`,
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))
+jest.mock("../../utilities/mst-utils", () => {
+  const mockCodapId = () => `test-${++mockNodeIdCount}`
+  return {
+    ...jest.requireActual("../../utilities/mst-utils"),
+    typeCodapId: () => types.optional(types.identifier, () => `${mockCodapId()}`),
+    randomCodapId: mockCodapId
+  }
+})
 
 describe("CollectionGroups", () => {
 

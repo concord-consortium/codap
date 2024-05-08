@@ -5,14 +5,14 @@ import {
 describe("V2Model", () => {
   it("can be constructed without arguments", () => {
     const m = V2Model.create()
-    expect(m.v2Id).toBeUndefined()
+    expect(m.id).toBeDefined()
     expect(m.name).toBe("")
     expect(m._title).toBeUndefined()
     expect(m.title).toBe("")
     expect(m.matchNameOrId("")).toBe(false)
 
     m.setName("name")
-    expect(m.v2Id).toBeUndefined()
+    expect(m.id).toBeDefined()
     expect(m.name).toBe("name")
     expect(m._title).toBeUndefined()
     expect(m.title).toBe("name")
@@ -20,7 +20,7 @@ describe("V2Model", () => {
     expect(m.matchNameOrId("name")).toBe(true)
 
     m.setTitle("title")
-    expect(m.v2Id).toBeUndefined()
+    expect(m.id).toBeDefined()
     expect(m.name).toBe("name")
     expect(m._title).toBe("title")
     expect(m.title).toBe("title")
@@ -30,23 +30,23 @@ describe("V2Model", () => {
   })
 
   it("can be constructed with v2Id and name", () => {
-    const m = V2Model.create({ v2Id: 1, name: "name" })
-    expect(m.v2Id).toBe(1)
+    const m = V2Model.create({ id: "1", name: "name" })
+    expect(m.id).toBe("1")
     expect(m.name).toBe("name")
     expect(m._title).toBeUndefined()
     expect(m.title).toBe("name")
     expect(m.matchNameOrId(1)).toBe(true)
     expect(m.matchNameOrId("name")).toBe(true)
-    expect(m.matchNameOrId("1")).toBe(false)
+    expect(m.matchNameOrId("1")).toBe(true)
 
     m.setTitle("title")
-    expect(m.v2Id).toBe(1)
+    expect(m.id).toBe("1")
     expect(m.name).toBe("name")
     expect(m._title).toBe("title")
     expect(m.title).toBe("title")
     expect(m.matchNameOrId(1)).toBe(true)
     expect(m.matchNameOrId("name")).toBe(true)
-    expect(m.matchNameOrId("1")).toBe(false)
+    expect(m.matchNameOrId("1")).toBe(true)
     expect(m.matchNameOrId("title")).toBe(false)
   })
 
@@ -85,7 +85,7 @@ describe("V2Model", () => {
       guid: 1
     } as V2ModelStorage
     let m = V2Model.create(v2ModelSnapshotFromV2ModelStorage(v2m))
-    expect(m.v2Id).toBe(1)
+    expect(m.id).toBe("1")
     expect(m.name).toBe("")
     expect(m._title).toBeUndefined()
 
@@ -97,7 +97,7 @@ describe("V2Model", () => {
       title: "title"
     }
     m = V2Model.create(v2ModelSnapshotFromV2ModelStorage(v2m))
-    expect(m.v2Id).toBe(1)
+    expect(m.id).toBe("1")
     expect(m.name).toBe("name")
     expect(m._title).toBe("title")
   })

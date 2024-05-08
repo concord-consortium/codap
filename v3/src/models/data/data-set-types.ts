@@ -1,11 +1,9 @@
 import { Instance, types } from "mobx-state-tree"
-import { uniqueOrderedId } from "../../utilities/js-utils"
 import { IValueType } from "./attribute"
-
-export const uniqueCaseId = () => `CASE${uniqueOrderedId()}`
+import { randomCodapId } from "../../utilities/mst-utils"
 
 export const CaseID = types.model("CaseID", {
-  __id__: types.optional(types.identifier, () => uniqueCaseId())
+  __id__: types.optional(types.string, () => randomCodapId())
 })
 export interface ICaseID extends Instance<typeof CaseID> {}
 

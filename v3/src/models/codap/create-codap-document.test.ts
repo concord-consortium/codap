@@ -1,4 +1,4 @@
-import { getSnapshot } from "mobx-state-tree"
+import { getSnapshot, types } from "mobx-state-tree"
 import { omitUndefined } from "../../test/test-utils"
 import { toCanonical } from "../data/data-set"
 import { createCodapDocument } from "./create-codap-document"
@@ -11,6 +11,14 @@ jest.mock("../../utilities/js-utils", () => ({
   typedId: () => `test-${++mockNodeIdCount}`,
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))
+jest.mock("../../utilities/mst-utils", () => {
+  const mockCodapId = () => `test-${++mockNodeIdCount}`
+  return {
+    ...jest.requireActual("../../utilities/mst-utils"),
+    typeCodapId: () => types.optional(types.identifier, () => `${mockCodapId()}`),
+    randomCodapId: mockCodapId
+  }
+})
 
 describe("createCodapDocument", () => {
   beforeEach(() => {
@@ -80,7 +88,7 @@ describe("createCodapDocument", () => {
                 }
               },
               attributes: ["test-8"],
-              cases: [{ __id__: "CASEorder-9" }, { __id__: "CASEorder-10" }, { __id__: "CASEorder-11" }],
+              cases: [{ __id__: "test-9" }, { __id__: "test-10" }, { __id__: "test-11" }],
               collections: [],
               ungrouped: { id: "test-6", name: "Cases" },
               id: "test-5",

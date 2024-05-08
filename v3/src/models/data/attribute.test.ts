@@ -25,10 +25,10 @@ describe("Attribute", () => {
   })
 
   test("matchNameOrId", () => {
-    const a = Attribute.create({ v2Id: 1, id: "v3Id", name: "name", _title: "title" })
+    const a = Attribute.create({ id: "1", name: "name", _title: "title" })
     expect(a.matchNameOrId("")).toBe(false)
     expect(a.matchNameOrId(1)).toBe(true)
-    expect(a.matchNameOrId("v3Id")).toBe(true)
+    expect(a.matchNameOrId("1")).toBe(true)
     expect(a.matchNameOrId("name")).toBe(true)
     expect(a.matchNameOrId("title")).toBe(false)
   })
