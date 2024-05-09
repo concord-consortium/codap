@@ -73,7 +73,7 @@ export interface DIInteractiveFrame {
   title?: string
   version?: string
 }
-export type DIItem = unknown
+export type DIItem = DICaseValues
 export interface DINewCase {
   id?: string
   itemID?: string
@@ -84,6 +84,7 @@ export interface DINotification {
 
 export interface DIResources {
   attribute?: IAttribute
+  attributeList?: IAttribute[]
   attributeLocation?: IAttribute
   caseByID?: DICase
   caseByIndex?: DICase
@@ -122,6 +123,7 @@ export interface DISuccessResult {
   success: true
   values?: DIResultValues
   caseIDs?: string[]
+  itemIDs?: string[]
 }
 
 export interface DIErrorResult {
