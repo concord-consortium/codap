@@ -1,6 +1,6 @@
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIItem, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIItem, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { attrNamesToIds } from "../data-interactive-utils"
 
 const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
@@ -14,10 +14,12 @@ export const diItemHandler: DIHandler = {
     const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
     return {
       success: true,
-      caseIDs: itemIDs, // TODO This should include all cases created, including ungrouped and grouped
+      // caseIDs, // TODO This should include all cases created, both grouped and ungrouped
       itemIDs
     }
-  }
+  },
+  get: diNotImplementedYet,
+  update: diNotImplementedYet
 }
 
 registerDIHandler("item", diItemHandler)

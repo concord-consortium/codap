@@ -5,7 +5,7 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DINotification, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import { V2Component, kV2CaseTableType } from "../data-interactive-component-types"
 import { openTableForDataset } from "../../components/case-table/case-table-utils"
 
@@ -16,7 +16,14 @@ export const diComponentHandler: DIHandler = {
     const { type, dataContext } = values as V2Component
 
     if (type === kV2CaseTableType) {
-      if (!dataContext) return { success: false, values: { error: "dataContext required to create caseTable" } }
+      // TODO Should we create tables without datasets specified?
+      // Or create a new dataset when a specified one doesn't exist?
+      if (!dataContext) {
+        return {
+          success: false,
+          values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "caseTable", "dataContext"] }) }
+        }
+      }
       const { document } = appState
       const sharedDataSet = getSharedDataSets(document).find(sds => sds.dataSet.name === dataContext)
       const dataSet = sharedDataSet?.dataSet
@@ -26,10 +33,13 @@ export const diComponentHandler: DIHandler = {
       const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
       const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === dataSet.id)
       if (!caseMetadata) {
-        return { success: false, values: { error: `Unable to locate caseMetadata for ${dataContext}` } }
+        return { success: false, values: { error: t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }) } }
       }
 
+      // TODO Show hidden table if one already exists instead of creating a new one
       const tile = openTableForDataset(sharedDataSet, caseMetadata)
+
+      // TODO Handle more options, like isIndexHidden
       return {
         success: true,
         values: {
@@ -40,6 +50,7 @@ export const diComponentHandler: DIHandler = {
       }
     }
 
+    // TODO Handle other types
     return { success: false, values: { error: `Unsupported component type ${type}` } }
   },
   delete(resources: DIResources) {
@@ -53,6 +64,7 @@ export const diComponentHandler: DIHandler = {
 
     return { success: true }
   },
+  get: diNotImplementedYet,
   notify(resources: DIResources, values?: DIValues) {
     const { component } = resources
     if (!component) return componentNotFoundResult
@@ -66,7 +78,8 @@ export const diComponentHandler: DIHandler = {
     }
 
     return { success: true }
-  }
+  },
+  update: diNotImplementedYet
 }
 
 registerDIHandler("component", diComponentHandler)
