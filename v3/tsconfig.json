@@ -22,11 +22,14 @@
     }
   },
   "include": [
-    "./src/**/*",
+    "src/**/*",
     ".eslintrc*.cjs",
     // cypress.config.ts will need another pass before being added
     // "*.config.ts",
     "*.config.js",
     "why-did-you-render.ts"
+  ],
+  "exclude": [
+    "src/**/*.v2.ts"
   ]
 }

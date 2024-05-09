@@ -1,0 +1,225 @@
+[class^="moonicon-"], [class*=" moonicon-"] {
+	font-family: 'icomoon';
+    font-size: 23px;
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1.1;
+
+    /* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.moonicon-icon-segmented-bar-chart:before {
+	content: "\e900";
+}
+.moonicon-icon-plug:before {
+	content: "\e901";
+}
+.moonicon-icon-table:before {
+	content: "\31";
+}
+.moonicon-icon-graph:before {
+	content: "\33";
+}
+.moonicon-icon-dataTool:before {
+	content: "\32";
+}
+.moonicon-icon-calc:before {
+	content: "\36";
+}
+.moonicon-icon-slider:before {
+	content: "\35";
+}
+.moonicon-icon-map:before {
+	content: "\34";
+}
+.moonicon-icon-noteTool:before {
+	content: "\38";
+}
+.moonicon-icon-mediaTool:before {
+	content: "\37";
+}
+.moonicon-arrow-undo:before {
+	content: "\61";
+}
+.moonicon-arrow-redo:before {
+	content: "\62";
+}
+.moonicon-icon-tileList:before {
+	content: "\63";
+	font-size: 22px;
+}
+.moonicon-icon-comment:before {
+	content: "\e609";
+}
+.moonicon-icon-guide:before {
+	content: "\64";
+}
+.moonicon-icon-options:before {
+	content: "\65";
+}
+.moonicon-icon-simulateTool:before {
+	content: "\67";
+}
+.moonicon-icon-draw:before {
+	content: "\66";
+}
+.moonicon-icon-help:before {
+	content: "\68";
+	font-size: 24px;
+	color: #4c4c4c;
+}
+.moonicon-icon-hideShow:before {
+	content: "\69";
+	font-size: 20px;
+}
+.moonicon-icon-scaleData:before {
+	content: "\6a";
+	font-size: 27px;
+}
+.moonicon-icon-search:before {
+	content: "\6d";
+}
+.moonicon-icon-tileScreenshot:before {
+	content: "\6c";
+	font-size: 21px;
+}
+.moonicon-icon-trash:before {
+	content: "\e629";
+}
+.moonicon-icon-styles:before {
+	content: "\6e";
+}
+.moonicon-icon-values:before {
+	content: "\6f";
+}
+.moonicon-icon-qualRel:before {
+	content: "\70";
+}
+.moonicon-arrow-moreIconOptions:before {
+	content: "\71";
+}
+.moonicon-paletteArrow-expand:before {
+	content: "\72";
+}
+.moonicon-paletteArrow-collapse:before {
+	content: "\73";
+}
+.moonicon-arrow-expand:before {
+	content: "\74";
+	font-size: 12px;
+}
+.moonicon-arrow-collapse:before {
+	content: "\75";
+}
+.moonicon-inspectorArrow-expand:before {
+	content: "\76";
+}
+.moonicon-inspectorArrow-collapse:before {
+	content: "\77";
+}
+.moonicon-icon-swapAxis:before {
+	content: "\78";
+}
+.moonicon-icon-ex:before {
+	content: "\79";
+}
+.moonicon-icon-minimize:before {
+	content: "\7a";
+}
+.moonicon-icon-noteCanvas .path1:before {
+	content: "\41";
+	color: rgb(251, 243, 144);
+}
+.moonicon-icon-noteCanvas .path2:before {
+	content: "\42";
+	margin-left: -1.2666015625em;
+	color: rgb(13, 136, 158);
+}
+.moonicon-icon-noteCanvas-Hover .path1:before {
+	content: "\43";
+	color: rgb(251, 243, 144);
+}
+.moonicon-icon-noteCanvas-Hover .path2:before {
+	content: "\44";
+	margin-left: -1.2666015625em;
+	color: rgb(16, 38, 51);
+}
+.moonicon-icon-noteTile .path1:before {
+	content: "\45";
+	color: rgb(251, 243, 144);
+}
+.moonicon-icon-noteTile .path2:before {
+	content: "\46";
+	margin-left: -1.2666015625em;
+	color: rgb(13, 136, 158);
+}
+.moonicon-icon-noteTile-hover .path1:before {
+	content: "\48";
+	color: rgb(251, 243, 144);
+}
+.moonicon-icon-noteTile-hover .path2:before {
+	content: "\49";
+	margin-left: -1.2666015625em;
+	color: rgb(16, 38, 51);
+}
+.moonicon-icon-play:before {
+	content: "\4a";
+}
+.moonicon-icon-reverse-play:before {
+	content: "\4a";
+	display: inline-block;
+	transform: scale(-1, 1);
+}
+.moonicon-icon-controlsReset:before {
+	content: "\4b";
+}
+.moonicon-icon-controlsBackward:before {
+	content: "\4d";
+}
+.moonicon-icon-controlsForward:before {
+	content: "\4e";
+}
+.moonicon-icon-speedFast:before {
+	content: "\4f";
+}
+.moonicon-icon-speedSlow:before {
+	content: "\50";
+}
+.moonicon-slider:before {
+	content: "\51";
+}
+.moonicon-icon-smallSliderLines:before {
+	content: "\52";
+}
+.moonicon-icon-alert:before {
+	content: "\53";
+}
+.moonicon-icon-checkmark:before {
+	content: "\54";
+}
+.moonicon-icon-info:before {
+	content: "\55";
+}
+.moonicon-icon-saveGraph:before {
+	content: "\56";
+}
+.moonicon-icon-link:before {
+	content: "\57";
+}
+.moonicon-icon-marquee:before {
+	content: "\58";
+}
+.moonicon-icon-pause:before {
+	content: "\59";
+}
+.moonicon-icon-thumb:before {
+	content: "\5a";
+}
+.moonicon-icon-layers:before {
+	content: "\e92e";
+}
