@@ -29,3 +29,20 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   // kV2TextType
   [kWebViewTileType]: kV2WebViewType
 }
+
+export interface V2CaseTable {
+  type: "caseTable"
+  name?: string
+  title?: string
+  dimensions?: {
+    width: number
+    height: number
+  }
+  position?: string
+  cannotClose?: boolean
+  dataContext?: string
+  horizontalScrollOffset?: number
+  isIndexHidden?: boolean
+}
+
+export type V2Component = V2CaseTable
