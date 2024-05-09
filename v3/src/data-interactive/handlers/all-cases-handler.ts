@@ -22,7 +22,8 @@ export const diAllCasesHandler: DIHandler = {
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
       const id = c.pseudoCase.__id__
 
-      const parent = dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__
+      const _parent = dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__
+      const parent = _parent ? +_parent : undefined
 
       // iphone-frame was throwing an error when Array.from() wasn't used here for some reason.
       const childPseudoCaseIds = c.childPseudoCaseIds && Array.from(c.childPseudoCaseIds)
@@ -32,7 +33,7 @@ export const diAllCasesHandler: DIHandler = {
       const values = getCaseValues(id, collection.id, dataContext)
 
       return {
-        case: { id, parent, children, values },
+        case: { id: +id, parent, children: children.map(child => +child), values },
         caseIndex
       }
     })
@@ -40,7 +41,7 @@ export const diAllCasesHandler: DIHandler = {
     return { success: true, values: {
       collection: {
         name: collection.name,
-        id: collection.id
+        id: +collection.id
       },
       cases
     } }

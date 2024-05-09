@@ -34,7 +34,7 @@ export const diSelectionListHandler: DIHandler = {
 
     const caseIds = Array.from(dataContext.selection)
     // TODO Include collectionID and collectionName
-    const values = caseIds.map(caseID => ({ caseID }))
+    const values = caseIds.map(caseID => ({ caseID: +caseID }))
     // TODO Filter based on collection
     return {
       success: true,

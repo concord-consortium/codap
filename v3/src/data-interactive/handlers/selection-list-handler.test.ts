@@ -6,8 +6,8 @@ describe("DataInteractive SelectionListHandler", () => {
   const handler = diSelectionListHandler
 
   let dataset: IDataSet
-  const caseId1 = "case1"
-  const caseId2 = "case2"
+  const caseId1 = "1"
+  const caseId2 = "2"
   const caseIdUnused = "unused"
   beforeEach(function() {
     dataset = DataSet.create({ name: "data" })
@@ -25,7 +25,7 @@ describe("DataInteractive SelectionListHandler", () => {
     dataset.setSelectedCases([caseId1])
     const result = handler.get?.({ dataContext: dataset })
     expect(result?.values && Array.isArray(result.values) &&
-      (result.values as DICase[]).map(c => c.caseID).includes(caseId1)).toBe(true)
+      (result.values as DICase[]).map(c => c.caseID).includes(+caseId1)).toBe(true)
   })
 
   it("create works as expected", () => {

@@ -20,7 +20,7 @@ export const diComponentListHandler: DIHandler = {
         : kComponentTypeV3ToV2Map[content.type]
       const tileLayout = document.content?.getTileLayoutById(id)
       const hidden = isFreeTileLayout(tileLayout) ? !!tileLayout.isHidden : false
-      values.push({ hidden, id, title, type })
+      values.push({ hidden, id: +id, title, type })
     })
 
     return { success: true, values }

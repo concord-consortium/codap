@@ -44,7 +44,7 @@ describe("DataInteractive AllCasesHandler", () => {
     }
     const getCase = (result: GetAllCasesResult, index: number) =>
       result.values.cases![index].case!
-    const checkCase = (c: any, attribute: string, value: string, children: number, parent?: string) => {
+    const checkCase = (c: any, attribute: string, value: string, children: number, parent?: number) => {
       expect(c.values[attribute]).toBe(value)
       expect(c.children.length).toBe(children)
       expect(c.parent).toBe(parent)
