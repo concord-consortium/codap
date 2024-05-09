@@ -1,3 +1,4 @@
+import { updateCollectionNotification } from "../../models/data/data-set-notifications"
 import { DG } from "../../v2/dg-compat.v2"
 import { v2t } from "../../v2/sc-compat"
 
@@ -27,10 +28,11 @@ DG.CaseDisplayUtils = {
         dgCollection = collectionClient?.get("collection"),
         dsCollection = dgCollection?.get("collection")
 
-    if (dsCollection) {
+    if (dsCollection && iNewName !== iOldName) {
       iDataContext.data.applyModelChange(() => {
         dsCollection.setName(iNewName)
       }, {
+        notifications: () => updateCollectionNotification(dsCollection, iDataContext.data),
         undoStringKey: "DG.Undo.caseTable.collectionNameChange",
         redoStringKey: "DG.Redo.caseTable.collectionNameChange",
       })

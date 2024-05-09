@@ -40,7 +40,7 @@ describe("Case card NavButtons", () => {
     expect(prevButton).toBeInTheDocument()
     await user.click(prevButton)
     expect(mockOnPrevious).toHaveBeenCalledTimes(1)
-    // prev button
+    // deselect button
     const deselectButton = screen.getByTitle(t("DG.CaseCard.noDeselect"))
     expect(deselectButton).toBeInTheDocument()
     expect(deselectButton).toBeDisabled()

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The v2 case card code was written using React components rather than relying on the SproutCore view system. Therefore, the decision was made to port the v2 code into v3 rather than rewriting it from scratch. Due to the limitations of the v2 SproutCore build system, the v2 code is pre-ES6 and so does not use `import`, `export` or `class`. Instead, the code uses pre-ES6 React utilities like `createReactClass`, `createReactFactory`, and `ReactDOMFactories` as well as extensive use of globals. The goal of the initial port was to change the ported code as little as possible so as to minimize the likelihood of introducing additional issues if the code were being modernized and ported at the same time. Modernization is a worthy goal and a roadmap for doing so will is presented later in the document.
+The v2 case card code was written using React components rather than relying on the SproutCore view system. Therefore, the decision was made to port the v2 code into v3 rather than rewriting it from scratch. Due to the limitations of the v2 SproutCore build system, the v2 code is pre-ES6 and so does not use `import`, `export` or `class`. Instead, the code uses pre-ES6 React utilities like `createReactClass`, `createReactFactory`, and `ReactDOMFactories` as well as extensive use of globals. The goal of the initial port was to change the ported code as little as possible so as to minimize the likelihood of introducing additional issues if the code were being modernized and ported at the same time. Modernization is a worthy goal and a roadmap for doing so is presented later in the document.
 
 ## Configuration
 

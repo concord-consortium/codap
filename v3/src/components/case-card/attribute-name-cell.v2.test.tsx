@@ -55,7 +55,7 @@ describe("Case card AttributeNameCell", () => {
     // clicking on name brings up menu
     await user.click(nameElt)
     const editItem = screen.getByText(t('DG.TableController.headerMenuItems.editAttribute'))
-    // clicking on rename menu item calls a callback and closes the menu
+    // clicking on edit menu item calls a callback and closes the menu
     await user.click(editItem)
     expect(mockEditAttribute).toHaveBeenCalledTimes(1)
     expect(screen.queryByText(t('DG.TableController.headerMenuItems.editAttribute'))).toBeNull()

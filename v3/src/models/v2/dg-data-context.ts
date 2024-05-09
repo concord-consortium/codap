@@ -1,6 +1,7 @@
 import { IDataSet } from "../data/data-set"
 import { DGCollectionClient } from "./dg-collection-client"
 import { SCObject } from "../../v2/sc-compat"
+import { selectAllCases, setSelectedCases } from "../data/data-set-utils"
 import { canonicalizeAttributeName } from "../../data-interactive/data-interactive-utils"
 import { mstAutorun } from "../../utilities/mst-autorun"
 import { t } from "../../utilities/translation/translate"
@@ -107,10 +108,10 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
   applyChange(change: IApplyChange) {
     if (change.operation === "selectCases") {
       if (change.cases) {
-        this.data.setSelectedCases(change.cases.map(aCase => aCase.get("id")))
+        setSelectedCases(change.cases.map(aCase => aCase.get("id")), this.data)
       }
       else {
-        this.data.selectAll(!!change.select)
+        selectAllCases(this.data, !!change.select)
       }
     }
   }

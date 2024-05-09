@@ -69,6 +69,7 @@ export class DGCollection extends SCObject {
   }
 
   numberOfVisibleAttributes() {
+    // TODO: retrieve hidden status from metadata
     return isCollectionModel(this.collection)
             ? this.collection.attributes.length
             : this.data.attributes.length
