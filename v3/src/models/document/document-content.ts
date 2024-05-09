@@ -10,8 +10,8 @@ import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
-import { typedId } from "../../utilities/js-utils"
 import { ComponentRect } from "../../utilities/animation-utils"
+import { randomCodapId } from "../../utilities/mst-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
@@ -87,7 +87,7 @@ export const DocumentContentModel = BaseDocumentContentModel
     createDefaultTileSnapshotOfType(tileType: string): ITileModelSnapshotIn | undefined {
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)
-      const id = typedId(info?.prefix || "TILE")
+      const id = randomCodapId()
       const content = info?.defaultContent({ env })
       return content ? { id, content } : undefined
     },
