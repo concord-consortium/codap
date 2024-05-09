@@ -1,11 +1,11 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { typeCodapId } from "../../utilities/mst-utils"
+import { typeCodapNumIdStr } from "../../utilities/mst-utils"
 
 export const kDefaultNamePrefix = "v"
 
 // represents a globally accessible value, such as the value of a slider
 export const GlobalValue = types.model("GlobalValue", {
-    id: typeCodapId(),
+    id: typeCodapNumIdStr(),
     name: types.string,
     _value: types.number
   })

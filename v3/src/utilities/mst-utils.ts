@@ -15,7 +15,12 @@ export function typeField(typeName: string) {
   return types.optional(types.literal(typeName), typeName)
 }
 
-export function randomCodapId() {
+/**
+ * Generates a CODAP v2-compatible numeric id as a string.
+ *
+ * @returns the generated id
+ */
+export function codapNumIdStr() {
   // The maximum representable integer in JavaScript is ~9e15.
   // We lower the ceiling a bit and raise the floor to avoid conflicting with
   // generated SproutCore ids which auto-increment from 1.
@@ -26,15 +31,12 @@ export function randomCodapId() {
 
 /**
  * This creates the definition for an identifier field in MST, which generates
- * CODAP v2-compatible numeric ids if an id is not provided.
- * The field is optional so it doesn't have to be specified when creating
- * an instance.
+ * a CODAP v2-compatible numeric id as a string if an id is not provided.
  *
- * @param typeName the type
- * @returns
+ * @returns the generated id
  */
-export function typeCodapId() {
-  return types.optional(types.identifier, () => `${randomCodapId()}`)
+export function typeCodapNumIdStr() {
+  return types.optional(types.identifier, () => codapNumIdStr())
 }
 
 /**

@@ -12,8 +12,8 @@ jest.mock("../../utilities/mst-utils", () => {
   const mockCodapId = () => `test-${++mockNodeIdCount}`
   return {
     ...jest.requireActual("../../utilities/mst-utils"),
-    typeCodapId: () => types.optional(types.identifier, () => `${mockCodapId()}`),
-    randomCodapId: mockCodapId
+    codapNumIdStr: mockCodapId,
+    typeCodapNumIdStr: () => types.optional(types.identifier, () => `${mockCodapId()}`)
   }
 })
 

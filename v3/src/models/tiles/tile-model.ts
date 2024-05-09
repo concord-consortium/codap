@@ -7,7 +7,7 @@ import { ITileContentModel } from "./tile-content"
 import { DisplayUserTypeEnum } from "../stores/user-types"
 import { StringBuilder } from "../../utilities/string-builder"
 import { applyModelChange } from "../history/apply-model-change"
-import { randomCodapId, typeCodapId } from "../../utilities/mst-utils"
+import { codapNumIdStr, typeCodapNumIdStr } from "../../utilities/mst-utils"
 
 // generally negotiated with app, e.g. single column width for table
 export const kDefaultMinWidth = 60
@@ -34,7 +34,7 @@ export function cloneTileSnapshotWithoutId(tile: ITileModel) {
 export function cloneTileSnapshotWithNewId(tile: ITileModel, newId?: string) {
   const content = tile.content.tileSnapshotForCopy
   const { id, display, ...copy } = cloneDeep(getSnapshot(tile))
-  return { id: newId || randomCodapId(), ...copy, content }
+  return { id: newId || codapNumIdStr(), ...copy, content }
 }
 
 export function getTileModel(tileContentModel: ITileContentModel) {
@@ -58,7 +58,7 @@ export function setTileTitleFromContent(tileContentModel: ITileContentModel, tit
 export const TileModel = types
   .model("TileModel", {
     // if not provided, will be generated
-    id: typeCodapId(),
+    id: typeCodapNumIdStr(),
     // all tiles can have a title
     title: types.maybe(types.string),
     // whether to restrict display to certain users

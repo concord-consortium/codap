@@ -2,7 +2,6 @@ import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-st
 import { Attribute, IAttribute } from "./attribute"
 import { IMoveAttributeOptions } from "./data-set-types"
 import { V2Model } from "./v2-model"
-import { typeCodapId } from "../../utilities/mst-utils"
 
 export const CollectionLabels = types.model("CollectionLabels", {
   singleCase: "",
@@ -13,7 +12,6 @@ export const CollectionLabels = types.model("CollectionLabels", {
 })
 
 export const CollectionPropsModel = V2Model.named("CollectionProps").props({
-  id: typeCodapId(),
   labels: types.maybe(CollectionLabels)
 })
 export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}

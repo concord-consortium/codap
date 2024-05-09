@@ -1,8 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { typeCodapId } from "../../utilities/mst-utils"
+import { typeCodapNumIdStr } from "../../utilities/mst-utils"
 
 export const V2Model = types.model("V2Model", {
-  id: typeCodapId(),
+  id: typeCodapNumIdStr(),
   // required for objects in documents
   name: "",
   _title: types.maybe(types.string)

@@ -59,7 +59,7 @@ import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-s
 import { applyModelChange } from "../history/apply-model-change"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
-import { randomCodapId, typeCodapId } from "../../utilities/mst-utils"
+import { codapNumIdStr } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { V2Model } from "./v2-model"
 
@@ -142,7 +142,6 @@ export interface CollectionGroup {
 }
 
 export const DataSet = V2Model.named("DataSet").props({
-  id: typeCodapId(),
   sourceID: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
   collections: types.array(CollectionModel),
@@ -198,7 +197,7 @@ export const DataSet = V2Model.named("DataSet").props({
     const attributesMap: Record<string, IAttributeSnapshot> = {}
     const attributes: string[] = []
     legacyAttributes.forEach(attr => {
-      const attrId = attr.id || randomCodapId()
+      const attrId = attr.id || codapNumIdStr()
       attributesMap[attrId] = { id: attrId, ...attr }
       attributes.push(attrId)
     })
@@ -384,7 +383,7 @@ export const DataSet = V2Model.named("DataSet").props({
                 // start a new group with just this case (for now)
                 // note: PCAS ids are considered ephemeral and should not be stored/serialized,
                 // because they can be regenerated whenever the data changes.
-                const pseudoCase: IGroupedCase = { __id__: randomCodapId(), ...cumulativeValues }
+                const pseudoCase: IGroupedCase = { __id__: codapNumIdStr(), ...cumulativeValues }
                 groupsMap[cumulativeValuesJson] = {
                   collectionId: collection.id,
                   pseudoCase,
@@ -835,12 +834,12 @@ export const DataSet = V2Model.named("DataSet").props({
           // to derived DataSets.
           addDisposer(self, addMiddleware(self, (call, next) => {
             if (call.context === self && call.name === "addAttribute") {
-              const { id = randomCodapId(), ...others } = call.args[0] as IAttributeSnapshot
+              const { id = codapNumIdStr(), ...others } = call.args[0] as IAttributeSnapshot
               call.args[0] = { id, ...others }
             }
             else if (call.context === self && call.name === "addCases") {
               call.args[0] = (call.args[0] as ICaseCreation[]).map(iCase => {
-                const { __id__ = randomCodapId(), ...others } = iCase
+                const { __id__ = codapNumIdStr(), ...others } = iCase
                 return { __id__, ...others }
               })
             }
@@ -953,7 +952,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // insert/append cases and empty values
         const ids: string[] = []
-        const _cases = cases.map(({ __id__ = randomCodapId() }) => {
+        const _cases = cases.map(({ __id__ = codapNumIdStr() }) => {
           ids.push(__id__)
           return { __id__ }
         })
