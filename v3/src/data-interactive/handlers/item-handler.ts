@@ -9,6 +9,7 @@ export const diItemHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
+    if (!values) return { success: false, values: { error: t("V3.DI.Error.valuesRequired") } }
 
     const items = (Array.isArray(values) ? values : [values]) as DIItem[]
     const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
