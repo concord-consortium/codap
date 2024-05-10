@@ -1,37 +1,13 @@
 import { appState } from "../../models/app-state"
-import { CollectionModel, ICollectionModel } from "../../models/data/collection"
 import { gDataBroker } from "../../models/data/data-broker"
-import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ICodapV2DataContext } from "../../v2/codap-v2-types"
 import { DIDataContext, DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
+import { setupTestDataset } from "./handler-test-utils"
 
 describe("DataInteractive DataContextHandler", () => {
   const handler = diDataContextHandler
-
-  let dataset: IDataSet | undefined
-  let c1: ICollectionModel | undefined
-  let c2: ICollectionModel | undefined
-  const cases = [
-    { a1: "a", a2: "x", a3: 1 },
-    { a1: "b", a2: "y", a3: 2 },
-    { a1: "a", a2: "z", a3: 3 },
-    { a1: "b", a2: "z", a3: 4 },
-    { a1: "a", a2: "x", a3: 5 },
-    { a1: "b", a2: "y", a3: 6 },
-  ]
-  const setupDataset = () => {
-    dataset = DataSet.create({ name: "data" })
-    c1 = CollectionModel.create({ name: "collection1" })
-    c2 = CollectionModel.create({ name: "collection2" })
-    dataset.addCollection(c1)
-    dataset.addCollection(c2)
-    dataset.addAttribute({ name: "a1" }, { collection: c1.id })
-    dataset.addAttribute({ name: "a2" }, { collection: c2.id })
-    dataset.addAttribute({ name: "a3" })
-    dataset.addCases(toCanonical(dataset, cases))
-  }
 
   it("create and delete work as expected", () => {
     gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
@@ -74,13 +50,13 @@ describe("DataInteractive DataContextHandler", () => {
     expect(gDataBroker.length).toBe(1)
     const defaultName = "Data_Set_1"
     expect((result3?.values as DIDataContext)?.name).toBe(defaultName)
-    dataset = gDataBroker.getDataSetByName(defaultName)
+    const dataset = gDataBroker.getDataSetByName(defaultName)
     expect(dataset?.collections.length).toBe(2)
     expect(dataset?.attributes.length).toBe(4)
   })
 
   it("get works as expected", () => {
-    setupDataset()
+    const { dataset } = setupTestDataset()
 
     expect(handler.get?.({}).success).toBe(false)
 
@@ -93,7 +69,7 @@ describe("DataInteractive DataContextHandler", () => {
   })
 
   it("update works as expected", () => {
-    setupDataset()
+    const { dataset } = setupTestDataset()
 
     const title = "New Title"
     const description = "New Description"
