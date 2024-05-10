@@ -3,7 +3,6 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2SliderComponent } from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
@@ -61,16 +60,19 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
 
   // parse the v2 content
   const {
-    title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
-    restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle
-  } = v2Component.componentStorage
+    guid: componentGuid,
+    componentStorage: {
+      title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
+      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle
+    }
+  } = v2Component
   const globalId = _links_.model.id
   const v2Global = v2Document.globalValues.find(_global => _global.guid === globalId)
   if (!v2Global) return
 
   // create global value and add to manager
   const { guid, ...globalSnap } = v2Global
-  const globalValue = globalValueManager.addValueSnapshot(globalSnap)
+  const globalValue = globalValueManager.addValueSnapshot({ id: `${guid}`, ...globalSnap })
 
   // create slider model
   const content: ISliderSnapshot = {
@@ -83,7 +85,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
     axis: { type: "numeric", place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 }
   }
   const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
-  const sliderTileSnap: ITileModelSnapshotIn = { id: typedId(kSliderIdPrefix), title, content }
+  const sliderTileSnap: ITileModelSnapshotIn = { id: `${componentGuid}`, title, content }
   const sliderTile = insertTile(sliderTileSnap)
 
   // link tile to global value manager

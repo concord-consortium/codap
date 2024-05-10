@@ -1,7 +1,6 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { typedId } from "../../utilities/js-utils"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { isV2WebViewComponent, isV2GameViewComponent } from "../../v2/codap-v2-types"
 import { kWebViewTileType } from "./web-view-defs"
@@ -30,7 +29,7 @@ registerTileComponentInfo({
   defaultHeight: 400
 })
 
-function addWebViewSnapshot(args: V2TileImportArgs, url?: string, state?: unknown) {
+function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, state?: unknown) {
   const { v2Component, insertTile } = args
   const { title, userSetTitle } = v2Component.componentStorage
 
@@ -40,7 +39,7 @@ function addWebViewSnapshot(args: V2TileImportArgs, url?: string, state?: unknow
     url
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
-    id: typedId(kWebViewIdPrefix),
+    id: `${guid}`,
     title: (userSetTitle && title) || undefined,
     content
   }
@@ -53,10 +52,10 @@ function importWebView(args: V2TileImportArgs) {
   if (!isV2WebViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { URL } = v2Component.componentStorage
+  const { guid, componentStorage: { URL } } = v2Component
 
   // create webView model
-  return addWebViewSnapshot(args, URL)
+  return addWebViewSnapshot(args, guid, URL)
 }
 registerV2TileImporter("DG.WebView", importWebView)
 
@@ -65,9 +64,9 @@ function importGameView(args: V2TileImportArgs) {
   if (!isV2GameViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { currentGameUrl, savedGameState} = v2Component.componentStorage
+  const { guid, componentStorage: { currentGameUrl, savedGameState} } = v2Component
 
   // create webView model
-  return addWebViewSnapshot(args, processPluginUrl(currentGameUrl), savedGameState)
+  return addWebViewSnapshot(args, guid, processPluginUrl(currentGameUrl), savedGameState)
 }
 registerV2TileImporter("DG.GameView", importGameView)

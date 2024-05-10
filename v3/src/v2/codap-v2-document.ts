@@ -37,7 +37,7 @@ export class CodapV2Document {
     return this.document.globalValues
   }
 
-  get datasets() {
+  get dataSets() {
     return Array.from(this.dataMap.values())
   }
 
@@ -76,9 +76,9 @@ export class CodapV2Document {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
       this.guidMap.set(guid, { type, object: context })
-      const sharedDataSet = SharedDataSet.create({ dataSet: { name } })
+      const sharedDataSet = SharedDataSet.create({ dataSet: { id: `${guid}`, name } })
       this.dataMap.set(guid, sharedDataSet)
-      const metadata = SharedCaseMetadata.create({ data: this.dataMap.get(guid)?.id })
+      const metadata = SharedCaseMetadata.create({ data: `${guid}` })
       this.metadataMap.set(guid, metadata)
 
       this.registerCollections(sharedDataSet.dataSet, metadata, collections)
@@ -97,7 +97,7 @@ export class CodapV2Document {
       this.registerCases(data, cases, level)
 
       if (level > 0) {
-        const collectionModel = CollectionModel.create({ name, _title })
+        const collectionModel = CollectionModel.create({ id: `${guid}`, name, _title })
         attrs.forEach(attr => {
           const attrModel = data.attrFromName(attr.name)
           attrModel && collectionModel.addAttribute(attrModel)
@@ -105,7 +105,7 @@ export class CodapV2Document {
         data.addCollection(collectionModel)
       }
       else {
-        data.setUngroupedCollection(CollectionPropsModel.create({ name, _title }))
+        data.setUngroupedCollection(CollectionPropsModel.create({ id: `${guid}`, name, _title }))
       }
     })
   }
@@ -140,9 +140,9 @@ export class CodapV2Document {
     cases.forEach(_case => {
       const { guid, values } = _case
       this.guidMap.set(guid, { type: "DG.Case", object: _case })
-      // only add child/leaf cases
+      // only add child/leaf cases (for now)
       if (level === 0) {
-        let caseValues = toCanonical(data, values)
+        let caseValues = { __id__: `${guid}`, ...toCanonical(data, values) }
         // look up parent case attributes and add them to caseValues
         for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
           caseValues = { ...(parentCase.values ? toCanonical(data, parentCase.values) : undefined), ...caseValues }
