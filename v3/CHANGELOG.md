@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.1639 - May 10, 2024
+
+### ✨ Features & Improvements:
+- **PT-187527496:** DI updateCases, create, delete, updateCollection Notifications
+- **PT-187485557:** DI Choosy Notifications
+- **PT-187458777:** Graph has option to Display Only Selected Cases
+- **PT-187499873:** Bar chart with numeric legend sorts values in each bar
+- **PT-181869324:** Users can switch back and forth between table and card using a menu accessible via a table/card icon in the upper left corner of the title bar.
+- **PT-187572179:** Case Card: initial port of v2 code
+
+### 🐞 Bug Fixes:
+- **PT-187450934:** Legend compresses on window resize with multiple axes
+- **PT-187548327:** Edit collection name UI
+- **PT-187033159:** Graph and Calc title does not revert to previous name on undo
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  156316 bytes |                            8.45% |
+|  index.js | 5198791 bytes |                            2.60% |
+
 ## Version 3.0.0-pre.1631 - May 3, 2024
 
 ### ✨ Features & Improvements:

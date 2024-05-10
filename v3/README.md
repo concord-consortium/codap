@@ -16,7 +16,7 @@ July 2022 saw the beginning of the development of CODAP Version 3, a complete re
 
 What CODAP looks like will depend strongly on the context. But below is a screen shot of CODAP in use with an InquirySpace investigation. The **Terminal Velocity** component is a simulation that is streaming data to CODAP. Note the hierarchical structure of the data in which there are five runs, each containing a time series. Note also the linked selection in which the fourth run and its time series are selected.
 
-![CODAP as it appears in InquirySpace](./src/assets/codap_screen.jpg)
+![CODAP as it appears in InquirySpace]
 
 ### The License
 
