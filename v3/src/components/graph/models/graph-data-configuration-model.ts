@@ -255,7 +255,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .views(self => ({
     getAllCategoriesForRoles() {
       const categories: Map<AttrRole, string[]> = new Map()
-      ;(["x", "y", "topSplit", "rightSplit"] as const).forEach(role => {
+      ;(["x", "y", "topSplit", "rightSplit", "legend"] as const).forEach(role => {
         const categorySet = self.categorySetForAttrRole(role)
         if (categorySet) {
           categories.set(role, categorySet.valuesArray)

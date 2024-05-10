@@ -88,6 +88,19 @@ export const CategoricalLegend = observer(
     const
       keysElt = useRef(null)
 
+    const setCategoryData = useCallback(() => {
+      if (categoriesRef.current) {
+        const newCategoryData = categoriesRef.current.map((cat: string, index) => ({
+          category: cat,
+          color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
+          column: index % layoutData.current.numColumns,
+          index,
+          row: Math.floor(index / layoutData.current.numColumns)
+        }))
+        categoryData.current = newCategoryData
+      }
+    }, [dataConfiguration])
+
       const computeLayout = useCallback(() => {
         categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
         const numCategories = categoriesRef.current?.length,
@@ -101,18 +114,9 @@ export const CategoricalLegend = observer(
         lod.numColumns = Math.max(Math.floor(lod.fullWidth / lod.maxWidth), 1)
         lod.columnWidth = lod.fullWidth / lod.numColumns
         lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
-        categoryData.current.length = 0
-        categoriesRef.current && Array.from(categoriesRef.current).forEach((cat: string, index) => {
-          categoryData.current.push({
-            category: cat,
-            color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
-            index,
-            row: Math.floor(index / lod.numColumns),
-            column: index % lod.numColumns
-          })
-        })
+        setCategoryData()
         layoutData.current = lod
-      }, [dataConfiguration, tileWidth])
+      }, [dataConfiguration, setCategoryData, tileWidth])
 
       const computeDesiredExtent = useCallback(() => {
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
@@ -204,16 +208,17 @@ export const CategoricalLegend = observer(
             newCatIndex = coordinatesToCatIndex(lod, numCategories, newDragPosition)
           if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
             // swap the two categories
-            duration.current = transitionDuration / 2
             dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
             dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
+            categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+            setCategoryData()
             dI.indexOfCategory = newCatIndex
           } else {
             refreshKeys()
           }
           dI.currentDragPosition = newDragPosition
         }
-      }, [dataConfiguration, refreshKeys])
+      }, [dataConfiguration, setCategoryData, refreshKeys])
 
       const onDragEnd = useCallback(() => {
         duration.current = transitionDuration
