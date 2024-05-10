@@ -72,12 +72,12 @@ describe(`V2 "mammals.codap"`, () => {
     const context = mammals.contexts[0]
     const collection = context.collections[0]
     const data = mammals.dataSets[0].dataSet
-    expect(data.id).toBe(`${context.guid}`)
-    expect(data.ungrouped.id).toBe(`${collection.guid}`)
+    expect(data.id).toBe(`DATA${context.guid}`)
+    expect(data.ungrouped.id).toBe(`COLL${collection.guid}`)
     expect(data.attributes.length).toBe(9)
-    expect(data.attributes[0].id).toBe(`${collection.attrs[0].guid}`)
+    expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
     expect(data.cases.length).toBe(27)
-    expect(data.cases[0].__id__).toBe(`${collection.cases[0].guid}`)
+    expect(data.cases[0].__id__).toBe(`CASE${collection.cases[0].guid}`)
 
     // mammals has no parent cases
     const firstCase = collection.cases[0]
@@ -127,7 +127,7 @@ describe(`V2 "24cats.codap"`, () => {
     const v2SexAttr = v2ParentCollection.attrs?.[0]
     expect(cats.getV2Attribute(v2SexAttr.guid)).toBeDefined()
     const dsSexAttr = data.collections[0].attributes[0]
-    expect(dsSexAttr!.id).toBe(`${v2SexAttr.guid}`)
+    expect(dsSexAttr!.id).toBe(`ATTR${v2SexAttr.guid}`)
     expect(dsSexAttr!.name).toBe(v2SexAttr.name)
     expect(dsSexAttr!.title).toBe(v2SexAttr.title)
 

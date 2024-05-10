@@ -1,6 +1,7 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { isV2WebViewComponent, isV2GameViewComponent } from "../../v2/codap-v2-types"
 import { kWebViewTileType } from "./web-view-defs"
@@ -39,7 +40,7 @@ function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, 
     url
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
-    id: `${guid}`,
+    id: toV3Id(kWebViewIdPrefix, guid),
     title: (userSetTitle && title) || undefined,
     content
   }

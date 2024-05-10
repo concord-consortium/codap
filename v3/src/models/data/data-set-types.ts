@@ -1,9 +1,9 @@
 import { Instance, types } from "mobx-state-tree"
 import { IValueType } from "./attribute"
-import { codapNumIdStr } from "../../utilities/mst-utils"
+import { kCaseIdPrefix, v3Id } from "../../utilities/codap-utils"
 
 export const CaseID = types.model("CaseID", {
-  __id__: types.optional(types.string, () => codapNumIdStr())
+  __id__: types.optional(types.string, () => v3Id(kCaseIdPrefix))
 })
 export interface ICaseID extends Instance<typeof CaseID> {}
 

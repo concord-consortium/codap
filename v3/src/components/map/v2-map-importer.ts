@@ -1,10 +1,11 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
+import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {isV2MapComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {AttrRole} from "../data-display/data-display-types"
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"
-import {kMapTileType} from "./map-defs"
+import {kMapIdPrefix, kMapTileType} from "./map-defs"
 import {boundaryAttributeFromDataSet, latLongAttributesFromDataSet} from "./utilities/map-utils"
 import {IMapPointLayerModelSnapshot} from "./models/map-point-layer-model"
 import {BaseMapKey, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
@@ -127,6 +128,6 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     center, zoom, baseMapLayerName, baseMapLayerIsVisible: true, layers
   }
 
-  const mapTileSnap: ITileModelSnapshotIn = { id: `${guid}`, title, content }
+  const mapTileSnap: ITileModelSnapshotIn = { id: toV3Id(kMapIdPrefix, guid), title, content }
   return insertTile(mapTileSnap)
 }

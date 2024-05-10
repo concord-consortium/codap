@@ -1,5 +1,6 @@
 import { IDataSet } from "../../models/data/data-set"
 import { ICaseCreation } from "../../models/data/data-set-types"
+import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DICaseValues, DIFullCase, DIHandler, DIResources, DIValues } from "../data-interactive-types"
@@ -26,7 +27,7 @@ export const diCaseHandler: DIHandler = {
       cases.forEach(aCase => {
         if (aCase.values) {
           const { parent } = aCase
-          const parentValues = parent ? dataContext.getParentValues(`${parent}`) : {}
+          const parentValues = parent ? dataContext.getParentValues(toV3CaseId(parent)) : {}
           const caseValues = attrNamesToIds(aCase.values, dataContext)
           newCaseData.push({ ...caseValues, ...parentValues })
         }
@@ -35,7 +36,7 @@ export const diCaseHandler: DIHandler = {
     })
 
     // TODO Include case ids as id in the returned values
-    return { success: true, values: itemIds.map(id => ({ itemID: +id })) }
+    return { success: true, values: itemIds.map(id => ({ itemID: toV2Id(id) })) }
   },
   update(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
@@ -46,7 +47,7 @@ export const diCaseHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
         const { id } = aCase
-        const strId = `${id}`
+        const strId = id && toV3CaseId(id)
         if (id && strId && aCase.values && (dataContext.getCase(strId) || dataContext.pseudoCaseMap.get(strId))) {
           caseIDs.push(id)
           const updatedAttributes = attrNamesToIds(aCase.values, dataContext)

@@ -1,13 +1,14 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CalculatorComponent } from "./calculator"
 import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
 import { CalculatorModel, ICalculatorSnapshot } from "./calculator-model"
 import { CalculatorTitleBar } from "./calculator-title-bar"
 import CalcIcon from '../../assets/icons/icon-calc.svg'
+import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
-import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 
 export const kCalculatorIdPrefix = "CALC"
 
@@ -46,7 +47,7 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
     type: kCalculatorTileType,
     name
   }
-  const calculatorTileSnap: ITileModelSnapshotIn = { id: `${guid}`, title, content }
+  const calculatorTileSnap: ITileModelSnapshotIn = { id: toV3Id(kCalculatorIdPrefix, guid), title, content }
   const calculatorTile = insertTile(calculatorTileSnap)
 
   return calculatorTile

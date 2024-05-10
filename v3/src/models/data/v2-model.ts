@@ -1,8 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { typeCodapNumIdStr } from "../../utilities/mst-utils"
+import { toV2Id, toV3Id, typeV3Id } from "../../utilities/codap-utils"
 
 export const V2Model = types.model("V2Model", {
-  id: typeCodapNumIdStr(),
+  id: typeV3Id(""),
   // required for objects in documents
   name: "",
   _title: types.maybe(types.string)
@@ -12,8 +12,11 @@ export const V2Model = types.model("V2Model", {
     return self._title ?? self.name
   },
   matchNameOrId(nameOrId: string | number) {
-    // eslint-disable-next-line eqeqeq
-    return (!!self.name && self.name == nameOrId) || (self.id == nameOrId)
+    /* eslint-disable eqeqeq */
+    return (!!self.name && self.name == nameOrId) ||
+            (self.id == nameOrId) ||
+            (typeof nameOrId === "number" && toV2Id(self.id) === nameOrId)
+    /* eslint-enable eqeqeq */
   }
 }))
 .actions(self => ({
@@ -45,10 +48,10 @@ export function v2NameTitleToV3Title(name: string, v2Title?: string | null) {
   return v2Title && v2Title !== name ? v2Title : undefined
 }
 
-export function v2ModelSnapshotFromV2ModelStorage(storage: Partial<V2ModelStorage>) {
+export function v2ModelSnapshotFromV2ModelStorage(prefix: string, storage: Partial<V2ModelStorage>) {
   const { id, guid, name = "", title } = storage
   const v2ModelSnapshot: IV2ModelSnapshot = {
-    id: id ? `${id}` : guid ? `${guid}` : undefined,
+    id: id ? toV3Id(prefix, id) : guid ? toV3Id(prefix, guid) : undefined,
     name,
     _title: v2NameTitleToV3Title(name, title)
   }

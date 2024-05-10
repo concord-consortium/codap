@@ -16,30 +16,6 @@ export function typeField(typeName: string) {
 }
 
 /**
- * Generates a CODAP v2-compatible numeric id as a string.
- *
- * @returns the generated id
- */
-export function codapNumIdStr() {
-  // The maximum representable integer in JavaScript is ~9e15.
-  // We lower the ceiling a bit and raise the floor to avoid conflicting with
-  // generated SproutCore ids which auto-increment from 1.
-  const kFactor = 1e15
-  const kOffset = 1e10
-  return `${Math.floor(kFactor * Math.random()) + kOffset}`
-}
-
-/**
- * This creates the definition for an identifier field in MST, which generates
- * a CODAP v2-compatible numeric id as a string if an id is not provided.
- *
- * @returns the generated id
- */
-export function typeCodapNumIdStr() {
-  return types.optional(types.identifier, () => codapNumIdStr())
-}
-
-/**
  * Returns an ancestor of a node whose type name is `typeName`, if any.
  * This is like `getParentOfType(target, type)`, but allows us not to refer directly to the
  * parent type, which can cause circular reference errors in MST.

@@ -7,6 +7,7 @@ import { kCaseTableTileType } from "./case-table-defs"
 import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
+import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isCodapV2Attribute, isV2TableComponent } from "../../v2/codap-v2-types"
 import { CaseTableInspector } from "./case-table-inspector"
@@ -62,7 +63,7 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
     }
   })
 
-  const tableTileSnap: ITileModelSnapshotIn = { id: `${guid}`, title, content }
+  const tableTileSnap: ITileModelSnapshotIn = { id: toV3Id(kCaseTableIdPrefix, guid), title, content }
   const tableTile = insertTile(tableTileSnap)
 
   // Make sure metadata knows this is the table tile and it is the last shown

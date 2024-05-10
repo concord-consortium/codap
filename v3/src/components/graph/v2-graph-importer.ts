@@ -1,8 +1,9 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
+import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
-import {kGraphTileType} from "./graph-defs"
+import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {PlotType} from "./graphing-types"
 import {IGraphContentModelSnapshot} from "./models/graph-content-model"
 import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
@@ -170,7 +171,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     }]
   }
 
-  const graphTileSnap: ITileModelSnapshotIn = { id: `${guid}`, title, content }
+  const graphTileSnap: ITileModelSnapshotIn = { id: toV3Id(kGraphIdPrefix, guid), title, content }
   const graphTile = insertTile(graphTileSnap)
 
   // link shared model

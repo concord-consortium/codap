@@ -84,8 +84,8 @@ describe("V2Model", () => {
     let v2m: V2ModelStorage = {
       guid: 1
     } as V2ModelStorage
-    let m = V2Model.create(v2ModelSnapshotFromV2ModelStorage(v2m))
-    expect(m.id).toBe("1")
+    let m = V2Model.create(v2ModelSnapshotFromV2ModelStorage("MODL", v2m))
+    expect(m.id).toBe("MODL1")
     expect(m.name).toBe("")
     expect(m._title).toBeUndefined()
 
@@ -96,8 +96,8 @@ describe("V2Model", () => {
       name: "name",
       title: "title"
     }
-    m = V2Model.create(v2ModelSnapshotFromV2ModelStorage(v2m))
-    expect(m.id).toBe("1")
+    m = V2Model.create(v2ModelSnapshotFromV2ModelStorage("MODL", v2m))
+    expect(m.id).toBe("MODL1")
     expect(m.name).toBe("name")
     expect(m._title).toBe("title")
   })

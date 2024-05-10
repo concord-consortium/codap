@@ -1,4 +1,5 @@
 import { IDataSet } from "../../models/data/data-set"
+import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
@@ -34,7 +35,7 @@ export const diSelectionListHandler: DIHandler = {
 
     const caseIds = Array.from(dataContext.selection)
     // TODO Include collectionID and collectionName
-    const values = caseIds.map(caseID => ({ caseID: +caseID }))
+    const values = caseIds.map(caseID => ({ caseID: toV2Id(caseID) }))
     // TODO Filter based on collection
     return {
       success: true,

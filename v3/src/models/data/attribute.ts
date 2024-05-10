@@ -27,6 +27,7 @@
 
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { parseColor } from "../../utilities/color-utils"
+import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
@@ -53,6 +54,7 @@ export function isAttributeType(type?: string | null): type is AttributeType {
 }
 
 export const Attribute = V2Model.named("Attribute").props({
+  id: typeV3Id(kAttrIdPrefix),
   clientKey: "",
   sourceID: types.maybe(types.string),
   description: types.maybe(types.string),
