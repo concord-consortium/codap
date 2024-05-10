@@ -649,14 +649,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     return {
       afterCreate() {
         addDisposer(self, reaction(
-          () => self.getAllCategoriesForRoles(),
-          () => self.clearCasesCache(),
-          {
-            name: "GraphDataConfigurationModel.afterCreate.reaction [getAllCategoriesForRoles]",
-            equals: comparer.structural
-          }
-        ))
-        addDisposer(self, reaction(
           () => self.getAllCellKeys(),
           () => self.clearGraphSpecificCasesCache(),
           {
