@@ -1,0 +1,57 @@
+@use "../../vars.scss" as *;
+
+.parent-toggles-container {
+  align-items: center;
+  background: $background-fill;
+  display: flex;
+  font-size: 11px;
+  height: 20px;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  width: 100%;
+
+  button {
+    cursor: pointer;
+    margin-right: 5px;
+
+    &.parent-toggles-all {
+      margin-left: 5px;
+    }
+
+    &.case-hidden {
+      opacity: .5;
+    }
+  }
+
+  .parent-toggles-case-buttons {
+    align-items: center;
+    display: flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .parent-toggles-case-buttons-left,
+    .parent-toggles-case-buttons-right {
+      display: inline-block;
+      height: 15px;
+      width: 27px;
+
+      &:active {
+        svg { fill: #999 }
+      }
+
+      svg {
+        fill: #ccc;
+        height: 15px;
+        width: 27px;
+      }
+    }
+
+    .parent-toggles-case-buttons-list-container {
+      overflow: hidden;
+    }
+  }
+}
