@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { t } from "../../../utilities/translation/translate"
 import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
+import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { measureText } from "../../../hooks/use-measure-text"
 import { IDataSet } from "../../../models/data/data-set"
 import LeftArrowIcon from "../assets/arrow_left.svg"
@@ -71,6 +72,7 @@ const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
 
 export const ParentToggles = observer(function ParentToggles() {
   const { tileWidth } = useGraphLayoutContext()
+  const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const dataset = dataConfig?.dataset
   const isCollectionSet = !!(dataset && dataset.collections?.length > 0)
@@ -78,7 +80,7 @@ export const ParentToggles = observer(function ParentToggles() {
   const caseIDs = dataset?.cases.map((c) => c.__id__) ?? []
   const caseButtons = createCaseButtons({ caseIDs, dataset, isCollectionSet, hiddenCases })
   const caseButtonsListWidth = caseButtons.reduce((acc, button) => acc + button.width + TEXT_OFFSET, 0)
-  const [isOnlyLastShown, setIsOnlyLastShown] = useState(false)
+  const isOnlyLastShown = !!graphModel?.showOnlyLastCase
   const firstVisibleIndex = useRef(0)
   const lastVisibleIndex = useRef(caseButtons.length - 1)
   const toggleButtonText = hiddenCases.length > 0 ? t("DG.NumberToggleView.showAll") : t("DG.NumberToggleView.hideAll")
@@ -127,30 +129,56 @@ export const ParentToggles = observer(function ParentToggles() {
 
   const handleToggleAll = () => {
     if (hiddenCases.length > 0) {
-      setIsOnlyLastShown(false)
-      dataConfig?.applyModelChange(() => dataConfig.clearHiddenCases())
+      graphModel?.setShowOnlyLastCase(false)
+      dataConfig?.applyModelChange(
+        () => dataConfig.clearHiddenCases(),
+        {
+          undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
+          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+        }
+      )
     } else {
-      dataConfig?.applyModelChange(() => dataConfig.setHiddenCases(Array.from(dataConfig.allCaseIDs)))
+      dataConfig?.applyModelChange(
+        () => dataConfig.setHiddenCases(Array.from(dataConfig.allCaseIDs)),
+        {
+          undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
+          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+        }
+      )
     }
   }
 
   const handleToggleLast = () => {
-    setIsOnlyLastShown(!isOnlyLastShown)
-    if (!isOnlyLastShown) {
-      const lastCaseIDs = caseButtons[caseButtons.length - 1].ids
-      const allCaseIDs = caseButtons.flatMap((button) => button.ids)
-      const hiddenCaseIDs = allCaseIDs.filter((id) => !lastCaseIDs.includes(id))
-      dataConfig?.applyModelChange(() => dataConfig?.setHiddenCases(hiddenCaseIDs))
-    }
+    dataConfig?.applyModelChange(
+      () => {
+        graphModel?.setShowOnlyLastCase(!isOnlyLastShown)
+        if (!isOnlyLastShown) {
+          const lastCaseIDs = caseButtons[caseButtons.length - 1].ids
+          const allCaseIDs = caseButtons.flatMap((button) => button.ids)
+          const hiddenCaseIDs = allCaseIDs.filter((id) => !lastCaseIDs.includes(id))
+          dataConfig?.setHiddenCases(hiddenCaseIDs)
+        }
+      },
+      {
+        undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
+        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+      }
+    )
   }
 
   const handleCaseButtonClick = (ids: string[]) => {
-    setIsOnlyLastShown(false)
+    graphModel?.setShowOnlyLastCase(false)
     ids.forEach((caseID) => {
       const newHiddenCases = dataConfig?.hiddenCases.includes(caseID)
                                ? dataConfig.hiddenCases.filter((id) => id !== caseID)
                                : dataConfig ? [...dataConfig.hiddenCases, caseID] : []
-      dataConfig?.applyModelChange(() => dataConfig.setHiddenCases(newHiddenCases))
+      dataConfig?.applyModelChange(
+        () => dataConfig.setHiddenCases(newHiddenCases),
+        {
+          undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
+          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+        }
+      )
     })
   }
 
