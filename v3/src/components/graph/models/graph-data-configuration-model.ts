@@ -232,6 +232,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const attrTypes = self.attrTypes
       return Object.values(attrTypes).filter(a => a === "categorical").length
     },
+    potentiallyCategoricalRoles(): AttrRole[] {
+      return ["legend", "x", "y", "topSplit", "rightSplit"] as const
+    },
     get hasExactlyOneCategoricalAxis() {
       const attrTypes = self.attrTypes
       const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
@@ -253,16 +256,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    getAllCategoriesForRoles() {
-      const categories: Map<AttrRole, string[]> = new Map()
-      ;(["x", "y", "topSplit", "rightSplit", "legend"] as const).forEach(role => {
-        const categorySet = self.categorySetForAttrRole(role)
-        if (categorySet) {
-          categories.set(role, categorySet.valuesArray)
-        }
-      })
-      return categories
-    },
     getCategoriesOptions() {
       // Helper used often by adornments that usually ask about the same categories and their specifics.
       const xAttrType = self.attributeType("x")
