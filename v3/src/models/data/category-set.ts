@@ -216,7 +216,13 @@ export const CategorySet = types.model("CategorySet", {
   move(value: string, beforeValue?: string) {
     const fromIndex = self.index(value)
     if (fromIndex == null) return
-    const toIndex = (beforeValue != null) ? self.index(beforeValue) ?? self.values.length - 1 : self.values.length - 1
+    let toIndex = (beforeValue != null) ? self.index(beforeValue) : undefined
+    if (toIndex === undefined) {
+      toIndex = self.values.length - 1
+    } else if (fromIndex < toIndex) {
+      toIndex--
+    }
+
     const afterIndex = toIndex === 0 ? undefined : toIndex < fromIndex ? toIndex - 1 : toIndex
     const afterValue = afterIndex != null ? self.values[afterIndex] : undefined
     const move: ICategoryMove = {
