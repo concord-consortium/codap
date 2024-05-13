@@ -159,11 +159,11 @@ export const TableTileElements = {
     }
     this.getApplyButton().click()
   },
-  editDatasetInformation(source, date, description) {
+  editDatasetInformation(name, source, date, description) {
     this.getDatasetInfoButton().click()
-   //  if (name !== "") {
-  //     this.enterInfoName(`{selectAll}{backspace}${name}`)
-  //   }
+     if (name !== "") {
+       this.enterInfoName(`{selectAll}{backspace}${name}`)
+     }
     if (source != null) {
        this.enterInfoSource(`{selectAll}{backspace}${source}`)
       }
@@ -237,8 +237,17 @@ export const TableTileElements = {
   getDeleteCasesButton() {
     return c.getInspectorPanel().find("[data-testid=delete-cases-button]")
   },
+  getDeleteMenuItem(item: string) {
+    return cy.get("[data-testid=trash-menu-list] button").contains(item)
+  },
+  selectItemFromDeleteMenu(item: string) {
+    this.getDeleteMenuItem(item).click({ force: true })
+  },
   getHideShowButton() {
     return c.getInspectorPanel().find("[data-testid=hide-show-button]")
+  },
+  getHideShowMenuItem(item: string) {
+    return cy.get("[data-testid=hide-show-menu-list] button").contains(item)
   },
   getRulerButton() {
     return c.getInspectorPanel().find("[data-testid=ruler-button]")
