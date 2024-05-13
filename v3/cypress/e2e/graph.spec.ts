@@ -193,7 +193,7 @@ context("Graph UI", () => {
     cy.get("[data-testid=show-all-cases]").click({force: true})
     cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
   })
-  it.only("shows parent visibility toggles when Show Parent Visibility Toggles option is selected", () => {
+  it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)
     cy.get("[data-testid=parent-toggles-container]").should("not.exist")

@@ -41,7 +41,7 @@ const consolidateCaseButtonsByAttrValue = (caseButtons: ICaseButton[], hiddenCas
   return Object.entries(attrValues).map(([key, ids]) => {
     const textLabel = key
     const isHidden = ids.every(id => hiddenCases.includes(id))
-    const width = measureText(textLabel, `11px Montserrat, sans-serif`)
+    const width = measureText(textLabel, BUTTON_FONT)
     return { ids, textLabel, isHidden, width }
   })
 }
@@ -61,7 +61,7 @@ const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
     // in `consolidateCaseButtonsByAttrValue`.
     const ids = [caseID]
     const textLabel = firstAttrId && dataset?.getStrValue(caseID, firstAttrId)
-    const width = textLabel ? measureText(textLabel, `11px Montserrat, sans-serif`) : 0
+    const width = textLabel ? measureText(textLabel, BUTTON_FONT) : 0
     const isHidden = !!hiddenCases.includes(caseID)
     return { ids, textLabel, isHidden, width }
   })
@@ -112,7 +112,7 @@ export const ParentToggles = observer(function ParentToggles() {
     return { availableWidth, buttonsVisibleWidth, lastIndex }
   }, [caseButtons, lastButtonWidth, tileWidth, toggleTextWidth])
 
-  useEffect(function init() {
+  useEffect(function updateButtonContainerWidth() {
     const { availableWidth, buttonsVisibleWidth, lastIndex } = buttonContainerDetails(firstVisibleIndex.current)
     setButtonContainerWidth(buttonsVisibleWidth)
     if (caseButtonsListWidth > availableWidth) {
@@ -123,16 +123,14 @@ export const ParentToggles = observer(function ParentToggles() {
       setShowRightButton(false)
       setShowLeftButton(false)
     }
-  // Only run this once to initialize the button container width, last visible index, and scroll button visibility.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [buttonContainerDetails, caseButtonsListWidth, tileWidth])
 
   const handleToggleAll = () => {
     if (hiddenCases.length > 0) {
-      dataConfig?.clearHiddenCases()
       setIsOnlyLastShown(false)
+      dataConfig?.applyModelChange(() => dataConfig.clearHiddenCases())
     } else {
-      dataConfig?.setHiddenCases(Array.from(dataConfig.allCaseIDs))
+      dataConfig?.applyModelChange(() => dataConfig.setHiddenCases(Array.from(dataConfig.allCaseIDs)))
     }
   }
 
@@ -142,7 +140,7 @@ export const ParentToggles = observer(function ParentToggles() {
       const lastCaseIDs = caseButtons[caseButtons.length - 1].ids
       const allCaseIDs = caseButtons.flatMap((button) => button.ids)
       const hiddenCaseIDs = allCaseIDs.filter((id) => !lastCaseIDs.includes(id))
-      dataConfig?.setHiddenCases(hiddenCaseIDs)
+      dataConfig?.applyModelChange(() => dataConfig?.setHiddenCases(hiddenCaseIDs))
     }
   }
 
@@ -152,7 +150,7 @@ export const ParentToggles = observer(function ParentToggles() {
       const newHiddenCases = dataConfig?.hiddenCases.includes(caseID)
                                ? dataConfig.hiddenCases.filter((id) => id !== caseID)
                                : dataConfig ? [...dataConfig.hiddenCases, caseID] : []
-      dataConfig?.setHiddenCases(newHiddenCases)
+      dataConfig?.applyModelChange(() => dataConfig.setHiddenCases(newHiddenCases))
     })
   }
 
@@ -209,6 +207,7 @@ export const ParentToggles = observer(function ParentToggles() {
                        className={caseButton.isHidden ? "case-hidden" : ""}
                        data-testid={`parent-toggles-case-buttons-${caseButton.textLabel?.replace(/\s/g, "-")}`}
                        onClick={() => handleCaseButtonClick(caseButton.ids)}
+                       title={t("DG.NumberToggleView.indexTooltip")}
                      >
                        {caseButton.textLabel}
                      </button>
@@ -230,11 +229,29 @@ export const ParentToggles = observer(function ParentToggles() {
 
   return (
     <div className="parent-toggles-container" data-testid="parent-toggles-container">
-      <button className="parent-toggles-all" data-testid="parent-toggles-all" onClick={handleToggleAll}>
+      <button
+        className="parent-toggles-all"
+        data-testid="parent-toggles-all"
+        onClick={handleToggleAll}
+        title={
+          hiddenCases.length > 0
+            ? t("DG.NumberToggleView.showAllTooltip")
+            : t("DG.NumberToggleView.hideAllTooltip")
+        }
+      >
         {toggleButtonText}
       </button>
       {renderCaseButtons()}
-      <button className="parent-toggles-last" data-testid="parent-toggles-last" onClick={handleToggleLast}>
+      <button
+        className="parent-toggles-last"
+        data-testid="parent-toggles-last"
+        onClick={handleToggleLast}
+        title={
+          isOnlyLastShown
+            ? t("DG.NumberToggleView.disableLastModeTooltip")
+            : t("DG.NumberToggleView.enableLastModeTooltip")
+        }
+      >
         {lastButtonText}
       </button>
     </div>
