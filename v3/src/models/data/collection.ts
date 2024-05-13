@@ -1,8 +1,8 @@
 import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { typedId } from "../../utilities/js-utils"
 import { IMoveAttributeOptions } from "./data-set-types"
 import { V2Model } from "./v2-model"
+import { kCollectionIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 
 export const CollectionLabels = types.model("CollectionLabels", {
   singleCase: "",
@@ -13,7 +13,7 @@ export const CollectionLabels = types.model("CollectionLabels", {
 })
 
 export const CollectionPropsModel = V2Model.named("CollectionProps").props({
-  id: types.optional(types.identifier, () => typedId("COLL")),
+  id: typeV3Id(kCollectionIdPrefix),
   labels: types.maybe(CollectionLabels)
 })
 export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}

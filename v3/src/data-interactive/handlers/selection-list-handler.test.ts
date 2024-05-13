@@ -1,4 +1,5 @@
 import { DataSet, IDataSet } from "../../models/data/data-set"
+import { toV2Id } from "../../utilities/codap-utils"
 import { DICase, DIValues } from "../data-interactive-types"
 import { diSelectionListHandler } from "./selection-list-handler"
 
@@ -25,7 +26,7 @@ describe("DataInteractive SelectionListHandler", () => {
     dataset.setSelectedCases([caseId1])
     const result = handler.get?.({ dataContext: dataset })
     expect(result?.values && Array.isArray(result.values) &&
-      (result.values as DICase[]).map(c => c.caseID).includes(caseId1)).toBe(true)
+      (result.values as DICase[]).map(c => c.caseID).includes(toV2Id(caseId1))).toBe(true)
   })
 
   it("create works as expected", () => {

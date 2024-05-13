@@ -1,11 +1,9 @@
 import { Instance, types } from "mobx-state-tree"
-import { uniqueOrderedId } from "../../utilities/js-utils"
 import { IValueType } from "./attribute"
-
-export const uniqueCaseId = () => `CASE${uniqueOrderedId()}`
+import { kCaseIdPrefix, v3Id } from "../../utilities/codap-utils"
 
 export const CaseID = types.model("CaseID", {
-  __id__: types.optional(types.identifier, () => uniqueCaseId())
+  __id__: types.optional(types.string, () => v3Id(kCaseIdPrefix))
 })
 export interface ICaseID extends Instance<typeof CaseID> {}
 

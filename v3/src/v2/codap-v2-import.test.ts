@@ -34,13 +34,13 @@ describe(`V2 "calculator.codap"`, () => {
   })
 
   it("should be importable by CodapV2Document", () => {
-    const mammals = new CodapV2Document(calculatorDoc)
-    expect(mammals.components.length).toBe(1)
-    expect(mammals.contexts.length).toBe(0)
-    expect(mammals.globalValues.length).toBe(0)
-    expect(mammals.datasets.length).toBe(0)
+    const calculator = new CodapV2Document(calculatorDoc)
+    expect(calculator.components.length).toBe(1)
+    expect(calculator.contexts.length).toBe(0)
+    expect(calculator.globalValues.length).toBe(0)
+    expect(calculator.dataSets.length).toBe(0)
 
-    expect(mammals.components.map(c => c.type)).toEqual(["DG.Calculator"])
+    expect(calculator.components.map(c => c.type)).toEqual(["DG.Calculator"])
   })
 })
 
@@ -66,14 +66,21 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammals.components.length).toBe(5)
     expect(mammals.contexts.length).toBe(1)
     expect(mammals.globalValues.length).toBe(0)
-    expect(mammals.datasets.length).toBe(1)
+    expect(mammals.dataSets.length).toBe(1)
 
-    const data = mammals.datasets[0].dataSet
+    // numeric ids are converted to strings on import
+    const context = mammals.contexts[0]
+    const collection = context.collections[0]
+    const data = mammals.dataSets[0].dataSet
+    expect(data.id).toBe(`DATA${context.guid}`)
+    expect(data.ungrouped.id).toBe(`COLL${collection.guid}`)
     expect(data.attributes.length).toBe(9)
+    expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
     expect(data.cases.length).toBe(27)
+    expect(data.cases[0].__id__).toBe(`CASE${collection.cases[0].guid}`)
 
     // mammals has no parent cases
-    const firstCase = mammals.contexts[0].collections[0].cases[0]
+    const firstCase = collection.cases[0]
     expect(mammals.getParentCase(firstCase)).toBeUndefined()
 
     expect(mammals.components.map(c => c.type))
@@ -105,23 +112,27 @@ describe(`V2 "24cats.codap"`, () => {
     expect(cats.components.length).toBe(5)
     expect(cats.contexts.length).toBe(1)
     expect(cats.globalValues.length).toBe(0)
-    expect(cats.datasets.length).toBe(1)
+    expect(cats.dataSets.length).toBe(1)
 
-    const data = cats.datasets[0].dataSet
-    expect(data.collections.length).toBe(1)
+    // numeric ids are converted to strings on import
+    const context = cats.contexts[0]
+    const [v2ParentCollection, v2ChildCollection] = context.collections
+    const data = cats.dataSets[0].dataSet
+    expect(data.collections.length).toBe(1) // plus ungrouped makes two
     expect(data.collections[0].attributes.length).toBe(1)
     expect(data.attributes.length).toBe(9)
     expect(data.cases.length).toBe(24)
 
     // sex attribute should be in parent collection
-    const v2SexAttr = catsData.contexts?.[0].collections?.[0].attrs?.[0]
+    const v2SexAttr = v2ParentCollection.attrs?.[0]
     expect(cats.getV2Attribute(v2SexAttr.guid)).toBeDefined()
     const dsSexAttr = data.collections[0].attributes[0]
+    expect(dsSexAttr!.id).toBe(`ATTR${v2SexAttr.guid}`)
     expect(dsSexAttr!.name).toBe(v2SexAttr.name)
     expect(dsSexAttr!.title).toBe(v2SexAttr.title)
 
     // should be able to look up parent cases for child cases
-    const firstCase = cats.contexts[0].collections[1].cases[0]
+    const firstCase = v2ChildCollection.cases[0]
     expect(cats.getParentCase(firstCase)).toBeDefined()
 
     expect(cats.components.map(c => c.type))

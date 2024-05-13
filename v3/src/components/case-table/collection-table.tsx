@@ -130,9 +130,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   if (!data || !rows) return null
 
   return (
-    <div className={`collection-table collection-${collectionId}`} ref={setNodeRef}>
+    <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title">
+      <div className="collection-table-and-title" ref={setNodeRef}>
         <CollectionTitle />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}

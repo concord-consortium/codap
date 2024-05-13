@@ -212,7 +212,6 @@
     "rtree": "^1.4.2",
     "tslib": "^2.6.2",
     "type-fest": "^4.10.2",
-    "ulid": "^2.3.0",
     "use-debounce": "^10.0.0",
     "use-deep-compare": "^1.2.1",
     "use-memo-one": "^1.1.3"

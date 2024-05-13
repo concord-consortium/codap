@@ -1,6 +1,4 @@
 import { customAlphabet } from "nanoid"
-import { monotonicFactory } from "ulid"
-const ulid = monotonicFactory()
 // Use custom alphabet to avoid ambiguous characters, especially during mathematical formula evaluations.
 // By default, nanoid uses "-" sign, which is used in formulas for subtraction.
 const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz", 21)
@@ -79,15 +77,6 @@ export function typedId(type: string, idLength = 12): string {
 export function uniqueId(idLength = 16): string {
   // cf. https://zelark.github.io/nano-id-cc/
   return nanoid(idLength)
-}
-
-/*
- * uniqueOrderedId()
- *
- * returns a unique id string ordered by creation
- */
-export function uniqueOrderedId(): string {
-  return ulid()
 }
 
 /*

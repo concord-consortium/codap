@@ -3,7 +3,7 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
-import { typedId } from "../../utilities/js-utils"
+import { v3Id } from "../../utilities/codap-utils"
 import { urlParams } from "../../utilities/url-params"
 import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
@@ -21,7 +21,7 @@ type ILayoutOptions = IFreeTileInRowOptions | IMosaicTileInRowOptions | undefine
 export function createDefaultTileOfType(tileType: string) {
   const env = getTileEnvironment(appState.document)
   const info = getTileContentInfo(tileType)
-  const id = typedId(info?.prefix || "TILE")
+  const id = v3Id(info?.prefix || "TILE")
   const content = info?.defaultContent({ env })
   return content ? TileModel.create({ id, content }) : undefined
 }
