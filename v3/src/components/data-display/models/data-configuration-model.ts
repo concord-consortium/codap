@@ -627,7 +627,13 @@ export const DataConfigurationModel = types
       // Invalidate cache when selection changes.
       addDisposer(self, reaction(
         () => self.dataset?.selection.values(),
-        () => self.clearCasesCache(),
+        () => {
+          if (self.displayOnlySelectedCases) {
+            self.clearCasesCache()
+          } else {
+            self.allCasesForCategoryAreSelected.invalidateAll()
+          }
+        },
         {
           name: "DataConfigurationModel.afterCreate.reaction [allCasesForCategoryAreSelected invalidate cache]",
           equals: comparer.structural
