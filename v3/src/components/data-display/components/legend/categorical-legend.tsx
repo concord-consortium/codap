@@ -130,7 +130,12 @@ export const CategoricalLegend = observer(
     const refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
+        hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__"),
         catData = categoryData.current
+      if (!hasCategories) {
+        select(keysElt.current).selectAll('g').remove()
+        return
+      }
       select(keysElt.current)
         .selectAll('g')
         .data(range(0, numCategories ?? 0))
@@ -232,40 +237,43 @@ export const CategoricalLegend = observer(
      const setupKeys = useCallback(() => {
         categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
         const numCategories = categoriesRef.current?.length
+        const hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__")
         if (keysElt.current && categoryData.current) {
           select(keysElt.current).selectAll('legend-key').remove() // start fresh
 
-          const keysSelection = select(keysElt.current)
-            .selectAll<SVGGElement, number>('g')
-            .data(range(0, numCategories ?? 0))
-            .join(
-              enter => enter
-                .append('g')
-                .attr('class', 'legend-key')
-                .attr('data-testid', 'legend-key')
-                .call(dragBehavior)
-            )
-          keysSelection.each(function () {
-            const sel = select<SVGGElement, number>(this),
-              size = sel.selectAll<SVGRectElement, number>('rect').size()
-            if (size === 0) {
-              const handleClick = (event: any, i: number) => {
-                const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
-                if (caseIds) {
-                  // This is breaking the graph-legend cypress test
-                  // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
-                  if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
-                  else dataConfiguration?.dataset?.setSelectedCases(caseIds)
+          if (hasCategories) {
+            const keysSelection = select(keysElt.current)
+              .selectAll<SVGGElement, number>('g')
+              .data(range(0, numCategories ?? 0))
+              .join(
+                enter => enter
+                  .append('g')
+                  .attr('class', 'legend-key')
+                  .attr('data-testid', 'legend-key')
+                  .call(dragBehavior)
+              )
+            keysSelection.each(function () {
+              const sel = select<SVGGElement, number>(this),
+                size = sel.selectAll<SVGRectElement, number>('rect').size()
+              if (size === 0) {
+                const handleClick = (event: any, i: number) => {
+                  const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
+                  if (caseIds) {
+                    // This is breaking the graph-legend cypress test
+                    // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
+                    if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
+                    else dataConfiguration?.dataset?.setSelectedCases(caseIds)
+                  }
                 }
+                sel.append('rect')
+                  .attr('width', keySize)
+                  .attr('height', keySize)
+                  .on('click', handleClick)
+                sel.append('text')
+                  .on('click', handleClick)
               }
-              sel.append('rect')
-                .attr('width', keySize)
-                .attr('height', keySize)
-                .on('click', handleClick)
-              sel.append('text')
-                .on('click', handleClick)
-            }
-          })
+            })
+          }
         }
       }, [dataConfiguration, dragBehavior])
 
