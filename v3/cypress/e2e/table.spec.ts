@@ -163,24 +163,26 @@ context("case table ui", () => {
 
     })
     it("select a case and delete unselected cases from inspector menu", () => {
-     let initialRowCount, postInsertRowCount, postDeleteRowCount
+     let initialRowCount // Declare variable to hold initial row count
+     let postInsertRowCount // Declare variable to hold row count after delete
 
-       // Get initial row count
-       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-       })
+     // Get initial row count
+     table.getNumOfRows().then(rowCount => {
+       initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+     })
 
-       // Delete one case in table
-       //c.selectTile("table", 0)
-       table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-       table.getDeleteCasesButton().click()
-       table.getDeleteMenuItem("Delete Unselected Cases").click()
+     // Delete one case in table
+     //c.selectTile("table", 0)
+     table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+     table.getDeleteCasesButton().click()
+     table.getDeleteMenuItem("Delete Unselected Cases").click()
 
-       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
-       table.getNumOfRows().then(rowCount => {
-         postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-         expect(postInsertRowCount).to.eq(2)
-       })
+     // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+     table.getNumOfRows().then(rowCount => {
+       postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+       expect(postInsertRowCount).to.eq(2)
+       expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
+      })
 
         // // checks for undo/redo
         // cy.log("check for undo/redo after delete")
@@ -206,7 +208,8 @@ context("case table ui", () => {
         // })
      })
     it("check delete all cases from inspector menu", () => {
-     let initialRowCount, postInsertRowCount, postDeleteRowCount
+      let initialRowCount // Declare variable to hold initial row count
+      let postInsertRowCount // Declare variable to hold row count after delete
 
      // Get initial row count
      table.getNumOfRows().then(rowCount => {
@@ -222,6 +225,7 @@ context("case table ui", () => {
      table.getNumOfRows().then(rowCount => {
       postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
        expect(postInsertRowCount).to.eq(1)
+       expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
      })
     })
     it("check hide/show attribute from inspector menu", () => {

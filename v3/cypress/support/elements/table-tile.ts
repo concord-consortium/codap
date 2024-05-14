@@ -117,7 +117,6 @@ export const TableTileElements = {
     cy.get("[data-testid=attr-editable-radio] span").contains(state).click()
   },
   // Edit Dataset Information Dialog
-  //TODO: fill this in
    enterInfoName(name) {
      cy.get("[data-testid=dataset-name-input]").type(name)
    },
