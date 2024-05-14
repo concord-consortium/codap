@@ -2,6 +2,7 @@ import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
 import {reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import { mstReaction } from "../../../../utilities/mst-reaction"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {axisGap} from "../../../axis/axis-types"
@@ -44,7 +45,17 @@ export const NumericLegend =
       }
 
       if (choroplethElt) {
-        valuesRef.current = dataConfiguration?.numericValuesForAttrRole('legend') ?? []
+        // If some or all cases are hidden, the legend should still reflect the full range of values for both hidden
+        // and visible cases.
+        // TODO: When all visible cases have the exact same value for the legend attribute, the legend should only
+        // reflect the values of the cases shown.
+        const allCasesCount = dataConfiguration?.dataset?.cases.length ?? 0
+        let values = dataConfiguration?.numericValuesForAttrRole("legend") ?? []
+        if (values.length < allCasesCount) {
+          const attribute = dataConfiguration?.dataset?.attrFromID(dataConfiguration?.attributeID("legend"))
+          values = attribute?.numValues ?? []
+        }
+        valuesRef.current = values
         setDesiredExtent(layerIndex, computeDesiredExtent())
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
         choroplethLegend(quantileScale.current, choroplethElt,
@@ -89,6 +100,13 @@ export const NumericLegend =
       }
     })
   }, [refreshScale, dataConfiguration])
+
+  useEffect(function respondToHiddenCaseChange() {
+  return mstReaction(
+    () => dataConfiguration?.hiddenCases.length,
+    () => refreshScale(),
+    {name: "NumericLegend respondToHiddenCaseChange"}, dataConfiguration)
+  }, [dataConfiguration, refreshScale])
 
   // todo: This reaction is not being triggered when a legend attribute value is changed.
   // It should be.
