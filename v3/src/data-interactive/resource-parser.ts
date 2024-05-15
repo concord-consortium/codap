@@ -1,4 +1,5 @@
 import { appState } from "../models/app-state"
+import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
 import { GlobalValueManager } from "../models/global/global-value-manager"
 // import { IDataSet } from "../models/data/data-set"
@@ -128,6 +129,15 @@ export function resolveResources(
       collectionModel?.getAttributeByName(attrNameOrId) || collectionModel?.getAttributeByName(canonicalAttrName) ||
       dataContext?.getAttributeByName(attrNameOrId) || dataContext?.getAttributeByName(canonicalAttrName) ||
       dataContext?.getAttribute(toV3AttrId(attrNameOrId)) // in case it's an id
+  }
+
+  if ("attributeList" in resourceSelector) {
+    const attributeList: IAttribute[] = []
+    const attributes = collectionModel?.attributes ?? dataContext?.ungroupedAttributes ?? []
+    attributes.forEach(attribute => {
+      if (attribute) attributeList.push(attribute)
+    })
+    result.attributeList = attributeList
   }
 
   // if (resourceSelector.caseByID) {

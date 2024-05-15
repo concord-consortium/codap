@@ -5,6 +5,7 @@ import { IDataSet } from "../models/data/data-set"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionPropsModel } from "../models/data/collection"
+import { V2Component } from "./data-interactive-component-types"
 
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
@@ -73,7 +74,7 @@ export interface DIInteractiveFrame {
   title?: string
   version?: string
 }
-export type DIItem = unknown
+export type DIItem = DICaseValues
 export interface DINewCase {
   id?: number
   itemID?: number
@@ -84,6 +85,7 @@ export interface DINotification {
 
 export interface DIResources {
   attribute?: IAttribute
+  attributeList?: IAttribute[]
   attributeLocation?: IAttribute
   caseByID?: DICase
   caseByIndex?: DICase
@@ -105,7 +107,7 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DINewCase | DINotification
+  DIGlobal | DIInteractiveFrame | DINewCase | DINotification | V2Component
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -122,6 +124,7 @@ export interface DISuccessResult {
   success: true
   values?: DIResultValues
   caseIDs?: number[]
+  itemIDs?: string[]
 }
 
 export interface DIErrorResult {

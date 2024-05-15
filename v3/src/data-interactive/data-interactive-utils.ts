@@ -1,4 +1,5 @@
 import { IDataSet } from "../models/data/data-set"
+import { ICaseCreation } from "../models/data/data-set-types"
 import { DICaseValues } from "./data-interactive-types"
 
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
@@ -31,4 +32,14 @@ export function getCaseValues(caseId: string, collectionId: string, dataSet: IDa
   })
 
   return values
+}
+
+// Converts an attributeName => value dictionary to attributeId => value
+export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet) {
+  const caseValues: ICaseCreation = {}
+  Object.keys(values).forEach(attrName => {
+    const attrId = dataSet.attrIDFromName(attrName)
+    if (attrId) caseValues[attrId] = values[attrName]
+  })
+  return caseValues
 }

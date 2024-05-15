@@ -177,3 +177,8 @@ export function basicDataSetInfo(dataSet: IDataSet) {
     title: dataSet.title
   }
 }
+
+export function basicAttributeInfo(attribute: IAttribute) {
+  const { name, id, title } = attribute
+  return { name, id, title }
+}

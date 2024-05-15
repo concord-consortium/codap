@@ -1,19 +1,9 @@
-import { IDataSet } from "../../models/data/data-set"
 import { ICaseCreation } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DICaseValues, DIFullCase, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-
-// Converts an attributeName => value dictionary to attributeId => value
-function attrNamesToIds(values: DICaseValues, dataSet: IDataSet) {
-  const caseValues: ICaseCreation = {}
-  Object.keys(values).forEach(attrName => {
-    const attrId = dataSet.attrIDFromName(attrName)
-    if (attrId) caseValues[attrId] = values?.[attrName]
-  })
-  return caseValues
-}
+import { DIFullCase, DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { attrNamesToIds } from "../data-interactive-utils"
 
 export const diCaseHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
