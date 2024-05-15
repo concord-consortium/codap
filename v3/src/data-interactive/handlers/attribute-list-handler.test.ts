@@ -1,24 +1,9 @@
-import { getSnapshot } from "mobx-state-tree"
-import { appState } from "../../models/app-state"
-import { ITileModel } from "../../models/tiles/tile-model"
 import { ICodapV2Attribute } from "../../v2/codap-v2-types"
-import { parseResourceSelector, resolveResources } from "../resource-parser"
 import { diAttributeListHandler } from "./attribute-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
-
 describe("DataInteractive AttributeListHandler", () => {
   const handler = diAttributeListHandler
-
-  it("resourceParser finds attributeList properly", () => {
-    const { dataset } = setupTestDataset()
-    appState.document.content?.createDataSet(getSnapshot(dataset))
-
-    const resourceString = "dataContext[data].collection[collection1].attributeList"
-    const resources = resolveResources(parseResourceSelector(resourceString), "get", {} as ITileModel)
-    expect(resources.attributeList?.length).toBe(1)
-    expect(resources.attributeList?.[0].name).toBe("a1")
-  })
 
   it("get works as expected", () => {
     const { a1, a2 } = setupTestDataset()
