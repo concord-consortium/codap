@@ -45,13 +45,19 @@ export const NumericLegend =
       }
 
       if (choroplethElt) {
-        // If some or all cases are hidden, the legend should still reflect the full range of values for both hidden
-        // and visible cases.
-        // TODO: When all visible cases have the exact same value for the legend attribute, the legend should only
-        // reflect the values of the cases shown.
+        /**
+         *  Adjust the value range displayed by the legend based on the data configuration model's properties:
+         *  1. If `displayOnlySelectedCases` is true and not all cases are visible, the legend displays the range of all
+         *     cases, both hidden and visible.
+         *  2. If `displayOnlySelectedCases` is false, and some cases are explicitly hidden by the user, the legend
+         *     displays the range of only the visible cases.
+         *  3. If all cases are hidden, the legend displays no range.
+         */
         const allCasesCount = dataConfiguration?.dataset?.cases.length ?? 0
-        let values = dataConfiguration?.numericValuesForAttrRole("legend") ?? []
-        if (values.length < allCasesCount) {
+        const hiddenCasesCount = dataConfiguration?.hiddenCases.length ?? 0
+        const allCasesHidden = hiddenCasesCount === allCasesCount
+        let values = allCasesHidden ? [] : dataConfiguration?.numericValuesForAttrRole("legend") ?? []
+        if (dataConfiguration?.displayOnlySelectedCases && !allCasesHidden && values.length < allCasesCount) {
           const attribute = dataConfiguration?.dataset?.attrFromID(dataConfiguration?.attributeID("legend"))
           values = attribute?.numValues ?? []
         }
