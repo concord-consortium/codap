@@ -159,6 +159,17 @@ export const DocumentContentModel = BaseDocumentContentModel
       }
     }
   }))
+  .views(self => ({
+    isTileHidden(tileId?: string) {
+      if (tileId) {
+        const tileLayout = self.getTileLayoutById(tileId)
+        if (isFreeTileLayout(tileLayout)) {
+          return !!tileLayout.isHidden
+        }
+      }
+      return false
+    }
+  }))
   .actions(self => ({
     toggleSingletonTileVisibility(tileType: string) {
       const tiles = self?.getTilesOfType(tileType)

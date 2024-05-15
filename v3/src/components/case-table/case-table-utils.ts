@@ -2,7 +2,9 @@
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
-import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import {
+  ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
+} from "../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -52,4 +54,26 @@ export const openTableForDataset = (model: ISharedDataSet, caseMetadata: IShared
   })
 
   return tile
+}
+
+export const createOrOpenTableForDataset = (sharedDataset: ISharedDataSet) => {
+  const document = appState.document
+  const { content } = document
+  const manager = getSharedModelManager(document)
+  const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
+
+  const model = manager?.getSharedModelsByType("SharedDataSet")
+    .find(m => m.id === sharedDataset.id) as ISharedDataSet | undefined
+  const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
+  if (!model || !caseMetadata) return
+  const existingTileId = caseMetadata.lastShownTableOrCardTileId
+  if (existingTileId) { // We already have a case table so make sure it's visible and has focus
+    if (content?.isTileHidden(existingTileId)) {
+      content?.toggleNonDestroyableTileVisibility(existingTileId)
+    }
+    uiState.setFocusedTile(existingTileId)
+    return content?.tileMap.get(existingTileId)
+  } else {  // We don't already have a table for this dataset
+    return openTableForDataset(model, caseMetadata)
+  }
 }

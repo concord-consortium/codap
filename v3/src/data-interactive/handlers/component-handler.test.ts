@@ -1,5 +1,4 @@
 import { getSnapshot } from "mobx-state-tree"
-import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
 import "../../components/case-table/case-table-registration"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
@@ -24,6 +23,7 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.create?.({}, { type: "caseTable" }).success).toBe(false)
     expect(handler.create?.({}, { type: "caseTable", dataContext: "unknown" }).success).toBe(false)
 
+    // Create a table tile
     expect(documentContent.tileMap.size).toBe(0)
     const result = handler.create?.({}, { type: "caseTable", dataContext: "data" })
     expect(result?.success).toBe(true)
@@ -33,5 +33,13 @@ describe("DataInteractive ComponentHandler", () => {
     expect(tile).toBeDefined()
     expect(isCaseTableModel(tile?.content)).toBe(true)
     expect((tile?.content as ICaseTableModel).data?.id).toBe(dataset.id)
+
+    // Show a hidden table tile
+    documentContent.toggleNonDestroyableTileVisibility(tile?.id)
+    expect(documentContent.isTileHidden(tile?.id)).toBe(true)
+    const result2 = handler.create?.({}, { type: "caseTable", dataContext: "data" })
+    expect(result2?.success).toBe(true)
+    expect(documentContent.tileMap.size).toBe(1)
+    expect(documentContent.isTileHidden(tile?.id)).toBe(false)
   })
 })
