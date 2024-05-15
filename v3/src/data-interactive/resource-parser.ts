@@ -5,6 +5,7 @@ import { GlobalValueManager } from "../models/global/global-value-manager"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
+import { toV3AttrId, toV3CollectionId, toV3GlobalId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
 import { canonicalizeAttributeName } from "./data-interactive-utils"
 
@@ -69,10 +70,8 @@ export function resolveResources(
     const dataSets = getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
     if (selector === '#default') {
       return dataSets[0]
-    } else {
-      return dataSets.find(dataSet => dataSet.name === resourceSelector.dataContext) ||
-      dataSets.find(dataSet => dataSet.id === resourceSelector.dataContext)
     }
+    return dataSets.find(dataSet => dataSet.matchNameOrId(selector))
   }
 
   const result: DIResources = { interactiveFrame }
@@ -105,7 +104,7 @@ export function resolveResources(
   if (resourceSelector.global) {
     const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
     result.global = globalManager?.getValueByName(resourceSelector.global) ||
-      globalManager?.getValueById(resourceSelector.global)
+      globalManager?.getValueById(toV3GlobalId(resourceSelector.global))
   }
 
   if ("dataContextList" in resourceSelector) {
@@ -115,7 +114,7 @@ export function resolveResources(
 
   if (resourceSelector.collection) {
     result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
-                        dataContext?.getCollection(resourceSelector.collection)
+                        dataContext?.getCollection(toV3CollectionId(resourceSelector.collection))
   }
 
   const collection = result.collection
@@ -123,13 +122,13 @@ export function resolveResources(
 
   if (resourceSelector.attribute || resourceSelector.attributeLocation) {
     const attrKey = resourceSelector.attribute ? 'attribute' : 'attributeLocation'
-    const attrName = resourceSelector[attrKey] ?? ""
-    const canonicalAttrName = canonicalizeAttributeName(attrName)
+    const attrNameOrId = resourceSelector[attrKey] ?? ""
+    const canonicalAttrName = canonicalizeAttributeName(attrNameOrId)
     result[attrKey] =
       // check collection first in case of ambiguous names in data set
-      collectionModel?.getAttributeByName(attrName) || collectionModel?.getAttributeByName(canonicalAttrName) ||
-      dataContext?.getAttributeByName(attrName) || dataContext?.getAttributeByName(canonicalAttrName) ||
-      dataContext?.getAttribute(attrName) // in case it's an id
+      collectionModel?.getAttributeByName(attrNameOrId) || collectionModel?.getAttributeByName(canonicalAttrName) ||
+      dataContext?.getAttributeByName(attrNameOrId) || dataContext?.getAttributeByName(canonicalAttrName) ||
+      dataContext?.getAttribute(toV3AttrId(attrNameOrId)) // in case it's an id
   }
 
   if ("attributeList" in resourceSelector) {

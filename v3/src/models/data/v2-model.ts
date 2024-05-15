@@ -1,7 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { toV2Id, toV3Id, typeV3Id } from "../../utilities/codap-utils"
 
 export const V2Model = types.model("V2Model", {
-  v2Id: types.maybe(types.number),
+  id: typeV3Id(""),
   // required for objects in documents
   name: "",
   _title: types.maybe(types.string)
@@ -11,7 +12,11 @@ export const V2Model = types.model("V2Model", {
     return self._title ?? self.name
   },
   matchNameOrId(nameOrId: string | number) {
-    return (!!self.name && self.name === nameOrId) || (!!self.v2Id && self.v2Id === nameOrId)
+    /* eslint-disable eqeqeq */
+    return (!!self.name && self.name == nameOrId) ||
+            (self.id == nameOrId) ||
+            (typeof nameOrId === "number" && toV2Id(self.id) === nameOrId)
+    /* eslint-enable eqeqeq */
   }
 }))
 .actions(self => ({
@@ -23,13 +28,8 @@ export const V2Model = types.model("V2Model", {
     self._title = title
   }
 }))
-// derived models are expected to have their own string `id` property
-export interface IV2Model extends Instance<typeof V2Model> {
-  id: string
-}
-export interface IV2ModelSnapshot extends SnapshotIn<typeof V2Model> {
-  id?: string
-}
+export interface IV2Model extends Instance<typeof V2Model> {}
+export interface IV2ModelSnapshot extends SnapshotIn<typeof V2Model> {}
 
 export interface V2ModelStorage {
   id: number
@@ -48,11 +48,10 @@ export function v2NameTitleToV3Title(name: string, v2Title?: string | null) {
   return v2Title && v2Title !== name ? v2Title : undefined
 }
 
-export function v2ModelSnapshotFromV2ModelStorage(storage: Partial<V2ModelStorage>) {
-  const { id, guid, cid, name = "", title } = storage
+export function v2ModelSnapshotFromV2ModelStorage(prefix: string, storage: Partial<V2ModelStorage>) {
+  const { id, guid, name = "", title } = storage
   const v2ModelSnapshot: IV2ModelSnapshot = {
-    id: cid ?? undefined,
-    v2Id: id ?? guid,
+    id: id ? toV3Id(prefix, id) : guid ? toV3Id(prefix, guid) : undefined,
     name,
     _title: v2NameTitleToV3Title(name, title)
   }

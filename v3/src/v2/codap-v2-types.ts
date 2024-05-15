@@ -412,7 +412,7 @@ export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
 export interface ICodapV2BaseComponent {
   type: string  // e.g. "DG.TableView", "DG.GraphView", "DG.GuideView", etc.
   guid: number
-  id: number
+  id?: number
   componentStorage: Record<string, any>
   layout: {
     width: number

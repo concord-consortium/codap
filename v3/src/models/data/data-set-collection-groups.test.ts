@@ -1,12 +1,17 @@
+import { types } from "mobx-state-tree"
 import { CollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
 
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
-jest.mock("../../utilities/js-utils", () => ({
-  typedId: () => `test-${++mockNodeIdCount}`,
-  uniqueOrderedId: () => `order-${++mockNodeIdCount}`
-}))
+jest.mock("../../utilities/codap-utils", () => {
+  const mockV3Id = () => `test-${++mockNodeIdCount}`
+  return {
+    ...jest.requireActual("../../utilities/codap-utils"),
+    v3Id: mockV3Id,
+    typeV3Id: () => types.optional(types.identifier, () => `${mockV3Id()}`)
+  }
+})
 
 describe("CollectionGroups", () => {
 

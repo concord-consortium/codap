@@ -5,6 +5,7 @@ import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model
 import { ITileInRowOptions } from "./tile-row"
 import { ITileLayoutUnion, ITileRowModelUnion, TileRowModelUnion } from "./tile-row-union"
 import { SharedModelEntry, SharedModelMap } from "./shared-model-entry"
+import { toV2Id } from "../../utilities/codap-utils"
 
 export const BaseDocumentContentModel = types
   .model("BaseDocumentContent", {
@@ -24,7 +25,8 @@ export const BaseDocumentContentModel = types
       return self.tileMap.size === 0
     },
     getTile(tileId: string) {
-      return tileId && self.tileMap.has(tileId) ? self.tileMap.get(tileId) : undefined
+      return self.tileMap.get(tileId) ??
+        Array.from(self.tileMap.values()).find(tile => +tileId === toV2Id(tile.id))
     },
     getTilesOfType(type: string) {
       const tileMapEntries = Array.from(self.tileMap.values())

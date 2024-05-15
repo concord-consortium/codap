@@ -10,22 +10,22 @@ import { V2Component } from "./data-interactive-component-types"
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
 export interface DIFullCase {
-  children?: string[]
+  children?: number[]
   context?: {
-    id?: string
+    id?: number
     name?: string
   }
   collection?: {
-    id?: string
+    id?: number
     name?: string
     parent?: {
-      id?: string
+      id?: number
       name?: string
     }
   }
-  id?: string
-  itemId?: string
-  parent?: string
+  id?: number
+  itemId?: number
+  parent?: number
   values?: DICaseValues
 }
 export interface DIAllCases {
@@ -35,21 +35,21 @@ export interface DIAllCases {
   }[]
   collection?: {
     name?: string
-    id?: string
+    id?: number
   }
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
 export interface DICase {
-  collectionID?: string
+  collectionID?: number
   collectionName?: string
-  caseID?: string
-  itemID?: string
+  caseID?: number
+  itemID?: number
 }
 export type DICollection = Partial<ICodapV2Collection>
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
   hidden?: boolean
-  id?: string
+  id?: number
   name?: string
   title?: string
   type?: string
@@ -76,8 +76,8 @@ export interface DIInteractiveFrame {
 }
 export type DIItem = DICaseValues
 export interface DINewCase {
-  id?: string
-  itemID?: string
+  id?: number
+  itemID?: number
 }
 export interface DINotification {
   request?: string
@@ -123,7 +123,7 @@ export interface DIMetadata {
 export interface DISuccessResult {
   success: true
   values?: DIResultValues
-  caseIDs?: string[]
+  caseIDs?: number[]
   itemIDs?: string[]
 }
 

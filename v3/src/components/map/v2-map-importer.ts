@@ -1,5 +1,5 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
-import {typedId} from "../../utilities/js-utils"
+import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {isV2MapComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {AttrRole} from "../data-display/data-display-types"
@@ -15,7 +15,7 @@ import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
 export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return
 
-  const {title = "", mapModelStorage} = v2Component.componentStorage
+  const {guid, componentStorage: {title = "", mapModelStorage}} = v2Component
   const {center, zoom, baseMapLayerName: v2BaseMapLayerName,
     layerModels: v2LayerModels} = mapModelStorage
   const baseMapKeyMap: Record<string, BaseMapKey> = { Topographic: 'topo', Streets: 'streets', Oceans: 'oceans' }
@@ -128,6 +128,6 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     center, zoom, baseMapLayerName, baseMapLayerIsVisible: true, layers
   }
 
-  const mapTileSnap: ITileModelSnapshotIn = { id: typedId(kMapIdPrefix), title, content }
+  const mapTileSnap: ITileModelSnapshotIn = { id: toV3Id(kMapIdPrefix, guid), title, content }
   return insertTile(mapTileSnap)
 }

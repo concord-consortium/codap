@@ -4,6 +4,7 @@ import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
+import { kAttrIdPrefix } from "../utilities/codap-utils"
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
@@ -14,7 +15,7 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
   const values = _values as DIAttribute
   if (values.name) {
     return {
-      ...v2ModelSnapshotFromV2ModelStorage(values),
+      ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
       userType: v3TypeFromV2TypeString(values.type),
       // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
       // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet

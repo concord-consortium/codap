@@ -79,6 +79,7 @@ export const GraphContentModel = DataDisplayContentModel
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
+    showOnlyLastCase: types.maybe(types.boolean),
     showMeasuresForSelection: false
   })
   .volatile(() => ({
@@ -530,6 +531,9 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setShowParentToggles(show: boolean) {
       self.showParentToggles = show
+    },
+    setShowOnlyLastCase(show: boolean) {
+      self.showOnlyLastCase = show
     },
     setShowMeasuresForSelection(show: boolean) {
       self.showMeasuresForSelection = show

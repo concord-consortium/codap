@@ -68,6 +68,16 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
+  const handleParentTogglesChange = () => {
+    const undoStringKey = graphModel?.showParentToggles ? "DG.Undo.disableNumberToggle" : "DG.Undo.enableNumberToggle"
+    const redoStringKey = graphModel?.showParentToggles ? "DG.Redo.disableNumberToggle" : "DG.Redo.enableNumberToggle"
+
+    dataConfig?.applyModelChange(
+      () => graphModel?.setShowParentToggles(!graphModel?.showParentToggles),
+      { undoStringKey, redoStringKey }
+    )
+  }
+
   const numSelected = dataConfig?.selection.length ?? 0,
     hideSelectedIsDisabled = numSelected === 0,
     hideSelectedString = (numSelected === 1) ? t("DG.DataDisplayMenu.hideSelectedSing")
@@ -100,8 +110,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
        data-testid="display-selected-cases">
         {t("DG.DataDisplayMenu.displayOnlySelected")}
       </MenuItem>
-      <MenuItem onClick={() => graphModel?.setShowParentToggles(!graphModel?.showParentToggles)}
-       data-testid="show-parent-toggles">
+      <MenuItem onClick={handleParentTogglesChange} data-testid="show-parent-toggles">
         {parentToggleString}
       </MenuItem>
       <MenuItem onClick={() => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection)}

@@ -267,7 +267,7 @@ export const useSubAxis = ({
           // Figure out the label of the category before which the dragged category should be placed
           const moveToGreater = newCatIndex > dI.indexOfCategory,
             catToMoveBefore = moveToGreater
-              ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex])
+              ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex + 1])
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)

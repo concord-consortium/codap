@@ -258,6 +258,9 @@ export const DataConfigurationModel = types
         const attributeID = self.attributeID(role) || ''
         return self.metadata.getCategorySet(attributeID)
       }
+    },
+    potentiallyCategoricalRoles(): AttrRole[] {
+      return ["legend"] as const
     }
   }))
   .views(self => ({
@@ -283,7 +286,17 @@ export const DataConfigurationModel = types
         })
         return orderedCategories
       }
-    })
+    }),
+    getAllCategoriesForRoles() {
+      const categories: Map<AttrRole, string[]> = new Map()
+      self.potentiallyCategoricalRoles().forEach(role => {
+        const categorySet = self.categorySetForAttrRole(role)
+        if (categorySet) {
+          categories.set(role, categorySet.valuesArray)
+        }
+      })
+      return categories
+    }
   }))
   .views(self => ({
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
@@ -615,6 +628,14 @@ export const DataConfigurationModel = types
         data => self.handleDataSetChange(data),
         {name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
+      addDisposer(self, reaction(
+        () => self.getAllCategoriesForRoles(),
+        () => self.clearCasesCache(),
+        {
+          name: "DataConfigurationModel.afterCreate.reaction [getAllCategoriesForRoles]",
+          equals: comparer.structural
+        }
+      ))
       // respond to change of legend attribute
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
@@ -627,7 +648,13 @@ export const DataConfigurationModel = types
       // Invalidate cache when selection changes.
       addDisposer(self, reaction(
         () => self.dataset?.selection.values(),
-        () =>  self.allCasesForCategoryAreSelected.invalidateAll(),
+        () => {
+          if (self.displayOnlySelectedCases) {
+            self.clearCasesCache()
+          } else {
+            self.allCasesForCategoryAreSelected.invalidateAll()
+          }
+        },
         {
           name: "DataConfigurationModel.afterCreate.reaction [allCasesForCategoryAreSelected invalidate cache]",
           equals: comparer.structural

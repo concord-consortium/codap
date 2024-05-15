@@ -52,14 +52,14 @@ import {
 import {
   CaseGroup, CaseID, IAddAttributeOptions, IAddCaseOptions, IAttributeChangeResult, ICase, ICaseCreation,
   IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions,
-  IMoveAttributeOptions, symIndex, symParent, uniqueCaseId
+  IMoveAttributeOptions, symIndex, symParent
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
 import { applyModelChange } from "../history/apply-model-change"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
-import { typedId } from "../../utilities/js-utils"
+import { kAttrIdPrefix, kCaseIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { prf } from "../../utilities/profiler"
 import { V2Model } from "./v2-model"
 
@@ -142,7 +142,7 @@ export interface CollectionGroup {
 }
 
 export const DataSet = V2Model.named("DataSet").props({
-  id: types.optional(types.identifier, () => typedId("DATA")),
+  id: typeV3Id("DATA"),
   sourceID: types.maybe(types.string),
   // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
   collections: types.array(CollectionModel),
@@ -198,7 +198,7 @@ export const DataSet = V2Model.named("DataSet").props({
     const attributesMap: Record<string, IAttributeSnapshot> = {}
     const attributes: string[] = []
     legacyAttributes.forEach(attr => {
-      const attrId = attr.id || typedId("ATTR")
+      const attrId = attr.id || v3Id(kAttrIdPrefix)
       attributesMap[attrId] = { id: attrId, ...attr }
       attributes.push(attrId)
     })
@@ -384,7 +384,7 @@ export const DataSet = V2Model.named("DataSet").props({
                 // start a new group with just this case (for now)
                 // note: PCAS ids are considered ephemeral and should not be stored/serialized,
                 // because they can be regenerated whenever the data changes.
-                const pseudoCase: IGroupedCase = { __id__: typedId("PCAS"), ...cumulativeValues }
+                const pseudoCase: IGroupedCase = { __id__: v3Id(kCaseIdPrefix), ...cumulativeValues }
                 groupsMap[cumulativeValuesJson] = {
                   collectionId: collection.id,
                   pseudoCase,
@@ -835,12 +835,12 @@ export const DataSet = V2Model.named("DataSet").props({
           // to derived DataSets.
           addDisposer(self, addMiddleware(self, (call, next) => {
             if (call.context === self && call.name === "addAttribute") {
-              const { id = typedId("ATTR"), ...others } = call.args[0] as IAttributeSnapshot
+              const { id = v3Id(kAttrIdPrefix), ...others } = call.args[0] as IAttributeSnapshot
               call.args[0] = { id, ...others }
             }
             else if (call.context === self && call.name === "addCases") {
               call.args[0] = (call.args[0] as ICaseCreation[]).map(iCase => {
-                const { __id__ = uniqueCaseId(), ...others } = iCase
+                const { __id__ = v3Id(kCaseIdPrefix), ...others } = iCase
                 return { __id__, ...others }
               })
             }
@@ -953,7 +953,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // insert/append cases and empty values
         const ids: string[] = []
-        const _cases = cases.map(({ __id__ = uniqueCaseId() }) => {
+        const _cases = cases.map(({ __id__ = v3Id(kCaseIdPrefix) }) => {
           ids.push(__id__)
           return { __id__ }
         })
