@@ -1,10 +1,13 @@
 import { getSnapshot } from "mobx-state-tree"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
+import "../../components/case-table/case-table-registration"
+import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
+import { appState } from "../../models/app-state"
+import { toV3Id } from "../../utilities/codap-utils"
+import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
 import { setupTestDataset } from "./handler-test-utils"
-import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { ICaseTableModel } from "../../components/case-table/case-table-model"
-import { appState } from "../../models/app-state"
-import "../../components/case-table/case-table-registration"
 
 
 describe("DataInteractive ComponentHandler", () => {
@@ -25,8 +28,10 @@ describe("DataInteractive ComponentHandler", () => {
     const result = handler.create?.({}, { type: "caseTable", dataContext: "data" })
     expect(result?.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
-    const tile = Array.from(documentContent.tileMap.values())[0]
-    expect(tile.content.type).toBe(kCaseTableTileType)
-    expect((tile.content as ICaseTableModel).data?.id).toBe(dataset.id)
+    const resultValues = result?.values as DIComponentInfo
+    const tile = documentContent.tileMap.get(toV3Id(kCaseTableIdPrefix, resultValues?.id ?? 0))
+    expect(tile).toBeDefined()
+    expect(isCaseTableModel(tile?.content)).toBe(true)
+    expect((tile?.content as ICaseTableModel).data?.id).toBe(dataset.id)
   })
 })
