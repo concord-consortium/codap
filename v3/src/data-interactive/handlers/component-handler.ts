@@ -13,6 +13,8 @@ const componentNotFoundResult = { success: false, values: { error: t("V3.DI.Erro
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
+    if (!values) return { success: false, values: { error: t("V3.DI.Error.valuesRequired") } }
+
     const { type, dataContext } = values as V2Component
 
     if (type === kV2CaseTableType) {
