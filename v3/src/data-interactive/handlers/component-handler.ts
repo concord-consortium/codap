@@ -18,8 +18,6 @@ export const diComponentHandler: DIHandler = {
     const { type, dataContext } = values as V2Component
 
     if (type === kV2CaseTableType) {
-      // TODO Should we create tables without datasets specified?
-      // Or create a new dataset when a specified one doesn't exist?
       if (!dataContext) {
         return {
           success: false,
