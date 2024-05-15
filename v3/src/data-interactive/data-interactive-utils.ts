@@ -39,7 +39,7 @@ export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet) {
   const caseValues: ICaseCreation = {}
   Object.keys(values).forEach(attrName => {
     const attrId = dataSet.attrIDFromName(attrName)
-    if (attrId) caseValues[attrId] = values?.[attrName]
+    if (attrId) caseValues[attrId] = values[attrName]
   })
   return caseValues
 }

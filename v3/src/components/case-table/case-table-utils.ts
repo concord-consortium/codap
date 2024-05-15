@@ -1,4 +1,3 @@
-
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
@@ -14,7 +13,7 @@ import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kTitleBarHeight } from "../constants"
 import { kCaseTableTileType } from "./case-table-defs"
 
-export const openTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
+export const createTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
   const document = appState.document
   const { content } = document
   const row = content?.getRowByIndex(0)
@@ -56,7 +55,7 @@ export const openTableForDataset = (model: ISharedDataSet, caseMetadata: IShared
   return tile
 }
 
-export const createOrOpenTableForDataset = (sharedDataset: ISharedDataSet) => {
+export const createOrShowTableForDataset = (sharedDataset: ISharedDataSet) => {
   const document = appState.document
   const { content } = document
   const manager = getSharedModelManager(document)
@@ -74,6 +73,6 @@ export const createOrOpenTableForDataset = (sharedDataset: ISharedDataSet) => {
     uiState.setFocusedTile(existingTileId)
     return content?.tileMap.get(existingTileId)
   } else {  // We don't already have a table for this dataset
-    return openTableForDataset(model, caseMetadata)
+    return createTableForDataset(model, caseMetadata)
   }
 }

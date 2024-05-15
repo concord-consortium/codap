@@ -28,7 +28,7 @@ describe("DataInteractive ComponentHandler", () => {
     expect(result?.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const resultValues = result?.values as DIComponentInfo
-    const tile = documentContent.tileMap.get(toV3Id(kCaseTableIdPrefix, resultValues?.id ?? 0))
+    const tile = documentContent.tileMap.get(toV3Id(kCaseTableIdPrefix, resultValues.id!))
     expect(tile).toBeDefined()
     expect(isCaseTableModel(tile?.content)).toBe(true)
     expect((tile?.content as ICaseTableModel).data?.id).toBe(dataset.id)

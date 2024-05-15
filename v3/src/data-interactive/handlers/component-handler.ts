@@ -1,3 +1,4 @@
+import { createOrShowTableForDataset } from "../../components/case-table/case-table-utils"
 import { appState } from "../../models/app-state"
 import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
@@ -7,7 +8,6 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import { V2Component, kV2CaseTableType } from "../data-interactive-component-types"
-import { createOrOpenTableForDataset } from "../../components/case-table/case-table-utils"
 
 const componentNotFoundResult = { success: false, values: { error: t("V3.DI.Error.componentNotFound") } } as const
 
@@ -38,7 +38,7 @@ export const diComponentHandler: DIHandler = {
         return { success: false, values: { error: t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }) } }
       }
 
-      const tile = createOrOpenTableForDataset(sharedDataSet)
+      const tile = createOrShowTableForDataset(sharedDataSet)
 
       // TODO Handle more options, like isIndexHidden
       return {

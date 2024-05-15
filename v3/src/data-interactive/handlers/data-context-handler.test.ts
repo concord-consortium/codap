@@ -77,10 +77,10 @@ describe("DataInteractive DataContextHandler", () => {
 
     expect(handler.update?.({}, values).success).toBe(false)
 
-    expect(dataset?.title === title).toBe(false)
-    expect(dataset?.description === description).toBe(false)
+    expect(dataset.title === title).toBe(false)
+    expect(dataset.description === description).toBe(false)
     expect(handler.update?.({ dataContext: dataset }, values).success).toBe(true)
-    expect(dataset?.title).toEqual(title)
-    expect(dataset?.description).toEqual(description)
+    expect(dataset.title).toEqual(title)
+    expect(dataset.description).toEqual(description)
   })
 })

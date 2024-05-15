@@ -15,7 +15,7 @@ import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 import AlertIcon from "../../assets/icons/icon-alert.svg"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
-import { createOrOpenTableForDataset, openTableForDataset } from "./case-table-utils"
+import { createOrShowTableForDataset, createTableForDataset } from "./case-table-utils"
 
 import "../tool-shelf/tool-shelf.scss"
 
@@ -41,7 +41,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
-      openTableForDataset(sharedData, caseMetadata)
+      createTableForDataset(sharedData, caseMetadata)
     }, {
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create"
@@ -60,7 +60,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
-            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrOpenTableForDataset(dataset)}
+            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableForDataset(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
