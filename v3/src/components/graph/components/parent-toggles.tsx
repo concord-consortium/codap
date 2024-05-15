@@ -129,9 +129,11 @@ export const ParentToggles = observer(function ParentToggles() {
 
   const handleToggleAll = () => {
     if (hiddenCases.length > 0) {
-      graphModel?.setShowOnlyLastCase(false)
       dataConfig?.applyModelChange(
-        () => dataConfig.clearHiddenCases(),
+        () => {
+          graphModel?.setShowOnlyLastCase(false)
+          dataConfig.clearHiddenCases()
+        },
         {
           undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
           redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
@@ -167,19 +169,24 @@ export const ParentToggles = observer(function ParentToggles() {
   }
 
   const handleCaseButtonClick = (ids: string[]) => {
-    graphModel?.setShowOnlyLastCase(false)
-    ids.forEach((caseID) => {
-      const newHiddenCases = dataConfig?.hiddenCases.includes(caseID)
-                               ? dataConfig.hiddenCases.filter((id) => id !== caseID)
-                               : dataConfig ? [...dataConfig.hiddenCases, caseID] : []
-      dataConfig?.applyModelChange(
-        () => dataConfig.setHiddenCases(newHiddenCases),
-        {
-          undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
-        }
-      )
-    })
+    dataConfig?.applyModelChange(
+      () => {
+        graphModel?.setShowOnlyLastCase(false)
+        const currentHiddenCases = new Set(dataConfig.hiddenCases ?? [])
+        ids.forEach((caseID) => {
+          if (currentHiddenCases.has(caseID)) {
+            currentHiddenCases.delete(caseID)
+          } else {
+            currentHiddenCases.add(caseID)
+          }
+        })
+        dataConfig.setHiddenCases(Array.from(currentHiddenCases))
+      },
+      {
+        undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
+        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+      }
+    )
   }
 
   const handleScroll = (direction: "left" | "right") => {
