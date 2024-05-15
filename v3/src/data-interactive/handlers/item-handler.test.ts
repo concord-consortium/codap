@@ -3,7 +3,7 @@ import { setupTestDataset } from "./handler-test-utils"
 import { diItemHandler } from "./item-handler"
 
 
-describe("DataInteractive CaseHandler", () => {
+describe("DataInteractive ItemHandler", () => {
   const handler = diItemHandler
 
   it("create works as expected", () => {

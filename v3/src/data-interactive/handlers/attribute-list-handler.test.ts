@@ -7,7 +7,7 @@ import { diAttributeListHandler } from "./attribute-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
 
-describe("DataInteractive CaseHandler", () => {
+describe("DataInteractive AttributeListHandler", () => {
   const handler = diAttributeListHandler
 
   it("resourceParser finds attributeList properly", () => {
