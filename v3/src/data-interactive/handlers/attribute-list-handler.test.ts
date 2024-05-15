@@ -12,7 +12,7 @@ describe("DataInteractive AttributeListHandler", () => {
 
   it("resourceParser finds attributeList properly", () => {
     const { dataset } = setupTestDataset()
-    appState.document.content?.createDataSet(getSnapshot(dataset!))
+    appState.document.content?.createDataSet(getSnapshot(dataset))
 
     const resourceString = "dataContext[data].collection[collection1].attributeList"
     const resources = resolveResources(parseResourceSelector(resourceString), "get", {} as ITileModel)
@@ -25,17 +25,17 @@ describe("DataInteractive AttributeListHandler", () => {
 
     expect(handler.get?.({})?.success).toBe(false)
 
-    const result = handler.get?.({ attributeList: [a1!, a2!] })
+    const result = handler.get?.({ attributeList: [a1, a2] })
     expect(result?.success).toBe(true)
     const attributeList = result?.values as Partial<ICodapV2Attribute>[]
     expect(attributeList.length).toBe(2)
     const attr1 = attributeList[0]
-    expect(attr1?.name).toBe(a1!.name)
-    expect(attr1?.title).toBe(a1!.title)
-    expect(attr1?.id).toBe(a1!.id)
+    expect(attr1?.name).toBe(a1?.name)
+    expect(attr1?.title).toBe(a1?.title)
+    expect(attr1?.id).toBe(a1?.id)
     const attr2 = attributeList[1]
-    expect(attr2?.name).toBe(a2!.name)
-    expect(attr2?.title).toBe(a2!.title)
-    expect(attr2?.id).toBe(a2!.id)
+    expect(attr2?.name).toBe(a2?.name)
+    expect(attr2?.title).toBe(a2?.title)
+    expect(attr2?.id).toBe(a2?.id)
   })
 })

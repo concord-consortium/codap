@@ -1,6 +1,5 @@
 import { getSnapshot } from "mobx-state-tree"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
-import "../../components/case-table/case-table-registration"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"

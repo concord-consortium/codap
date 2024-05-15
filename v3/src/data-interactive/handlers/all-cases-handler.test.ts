@@ -7,9 +7,9 @@ describe("DataInteractive AllCasesHandler", () => {
 
   it("delete works as expected", () => {
     const { dataset } = setupTestDataset()
-    expect(dataset!.cases.length).toBe(testCases.length)
+    expect(dataset?.cases.length).toBe(testCases.length)
     expect(handler.delete?.({ dataContext: dataset })?.success).toBe(true)
-    expect(dataset!.cases.length).toBe(0)
+    expect(dataset?.cases.length).toBe(0)
   })
   it("get works as expected", () => {
     const { dataset, c1, c2 } = setupTestDataset()
