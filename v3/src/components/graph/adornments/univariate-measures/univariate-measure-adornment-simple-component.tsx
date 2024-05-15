@@ -102,8 +102,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [adornmentsStore?.activeUnivariateMeasures, cellCounts.x, containerId,
-        helper, highlightCovers, highlightLabel, labelRef, model])
+    }, [adornmentsStore?.activeUnivariateMeasures, cellCounts.x, containerId, helper, highlightCovers,
+      highlightLabel, isVertical, labelRef, model])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       const selection = select(valueRef.current)
@@ -151,7 +151,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => toggleTextTip(textId, true))
         .on("mouseout", () => toggleTextTip(textId, false))
 
-    }, [cellCounts, helper, isBlockingOtherMeasure, plotHeight, plotWidth, toggleTextTip])
+    }, [cellCounts.x, cellCounts.y, helper, isBlockingOtherMeasure, isVertical, plotHeight, plotWidth,
+      toggleTextTip, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance, valueObj: IValue, labelObj: ILabel) => {
       if (!numericAttrId || !dataConfig) return
@@ -211,7 +212,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       } else {
         addTextTip(plotValue, textContent, valueObj, measureRange.max)
       }
-    }, [addLabels, addTextTip, numericAttrId, cellCounts, cellKey, dataConfig, helper, model, showLabel])
+    }, [numericAttrId, dataConfig, model, cellKey, helper, isVertical, cellCounts, valueRef, showLabel,
+              addLabels, addTextTip])
 
     // Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {
@@ -231,7 +233,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       if (measure) {
         addAdornmentElements(measure, valueObjRef.current, newLabelObj)
       }
-    }, [addAdornmentElements, helper.instanceKey, model])
+    }, [addAdornmentElements, helper.instanceKey, labelRef, model.isVisible, model?.measures, valueRef])
 
     useEffect(() => {
       // Clean up any existing elements
