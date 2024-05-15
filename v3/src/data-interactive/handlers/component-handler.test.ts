@@ -14,7 +14,7 @@ describe("DataInteractive ComponentHandler", () => {
   it("create works as expected", () => {
     const { dataset } = setupTestDataset()
     const documentContent = appState.document.content!
-    documentContent.createDataSet(getSnapshot(dataset!))
+    documentContent.createDataSet(getSnapshot(dataset))
 
     expect(handler.create?.({}).success).toBe(false)
     expect(handler.create?.({}, {}).success).toBe(false)
