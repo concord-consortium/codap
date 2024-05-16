@@ -32,7 +32,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }),
     labelTitle: types.optional(types.string, () => {
       throw "labelTitle must be overridden"
-    })
+    }),
   })
   .views(self => ({
     getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
@@ -55,7 +55,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override if they have a range
-      return {}
+      return {min: NaN, max: NaN}
     },
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override to compute their respective values

@@ -30,6 +30,7 @@ export const measures: IMeasures = {
     {
       title: "DG.Inspector.graphSpreadOptions", type: "Group", rulerStateKey: 'measuresOfSpread', items: [
         {title: "DG.Inspector.graphPlottedStDev", type: "Standard Deviation"},
+        {title: "DG.Inspector.graphPlottedStErr", type: "Standard Error"},
         {title: "DG.Inspector.graphPlottedMeanAbsDev", type: "Mean Absolute Deviation"},
       ]
     },

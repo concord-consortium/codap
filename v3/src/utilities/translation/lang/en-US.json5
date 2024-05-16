@@ -397,6 +397,16 @@
     "DG.Redo.graph.showPlottedStDev": "Redo showing standard deviation",
     "DG.Undo.graph.hidePlottedStDev": "Undo hiding standard deviation",
     "DG.Redo.graph.hidePlottedStDev": "Redo hiding standard deviation",
+    "DG.Undo.graph.showPlottedStErr": "Undo showing standard error",
+    "DG.Redo.graph.showPlottedStErr": "Redo showing standard error",
+    "DG.Undo.graph.hidePlottedStErr": "Undo hiding standard error",
+    "DG.Redo.graph.hidePlottedStErr": "Redo hiding standard error",
+    "DG.Undo.graph.setNumStErrs": "Undo setting the number of standard errors",
+    "DG.Redo.graph.setNumStErrs": "Redo setting the number of standard errors",
+    "DG.Undo.graph.showPlottedNormal": "Undo showing normal curve",
+    "DG.Redo.graph.hidePlottedNormal": "Redo hiding normal curve",
+    "DG.Undo.graph.hidePlottedNormal": "Undo hiding normal curve",
+    "DG.Redo.graph.showPlottedNormal": "Redo showing normal curve",
     "DG.Undo.graph.showPlottedIQR": "Undo showing inter-quartile range",
     "DG.Redo.graph.hidePlottedIQR": "Redo hiding inter-quartile range",
     "DG.Undo.graph.hidePlottedIQR": "Undo hiding inter-quartile range",
@@ -409,6 +419,10 @@
     "DG.Redo.graph.hideOutliers": "Redo hiding outliers",
     "DG.Undo.graph.hideOutliers": "Undo hiding outliers",
     "DG.Redo.graph.showOutliers": "Redo showing outliers",
+    "DG.Undo.graph.showICI": "Undo showing informal confidence interval",
+    "DG.Redo.graph.hideICI": "Redo hiding informal confidence interval",
+    "DG.Undo.graph.hideICI": "Undo hiding informal confidence interval",
+    "DG.Redo.graph.showICI": "Redo showing informal confidence interval",
     "DG.Undo.graph.showAsBarChart": "Undo fusing dots into bars",
     "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
     "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
@@ -888,6 +902,7 @@
     "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@", // "mean=123.456"
     "DG.PlottedAverageAdornment.medianValueTitle": "median=%@", // "median=123.456"
     "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "±1 SD, 123.456"
+    "DG.PlottedAverageAdornment.stErrValueTitle": "%@ SE%@mean%@=%@", // "2 SE=123.456" 2nd & 3rd args for subscripting
     "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@", // "±1 MAD, 123.456"
     "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
     "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
@@ -1065,6 +1080,10 @@
     "DG.Inspector.graphBoxPlotGaussianFitOptions": "Box Plot and Gaussian Fit",
     "DG.Inspector.graphOtherValuesOptions": "Plotted and Movable Values",
     "DG.Inspector.graphPlottedStDev": "Standard Deviation",
+    "DG.Inspector.graphPlottedStErr": "Standard Error",
+    "DG.Inspector.graphPlottedNormal": "Normal Curve",
+    "DG.Inspector.graphPlottedGaussianFit": "Gaussian Fit",
+    "DG.Inspector.graphBoxPlotShowICI": "Show Informal CI",
     "DG.Inspector.graphPlottedMeanAbsDev": "Mean Absolute Deviation",
     "DG.Inspector.graphPlottedIQR": "Interquartile Range",
     "DG.Inspector.graphPlottedBoxPlot": "Box Plot",

@@ -16,6 +16,7 @@ import { kMeanType } from "./univariate-measures/mean/mean-adornment-types"
 import { kMedianType } from "./univariate-measures/median/median-adornment-types"
 import { kPlottedValueType } from "./univariate-measures/plotted-value/plotted-value-adornment-types"
 import { kStandardDeviationType } from "./univariate-measures/standard-deviation/standard-deviation-adornment-types"
+import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
 
 interface IProps {
   data?: Record<string, any>
@@ -263,6 +264,20 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       type: kStandardDeviationType
     }
     v3Adornments.push(stDevAdornmentImport)
+  }
+
+  // STANDARD ERROR
+  const stErrAdornment = v2Adornments.plottedStDev
+  if (stErrAdornment) {
+    const measures = univariateMeasureInstances(stErrAdornment, instanceKeys)
+    const stErrAdornmentImport = {
+      id: typedId("ADRN"),
+      isVisible: stErrAdornment.isVisible,
+      measures,
+      numStErrs: stErrAdornment.numberOfStdErrs,
+      type: kStandardErrorType
+    }
+    v3Adornments.push(stErrAdornmentImport)
   }
 
   // MEAN ABSOLUTE DEVIATION

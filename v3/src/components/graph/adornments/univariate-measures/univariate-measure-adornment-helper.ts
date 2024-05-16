@@ -1,4 +1,5 @@
 import { select } from "d3"
+import { Point } from "../../../data-display/data-display-types"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { ILineCoords, ILineSpecs, IRange, IRangeSpecs, IRectSpecs, IValue } from "./univariate-measure-adornment-types"
 import { clsx } from "clsx"
@@ -130,7 +131,7 @@ export class UnivariateMeasureAdornmentHelper {
       .attr("y", y)
       .attr("width", width)
       .attr("height", height)
-      .attr("transform", `${`translate(${leftOffset}, ${topOffset})`}`)
+      .attr("transform", `translate(${leftOffset}, ${topOffset})`)
   }
 
   addRange = (valueElement: SVGGElement | null, valueObj: IValue, rangeSpecs: IRangeSpecs) => {
@@ -227,4 +228,32 @@ export class UnivariateMeasureAdornmentHelper {
     )
     return isBlockingOtherMeasure
   }
+
+  handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
+    if (event.dx !== 0 || event.dy !== 0) {
+      const label = select(`#${labelId}`)
+      const labelNode = label.node() as Element
+      const labelWidth = labelNode?.getBoundingClientRect().width || 0
+      const labelHeight = labelNode?.getBoundingClientRect().height || 0
+      const left = event.x - labelWidth / 2
+      const top = event.y - labelHeight / 2
+
+      label.style('left', `${left}px`)
+        .style('top', `${top}px`)
+    }
+  }
+
+  handleEndMoveLabel(event: Point, labelId: string) {
+    const {measures} = this.model
+    const label = select(`#${labelId}`)
+    const labelNode = label.node() as Element
+    const labelWidth = labelNode?.getBoundingClientRect().width || 0
+    const labelHeight = labelNode?.getBoundingClientRect().height || 0
+    const x = event.x - labelWidth / 2
+    const y = event.y - labelHeight / 2
+    const measure = measures.get(this.instanceKey)
+    measure?.setLabelCoords({x, y})
+  }
+
+
 }

@@ -1,13 +1,9 @@
-import React, { useCallback, useMemo, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { drag, select, selectAll } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../utilities/translation/translate"
 import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
-import { useAxisLayoutContext } from "../../../axis/models/axis-layout-context"
-import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
-import { Point } from "../../../data-display/data-display-types"
-import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { ILabel, IValue } from "./univariate-measure-adornment-types"
@@ -20,23 +16,17 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
   function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
     const {cellKey={}, containerId, plotHeight, plotWidth, xAxis, yAxis} = props
     const model = props.model as IUnivariateMeasureAdornmentModel
-    const layout = useAxisLayoutContext()
-    const graphModel = useGraphContentModelContext()
-    const dataConfig = useGraphDataConfigurationContext()
-    const adornmentsStore = graphModel.adornmentsStore
+    const {
+      dataConfig, layout, adornmentsStore,
+      numericAttrId, showLabel, isVertical, valueRef,
+      labelRef } = useAdornmentAttributes()
+    const { cellCounts } = useAdornmentCells(model, cellKey)
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
     }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
-    const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
-    const { cellCounts } = useAdornmentCells(model, cellKey)
-    const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
-    const showLabel = adornmentsStore?.showMeasureLabels
-    const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
-    const valueRef = useRef<SVGGElement>(null)
-    const valueObjRef = useRef<IValue>({})
-    const labelRef = useRef<HTMLDivElement>(null)
     const isBlockingOtherMeasure = dataConfig &&
-      helper.blocksOtherMeasure({adornmentsStore, attrId, dataConfig, isVertical: isVertical.current})
+      helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
+    const valueObjRef = useRef<IValue>({})
 
     const highlightCovers = useCallback((highlight: boolean) => {
       const covers = selectAll(`#${helper.measureSlug}-${containerId} .${helper.measureSlug}-cover`)
@@ -63,32 +53,6 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       }
     }, [containerId, highlightCovers, isBlockingOtherMeasure])
 
-    const handleMoveLabel = useCallback((event: { x: number, y: number, dx: number, dy: number }, labelId: string) => {
-      if (event.dx !== 0 || event.dy !== 0) {
-        const label = select(`#${labelId}`)
-        const labelNode = label.node() as Element
-        const labelWidth = labelNode?.getBoundingClientRect().width || 0
-        const labelHeight = labelNode?.getBoundingClientRect().height || 0
-        const left = event.x - labelWidth / 2
-        const top = event.y - labelHeight / 2
-
-        label.style('left', `${left}px`)
-          .style('top', `${top}px`)
-      }
-    }, [])
-
-    const handleEndMoveLabel = useCallback((event: Point, labelId: string) => {
-      const { measures } = model
-      const label = select(`#${labelId}`)
-      const labelNode = label.node() as Element
-      const labelWidth = labelNode?.getBoundingClientRect().width || 0
-      const labelHeight = labelNode?.getBoundingClientRect().height || 0
-      const x = event.x - labelWidth / 2
-      const y = event.y - labelHeight / 2
-      const measure = measures.get(helper.instanceKey)
-      measure?.setLabelCoords({x, y})
-    }, [helper, model])
-
     const addLabels = useCallback((
       labelObj: ILabel, measure: IMeasureInstance, textContent: string, valueObj: IValue,
       plotValue: number, range?: number
@@ -111,17 +75,17 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
 
       labelObj.label = labelSelection.append("div")
-        .text(textContent)
         .attr("class", labelClass)
         .attr("id", labelId)
         .attr("data-testid", labelId)
         .style("left", `${labelLeft}px`)
         .style("top", `${labelTop}px`)
+        .html(textContent)
 
       labelObj.label.call(
         drag<HTMLDivElement, unknown>()
-          .on("drag", (e) => handleMoveLabel(e, labelId))
-          .on("end", (e) => handleEndMoveLabel(e, labelId))
+          .on("drag", (e) => helper.handleMoveLabel(e, labelId))
+          .on("end", (e) => helper.handleEndMoveLabel(e, labelId))
       )
 
       labelObj.label.on("mouseover", () => highlightCovers(true))
@@ -137,8 +101,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [adornmentsStore?.activeUnivariateMeasures, cellCounts.x, containerId, handleEndMoveLabel, handleMoveLabel,
-        helper, highlightCovers, highlightLabel, labelRef, model])
+    }, [adornmentsStore?.activeUnivariateMeasures, cellCounts.x, containerId, helper, highlightCovers,
+      highlightLabel, isVertical, labelRef, model])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       const selection = select(valueRef.current)
@@ -186,22 +150,24 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => toggleTextTip(textId, true))
         .on("mouseout", () => toggleTextTip(textId, false))
 
-    }, [cellCounts, helper, isBlockingOtherMeasure, plotHeight, plotWidth, toggleTextTip])
+    }, [cellCounts.x, cellCounts.y, helper, isBlockingOtherMeasure, isVertical, plotHeight, plotWidth,
+      toggleTextTip, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance, valueObj: IValue, labelObj: ILabel) => {
-      if (!attrId || !dataConfig) return
-      const value = model.measureValue(attrId, cellKey, dataConfig)
+      if (!numericAttrId || !dataConfig) return
+      const value = model.measureValue(numericAttrId, cellKey, dataConfig)
       if (value === undefined || isNaN(value)) return
 
       const primaryAttrId = dataConfig?.primaryAttributeID
       const primaryAttr = primaryAttrId ? dataConfig?.dataset?.attrFromID(primaryAttrId) : undefined
       const primaryAttrUnits = primaryAttr?.units
       const { coords, coverClass, coverId, displayRange, displayValue, lineClass, lineId, measureRange, plotValue } =
-        helper.adornmentSpecs(attrId, dataConfig, value, isVertical.current, cellCounts)
+        helper.adornmentSpecs(numericAttrId, dataConfig, value, isVertical.current, cellCounts)
 
       const translationVars = [
         `${(measureRange.min || measureRange.min === 0) && displayRange ? `${displayRange}` : `${displayValue}`}`
       ]
+
       const valueContent = `${t(model.labelTitle, { vars: translationVars })}`
       const unitContent = `${primaryAttrUnits ? ` ${primaryAttrUnits}` : ""}`
       const textContent = `${valueContent}${unitContent}`
@@ -245,12 +211,15 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       } else {
         addTextTip(plotValue, textContent, valueObj, measureRange.max)
       }
-    }, [addLabels, addTextTip, attrId, cellCounts, cellKey, dataConfig, helper, model, showLabel])
+    }, [numericAttrId, dataConfig, model, cellKey, helper, isVertical, cellCounts, valueRef, showLabel,
+              addLabels, addTextTip])
 
     // Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {
       if (!model.isVisible) return
       const measure = model?.measures.get(helper.instanceKey)
+      // We're creating a new set of elements, so remove the old ones
+      Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
       valueObjRef.current = {}
       const newLabelObj: ILabel = {}
       const selection = select(valueRef.current)
@@ -263,7 +232,14 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       if (measure) {
         addAdornmentElements(measure, valueObjRef.current, newLabelObj)
       }
-    }, [addAdornmentElements, helper.instanceKey, model])
+    }, [addAdornmentElements, helper.instanceKey, labelRef, model.isVisible, model?.measures, valueRef])
+
+    useEffect(() => {
+      // Clean up any existing elements
+      return () => {
+        Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
+      }
+    }, [])
 
     return (
       <UnivariateMeasureAdornmentBaseComponent
