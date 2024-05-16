@@ -4,7 +4,7 @@ import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIGlobal, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { valuesFromGlobal } from "../di-conversion-utils"
+import { valuesFromGlobal } from "../data-interactive-type-utils"
 
 const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.globalIllegalValue") } } as const
 const isIllegalValue = (value: any) => !isFinite(value)

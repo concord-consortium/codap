@@ -4,6 +4,7 @@ import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
+import { maybeToV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
@@ -42,7 +43,7 @@ export const diComponentHandler: DIHandler = {
       return {
         success: true,
         values: {
-          id: tile?.id,
+          id: maybeToV2Id(tile?.id),
           title: tile?.title,
           type: kV2CaseTableType
         }

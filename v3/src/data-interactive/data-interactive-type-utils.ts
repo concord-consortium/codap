@@ -3,8 +3,9 @@ import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
+import { IGlobalValue } from "../models/global/global-value"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
-import { kAttrIdPrefix } from "../utilities/codap-utils"
+import { kAttrIdPrefix, maybeToV2Id, toV2Id } from "../utilities/codap-utils"
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
@@ -38,24 +39,24 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
   const caseId = c.__id__
 
   const context = {
-    id: dataContext.id,
+    id: toV2Id(dataContext.id),
     name: dataContext.name
   }
 
   const caseGroup = dataContext.pseudoCaseMap.get(caseId)
   const collectionId = caseGroup?.collectionId ?? dataContext.ungrouped.id
 
-  const parent = dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__
+  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__)
 
   const _collection = dataContext.getCollection(collectionId)
   const collectionIndex = dataContext.getCollectionIndex(collectionId)
   const parentCollection = dataContext.collections[collectionIndex - 1]
   const parentCollectionInfo = parentCollection ? {
-    id: parentCollection.id,
+    id: toV2Id(parentCollection.id),
     name: parentCollection.name
   } : undefined
   const collection = _collection ? {
-    id: _collection.id,
+    id: toV2Id(_collection.id),
     name: _collection.name,
     parent: parentCollectionInfo
   } : undefined
@@ -63,8 +64,8 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
   const values = getCaseValues(caseId, collectionId, dataContext)
 
   return {
-    id: caseGroup?.pseudoCase.__id__,
-    itemId: dataContext.getCase(caseId)?.__id__,
+    id: maybeToV2Id(caseGroup?.pseudoCase.__id__),
+    itemId: maybeToV2Id(dataContext.getCase(caseId)?.__id__),
     parent,
     context,
     collection,
@@ -75,6 +76,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
   const { name, type, title, description, editable, id, precision } = attribute
+  const v2Id = toV2Id(id)
   return {
     name,
     type,
@@ -91,8 +93,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     deleteable: true, // TODO What should this be?
     formula: attribute.formula?.display,
     // deletedFormula: self.deletedFormula, // TODO What should this be?
-    guid: id,
-    id,
+    guid: v2Id,
+    id: v2Id,
     precision,
     unit: attribute.units
   }
@@ -107,6 +109,7 @@ export function convertAttributeToV2FromResources(resources: DIResources) {
 
 export function convertCollectionToV2(collection: ICollectionModel, dataContext?: IDataSet): ICodapV2CollectionV3 {
   const { name, title, id } = collection
+  const v2Id = toV2Id(id)
   const v2Attrs = collection.attributes.map(attribute => {
     if (attribute) return convertAttributeToV2(attribute, dataContext)
   })
@@ -119,8 +122,8 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
     // caseName,
     // childAttrName,
     // collapseChildren,
-    guid: id,
-    id,
+    guid: v2Id,
+    id: v2Id,
     name,
     // parent,
     title,
@@ -132,11 +135,12 @@ export function convertUngroupedCollectionToV2(dataContext: IDataSet): ICodapV2C
   // TODO This will probably need to be reworked after upcoming v3 collection overhaul,
   // so I'm leaving it bare bones for now.
   const { name, title, id } = dataContext.ungrouped
+  const v2Id = toV2Id(id)
   const ungroupedAttributes = dataContext.ungroupedAttributes
   if (ungroupedAttributes.length > 0) {
     return {
-      guid: id,
-      id,
+      guid: v2Id,
+      id: v2Id,
       name,
       title,
       attrs: ungroupedAttributes.map(attr => convertAttributeToV2(attr, dataContext)),
@@ -147,6 +151,7 @@ export function convertUngroupedCollectionToV2(dataContext: IDataSet): ICodapV2C
 
 export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): ICodapV2DataContextV3 {
   const { name, title, id, description } = dataSet
+  const v2Id = toV2Id(id)
 
   const collections: ICodapV2CollectionV3[] =
     dataSet.collectionGroups.map(collectionGroup => convertCollectionToV2(collectionGroup.collection, dataSet))
@@ -156,8 +161,8 @@ export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): I
   return {
     type: "DG.DataContext",
     document: docId,
-    guid: id,
-    id,
+    guid: v2Id,
+    id: v2Id,
     // flexibleGroupChangeFlag,
     name,
     title,
@@ -173,12 +178,20 @@ export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): I
 export function basicDataSetInfo(dataSet: IDataSet) {
   return {
     name: dataSet.name,
-    id: dataSet.id,
+    id: toV2Id(dataSet.id),
     title: dataSet.title
   }
 }
 
 export function basicAttributeInfo(attribute: IAttribute) {
   const { name, id, title } = attribute
-  return { name, id, title }
+  return { name, id: toV2Id(id), title }
+}
+
+export function valuesFromGlobal(global: IGlobalValue) {
+  return {
+    name: global.name,
+    value: global.value,
+    id: toV2Id(global.id)
+  }
 }

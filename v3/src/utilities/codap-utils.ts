@@ -38,6 +38,11 @@ export function toV2Id(_v3Id: string) {
   return +(result?.[1] ?? NaN)
 }
 
+export function maybeToV2Id(_v3Id?: string) {
+  if (!_v3Id) return
+  return toV2Id(_v3Id)
+}
+
 /**
  * This creates the definition for an identifier field in MST, which generates
  * a CODAP v2-compatible numeric id as a string if an id is not provided.
