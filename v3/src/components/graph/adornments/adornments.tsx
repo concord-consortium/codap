@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { mstAutorun } from "../../../utilities/mst-autorun"
@@ -25,6 +25,7 @@ export const Adornments = observer(function Adornments() {
   const { isTileSelected } = useTileModelContext()
   const adornments = graphModel.adornmentsStore.adornments
   const { left, top, width, height } = layout.computedBounds.plot
+  const spannerRef = useRef<SVGSVGElement>(null)
 
   useEffect(function handleAdornmentBannerCountChange() {
     return mstAutorun(() => {
@@ -56,6 +57,7 @@ export const Adornments = observer(function Adornments() {
   const yAttrId = dataConfig?.attributeID("y")
   const yAttrType = dataConfig?.attributeType("y")
   const yCatValues = layout.getAxisMultiScale("left").categoryValues
+  // yCats is the array of categorical values for the y axis (the one on the left)
   const yCats = yAttrType === "categorical" && yCatValues ? yCatValues : [""]
   const topAttrId = dataConfig?.attributeID("topSplit")
   const topCatValues = layout.getAxisMultiScale("top").categoryValues
@@ -71,7 +73,9 @@ export const Adornments = observer(function Adornments() {
   // Inside each cell of the outer grid, we build an "inner grid" which is determined by the attributes
   // on the bottom and left axes.
   const outerGridCells: React.JSX.Element[] = []
+  // bottomRepetitions is the number of repetitions of the bottom axis brought about by categories on the top axis
   const bottomRepetitions = dataConfig?.numRepetitionsForPlace('bottom') ?? 1
+  // leftRepetitions is the number of repetitions of the left axis brought about by categories on the right axis
   const leftRepetitions = dataConfig?.numRepetitionsForPlace('left') ?? 1
   const outerGridStyle = {
     gridTemplateColumns: `repeat(${bottomRepetitions}, 1fr)`,
@@ -85,7 +89,6 @@ export const Adornments = observer(function Adornments() {
     gridTemplateColumns: `repeat(${xCats.length}, 1fr)`,
     gridTemplateRows: `repeat(${yCats.length}, 1fr)`,
   }
-
   for (let topIndex = 0; topIndex < bottomRepetitions; topIndex++) {
     for (let rightIndex = 0; rightIndex < leftRepetitions; rightIndex++) {
       const adornmentNodes = []
@@ -94,6 +97,8 @@ export const Adornments = observer(function Adornments() {
           // The cellKey is an object that contains the attribute IDs and categorical values for the
           // current graph cell. It's used to uniquely identify that cell.
           let cellKey: Record<string, string> = {}
+          const cellCoords = { row: rightIndex * yCats.length + yIndex,
+            col: topIndex * xCats.length + xIndex}
           if (topAttrId) {
             cellKey = updateCellKey(cellKey, topAttrId, topCats[topIndex])
           }
@@ -121,11 +126,12 @@ export const Adornments = observer(function Adornments() {
                   // skip adornments that don't support current plot type
                   const adornmentContentInfo = getAdornmentContentInfo(adornment.type)
                   if (!adornmentContentInfo.plots.includes(graphModel.plotType)) return
-
                   return <Adornment
                           key={`graph-adornment-${adornment.id}-${yIndex}-${xIndex}-${rightIndex}-${topIndex}`}
                           adornment={adornment}
                           cellKey={cellKey}
+                          cellCoords={cellCoords}
+                          spannerRef={spannerRef}
                         />
                 })
               }
@@ -153,9 +159,13 @@ export const Adornments = observer(function Adornments() {
         {adornmentBanners}
       </div>
     }
-    <div className={containerClass} data-testid={kGraphAdornmentsClass} style={outerGridStyle}>
-      {outerGridCells}
-    </div>
+      <div className={containerClass} data-testid={kGraphAdornmentsClass} style={outerGridStyle}>
+        {outerGridCells}
+      </div>
+      <div className={'adornment-spanner'} style={outerGridStyle}>
+        {/*The following svg can be used by adornments that need to draw outside their grid cell*/}
+        <svg className="spanner-svg" ref={spannerRef}/>
+      </div>
     </>
   )
 })

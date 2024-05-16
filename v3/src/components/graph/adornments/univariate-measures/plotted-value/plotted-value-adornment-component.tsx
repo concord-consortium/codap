@@ -25,6 +25,7 @@ export const PlottedValueComponent = observer(
     return (
       <UnivariateMeasureAdornmentSimpleComponent
         cellKey={cellKey}
+        cellCoords={{row: 0, col: 0}} // Not used in Plotted Value
         containerId={containerId}
         model={model}
         plotHeight={plotHeight}

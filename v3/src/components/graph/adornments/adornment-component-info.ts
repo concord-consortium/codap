@@ -4,12 +4,14 @@ import { INumericAxisModel } from "../../axis/models/axis-model"
 
 export interface IAdornmentComponentProps {
   cellKey: Record<string, string>
+  cellCoords: { row: number, col: number }
   containerId: string
   model: IAdornmentModel
   plotHeight: number
   plotWidth: number
   xAxis?: INumericAxisModel
   yAxis?: INumericAxisModel
+  spannerRef?: React.RefObject<SVGSVGElement>
 }
 
 export interface IAdornmentControlsProps {

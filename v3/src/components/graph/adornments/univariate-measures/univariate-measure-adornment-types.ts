@@ -43,10 +43,10 @@ export interface IRangeSpecs {
 }
 
 export interface IRectSpecs {
-  height: number | string
   isVertical: boolean,
   rectOffset?: number
   width: number | string
+  height: number | string
   x: number
   y: number
 }

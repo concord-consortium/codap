@@ -16,6 +16,7 @@ import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabel
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 import { mstReaction } from "../../../utilities/mst-reaction"
+import { setNiceDomain } from "../../graph/utilities/graph-utils"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -399,33 +400,39 @@ export const useSubAxis = ({
     }
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
 
-  const updateCategoriesAndRenderSubAxis = useCallback(() => {
+  const updateDomainAndRenderSubAxis = useCallback(() => {
     const role = axisPlaceToAttrRole[axisPlace]
-    const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
-    layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
-    setupCategories()
+    if (isCategoricalAxisModel(axisModel)) {
+      const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
+      layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
+      setupCategories()
+    } else if (isNumericAxisModel(axisModel)) {
+      const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []
+      layout.getAxisMultiScale(axisPlace)?.setNumericDomain(numericValues)
+      axisModel && setNiceDomain(numericValues, axisModel)
+    }
     renderSubAxis()
-  }, [axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
+  }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
 
   useEffect(function respondToSelectionChanges() {
     if (dataConfig?.dataset) {
       return mstReaction(
         () => dataConfig.displayOnlySelectedCases && dataConfig?.dataset?.selectionChanges,
-        () => updateCategoriesAndRenderSubAxis(),
+        () => updateDomainAndRenderSubAxis(),
         {name: "useSubAxis.respondToSelectionChanges"}, dataConfig
       )
     }
-  }, [dataConfig, updateCategoriesAndRenderSubAxis])
+  }, [dataConfig, updateDomainAndRenderSubAxis])
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
       return mstReaction(
         () => dataConfig.hiddenCases.length,
-        () => updateCategoriesAndRenderSubAxis(),
+        () => updateDomainAndRenderSubAxis(),
         {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
       )
     }
-  }, [dataConfig, updateCategoriesAndRenderSubAxis])
+  }, [dataConfig, updateDomainAndRenderSubAxis])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {

@@ -12,6 +12,7 @@
     &.mean-line {
       stroke: #00f;
     }
+
     &.mean-absolute-deviation-line {
       stroke: #9980ff;
       stroke-width: .5px;
@@ -21,12 +22,15 @@
         stroke-width: 1;
       }
     }
+
     &.median-line {
       stroke: #f00;
     }
+
     &.plotted-value-line {
       stroke: green;
     }
+
     &.standard-deviation-line {
       stroke: #9980ff;
       stroke-width: .5px;
@@ -38,18 +42,44 @@
     }
   }
 
+  .standard-error-path {
+    stroke: #f6768e;
+    stroke-width: 1px;
+  }
+
+  .standard-error-hover-cover {
+    stroke: #f6768e;
+    stroke-width: 6px;
+    opacity: 0.001;
+    pointer-events: all;
+
+    &:hover, &.highlighted {
+      opacity: .2;
+    }
+  }
+
+  .full-height-lines {
+    stroke: #f6768e;
+    opacity: 0;
+
+    &.highlighted {
+      opacity: 1;
+    }
+  }
+
   .measure-tip {
     display: none;
     fill: #000;
-    font-size: 10px;
-    font-weight: normal;
-    pointer-events: all;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
     position: absolute;
     stroke: transparent;
 
     &.visible {
       display: block;
     }
+
     &.offset {
       transform: translate(0, 17px)
     }
@@ -66,18 +96,23 @@
     &.mean-cover {
       stroke: #00f;
     }
+
     &.mean-absolute-deviation-cover {
       stroke: #5bbaff;
     }
+
     &.median-cover {
       stroke: #f00;
     }
+
     &.plotted-value-cover {
       stroke: green;
     }
+
     &.standard-deviation-cover {
       stroke: #9980ff;
     }
+
     &:hover, &.highlighted {
       opacity: .2;
     }
@@ -92,9 +127,11 @@
     &.mean-absolute-deviation-range {
       fill: #9ac6ff;
     }
+
     &.standard-deviation-range {
       fill: #9980ff;
     }
+
   }
 }
 
@@ -107,14 +144,16 @@
   .measure-labels-tip {
     background: #ff0;
     cursor: move;
-    font-size: 10px;
-    font-weight: normal;
+    font-size: 12px;
+    font-weight: bold;
     opacity: .6;
     padding: 2px 4px;
     pointer-events: all;
     position: absolute;
     z-index: 10;
 
-    &:hover, &.highlighted { opacity: 1; }
+    &:hover, &.highlighted {
+      opacity: 1;
+    }
   }
 }

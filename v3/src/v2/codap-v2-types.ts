@@ -229,6 +229,13 @@ interface ICodapV2StDevAdornment {
   equationCoordsArray: ICodapV2ProportionCoordinates[]
 }
 
+interface ICodapV2StErrAdornment {
+  isVisible: boolean
+  enableMeasuresForSelection: boolean
+  equationCoordsArray: ICodapV2ProportionCoordinates[]
+  numStdErrs: number
+}
+
 interface ICodapV2MadAdornment {
   isVisible: boolean
   enableMeasuresForSelection: boolean
@@ -259,8 +266,8 @@ interface ICodapV2PlottedValueAdornment {
 
 type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2ConnectingLinesAdornment | ICodapV2MovableValueAdornment |
                          ICodapV2MeanAdornment | ICodapV2MedianAdornment | ICodapV2StDevAdornment |
-                         ICodapV2MadAdornment | ICodapV2PlottedFunctionAdornment | ICodapV2PlottedValueAdornment |
-                         ICodapV2BoxPlotAdornment
+                         ICodapV2StErrAdornment | ICodapV2MadAdornment | ICodapV2PlottedFunctionAdornment |
+                         ICodapV2PlottedValueAdornment | ICodapV2BoxPlotAdornment
 
 interface ICodapV2MovablePointStorage {
   isVisible: boolean
