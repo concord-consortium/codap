@@ -4,8 +4,9 @@ import { isCollectionModel } from "../models/data/collection"
 import { GlobalValueManager } from "../models/global/global-value-manager"
 // import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
+import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3AttrId, toV3CollectionId, toV3GlobalId } from "../utilities/codap-utils"
+import { toV3AttrId, toV3CollectionId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
 import { canonicalizeAttributeName } from "./data-interactive-utils"
 
@@ -98,8 +99,12 @@ export function resolveResources(
 
   if (resourceSelector.component) {
     // TODO Get tile by name?
-    // TODO Convert v2id to v3id
-    result.component = document.content?.getTile(resourceSelector.component)
+    const { component } = resourceSelector
+    // We look for every possible v3 id the component might have (because each tile type has a different prefix).
+    // Is there a better way to do this?
+    const possibleIds = [component, toV3TileId(component), ...getTilePrefixes().map(prefix => toV3Id(prefix, component))]
+    const componentId = possibleIds.find(id => document.content?.getTile(id))
+    if (componentId) result.component = document.content?.getTile(componentId)
   }
 
   if (resourceSelector.global) {
