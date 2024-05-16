@@ -11,7 +11,7 @@ describe("DataInteractive ResourceParser", () => {
   const { dataset } = setupTestDataset()
   const { content } = appState.document
   content?.createDataSet(getSnapshot(dataset))
-  const tile = content!.createOrShowTile!(kWebViewTileType)!
+  const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)
   
   it("resourceParser finds dataContext properly", () => {
@@ -29,7 +29,7 @@ describe("DataInteractive ResourceParser", () => {
   it("resourceParser finds globals properly", () => {
     const globalManager = getGlobalValueManager(getSharedModelManager(appState.document))
     const globalSnapshot = { name: "global1", value: 0 }
-    const global = globalManager?.addValueSnapshot(globalSnapshot)!
+    const global = globalManager!.addValueSnapshot(globalSnapshot)
 
     expect(resolve(`global[${toV2Id(global.id)}]`).global?.id).toBe(global.id)
     expect(resolve(`global[${global.name}]`).global?.id).toBe(global.id)
