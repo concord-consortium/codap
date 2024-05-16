@@ -167,10 +167,14 @@ export class PixiPoints {
   }
 
   resize(width: number, height: number) {
-    this.renderer.resize(width, height)
-    this.background.width = width
-    this.background.height = height
-    this.startRendering()
+    // We only set the background size if the width and height are valid. If we ever set width/height of background to
+    // negative values, the background won't be able to detect pointer events.
+    if (width > 0 && height > 0) {
+      this.renderer.resize(width, height)
+      this.background.width = width
+      this.background.height = height
+      this.startRendering()
+    }
   }
 
   setVisibility(isVisible: boolean) {
@@ -505,7 +509,7 @@ export class PixiPoints {
     // Note that background event handling attempts to pass the event to the element beneath the cursor,
     // as if the canvas background were transparent. This facilitates the passing of events to other map layers.
     this.background.eventMode = "static"
-
+    console.log(`Setting up background event distribution for ${elementToHide} with width ${this.background.width}`)
     // Click event redistribution.
     this.background.on("click", (event: PIXI.FederatedPointerEvent) => {
       const elementUnderneath = getElementUnderCanvas(event)
