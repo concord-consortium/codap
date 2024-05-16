@@ -1,4 +1,5 @@
 import { IAttribute, isAttributeType } from "../../models/data/attribute"
+import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
@@ -54,7 +55,7 @@ export const diAttributeHandler: DIHandler = {
     } }
   },
   update(resources: DIResources, _values?: DIValues) {
-    const { attribute } = resources
+    const { attribute, dataContext } = resources
     if (!attribute || Array.isArray(_values)) return attributeNotFoundResult
 
     const values = _values as DIAttribute
@@ -70,12 +71,13 @@ export const diAttributeHandler: DIHandler = {
       if (isAttributeType(values?.type)) attribute.setUserType(values.type)
       if (values?.unit != null) attribute.setUnits(values.unit)
       if (values?.hidden != null) {
-        const { dataContext } = resources
         if (dataContext) {
           const metadata = getSharedCaseMetadataFromDataset(dataContext)
           metadata?.setIsHidden(attribute.id, values.hidden)
         }
       }
+    }, {
+      notifications: () => updateAttributesNotification([attribute], dataContext)
     })
     const attributeV2 = convertAttributeToV2FromResources(resources)
     if (attributeV2) {
