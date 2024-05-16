@@ -17,6 +17,11 @@ export type ChoroplethLegendProps = {
 
 type ChoroplethScale = ScaleQuantile<string>
 export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
+  if (scale.domain().length === 0) {
+    select(choroplethElt).selectAll("*").remove()
+    return
+  }
+
   const {
       tickSize = 6, transform = '', width = 320, marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, clickHandler, casesInQuantileSelectedHandler
