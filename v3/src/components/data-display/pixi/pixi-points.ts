@@ -509,7 +509,6 @@ export class PixiPoints {
     // Note that background event handling attempts to pass the event to the element beneath the cursor,
     // as if the canvas background were transparent. This facilitates the passing of events to other map layers.
     this.background.eventMode = "static"
-    console.log(`Setting up background event distribution for ${elementToHide} with width ${this.background.width}`)
     // Click event redistribution.
     this.background.on("click", (event: PIXI.FederatedPointerEvent) => {
       const elementUnderneath = getElementUnderCanvas(event)
