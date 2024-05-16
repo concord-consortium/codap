@@ -1,5 +1,5 @@
 import { IAttribute, isAttributeType } from "../../models/data/attribute"
-import { updateAttributesNotification } from "../../models/data/data-set-notifications"
+import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
@@ -49,6 +49,8 @@ export const diAttributeHandler: DIHandler = {
           if (attribute) attributes.push(attribute)
         }
       })
+    }, {
+      notifications: () => createAttributesNotification(attributes, dataContext)
     })
     return { success: true, values: {
       attrs: attributes.map(attribute => convertAttributeToV2(attribute, dataContext))
