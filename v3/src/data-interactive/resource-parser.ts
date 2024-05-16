@@ -61,8 +61,10 @@ export function parseResourceSelector(iResource: string) {
  * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
  */
 export function resolveResources(
-  resourceSelector: DIResourceSelector, action: ActionName, interactiveFrame: ITileModel
+  _resourceSelector: DIResourceSelector | string, action: ActionName, interactiveFrame: ITileModel
 ) {
+  const resourceSelector = typeof _resourceSelector === "string"
+    ? parseResourceSelector(_resourceSelector) : _resourceSelector
   const document = appState.document
   function resolveContext(selector?: string) {
     if (!selector) {
