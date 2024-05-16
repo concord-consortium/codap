@@ -102,7 +102,8 @@ export function resolveResources(
     const { component } = resourceSelector
     // We look for every possible v3 id the component might have (because each tile type has a different prefix).
     // Is there a better way to do this?
-    const possibleIds = [component, toV3TileId(component), ...getTilePrefixes().map(prefix => toV3Id(prefix, component))]
+    const possibleIds =
+      [component, toV3TileId(component), ...getTilePrefixes().map(prefix => toV3Id(prefix, component))]
     const componentId = possibleIds.find(id => document.content?.getTile(id))
     if (componentId) result.component = document.content?.getTile(componentId)
   }
