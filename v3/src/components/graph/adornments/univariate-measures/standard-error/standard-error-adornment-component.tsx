@@ -145,11 +145,6 @@ export const StandardErrorAdornmentComponent = observer(
       let x = cellWidth * cellCoords.col + (isVertical.current
         ? helper.xScale(range.max) / cellCounts.x + lineOffset
         : Math.max(0, (plotWidth - plotWidth / 2) / cellCounts.x - textTipWidth / 2 + cellWidth * cellCoords.col))
-/*
-      if ((rangeValue || rangeValue === 0) && isVertical.current) {
-        x = cellWidth * cellCoords.col + (helper.xScale(plotValue) + rangeOffset) / cellCounts.x + lineOffset
-      }
-*/
       let y = cellHeight * cellCoords.row + (isVertical.current ? labelCoords.y + kBarCoord
         : helper.yScale(plotValue) / cellCounts.y - lineOffset)
       if ((rangeValue || rangeValue === 0) && !isVertical.current) {
@@ -205,23 +200,21 @@ export const StandardErrorAdornmentComponent = observer(
         const graphWidth = layout.plotWidth,
           graphHeight = layout.plotHeight,
           cellWidth = graphWidth / cellCounts.x,
-          cellHeight = graphHeight / cellCounts.y
-        // Note that we use translate just as a way to replace %@ with the actual values
-        if (isVertical.current) {
-          return t(`M%@,%@ v%@ M%@,%@ v%@`, {
-            vars: [
+          cellHeight = graphHeight / cellCounts.y,
+          templatePath = isVertical.current
+            ? `M%@,%@ v%@ M%@,%@ v%@`
+            : `M%@,%@ h%@ M%@,%@ h%@`,
+          replacementVars = isVertical.current
+            ? [
               lowerCoord + cellCoords.col * cellWidth, 0, graphHeight,
               upperCoord + cellCoords.col * cellWidth, 0, graphHeight
             ]
-          })
-        } else {
-          return t(`M%@,%@ h%@ M%@,%@ h%@`, {
-            vars: [
+            : [
               0, lowerCoord + cellCoords.row * cellHeight, graphWidth,
               0, upperCoord + cellCoords.row * cellHeight, graphWidth
             ]
-          })
-        }
+        // Note that we use translate just as a way to replace %@ with the actual values
+        return t(templatePath, {vars: replacementVars})
       }
       selectionsObj.errorBar = select(valueRef.current).append("path")
         .attr("class", kErrorBarPathClass)

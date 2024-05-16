@@ -75,13 +75,12 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
 
       labelObj.label = labelSelection.append("div")
-        // .text(textContent)
         .attr("class", labelClass)
         .attr("id", labelId)
         .attr("data-testid", labelId)
         .style("left", `${labelLeft}px`)
         .style("top", `${labelTop}px`)
-      labelObj.label.html(textContent)
+        .html(textContent)
 
       labelObj.label.call(
         drag<HTMLDivElement, unknown>()
