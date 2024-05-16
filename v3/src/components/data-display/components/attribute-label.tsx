@@ -1,12 +1,13 @@
-import { autorun } from "mobx"
 import React, { ForwardedRef, forwardRef, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IDataSet } from "../../../models/data/data-set"
 import {kPortalClassSelector} from "../data-display-types"
 import { GraphPlace } from "../../axis-graph-shared"
 import { useDataDisplayLayout } from "../hooks/use-data-display-layout"
+import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { AxisOrLegendAttributeMenu } from "../../axis/components/axis-or-legend-attribute-menu"
 import { AttributeType } from "../../../models/data/attribute"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 
 import "./attribute-label.scss"
 
@@ -23,11 +24,12 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
   // labelRef must be a MutableRefObject, not a function
   const labelElt = typeof labelRef !== "function" ? labelRef?.current ?? null : null
   const portal = labelElt?.closest(kPortalClassSelector) as HTMLDivElement ?? null
+  const contentModel = useDataDisplayModelContext()
   const layout = useDataDisplayLayout()
   const [ , setLayoutBounds] = useState("")
 
   useEffect(() => {
-    return autorun(() => {
+    return mstAutorun(() => {
       // accessing layout triggers autorun on change
       const bounds = layout.getComputedBounds(place)
       const layoutBounds = JSON.stringify(bounds)
@@ -35,8 +37,8 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
       setLayoutBounds(layoutBounds)
       // render label and trigger autorun on change to observables within
       refreshLabel()
-    }, { name: "AttributeLabel.autorun [refreshLabel]" })
-  }, [layout, place, refreshLabel])
+    }, { name: "AttributeLabel.autorun [refreshLabel]" }, contentModel)
+  }, [contentModel, layout, place, refreshLabel])
 
   return (
     <>
