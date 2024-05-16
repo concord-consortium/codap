@@ -98,6 +98,7 @@ export function resolveResources(
 
   if (resourceSelector.component) {
     // TODO Get tile by name?
+    // TODO Convert v2id to v3id
     result.component = document.content?.getTile(resourceSelector.component)
   }
 
