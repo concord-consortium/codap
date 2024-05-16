@@ -29,6 +29,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
   const { active } = useDndContext()
   const dragging = !!active
   const [isEditing, setIsEditing] = useState(false)
+  const [editingName, setEditingName] = useState(collectionName)
   const isTileInFocus = isTileSelected()
 
   // re-render the component when either the tile or the title change size
@@ -70,16 +71,29 @@ export const CollectionTitle = observer(function CollectionTitle() {
     }
   }
 
-  const handleChangeName = (newName?: string) => {
+  const handleChangeName = (newName: string) => {
+    setEditingName(newName)
+  }
+
+  const handleSubmit = (newName: string) => {
     if (newName) {
+      setEditingName(newName)
       data?.applyModelChange(() => {
         collection?.setName(newName)
       }, {
-        notifications: () => updateCollectionNotification(collection, data),
+        notifications: collection?.name !== newName ? () => updateCollectionNotification(collection, data) : undefined,
         undoStringKey: "DG.Undo.caseTable.collectionNameChange",
         redoStringKey: "DG.Redo.caseTable.collectionNameChange"
       })
+    } else {
+      setEditingName(collectionName)
     }
+    setIsEditing(false)
+  }
+
+  const handleCancel = (_previousName?: string) => {
+    setEditingName(collectionName)
+    setIsEditing(false)
   }
 
   const handleAddNewAttribute = () => {
@@ -102,11 +116,11 @@ export const CollectionTitle = observer(function CollectionTitle() {
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
-        <Editable value={isEditing ? collectionName : `${collectionName} (${caseCount} ${casesStr})`}
-            onEdit={() => setIsEditing(true)} onSubmit={() => setIsEditing(false)} onCancel={() => setIsEditing(false)}
+        <Editable value={isEditing ? editingName : `${collectionName} (${caseCount} ${casesStr})`}
+            onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview paddingY={0} />
-          <EditableInput value={collectionName} paddingY={0} className="collection-title-input" />
+          <EditableInput value={editingName} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
       <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}

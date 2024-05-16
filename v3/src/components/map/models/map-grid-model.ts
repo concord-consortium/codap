@@ -45,6 +45,11 @@ export const MapGridModel = types.model("MapGridModel", {
     },
     casesInRect(longIndex: number, latIndex: number) {
       return self.latLngGrid.getGridCell(longIndex, latIndex)?.cases
+    },
+    clearGridSelection() {
+      self.latLngGrid.forEachGridCell((gridCell) => {
+        gridCell.selected = false
+      })
     }
   }))
   .extend((self) => {
@@ -93,11 +98,6 @@ export const MapGridModel = types.model("MapGridModel", {
         updateSelection() {
           self.latLngGrid.forEachGridCell((gridCell) => {
             gridCell.selected = gridCell.cases.every((aCase) => self.dataConfiguration?.dataset?.isCaseSelected(aCase))
-          })
-        },
-        clearGridSelection() {
-          self.latLngGrid.forEachGridCell((gridCell) => {
-            gridCell.selected = false
           })
         }
       }

@@ -10,8 +10,8 @@ import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
-import { typedId } from "../../utilities/js-utils"
 import { ComponentRect } from "../../utilities/animation-utils"
+import { v3Id } from "../../utilities/codap-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
@@ -87,7 +87,7 @@ export const DocumentContentModel = BaseDocumentContentModel
     createDefaultTileSnapshotOfType(tileType: string): ITileModelSnapshotIn | undefined {
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)
-      const id = typedId(info?.prefix || "TILE")
+      const id = v3Id(info?.prefix || "TILE")
       const content = info?.defaultContent({ env })
       return content ? { id, content } : undefined
     },
@@ -157,6 +157,17 @@ export const DocumentContentModel = BaseDocumentContentModel
           }
         }
       }
+    }
+  }))
+  .views(self => ({
+    isTileHidden(tileId?: string) {
+      if (tileId) {
+        const tileLayout = self.getTileLayoutById(tileId)
+        if (isFreeTileLayout(tileLayout)) {
+          return !!tileLayout.isHidden
+        }
+      }
+      return false
     }
   }))
   .actions(self => ({

@@ -16,7 +16,7 @@ July 2022 saw the beginning of the development of CODAP Version 3, a complete re
 
 What CODAP looks like will depend strongly on the context. But below is a screen shot of CODAP in use with an InquirySpace investigation. The **Terminal Velocity** component is a simulation that is streaming data to CODAP. Note the hierarchical structure of the data in which there are five runs, each containing a time series. Note also the linked selection in which the fourth run and its time series are selected.
 
-![CODAP as it appears in InquirySpace](./src/assets/codap_screen.jpg)
+![CODAP as it appears in InquirySpace]
 
 ### The License
 
@@ -77,7 +77,7 @@ Other branches are deployed to https://codap3.concord.org/branch/{branch-name}/,
 
 To deploy a production release:
 
-1. Run `git log --reverse <last-version>...HEAD | grep '#'` to see a list of PR merges and stories that include PT ids in their message. Tag the PT stories based on this list as `3.0.0-pre.<new-version>`
+1. Run `git log --reverse <last-version>...HEAD | grep '#'` to see a list of PR merges and stories that include PT ids in their message. Tag the PT stories based on this list as `3.0.0-pre.<new-version>`(The new version number is the number found in the top right corner of v3, incremented by one.)
 2. Update the version number in `package.json` and `package-lock.json`
     - `npm version --no-git-tag-version 3.0.0-pre.<new-version>`
 3. Create a new entry in `versions.md` with the new version and release date

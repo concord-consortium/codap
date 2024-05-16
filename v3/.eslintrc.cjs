@@ -4,7 +4,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2018,
     sourceType: "module",
-    project: ["./tsconfig.json", "./cypress/tsconfig.json"]
+    project: ["./tsconfig.json", "./tsconfig.v2.json", "./cypress/tsconfig.json"]
   },
   plugins: ["@typescript-eslint", "json", "react", "react-hooks"],
   env: {
@@ -109,6 +109,22 @@ module.exports = {
     "space-in-parens": ["warn"]
   },
   overrides: [
+    { // rules specific to CODAP v2 code ported to v3
+      files: ["**/*.v2.js", "**/*.v2.ts", "**/*.v2.test.tsx"],
+      rules: {
+        "@typescript-eslint/no-shadow": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "no-prototype-builtins": "off",
+        "no-var": "off",
+        "import/no-named-as-default-member": "off",
+        "max-len": "off",
+        "no-useless-escape": "off",
+        "prefer-const": "off",
+        "react/no-deprecated": "off",
+        "testing-library/no-container": "off",
+        "testing-library/no-node-access": "off"
+      }
+    },
     { // rules specific to Jest tests
       files: ["src/**/*.test.*", "src/test/**"],
       env: {

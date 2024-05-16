@@ -4,6 +4,7 @@ import { IDataSet, toCanonical } from "../models/data/data-set"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
+import { toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId } from "../utilities/codap-utils"
 import {
   CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson,
   v3TypeFromV2TypeString } from "./codap-v2-types"
@@ -37,7 +38,7 @@ export class CodapV2Document {
     return this.document.globalValues
   }
 
-  get datasets() {
+  get dataSets() {
     return Array.from(this.dataMap.values())
   }
 
@@ -76,9 +77,10 @@ export class CodapV2Document {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
       this.guidMap.set(guid, { type, object: context })
-      const sharedDataSet = SharedDataSet.create({ dataSet: { name } })
+      const dataSetId = toV3DataSetId(guid)
+      const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name } })
       this.dataMap.set(guid, sharedDataSet)
-      const metadata = SharedCaseMetadata.create({ data: this.dataMap.get(guid)?.id })
+      const metadata = SharedCaseMetadata.create({ data: dataSetId })
       this.metadataMap.set(guid, metadata)
 
       this.registerCollections(sharedDataSet.dataSet, metadata, collections)
@@ -97,7 +99,7 @@ export class CodapV2Document {
       this.registerCases(data, cases, level)
 
       if (level > 0) {
-        const collectionModel = CollectionModel.create({ name, _title })
+        const collectionModel = CollectionModel.create({ id: toV3CollectionId(guid), name, _title })
         attrs.forEach(attr => {
           const attrModel = data.attrFromName(attr.name)
           attrModel && collectionModel.addAttribute(attrModel)
@@ -105,7 +107,7 @@ export class CodapV2Document {
         data.addCollection(collectionModel)
       }
       else {
-        data.setUngroupedCollection(CollectionPropsModel.create({ name, _title }))
+        data.setUngroupedCollection(CollectionPropsModel.create({ id: toV3CollectionId(guid), name, _title }))
       }
     })
   }
@@ -113,7 +115,7 @@ export class CodapV2Document {
   registerAttributes(data: IDataSet, metadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[], level: number) {
     attributes.forEach(v2Attr => {
       const {
-        cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
+        guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
         editable: v2Editable, unit: v2Unit, precision: v2Precision
       } = v2Attr
       const _title = v2NameTitleToV3Title(name, v2Title)
@@ -125,7 +127,7 @@ export class CodapV2Document {
       const units = v2Unit ?? undefined
       this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
       const attribute = data.addAttribute({
-        id: cid, name, description, formula, _title, userType, editable, units, precision
+        id: toV3AttrId(guid), name, description, formula, _title, userType, editable, units, precision
       })
       if (attribute) {
         this.v3AttrMap.set(guid, attribute)
@@ -140,9 +142,9 @@ export class CodapV2Document {
     cases.forEach(_case => {
       const { guid, values } = _case
       this.guidMap.set(guid, { type: "DG.Case", object: _case })
-      // only add child/leaf cases
+      // only add child/leaf cases (for now)
       if (level === 0) {
-        let caseValues = toCanonical(data, values)
+        let caseValues = { __id__: toV3CaseId(guid), ...toCanonical(data, values) }
         // look up parent case attributes and add them to caseValues
         for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
           caseValues = { ...(parentCase.values ? toCanonical(data, parentCase.values) : undefined), ...caseValues }

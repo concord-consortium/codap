@@ -88,6 +88,19 @@ export const CategoricalLegend = observer(
     const
       keysElt = useRef(null)
 
+    const setCategoryData = useCallback(() => {
+      if (categoriesRef.current) {
+        const newCategoryData = categoriesRef.current.map((cat: string, index) => ({
+          category: cat,
+          color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
+          column: index % layoutData.current.numColumns,
+          index,
+          row: Math.floor(index / layoutData.current.numColumns)
+        }))
+        categoryData.current = newCategoryData
+      }
+    }, [dataConfiguration])
+
       const computeLayout = useCallback(() => {
         categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
         const numCategories = categoriesRef.current?.length,
@@ -101,18 +114,9 @@ export const CategoricalLegend = observer(
         lod.numColumns = Math.max(Math.floor(lod.fullWidth / lod.maxWidth), 1)
         lod.columnWidth = lod.fullWidth / lod.numColumns
         lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
-        categoryData.current.length = 0
-        categoriesRef.current && Array.from(categoriesRef.current).forEach((cat: string, index) => {
-          categoryData.current.push({
-            category: cat,
-            color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
-            index,
-            row: Math.floor(index / lod.numColumns),
-            column: index % lod.numColumns
-          })
-        })
+        setCategoryData()
         layoutData.current = lod
-      }, [dataConfiguration, tileWidth])
+      }, [dataConfiguration, setCategoryData, tileWidth])
 
       const computeDesiredExtent = useCallback(() => {
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
@@ -126,7 +130,12 @@ export const CategoricalLegend = observer(
     const refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
+        hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__"),
         catData = categoryData.current
+      if (!hasCategories) {
+        select(keysElt.current).selectAll('g').remove()
+        return
+      }
       select(keysElt.current)
         .selectAll('g')
         .data(range(0, numCategories ?? 0))
@@ -204,16 +213,17 @@ export const CategoricalLegend = observer(
             newCatIndex = coordinatesToCatIndex(lod, numCategories, newDragPosition)
           if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
             // swap the two categories
-            duration.current = transitionDuration / 2
             dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
             dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
+            categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+            setCategoryData()
             dI.indexOfCategory = newCatIndex
           } else {
             refreshKeys()
           }
           dI.currentDragPosition = newDragPosition
         }
-      }, [dataConfiguration, refreshKeys])
+      }, [dataConfiguration, setCategoryData, refreshKeys])
 
       const onDragEnd = useCallback(() => {
         duration.current = transitionDuration
@@ -227,40 +237,43 @@ export const CategoricalLegend = observer(
      const setupKeys = useCallback(() => {
         categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
         const numCategories = categoriesRef.current?.length
+        const hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__")
         if (keysElt.current && categoryData.current) {
           select(keysElt.current).selectAll('legend-key').remove() // start fresh
 
-          const keysSelection = select(keysElt.current)
-            .selectAll<SVGGElement, number>('g')
-            .data(range(0, numCategories ?? 0))
-            .join(
-              enter => enter
-                .append('g')
-                .attr('class', 'legend-key')
-                .attr('data-testid', 'legend-key')
-                .call(dragBehavior)
-            )
-          keysSelection.each(function () {
-            const sel = select<SVGGElement, number>(this),
-              size = sel.selectAll<SVGRectElement, number>('rect').size()
-            if (size === 0) {
-              const handleClick = (event: any, i: number) => {
-                const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
-                if (caseIds) {
-                  // This is breaking the graph-legend cypress test
-                  // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
-                  if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
-                  else dataConfiguration?.dataset?.setSelectedCases(caseIds)
+          if (hasCategories) {
+            const keysSelection = select(keysElt.current)
+              .selectAll<SVGGElement, number>('g')
+              .data(range(0, numCategories ?? 0))
+              .join(
+                enter => enter
+                  .append('g')
+                  .attr('class', 'legend-key')
+                  .attr('data-testid', 'legend-key')
+                  .call(dragBehavior)
+              )
+            keysSelection.each(function () {
+              const sel = select<SVGGElement, number>(this),
+                size = sel.selectAll<SVGRectElement, number>('rect').size()
+              if (size === 0) {
+                const handleClick = (event: any, i: number) => {
+                  const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
+                  if (caseIds) {
+                    // This is breaking the graph-legend cypress test
+                    // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
+                    if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
+                    else dataConfiguration?.dataset?.setSelectedCases(caseIds)
+                  }
                 }
+                sel.append('rect')
+                  .attr('width', keySize)
+                  .attr('height', keySize)
+                  .on('click', handleClick)
+                sel.append('text')
+                  .on('click', handleClick)
               }
-              sel.append('rect')
-                .attr('width', keySize)
-                .attr('height', keySize)
-                .on('click', handleClick)
-              sel.append('text')
-                .on('click', handleClick)
-            }
-          })
+            })
+          }
         }
       }, [dataConfiguration, dragBehavior])
 

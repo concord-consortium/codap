@@ -51,18 +51,11 @@ context("Graph UI", () => {
 
     // test for undo/redo when updating graph title
     toolbar.getUndoTool().click()
-    c.changeComponentTitle("graph", newCollectionName)
-    c.getComponentTitle("graph").should("have.text", newCollectionName)
-    // TODO: add a check after undo to make sure the title has reverted to
-    // the Collection Name. Blocker: PT #187033159
+    c.getComponentTitle("graph").should("have.text", collectionName)
 
     // use force:true so we don't have to worry about redo disabling
     toolbar.getRedoTool().click({force: true})
-    c.changeComponentTitle("graph", newCollectionName)
     c.getComponentTitle("graph").should("have.text", newCollectionName)
-    // TODO: add a check after undo to make sure the title has reverted to
-    // the Collection Name. Blocker: PT #187033159
-
   })
   it("tests undo/redo of creating graphs", () => {
 
@@ -143,6 +136,152 @@ context("Graph UI", () => {
     cy.dragAttributeToTarget("table", "Speed", "left")
     cy.wait(500)
     graph.getDisplayConfigButton().should("not.exist")
+  })
+  it("hides and shows selected/unselected cases", () => {
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
+    // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
+    // and enabled as expected.
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").should("be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+  })
+  it("displays only selected cases and adjusts axes when 'Display Only Selected Cases' is selected", () => {
+    // TODO: Add more thorough checks to make sure cases are actually hidden and shown, and the axes adjust
+    // once Cypress is configured to interact with the PixiJS canvas. For now, we just check that the buttons
+    // are disabled and enabled as expected.
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+    cy.get("[data-testid=display-selected-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").should("be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").click()
+    cy.wait(500)
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").should("not.be.disabled")
+    cy.get("[data-testid=show-all-cases]").should("be.disabled")
+  })
+  it("shows a warning when 'Display Only Selected Cases' is selected and no cases have been selected", () => {
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=display-selected-cases]").click()
+    // The warning is made up of six individual strings rendered in their own separate text elements
+    cy.get("[data-testid=display-only-selected-warning]").should("exist").and("have.length", 6)
+    graph.getHideShowButton().click()
+    // Resorting to using force: true because the option's parent is reported as hidden in CI but not locally.
+    cy.get("[data-testid=show-all-cases]").click({force: true})
+    cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
+  })
+  it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected", () => {
+    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.wait(500)
+    cy.get("[data-testid=parent-toggles-container]").should("not.exist")
+    graph.getHideShowButton().click()
+    cy.wait(500)
+    cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Show Parent Visibility Toggles")
+    cy.get("[data-testid=show-parent-toggles]").click()
+    cy.wait(500)
+    cy.get("[data-testid=parent-toggles-container]").should("exist")
+    cy.get("[data-testid=parent-toggles-all]").should("exist").and("have.text", "Hide All –")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").should("exist").and("have.length", 27)
+    cy.get("[data-testid=parent-toggles-last]").should("exist").and("have.text", "☐ Last")
+    cy.get("[data-testid=graph]").click()
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Asian Elephant").should("exist").and("not.have.class", "case-hidden")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Asian Elephant").click()
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Asian Elephant").should("have.class", "case-hidden")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Asian Elephant").click()
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Asian Elephant").should("not.have.class", "case-hidden")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("African Elephant").should("exist").and("be.visible")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Chimpanzee").should("exist").and("not.be.visible")
+    cy.get("[data-testid=parent-toggles-case-buttons-left]").should("exist")
+    cy.get("[data-testid=parent-toggles-case-buttons-right]").should("exist")
+    cy.get("[data-testid=parent-toggles-case-buttons-right]").click().click()
+    cy.wait(250)
+    cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button")
+      .contains("African Elephant").should("exist").and("not.be.visible")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Chimpanzee").should("exist").and("be.visible")
+    cy.get("[data-testid=parent-toggles-case-buttons-left]").click().click()
+    cy.wait(250)
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("African Elephant").should("exist").and("be.visible")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("Gray Wolf").should("exist").and("not.be.visible")
+    cy.get("[data-testid=parent-toggles-last]").click()
+    cy.wait(250)
+    cy.get("[data-testid=parent-toggles-last]").should("have.text", "☒ Last")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").then((buttons: HTMLButtonElement[]) => {
+      const lastButtonIndex = buttons.length - 1
+      buttons.each((i: number, button: HTMLButtonElement) => {
+        if (i !== lastButtonIndex) {
+          cy.wrap(button).should("have.class", "case-hidden")
+        } else {
+          cy.wrap(button).should("not.have.class", "case-hidden")
+        }
+      })
+    })
+    cy.get("[data-testid=parent-toggles-all]").should("have.text", "Show All –")
+    cy.get("[data-testid=parent-toggles-all]").click()
+    cy.wait(500)
+    cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").each((button: HTMLButtonElement) => {
+      cy.wrap(button).should("not.have.class", "case-hidden")
+    })
+    cy.get("[data-testid=parent-toggles-last]").should("have.text", "☐ Last")
+    cy.get("[data-testid=parent-toggles-all]").should("have.text", "Hide All –")
+    cy.get("[data-testid=parent-toggles-last]").click()
+    cy.wait(250)
+    cy.get("[data-testid=parent-toggles-last]").should("have.text", "☒ Last")
+    cy.get("[data-testid=parent-toggles-case-buttons-list]")
+      .find("button").contains("African Elephant").click()
+    cy.get("[data-testid=parent-toggles-last]").should("have.text", "☐ Last")
+    // TODO: Figure out why the below doesn't work in Cypress -- some buttons aren't being set to 'case-hidden' when
+    // Hide All is clicked. It seems to work fine in a web browser, though.
+    // cy.get("[data-testid=parent-toggles-all]").should("have.text", "Show All –").click()
+    // cy.get("[data-testid=parent-toggles-all]").should("have.text", "Hide All –").click()
+    // cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").each((button: HTMLButtonElement) => {
+    //   cy.wrap(button).should("have.class", "case-hidden")
+    // })
+    cy.get("[data-testid=parent-toggles-all]").should("have.text", "Show All –")
+    cy.get("[data-testid=parent-toggles-all]").click()
+    cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").each((button: HTMLButtonElement) => {
+      cy.wrap(button).should("not.have.class", "case-hidden")
+    })
+    graph.getHideShowButton().click()
+    cy.wait(500)
+    cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Hide Parent Visibility Toggles")
+    cy.get("[data-testid=show-parent-toggles]").click()
+    cy.get("[data-testid=parent-toggles]").should("not.exist")
+    graph.getHideShowButton().click()
+    cy.wait(500)
+    cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Show Parent Visibility Toggles")
   })
   it("disables Point Size control when display type is bars", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
@@ -252,7 +391,7 @@ context("Graph UI", () => {
     cy.get("[data-testid=bar-cover]").should("exist")
     cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Count")
     cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("not.exist")
-    cy.get("[data-testid=bar-cover]").eq(1).click()
+    cy.get("[data-testid=bar-cover]").eq(1).click({ force: true })
     cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length.greaterThan", 0)
     // TODO: Enable these checks once the number of bars is consistent. See comment above.
     // cy.get("[data-testid=case-table]").find("[role=row][aria-selected=true]").should("have.length", 2)

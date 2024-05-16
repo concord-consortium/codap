@@ -1,9 +1,9 @@
-import {MenuItem, MenuList, useToast} from "@chakra-ui/react"
-import {observer} from "mobx-react-lite"
-import {isAlive} from "mobx-state-tree"
+import { MenuItem, MenuList } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import React from "react"
-import {ITileModel} from "../../../../models/tiles/tile-model"
-import {isGraphContentModel} from "../../models/graph-content-model"
+import { ITileModel } from "../../../../models/tiles/tile-model"
+import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 
 interface IProps {
@@ -11,22 +11,13 @@ interface IProps {
 }
 
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
-  const toast = useToast()
   const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const dataConfiguration = graphModel?.dataConfiguration
-  const handleMenuItemClick = (menuItem: string) => {
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on ${menuItem}`,
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    })
-  }
+  const dataConfig = graphModel?.dataConfiguration
+
   const hideSelectedCases = () => {
-    dataConfiguration?.applyModelChange(
-      () => dataConfiguration?.addNewHiddenCases(
-        dataConfiguration?.selection ?? []
+    dataConfig?.applyModelChange(
+      () => dataConfig?.addNewHiddenCases(
+        dataConfig?.selection ?? []
       ),
       {
         undoStringKey: "DG.Undo.hideSelectedCases",
@@ -36,9 +27,9 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const hideUnselectedCases = () => {
-    dataConfiguration?.applyModelChange(
-      () => dataConfiguration?.addNewHiddenCases(
-        dataConfiguration?.unselectedCases ?? []
+    dataConfig?.applyModelChange(
+      () => dataConfig?.addNewHiddenCases(
+        dataConfig?.unselectedCases ?? []
       ),
       {
         undoStringKey: "DG.Undo.hideUnselectedCases",
@@ -47,9 +38,29 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
+  const displayOnlySelectedCases = () => {
+    dataConfig?.applyModelChange(
+      () => {
+        dataConfig?.addNewHiddenCases(dataConfig?.unselectedCases ?? [])
+        dataConfig?.setDisplayOnlySelectedCases(true)
+        if (dataConfig?.selection.length > 0) {
+          graphModel?.rescale()
+        }
+      },
+      {
+        undoStringKey: "DG.Undo.displayOnlySelected",
+        redoStringKey: "DG.Redo.displayOnlySelected"
+      }
+    )
+  }
+
   const showAllCases = () => {
-    dataConfiguration?.applyModelChange(
-      () => dataConfiguration?.clearHiddenCases(),
+    dataConfig?.applyModelChange(
+      () => {
+        dataConfig?.clearHiddenCases()
+        dataConfig?.setDisplayOnlySelectedCases(false)
+        graphModel?.rescale()
+      },
       {
         undoStringKey: "DG.Undo.showAllCases",
         redoStringKey: "DG.Redo.showAllCases"
@@ -57,21 +68,32 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
-  const numSelected = dataConfiguration?.selection.length ?? 0,
+  const handleParentTogglesChange = () => {
+    const undoStringKey = graphModel?.showParentToggles ? "DG.Undo.disableNumberToggle" : "DG.Undo.enableNumberToggle"
+    const redoStringKey = graphModel?.showParentToggles ? "DG.Redo.disableNumberToggle" : "DG.Redo.enableNumberToggle"
+
+    dataConfig?.applyModelChange(
+      () => graphModel?.setShowParentToggles(!graphModel?.showParentToggles),
+      { undoStringKey, redoStringKey }
+    )
+  }
+
+  const numSelected = dataConfig?.selection.length ?? 0,
     hideSelectedIsDisabled = numSelected === 0,
     hideSelectedString = (numSelected === 1) ? t("DG.DataDisplayMenu.hideSelectedSing")
       : t("DG.DataDisplayMenu.hideSelectedPlural"),
-    numUnselected = dataConfiguration?.unselectedCases.length ?? 0,
+    numUnselected = dataConfig?.unselectedCases.length ?? 0,
     hideUnselectedIsDisabled = numUnselected === 0,
     hideUnselectedString = numUnselected === 1 ? t("DG.DataDisplayMenu.hideUnselectedSing")
       : t("DG.DataDisplayMenu.hideUnselectedPlural"),
-    showAllIsDisabled = dataConfiguration?.hiddenCases.length === 0,
+    showAllIsDisabled = dataConfig?.hiddenCases.length === 0,
     parentToggleString = graphModel?.showParentToggles
       ? t("DG.DataDisplayMenu.disableNumberToggle")
       : t("DG.DataDisplayMenu.enableNumberToggle"),
     measuresForSelectionString = graphModel?.showMeasuresForSelection
       ? t("DG.DataDisplayMenu.disableMeasuresForSelection")
-      : t("DG.DataDisplayMenu.enableMeasuresForSelection")
+      : t("DG.DataDisplayMenu.enableMeasuresForSelection"),
+    displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases
 
   return (
     <MenuList data-testid="hide-show-menu-list">
@@ -84,11 +106,11 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
         {t("DG.DataDisplayMenu.showAll")}
       </MenuItem>
-      <MenuItem onClick={() => handleMenuItemClick("Display only selected cases")} data-testid="display-selected-cases">
+      <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
+       data-testid="display-selected-cases">
         {t("DG.DataDisplayMenu.displayOnlySelected")}
       </MenuItem>
-      <MenuItem onClick={() => graphModel?.setShowParentToggles(!graphModel?.showParentToggles)}
-       data-testid="show-parent-toggles">
+      <MenuItem onClick={handleParentTogglesChange} data-testid="show-parent-toggles">
         {parentToggleString}
       </MenuItem>
       <MenuItem onClick={() => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection)}

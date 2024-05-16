@@ -48,7 +48,7 @@ export const ComponentElements = {
   getComponentTitle(component, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=editable-component-title]")
   },
-  changeComponentTitle(component, title, index = 0) {
+  changeComponentTitle(component: string, title: string, index = 0) {
     this.getComponentTitle(component, index).click().find("[data-testid=title-text-input]").type(`${title}{enter}`)
   },
   getInspectorPanel() {

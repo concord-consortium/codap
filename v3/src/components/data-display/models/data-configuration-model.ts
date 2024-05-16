@@ -15,6 +15,7 @@ import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 import {GraphPlace} from "../../axis-graph-shared"
+import { numericSortComparator } from "../../../utilities/data-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -46,6 +47,7 @@ export const DataConfigurationModel = types
     dataset: types.safeReference(DataSet),
     metadata: types.safeReference(SharedCaseMetadata),
     hiddenCases: types.array(types.string),
+    displayOnlySelectedCases: types.maybe(types.boolean)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -257,6 +259,11 @@ export const DataConfigurationModel = types
         return self.metadata.getCategorySet(attributeID)
       }
     },
+    potentiallyCategoricalRoles(): AttrRole[] {
+      return ["legend"] as const
+    }
+  }))
+  .views(self => ({
     /**
      * @param role
      * @param emptyCategoryArray
@@ -264,13 +271,32 @@ export const DataConfigurationModel = types
     categoryArrayForAttrRole: cachedFnWithArgsFactory<(role: AttrRole, emptyCategoryArray?: string[]) => string[]>({
       key: (role: AttrRole, emptyCategoryArray = ['__main__']) => JSON.stringify({ role, emptyCategoryArray }),
       calculate: (role: AttrRole, emptyCategoryArray = ['__main__']) => {
-        let categoryArray = Array.from(new Set(self.valuesForAttrRole(role)))
-        if (categoryArray.length === 0) {
-          categoryArray = emptyCategoryArray
-        }
-        return categoryArray
+        const valuesSet = new Set(self.valuesForAttrRole(role))
+        if (valuesSet.size === 0) return emptyCategoryArray
+        // category set maintains the canonical order of categories
+        const allCategorySet = self.categorySetForAttrRole(role)
+        // if we don't have a category set just return the values
+        if (!allCategorySet) return Array.from(valuesSet)
+        // return the categories in canonical order
+        const orderedCategories: string[] = []
+        allCategorySet.values.forEach(category => {
+          if (valuesSet.has(category)) {
+            orderedCategories.push(category)
+          }
+        })
+        return orderedCategories
       }
-    })
+    }),
+    getAllCategoriesForRoles() {
+      const categories: Map<AttrRole, string[]> = new Map()
+      self.potentiallyCategoricalRoles().forEach(role => {
+        const categorySet = self.categorySetForAttrRole(role)
+        if (categorySet) {
+          categories.set(role, categorySet.valuesArray)
+        }
+      })
+      return categories
+    }
   }))
   .views(self => ({
     getUnsortedCaseDataArray(caseArrayNumber: number): CaseData[] {
@@ -282,12 +308,20 @@ export const DataConfigurationModel = types
       const caseDataArray = this.getUnsortedCaseDataArray(caseArrayNumber),
         legendAttrID = self.attributeID('legend')
       if (legendAttrID) {
-        const categories = Array.from(self.categoryArrayForAttrRole('legend'))
-        caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
-          const cd1_Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
-            cd2_value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
-          return categories.indexOf(cd1_Value) - categories.indexOf(cd2_value)
-        })
+        if (self.attributeType("legend") === "numeric") {
+          caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+            const cd1Value = self.dataset?.getNumeric(cd1.caseID, legendAttrID) ?? NaN,
+              cd2Value = self.dataset?.getNumeric(cd2.caseID, legendAttrID) ?? NaN
+            return numericSortComparator({a: cd1Value, b: cd2Value, order: "desc"})
+          })
+        } else {
+          const categories = Array.from(self.categoryArrayForAttrRole('legend'))
+          caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+            const cd1Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
+              cd2Value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
+            return categories.indexOf(cd1Value) - categories.indexOf(cd2Value)
+          })
+        }
       }
       return caseDataArray
     },
@@ -594,6 +628,14 @@ export const DataConfigurationModel = types
         data => self.handleDataSetChange(data),
         {name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
+      addDisposer(self, reaction(
+        () => self.getAllCategoriesForRoles(),
+        () => self.clearCasesCache(),
+        {
+          name: "DataConfigurationModel.afterCreate.reaction [getAllCategoriesForRoles]",
+          equals: comparer.structural
+        }
+      ))
       // respond to change of legend attribute
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
@@ -606,7 +648,13 @@ export const DataConfigurationModel = types
       // Invalidate cache when selection changes.
       addDisposer(self, reaction(
         () => self.dataset?.selection.values(),
-        () =>  self.allCasesForCategoryAreSelected.invalidateAll(),
+        () => {
+          if (self.displayOnlySelectedCases) {
+            self.clearCasesCache()
+          } else {
+            self.allCasesForCategoryAreSelected.invalidateAll()
+          }
+        },
         {
           name: "DataConfigurationModel.afterCreate.reaction [allCasesForCategoryAreSelected invalidate cache]",
           equals: comparer.structural
@@ -639,6 +687,13 @@ export const DataConfigurationModel = types
     },
     clearHiddenCases() {
       self.hiddenCases.replace([])
+    },
+    setHiddenCases(hiddenCases: string[]) {
+      self.hiddenCases.replace(hiddenCases)
+    },
+    setDisplayOnlySelectedCases(displayOnlySelectedCases: boolean) {
+      self.displayOnlySelectedCases = displayOnlySelectedCases || undefined
+      self.clearCasesCache()
     }
   }))
   .actions(self => ({

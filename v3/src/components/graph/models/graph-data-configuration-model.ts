@@ -232,6 +232,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const attrTypes = self.attrTypes
       return Object.values(attrTypes).filter(a => a === "categorical").length
     },
+    potentiallyCategoricalRoles(): AttrRole[] {
+      return ["legend", "x", "y", "topSplit", "rightSplit"] as const
+    },
     get hasExactlyOneCategoricalAxis() {
       const attrTypes = self.attrTypes
       const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"

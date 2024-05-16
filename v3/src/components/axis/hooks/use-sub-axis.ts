@@ -1,7 +1,7 @@
 import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
 import {reaction} from "mobx"
 import {useCallback, useEffect, useMemo, useRef} from "react"
-import {transitionDuration} from "../../data-display/data-display-types"
+import {axisPlaceToAttrRole, transitionDuration} from "../../data-display/data-display-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {AxisBounds, AxisPlace, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
@@ -15,6 +15,7 @@ import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabel
         getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { mstReaction } from "../../../utilities/mst-reaction"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -34,6 +35,7 @@ export const useSubAxis = ({
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContext(),
+    dataConfig = displayModel.dataConfiguration,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
@@ -62,8 +64,7 @@ export const useSubAxis = ({
         console.warn("useSubAxis.renderSubAxis skipping rendering of defunct axis model:", axisPlace)
         return
       }
-      const
-        multiScale = layout.getAxisMultiScale(axisPlace)
+      const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
       const subAxisLength = multiScale?.cellLength ?? 0,
@@ -146,8 +147,10 @@ export const useSubAxis = ({
             dividerLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
             isRightCat = axisPlace === 'rightCat',
             isTop = axisPlace === 'top',
-            categories = Array.from(categorySet?.values ?? []),
+            role = axisPlaceToAttrRole[axisPlace],
+            categories: string[] = dataConfig?.categoryArrayForAttrRole(role) ?? [],
             numCategories = categories.length,
+            hasCategories = !(categories.length === 1 && categories[0] === "__main__"),
             bandWidth = subAxisLength / numCategories,
             collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
             {rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
@@ -179,7 +182,7 @@ export const useSubAxis = ({
             },
             fns = getCoordFunctions(props)
 
-          categoriesSelectionRef.current
+          hasCategories && categoriesSelectionRef.current
             .join(
               enter => enter,
               update => {
@@ -228,7 +231,7 @@ export const useSubAxis = ({
           break
       }
     }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, axisModel, isAnimating, displayModel,
-        centerCategoryLabels, showScatterPlotGridLines]),
+        dataConfig, centerCategoryLabels, showScatterPlotGridLines]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
@@ -292,10 +295,8 @@ export const useSubAxis = ({
      */
     setupCategories = useCallback(() => {
       if (!subAxisElt) return
-      const
-        multiScale = layout.getAxisMultiScale(axisPlace),
-        categorySet = multiScale?.categorySet,
-        categories = Array.from(categorySet?.values ?? []),
+      const role = axisPlaceToAttrRole[axisPlace],
+        categories = dataConfig?.categoryArrayForAttrRole(role) ?? [],
         categoryData: CatObject[] = categories.map((cat, index) =>
           ({cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
 
@@ -336,7 +337,7 @@ export const useSubAxis = ({
           .attr('y', 0)
       })
 
-    }, [axisPlace, dragBehavior, layout, subAxisElt])
+    }, [axisPlace, dataConfig, dragBehavior, subAxisElt])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -382,9 +383,8 @@ export const useSubAxis = ({
     if (isCategorical) {
       const disposer = reaction(() => {
         const multiScale = layout.getAxisMultiScale(axisModel.place),
-          categorySet = multiScale?.categorySet,
-          categorySetValues = categorySet?.values
-        return Array.from(categorySetValues ?? [])
+          categoryValues = multiScale?.categoryValues
+        return Array.from(categoryValues ?? [])
       }, (values) => {
         // todo: The above reaction is detecting changes to the set of values even when they haven't changed. Why?
         if (JSON.stringify(values) !== JSON.stringify(savedCategorySetValuesRef.current)) {
@@ -398,6 +398,34 @@ export const useSubAxis = ({
       return () => disposer()
     }
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
+
+  const updateCategoriesAndRenderSubAxis = useCallback(() => {
+    const role = axisPlaceToAttrRole[axisPlace]
+    const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
+    layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
+    setupCategories()
+    renderSubAxis()
+  }, [axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
+
+  useEffect(function respondToSelectionChanges() {
+    if (dataConfig?.dataset) {
+      return mstReaction(
+        () => dataConfig.displayOnlySelectedCases && dataConfig?.dataset?.selectionChanges,
+        () => updateCategoriesAndRenderSubAxis(),
+        {name: "useSubAxis.respondToSelectionChanges"}, dataConfig
+      )
+    }
+  }, [dataConfig, updateCategoriesAndRenderSubAxis])
+
+  useEffect(function respondToHiddenCasesChange() {
+    if (dataConfig) {
+      return mstReaction(
+        () => dataConfig.hiddenCases.length,
+        () => updateCategoriesAndRenderSubAxis(),
+        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
+      )
+    }
+  }, [dataConfig, updateCategoriesAndRenderSubAxis])
 
   // update d3 scale and axis when layout/range changes
   useEffect(() => {

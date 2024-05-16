@@ -26,3 +26,19 @@ export const valueToString = function (iValue: any): string {
   }
   return ""
 }
+
+interface ICompareProps {
+  a: number
+  b: number
+  order: "asc" | "desc"
+}
+
+export const numericSortComparator = function ({a, b, order}: ICompareProps): number {
+  const aIsNaN = isNaN(a)
+  const bIsNaN = isNaN(b)
+
+  if (aIsNaN && bIsNaN) return 0
+  if (bIsNaN) return order === "asc" ? 1 : -1
+  if (aIsNaN) return order === "asc" ? -1 : 1
+  return order === "asc" ? a - b : b - a
+}

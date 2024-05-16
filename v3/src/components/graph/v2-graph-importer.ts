@@ -1,5 +1,5 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
-import {typedId} from "../../utilities/js-utils"
+import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
@@ -18,17 +18,21 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   if (!isV2GraphComponent(v2Component)) return
 
   const {
-    title = "", _links_: links, plotModels,
+    guid,
 
-    pointColor, strokeColor, pointSizeMultiplier,
-    strokeSameAsFill, isTransparent,
-    plotBackgroundImageLockInfo,
-/* The following are present in the componentStorage but not used in the V3 content model (yet):
-    displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
-    legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
-    plotBackgroundOpacity,
-*/
-  } = v2Component.componentStorage
+    componentStorage: {
+      title = "", _links_: links, plotModels,
+
+      pointColor, strokeColor, pointSizeMultiplier,
+      strokeSameAsFill, isTransparent,
+      plotBackgroundImageLockInfo,
+  /* The following are present in the componentStorage but not used in the V3 content model (yet):
+      displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
+      legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
+      plotBackgroundOpacity,
+  */
+    }
+  } = v2Component
   const plotBackgroundColor: string | null | undefined = v2Component.componentStorage.plotBackgroundColor ||
     defaultBackgroundColor
   type TLinksKey = keyof typeof links
@@ -167,7 +171,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     }]
   }
 
-  const graphTileSnap: ITileModelSnapshotIn = { id: typedId(kGraphIdPrefix), title, content }
+  const graphTileSnap: ITileModelSnapshotIn = { id: toV3Id(kGraphIdPrefix, guid), title, content }
   const graphTile = insertTile(graphTileSnap)
 
   // link shared model
