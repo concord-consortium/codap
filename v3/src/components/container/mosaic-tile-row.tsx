@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useRef } from "react"
 import { IMosaicTileRow, IMosaicTileNode } from "../../models/document/mosaic-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -105,11 +105,12 @@ export const MosaicTileComponent = observer(
   const style = styleFromExtent({ direction, pctExtent })
   const tileType = tile.content.type
   const info = getTileComponentInfo(tileType)
+  const onEndTransitionRef = useRef<() => void>(() => {})
 
   return (
     <div className="mosaic-tile-component" style={style} >
       {tile && info &&
-        <CodapComponent tile={tile} onCloseTile={onCloseTile}/>
+        <CodapComponent tile={tile} onCloseTile={onCloseTile} onEndTransitionRef={onEndTransitionRef}/>
       }
     </div>
   )

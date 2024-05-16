@@ -12,12 +12,13 @@ import { DataConfigurationContext } from "../../data-display/hooks/use-data-conf
 
 interface IProps {
   pixiPointsArrayRef:  React.MutableRefObject<PixiPoints[]>
+  onEndTransitionRef?: React.MutableRefObject<() => void>
 }
 
-export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: IProps) {
+export const MapInterior = observer(function MapInterior({pixiPointsArrayRef, onEndTransitionRef}: IProps) {
   const mapModel = useMapModelContext()
 
-  useMapModel()
+  useMapModel(onEndTransitionRef)
 
   const onSetPixiPointsForLayer = useCallback((pixiPoints: PixiPoints, layerIndex: number) => {
     pixiPointsArrayRef.current[layerIndex] = pixiPoints

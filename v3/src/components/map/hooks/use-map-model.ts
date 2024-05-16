@@ -1,11 +1,11 @@
-import {useEffect} from "react"
-import {useMapEvents, useMap} from "react-leaflet"
-import {useMapModelContext} from "./use-map-model-context"
-import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
-import {kDefaultMapZoomForGeoLocation} from "../map-types"
-import {DEBUG_MAP, debugLog} from "../../../lib/debug"
+import { useEffect } from "react"
+import { useMapEvents, useMap } from "react-leaflet"
+import { useMapModelContext } from "./use-map-model-context"
+import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
+import { kDefaultMapZoomForGeoLocation } from "../map-types"
+import { DEBUG_MAP, debugLog } from "../../../lib/debug"
 
-export function useMapModel() {
+export function useMapModel(onEndTransitionRef?: React.MutableRefObject<() => void>) {
   const leafletMap = useMap(),
     mapModel = useMapModelContext(),
     layout = useDataDisplayLayout()
@@ -28,27 +28,30 @@ export function useMapModel() {
     }
     // If the map already has a center/zoom, then use it
     if (mapModel.zoom >= 0) {
-      const { center: { lat, lng } } = mapModel
-      mapModel.leafletMapState.adjustMapView({ center: [lat, lng], zoom: mapModel.zoom })
+      const {center: {lat, lng}} = mapModel
+      mapModel.leafletMapState.adjustMapView({center: [lat, lng], zoom: mapModel.zoom})
     }
-    // In a newly created map, layers can be added automatically in MapContentModel's sharedDataSets
-    // reaction. We wait to perform the map initialization until this has been completed to avoid
+      // In a newly created map, layers can be added automatically in MapContentModel's sharedDataSets
+      // reaction. We wait to perform the map initialization until this has been completed to avoid
     // auto-positioning the map prematurely.
     else if (mapModel.layers.length === 0) {
       // Auto-position to the user's current position, if available
       navigator.geolocation.getCurrentPosition?.((pos: GeolocationPosition) => {
-        const { coords: { latitude, longitude }} = pos
+        const {coords: {latitude, longitude}} = pos
         mapModel.leafletMapState.adjustMapView({
           center: [latitude, longitude],
           zoom: kDefaultMapZoomForGeoLocation,
           animate: true
         })
       })
-    }
-    // If the map doesn't have a position but does have data, then scale to fit the data.
-    else {
-      mapModel.rescale()
+    } else {
+      // Install this function to be called when the map component has finished transitioning
+      if (onEndTransitionRef) {
+        onEndTransitionRef.current = () => mapModel.rescale()
+      }
+      // If the map doesn't have a position but does have data, then scale to fit the data.
+      // mapModel.rescale()
     }
     mapModel.setHasBeenInitialized()
-  }, [layout.isTileExtentInitialized, leafletMap, mapModel, mapModel.isSharedDataInitialized])
+  }, [layout.isTileExtentInitialized, leafletMap, mapModel, mapModel.isSharedDataInitialized, onEndTransitionRef])
 }

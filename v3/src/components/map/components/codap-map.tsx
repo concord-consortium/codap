@@ -23,9 +23,10 @@ import "./map.scss"
 
 interface IProps {
   mapRef: MutableRefObject<HTMLDivElement | null>
+  onEndTransitionRef?: React.MutableRefObject<() => void>
 }
 
-export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
+export const CodapMap = observer(function CodapMap({mapRef, onEndTransitionRef}: IProps) {
   const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
@@ -90,7 +91,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
               })
             }
           </>
-          <MapInterior pixiPointsArrayRef={pixiPointsArrayRef}/>
+          <MapInterior pixiPointsArrayRef={pixiPointsArrayRef} onEndTransitionRef={onEndTransitionRef}/>
         </MapContainer>
         <MapBackground mapModel={mapModel} pixiPointsArrayRef={pixiPointsArrayRef}/>
       </div>

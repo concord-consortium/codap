@@ -1,7 +1,7 @@
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
@@ -27,7 +27,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const { active } = useDndContext()
   const tileStyle: React.CSSProperties = { left, top, width, height }
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
-  const {setNodeRef, transform} = useDraggableTile(draggableOptions,
+  const {setNodeRef:draggableSetNodeRef, transform} = useDraggableTile(draggableOptions,
     activeDrag => {
     const dragTileId = getDragTileId(activeDrag)
     if (dragTileId) {
@@ -36,6 +36,12 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       }
     }
   })
+  const tileNodeRef = useRef<HTMLElement | null>(null)
+  const setNodeRef = (anElement: HTMLElement | null) => {
+    tileNodeRef.current = anElement
+    draggableSetNodeRef(anElement)
+  }
+  const onEndTransitionRef = useRef<() => void>(() => {})
 
   const handleMinimizeTile = useCallback(() => {
     rowTile?.setMinimized(!rowTile.isMinimized)
@@ -131,6 +137,18 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     minimized: rowTile?.isMinimized,
     "disable-animation": disableAnimation })
 
+  useEffect(() => {
+    const tileDiv = tileNodeRef.current
+    const handleTransitionEnd = () => {
+      if (onEndTransitionRef.current) {
+        onEndTransitionRef.current()
+      }
+      // We only call this once
+      tileDiv?.removeEventListener("transitionend", handleTransitionEnd)
+    }
+    tileDiv?.addEventListener("transitionend", handleTransitionEnd)
+  }, [])
+
   if (!info || rowTile?.isHidden) return null
 
   return (
@@ -145,6 +163,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
           onRightPointerDown={handleRightPointerDown}
           onBottomPointerDown={handleBottomPointerDown}
           onLeftPointerDown={handleLeftPointerDown}
+          onEndTransitionRef={onEndTransitionRef}
         />
       }
     </div>

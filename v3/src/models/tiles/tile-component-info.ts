@@ -1,5 +1,9 @@
 import React, { SVGProps } from "react"
-import { ITileBaseProps, ITileInspectorPanelProps, ITileTitleBarProps } from "../../components/tiles/tile-base-props"
+import {
+  ITileComponentBaseProps,
+  ITileInspectorPanelProps,
+  ITileTitleBarProps
+} from "../../components/tiles/tile-base-props"
 import { type IToolShelfTileButtonProps } from "../../components/tool-shelf/tool-shelf-button"
 
 export interface IToolShelfOptions {
@@ -12,7 +16,7 @@ export interface IToolShelfOptions {
 export interface ITileComponentInfo {
   type: string;
   TitleBar: React.ComponentType<ITileTitleBarProps>;
-  Component: React.ComponentType<ITileBaseProps>;
+  Component: React.ComponentType<ITileComponentBaseProps>;
   InspectorPanel?: React.ComponentType<ITileInspectorPanelProps>;
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;

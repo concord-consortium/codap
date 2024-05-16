@@ -22,11 +22,12 @@ export interface IProps extends ITileBaseProps {
   onRightPointerDown?: (e: React.PointerEvent) => void
   onBottomPointerDown?: (e: React.PointerEvent) => void
   onLeftPointerDown?: (e: React.PointerEvent) => void
+  onEndTransitionRef: React.MutableRefObject<() => void> // Called once at close of first component size transition
 }
 
 export const CodapComponent = observer(function CodapComponent({
   tile, isMinimized, onMinimizeTile, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
-  onRightPointerDown, onBottomPointerDown, onLeftPointerDown
+  onRightPointerDown, onBottomPointerDown, onLeftPointerDown, onEndTransitionRef
 }: IProps) {
   const info = getTileComponentInfo(tile.content.type)
 
@@ -48,7 +49,7 @@ export const CodapComponent = observer(function CodapComponent({
       <div className={classes} key={tile.id} data-testid={tileEltClass}
         onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
         <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
-        <Component tile={tile} isMinimized={isMinimized} />
+        <Component tile={tile} isMinimized={isMinimized} onEndTransitionRef = {onEndTransitionRef} />
         {onRightPointerDown && !isFixedWidth && !isMinimized &&
           <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
         {onBottomPointerDown && !isFixedHeight && !isMinimized &&

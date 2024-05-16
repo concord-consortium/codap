@@ -6,6 +6,10 @@ export interface ITileBaseProps {
   isMinimized?: boolean
 }
 
+export interface ITileComponentBaseProps extends ITileBaseProps {
+  onEndTransitionRef?: React.MutableRefObject<() => void>
+}
+
 export interface ITileTitleBarProps extends ITileBaseProps {
   // pass accessor function so that only title bar is re-rendered when title changes
   getTitle?: () => string | undefined

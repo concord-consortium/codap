@@ -6,13 +6,13 @@ import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-
 import { selectAllCases } from '../../../models/data/data-set-utils'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
-import {ITileBaseProps} from '../../tiles/tile-base-props'
+import { ITileComponentBaseProps } from '../../tiles/tile-base-props'
 import {isMapContentModel} from "../models/map-content-model"
 import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
 import {CodapMap} from "./codap-map"
 
-export const MapComponent = observer(function MapComponent({tile}: ITileBaseProps) {
+export const MapComponent = observer(function MapComponent({tile, onEndTransitionRef}: ITileComponentBaseProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
   const instanceId = useNextInstanceId("map")
@@ -29,7 +29,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
       })
       return () => mapModel.leafletMapState.setOnClickCallback()
     }
-  }, [mapModel])
+  }, [mapModel, onEndTransitionRef])
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setTileExtent(width, height)
@@ -50,7 +50,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
     <InstanceIdContext.Provider value={instanceId}>
       <DataDisplayLayoutContext.Provider value={layout}>
         <MapModelContext.Provider value={mapModel}>
-          <CodapMap mapRef={mapRef}/>
+          <CodapMap mapRef={mapRef} onEndTransitionRef={onEndTransitionRef}/>
           <AttributeDragOverlay activeDragId={overlayDragId}/>
         </MapModelContext.Provider>
       </DataDisplayLayoutContext.Provider>
