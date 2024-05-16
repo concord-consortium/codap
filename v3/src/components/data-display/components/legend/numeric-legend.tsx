@@ -47,21 +47,26 @@ export const NumericLegend =
       if (choroplethElt) {
         /**
          *  Adjust the value range displayed by the legend based on the data configuration model's properties:
-         *  1. If `displayOnlySelectedCases` is true and not all cases are visible, the legend displays the range of all
+         *  1. If all cases are hidden, the legend displays no range.
+         *  2. If `displayOnlySelectedCases` is true and not all cases are visible, the legend displays the range of all
          *     cases, both hidden and visible.
-         *  2. If `displayOnlySelectedCases` is false, and some cases are explicitly hidden by the user, the legend
-         *     displays the range of only the visible cases.
-         *  3. If all cases are hidden, the legend displays no range.
+         *  3. Otherwise, the legend displays the range of only the visible cases.
+         *  
+         *  TODO: When `displayOnlySelectedCases` is true and all visible cases have the exact same value for the legend
+         *  attribute, the legend should only reflect the values of the case(s) shown.
          */
         const allCasesCount = dataConfiguration?.dataset?.cases.length ?? 0
         const hiddenCasesCount = dataConfiguration?.hiddenCases.length ?? 0
         const allCasesHidden = hiddenCasesCount === allCasesCount
-        let values = allCasesHidden ? [] : dataConfiguration?.numericValuesForAttrRole("legend") ?? []
-        if (dataConfiguration?.displayOnlySelectedCases && !allCasesHidden && values.length < allCasesCount) {
+        if (allCasesHidden) {
+          valuesRef.current = []
+        } else if (dataConfiguration?.displayOnlySelectedCases && hiddenCasesCount > 0) {
           const attribute = dataConfiguration?.dataset?.attrFromID(dataConfiguration?.attributeID("legend"))
-          values = attribute?.numValues ?? []
+          valuesRef.current = attribute?.numValues ?? []
+        } else {
+          valuesRef.current = dataConfiguration?.numericValuesForAttrRole("legend") ?? []
         }
-        valuesRef.current = values
+
         setDesiredExtent(layerIndex, computeDesiredExtent())
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
         choroplethLegend(quantileScale.current, choroplethElt,
