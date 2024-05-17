@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 3.0.0-pre.1652 - May 17, 2024
+
+### ✨ Features & Improvements:
+- **PT-187458779:** Graph has option to Show/Hide Parent Visibility Toggles
+- **PT-187458777:** Graph has option to Display Only Selected Cases
+- **PT-186948720:** User can display a standard error bar on a dot plot
+- **PT-187573958:** Fix Sampler Plugin
+
+### 🐞 Bug Fixes:
+- **PT-187539044:** Dragging categories on axis does not affect the placement of points
+- **PT-187392421:** Unable to reorder categories in categorical legend
+- **PT-187619346:** Marquee selection broken in newly created graph
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  171330 bytes |                            9.60% |
+|  index.js | 5356175 bytes |                            3.03% |
+
 ## Version 3.0.0-pre.1639 - May 10, 2024
 
 ### ✨ Features & Improvements:
@@ -18,8 +37,8 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  156316 bytes |                            8.45% |
-|  index.js | 5198791 bytes |                            2.60% |
+|  main.css |  169305 bytes |                            8.45% |
+|  index.js | 5307568 bytes |                            2.60% |
 
 ## Version 3.0.0-pre.1631 - May 3, 2024
 
@@ -37,8 +56,8 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  156316 bytes |                           -0.17% |
-|  index.js | 5198791 bytes |                            1.09% |
+|  main.css |  156113 bytes |                           -0.17% |
+|  index.js | 5296975 bytes |                            1.09% |
 
 ## Version 3.0.0-pre.1522 - April 26, 2024
 
@@ -64,8 +83,8 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  156316 bytes |                            0.24% |
-|  index.js | 5198791 bytes |                            0.79% |
+|  main.css |  157690 bytes |                            0.24% |
+|  index.js | 5239861 bytes |                            0.79% |
 
 ## Version 3.0.0-pre.1521 - April 12, 2024
 
@@ -98,7 +117,7 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  156316 bytes |                            6.08% |
+|  main.css |  157376 bytes |                            6.08% |
 |  index.js | 5198791 bytes |                            0.57% |
 
 ## Version 3.0.0-pre.1520 - March 28, 2024
