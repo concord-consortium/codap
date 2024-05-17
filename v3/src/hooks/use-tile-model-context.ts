@@ -6,6 +6,7 @@ export const TileModelContext = createContext<ITileModel | undefined>(undefined)
 
 export const useTileModelContext = () => {
   const tile = useContext(TileModelContext)
+  const transitionComplete = tile?.transitionComplete ?? false
 
   const isTileSelected = useCallback(function isTileSelected() {
     return uiState.isFocusedTile(tile?.id)
@@ -15,5 +16,5 @@ export const useTileModelContext = () => {
     uiState.setFocusedTile(tile?.id)
   }, [tile])
 
-  return { tile, tileId: tile?.id, isTileSelected, selectTile }
+  return { tile, tileId: tile?.id, isTileSelected, selectTile, transitionComplete }
 }
