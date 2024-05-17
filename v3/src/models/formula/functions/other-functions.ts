@@ -25,7 +25,7 @@ export const otherFunctions = {
     numOfRequiredArguments: 0,
     isRandomFunction: true,
     // Nothing to do here, Random.float() has exactly the same signature as CODAP V2 random() function.
-    evaluate: (...args: FValue[]) => randomGen.float(...args as number[])
+    evaluate: (...args: FValue[]) => randomGen.float(...args.map(arg=>Number(arg)))
   },
 
   // randomNormal(mean, standard_deviation) Returns a random number drawn from a normal distribution which, by default,
@@ -33,9 +33,10 @@ export const otherFunctions = {
   randomNormal: {
     numOfRequiredArguments: 0,
     isRandomFunction: true,
-    // Nothing to do here, Random.normal() has exactly the same signature as CODAP V2 randomNormal() function.
+    // We coerce the arguments to numbers.
+    // randomGen.normal() has exactly the same signature as CODAP V2 randomNormal() function.
     evaluate: (...args: FValue[]) => {
-      return randomGen.normal(...args as number[])()
+      return randomGen.normal(...args.map(arg=>Number(arg)))()
     }
   },
 
@@ -44,9 +45,9 @@ export const otherFunctions = {
   randomBinomial: {
     numOfRequiredArguments: 0,
     isRandomFunction: true,
-    // Nothing to do here, Random.binomial() has exactly the same signature as CODAP V2 randomBinomial() function.
+    // Nothing to do here, randomGen.binomial() has exactly the same signature as CODAP V2 randomBinomial() function.
     evaluate: (...args: FValue[]) => {
-      return randomGen.binomial(...args as number[])()
+      return randomGen.binomial(...args.map(arg=>Number(arg)))()
     }
   },
 
