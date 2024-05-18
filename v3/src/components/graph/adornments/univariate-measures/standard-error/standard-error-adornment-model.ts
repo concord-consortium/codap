@@ -10,14 +10,24 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
   .props({
     type: types.optional(types.literal(kStandardErrorType), kStandardErrorType),
     labelTitle: types.optional(types.literal(kStandardErrorValueTitleKey), kStandardErrorValueTitleKey),
-    numStErrs: types.optional(types.number, 1)
+    _numStErrs: types.optional(types.number, 1)
   })
+  .volatile(self => ({
+    dynamicNumStErrs: undefined as number | undefined
+  }))
   .actions(self => ({
     setNumStErrs(numStErrs: number) {
-      self.numStErrs = numStErrs
+      self._numStErrs = numStErrs
+      self.dynamicNumStErrs = undefined
+    },
+    setDynamicNumStErrs(numStErrs: number | undefined) {
+      self.dynamicNumStErrs = numStErrs
     }
   }))
   .views(self => ({
+    get numStErrs() {
+      return self.dynamicNumStErrs ?? self._numStErrs
+    },
     get hasRange() {
       return true
     },
@@ -26,7 +36,7 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       // If there are less than two values, the adornment should not render.
       if (caseValues.length < 2) return
-      return self.numStErrs * Number(std(caseValues)) / Math.sqrt(caseValues.length)
+      return this.numStErrs * Number(std(caseValues)) / Math.sqrt(caseValues.length)
     }
   }))
   .views(self => ({
