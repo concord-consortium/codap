@@ -38,7 +38,7 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       // If there are less than two values, the adornment should not render.
       if (caseValues.length < 2) return
-      return self.numStErrs * Number(std(caseValues)) / Math.sqrt(caseValues.length)
+      return this.numStErrs * Number(std(caseValues)) / Math.sqrt(caseValues.length)
     }
   }))
   .views(self => ({
