@@ -37,11 +37,11 @@ export const diCaseHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
         const { id } = aCase
-        const strId = id && toV3CaseId(id)
-        if (id && strId && aCase.values && (dataContext.getCase(strId) || dataContext.pseudoCaseMap.get(strId))) {
+        const v3Id = id && toV3CaseId(id)
+        if (v3Id && aCase.values && (dataContext.getCase(v3Id) || dataContext.pseudoCaseMap.get(v3Id))) {
           caseIDs.push(id)
           const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
-          dataContext.setCaseValues([{ ...updatedAttributes, __id__: strId }])
+          dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])
         }
       })
     })

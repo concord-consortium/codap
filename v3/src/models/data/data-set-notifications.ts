@@ -1,5 +1,6 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-interactive/data-interactive-type-utils"
+import { toV2Id } from "../../utilities/codap-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
@@ -35,7 +36,7 @@ export function updateDataContextNotification(dataSet: IDataSet) {
 export function createCollectionNotification(collection: ICollectionModel, dataSet?: IDataSet) {
   const result = {
     success: true,
-    collection: collection.id,
+    collection: toV2Id(collection.id),
     name: collection.name,
     attribute: collection.attributes[0]?.name
   }
@@ -58,7 +59,7 @@ function attributeNotification(
   const result = {
     success: true,
     attrs: attrs?.map(attr => convertAttributeToV2(attr, data)),
-    attrIDs
+    attrIDs: attrIDs?.map(attrID => toV2Id(attrID))
   }
   return notification(operation, result, data, makeCallback(operation, attrIDs))
 }
@@ -84,7 +85,7 @@ export function updateAttributesNotification(attrs: IAttribute[], data?: IDataSe
 }
 
 export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
-  const caseIDs = cases?.map(c => c.__id__)
+  const caseIDs = cases?.map(c => toV2Id(c.__id__))
   const result = {
     success: true,
     caseIDs,

@@ -1,5 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { toV2Id, toV3Id, typeV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3DataSetId, toV3Id, typeV3Id } from "../../utilities/codap-utils"
 
 export const V2Model = types.model("V2Model", {
   id: typeV3Id(""),
@@ -15,6 +15,7 @@ export const V2Model = types.model("V2Model", {
     /* eslint-disable eqeqeq */
     return (!!self.name && self.name == nameOrId) ||
             (self.id == nameOrId) ||
+            (self.id == toV3DataSetId(nameOrId)) ||
             (typeof nameOrId === "number" && toV2Id(self.id) === nameOrId)
     /* eslint-enable eqeqeq */
   }
