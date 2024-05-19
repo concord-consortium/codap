@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import * as PIXI from "pixi.js"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -33,7 +34,7 @@ interface IProps {
 
 export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onSetPixiPointsForLayer}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
-    dataset = dataConfiguration?.dataset,
+    dataset = isAlive(dataConfiguration) ? dataConfiguration?.dataset : undefined,
     mapModel = useMapModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
