@@ -1,6 +1,7 @@
 import "./handlers/all-cases-handler"
 import "./handlers/attribute-handler"
 import "./handlers/attribute-list-handler"
+import "./handlers/attribute-location-handler"
 import "./handlers/case-handler"
 import "./handlers/case-count-handler"
 import "./handlers/collection-handler"
