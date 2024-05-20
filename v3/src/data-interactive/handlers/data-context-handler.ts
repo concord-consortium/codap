@@ -5,7 +5,7 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIDataContext, DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIDataContext, DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { createCollection } from "./di-handler-utils"
 
@@ -56,7 +56,12 @@ export const diDataContextHandler: DIHandler = {
     return { success: true, values: convertDataSetToV2(dataContext, appState.document.key) }
   },
 
+  // TODO setAside and restoreSetasides [sic]
+  notify: diNotImplementedYet,
+
   update(resources: DIResources, _values?: DIValues) {
+    // TODO rerandomize
+    // TODO sort
     const { dataContext } = resources
     if (!dataContext) return contextNotFoundResult
 

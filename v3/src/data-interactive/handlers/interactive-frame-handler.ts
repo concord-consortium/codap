@@ -30,7 +30,12 @@ export const diInteractiveFrameHandler: DIHandler = {
     }
     return noIFResult
   },
-  create: diNotImplementedYet,
+  // Notify needs to handle:
+  // dirty: true
+  // image: ...
+  // request: openGuideConfiguration | indicateBusy | indicateIdle
+  // cursorMode: true
+  notify: diNotImplementedYet,
   update(resources: DIResources, _values?: DIValues) {
     // TODO: Expand to handle additional values
     const { interactiveFrame } = resources
@@ -46,8 +51,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       }
     })
     return { success: true }
-  },
-  delete: diNotImplementedYet
+  }
 }
 
 registerDIHandler("interactiveFrame", diInteractiveFrameHandler)
