@@ -121,6 +121,7 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
     // collapseChildren,
     guid: id,
     id,
+    // labels: { singleCase, pluralCase }
     name,
     // parent,
     title,
