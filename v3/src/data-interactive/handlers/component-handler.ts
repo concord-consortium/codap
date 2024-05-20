@@ -49,9 +49,17 @@ export const diComponentHandler: DIHandler = {
       }
     }
 
-    // TODO Handle other types
+    // TODO Handle other types:
+    // graph
+    // map
+    // slider
+    // calculator
+    // text
+    // webView
+    // guide
     return { success: false, values: { error: `Unsupported component type ${type}` } }
   },
+  
   delete(resources: DIResources) {
     const { component } = resources
     if (!component) return componentNotFoundResult
@@ -63,7 +71,9 @@ export const diComponentHandler: DIHandler = {
 
     return { success: true }
   },
+
   get: diNotImplementedYet,
+
   notify(resources: DIResources, values?: DIValues) {
     const { component } = resources
     if (!component) return componentNotFoundResult
@@ -78,6 +88,7 @@ export const diComponentHandler: DIHandler = {
 
     return { success: true }
   },
+
   update: diNotImplementedYet
 }
 
