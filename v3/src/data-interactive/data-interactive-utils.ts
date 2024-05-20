@@ -1,5 +1,6 @@
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
+import { toV2Id } from "../utilities/codap-utils"
 import { DICaseValues } from "./data-interactive-types"
 
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
@@ -35,11 +36,14 @@ export function getCaseValues(caseId: string, collectionId: string, dataSet: IDa
 }
 
 // Converts an attributeName => value dictionary to attributeId => value
-export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet) {
+export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet, v2Ids?: boolean) {
   const caseValues: ICaseCreation = {}
   Object.keys(values).forEach(attrName => {
     const attrId = dataSet.attrIDFromName(attrName)
-    if (attrId) caseValues[attrId] = values[attrName]
+    if (attrId) {
+      const _attrId = v2Ids ? toV2Id(attrId) : attrId
+      caseValues[_attrId] = values[attrName]
+    }
   })
   return caseValues
 }

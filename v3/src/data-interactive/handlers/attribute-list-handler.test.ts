@@ -1,4 +1,5 @@
 import { ICodapV2Attribute } from "../../v2/codap-v2-types"
+import { toV2Id } from "../../utilities/codap-utils"
 import { diAttributeListHandler } from "./attribute-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -17,10 +18,10 @@ describe("DataInteractive AttributeListHandler", () => {
     const attr1 = attributeList[0]
     expect(attr1.name).toBe(a1.name)
     expect(attr1.title).toBe(a1.title)
-    expect(attr1.id).toBe(a1.id)
+    expect(attr1.id).toBe(toV2Id(a1.id))
     const attr2 = attributeList[1]
     expect(attr2.name).toBe(a2.name)
     expect(attr2.title).toBe(a2.title)
-    expect(attr2.id).toBe(a2.id)
+    expect(attr2.id).toBe(toV2Id(a2.id))
   })
 })

@@ -1,7 +1,7 @@
 import { registerDIHandler } from "../data-interactive-handler"
 import { getCaseValues } from "../data-interactive-utils"
 import { DIHandler, DIResources } from "../data-interactive-types"
-import { toV2Id } from "../../utilities/codap-utils"
+import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 
 export const diAllCasesHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -23,8 +23,7 @@ export const diAllCasesHandler: DIHandler = {
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
       const id = c.pseudoCase.__id__
 
-      const _parent = dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__
-      const parent = _parent ? toV2Id(_parent) : undefined
+      const parent = maybeToV2Id(dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__)
 
       // iphone-frame was throwing an error when Array.from() wasn't used here for some reason.
       const childPseudoCaseIds = c.childPseudoCaseIds && Array.from(c.childPseudoCaseIds)

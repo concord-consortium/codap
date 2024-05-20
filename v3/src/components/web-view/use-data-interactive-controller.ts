@@ -1,4 +1,3 @@
-import { useToast } from "@chakra-ui/react"
 import iframePhone from "iframe-phone"
 import React, { useEffect } from "react"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
@@ -21,7 +20,6 @@ function extractOrigin(url?: string) {
 }
 
 export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFrameElement>, tile?: ITileModel) {
-  const toast = useToast()
   const tileContentModel = tile?.content
   const webViewModel = isWebViewModel(tileContentModel) ? tileContentModel : undefined
   const url = webViewModel?.url
@@ -39,13 +37,6 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
       {
         debugLog(DEBUG_PLUGINS, `Received data-interactive: ${JSON.stringify(request)}`)
-        toast({
-          title: "Web view received message",
-          description: JSON.stringify(request),
-          status: "success",
-          duration: 9000,
-          isClosable: true
-        })
         let result: DIRequestResponse = { success: false }
 
         const errorResult = (error: string) => ({ success: false, values: { error }} as const)
@@ -82,5 +73,5 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
         phone.disconnect()
       }
     }
-  }, [iframeRef, tile, toast, url, webViewModel])
+  }, [iframeRef, tile, url, webViewModel])
 }

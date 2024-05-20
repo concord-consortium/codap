@@ -60,6 +60,10 @@ export function getTileTypes() {
   return Object.values(gTileContentInfoMap).map(info => info.type)
 }
 
+export function getTilePrefixes() {
+  return Object.values(gTileContentInfoMap).map(info => info.prefix)
+}
+
 export interface ITileExportOptions {
   json?: boolean; // default true, but some tiles (e.g. geometry) use their export code to produce other formats
   includeId?: boolean;

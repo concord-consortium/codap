@@ -1,5 +1,6 @@
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
+import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, diNotImplementedYet, DIValues, DIInteractiveFrame } from "../data-interactive-types"
@@ -16,7 +17,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       const values: DIInteractiveFrame = {
         dimensions,
         externalUndoAvailable: true,
-        id: interactiveFrame.id,
+        id: toV2Id(interactiveFrame.id),
         name: interactiveFrame.title,
         preventBringToFront: false,
         preventDataContextReorg: false,
