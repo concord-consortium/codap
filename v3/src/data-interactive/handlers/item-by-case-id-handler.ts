@@ -2,7 +2,8 @@
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, /*DIItem, DIResources, DIValues,*/ diNotImplementedYet } from "../data-interactive-types"
 
-// const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
+// const dataContextNotFoundResult =
+//   { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 
 export const diItemByCaseIDHandler: DIHandler = {
   delete: diNotImplementedYet,
