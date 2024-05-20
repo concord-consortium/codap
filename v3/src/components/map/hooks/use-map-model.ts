@@ -45,10 +45,6 @@ export function useMapModel() {
         })
       })
     }
-    // If the map doesn't have a position but does have data, then scale to fit the data.
-    else {
-      mapModel.rescale()
-    }
     mapModel.setHasBeenInitialized()
   }, [layout.isTileExtentInitialized, leafletMap, mapModel, mapModel.isSharedDataInitialized])
 }

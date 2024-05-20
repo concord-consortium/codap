@@ -1,7 +1,7 @@
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
@@ -131,10 +131,21 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     minimized: rowTile?.isMinimized,
     "disable-animation": disableAnimation })
 
+  // The CSS transition used to animate the tile can cause child components to prematurely apply effects that depend on
+  // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the
+  // transition completes. Child components can check this flag to avoid or counteract premature application of effects.
+  useEffect(function addTransitionEndHandler() {
+    const handleTransitionEnd = () => tile.setTransitionComplete(true)
+    const element = document.getElementById(`${tileId}`)
+    element?.addEventListener("transitionend", handleTransitionEnd)
+
+    return () => element?.removeEventListener("transitionend", handleTransitionEnd)
+  }, [tile, tileId])
+
   if (!info || rowTile?.isHidden) return null
 
   return (
-    <div className={classes} style={style} key={tileId} ref={setNodeRef}>
+    <div id={tileId} className={classes} style={style} key={tileId} ref={setNodeRef}>
       {tile && rowTile &&
         <CodapComponent tile={tile}
           isMinimized={rowTile.isMinimized}

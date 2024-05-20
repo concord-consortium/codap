@@ -86,6 +86,26 @@ export class LeafletMapState {
   }
 
   @action
+  setZoom(zoom: number) {
+    this.zoom = zoom
+  }
+
+  @action
+  setCenter(center: LatLng) {
+    this.center = center
+  }
+
+  @action
+  setIsZooming(isZooming: boolean) {
+    this.isZooming = isZooming
+  }
+
+  @action
+  setIsMoving(isMoving: boolean) {
+    this.isMoving = isMoving
+  }
+
+  @action
   setOnClickCallback(onClick?: (event: MouseEvent) => void) {
     this.onClick = onClick
   }
@@ -97,35 +117,35 @@ export class LeafletMapState {
   @action
   handleMoveStart() {
     if (!this.isChanging) this.startLeafletInteraction("DG.Undo.map.pan", "DG.Redo.map.pan")
-    this.isMoving = true
+    this.setIsMoving(true)
   }
 
   @action
   handleMove() {
-    this.center = this.leafletMap?.getCenter()
+    this.setCenter(this.leafletMap?.getCenter() ?? new LatLng(0, 0))
   }
 
   @action
   handleMoveEnd() {
     this.completeInProgressChanges()
-    this.isMoving = false
+    this.setIsMoving(false)
   }
 
   @action
   handleZoomStart() {
     if (!this.isChanging) this.startLeafletInteraction("DG.Undo.map.zoom", "DG.Redo.map.zoom")
-    this.isZooming = true
+    this.setIsZooming(true)
   }
 
   @action
   handleZoom() {
-    this.zoom = this.leafletMap?.getZoom()
+    this.setZoom(this.leafletMap?.getZoom() ?? 0)
   }
 
   @action
   handleZoomEnd() {
     this.completeInProgressChanges()
-    this.isZooming = false
+    this.setIsZooming(false)
   }
 
   installHandlers() {

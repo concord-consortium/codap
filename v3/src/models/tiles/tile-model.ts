@@ -64,7 +64,8 @@ export const TileModel = types
     // whether to restrict display to certain users
     display: DisplayUserTypeEnum,
     // e.g. "TextContentModel", ...
-    content: TileContentUnion
+    content: TileContentUnion,
+    transitionComplete: types.maybe(types.boolean)
   })
   .preProcessSnapshot(snapshot => {
     const tileType = snapshot.content.type
@@ -116,6 +117,9 @@ export const TileModel = types
   .actions(self => ({
     setTitle(title: string) {
       self.title = title
+    },
+    setTransitionComplete(complete: boolean) {
+      self.transitionComplete = complete
     }
   }))
   .actions(self => ({
