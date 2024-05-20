@@ -54,7 +54,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const color = supportColors && inputValue ? parseColor(inputValue, { colorNames }) : undefined
   const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
   // show the color swatch if the initial value appears to be a color (no change mid-edit)
-  const showColorSwatch = useRef(!!hexColor)
+  const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
 
   useEffect(() => {
     selectAllCases(data, false)
