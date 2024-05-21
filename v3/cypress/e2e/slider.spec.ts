@@ -31,7 +31,7 @@ context("Slider UI", () => {
     // slider.getSliderAxis().should("not.be.visible")
 
     // // redo should work after undo
-    // // use force:true here because undo button is incorrectly faded out here
+    // // use force:true here because redo button is incorrectly faded out here
     // toolbar.getRedoTool().click({force: true})
     // slider.getSliderAxis().should("be.visible")
 
