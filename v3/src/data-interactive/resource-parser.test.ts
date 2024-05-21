@@ -6,11 +6,13 @@ import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/ti
 import { toV2Id } from "../utilities/codap-utils"
 import { setupTestDataset } from "./handlers/handler-test-utils"
 import { resolveResources } from "./resource-parser"
+import { SharedDataSet } from "../models/shared/shared-data-set"
 
 describe("DataInteractive ResourceParser", () => {
-  const { dataset } = setupTestDataset()
   const { content } = appState.document
-  content?.createDataSet(getSnapshot(dataset))
+  content?.createDataSet(getSnapshot(setupTestDataset().dataset))
+  const dataset = content?.getFirstSharedModelByType(SharedDataSet)?.dataSet!
+  dataset.collectionGroups
   const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)
   
@@ -50,5 +52,15 @@ describe("DataInteractive ResourceParser", () => {
     const resources = resolve("dataContext[data].collection[collection1].attributeList")
     expect(resources.attributeList?.length).toBe(1)
     expect(resources.attributeList?.[0].name).toBe("a1")
+  })
+
+  it("resourceParser finds caseByID properly", () => {
+    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    expect(resolve(`dataContext[data].caseByID[${toV2Id(itemId)}]`).caseByID?.__id__).toBe(itemId)
+
+    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    expect(resolve(`dataContext[data].caseByID[${toV2Id(caseId)}]`).caseByID?.__id__).toBe(caseId)
+
+    expect(resolve(`dataContext[data].caseByID[unknown]`).caseByID).toBeUndefined()
   })
 })
