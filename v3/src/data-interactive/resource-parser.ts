@@ -6,7 +6,7 @@ import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3AttrId, toV3CollectionId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3AttrId, toV3CaseId, toV3CollectionId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
 import { canonicalizeAttributeName } from "./data-interactive-utils"
 
@@ -149,9 +149,10 @@ export function resolveResources(
     result.attributeList = attributeList
   }
 
-  // if (resourceSelector.caseByID) {
-  //   result.caseByID = dataContext.getCaseByID(resourceSelector.caseByID);
-  // }
+  if (resourceSelector.caseByID) {
+    const caseId = toV3CaseId(resourceSelector.caseByID)
+    result.caseByID = dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+  }
 
   // if (resourceSelector.caseByIndex) {
   //   result.caseByIndex = collection && collection.getCaseAt(Number(resourceSelector.caseByIndex));

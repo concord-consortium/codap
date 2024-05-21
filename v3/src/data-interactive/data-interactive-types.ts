@@ -2,6 +2,7 @@ import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICodapV2Attribute, ICodapV2AttributeV3, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
+import { ICase } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionPropsModel } from "../models/data/collection"
@@ -79,6 +80,9 @@ export interface DINewCase {
   id?: number
   itemID?: number
 }
+export interface DIUpdateCase {
+  values: DICaseValues
+}
 export interface DINotification {
   request?: string
 }
@@ -87,8 +91,8 @@ export interface DIResources {
   attribute?: IAttribute
   attributeList?: IAttribute[]
   attributeLocation?: IAttribute
-  caseByID?: DICase
-  caseByIndex?: DICase
+  caseByID?: ICase
+  caseByIndex?: ICase
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
   collection?: ICollectionPropsModel
@@ -107,7 +111,7 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DINewCase | DINotification | V2Component
+  DIGlobal | DIInteractiveFrame | DINewCase | DIUpdateCase | DINotification | V2Component
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -160,6 +164,8 @@ export interface DIResourceSelector {
   attributeLocation?: string
   attributes?: string
   case?: string
+  caseByID?: string
+  caseByIndex?: string
   collection?: string
   component?: string
   dataContext?: string

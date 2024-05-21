@@ -81,6 +81,7 @@
     "V3.DI.Error.fieldRequired": "%@1 %@2: %@3 required",
     "V3.DI.Error.dataContextNotFound": "DataContext not found",
     "V3.DI.Error.caseMetadataNotFound": "CaseMetadata not found for %@",
+    "V3.DI.Error.caseNotFound": "Case not found",
     "V3.DI.Error.collectionNotFound": "Collection not found",
     "V3.DI.Error.componentNotFound": "Component not found",
     "V3.DI.Error.globalCreation": "error creating global value",
