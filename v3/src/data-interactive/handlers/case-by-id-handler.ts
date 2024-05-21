@@ -1,7 +1,7 @@
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIUpdateCase, DIValues } from "../data-interactive-types"
-import { convertCaseToV2FullCase } from "../data-interactive-type-utils"
+import { getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
 
 const dcNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
@@ -28,7 +28,7 @@ export const diCaseByIDHandler: DIHandler = {
     if (!dataContext) return dcNotFoundResult
     if (!caseByID) return caseNotFoundResult
 
-    return { success: true, values: convertCaseToV2FullCase(caseByID, dataContext) }
+    return { success: true, values: getCaseRequestResultValues(caseByID, dataContext) }
   },
 
   update(resources: DIResources, values?: DIValues) {

@@ -9,7 +9,7 @@ import { kAttrIdPrefix, maybeToV2Id, toV2Id } from "../utilities/codap-utils"
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
-import { DIAttribute, DIResources, DISingleValues } from "./data-interactive-types"
+import { DIAttribute, DIGetCaseResult, DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
 
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
@@ -70,6 +70,35 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
     context,
     collection,
     values
+  }
+}
+
+export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIGetCaseResult {
+  const caseId = c.__id__
+
+  const id = toV2Id(caseId)
+
+  const collectionId = dataContext.pseudoCaseMap.get(caseId)?.collectionId ?? dataContext.ungrouped.id
+
+  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__)
+
+  const _collection = dataContext.getCollection(collectionId)
+  const collection = _collection ? {
+    id: toV2Id(_collection.id),
+    name: _collection.name
+  } : undefined
+
+  const values = getCaseValues(caseId, collectionId, dataContext)
+
+  const pseudoCase = dataContext.pseudoCaseMap.get(caseId)
+  const children = pseudoCase?.childPseudoCaseIds?.map(cId => toV2Id(cId)) ??
+    pseudoCase?.childCaseIds?.map(cId => toV2Id(cId)) ?? []
+  
+  const caseIndex = dataContext.getCasesForCollection(collectionId).findIndex(aCase => aCase.__id__ === caseId)
+
+  return {
+    case: { id, parent, collection, values, children },
+    caseIndex
   }
 }
 

@@ -12,7 +12,7 @@ describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content?.getFirstSharedModelByType(SharedDataSet)?.dataSet!
-  dataset.collectionGroups
+  dataset.collectionGroups // set up the pseudoCases
   const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)
   

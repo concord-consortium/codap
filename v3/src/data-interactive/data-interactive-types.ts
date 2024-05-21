@@ -60,6 +60,19 @@ export interface DIGlobal {
   value?: number
 }
 export type DIDataContext = Partial<ICodapV2DataContext>
+export interface DIGetCaseResult {
+  case: {
+    id?: number
+    parent?: number
+    collection?: {
+      id?: number
+      name?: string
+    }
+    values?: DICaseValues
+    children?: number[]
+  }
+  caseIndex?: number
+}
 export interface DIInteractiveFrame {
   dimensions?: {
     height?: number
@@ -116,7 +129,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultAttributes = { attrs: ICodapV2AttributeV3[] }
-export type DIResultSingleValues = DICase | DIComponentInfo | DIGlobal | DIInteractiveFrame
+export type DIResultSingleValues = DICase | DIComponentInfo |  DIGetCaseResult | DIGlobal | DIInteractiveFrame
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
                               DIAllCases | DIResultAttributes | number
 
