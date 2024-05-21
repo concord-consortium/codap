@@ -2,6 +2,7 @@ import { AdornmentsStore } from "./adornments-store"
 import * as contentInfo from "./adornment-content-info"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
+import { kCountType } from "./count/count-adornment-types"
 
 jest.spyOn(contentInfo, "getAdornmentTypes").mockReturnValue(
   [
@@ -22,7 +23,7 @@ const mockAdornment = {
   cellKey: () => ({}),
   setVisibility: () => true,
   updateCategories: () => ({}),
-  type: "Mock Adornment"
+  type: kCountType
 }
 const mockMovableValueAdornment = {
   cellCount: () => ({x: 1, y: 1}),
@@ -121,9 +122,9 @@ describe("AdornmentsStore", () => {
     adornmentsStore.addAdornment(mockAdornment, mockUpdateCategoriesOptions)
     expect(adornmentsStore.adornments.length).toBe(1)
     expect(adornmentsStore.adornments[0].isVisible).toBe(false)
-    adornmentsStore.showAdornment(adornmentsStore.adornments[0], "Mock Adornment")
+    adornmentsStore.showAdornment(adornmentsStore.adornments[0], kCountType)
     expect(adornmentsStore.adornments[0].isVisible).toBe(true)
-    adornmentsStore.hideAdornment("Mock Adornment")
+    adornmentsStore.hideAdornment(kCountType)
     expect(adornmentsStore.adornments[0].isVisible).toBe(false)
   })
   it("can trigger a callback function when updateAdornments is called", () => {
