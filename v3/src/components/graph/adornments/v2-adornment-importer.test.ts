@@ -88,7 +88,7 @@ describe("V2AdornmentImporter", () => {
     })
     expect(adornmentStore).toBeDefined()
     expect(adornmentStore.showMeasureLabels).toBe(true)
-    expect(adornmentStore.adornments.length).toBe(9)
+    expect(adornmentStore.adornments.length).toBe(10)
     const meanAdornment = adornmentStore.adornments.find(a=> a.type === "Mean") as IMeanAdornmentModel
     expect(meanAdornment).toBeDefined()
     expect(meanAdornment.id).toBeDefined()

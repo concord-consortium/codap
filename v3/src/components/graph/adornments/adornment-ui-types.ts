@@ -38,6 +38,7 @@ export const measures: IMeasures = {
       title: "DG.Inspector.graphBoxPlotNormalCurveOptions", type: "Group", rulerStateKey: 'boxPlotAndNormalCurve',
       items: [
         {title: "DG.Inspector.graphPlottedBoxPlot", type: "Box Plot"},
+        {title: "DG.Inspector.graphPlottedNormal", type: "Normal Curve"},
       ]
     },
     {

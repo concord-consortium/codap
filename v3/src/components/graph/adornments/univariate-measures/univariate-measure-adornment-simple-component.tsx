@@ -237,7 +237,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     useEffect(() => {
       // Clean up any existing elements
       return () => {
-        Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
+        Object.values(valueObjRef.current).forEach((aSelection) => aSelection?.remove())
       }
     }, [])
 

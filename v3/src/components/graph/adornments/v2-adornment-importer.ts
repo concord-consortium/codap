@@ -17,6 +17,7 @@ import { kMedianType } from "./univariate-measures/median/median-adornment-types
 import { kPlottedValueType } from "./univariate-measures/plotted-value/plotted-value-adornment-types"
 import { kStandardDeviationType } from "./univariate-measures/standard-deviation/standard-deviation-adornment-types"
 import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
+import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
 
 interface IProps {
   data?: Record<string, any>
@@ -305,6 +306,19 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       type: kBoxPlotType
     }
     v3Adornments.push(boxPlotAdornmentImport)
+  }
+
+  // NORMAL CURVE
+  const normalCurveAdornment = v2Adornments.plottedNormal
+  if (normalCurveAdornment) {
+    const measures = univariateMeasureInstances(normalCurveAdornment, instanceKeys)
+    const normalCurveAdornmentImport = {
+      id: typedId("ADRN"),
+      isVisible: normalCurveAdornment.isVisible,
+      measures,
+      type: kNormalCurveType
+    }
+    v3Adornments.push(normalCurveAdornmentImport)
   }
 
   // MOVABLE VALUES

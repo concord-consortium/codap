@@ -12,15 +12,13 @@ import { IStandardDeviationAdornmentModel, StandardDeviationAdornmentModel }
   from "./univariate-measures/standard-deviation/standard-deviation-adornment-model"
 import { IStandardErrorAdornmentModel, StandardErrorAdornmentModel }
   from "./univariate-measures/standard-error/standard-error-adornment-model"
+import { NormalCurveAdornmentModel } from "./univariate-measures/normal-curve/normal-curve-adornment-model"
 import { IMeanAbsoluteDeviationAdornmentModel, MeanAbsoluteDeviationAdornmentModel }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
 import { PlottedFunctionAdornmentModel, IPlottedFunctionAdornmentModel }
   from "./plotted-function/plotted-function-adornment-model"
 import { ILSRLAdornmentModel, LSRLAdornmentModel } from "./lsrl/lsrl-adornment-model"
-
-export const kGraphAdornmentsClass = "graph-adornments-grid"
-export const kGraphAdornmentsClassSelector = `.${kGraphAdornmentsClass}`
 export const kDefaultFontSize = 12
 export const kGraphAdornmentsBannerHeight = 22
 
@@ -39,6 +37,7 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
     case "Plotted Value": return PlottedValueAdornmentModel
     case "Standard Deviation": return StandardDeviationAdornmentModel
     case "Standard Error": return StandardErrorAdornmentModel
+    case "Normal Curve": return NormalCurveAdornmentModel
     default: {
       console.warn(`Unknown adornment type: ${adornmentSnap.type}`)
       return UnknownAdornmentModel
@@ -49,7 +48,7 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
   BoxPlotAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
   MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
-  MovablePointAdornmentModel, PlottedFunctionAdornmentModel, PlottedValueAdornmentModel,
+  MovablePointAdornmentModel, NormalCurveAdornmentModel, PlottedFunctionAdornmentModel, PlottedValueAdornmentModel,
   StandardDeviationAdornmentModel, StandardErrorAdornmentModel, UnknownAdornmentModel)
 export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | ILSRLAdornmentModel |
   IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |

@@ -88,7 +88,8 @@ export const GraphContentModel = DataDisplayContentModel
     dragBinIndex: -1,
     dynamicBinAlignment: undefined as number | undefined,
     dynamicBinWidth: undefined as number | undefined,
-    prevDataSetId: ""
+    prevDataSetId: "",
+    pointOverlap: 0,  // Set by plots so that it is accessible to adornments
   }))
   .preProcessSnapshot(snap => {
     // some properties were historically written out as null because NaN => null in JSON
@@ -108,7 +109,10 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setDragBinIndex(index: number) {
       self.dragBinIndex = index
-    }
+    },
+    setPointOverlap(overlap: number) {
+      self.pointOverlap = overlap
+    },
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {

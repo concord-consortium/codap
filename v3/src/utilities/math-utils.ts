@@ -127,3 +127,9 @@ export function goodTickValue(iMin: number, iMax: number) {
   return Math.max(power * base, Number.MIN_VALUE)
 }
 
+export function normal(x: number, amp: number, mu: number, sigma: number) {
+  const exponent = -(Math.pow(x - mu, 2) / (2 * Math.pow(sigma, 2)))
+  return amp * Math.exp(exponent)
+}
+
+

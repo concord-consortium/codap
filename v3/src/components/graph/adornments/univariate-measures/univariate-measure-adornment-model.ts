@@ -50,6 +50,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       })
       return caseValues
     },
+    getCaseCount(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      return this.getCaseValues(attrId, cellKey, dataConfig).length
+    },
     get isUnivariateMeasure() {
       return true
     },
