@@ -149,14 +149,23 @@ export function resolveResources(
     result.attributeList = attributeList
   }
 
+  const getCaseById = (caseId: string) =>
+    dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+  
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
-    result.caseByID = dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+    result.caseByID = getCaseById(caseId)
   }
 
-  // if (resourceSelector.caseByIndex) {
-  //   result.caseByIndex = collection && collection.getCaseAt(Number(resourceSelector.caseByIndex));
-  // }
+  if (resourceSelector.caseByIndex && collection) {
+    const index = Number(resourceSelector.caseByIndex)
+    if (!isNaN(index)) {
+      const caseId = dataContext?.getCasesForCollection(collection.id)[index]?.__id__
+      if (caseId) {
+        result.caseByIndex = getCaseById(caseId)
+      }
+    }
+  }
 
   // if (resourceSelector.caseSearch) {
   //   result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
