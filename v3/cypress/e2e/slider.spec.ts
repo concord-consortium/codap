@@ -22,13 +22,35 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused()
     slider.getSliderThumbIcon().should("be.visible")
     slider.getSliderAxis().should("be.visible")
+
+    // // undo should work after opening the Slider
+    // // TODO: add back this code (blocker: #187612762)
+    // cy.log("check for undo/redo after opening Slider component")
+    // // use force:true here because undo button is incorrectly faded out here
+    // toolbar.getUndoTool().click({force: true})
+    // slider.getSliderAxis().should("not.be.visible")
+
+    // // redo should work after undo
+    // // use force:true here because redo button is incorrectly faded out here
+    // toolbar.getRedoTool().click({force: true})
+    // slider.getSliderAxis().should("be.visible")
+
   })
-  it("updates slider title", () => {
+  it("updates slider title with undo/redo", () => {
     const newSliderName = "abc"
+    const oldSliderName = "v1"
     c.getComponentTitle("slider").should("have.text", sliderName)
     c.changeComponentTitle("slider", newSliderName)
     c.getComponentTitle("slider").should("have.text", newSliderName)
     slider.getVariableName().should("have.text", sliderName)
+
+    // undo should work after renaming the component
+    cy.log("check for undo/redo after renaming Slider component")
+    toolbar.getUndoTool().click()
+    c.getComponentTitle("slider").should("have.text", oldSliderName)
+
+    toolbar.getRedoTool().click()
+    c.getComponentTitle("slider").should("have.text", newSliderName)
   })
   it("updates variable name", () => {
     slider.getVariableName().should("have.text", "v1")
