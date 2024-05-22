@@ -109,6 +109,7 @@ export interface DIResources {
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
   collection?: ICollectionPropsModel
+  collectionList?: ICollectionPropsModel[]
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]

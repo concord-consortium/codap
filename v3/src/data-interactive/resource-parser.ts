@@ -121,6 +121,12 @@ export function resolveResources(
       getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
   }
 
+  if ("collectionList" in resourceSelector) {
+    if (dataContext) {
+      result.collectionList = [...Array.from(dataContext.collections), dataContext.ungrouped]
+    }
+  }
+
   if (resourceSelector.collection) {
     result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
                         dataContext?.getCollection(toV3CollectionId(resourceSelector.collection))
