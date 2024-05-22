@@ -66,6 +66,7 @@ export interface IComputeSecondaryCoord {
   secondaryAxisScale: ScaleBand<string>
   secondaryBandwidth: number
   secondaryCat: string
+  secondaryNumericUnitLength?: number
   secondarySign: number
 }
 

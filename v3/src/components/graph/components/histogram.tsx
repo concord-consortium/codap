@@ -40,7 +40,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       fullSecondaryBandwidth = secondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent,
       numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1),
       secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands,
-      { binWidth, minBinEdge, totalNumberOfBins } = graphModel.binDetails(),
+      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = graphModel.binDetails(),
       subPlotCells = new SubPlotCells(layout, dataConfig),
       { secondaryNumericUnitLength } = subPlotCells
 
