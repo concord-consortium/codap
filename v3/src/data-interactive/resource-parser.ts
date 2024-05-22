@@ -6,7 +6,7 @@ import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3AttrId, toV3CollectionId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3AttrId, toV3CaseId, toV3CollectionId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
 import { canonicalizeAttributeName } from "./data-interactive-utils"
 
@@ -149,13 +149,23 @@ export function resolveResources(
     result.attributeList = attributeList
   }
 
-  // if (resourceSelector.caseByID) {
-  //   result.caseByID = dataContext.getCaseByID(resourceSelector.caseByID);
-  // }
+  const getCaseById = (caseId: string) =>
+    dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+  
+  if (resourceSelector.caseByID) {
+    const caseId = toV3CaseId(resourceSelector.caseByID)
+    result.caseByID = getCaseById(caseId)
+  }
 
-  // if (resourceSelector.caseByIndex) {
-  //   result.caseByIndex = collection && collection.getCaseAt(Number(resourceSelector.caseByIndex));
-  // }
+  if (resourceSelector.caseByIndex && collection) {
+    const index = Number(resourceSelector.caseByIndex)
+    if (!isNaN(index)) {
+      const caseId = dataContext?.getCasesForCollection(collection.id)[index]?.__id__
+      if (caseId) {
+        result.caseByIndex = getCaseById(caseId)
+      }
+    }
+  }
 
   // if (resourceSelector.caseSearch) {
   //   result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);

@@ -7,20 +7,9 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
 import { DIAttribute, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { createAttribute } from "./di-handler-utils"
+import { attributeNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
-const attributeNotFoundResult = { success: false, values: { error: t("V3.DI.Error.attributeNotFound") } } as const
-const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
 export const diAttributeHandler: DIHandler = {
-  get(resources: DIResources) {
-    const attribute = convertAttributeToV2FromResources(resources)
-    if (attribute) {
-      return {
-        success: true,
-        values: attribute
-      }
-    }
-    return attributeNotFoundResult
-  },
   create(resources: DIResources, _values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
@@ -56,6 +45,28 @@ export const diAttributeHandler: DIHandler = {
       attrs: attributes.map(attribute => convertAttributeToV2(attribute, dataContext))
     } }
   },
+
+  delete(resources: DIResources) {
+    const { attribute, dataContext } = resources
+    if (!attribute) return attributeNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
+
+    dataContext.applyModelChange(() => {
+      dataContext.removeAttribute(attribute.id)
+    })
+    return { success: true }
+  },
+
+  get(resources: DIResources) {
+    const attribute = convertAttributeToV2FromResources(resources)
+    if (!attribute) return attributeNotFoundResult
+
+    return {
+      success: true,
+      values: attribute
+    }
+  },
+
   update(resources: DIResources, _values?: DIValues) {
     const { attribute, dataContext } = resources
     if (!attribute || Array.isArray(_values)) return attributeNotFoundResult
@@ -81,28 +92,18 @@ export const diAttributeHandler: DIHandler = {
     }, {
       notifications: () => updateAttributesNotification([attribute], dataContext)
     })
+
     const attributeV2 = convertAttributeToV2FromResources(resources)
-    if (attributeV2) {
-      return {
-        success: true,
-        values: {
-          attrs: [
-            attributeV2
-          ]
-        }
+    if (!attributeV2) return attributeNotFoundResult
+
+    return {
+      success: true,
+      values: {
+        attrs: [
+          attributeV2
+        ]
       }
     }
-    return attributeNotFoundResult
-  },
-  delete(resources: DIResources) {
-    const { attribute, dataContext } = resources
-    if (!attribute) return attributeNotFoundResult
-    if (!dataContext) return dataContextNotFoundResult
-
-    dataContext.applyModelChange(() => {
-      dataContext.removeAttribute(attribute.id)
-    })
-    return { success: true }
   }
 }
 

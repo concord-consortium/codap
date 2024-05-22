@@ -1,11 +1,12 @@
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
+import { dataContextNotFoundResult } from "./di-results"
 
 export const diItemCountHandler: DIHandler = {
   get(resources: DIResources) {
     const { dataContext } = resources
-    if (!dataContext) return { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } }
+    if (!dataContext) return dataContextNotFoundResult
+    
     return { success: true, values: dataContext.cases.length }
   }
 }

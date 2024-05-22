@@ -9,12 +9,11 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import { V2Component, kV2CaseTableType } from "../data-interactive-component-types"
-
-const componentNotFoundResult = { success: false, values: { error: t("V3.DI.Error.componentNotFound") } } as const
+import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
-    if (!values) return { success: false, values: { error: t("V3.DI.Error.valuesRequired") } }
+    if (!values) return valuesRequiredResult
 
     const { type, dataContext } = values as V2Component
 
@@ -28,7 +27,7 @@ export const diComponentHandler: DIHandler = {
       const { document } = appState
       const sharedDataSet = getSharedDataSets(document).find(sds => sds.dataSet.name === dataContext)
       const dataSet = sharedDataSet?.dataSet
-      if (!dataSet) return { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } }
+      if (!dataSet) return dataContextNotFoundResult
 
       const manager = getSharedModelManager(document)
       const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
@@ -79,7 +78,7 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
-    if (!values) return { success: false, values: { error: t("V3.DI.Error.valuesRequired") } }
+    if (!values) return valuesRequiredResult
 
     const { request } = values as DINotification
     if (request === "select") {

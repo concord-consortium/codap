@@ -2,11 +2,12 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { getCaseValues } from "../data-interactive-utils"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
+import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
 export const diAllCasesHandler: DIHandler = {
   delete(resources: DIResources) {
     const { dataContext } = resources
-    if (!dataContext) return { success: false }
+    if (!dataContext) return dataContextNotFoundResult
 
     dataContext.applyModelChange(() => {
       dataContext.removeCases(dataContext.cases.map(c => c.__id__))
@@ -18,7 +19,8 @@ export const diAllCasesHandler: DIHandler = {
   },
   get(resources: DIResources) {
     const { collection, dataContext } = resources
-    if (!collection || !dataContext) return { success: false }
+    if (!dataContext) return dataContextNotFoundResult
+    if (!collection) return collectionNotFoundResult
 
     const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
       const id = c.pseudoCase.__id__

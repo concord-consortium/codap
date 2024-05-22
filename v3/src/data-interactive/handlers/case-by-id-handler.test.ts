@@ -1,0 +1,66 @@
+import { maybeToV2Id } from "../../utilities/codap-utils"
+import { DIGetCaseResult } from "../data-interactive-types"
+import { diCaseByIDHandler } from "./case-by-id-handler"
+import { setupTestDataset } from "./handler-test-utils"
+
+describe("DataInteractive CaseByIDHandler", () => {
+  const handler = diCaseByIDHandler
+  function setup() {
+    const { dataset, a3 } = setupTestDataset()
+    // eslint-disable-next-line no-unused-expressions
+    dataset.collectionGroups
+    const aCase = dataset.getCaseAtIndex(4)
+    const caseId = aCase!.__id__
+    const pseudoCase = Array.from(dataset.pseudoCaseMap.values())[1].pseudoCase
+    const pseudoCaseId = pseudoCase.__id__
+    return { dataContext: dataset, aCase, caseId, pseudoCase, pseudoCaseId, a3 }
+  }
+
+  it("get works as expected", () => {
+    const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId } = setup()
+
+    expect(handler.get?.({})?.success).toBe(false)
+    expect(handler.get?.({ dataContext })?.success).toBe(false)
+    expect(handler.get?.({ caseByID: aCase })?.success).toBe(false)
+
+    const caseResult = handler.get?.({ dataContext, caseByID: aCase })?.values as DIGetCaseResult
+    expect(caseResult.case.id).toBe(maybeToV2Id(caseId))
+
+    const pseudoCaseResult = handler.get?.({ dataContext, caseByID: pseudoCase })?.values as DIGetCaseResult
+    expect(pseudoCaseResult.case.id).toBe(maybeToV2Id(pseudoCaseId))
+  })
+
+  it("update works as expected", () => {
+    const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId, a3 } = setup()
+    const caseResources = { dataContext, caseByID: aCase }
+    
+    expect(handler.update?.({}).success).toBe(false)
+    expect(handler.update?.({ dataContext }).success).toBe(false)
+    expect(handler.update?.(caseResources).success).toBe(false)
+    expect(handler.update?.(caseResources, {}).success).toBe(false)
+
+    expect(handler.update?.(caseResources, { values: { a3: 10 } }).success).toBe(true)
+    expect(a3.numValues[dataContext.caseIndexFromID(caseId)!]).toBe(10)
+
+    expect(handler.update?.({ dataContext, caseByID: pseudoCase }, { values: { a3: 100 } }).success).toBe(true)
+    dataContext.pseudoCaseMap.get(pseudoCaseId)?.childCaseIds.forEach(id => {
+      expect(a3.numValues[dataContext.caseIndexFromID(id)!]).toBe(100)
+    })
+  })
+
+  it("delete works as expected", () => {
+    const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId } = setup()
+    
+    expect(handler.delete?.({}).success).toBe(false)
+    expect(handler.delete?.({ dataContext }).success).toBe(false)
+
+    expect(dataContext.getCase(caseId)).toBeDefined()
+    expect(handler.delete?.({ dataContext, caseByID: aCase }).success).toBe(true)
+    expect(dataContext.getCase(caseId)).toBeUndefined()
+
+    const childCaseIds = dataContext.pseudoCaseMap.get(pseudoCaseId)!.childCaseIds
+    childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeDefined())
+    expect(handler.delete?.({ dataContext, caseByID: pseudoCase }).success).toBe(true)
+    childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())
+  })
+})

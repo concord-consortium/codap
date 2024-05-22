@@ -1,16 +1,12 @@
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
+import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
 export const diCaseCountHandler: DIHandler = {
   get(resources: DIResources) {
     const { collection, dataContext } = resources
-    if (!collection) {
-      return { success: false, values: { error: t("V3.DI.Error.collectionNotFound") } }
-    }
-    if (!dataContext) {
-      return { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } }
-    }
+    if (!collection) return collectionNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
 
     return {
       success: true,

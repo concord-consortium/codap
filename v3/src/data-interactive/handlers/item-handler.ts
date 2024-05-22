@@ -1,15 +1,13 @@
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIItem, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { attrNamesToIds } from "../data-interactive-utils"
-
-const dataContextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
+import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diItemHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
-    if (!values) return { success: false, values: { error: t("V3.DI.Error.valuesRequired") } }
+    if (!values) return valuesRequiredResult
 
     const items = (Array.isArray(values) ? values : [values]) as DIItem[]
     const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
