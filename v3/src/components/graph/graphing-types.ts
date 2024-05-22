@@ -18,6 +18,7 @@ export interface IDomainOptions {
 }
 
 export interface IBarCover {
+  caseIDs: string[]
   class: string
   legendCat?: string
   primeCat: string

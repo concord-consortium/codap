@@ -312,7 +312,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .views(self => ({
     maxOverAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
       const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
-      // Now find and return the maximum value in the bins
+      // Find and return the maximum value in the bins
       return Object.keys(bins).reduce((hMax, hKey) => {
         return Math.max(hMax, Object.keys(bins[hKey]).reduce((vMax, vKey) => {
           return Math.max(vMax, Object.keys(bins[hKey][vKey]).reduce((epMax, epKey) => {
@@ -322,6 +322,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           }, 0))
         }, 0))
       }, 0)
+    },
+    maxCellLength(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
+      // Find and return the length of the record in bins with the most elements
+      const maxInBin = Math.max(...Object.values(bins).map(anExtraBins => {
+        return Math.max(...Object.values(anExtraBins).map(aBinArray => {
+          return Math.max(...Object.values(aBinArray).map(aBin => {
+            if (Array.isArray(aBin)) {
+              return Math.max(...aBin.map(innerArray => innerArray.length))
+            }
+            return 0
+          }))
+        }))
+      })) || 0
+      return maxInBin
     },
     cellKey(index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.getCategoriesOptions()

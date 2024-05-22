@@ -171,10 +171,10 @@
 
 .bar-cover {
   cursor: pointer;
-  fill: white;
-  opacity: 0;
+  fill: rgba(255, 255, 255, 0);
+  transition: 1s;
 
   &.active {
-    opacity: 0.3;
+    fill: rgba(255, 255, 255, 0.3);
   }
 }

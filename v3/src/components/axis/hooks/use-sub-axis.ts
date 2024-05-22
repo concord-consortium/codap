@@ -103,15 +103,18 @@ export const useSubAxis = ({
           select(subAxisElt).selectAll('*').remove()
           const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
           const duration = isAnimating() ? transitionDuration : 0
-          if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
+          const lockZero = axisModel.lockZero
+          if (!lockZero && displayModel.hasHistogramAxis()) {
+            const { tickValues, tickLabels } = displayModel.histogramAxisTicks()
+            axisScale.tickValues(tickValues)
+            axisScale.tickFormat((d, i) => tickLabels[i])
+          } else if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
             axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
           } else if (!displayModel.hasDraggableNumericAxis(axisModel)) {
             const formatter = (value: number) => multiScale.formatValueForScale(value)
             const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
             axisScale.tickValues(tickValues)
-            axisScale.tickFormat((d, i) => {
-              return tickLabels[i]
-            })
+            axisScale.tickFormat((d, i) => tickLabels[i])
           }
           select(subAxisElt)
             .attr("transform", initialTransform)

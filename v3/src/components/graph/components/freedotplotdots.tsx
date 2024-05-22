@@ -4,42 +4,22 @@ import React, {useCallback, useEffect} from "react"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {PlotProps} from "../graphing-types"
-import {setPointSelection} from "../../data-display/data-display-utils"
-import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {setNiceDomain, setPointCoordinates} from "../utilities/graph-utils"
 import {circleAnchor, hBarAnchor, vBarAnchor} from "../../data-display/pixi/pixi-points"
 import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "../utilities/dot-plot-utils"
 import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../axis/axis-types"
+import { useDotPlot } from "../hooks/use-dot-plot"
 
 export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProps) {
-  const {pixiPoints} = props,
-    graphModel = useGraphContentModelContext(),
-    {isAnimating} = useDataDisplayAnimation(),
-    dataConfig = useGraphDataConfigurationContext(),
-    dataset = useDataSetContext(),
-    layout = useGraphLayoutContext(),
-    primaryAttrRole = dataConfig?.primaryRole ?? 'x',
-    primaryIsBottom = primaryAttrRole === 'x',
-    secondaryAttrRole = primaryAttrRole === 'x' ? 'y' : 'x',
-    {pointColor, pointStrokeColor} = graphModel.pointDescription,
-    pointDisplayType = graphModel.pointDisplayType
-
+  const {pixiPoints} = props
+  const { dataset, dataConfig, graphModel, isAnimating, layout,
+          pointColor, pointDisplayType, pointStrokeColor,
+          primaryAttrRole, primaryIsBottom,
+          secondaryAttrRole, refreshPointSelection } = useDotPlot(pixiPoints)
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
   usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
-
-  const refreshPointSelection = useCallback(() => {
-    dataConfig && setPointSelection({
-      pixiPoints, dataConfiguration: dataConfig, pointRadius: graphModel.getPointRadius(),
-      pointColor, pointStrokeColor, selectedPointRadius: graphModel.getPointRadius('select'),
-      pointDisplayType
-    })
-  }, [dataConfig, graphModel, pixiPoints, pointColor, pointStrokeColor, pointDisplayType])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
       const primaryPlace: AxisPlace = primaryIsBottom ? 'bottom' : 'left',
