@@ -2,11 +2,11 @@ import { getSnapshot } from "mobx-state-tree"
 import { kWebViewTileType } from "../components/web-view/web-view-defs"
 import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
+import { SharedDataSet } from "../models/shared/shared-data-set"
 import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/tile-environment"
 import { toV2Id } from "../utilities/codap-utils"
 import { setupTestDataset } from "./handlers/handler-test-utils"
 import { resolveResources } from "./resource-parser"
-import { SharedDataSet } from "../models/shared/shared-data-set"
 
 describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
