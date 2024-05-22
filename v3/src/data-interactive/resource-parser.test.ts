@@ -45,6 +45,13 @@ describe("DataInteractive ResourceParser", () => {
     expect(dataContextList?.[0].id).toBe(dataset.id)
   })
 
+  it("finds collectionList", () => {
+    const { collectionList } = resolve("dataContext[data].collectionList")
+    expect(collectionList?.length).toBe(3)
+    expect(collectionList?.[0].id).toBe(dataset.collections[0].id)
+    expect(collectionList?.[2].id).toBe(dataset.ungrouped.id)
+  })
+
   // TODO Add tests for collection
 
   // TODO Add tests for attribute
