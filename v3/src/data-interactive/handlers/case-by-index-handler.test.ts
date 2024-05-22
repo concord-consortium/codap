@@ -1,10 +1,10 @@
 import { maybeToV2Id } from "../../utilities/codap-utils"
 import { DIGetCaseResult } from "../data-interactive-types"
-import { diCaseByIDHandler } from "./case-by-id-handler"
+import { diCaseByIndexHandler } from "./case-by-index-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
-describe("DataInteractive CaseByIDHandler", () => {
-  const handler = diCaseByIDHandler
+describe("DataInteractive CaseByIndexHandler", () => {
+  const handler = diCaseByIndexHandler
   function setup() {
     const { dataset, a3 } = setupTestDataset()
     dataset.collectionGroups
@@ -20,18 +20,18 @@ describe("DataInteractive CaseByIDHandler", () => {
 
     expect(handler.get?.({})?.success).toBe(false)
     expect(handler.get?.({ dataContext })?.success).toBe(false)
-    expect(handler.get?.({ caseByID: aCase })?.success).toBe(false)
+    expect(handler.get?.({ caseByIndex: aCase })?.success).toBe(false)
 
-    const caseResult = handler.get?.({ dataContext, caseByID: aCase })?.values as DIGetCaseResult
+    const caseResult = handler.get?.({ dataContext, caseByIndex: aCase })?.values as DIGetCaseResult
     expect(caseResult.case.id).toBe(maybeToV2Id(caseId))
 
-    const pseudoCaseResult = handler.get?.({ dataContext, caseByID: pseudoCase })?.values as DIGetCaseResult
+    const pseudoCaseResult = handler.get?.({ dataContext, caseByIndex: pseudoCase })?.values as DIGetCaseResult
     expect(pseudoCaseResult.case.id).toBe(maybeToV2Id(pseudoCaseId))
   })
 
   it("update works as expected", () => {
     const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId, a3 } = setup()
-    const caseResources = { dataContext, caseByID: aCase }
+    const caseResources = { dataContext, caseByIndex: aCase }
     
     expect(handler.update?.({}).success).toBe(false)
     expect(handler.update?.({ dataContext }).success).toBe(false)
@@ -41,7 +41,7 @@ describe("DataInteractive CaseByIDHandler", () => {
     expect(handler.update?.(caseResources, { values: { a3: 10 } }).success).toBe(true)
     expect(a3.numValues[dataContext.caseIndexFromID(caseId)!]).toBe(10)
 
-    expect(handler.update?.({ dataContext, caseByID: pseudoCase }, { values: { a3: 100 } }).success).toBe(true)
+    expect(handler.update?.({ dataContext, caseByIndex: pseudoCase }, { values: { a3: 100 } }).success).toBe(true)
     dataContext.pseudoCaseMap.get(pseudoCaseId)?.childCaseIds.forEach(id => {
       expect(a3.numValues[dataContext.caseIndexFromID(id)!]).toBe(100)
     })
@@ -54,12 +54,12 @@ describe("DataInteractive CaseByIDHandler", () => {
     expect(handler.delete?.({ dataContext }).success).toBe(false)
 
     expect(dataContext.getCase(caseId)).toBeDefined()
-    expect(handler.delete?.({ dataContext, caseByID: aCase }).success).toBe(true)
+    expect(handler.delete?.({ dataContext, caseByIndex: aCase }).success).toBe(true)
     expect(dataContext.getCase(caseId)).toBeUndefined()
 
     const childCaseIds = dataContext.pseudoCaseMap.get(pseudoCaseId)!.childCaseIds
     childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeDefined())
-    expect(handler.delete?.({ dataContext, caseByID: pseudoCase }).success).toBe(true)
+    expect(handler.delete?.({ dataContext, caseByIndex: pseudoCase }).success).toBe(true)
     childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())
   })
 })
