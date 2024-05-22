@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { IAdornmentComponentProps } from "../adornment-component-info"
@@ -28,12 +29,20 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const adornmentsStore = graphModel?.adornmentsStore
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
   const scale = primaryAttrRole === "x" ? xScale : yScale
-  const casesInPlot = dataConfig?.subPlotCases(cellKey)?.length ?? 0
-  const percent = model.percentValue(casesInPlot, cellKey, dataConfig)
+  const casesInPlot = useMemo(() => dataConfig?.subPlotCases(cellKey) ?? [], [cellKey, dataConfig])
+  const relevantCases = graphModel?.showMeasuresForSelection
+                          ? casesInPlot.filter(c => dataConfig?.selection.includes(c))
+                          : casesInPlot
+  const [casesForCount, setCasesForCount] = useState(relevantCases.length)
+  const percent = model.percentValue(casesForCount, cellKey, dataConfig, graphModel?.showMeasuresForSelection)
   const displayPercent = model.showCount ? ` (${percentString(percent)})` : percentString(percent)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const rerenderOnCasesChange = dataConfig?.casesChangeCount
-  const textContent = `${model.showCount ? casesInPlot : ""}${model.showPercent ? displayPercent : ""}`
+  const countText = graphModel?.showMeasuresForSelection
+                      ? `${casesForCount} of ${casesInPlot.length}`
+                      : casesForCount
+  const textContent = `${model.showCount ? countText : ""}${model.showPercent ? displayPercent : ""}
+                       ${graphModel?.showMeasuresForSelection ? " selected" : ""}`
   const defaultFontSize = graphModel.adornmentsStore.defaultFontSize
   let fontSize = defaultFontSize
   const prevCellWidth = useRef(plotWidth)
@@ -122,7 +131,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
           const style = primaryAttrRole === "x"
             ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
             : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
-          const regionPercent = percentString(c.count / casesInPlot)
+          const regionPercent = percentString(c.count / casesForCount)
           const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
           const regionTextContent = `${model.showCount ? c.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
 
@@ -130,7 +139,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         })}
       </>
     )
-  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, graphModel.pointDisplayType, model, plotHeight,
+  }, [casesForCount, cellKey, dataConfig, graphModel.plotType, graphModel.pointDisplayType, model, plotHeight,
       plotWidth, primaryAttrRole, scale, textContent])
 
   useEffect(function resizeTextOnCellWidthChange() {
@@ -177,6 +186,25 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         }
      }, { name: "CountAdornment.refreshPercentOption"}, model)
   }, [adornmentsStore, dataConfig, graphModel, model])
+
+  // Update on selection changes when Show Measures for Selection is activated
+  useEffect(function refreshOnSelectionChanges() {
+    return mstReaction(
+      () => ({
+        selectionLength: dataConfig?.selection.length,
+        showMeasuresForSelection: graphModel?.showMeasuresForSelection
+      }),
+      (data) => {
+        const { showMeasuresForSelection } = data
+        if (showMeasuresForSelection) {
+          const newSelection = casesInPlot.filter(c => dataConfig?.selection.includes(c))
+          setCasesForCount(newSelection.length)
+        } else {
+          setCasesForCount(casesInPlot.length)
+        }
+      }, { name: "CountAdornment.refreshOnSelectionChanges" }, graphModel
+    )
+  }, [casesInPlot, dataConfig?.selection, graphModel])
   prf.end("CountAdornment.render")
   return (
     <div

@@ -30,18 +30,27 @@ export const CountAdornmentModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "cell")
   })
   .views(self => ({
-    percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
+    percentValue(
+      casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
+      forSelection = false
+    ) {
       // Percent type options are only available when there are two or more categorial attributes on perpendicular
       // axes, which creates a grid of subplots with multiple rows and columns. When percent type options are not
       // available, we default to the "cell" percent type (i.e. use `dataConfig?.cellCases.length ?? 0` as
       // the divisor)
       const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
       const hasPercentTypeOptions = categoricalAttrCount > 1
-      const divisor = hasPercentTypeOptions && self.percentType === "row"
-        ? dataConfig?.rowCases(cellKey).length ?? 0
+      const divisorCases = hasPercentTypeOptions && self.percentType === "row"
+        ? dataConfig?.rowCases(cellKey) ?? []
         : hasPercentTypeOptions && self.percentType === "column"
-          ? dataConfig?.columnCases(cellKey).length ?? 0
-          : dataConfig?.cellCases(cellKey).length ?? 0
+          ? dataConfig?.columnCases(cellKey) ?? []
+          : dataConfig?.cellCases(cellKey) ?? []
+      const divisor = forSelection
+        // TODO: The number of cases in `dataConfig.cellCases(cellKey)` is not correct. The cases should only be the
+        // those matching the selected case(s) on the primary attribute and secondary attribute, if present. This is not
+        // implemented yet.
+        ? dataConfig?.cellCases(cellKey).length ?? 0
+        : divisorCases.length 
       const percentValue = casesInPlot / divisor
       return isFinite(percentValue) ? percentValue : 0
     },
