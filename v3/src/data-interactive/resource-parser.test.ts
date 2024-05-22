@@ -11,7 +11,8 @@ import { SharedDataSet } from "../models/shared/shared-data-set"
 describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
-  const dataset = content?.getFirstSharedModelByType(SharedDataSet)?.dataSet!
+  const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
+  // eslint-disable-next-line no-unused-expressions
   dataset.collectionGroups // set up the pseudoCases
   const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)

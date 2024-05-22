@@ -7,9 +7,10 @@ describe("DataInteractive CaseByIDHandler", () => {
   const handler = diCaseByIDHandler
   function setup() {
     const { dataset, a3 } = setupTestDataset()
+    // eslint-disable-next-line no-unused-expressions
     dataset.collectionGroups
     const aCase = dataset.getCaseAtIndex(4)
-    const caseId = aCase?.__id__!
+    const caseId = aCase!.__id__
     const pseudoCase = Array.from(dataset.pseudoCaseMap.values())[1].pseudoCase
     const pseudoCaseId = pseudoCase.__id__
     return { dataContext: dataset, aCase, caseId, pseudoCase, pseudoCaseId, a3 }
