@@ -3,9 +3,8 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { dataContextNotFoundResult } from "./di-results"
 
-const unknownDataContextResult =
-  { success: false, values: { error: t("V3.DI.Error.dataContextNotFound")} } as const
 function illegalValuesResult(action: string) {
   return { success: false, values: {
     error: t("V3.DI.Error.selectionListIllegalValues", { vars: [action] })
@@ -15,7 +14,7 @@ function illegalValuesResult(action: string) {
 function updateSelection(
   action: string, dataSet?: IDataSet, values?: DIValues, applySelection?: (caseIds: string[]) => void
 ) {
-  if (!dataSet || !applySelection) return unknownDataContextResult
+  if (!dataSet || !applySelection) return dataContextNotFoundResult
   if (!values || !Array.isArray(values)) return illegalValuesResult(action)
 
   const caseIds = values.map(value => value.toString()).filter(caseID => !!dataSet.getCase(caseID))
@@ -31,7 +30,7 @@ export const diSelectionListHandler: DIHandler = {
   },
   get(resources: DIResources) {
     const { dataContext } = resources
-    if (!dataContext) return unknownDataContextResult
+    if (!dataContext) return dataContextNotFoundResult
 
     const caseIds = Array.from(dataContext.selection)
     // TODO Include collectionID and collectionName

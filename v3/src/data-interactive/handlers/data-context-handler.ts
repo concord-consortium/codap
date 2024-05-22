@@ -3,13 +3,11 @@ import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIDataContext, DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { createCollection } from "./di-handler-utils"
-
-const contextNotFoundResult = { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
+import { dataContextNotFoundResult } from "./di-results"
 
 export const diDataContextHandler: DIHandler = {
   create(_resources: DIResources, _values?: DIValues) {
@@ -40,7 +38,7 @@ export const diDataContextHandler: DIHandler = {
 
   delete(resources: DIResources) {
     const { dataContext } = resources
-    if (!dataContext) return contextNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
 
     dataContext.applyModelChange(() => {
       gDataBroker.removeDataSet(dataContext.id)
@@ -51,7 +49,7 @@ export const diDataContextHandler: DIHandler = {
 
   get(resources: DIResources) {
     const { dataContext } = resources
-    if (!dataContext) return contextNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
 
     return { success: true, values: convertDataSetToV2(dataContext, appState.document.key) }
   },
@@ -63,7 +61,7 @@ export const diDataContextHandler: DIHandler = {
     // TODO rerandomize
     // TODO sort
     const { dataContext } = resources
-    if (!dataContext) return contextNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
 
     const values = _values as DIDataContext
     if (values) {
