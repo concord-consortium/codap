@@ -13,7 +13,9 @@ export const diAttributeLocationHandler: DIHandler = {
     const sourceCollection = dataContext.getCollectionForAttribute(attributeLocation.id)
 
     const { collection, position } = values as DIAttributeLocationValues
-    const targetCollection = getCollection(dataContext, collection) ?? sourceCollection
+    const targetCollection = collection === "parent"
+      ? dataContext.getParentCollectionGroup(sourceCollection?.id)?.collection
+      : getCollection(dataContext, collection) ?? sourceCollection
     if (!targetCollection) return collectionNotFoundResult
     
     const numPos = Number(position)
@@ -24,7 +26,8 @@ export const diAttributeLocationHandler: DIHandler = {
       }
     }
 
-    const targetAttrs = dataContext.getGroupedCollection(targetCollection.id)?.attributes ?? dataContext.ungroupedAttributes
+    const targetAttrs =
+      dataContext.getGroupedCollection(targetCollection.id)?.attributes ?? dataContext.ungroupedAttributes
     const pos = Math.round(numPos)
     const _position = pos < 0 ? 0 : pos > targetAttrs.length ? targetAttrs.length : pos
     const afterAttrId = targetAttrs[_position - 1]?.id

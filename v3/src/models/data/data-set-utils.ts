@@ -3,7 +3,9 @@ import { kIndexColumnKey } from "../../components/case-table/case-table-types"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
-import { deleteCollectionNotification, moveAttributeNotification, selectCasesNotification } from "./data-set-notifications"
+import {
+  deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
+} from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
 
 export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
@@ -65,7 +67,7 @@ export function moveAttribute({
   const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
   const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
   const modelChangeOptions = { notifications, undoStringKey, redoStringKey }
-  
+
   if (targetCollection.id === sourceCollection?.id) {
     if (isCollectionModel(targetCollection)) {
       // move the attribute within a collection
