@@ -10,17 +10,29 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
   .props({
     type: types.optional(types.literal(kStandardErrorType), kStandardErrorType),
     labelTitle: types.optional(types.literal(kStandardErrorValueTitleKey), kStandardErrorValueTitleKey),
-    numStErrs: types.optional(types.number, 1)
+    _numStErrs: types.optional(types.number, 1)
   })
+  .volatile(self => ({
+    dynamicNumStErrs: undefined as number | undefined
+  }))
   .actions(self => ({
     setNumStErrs(numStErrs: number) {
-      self.numStErrs = numStErrs
+      self._numStErrs = numStErrs
+      self.dynamicNumStErrs = undefined
+    },
+    setDynamicNumStErrs(numStErrs: number | undefined) {
+      self.dynamicNumStErrs = numStErrs
     }
   }))
   .views(self => ({
+    get numStErrs() {
+      return self.dynamicNumStErrs ?? self._numStErrs
+    },
     get hasRange() {
       return true
     },
+  }))
+  .views(self => ({
     computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       // The measure value is the standard error of the mean.
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)

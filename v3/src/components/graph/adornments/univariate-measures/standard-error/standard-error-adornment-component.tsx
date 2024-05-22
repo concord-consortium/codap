@@ -241,7 +241,7 @@ export const StandardErrorAdornmentComponent = observer(
                                               selectionsObj: IStandardErrorSelections, labelObj: ILabel) => {
       if (!numericAttrId || !dataConfig) return
       const value = model.measureValue(numericAttrId, cellKey, dataConfig)
-      if (value === undefined || isNaN(value)) return
+      if (value === undefined || isNaN(value) || isNaN(range.min) || isNaN(range.max)) return
 
       addErrorBar(valueObjRef.current)
 
@@ -268,8 +268,8 @@ export const StandardErrorAdornmentComponent = observer(
       } else {
         addTextTip(range.max, textContent, selectionsObj)
       }
-    }, [numericAttrId, dataConfig, model, cellKey, addErrorBar, helper, isVertical, showLabel, addLabels,
-              range.max, addTextTip])
+    }, [numericAttrId, dataConfig, model, cellKey, range.min, range.max, addErrorBar, helper,
+            isVertical, showLabel, addLabels, addTextTip])
 
     // Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {

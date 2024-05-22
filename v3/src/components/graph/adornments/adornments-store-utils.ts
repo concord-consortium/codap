@@ -1,9 +1,10 @@
-import {getAdornmentContentInfo, getAdornmentTypes, IAdornmentContentInfo} from "./adornment-content-info"
-import {getAdornmentComponentInfo, IAdornmentComponentInfo} from "./adornment-component-info"
-import {IMeasure, measures, RulerStateKey} from "./adornment-ui-types"
-import {kMovableLineType} from "./movable-line/movable-line-adornment-types"
-import {kLSRLType} from "./lsrl/lsrl-adornment-types"
-import {IAdornmentsBaseStore} from "./adornments-base-store"
+import { getAdornmentContentInfo, IAdornmentContentInfo } from "./adornment-content-info"
+import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "./adornment-component-info"
+import { IMeasure, measures, RulerStateKey } from "./adornment-ui-types"
+import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
+import { kLSRLType } from "./lsrl/lsrl-adornment-types"
+import { kCountType } from "./count/count-adornment-types"
+import { IAdornmentsBaseStore } from "./adornments-base-store"
 import { PlotType } from "../graphing-types"
 
 export interface IMeasureMenuItem {
@@ -16,10 +17,6 @@ export interface IMeasureMenuItem {
   clickHandler?: () => void
 }
 
-export function isMeasureMenuItem(item: IMeasureMenuItem | IGroupItem): item is IMeasureMenuItem {
-  return item.type !== 'Group'
-}
-
 export interface IGroupItem {
   title: string
   type: string
@@ -27,13 +24,18 @@ export interface IGroupItem {
   menuItems: IMeasureMenuItem[]
 }
 
+export type MeasureMenuItemArray = Array<IMeasureMenuItem | IGroupItem>
+
 export function isGroupItem(item: IMeasureMenuItem | IGroupItem): item is IGroupItem {
   return item.type === 'Group'
 }
 
-export type MeasureMenuItemArray = Array<IMeasureMenuItem | IGroupItem>
+export function isMeasureMenuItem(item: IMeasureMenuItem | IGroupItem): item is IMeasureMenuItem {
+  return item.type !== 'Group'
+}
 
-export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore, plotType: PlotType) {
+export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStore, plotType: PlotType) {
+  const measureMenuItems: MeasureMenuItemArray = []
 
   function constructMeasureItem(measure: IMeasure): IMeasureMenuItem {
     return {
@@ -54,101 +56,73 @@ export function getAdornmentsMenuItemsFromTheStore(theStore:IAdornmentsBaseStore
     }
   }
 
-  // Add the Show Measure Labels option checkbox immediately before the first group item. Note that group
-  // items only appear in the univariate plot's ruler.
-  // Since the Show Measure Labels option isn't for activating an adornment, but rather for
-  // modifying the behavior of other adornments, it doesn't have an associated registeredAdornment. So we need
-  //  to add it like this.
-  function guaranteeShowMeasureLabels(measureOrGroup: IMeasure, alreadyAdded: boolean) {
-    if (measureOrGroup.type === "Group" && !alreadyAdded) {
-      measureMenuItems.push({
-        checked: theStore.showMeasureLabels,
-        title: "DG.Inspector.showLabels",
-        type: "control",
-        clickHandler: theStore.toggleShowLabels
-      })
-      return true
+  const addItemIfCondition = (condition: boolean, itemDetails: IMeasureMenuItem) => {
+    if (condition && !measureMenuItems.some(item => item.title === itemDetails.title)) {
+      measureMenuItems.push(itemDetails)
     }
-    return alreadyAdded
   }
 
-  // Add the Connecting Lines checkbox immediately after the Count/Percent checkbox(es). That setting will be used
-  // by the ScatterDots component to determine whether to show connecting lines.
-  function guaranteeAddedConnectingLinesIfScatterplot(thePlotType: PlotType, measureOrGroup: IMeasure,
-                                                      alreadyAdded: boolean) {
-    const registeredAdornment = registeredAdornments.find(a => a.type === measureOrGroup.type)
-    if (plotType === "scatterPlot" && registeredAdornment?.type === "Count" && !alreadyAdded) {
-      measureMenuItems.push({
+  // Populate the menu list from the items in `measures`. In addition to the adornments in `measures`, we separately add
+  // items that either augment/adjust other adornments' behavior (e.g. Show Measure Labels, Intercept Locked), or need
+  // special handling outside the realm of adornments (e.g. Connecting Lines, Squares of Residuals).
+  measures[plotType].map((measureOrGroup: IMeasure) => {
+
+    // Add the Show Measure Labels option checkbox immediately before the first group item. Note that group items only
+    // appear in the univariate plot's ruler.
+    addItemIfCondition(measureOrGroup.type === "Group", {
+      checked: theStore.showMeasureLabels,
+      title: "DG.Inspector.showLabels",
+      type: "control",
+      clickHandler: theStore.toggleShowLabels
+    })
+
+    // Add the adornment or group item from `measures` to the menu.
+    if (measureOrGroup.type === "Group") {
+      measureMenuItems.push(constructGroupItem(measureOrGroup))
+    } else {
+      measureMenuItems.push(constructMeasureItem(measureOrGroup))
+    }
+
+    // Add the Connecting Lines checkbox immediately after the Count/Percent checkbox(es). This setting will be used
+    // by the ScatterDots component to determine whether to show connecting lines.
+    if (plotType === "scatterPlot" && measureOrGroup.type === kCountType) {
+      addItemIfCondition(true, {
         checked: theStore.showConnectingLines,
         title: "DG.Inspector.graphConnectingLine",
         type: "control",
         clickHandler: theStore.toggleShowConnectingLines
       })
     }
-    return true // The Connecting Lines checkbox was either already added or just added
-  }
 
-  // Add the Intercept Locked option checkbox immediately after the LSRL checkbox. Since the Intercept Locked
-  // option isn't for activating an adornment, but rather for modifying the behavior of other adornments, it
-  // doesn't have an associated registeredAdornment. So we need to add it like this.
-  function guaranteeAddedLockInterceptIfScatterplot(thePlotType: PlotType, measureOrGroup: IMeasure,
-                                                      alreadyAdded: boolean) {
-    if (
-      registeredAdornments.find(a => a.type === measureOrGroup.type)?.type === "LSRL" &&
-      plotType === "scatterPlot" && !alreadyAdded
-    ) {
+    // Add the Intercept Locked option checkbox immediately after the LSRL checkbox. When present, this option will
+    // only be enabled if either the Movable Line or LSRL is visible.
+    if (plotType === "scatterPlot" && measureOrGroup.type === kLSRLType) {
       const movableLineVisible = theStore.isShowingAdornment(kMovableLineType)
       const lsrlVisible = theStore.isShowingAdornment(kLSRLType)
-      const disabled = !movableLineVisible && !lsrlVisible
-      measureMenuItems.push({
+      addItemIfCondition(true, {
         checked: theStore.interceptLocked,
-        disabled,
+        disabled: !movableLineVisible && !lsrlVisible,
         title: "DG.Inspector.graphInterceptLocked",
         type: "control",
         clickHandler: theStore.toggleInterceptLocked
       })
     }
-    return true // The Connecting Lines checkbox was either already added or just added
-  }
-
-  // The sum of squares of residuals is only shown for scatter plots, and only when the LSRL or Movable Line is
-  function addSumOfSquaresIfAppropriate(thePlotType: PlotType) {
-    if (plotType === "scatterPlot") {
-      const movableLineVisible = !!theStore.adornments.find(a => a.type === "Movable Line")?.isVisible
-      const lsrlVisible = !!theStore.adornments.find(a => a.type === "LSRL")?.isVisible
-      const disabled = !movableLineVisible && !lsrlVisible
-      measureMenuItems.push({
-        checked: theStore.showSquaresOfResiduals,
-        disabled,
-        title: "DG.Inspector.graphSquares",
-        type: "control",
-        clickHandler: theStore.toggleShowSquaresOfResiduals
-      })
-    }
-  }
-
-  const registeredAdornments = getAdornmentTypes()
-  const measureMenuItems: MeasureMenuItemArray = []
-  let addedConnectingLines = false
-  let addedInterceptLocked = false
-  let addedShowMeasureLabels = false
-  measures[plotType].map((measureOrGroup: IMeasure) => {
-    const {type} = measureOrGroup
-
-    addedShowMeasureLabels = guaranteeShowMeasureLabels(measureOrGroup, addedShowMeasureLabels)
-
-    if (type === 'Group') {
-      measureMenuItems.push(constructGroupItem(measureOrGroup))
-    } else {
-      measureMenuItems.push(constructMeasureItem(measureOrGroup))
-    }
-
-    addedConnectingLines = guaranteeAddedConnectingLinesIfScatterplot(plotType, measureOrGroup, addedConnectingLines)
-
-    addedInterceptLocked = guaranteeAddedLockInterceptIfScatterplot(plotType, measureOrGroup, addedInterceptLocked)
   })
 
-  addSumOfSquaresIfAppropriate(plotType)
+  // The Squares of Residuals option is only shown for scatter plots, and will be the last item in the menu. This
+  // setting will be used by the ScatterDots component to determine whether to show the squares of residuals. When
+  // present, it will only be enabled if either the Movable Line or LSRL is visible.
+  if (plotType === "scatterPlot") {
+    const movableLineVisible = theStore.isShowingAdornment(kMovableLineType)
+    const lsrlVisible = theStore.isShowingAdornment(kLSRLType)
+    addItemIfCondition(true, {
+      checked: theStore.showSquaresOfResiduals,
+      disabled: !movableLineVisible && !lsrlVisible,
+      title: "DG.Inspector.graphSquares",
+      type: "control",
+      clickHandler: theStore.toggleShowSquaresOfResiduals
+    })
+  }
 
   return measureMenuItems
 }

@@ -97,11 +97,13 @@ describe("Deserialization", () => {
     const testModel4 = M.create(snap3)
     expect(isMovableValueAdornment(testModel4.adornment) && testModel4.adornment.values).toBeDefined()
 
+    const consoleSpy = jest.spyOn(console, "warn").mockImplementation()
     const unknownAdornment = UnknownAdornmentModel.create()
     testModel.setAdornment(unknownAdornment)
     expect(testModel.adornment.type).toEqual("Unknown")
     const snap4 = getSnapshot(testModel)
     const testModel5 = M.create(snap4)
     expect(testModel5.adornment.type).toEqual("Unknown")
+    expect(consoleSpy).toHaveBeenCalledWith(`Unknown adornment type: ${unknownAdornment.type}`)
   })
 })

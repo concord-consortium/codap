@@ -168,9 +168,8 @@ interface DIBaseHandler {
   unregister?: DIHandlerFn
 }
 
-export type ActionName = keyof DIBaseHandler | "register" | "unregister"
-export type DIHandler =
-  RequireAtLeastOne<DIBaseHandler, "get" | "create" | "update" | "delete" | "notify" | "register" | "unregister">
+export type ActionName = keyof DIBaseHandler
+export type DIHandler = RequireAtLeastOne<DIBaseHandler, ActionName>
 
 export interface DIResourceSelector {
   attribute?: string

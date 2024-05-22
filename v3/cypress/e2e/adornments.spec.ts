@@ -487,7 +487,7 @@ context("Graph adornments", () => {
      toolbar.getRedoTool().click()
      cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  it.skip("locks intercept of LSRL and movable line when Lock Intercept checkbox is checked", () => {
+  it("locks intercept of LSRL and movable line when Lock Intercept checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.dragAttributeToTarget("table", "Speed", "left")
