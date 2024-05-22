@@ -1,6 +1,6 @@
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
-import { toV2Id } from "../utilities/codap-utils"
+import { toV2Id, toV3CollectionId } from "../utilities/codap-utils"
 import { DICaseValues } from "./data-interactive-types"
 
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
@@ -46,4 +46,11 @@ export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet, v2Ids?: 
     }
   })
   return caseValues
+}
+
+export function getCollection(dataContext?: IDataSet, nameOrId?: string) {
+  if (!dataContext || !nameOrId) return
+
+  return dataContext?.getCollectionByName(nameOrId) ||
+    dataContext?.getCollection(toV3CollectionId(nameOrId))
 }

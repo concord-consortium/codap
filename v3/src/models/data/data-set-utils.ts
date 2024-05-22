@@ -1,8 +1,10 @@
 import { isAlive } from "mobx-state-tree"
+import { kIndexColumnKey } from "../../components/case-table/case-table-types"
 import {IAttribute} from "./attribute"
 import {ICollectionPropsModel, isCollectionModel} from "./collection"
 import {IDataSet} from "./data-set"
-import { selectCasesNotification } from "./data-set-notifications"
+import { deleteCollectionNotification, moveAttributeNotification, selectCasesNotification } from "./data-set-notifications"
+import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
 
 export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
   if (collection && !isAlive(collection)) {
@@ -40,6 +42,61 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
   for (let i = collections.length - 1; i >= 0; --i) {
     const collection = collections[i]
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
+  }
+}
+
+interface IMoveAttributeParameters {
+  afterAttrId?: string
+  attrId: string
+  dataset: IDataSet
+  includeNotifications?: boolean
+  sourceCollection?: ICollectionPropsModel
+  targetCollection: ICollectionPropsModel
+  undoable?: boolean
+}
+export function moveAttribute({
+  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection, undoable
+}: IMoveAttributeParameters) {
+  const firstAttr: IAttribute | undefined = getCollectionAttrs(targetCollection, dataset)[0]
+  const options: IMoveAttributeOptions =
+    !afterAttrId || afterAttrId === kIndexColumnKey ? { before: firstAttr?.id } : { after: afterAttrId }
+
+  const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
+  const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
+  const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
+  const modelChangeOptions = { notifications, undoStringKey, redoStringKey }
+  
+  if (targetCollection.id === sourceCollection?.id) {
+    if (isCollectionModel(targetCollection)) {
+      // move the attribute within a collection
+      dataset.applyModelChange(
+        () => targetCollection.moveAttribute(attrId, options),
+        modelChangeOptions
+      )
+    }
+    else {
+      // move an ungrouped attribute within the DataSet
+      dataset.applyModelChange(
+        () => dataset.moveAttribute(attrId, options),
+        modelChangeOptions
+      )
+    }
+  }
+  else {
+    // move the attribute to a new collection
+    let result: IAttributeChangeResult | undefined
+    const _notifications = includeNotifications && notifications
+      ? () => result?.removedCollectionId
+        ? [deleteCollectionNotification(dataset), notifications]
+        : notifications
+      : undefined
+
+    dataset.applyModelChange(
+      () => {
+        result = dataset.setCollectionForAttribute(attrId, { collection: targetCollection?.id, ...options })
+      },
+      { notifications: _notifications, undoStringKey, redoStringKey }
+    )
   }
 }
 

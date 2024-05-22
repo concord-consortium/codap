@@ -40,6 +40,10 @@ export interface DIAllCases {
   }
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
+export interface DIAttributeLocationValues {
+  collection?: string
+  position?: number
+}
 export interface DICase {
   collectionID?: number
   collectionName?: string
@@ -124,7 +128,7 @@ export interface DIResources {
 }
 
 // types for values accepted as inputs by the API
-export type DISingleValues = DIAttribute | DICase | DIDataContext |
+export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIGlobal | DIInteractiveFrame | DINewCase | DIUpdateCase | DINotification | V2Component
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 

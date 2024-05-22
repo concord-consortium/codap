@@ -6,9 +6,9 @@ import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3AttrId, toV3CaseId, toV3CollectionId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3AttrId, toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
-import { canonicalizeAttributeName } from "./data-interactive-utils"
+import { canonicalizeAttributeName, getCollection } from "./data-interactive-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -128,8 +128,7 @@ export function resolveResources(
   }
 
   if (resourceSelector.collection) {
-    result.collection = dataContext?.getCollectionByName(resourceSelector.collection) ||
-                        dataContext?.getCollection(toV3CollectionId(resourceSelector.collection))
+    result.collection = getCollection(dataContext, resourceSelector.collection)
   }
 
   const collection = result.collection
