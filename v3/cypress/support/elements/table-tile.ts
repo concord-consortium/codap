@@ -117,11 +117,11 @@ export const TableTileElements = {
     cy.get("[data-testid=attr-editable-radio] span").contains(state).click()
   },
   // Edit Dataset Information Dialog
-   enterInfoName(name) {
-     cy.get("[data-testid=dataset-name-input]").type(name)
-   },
-   enterInfoSource(source) {
-    cy.get("[data-testid=dataset-source-input]").type(source)
+  enterInfoName(name) {
+    cy.get("[data-testid=dataset-name-input]").type(name)
+  },
+  enterInfoSource(source) {
+   cy.get("[data-testid=dataset-source-input]").type(source)
   },
   enterInfoDate(date) {
     cy.get("[data-testid=dataset-date-input]").type(date)
@@ -138,7 +138,7 @@ export const TableTileElements = {
   editAttributeProperties(attr, name, description, type, unit, precision, editable) {
     this.openAttributeMenu(attr)
     this.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
-    if (name !== "") {
+    if (name != "") {
       this.enterAttributeName(`{selectAll}{backspace}${name}`)
     }
     if (description != null) {
@@ -160,19 +160,19 @@ export const TableTileElements = {
   },
   editDatasetInformation(name, source, date, description) {
     this.getDatasetInfoButton().click()
-     if (name !== "") {
+    if (name != "") {
        this.enterInfoName(`{selectAll}{backspace}${name}`)
-     }
+    }
     if (source != null) {
        this.enterInfoSource(`{selectAll}{backspace}${source}`)
-      }
-      if (date != null) {
+    }
+    if (date != null) {
         this.enterInfoDate(`{selectAll}{backspace}${date}`)
-      }
-     if (description != null) {
-       this.enterInfoDescription(`{selectAll}{backspace}${description}`)
-     }
-     this.getApplyButton().click()
+    }
+    if (description != null) {
+      this.enterInfoDescription(`{selectAll}{backspace}${description}`)
+    }
+    this.getApplyButton().click()
    },
   getGridCell(row: number, column: number, collection = 1) {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)

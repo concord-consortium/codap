@@ -120,22 +120,20 @@ context("case table ui", () => {
     it("select a case and delete the case from inspector menu", () => {
       let initialRowCount, postInsertRowCount
 
-       // Get initial row count
-       table.getNumOfRows().then(rowCount => {
-         initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-         })
+      // Get initial row count
+      table.getNumOfRows().then(rowCount => {
+        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+      })
 
-       // Delete one case in table
-       //c.selectTile("table", 0)
-       table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-       table.getDeleteCasesButton().click()
-       table.getDeleteMenuItem("Delete Selected Cases").click()
+      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+      table.getDeleteCasesButton().click()
+      table.getDeleteMenuItem("Delete Selected Cases").click()
 
-       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
-       table.getNumOfRows().then(rowCount => {
-         postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-         expect(postInsertRowCount).to.eq(initialRowCount - 1)
-       })
+      // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+      table.getNumOfRows().then(rowCount => {
+        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postInsertRowCount).to.eq(initialRowCount - 1)
+      })
 
        // // checks for undo/redo
        // cy.log("check for undo/redo after delete")
@@ -159,8 +157,6 @@ context("case table ui", () => {
        //  const rowCountAfterRedo = parseInt(rowCount)
        //  expect(rowCountAfterRedo).to.eq(initialRowCount)
        // })
-
-
     })
     it("select a case and delete unselected cases from inspector menu", () => {
      let initialRowCount // Declare variable to hold initial row count
@@ -533,8 +529,8 @@ context("case table ui", () => {
       table.openIndexMenuForRow(3)
       table.deleteCase()
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of the second case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -591,8 +587,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of bottom case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -615,8 +611,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of last case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -651,8 +647,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of top case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -678,8 +674,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of top case above")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -705,8 +701,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of multiple cases on top")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -724,8 +720,8 @@ context("case table ui", () => {
       table.deleteCase()
       numOfCases = (Number(numOfCases) - 1).toString()
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of first case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -746,8 +742,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of insertion of middle case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -772,8 +768,8 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion below the middle case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
@@ -798,14 +794,14 @@ context("case table ui", () => {
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion above the middle case above current case")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
       // For example, check the number of rows or a specific row's content
 
-      // Use the toolbar to redo the last undone action (which should redo the deletion of the case)
+      // Use the toolbar to redo the last undone action
       toolbar.getRedoTool().click()
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
@@ -816,8 +812,8 @@ context("case table ui", () => {
       table.deleteCase()
       numOfCases = (Number(numOfCases) - 1).toString()
 
-      // Use the toolbar to undo the last action (which should be the deletion of the second case)
-      cy.log("check for undo/redo after delete")
+      // Use the toolbar to undo the last action
+      cy.log("check for undo/redo after deletion of case in the middle row")
       toolbar.getUndoTool().click()
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
