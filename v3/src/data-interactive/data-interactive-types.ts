@@ -41,7 +41,7 @@ export interface DIAllCases {
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
 export interface DIAttributeLocationValues {
-  collection?: string
+  collection?: string | number
   position?: number
 }
 export interface DICase {

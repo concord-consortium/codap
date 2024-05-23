@@ -15,7 +15,7 @@ export const diAttributeLocationHandler: DIHandler = {
     const { collection, position } = values as DIAttributeLocationValues
     const targetCollection = collection === "parent"
       ? dataContext.getParentCollectionGroup(sourceCollection?.id)?.collection
-      : getCollection(dataContext, collection) ?? sourceCollection
+      : getCollection(dataContext, collection ? `${collection}` : undefined) ?? sourceCollection
     if (!targetCollection) return collectionNotFoundResult
     
     const numPos = Number(position)
@@ -32,14 +32,12 @@ export const diAttributeLocationHandler: DIHandler = {
     const _position = pos < 0 ? 0 : pos > targetAttrs.length ? targetAttrs.length : pos
     const afterAttrId = targetAttrs[_position - 1]?.id
 
-    dataContext.applyModelChange(() => {
-      moveAttribute({
-        afterAttrId,
-        attrId: attributeLocation.id,
-        dataset: dataContext,
-        sourceCollection,
-        targetCollection
-      })
+    moveAttribute({
+      afterAttrId,
+      attrId: attributeLocation.id,
+      dataset: dataContext,
+      sourceCollection,
+      targetCollection
     })
 
     return { success: true }
