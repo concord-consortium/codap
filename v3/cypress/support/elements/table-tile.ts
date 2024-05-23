@@ -138,7 +138,7 @@ export const TableTileElements = {
   editAttributeProperties(attr, name, description, type, unit, precision, editable) {
     this.openAttributeMenu(attr)
     this.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
-    if (name != "") {
+    if (name !== "") {
       this.enterAttributeName(`{selectAll}{backspace}${name}`)
     }
     if (description != null) {
@@ -160,7 +160,7 @@ export const TableTileElements = {
   },
   editDatasetInformation(name, source, date, description) {
     this.getDatasetInfoButton().click()
-    if (name != "") {
+    if (name !== "") {
        this.enterInfoName(`{selectAll}{backspace}${name}`)
     }
     if (source != null) {
