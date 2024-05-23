@@ -1,4 +1,5 @@
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
+import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../support/elements/cfm"
@@ -7,15 +8,6 @@ import graphRules from '../fixtures/graph-rules.json'
 const collectionName = "Mammals"
 const newCollectionName = "Animals"
 const plots = graphRules.plots
-
-context("Test graph plot transitions", () => {
-  beforeEach(function () {
-    const queryParams = "?mouseSensor"
-    const url = `${Cypress.config("index")}${queryParams}`
-    cy.visit(url)
-    cfm.openLocalDoc("cypress/fixtures/3TableGroups.codap")
-    cy.wait(2500)
-  })
 
   // Skipping this test because Cypress 13 does not support displaying pixijs canvas elements in CI
   // https://github.com/cypress-io/cypress/issues/28289
@@ -34,8 +26,16 @@ context("Test graph plot transitions", () => {
       })
     })
   })
-})
 
+context("Test graph plot transitions", () => {
+  beforeEach(function () {
+    const queryParams = "?mouseSensor"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cfm.openLocalDoc("cypress/fixtures/3TableGroups.codap")
+    cy.wait(2500)
+  })
+})
 context("Graph UI", () => {
   beforeEach(function () {
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
@@ -43,100 +43,132 @@ context("Graph UI", () => {
     cy.visit(url)
     cy.wait(2500)
   })
+  describe("graph view", () => {
+    it("updates graph title", () => {
+      c.getComponentTitle("graph").should("have.text", collectionName)
+      c.changeComponentTitle("graph", newCollectionName)
+      c.getComponentTitle("graph").should("have.text", newCollectionName)
 
-  it("updates graph title", () => {
-    c.getComponentTitle("graph").should("have.text", collectionName)
-    c.changeComponentTitle("graph", newCollectionName)
-    c.getComponentTitle("graph").should("have.text", newCollectionName)
-
-    // test for undo/redo when updating graph title
-    toolbar.getUndoTool().click()
-    c.getComponentTitle("graph").should("have.text", collectionName)
-
-    // use force:true so we don't have to worry about redo disabling
-    toolbar.getRedoTool().click({force: true})
-    c.getComponentTitle("graph").should("have.text", newCollectionName)
-  })
-  it("tests undo/redo of creating graphs", () => {
-
-    // Function to count CODAP graphs and return the count
-    const countCodapGraphs = () => {
-      return cy.get('.codap-graph').its('length')
-    }
-    countCodapGraphs().then((initialCount: number) => {
-      cy.log(`Initial CODAP Graph Count: ${initialCount}`)
-
-      // perform an action that gets a new graph
-      c.getIconFromToolshelf("graph").click()
-      // cy.wait(1000)
-      c.getComponentTitle("graph").should("contain", collectionName)
-      c.getComponentTitle("graph", 1).should("contain", collectionName)
-      // Assert the count increased by 1
-      countCodapGraphs().should('eq', initialCount + 1)
-
-      // tests for undo after creating a graph
+      // test for undo/redo when updating graph title
+      cy.log("checks for undo/redo when updating a graph title")
       toolbar.getUndoTool().click()
-      // cy.wait(1000)
-      // Assert the count decreased by 1
-      countCodapGraphs().should('eq', initialCount)
+      c.getComponentTitle("graph").should("have.text", collectionName)
 
-      // tests for redo of creating a graph
-      toolbar.getRedoTool().click()
-      // cy.wait(1000)
-      // Assert the count decreased by 1
-      countCodapGraphs().should('eq', initialCount + 1)
+      // use force:true so we don't have to worry about redo disabling
+      toolbar.getRedoTool().click({force: true})
+      c.getComponentTitle("graph").should("have.text", newCollectionName)
     })
-  })
-  it("creates graphs with new collection names when existing ones are closed", () => {
-    c.closeComponent("graph")
-    c.checkComponentDoesNotExist("graph")
-    c.getIconFromToolshelf("graph").click()
-    c.getComponentTitle("graph").should("contain", collectionName)
+    it("tests creating graphs with undo/redo", () => {
+      // Function to count CODAP graphs and return the count
+      const countCodapGraphs = () => {
+        return cy.get('.codap-graph').its('length')
+      }
+      countCodapGraphs().then((initialCount: number) => {
+        cy.log(`Initial CODAP Graph Count: ${initialCount}`)
 
-    c.closeComponent("graph")
-    c.checkComponentDoesNotExist("graph")
-    c.getIconFromToolshelf("graph").click()
-    c.getComponentTitle("graph").should("contain", collectionName)
+        // perform an action that gets a new graph
+        c.getIconFromToolshelf("graph").click()
+        // cy.wait(1000)
+        c.getComponentTitle("graph").should("contain", collectionName)
+        c.getComponentTitle("graph", 1).should("contain", collectionName)
+        // Assert the count increased by 1
+        countCodapGraphs().should('eq', initialCount + 1)
+
+        // tests for undo after creating a graph
+        cy.log("checks for undo/redo when creating graph")
+        toolbar.getUndoTool().click()
+        countCodapGraphs().should('eq', initialCount)
+
+        // tests for redo of creating a graph
+        toolbar.getRedoTool().click()
+        countCodapGraphs().should('eq', initialCount + 1)
+      })
+    })
+    it("creates graphs with new collection names when existing ones are closed", () => {
+      c.closeComponent("graph")
+      c.checkComponentDoesNotExist("graph")
+      c.getIconFromToolshelf("graph").click()
+      c.getComponentTitle("graph").should("contain", collectionName)
+
+      c.closeComponent("graph")
+      c.checkComponentDoesNotExist("graph")
+      c.getIconFromToolshelf("graph").click()
+      c.getComponentTitle("graph").should("contain", collectionName)
+    })
+    it("checks all graph tooltips", () => {
+      c.selectTile("graph", 0)
+      toolbar.getToolShelfIcon("graph").then($element => {
+        c.checkToolTip($element, c.tooltips.graphToolShelfIcon)
+      })
+      c.getMinimizeButton("graph").then($element => {
+        c.checkToolTip($element, c.tooltips.minimizeComponent)
+      })
+      c.getCloseButton("graph").then($element => {
+        c.checkToolTip($element, c.tooltips.closeComponent)
+      })
+      graph.getResizeIcon().then($element => {
+        c.checkToolTip($element, c.tooltips.graphResizeButton)
+      })
+      graph.getHideShowButton().then($element => {
+        c.checkToolTip($element, c.tooltips.graphHideShowButton)
+      })
+      graph.getDisplayValuesButton().then($element => {
+        c.checkToolTip($element, c.tooltips.graphDisplayValuesButton)
+      })
+      graph.getDisplayStylesButton().then($element => {
+        c.checkToolTip($element, c.tooltips.graphDisplayStylesButton)
+      })
+      graph.getCameraButton().then($element => {
+        c.checkToolTip($element, c.tooltips.graphCameraButton)
+      })
+      // The display config button should not appear until the graph is configured to have a univariate plot,
+      // i.e. there is a single numeric attribute on either the bottom or left axis.
+      graph.getDisplayConfigButton().should("not.exist")
+      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      cy.wait(500)
+      graph.getDisplayConfigButton().should("exist")
+      graph.getDisplayConfigButton().then($element => {
+        c.checkToolTip($element, c.tooltips.graphDisplayConfigButton)
+      })
+      cy.dragAttributeToTarget("table", "Speed", "left")
+      cy.wait(500)
+      graph.getDisplayConfigButton().should("not.exist")
+    })
   })
-  it("checks all graph tooltips", () => {
-    c.selectTile("graph", 0)
-    toolbar.getToolShelfIcon("graph").then($element => {
-      c.checkToolTip($element, c.tooltips.graphToolShelfIcon)
+  describe("graph inspector panel", () => {
+    it("change points in table and check for autoscale", () => {
+      // create a graph with Lifespan (x-axis) and Height (y-axis)
+      c.getComponentTitle("graph").should("have.text", collectionName)
+      cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
+      cy.dragAttributeToTarget("table", "Height", "left")
+
+      // change calues in table so that points need rescale
+      table.getGridCell(2, 2).should("contain", "African Elephant")
+      cy.log("double-clicking the cell")
+      // double-click to initiate editing cell
+      table.getGridCell(3, 4).dblclick()
+      table.getGridCell(3, 4).find("input").type("700")
+      cy.log("check the editing cell contents")
+      table.getGridCell(3, 4).find("input").should("have.value", "700")
+
+      table.getGridCell(2, 2).should("contain", "African Elephant")
+      cy.log("double-clicking the cell")
+      // double-click to initiate editing cell
+      table.getGridCell(3, 5).dblclick()
+      table.getGridCell(3, 5).find("input").type("300")
+      cy.log("check the editing cell contents")
+      table.getGridCell(3, 5).find("input").should("have.value", "300")
+
+      // get the rescale button
+      c.getComponentTitle("graph").should("have.text", collectionName).click()
+      graph.getResizeIcon().click()
+
+      // Checks for axis rescale
+      // this check basically just counts the tick marks in the graph but I'm
+      // wondering if there's a better way. E.g. if we added a data-testid further
+      // in the graph axis it might be possible to check the axis labels or scale
+      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
     })
-    c.getMinimizeButton("graph").then($element => {
-      c.checkToolTip($element, c.tooltips.minimizeComponent)
-    })
-    c.getCloseButton("graph").then($element => {
-      c.checkToolTip($element, c.tooltips.closeComponent)
-    })
-    graph.getResizeIcon().then($element => {
-      c.checkToolTip($element, c.tooltips.graphResizeButton)
-    })
-    graph.getHideShowButton().then($element => {
-      c.checkToolTip($element, c.tooltips.graphHideShowButton)
-    })
-    graph.getDisplayValuesButton().then($element => {
-      c.checkToolTip($element, c.tooltips.graphDisplayValuesButton)
-    })
-    graph.getDisplayStylesButton().then($element => {
-      c.checkToolTip($element, c.tooltips.graphDisplayStylesButton)
-    })
-    graph.getCameraButton().then($element => {
-      c.checkToolTip($element, c.tooltips.graphCameraButton)
-    })
-    // The display config button should not appear until the graph is configured to have a univariate plot,
-    // i.e. there is a single numeric attribute on either the bottom or left axis.
-    graph.getDisplayConfigButton().should("not.exist")
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.wait(500)
-    graph.getDisplayConfigButton().should("exist")
-    graph.getDisplayConfigButton().then($element => {
-      c.checkToolTip($element, c.tooltips.graphDisplayConfigButton)
-    })
-    cy.dragAttributeToTarget("table", "Speed", "left")
-    cy.wait(500)
-    graph.getDisplayConfigButton().should("not.exist")
-  })
   it("hides and shows selected/unselected cases", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)
@@ -298,6 +330,119 @@ context("Graph UI", () => {
     cy.wait(500)
     cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
   })
+
+  // NOTE: Adornments are covered in graph-adornments.spec.ts (including Show Measures)
+  it("format panel interactions", () => {
+   cy.log("check point size change")
+
+   // get rid of aria-valuenow div in the Slider component
+   // by closing the Slider
+   c.closeComponent("slider")
+   c.checkComponentDoesNotExist("slider")
+
+   // get the graph component
+   c.getComponentTitle("graph").should("have.text", collectionName)
+   graph.getDisplayStylesButton().click()
+
+   // change point size
+   cy.get("[data-testid=point-size-slider]")
+   .trigger("change")
+   .click({ force: true })
+   .type('{downArrow}{downArrow}')
+   .click({ force: true })
+   .wait(500) // wait for animation to finish
+   .get('div[role="slider"][aria-valuenow="0.99"]').should('be.visible')
+
+   cy.log("changes the stroke color value and verifies the change")
+
+   cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
+   .eq(0)
+   .should('have.value', '#ffffff') // Ensure stroke initially has the expected value
+   .then((colorPicker) => {
+     // Change the value of the color picker
+     cy.wrap(colorPicker)
+       .invoke('val', '#000000')
+       .trigger('input')
+       .trigger('change')
+
+     // Verify the value has been updated
+     cy.wrap(colorPicker).should('have.value', '#000000')
+   })
+
+   cy.log("changes the point color value and verifies the change")
+
+   cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
+   .eq(1)
+   .should('have.value', '#e6805b') // Ensure point color initially has the expected value
+   .then((colorPicker) => {
+      // Change the value of the color picker
+      cy.wrap(colorPicker)
+      .invoke('val', '#ff5733')
+      .trigger('input')
+      .trigger('change')
+
+      // Verify the value has been updated
+      cy.wrap(colorPicker).should('have.value', '#ff5733')
+    })
+
+   cy.log("checks the box Stroke same color as fill and check it")
+
+   // Get the checkbox and check it
+   cy.get('span.chakra-checkbox__control.css-4utxuo')
+   .eq(0)
+   .click()
+
+   // Verify the checkbox is checked
+   cy.get('input[type="checkbox"]')
+   .should('be.checked')
+
+   // Use Cypress commands to get the first and second color picker elements
+   cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
+   .eq(0)
+   .as('fillColorPicker')
+
+   cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
+   .eq(1)
+   .as('strokeColorPicker')
+
+   // Get the fill color value
+   cy.get('@fillColorPicker').invoke('val').then((fillColor) => {
+    // Get the stroke color value and compare it to the fill color
+    cy.get('@strokeColorPicker')
+     .should('have.value', fillColor)
+   })
+
+   cy.log("changes the background color and verifies the change")
+    // Use a more specific selector to find the background color input element
+    cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
+    .eq(2)
+    .should('have.value', '#ffffff') // Ensure background initially has the expected value
+    .then((backgroundColorPicker) => {
+      // Change the value of the background color picker
+      cy.wrap(backgroundColorPicker)
+        .invoke('val', '#ff5733')
+        .trigger('input')
+        .trigger('change')
+
+       // Verify the value has been updated
+       cy.wrap(backgroundColorPicker).should('have.value', '#ff5733')
+     })
+
+    cy.log("finds the Transparent checkbox and verifies it can be checked")
+    // Ensure the checkbox label with text "Transparent" is visible
+    cy.contains('span.chakra-checkbox__label.css-1e9gfn3', 'Transparent')
+      .should('be.visible')
+      .parent()
+      .within(() => {
+        // Find the checkbox input within the same parent and check it
+        cy.get('input[type="checkbox"]').check({ force: true })
+
+        // Verify the checkbox is checked
+        cy.get('input[type="checkbox"]').should('be.checked')
+      })
+   })
+})
+describe("graph bin configuration", () => {
   it("disables Point Size control when display type is bars", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)
@@ -432,4 +577,5 @@ context("Graph UI", () => {
     cy.get(".axis-wrapper.left").find("[data-testid=attribute-label]").should("exist").and("have.text", "Sleep")
     cy.get("[data-testid=bar-cover]").should("not.exist")
   })
+})
 })
