@@ -12,6 +12,11 @@ describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
+  const c1 = dataset.collections[0]!
+  const c2 = dataset.collections[1]!
+  const a1 = dataset.getAttributeByName("a1")!
+  const a2 = dataset.getAttributeByName("a2")!
+  const a3 = dataset.getAttributeByName("a3")!
   // eslint-disable-next-line no-unused-expressions
   dataset.collectionGroups // set up the pseudoCases
   const tile = content!.createOrShowTile(kWebViewTileType)!
@@ -52,9 +57,20 @@ describe("DataInteractive ResourceParser", () => {
     expect(collectionList?.[2].id).toBe(dataset.ungrouped.id)
   })
 
-  // TODO Add tests for collection
+  it("finds collection", () => {
+    expect(resolve(`dataContext[data].collection[${c1.name}]`).collection?.id).toBe(c1.id)
+    expect(resolve(`dataContext[data].collection[${toV2Id(c2.id)}]`).collection?.id).toBe(c2.id)
+  })
 
-  // TODO Add tests for attribute
+  it("finds attribute", () => {
+    expect(resolve(`dataContext[data].attribute[${a1.name}]`).attribute?.id).toBe(a1.id)
+    expect(resolve(`dataContext[data].attribute[${toV2Id(a2.id)}]`).attribute?.id).toBe(a2.id)
+  })
+
+  it("finds attributeLocation", () => {
+    expect(resolve(`dataContext[data].attributeLocation[${a3.name}]`).attributeLocation?.id).toBe(a3.id)
+    expect(resolve(`dataContext[data].attributeLocation[${toV2Id(a1.id)}]`).attributeLocation?.id).toBe(a1.id)
+  })
 
   it("finds attributeList", () => {
     const resources = resolve("dataContext[data].collection[collection1].attributeList")
