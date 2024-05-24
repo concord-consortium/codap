@@ -36,7 +36,6 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          working-directory: v3
           flags: jest
   cypress:
     runs-on: ubuntu-latest
@@ -88,7 +87,6 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          working-directory: v3
           flags: cypress
   s3-deploy:
     name: S3 Deploy
