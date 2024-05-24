@@ -1,5 +1,5 @@
 import { parse, ParseResult } from "papaparse"
-import { DataSet, toCanonical } from "../models/data/data-set"
+import { DataSet } from "../models/data/data-set"
 
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
@@ -19,7 +19,7 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
     ds.addAttribute({name: pName})
   }
   // add cases
-  ds.addCases(toCanonical(ds, results.data))
+  ds.addCases(results.data, { canonicalize: true })
 
   return ds
 }

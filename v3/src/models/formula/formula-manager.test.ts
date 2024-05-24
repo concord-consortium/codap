@@ -122,7 +122,7 @@ describe("FormulaManager", () => {
       it("updates formula display expression", () => {
         const { formula, dataSet } = getManagerWithFakeAdapter()
         const attr = dataSet.attrFromName("foo")
-        attr?.setName("bar")
+        dataSet.setAttributeName(attr!.id, "bar")
         expect(formula.display).toEqual("1 + 2 + bar")
         expect(formula.canonical).toEqual(`1 + 2 + ${localAttrIdToCanonical(attr?.id || "")}`)
       })
@@ -134,7 +134,7 @@ describe("FormulaManager", () => {
         expect(adapter.recalculateFormula).toHaveBeenCalledTimes(1)
 
         const attr = dataSet.attrFromName("foo")
-        dataSet.removeAttribute(attr?.id || "")
+        dataSet.removeAttribute(attr!.id)
         expect(formula.display).toEqual("1 + 2 + foo")
         expect(formula.canonical).toEqual("1 + 2 + foo")
         expect(adapter.recalculateFormula).toHaveBeenCalledTimes(2)

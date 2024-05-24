@@ -67,8 +67,8 @@ test("Canonicalization", () => {
   const ds = DataSet.create({ name: "data" })
   ds.addAttribute({ name: "str" })
   ds.addAttribute({ name: "num" })
-  const strId = ds.attrIDFromName("str")
-  const numId = ds.attrIDFromName("num")
+  const strId = ds.attrIDFromName("str")!
+  const numId = ds.attrIDFromName("num")!
   const a1Case = { str: "a", num: "1" }
   const a1Canonical = { [strId]: "a", [numId]: "1" }
   expect(toCanonical(ds, a1Case)).toEqual(a1Canonical)
@@ -258,7 +258,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.getStrValueAtIndex(0, numAttrID)).toBe("4")
 
   // add new case before first case
-  dataset.addCases(toCanonical(dataset, [{ str: "c", num: 3 }]), { before: caseD4ID })
+  dataset.addCases([{ str: "c", num: 3 }], { before: caseD4ID, canonicalize: true })
   const caseC3ID = dataset.cases[0].__id__
   expect(dataset.cases.length).toBe(2)
   expect(caseC3ID).toBeDefined()
@@ -275,7 +275,7 @@ test("DataSet basic functionality", () => {
   expect(dataset.getValueAtIndex(0, numAttrID)).toBe("3")
 
   // add multiple new cases before specified case
-  dataset.addCases(toCanonical(dataset, [{ str: "a", num: 1 }, { str: "b", num: 2 }]), { before: caseC3ID })
+  dataset.addCases([{ str: "a", num: 1 }, { str: "b", num: 2 }], { before: caseC3ID, canonicalize: true })
   const caseA1ID = dataset.cases[0].__id__,
         caseB2ID = dataset.cases[1].__id__
   expect(dataset.cases.length).toBe(4)
@@ -309,7 +309,7 @@ test("DataSet basic functionality", () => {
   })
 
   // add multiple new cases after specified case
-  dataset.addCases(toCanonical(dataset, [{ str: "j", num: 1 }, { str: "k", num: 2 }]), { after: caseC3ID })
+  dataset.addCases([{ str: "j", num: 1 }, { str: "k", num: 2 }], { after: caseC3ID, canonicalize: true })
   const caseJ1ID = dataset.cases[3].__id__,
         caseK2ID = dataset.cases[4].__id__
   expect(dataset.cases.length).toBe(7)

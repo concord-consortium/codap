@@ -31,11 +31,13 @@ export interface IGetCaseOptions {
 export interface IGetCasesOptions extends IGetCaseOptions {
   count?: number;
 }
-export interface IAddCaseOptions {
+export interface IAddCasesOptions {
   // id of case before/after which to insert new cases
   // if not specified, new cases are appended
   before?: string;
   after?: string;
+  // if true, property names are attribute names rather than ids
+  canonicalize?: boolean;
 }
 
 export interface IAddAttributeOptions {

@@ -25,7 +25,7 @@
   JavaScript engines can optimize operations on homogeneous arrays more than heterogeneous ones.
  */
 
-import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { parseColor } from "../../utilities/color-utils"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
@@ -40,6 +40,10 @@ const isDevelopment = () => process.env.NODE_ENV !== "production"
 const isProduction = () => process.env.NODE_ENV === "production"
 
 export type IValueType = string | number | boolean | undefined
+
+export interface ISetValueOptions {
+  noInvalidate?: boolean
+}
 
 export function importValueToString(value: IValueType) {
   return value == null ? "" : typeof value === "string" ? value : value.toString()
@@ -299,11 +303,11 @@ export const Attribute = V2Model.named("Attribute").props({
     }
     self.incChangeCount()
   },
-  setValue(index: number, value: IValueType) {
+  setValue(index: number, value: IValueType, options?: ISetValueOptions) {
     if ((index >= 0) && (index < self.strValues.length)) {
       self.strValues[index] = self.importValue(value)
       self.numValues[index] = self.toNumeric(self.strValues[index])
-      self.incChangeCount()
+      if (!options?.noInvalidate) self.incChangeCount()
     }
   },
   setValues(indices: number[], values: IValueType[]) {
