@@ -26,6 +26,7 @@ export const diAttributeLocationHandler: DIHandler = {
       }
     }
 
+    // The position is rounded to an integer and then snapped to the range of the number of attributes.
     const targetAttrs =
       dataContext.getGroupedCollection(targetCollection.id)?.attributes ?? dataContext.ungroupedAttributes
     const pos = Math.round(numPos)

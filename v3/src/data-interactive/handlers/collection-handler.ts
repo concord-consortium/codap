@@ -1,12 +1,13 @@
 import { isAttributeType } from "../../models/data/attribute"
 import { CollectionModel, ICollectionModel, isCollectionModel } from "../../models/data/collection"
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
-import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
+import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import {
   DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection
 } from "../data-interactive-types"
 import { convertCollectionToV2, convertUngroupedCollectionToV2 } from "../data-interactive-type-utils"
+import { getCollection } from "../data-interactive-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diCollectionHandler: DIHandler = {
@@ -22,30 +23,30 @@ export const diCollectionHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       collections.forEach(collection => {
         const { name, title, parent, attributes, attrs } = collection as DICreateCollection
-        // If we can't create the collection, we just skip it
+        // Collections require a name, so bail if one isn't included
         if (!name) return
 
-        // If there's already a collection with that name, we just return its info
+        // If there's already a collection with the name, we return the existing collection's info
         const existingCollection = dataContext.getCollectionByName(name)
         if (existingCollection) {
           returnValues.push({ id: toV2Id(existingCollection.id), name: existingCollection.name })
           return
         }
 
-        // The default is to add the collections as the right-most
+        // The default is to add the collection as the right-most
         let beforeCollectionId: string | undefined
         if (parent && dataContext.collections.length > 0) {
-          const parentCollection =
-            dataContext.getCollection(toV3CollectionId(parent)) ?? dataContext.getCollectionByName(parent)
+          const parentCollection = getCollection(dataContext, parent)
           if (parentCollection) {
+            // If a parent collection is specified, place the new collection next to the parent collection
             const parentIndex = dataContext.getCollectionIndex(parentCollection.id)
             if (parentIndex < dataContext.collections.length - 1) {
               beforeCollectionId = dataContext.collections[parentIndex + 1].id
             }
           } else {
-            // If a parent is specified but it doesn't exist, the collections are added as the left-most.
-            // The documents say "root" should be used for this, but any non-collection will work in v2,
-            // and "root" won't work if there's a collection named "root".
+            // If a parent is specified but it doesn't exist, add the collection as the left-most.
+            // The documentation says "root" should be used for this, but any non-collection will work in v2,
+            // and "root" will NOT work if there's a collection named "root".
             beforeCollectionId = dataContext.collections[0].id
           }
         }
@@ -81,7 +82,9 @@ export const diCollectionHandler: DIHandler = {
 
     return { success: true, values: returnValues }
   },
+
   delete: diNotImplementedYet,
+
   get(resources: DIResources) {
     const { collection, dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
@@ -95,6 +98,7 @@ export const diCollectionHandler: DIHandler = {
       values: v2Collection
     }
   },
+  
   update: diNotImplementedYet
 }
 
