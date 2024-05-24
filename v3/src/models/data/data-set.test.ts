@@ -67,8 +67,8 @@ test("Canonicalization", () => {
   const ds = DataSet.create({ name: "data" })
   ds.addAttribute({ name: "str" })
   ds.addAttribute({ name: "num" })
-  const strId = ds.attrIDFromName("str")
-  const numId = ds.attrIDFromName("num")
+  const strId = ds.attrIDFromName("str")!
+  const numId = ds.attrIDFromName("num")!
   const a1Case = { str: "a", num: "1" }
   const a1Canonical = { [strId]: "a", [numId]: "1" }
   expect(toCanonical(ds, a1Case)).toEqual(a1Canonical)

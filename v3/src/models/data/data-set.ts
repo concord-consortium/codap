@@ -50,7 +50,7 @@ import {
   CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
 } from "./collection"
 import {
-  CaseGroup, CaseID, IAddAttributeOptions, IAddCaseOptions, IAttributeChangeResult, ICase, ICaseCreation,
+  CaseGroup, CaseID, IAddAttributeOptions, IAddCasesOptions, IAttributeChangeResult, ICase, ICaseCreation,
   IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions,
   IMoveAttributeOptions, symIndex, symParent
 } from "./data-set-types"
@@ -158,6 +158,8 @@ export const DataSet = V2Model.named("DataSet").props({
   snapSelection: types.array(types.string)
 })
 .volatile(self => ({
+  // map from attribute name to attribute id
+  attrNameMap: observable.map<string, string>({}, { name: "attrNameMap" }),
   // map from case IDs to indices
   caseIDMap: new Map<string, number>(),
   // MobX-observable set of selected case IDs
@@ -207,14 +209,6 @@ export const DataSet = V2Model.named("DataSet").props({
   return snap
 })
 .views(self => ({
-  // map from attribute name to attribute id
-  get attrNameMap() {
-    const nameMap: Record<string, string> = {}
-    self.attributes.forEach(attr => {
-      nameMap[attr.name] = attr.id
-    })
-    return nameMap
-  },
   attrIndexFromID(id: string) {
     const index = self.attributes.findIndex(attr => attr.id === id)
     return index >= 0 ? index : undefined
@@ -231,7 +225,7 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.attributesMap.get(id)
   },
   getAttributeByName(name: string) {
-    return self.attributesMap.get(self.attrNameMap[name])
+    return self.attributesMap.get(self.attrNameMap.get(name) ?? "")
   }
 }))
 .actions(self => ({
@@ -571,6 +565,7 @@ export const DataSet = V2Model.named("DataSet").props({
       for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
         const collectionGroup = self.collectionGroups[i]
         if (!isAlive(collectionGroup.collection)) {
+          /* istanbul ignore next */
           console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
         }
         else if (collectionGroup.collection.id === collectionId) {
@@ -650,7 +645,7 @@ export const DataSet = V2Model.named("DataSet").props({
   /*
    * private closure
    */
-  const attrIDFromName = (name: string) => self.attrNameMap[name]
+  const attrIDFromName = (name: string) => self.attrNameMap.get(name)
 
   function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
     const index = self.caseIDMap.get(caseID)
@@ -707,7 +702,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       // [DEPRECATED] use getAttributeByName() instead
       attrFromName(name: string) {
-        const id = self.attrNameMap[name]
+        const id = self.attrNameMap.get(name)
         return id ? self.getAttribute(id) : undefined
       },
       attrIDFromName,
@@ -819,6 +814,11 @@ export const DataSet = V2Model.named("DataSet").props({
         const context: IEnvContext = getEnv(self),
               { srcDataSet, } = context
 
+        // build attrNameMap
+        self.attributesMap.forEach(attr => {
+          self.attrNameMap.set(attr.name, attr.id)
+        })
+
         // build caseIDMap
         self.cases.forEach((aCase, index) => {
           self.caseIDMap.set(aCase.__id__, index)
@@ -890,6 +890,9 @@ export const DataSet = V2Model.named("DataSet").props({
         // add attribute to attributesMap
         const attribute = self.attributesMap.put(snapshot)
 
+        // add attribute to attrNameMap
+        self.attrNameMap.set(attribute.name, attribute.id)
+
         // add attribute reference to attributes array
         const beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeIndex >= 0) {
@@ -914,7 +917,11 @@ export const DataSet = V2Model.named("DataSet").props({
         const attribute = attributeID && self.getAttribute(attributeID)
         if (attribute) {
           const nameStr = typeof name === "string" ? name : name()
-          attribute.setName(nameStr)
+          if (nameStr !== attribute.name) {
+            self.attrNameMap.delete(attribute.name)
+            attribute.setName(nameStr)
+            self.attrNameMap.set(nameStr, attribute.id)
+          }
         }
       },
 
@@ -937,13 +944,15 @@ export const DataSet = V2Model.named("DataSet").props({
 
           // remove attribute from attributes array
           self.attributes.remove(attribute)
+          // remove attribute from attrNameMap
+          self.attrNameMap.delete(attribute.name)
           // remove attribute from attributesMap
           self.attributesMap.delete(attribute.id)
         }
         return result
       },
 
-      addCases(cases: ICaseCreation[], options?: IAddCaseOptions) {
+      addCases(cases: ICaseCreation[], options?: IAddCasesOptions) {
         const { before, after } = options || {}
 
         const beforePosition = before ? self.caseIDMap.get(before) : undefined
@@ -984,15 +993,23 @@ export const DataSet = V2Model.named("DataSet").props({
         })
 
         // copy any values provided
+        const attrs = new Set<string>()
         cases.forEach((aCase, index) => {
-          Object.keys(aCase).forEach(key => {
-            const attr = self.getAttribute(key)
+          for (const key in aCase) {
             const value = aCase[key]
-            if (attr && value != null) {
-              attr.setValue(insertPosition + index, value)
+            if (value != null) {
+              const attrId = options?.canonicalize ? self.attrNameMap.get(key) : key
+              const attr = attrId && self.getAttribute(attrId)
+              if (attr) {
+                attrs.add(attrId)
+                attr.setValue(insertPosition + index, value, { noInvalidate: true })
+              }
             }
-          })
+          }
         })
+
+        // invalidate the affected attributes
+        attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
 
         // invalidate collectionGroups (including childCases)
         self.invalidateCollectionGroups()
