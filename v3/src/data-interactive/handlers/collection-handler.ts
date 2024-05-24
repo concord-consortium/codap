@@ -3,7 +3,9 @@ import { CollectionModel, ICollectionModel, isCollectionModel } from "../../mode
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection } from "../data-interactive-types"
+import {
+  DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection
+} from "../data-interactive-types"
 import { convertCollectionToV2, convertUngroupedCollectionToV2 } from "../data-interactive-type-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
