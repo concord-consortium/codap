@@ -1,6 +1,6 @@
-import { isAttributeType } from "../../models/data/attribute"
 import { CollectionModel, ICollectionModel, isCollectionModel } from "../../models/data/collection"
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import {
@@ -8,6 +8,7 @@ import {
 } from "../data-interactive-types"
 import { convertCollectionToV2, convertUngroupedCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
+import { createAttribute } from "./di-handler-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diCollectionHandler: DIHandler = {
@@ -16,6 +17,7 @@ export const diCollectionHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
+    const metadata = getSharedCaseMetadataFromDataset(dataContext)
     const collections = Array.isArray(values) ? values : [values]
     const returnValues: DICollection[] = []
 
@@ -55,22 +57,14 @@ export const diCollectionHandler: DIHandler = {
         newCollections.push(newCollection)
         dataContext.addCollection(newCollection, beforeCollectionId)
 
-        const trueAttributes = Array.isArray(attributes) ? attributes : []
-        const trueAttrs = Array.isArray(attrs) ? attrs : []
-        const newAttributes = [...trueAttributes, ...trueAttrs]
+        // Attributes can be specified in both attributes and attrs
+        const _attributes = Array.isArray(attributes) ? attributes : []
+        const _attrs = Array.isArray(attrs) ? attrs : []
+        const newAttributes = [..._attributes, ..._attrs]
         newAttributes.forEach(newAttribute => {
           // Each attribute must have a unique name
           if (newAttribute.name && !dataContext.getAttributeByName(newAttribute.name)) {
-            const attributeSnapshot = {
-              description: newAttribute.description ?? undefined,
-              formula: newAttribute.formula,
-              name: newAttribute.name,
-              precision: newAttribute.precision != null ? Number(newAttribute.precision) : undefined,
-              title: newAttribute.title,
-              units: newAttribute.unit ?? undefined, // Note units for v3 vs unit for v2
-              userType: isAttributeType(newAttribute.type) ? newAttribute.type : undefined,
-            }
-            dataContext.addAttribute(attributeSnapshot, { collection: newCollection.id })
+            createAttribute(newAttribute, dataContext, metadata, newCollection)
           }
         })
 
@@ -98,7 +92,7 @@ export const diCollectionHandler: DIHandler = {
       values: v2Collection
     }
   },
-  
+
   update: diNotImplementedYet
 }
 
