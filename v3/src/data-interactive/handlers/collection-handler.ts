@@ -40,7 +40,8 @@ export const diCollectionHandler: DIHandler = {
         if (parent && dataContext.collections.length > 0) {
           const parentCollection = getCollection(dataContext, parent)
           if (parentCollection) {
-            // If a parent collection is specified, place the new collection next to the parent collection
+            // If a parent collection is specified,
+            // place the new collection before the parent collection's immediate child
             const parentIndex = dataContext.getCollectionIndex(parentCollection.id)
             if (parentIndex < dataContext.collections.length - 1) {
               beforeCollectionId = dataContext.collections[parentIndex + 1].id

@@ -61,7 +61,8 @@ describe("DataInteractive AttributeLocationHandler", () => {
     expect(collectionAttributes(c1)?.[1]?.id).toBe(a6.id)
     expect(collectionAttributes(c1)?.[2]?.id).toBe(a4.id)
 
-    // Move attribute from grouped collection to middle of its parent collection when rounding the position
+    // Move attribute from grouped collection to middle of its parent collection
+    // Round the position
     expect(handler.update?.({ attributeLocation: a5, dataContext }, { collection: "parent", position: 1.2 }).success)
       .toBe(true)
     expect(collectionAttributes(c1)?.length).toBe(4)

@@ -1,5 +1,5 @@
-import { ICodapV2Collection } from "../../v2/codap-v2-types"
 import { toV2Id } from "../../utilities/codap-utils"
+import { DICollection } from "../data-interactive-types"
 import { diCollectionListHandler } from "./collection-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -16,7 +16,7 @@ describe("DataInteractive AttributeListHandler", () => {
 
     const result = handler.get?.({ collectionList })
     expect(result?.success).toBe(true)
-    const resultCollectionList = result?.values as Partial<ICodapV2Collection>[]
+    const resultCollectionList = result?.values as DICollection[]
     expect(resultCollectionList.length).toBe(3)
     const collection1 = resultCollectionList[0]
     expect(collection1.name).toBe(c1.name)
