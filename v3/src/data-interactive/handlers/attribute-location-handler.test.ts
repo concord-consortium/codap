@@ -23,14 +23,6 @@ describe("DataInteractive AttributeLocationHandler", () => {
     ).success).toBe(false)
     // Missing attributeLocation
     expect(handler.update?.({ dataContext }, { collection: c1.name, position: 0 }).success).toBe(false)
-    // Missing position
-    expect(handler.update?.(
-      resources, { collection: c1.name }
-    ).success).toBe(false)
-    // Illegal position
-    expect(handler.update?.(
-      resources, { collection: c1.name, position: NaN }
-    ).success).toBe(false)
     // Parent of leftmost collection
     expect(handler.update?.(
       resources, { collection: "parent", position: 0 }
@@ -45,10 +37,11 @@ describe("DataInteractive AttributeLocationHandler", () => {
     expect(dataset.ungroupedAttributes[1].id).toBe(a6.id)
 
     // Move attribute within a grouped collection
+    // If not specified, move the attribute to the far right
     expect(collectionAttributes(c2)?.[1]?.id).toBe(a5.id)
     expect(handler.update?.({ attributeLocation: a5, dataContext }, { position: 0 }).success).toBe(true)
     expect(collectionAttributes(c2)?.[0]?.id).toBe(a5.id)
-    expect(handler.update?.({ attributeLocation: a5, dataContext }, { position: 1 }).success).toBe(true)
+    expect(handler.update?.({ attributeLocation: a5, dataContext }).success).toBe(true)
     expect(collectionAttributes(c2)?.[1]?.id).toBe(a5.id)
 
     // Move attribute from ungrouped collection to middle of grouped collection

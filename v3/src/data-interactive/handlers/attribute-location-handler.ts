@@ -1,5 +1,4 @@
 import { moveAttribute } from "../../models/data/data-set-utils"
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIAttributeLocationValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { getCollection } from "../data-interactive-utils"
@@ -12,24 +11,21 @@ export const diAttributeLocationHandler: DIHandler = {
     if (!attributeLocation) return attributeNotFoundResult
     const sourceCollection = dataContext.getCollectionForAttribute(attributeLocation.id)
 
-    const { collection, position } = values as DIAttributeLocationValues
+    const { collection, position } = (values ?? {}) as DIAttributeLocationValues
     const targetCollection = collection === "parent"
       ? dataContext.getParentCollectionGroup(sourceCollection?.id)?.collection
       : getCollection(dataContext, collection ? `${collection}` : undefined) ?? sourceCollection
     if (!targetCollection) return collectionNotFoundResult
-    
-    const numPos = Number(position)
-    if (isNaN(numPos)) {
-      return {
-        success: false,
-        values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Update", "attributeLocation", "numeric position"] })}
-      }
-    }
 
-    // The position is rounded to an integer and then snapped to the range of the number of attributes.
     const targetAttrs =
       dataContext.getGroupedCollection(targetCollection.id)?.attributes ?? dataContext.ungroupedAttributes
-    const pos = Math.round(numPos)
+    const numPos = Number(position)
+
+    // If the position isn't specified or isn't a number, make the attribute the right-most
+    // Otherwise, round the position to an integer
+    const pos = isNaN(numPos) ? targetAttrs.length : Math.round(numPos)
+
+    // Snap the position to the left or right if it is negative or very large
     const _position = pos < 0 ? 0 : pos > targetAttrs.length ? targetAttrs.length : pos
     const afterAttrId = targetAttrs[_position - 1]?.id
 
