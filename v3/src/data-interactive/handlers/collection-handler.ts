@@ -1,5 +1,6 @@
 import { isAttributeType } from "../../models/data/attribute"
-import { CollectionModel, isCollectionModel } from "../../models/data/collection"
+import { CollectionModel, ICollectionModel, isCollectionModel } from "../../models/data/collection"
+import { createCollectionNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection } from "../data-interactive-types"
@@ -15,6 +16,7 @@ export const diCollectionHandler: DIHandler = {
     const collections = Array.isArray(values) ? values : [values]
     const returnValues: DICollection[] = []
 
+    const newCollections: ICollectionModel[] = []
     dataContext.applyModelChange(() => {
       collections.forEach(collection => {
         const { name, title, parent, attributes, attrs } = collection as DICreateCollection
@@ -47,6 +49,7 @@ export const diCollectionHandler: DIHandler = {
         }
 
         const newCollection = CollectionModel.create({ name, _title: title })
+        newCollections.push(newCollection)
         dataContext.addCollection(newCollection, beforeCollectionId)
 
         const trueAttributes = Array.isArray(attributes) ? attributes : []
@@ -70,6 +73,8 @@ export const diCollectionHandler: DIHandler = {
 
         returnValues.push({ id: toV2Id(newCollection.id), name: newCollection.name })
       })
+    }, {
+      notifications: () => newCollections.map(newCollection => createCollectionNotification(newCollection, dataContext))
     })
 
     return { success: true, values: returnValues }
