@@ -12,8 +12,8 @@ describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
-  const c1 = dataset.collections[0]!
-  const c2 = dataset.collections[1]!
+  const c1 = dataset.collections[0]
+  const c2 = dataset.collections[1]
   const a1 = dataset.getAttributeByName("a1")!
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!

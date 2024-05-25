@@ -6,7 +6,7 @@ describe("DataInteractive AttributeLocationHandler", () => {
   const handler = diAttributeLocationHandler
 
   it("update works as expected", () => {
-    const { dataset, c1, c2, a1, a2, a3 } = setupTestDataset()
+    const { dataset, c1, c2, a1, a2 } = setupTestDataset()
     const a4 = dataset.addAttribute({ name: "a4" }, { collection: c1.id })
     const a5 = dataset.addAttribute({ name: "a5" }, { collection: c2.id })
     const a6 = dataset.addAttribute({ name: "a6" })
