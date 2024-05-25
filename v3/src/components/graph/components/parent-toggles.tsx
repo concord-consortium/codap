@@ -27,7 +27,7 @@ interface ICreateCaseButtons {
 
 const SCROLL_BUTTON_WIDTH = 32
 const TEXT_OFFSET = 5
-const BUTTON_FONT = `11px Montserrat, sans-serif`
+const BUTTON_FONT = "11px Montserrat, sans-serif"
 
 const consolidateCaseButtonsByAttrValue = (caseButtons: ICaseButton[], hiddenCases: string[]): ICaseButton[] => {
   // Use caseButtons to create a map of attribute values to matching case IDs
@@ -94,38 +94,53 @@ export const ParentToggles = observer(function ParentToggles() {
   const [buttonContainerWidth, setButtonContainerWidth] = useState(0)
 
   // Returns the currently available width for the button list, the total width of the buttons that can fit within
-  // that available width from the given `firstIndex`, and the index of the last visible button.
-  const buttonContainerDetails = useCallback((firstIndex: number) => {
+  // that available width, and the index of the first visible button.
+  const buttonContainerDetails = useCallback(() => {
     let buttonsVisibleWidth = 0
-    let lastIndex = 0
-    const usedWidth = toggleTextWidth + TEXT_OFFSET + lastButtonWidth + TEXT_OFFSET + SCROLL_BUTTON_WIDTH * 2
-    const availableWidth = tileWidth - usedWidth
+    let firstIndex = 0
+    const usedWidth = toggleTextWidth + TEXT_OFFSET + lastButtonWidth + TEXT_OFFSET
+    let availableWidth = tileWidth - usedWidth
+    const needScrollButtons = caseButtonsListWidth > availableWidth
 
-    for (let i = firstIndex; i < caseButtons.length; i++) {
+    if (needScrollButtons) {
+      const rightScrollButtonWidth = lastVisibleIndex.current < caseButtons.length - 1 ? SCROLL_BUTTON_WIDTH : 0
+      const leftScrollButtonWidth = firstVisibleIndex.current !== 0 ? SCROLL_BUTTON_WIDTH : 0
+      availableWidth = availableWidth - rightScrollButtonWidth - leftScrollButtonWidth
+    }
+
+    // Determine how many buttons can fit within the available width starting from the last visible button
+    // and working backwards.
+    for (let i = lastVisibleIndex.current; i >= 0; i--) {
       buttonsVisibleWidth += caseButtons[i].width + TEXT_OFFSET
       if (buttonsVisibleWidth > availableWidth) {
-        lastIndex = i - 1
+        firstIndex = i + 1
         buttonsVisibleWidth -= caseButtons[i].width + TEXT_OFFSET
         break
       }
-      lastIndex = i
+      firstIndex = i
     }
 
-    return { availableWidth, buttonsVisibleWidth, lastIndex }
-  }, [caseButtons, lastButtonWidth, tileWidth, toggleTextWidth])
+    return { availableWidth, buttonsVisibleWidth, firstIndex }
+  }, [caseButtons, caseButtonsListWidth, lastButtonWidth, tileWidth, toggleTextWidth])
 
   useEffect(function updateButtonContainerWidth() {
-    const { availableWidth, buttonsVisibleWidth, lastIndex } = buttonContainerDetails(firstVisibleIndex.current)
+    const { availableWidth, buttonsVisibleWidth, firstIndex } = buttonContainerDetails()
+    // Find the offset by summing the widths of all buttons before the first visible button
+    let offset = 0
+    for (let i = 0; i < firstIndex; i++) {
+      offset += caseButtons[i].width + TEXT_OFFSET
+    }
     setButtonContainerWidth(buttonsVisibleWidth)
+    setButtonsListOffset(-offset)
+    firstVisibleIndex.current = firstIndex
     if (caseButtonsListWidth > availableWidth) {
-      lastVisibleIndex.current = lastIndex
-      setShowRightButton(true)
-      setShowLeftButton(true)
+      setShowRightButton(lastVisibleIndex.current !== caseButtons.length - 1)
+      setShowLeftButton(firstVisibleIndex.current !== 0)
     } else {
       setShowRightButton(false)
       setShowLeftButton(false)
     }
-  }, [buttonContainerDetails, caseButtonsListWidth, tileWidth])
+  }, [buttonContainerDetails, caseButtons, caseButtonsListWidth, tileWidth])
 
   const handleToggleAll = () => {
     if (hiddenCases.length > 0) {
@@ -190,27 +205,41 @@ export const ParentToggles = observer(function ParentToggles() {
   }
 
   const handleScroll = (direction: "left" | "right") => {
-    const isScrollingRight = direction === "right"
-    const boundaryIndex = isScrollingRight ? lastVisibleIndex.current : firstVisibleIndex.current
-    const limitIndex = isScrollingRight ? caseButtons.length - 1 : 0
-    if (boundaryIndex === limitIndex) return
+    const { availableWidth } = buttonContainerDetails()
+    let newOffset = 0
+    let buttonsVisibleWidth = 0
+    const increment = direction === "right" ? 1 : -1
+    const startIndex = direction === "right" ? lastVisibleIndex.current + 1 : firstVisibleIndex.current - 1
+    const endIndex = direction === "right" ? caseButtons.length : -1
 
-    const nextButtonIndex = isScrollingRight ? boundaryIndex + 1 : boundaryIndex - 1
-    const nextButtonOffset = caseButtons[nextButtonIndex].width + TEXT_OFFSET
-    const offset = isScrollingRight ? -nextButtonOffset : nextButtonOffset
-    const additionalOffset = !isScrollingRight && lastVisibleIndex.current === caseButtons.length - 1
-                               ? lastButtonWidth + TEXT_OFFSET + SCROLL_BUTTON_WIDTH * 2
-                               : 0
-    const fullOffset = buttonsListOffset + offset - additionalOffset
-    setButtonsListOffset(fullOffset)
+    for (let i = startIndex; i !== endIndex; i += increment) {
+      const buttonWidth = caseButtons[i].width + TEXT_OFFSET
+      buttonsVisibleWidth += buttonWidth
+  
+      if (buttonsVisibleWidth > availableWidth) {
+        buttonsVisibleWidth -= buttonWidth
+        break
+      }
+  
+      newOffset += buttonWidth
 
-    if (isScrollingRight) {
-      lastVisibleIndex.current++
-      firstVisibleIndex.current++
-    } else {
-      firstVisibleIndex.current--
-      lastVisibleIndex.current--
+      if (direction === "right") {
+        firstVisibleIndex.current++
+        lastVisibleIndex.current++
+      } else {
+        firstVisibleIndex.current--
+        lastVisibleIndex.current--
+      }
     }
+    if (direction === "right") {
+      setButtonsListOffset(prevOffset => prevOffset - newOffset)
+    } else {
+      setButtonsListOffset(prevOffset => prevOffset + newOffset)
+    }
+
+    setButtonContainerWidth(buttonsVisibleWidth)
+    setShowLeftButton(firstVisibleIndex.current > 0)
+    setShowRightButton(lastVisibleIndex.current < caseButtons.length - 1)
   }
 
   const renderCaseButtons = () => {

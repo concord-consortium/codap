@@ -32,8 +32,7 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
     let casesToRecalculate: CaseList = []
     switch (mstAction.name) {
       case "addCases": {
-        // Recalculate only new cases when if there's no aggregate dependency. Otherwise, we need to update all the
-        // cases.
+        // Recalculate only new cases if there's no aggregate dependency. Otherwise, we need to update all the cases.
         casesToRecalculate = anyAggregateDepPresent ? "ALL_CASES" : (mstAction as AddCasesAction).args[0] || []
         break
       }
@@ -118,7 +117,7 @@ export const observeSymbolNameChanges = (dataSets: Map<string, IDataSet>,
   // When any attribute name is updated, we need to update display formulas. We could make this more granular,
   // and observe only dependant attributes, but it doesn't seem necessary for now.
   const disposeAttrNameReaction = reaction(
-    () => Array.from(dataSets.values()).map(ds => ds.attrNameMap),
+    () => Array.from(dataSets.values()).map(ds => ds.attrNameMap.toJSON()),
     () => nameUpdateCallback(),
     {
       equals: comparer.structural,

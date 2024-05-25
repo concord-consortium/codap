@@ -1,11 +1,11 @@
 import { ISerializedActionCall } from "mobx-state-tree"
-import { IAddCaseOptions, ICase } from "./data-set-types"
+import { IAddCasesOptions, ICase } from "./data-set-types"
 
 // TODO: define the types for the rest of the actions
 
 export interface AddCasesAction extends ISerializedActionCall {
   name: "addCases"
-  args: [ICase[], IAddCaseOptions | undefined]
+  args: [ICase[], IAddCasesOptions | undefined]
 }
 export const isAddCasesAction = (action: ISerializedActionCall): action is AddCasesAction =>
               action.name === "addCases"

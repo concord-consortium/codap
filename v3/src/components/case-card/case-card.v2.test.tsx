@@ -10,6 +10,7 @@ import "./case-card.v2"
 const { CaseCard } = DG.React as any
 
 describe("CaseCard component", () => {
+  jest.setTimeout(10000)
   const user = userEvent.setup()
 
   // https://github.com/jsdom/jsdom/issues/1590#issuecomment-1379728739

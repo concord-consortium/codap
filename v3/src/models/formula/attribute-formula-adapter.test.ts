@@ -59,10 +59,10 @@ describe("AttributeFormulaAdapter", () => {
         ] as LEGACY_ATTRIBUTES_ARRAY_ANY
       })
       dataSet.attributes[0].formula!.setCanonicalExpression(
-        `${localAttrIdToCanonical(dataSet.attrIDFromName("bar"))} + 1`
+        `${localAttrIdToCanonical(dataSet.attrIDFromName("bar")!)} + 1`
       )
       dataSet.attributes[1].formula!.setCanonicalExpression(
-        `${localAttrIdToCanonical(dataSet.attrIDFromName("foo"))} + 1`
+        `${localAttrIdToCanonical(dataSet.attrIDFromName("foo")!)} + 1`
       )
       dataSet.addCases([{ __id__: "1" }])
       const attribute = dataSet.attributes[0]
@@ -106,7 +106,7 @@ describe("AttributeFormulaAdapter", () => {
       adapter.setupFormulaObservers(context, extraMetadata)
 
       expect(dataSet.getValueAtIndex(0, attribute.id)).toEqual("")
-      dataSet.moveAttributeToNewCollection(dataSet.attrIDFromName("bar"))
+      dataSet.moveAttributeToNewCollection(dataSet.attrIDFromName("bar")!)
       expect(dataSet.getValueAtIndex(0, attribute.id)).toEqual("3") // formula has been recalculated
     })
   })
