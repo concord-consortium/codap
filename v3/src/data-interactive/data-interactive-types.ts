@@ -40,6 +40,10 @@ export interface DIAllCases {
   }
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
+export interface DIAttributeLocationValues {
+  collection?: string | number
+  position?: number
+}
 export interface DICase {
   collectionID?: number
   collectionName?: string
@@ -89,6 +93,13 @@ export interface DIInteractiveFrame {
   version?: string
 }
 export type DIItem = DICaseValues
+export interface DICreateCollection {
+  name?: string
+  title?: string
+  parent?: string
+  attributes?: DIAttribute[]
+  attrs?: DIAttribute[]
+}
 export interface DINewCase {
   id?: number
   itemID?: number
@@ -109,6 +120,7 @@ export interface DIResources {
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
   collection?: ICollectionPropsModel
+  collectionList?: ICollectionPropsModel[]
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
@@ -123,8 +135,8 @@ export interface DIResources {
 }
 
 // types for values accepted as inputs by the API
-export type DISingleValues = DIAttribute | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DINewCase | DIUpdateCase | DINotification | V2Component
+export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
+  DIGlobal | DIInteractiveFrame | DICreateCollection | DINewCase | DIUpdateCase | DINotification | V2Component
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API

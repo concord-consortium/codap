@@ -1,15 +1,10 @@
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { IAttribute } from "../../models/data/attribute"
-import { isCollectionModel } from "../../models/data/collection"
-import { IAttributeChangeResult, IMoveAttributeOptions } from "../../models/data/data-set-types"
-import { deleteCollectionNotification, moveAttributeNotification } from "../../models/data/data-set-notifications"
-import { getCollectionAttrs } from "../../models/data/data-set-utils"
+import { moveAttribute } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
-import { kIndexColumnKey } from "./case-table-types"
 
 interface IProps {
   columnKey: string
@@ -18,62 +13,26 @@ interface IProps {
 export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const collectionId = useCollectionContext()
   const droppableId = `${kAttributeDividerDropZoneBaseId}:${collectionId}:${columnKey}`
-  const data = useDataSetContext()
+  const dataset = useDataSetContext()
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
 
   const { isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, active => {
     const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
-    const collection = data?.getCollection(collectionId)
-    if (!collection || !dataSet || (dataSet !== data) || !dragAttrId) return
+    const targetCollection = dataset?.getCollection(collectionId)
+    if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
 
-    const srcCollection = dataSet.getCollectionForAttribute(dragAttrId)
-    const firstAttr: IAttribute | undefined = getCollectionAttrs(collection, data)[0]
-    const options: IMoveAttributeOptions = columnKey === kIndexColumnKey
-                                            ? { before: firstAttr?.id }
-                                            : { after: columnKey }
-    const notifications = moveAttributeNotification(data)
-    if (collection === srcCollection) {
-      if (isCollectionModel(collection)) {
-        // move the attribute within a collection
-        data.applyModelChange(
-          () => collection.moveAttribute(dragAttrId, options),
-          {
-            notifications,
-            undoStringKey: "DG.Undo.dataContext.moveAttribute",
-            redoStringKey: "DG.Redo.dataContext.moveAttribute"
-          }
-        )
-      }
-      else {
-        // move an ungrouped attribute within the DataSet
-        data.applyModelChange(
-          () => data.moveAttribute(dragAttrId, options),
-          {
-            notifications,
-            undoStringKey: "DG.Undo.dataContext.moveAttribute",
-            redoStringKey: "DG.Redo.dataContext.moveAttribute"
-          }
-        )
-      }
-    }
-    else {
-      // move the attribute to a new collection
-      let result: IAttributeChangeResult | undefined
-      data.applyModelChange(
-        () => {
-          result = data.setCollectionForAttribute(dragAttrId, { collection: collection?.id, ...options })
-        },
-        {
-          notifications: () => result?.removedCollectionId
-            ? [deleteCollectionNotification(data), notifications]
-            : notifications,
-          undoStringKey: "DG.Undo.dataContext.moveAttribute",
-          redoStringKey: "DG.Redo.dataContext.moveAttribute"
-        }
-      )
-    }
+    const sourceCollection = dataSet.getCollectionForAttribute(dragAttrId)
+    moveAttribute({
+      afterAttrId: columnKey,
+      attrId: dragAttrId,
+      dataset,
+      includeNotifications: true,
+      sourceCollection,
+      targetCollection,
+      undoable: true
+    })
   })
 
   // find the `case-table-content` DOM element; divider must be drawn relative

@@ -1,5 +1,5 @@
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
-import { ICollectionModel } from "../models/data/collection"
+import { ICollectionModel, ICollectionPropsModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
@@ -217,6 +217,12 @@ export function basicDataSetInfo(dataSet: IDataSet) {
 export function basicAttributeInfo(attribute: IAttribute) {
   const { name, id, title } = attribute
   return { name, id: toV2Id(id), title }
+}
+
+export function basicCollectionInfo(collection: ICollectionPropsModel) {
+  const { name, id, title } = collection
+  const v2Id = toV2Id(id)
+  return { name, guid: v2Id, title, id: v2Id }
 }
 
 export function valuesFromGlobal(global: IGlobalValue) {

@@ -2,9 +2,11 @@ import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
 import { DIResultAttributes } from "../data-interactive-types"
 import { DataSet } from "../../models/data/data-set"
+import { setupTestDataset } from "./handler-test-utils"
 
 describe("DataInteractive AttributeHandler", () => {
   const handler = diAttributeHandler
+
   it("get works as expected", () => {
     expect(handler.get?.({}).success).toBe(false)
 
@@ -13,6 +15,7 @@ describe("DataInteractive AttributeHandler", () => {
     expect(result?.success).toBe(true)
     expect((result?.values as any)?.name).toBe("test")
   })
+
   it("create works as expected", () => {
     const dataContext = DataSet.create({})
     const resources = { dataContext }
@@ -32,7 +35,13 @@ describe("DataInteractive AttributeHandler", () => {
     expect(dataContext.attributes.length).toBe(3)
     expect(dataContext.attributes[1].name).toBe(name2)
     expect(dataContext.attributes[2].name).toBe(name3)
+
+    const { dataset, c1 } = setupTestDataset()
+    expect(c1.attributes.length).toBe(1)
+    expect(handler.create?.({ dataContext: dataset, collection: c1 }, [{ name: name1 }]).success).toBe(true)
+    expect(c1.attributes.length).toBe(2)
   })
+
   it("update works as expected", () => {
     const attribute = Attribute.create({ name: "test" })
     const name = "new name"
@@ -62,6 +71,7 @@ describe("DataInteractive AttributeHandler", () => {
     const resultAttr2 = values2.attrs?.[0]
     expect(resultAttr2?.type).toBe(type)
   })
+
   it("delete works as expected", () => {
     const attribute = Attribute.create({ name: "name" })
     const dataContext = DataSet.create({})

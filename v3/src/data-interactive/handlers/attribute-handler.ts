@@ -11,7 +11,7 @@ import { attributeNotFoundResult, dataContextNotFoundResult } from "./di-results
 
 export const diAttributeHandler: DIHandler = {
   create(resources: DIResources, _values?: DIValues) {
-    const { dataContext } = resources
+    const { dataContext, collection } = resources
     if (!dataContext) return dataContextNotFoundResult
     const metadata = getSharedCaseMetadataFromDataset(dataContext)
     const values = _values as DIAttribute | DIAttribute[]
@@ -34,7 +34,7 @@ export const diAttributeHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       attributeValues.forEach(attributeValue => {
         if (attributeValue) {
-          const attribute = createAttribute(attributeValue, dataContext, metadata)
+          const attribute = createAttribute(attributeValue, dataContext, metadata, collection)
           if (attribute) attributes.push(attribute)
         }
       })
