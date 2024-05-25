@@ -123,7 +123,7 @@ export function resolveResources(
 
   if ("collectionList" in resourceSelector) {
     if (dataContext) {
-      result.collectionList = [...Array.from(dataContext.collections), dataContext.ungrouped]
+      result.collectionList = [...dataContext.collectionModels]
     }
   }
 
