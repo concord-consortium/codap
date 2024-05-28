@@ -43,7 +43,7 @@
  */
 
 import { observable, reaction, runInAction } from "mobx"
-import { addDisposer, addMiddleware, getEnv, Instance, isAlive, SnapshotIn, types } from "mobx-state-tree"
+import { addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, SnapshotIn, types } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
@@ -811,8 +811,8 @@ export const DataSet = V2Model.named("DataSet").props({
      */
     actions: {
       afterCreate() {
-        const context: IEnvContext = getEnv(self),
-              { srcDataSet, } = context
+        const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
+              { srcDataSet } = context
 
         // build attrNameMap
         self.attributesMap.forEach(attr => {
