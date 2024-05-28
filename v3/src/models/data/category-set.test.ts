@@ -1,4 +1,4 @@
-import { applySnapshot, getEnv, getSnapshot, types } from "mobx-state-tree"
+import { applySnapshot, getSnapshot, types } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { Attribute, IAttribute } from "./attribute"
 import { CategorySet, ICategorySet, createProvisionalCategorySet, getProvisionalDataSet } from "./category-set"
@@ -47,7 +47,6 @@ describe("CategorySet", () => {
 
     // getProvisionalDataSet returns undefined for simple attributes and null
     const c = Attribute.create({ id: "cId", name: "c" }, undefined)
-    expect(getEnv(c)).toEqual({})
     expect(getProvisionalDataSet(c)).toBeUndefined()
     expect(getProvisionalDataSet(null)).toBeUndefined()
   })

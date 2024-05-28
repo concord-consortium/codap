@@ -17,6 +17,8 @@ import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
+import { ILSRLAdornmentModel } from "../adornments/lsrl/lsrl-adornment-model"
+import { IMovableLineAdornmentModel } from "../adornments/movable-line/movable-line-adornment-model"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
@@ -50,8 +52,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   // LSRL adornments, so we need to get information from those adornments as well.
   const adornmentsStore = graphModel.adornmentsStore
   const showSquares = adornmentsStore.showSquaresOfResiduals
-  const movableLine = adornmentsStore.adornments.find(a => a.type === "Movable Line")
-  const lsrl = adornmentsStore.adornments.find(a => a.type === "LSRL")
+  const movableLine = adornmentsStore.findAdornmentOfType<IMovableLineAdornmentModel>("Movable Line")
+  const lsrl = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>("LSRL")
   const movableLineSquaresRef = useRef<SVGGElement>(null)
   const lsrlSquaresRef = useRef<SVGGElement>(null)
 
