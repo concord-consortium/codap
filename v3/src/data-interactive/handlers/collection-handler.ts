@@ -83,6 +83,7 @@ export const diCollectionHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!_collection) return collectionNotFoundResult
     const collectionId = _collection.id
+    // For now, it's only possible to delete a grouped collection.
     const collection = dataContext.getGroupedCollection(collectionId)
     if (!collection) return collectionNotFoundResult
 
