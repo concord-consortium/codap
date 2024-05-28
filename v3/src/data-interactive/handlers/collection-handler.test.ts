@@ -1,6 +1,6 @@
 import { ICodapV2CollectionV3 } from "../../v2/codap-v2-types"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
-import { DICollection, DIValues } from "../data-interactive-types"
+import { DICollection, DIDeleteCollectionResult, DIValues } from "../data-interactive-types"
 import { diCollectionHandler } from "./collection-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -60,6 +60,20 @@ describe("DataInteractive CollectionHandler", () => {
     expect(dataset.collections[4].attributes.length).toBe(2)
     expect(dataset.collections[4].attributes[0]?.name).toBe("a6")
     expect(dataset.collections[4].attributes[1]?.name).toBe("a7")
+  })
+
+  it("delete works", () => {
+    const { dataset: dataContext, c1: collection } = setupTestDataset()
+    expect(handler.delete?.({ dataContext }).success).toBe(false)
+    expect(handler.delete?.({ collection }).success).toBe(false)
+
+    const collectionId = collection.id
+    const result = handler.delete?.({ dataContext, collection })
+    expect(result?.success).toBe(true)
+    expect((result?.values as DIDeleteCollectionResult).collections?.[0]).toBe(toV2Id(collectionId))
+    expect(dataContext.attributes.length).toBe(2)
+    expect(dataContext.collections.length).toBe(1)
+    expect(dataContext.getCollection(collectionId)).toBeUndefined()
   })
 
   it("get works", () => {

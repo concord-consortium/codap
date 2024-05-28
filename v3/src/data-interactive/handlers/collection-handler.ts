@@ -4,8 +4,7 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import {
-  DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection,
-  DIUpdateCollection
+  DIHandler, DIResources, DIValues, DICreateCollection, DICollection, DIUpdateCollection
 } from "../data-interactive-types"
 import { convertCollectionToV2, convertUngroupedCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
