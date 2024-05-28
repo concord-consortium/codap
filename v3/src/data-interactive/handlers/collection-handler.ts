@@ -79,7 +79,20 @@ export const diCollectionHandler: DIHandler = {
     return { success: true, values: returnValues }
   },
 
-  delete: diNotImplementedYet,
+  delete(resources: DIResources) {
+    const { collection: _collection, dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!_collection) return collectionNotFoundResult
+    const collectionId = _collection.id
+    const collection = dataContext.getGroupedCollection(collectionId)
+    if (!collection) return collectionNotFoundResult
+
+    dataContext.applyModelChange(() => {
+      dataContext.removeCollectionWithAttributes(collection)
+    })
+
+    return { success: true, values: { collections: [toV2Id(collectionId)] } }
+  },
 
   get(resources: DIResources) {
     const { collection, dataContext } = resources

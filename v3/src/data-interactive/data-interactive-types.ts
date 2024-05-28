@@ -107,6 +107,9 @@ export interface DINewCase {
 export interface DIUpdateCase {
   values: DICaseValues
 }
+export interface DIDeleteCollectionResult {
+  collections?: number[]
+}
 export interface DIUpdateCollection {
   title?: string
   labels?: Partial<ICollectionLabels>
@@ -147,7 +150,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 export type DIResultAttributes = { attrs: ICodapV2AttributeV3[] }
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIGetCaseResult | DIGlobal | DIInteractiveFrame
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
-                              DIAllCases | DIResultAttributes | number
+  DIAllCases | DIDeleteCollectionResult | DIResultAttributes | number
 
 export interface DIMetadata {
   dirtyDocument?: boolean
