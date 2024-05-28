@@ -1,3 +1,4 @@
+import { getSnapshot } from "mobx-state-tree"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
 import { ICollectionModel, ICollectionPropsModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
@@ -138,8 +139,9 @@ export function convertAttributeToV2FromResources(resources: DIResources) {
 }
 
 export function convertCollectionToV2(collection: ICollectionModel, dataContext?: IDataSet): ICodapV2CollectionV3 {
-  const { name, title, id } = collection
+  const { name, title, id, labels: _labels } = collection
   const v2Id = toV2Id(id)
+  const labels = _labels ? getSnapshot(_labels) : undefined
   const v2Attrs = collection.attributes.map(attribute => {
     if (attribute) return convertAttributeToV2(attribute, dataContext)
   })
@@ -154,7 +156,7 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
     // collapseChildren,
     guid: v2Id,
     id: v2Id,
-    // labels: { singleCase, pluralCase }
+    labels,
     name,
     // parent,
     title,
@@ -165,13 +167,15 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
 export function convertUngroupedCollectionToV2(dataContext: IDataSet): ICodapV2CollectionV3 | undefined {
   // TODO This will probably need to be reworked after upcoming v3 collection overhaul,
   // so I'm leaving it bare bones for now.
-  const { name, title, id } = dataContext.ungrouped
+  const { name, title, id, labels: _labels } = dataContext.ungrouped
   const v2Id = toV2Id(id)
+  const labels = _labels ? getSnapshot(_labels) : undefined
   const ungroupedAttributes = dataContext.ungroupedAttributes
   if (ungroupedAttributes.length > 0) {
     return {
       guid: v2Id,
       id: v2Id,
+      labels,
       name,
       title,
       attrs: ungroupedAttributes.map(attr => convertAttributeToV2(attr, dataContext)),

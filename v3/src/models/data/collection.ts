@@ -11,11 +11,58 @@ export const CollectionLabels = types.model("CollectionLabels", {
   setOfCases: "",
   setOfCasesWithArticle: ""
 })
+export interface ICollectionLabels extends Instance<typeof CollectionLabels> {}
 
 export const CollectionPropsModel = V2Model.named("CollectionProps").props({
   id: typeV3Id(kCollectionIdPrefix),
   labels: types.maybe(CollectionLabels)
 })
+.actions(self => ({
+  setSingleCase(singleCase: string) {
+    if (self.labels) {
+      self.labels.singleCase = singleCase
+    } else {
+      self.labels = CollectionLabels.create({ singleCase })
+    }
+  },
+  setPluralCase(pluralCase: string) {
+    if (self.labels) {
+      self.labels.pluralCase = pluralCase
+    } else {
+      self.labels = CollectionLabels.create({ pluralCase })
+    }
+  },
+  setSingleCaseWithArticle(singleCaseWithArticle: string) {
+    if (self.labels) {
+      self.labels.singleCaseWithArticle = singleCaseWithArticle
+    } else {
+      self.labels = CollectionLabels.create({ singleCaseWithArticle })
+    }
+  },
+  setSetOfCases(setOfCases: string) {
+    if (self.labels) {
+      self.labels.setOfCases = setOfCases
+    } else {
+      self.labels = CollectionLabels.create({ setOfCases })
+    }
+  },
+  setSetOfCasesWithArticle(setOfCasesWithArticle: string) {
+    if (self.labels) {
+      self.labels.setOfCasesWithArticle = setOfCasesWithArticle
+    } else {
+      self.labels = CollectionLabels.create({ setOfCasesWithArticle })
+    }
+  }
+}))
+.actions(self => ({
+  setLabels(labels: Partial<ICollectionLabels>) {
+    if (labels.singleCase) self.setSingleCase(labels.singleCase)
+    if (labels.pluralCase) self.setPluralCase(labels.pluralCase)
+    if (labels.singleCaseWithArticle) self.setSingleCaseWithArticle(labels.singleCaseWithArticle)
+    if (labels.setOfCases) self.setSetOfCases(labels.setOfCases)
+    if (labels.setOfCasesWithArticle) self.setSetOfCasesWithArticle(labels.setOfCasesWithArticle)
+  }
+}))
 export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}
 
 export const CollectionModel = CollectionPropsModel

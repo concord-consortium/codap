@@ -1,6 +1,6 @@
 import { ICodapV2CollectionV3 } from "../../v2/codap-v2-types"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
-import { DICollection } from "../data-interactive-types"
+import { DICollection, DIDeleteCollectionResult, DIValues } from "../data-interactive-types"
 import { diCollectionHandler } from "./collection-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -62,18 +62,34 @@ describe("DataInteractive CollectionHandler", () => {
     expect(dataset.collections[4].attributes[1]?.name).toBe("a7")
   })
 
+  it("delete works", () => {
+    const { dataset: dataContext, c1: collection } = setupTestDataset()
+    expect(handler.delete?.({ dataContext }).success).toBe(false)
+    expect(handler.delete?.({ collection }).success).toBe(false)
+
+    const collectionId = collection.id
+    const result = handler.delete?.({ dataContext, collection })
+    expect(result?.success).toBe(true)
+    expect((result?.values as DIDeleteCollectionResult).collections?.[0]).toBe(toV2Id(collectionId))
+    expect(dataContext.attributes.length).toBe(2)
+    expect(dataContext.collections.length).toBe(1)
+    expect(dataContext.getCollection(collectionId)).toBeUndefined()
+  })
+
   it("get works", () => {
     const { dataset, c1 } = setupTestDataset()
     expect(handler.get?.({}).success).toBe(false)
     expect(handler.get?.({ dataContext: dataset }).success).toBe(false)
 
     // Grouped collection
+    c1.setLabels({ singleCase: "singleCase" })
     const groupedResult = handler.get?.({ dataContext: dataset, collection: c1 })
     expect(groupedResult?.success).toBe(true)
     const groupedValues = groupedResult?.values as ICodapV2CollectionV3
     expect(groupedValues.name).toEqual(c1.name)
     expect(groupedValues.id).toEqual(toV2Id(c1.id))
     expect(groupedValues.attrs.length).toEqual(c1.attributes.length)
+    expect(groupedValues.labels?.singleCase).toBe("singleCase")
 
     // Ungrouped collection
     const ungrouped = dataset.ungrouped
@@ -83,5 +99,18 @@ describe("DataInteractive CollectionHandler", () => {
     expect(ungroupedValues.name).toEqual(ungrouped.name)
     expect(ungroupedValues.id).toEqual(toV2Id(ungrouped.id))
     expect(ungroupedValues.attrs.length).toEqual(dataset.ungroupedAttributes.length)
+  })
+
+  it("update works", () => {
+    const { dataset: dataContext, c1: collection } = setupTestDataset()
+    expect(handler.update?.({ dataContext }).success).toBe(false)
+    expect(handler.update?.({ collection }).success).toBe(false)
+    expect(handler.update?.({ dataContext, collection }).success).toBe(true)
+
+    expect(handler.update?.(
+      { dataContext, collection }, { title: "newTitle", labels: { singleCase: "singleCase" } } as DIValues
+    ).success).toBe(true)
+    expect(collection._title).toBe("newTitle")
+    expect(collection.labels?.singleCase).toBe("singleCase")
   })
 })
