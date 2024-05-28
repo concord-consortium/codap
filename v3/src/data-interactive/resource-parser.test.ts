@@ -100,4 +100,29 @@ describe("DataInteractive ResourceParser", () => {
     const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)
   })
+
+  it("finds item", () => {
+    expect(resolve(`dataContext[data].item`).item).toBeUndefined()
+    expect(resolve(`dataContext[data].item[-1]`).item).toBeUndefined()
+    expect(resolve(`dataContext[data].item[100]`).item).toBeUndefined()
+    expect(resolve(`dataContext[data].item[word]`).item).toBeUndefined()
+
+    const item = dataset.getCaseAtIndex(0)
+    expect(resolve(`dataContext[data].item[0]`).item?.__id__).toBe(item?.__id__)
+  })
+
+  it("finds itemByID", () => {
+    expect(resolve(`dataContext[data].itemByID[unknown]`).itemByID).toBeUndefined()
+
+    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    expect(resolve(`dataContext[data].itemByID[${toV2Id(itemId)}]`).itemByID?.__id__).toBe(itemId)
+  })
+
+  it("finds itemByCaseID", () => {
+    expect(resolve(`dataContext[data].itemByCaseID[unknown]`).itemByCaseID).toBeUndefined()
+
+    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
+  })
 })

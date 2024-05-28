@@ -180,17 +180,17 @@ export function resolveResources(
   //   result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
   // }
 
-  // if (resourceSelector.item) {
-  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
-  //   result.item = dataSet && serializeItem(dataSet,
-  //       dataSet.getDataItem(Number(resourceSelector.item)));
-  // }
+  if (resourceSelector.item) {
+    const index = Number(resourceSelector.item)
+    if (!isNaN(index)) {
+      result.item = dataContext?.getCaseAtIndex(index)
+    }
+  }
 
-  // if (resourceSelector.itemByID) {
-  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
-  //   result.itemByID = dataSet &&
-  //       serializeItem(dataSet,dataSet.getDataItemByID(resourceSelector.itemByID));
-  // }
+  if (resourceSelector.itemByID) {
+    const itemId = toV3CaseId(resourceSelector.itemByID)
+    result.itemByID = dataContext?.getCase(itemId)
+  }
 
   // if (resourceSelector.itemSearch) {
   //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
@@ -198,11 +198,11 @@ export function resolveResources(
   //       resourceSelector.itemSearch) ;
   // }
 
-  // if (resourceSelector.itemByCaseID) {
-  //   var myCase = result.dataContext && result.dataContext.getCaseByID(resourceSelector.itemByCaseID);
-  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
-  //   result.itemByCaseID = dataSet && myCase && serializeItem(dataSet, myCase.get('item'));
-  // }
+  if (resourceSelector.itemByCaseID) {
+    const caseId = toV3CaseId(resourceSelector.itemByCaseID)
+    const itemId = dataContext?.pseudoCaseMap.get(caseId)?.childCaseIds[0]
+    if (itemId) result.itemByCaseID = dataContext?.getCase(itemId)
+  }
 
   // DG.ObjectMap.forEach(resourceSelector, function (key, value) {
   //   // Make sure we got values for every non-terminal selector.

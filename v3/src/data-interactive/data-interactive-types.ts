@@ -127,11 +127,11 @@ export interface DIResources {
   global?: IGlobalValue
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
-  item?: DIItem
-  itemByCaseID?: DIItem
-  itemByID?: DIItem
+  item?: ICase
+  itemByCaseID?: ICase
+  itemByID?: ICase
   itemCount?: number
-  itemSearch?: DIItem[]
+  itemSearch?: ICase[]
 }
 
 // types for values accepted as inputs by the API
@@ -196,6 +196,9 @@ export interface DIResourceSelector {
   dataContextList?: string
   global?: string
   interactiveFrame?: string
+  item?: string
+  itemByCaseID?: string
+  itemByID?: string
   logMessage?: string
   type?: string
 }

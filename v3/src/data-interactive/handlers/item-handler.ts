@@ -1,5 +1,5 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIItem, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
+import { DICaseValues, DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -9,7 +9,7 @@ export const diItemHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
-    const items = (Array.isArray(values) ? values : [values]) as DIItem[]
+    const items = (Array.isArray(values) ? values : [values]) as DICaseValues[]
     const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
     return {
       success: true,
@@ -17,6 +17,7 @@ export const diItemHandler: DIHandler = {
       itemIDs
     }
   },
+  delete: diNotImplementedYet,
   get: diNotImplementedYet,
   update: diNotImplementedYet
 }
