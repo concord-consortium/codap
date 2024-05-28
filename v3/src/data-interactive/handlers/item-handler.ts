@@ -1,7 +1,8 @@
+import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DICaseValues, DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
-import { attrNamesToIds } from "../data-interactive-utils"
-import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
+import { attrNamesToIds, getCaseValues } from "../data-interactive-utils"
+import { dataContextNotFoundResult, itemNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diItemHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
@@ -17,8 +18,28 @@ export const diItemHandler: DIHandler = {
       itemIDs
     }
   },
-  delete: diNotImplementedYet,
-  get: diNotImplementedYet,
+  delete(resources: DIResources) {
+    const { dataContext, item } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!item) return itemNotFoundResult
+    const itemIds = [item.__id__]
+
+    dataContext.applyModelChange(() => {
+      dataContext.removeCases(itemIds)
+    })
+
+    return { success: true, values: itemIds.map(id => toV2Id(id)) }
+  },
+  get(resources: DIResources) {
+    const { dataContext, item } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!item) return itemNotFoundResult
+
+    return { success: true, values: {
+      id: toV2Id(item.__id__),
+      values: getCaseValues(item.__id__, dataContext)
+    }}
+  },
   update: diNotImplementedYet
 }
 

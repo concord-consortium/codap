@@ -32,7 +32,7 @@ export const diAllCasesHandler: DIHandler = {
       const childCaseIds = c.childCaseIds && Array.from(c.childCaseIds)
       const children = childPseudoCaseIds ?? childCaseIds ?? []
 
-      const values = getCaseValues(id, collection.id, dataContext)
+      const values = getCaseValues(id, dataContext, collection.id)
 
       return {
         case: { id: toV2Id(id), parent, children: children.map(child => toV2Id(child)), values },

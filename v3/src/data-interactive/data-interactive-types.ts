@@ -150,7 +150,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 export type DIResultAttributes = { attrs: ICodapV2AttributeV3[] }
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIGetCaseResult | DIGlobal | DIInteractiveFrame
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
-  DIAllCases | DIDeleteCollectionResult | DIResultAttributes | number
+  DIAllCases | DIDeleteCollectionResult | DIResultAttributes | number | number[]
 
 export interface DIMetadata {
   dirtyDocument?: boolean
