@@ -4,7 +4,8 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import {
-  DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection
+  DIHandler, DIResources, diNotImplementedYet, DIValues, DICreateCollection, DICollection,
+  DIUpdateCollection
 } from "../data-interactive-types"
 import { convertCollectionToV2, convertUngroupedCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
@@ -94,7 +95,22 @@ export const diCollectionHandler: DIHandler = {
     }
   },
 
-  update: diNotImplementedYet
+  update(resources: DIResources, values?: DIValues) {
+    const { collection, dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!collection) return collectionNotFoundResult
+
+    if (values) {
+      const { title, labels } = values as DIUpdateCollection
+
+      dataContext.applyModelChange(() => {
+        if (title) collection.setTitle(title)
+        if (labels) collection.setLabels(labels)
+      })
+    }
+
+    return { success: true }
+  }
 }
 
 registerDIHandler("collection", diCollectionHandler)

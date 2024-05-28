@@ -5,7 +5,7 @@ import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICollectionPropsModel } from "../models/data/collection"
+import { ICollectionLabels, ICollectionPropsModel } from "../models/data/collection"
 import { V2Component } from "./data-interactive-component-types"
 
 export type DICaseValue = string | number | boolean | undefined
@@ -106,6 +106,10 @@ export interface DINewCase {
 }
 export interface DIUpdateCase {
   values: DICaseValues
+}
+export interface DIUpdateCollection {
+  title?: string
+  labels?: Partial<ICollectionLabels>
 }
 export interface DINotification {
   request?: string
