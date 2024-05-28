@@ -1140,6 +1140,15 @@ export const DataSet = V2Model.named("DataSet").props({
       commitCache && this.commitCache()
       self.clearCache()
     }
+  },
+  removeCollectionWithAttributes(collection: ICollectionModel) {
+    collection.attributes.forEach(attribute => {
+      if (attribute) {
+        collection.removeAttribute(attribute.id)
+        self.removeAttribute(attribute.id)
+      }
+    })
+    self.removeCollection(collection)
   }
 }))
 // performs the specified action so that response actions are included and undo/redo strings assigned
