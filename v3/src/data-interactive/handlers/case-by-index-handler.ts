@@ -10,7 +10,7 @@ export const diCaseByIndexHandler: DIHandler = {
     return getCaseBy(resources, resources.caseByIndex)
   },
   update(resources: DIResources, values?: DIValues) {
-    return updateCaseBy(resources, values, resources.caseByIndex)
+    return updateCaseBy(resources, values, resources.caseByIndex, { nestedValues: true, resourceName: "caseByIndex" })
   }
 }
 

@@ -1,6 +1,7 @@
 import { ICase } from "../../models/data/data-set-types"
+import { toV3CaseId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
-import { DIResources, DIUpdateCase, DIValues } from "../data-interactive-types"
+import { DICaseValues, DIFullCase, DIResources, DIUpdateCase, DIValues } from "../data-interactive-types"
 import { getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { caseNotFoundResult, dataContextNotFoundResult } from "./di-results"
@@ -28,23 +29,63 @@ export function getCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true, values: getCaseRequestResultValues(aCase, dataContext) } as const
 }
 
-export function updateCaseBy(resources: DIResources, values?: DIValues, aCase?: ICase) {
+export interface IUpdateCaseByOptions {
+  nestedValues?: boolean // Case requests expect values: { values: { ... } }
+  resourceName?: string
+}
+export function updateCaseBy(
+  resources: DIResources, values?: DIValues, aCase?: ICase, options?: IUpdateCaseByOptions
+) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
   if (!aCase) return caseNotFoundResult
 
-  const missingFieldResult = {
+  const { nestedValues, resourceName } = options ?? {}
+
+  const missingFieldResult = (field: string) => ({
     success: false,
-    values: { error: t("V3.DI.Error.fieldRequired", { vars: ["update", "caseByID/Index", "values.values"] }) }
-  } as const
-  if (!values) return missingFieldResult
-  const updateCase = values as DIUpdateCase
-  if (!updateCase.values) return missingFieldResult
+    values: { error: t("V3.DI.Error.fieldRequired", { vars: ["update", resourceName ?? "case", field] }) }
+  } as const)
+  if (!values) return missingFieldResult("values")
+
+  let _values = values as DICaseValues
+  if (nestedValues) {
+    const updateCase = values as DIUpdateCase
+    if (!updateCase.values) return missingFieldResult("values.values")
+    _values = updateCase.values
+  }
 
   dataContext.applyModelChange(() => {
-    const updatedAttributes = attrNamesToIds(updateCase.values, dataContext)
+    const updatedAttributes = attrNamesToIds(_values, dataContext)
     dataContext.setCaseValues([{ ...updatedAttributes, __id__: aCase.__id__ }])
   })
 
   return { success: true }
+}
+
+export function updateCasesBy(resources: DIResources, values?: DIValues, itemReturnStyle?: boolean) {
+  const { dataContext } = resources
+  if (!dataContext) return dataContextNotFoundResult
+
+  const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
+  const caseIDs: number[] = []
+  dataContext.applyModelChange(() => {
+    cases.forEach(aCase => {
+      const { id } = aCase
+      const v3Id = id && toV3CaseId(id)
+      if (v3Id && aCase.values && (dataContext.getCase(v3Id) || dataContext.pseudoCaseMap.get(v3Id))) {
+        caseIDs.push(id)
+        const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
+        dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])
+      }
+    })
+  })
+
+  if (caseIDs.length > 0) {
+    if (itemReturnStyle) return { success: true, changedCases: caseIDs, deletedCases: [], createCases: [] }
+
+    return { success: true, caseIDs }
+  }
+
+  return { success: false }
 }

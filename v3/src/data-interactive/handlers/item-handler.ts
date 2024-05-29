@@ -1,7 +1,8 @@
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DICaseValues, DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
+import { DICaseValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { attrNamesToIds, getCaseValues } from "../data-interactive-utils"
+import { updateCaseBy, updateCasesBy } from "./case-by-handler-functions"
 import { dataContextNotFoundResult, itemNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diItemHandler: DIHandler = {
@@ -18,6 +19,7 @@ export const diItemHandler: DIHandler = {
       itemIDs
     }
   },
+
   delete(resources: DIResources) {
     const { dataContext, item } = resources
     if (!dataContext) return dataContextNotFoundResult
@@ -30,6 +32,7 @@ export const diItemHandler: DIHandler = {
 
     return { success: true, values: itemIds.map(id => toV2Id(id)) }
   },
+
   get(resources: DIResources) {
     const { dataContext, item } = resources
     if (!dataContext) return dataContextNotFoundResult
@@ -40,7 +43,16 @@ export const diItemHandler: DIHandler = {
       values: getCaseValues(item.__id__, dataContext)
     }}
   },
-  update: diNotImplementedYet
+
+  update(resources: DIResources, values?: DIValues) {
+    const { item } = resources
+
+    if (item) {
+      return updateCaseBy(resources, values, item, { resourceName: "item" })
+    } else {
+      return updateCasesBy(resources, values, true)
+    }
+  }
 }
 
 registerDIHandler("item", diItemHandler)
