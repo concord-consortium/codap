@@ -33,6 +33,7 @@ export const diAttributeLocationHandler: DIHandler = {
       afterAttrId,
       attrId: attributeLocation.id,
       dataset: dataContext,
+      includeNotifications: true,
       sourceCollection,
       targetCollection
     })
