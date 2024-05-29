@@ -1,6 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
-import { ICollectionModel, ICollectionPropsModel } from "../models/data/collection"
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
@@ -44,14 +44,14 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
     name: dataContext.name
   }
 
+  const _collection = dataContext.getCollectionForCase(caseId)
+  const collectionId = _collection?.id
   const caseGroup = dataContext.pseudoCaseMap.get(caseId)
-  const collectionId = caseGroup?.collectionId ?? dataContext.ungrouped.id
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__)
 
-  const _collection = dataContext.getCollection(collectionId)
-  const collectionIndex = dataContext.getCollectionIndex(collectionId)
-  const parentCollection = dataContext.collections[collectionIndex - 1]
+  const collectionIndex = collectionId ? dataContext.getCollectionIndex(collectionId) : -1
+  const parentCollection = collectionIndex > 0 ? dataContext.collections[collectionIndex - 1] : undefined
   const parentCollectionInfo = parentCollection ? {
     id: toV2Id(parentCollection.id),
     name: parentCollection.name
@@ -62,7 +62,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
     parent: parentCollectionInfo
   } : undefined
 
-  const values = getCaseValues(caseId, dataContext, collectionId)
+  const values = collectionId ? getCaseValues(caseId, dataContext, collectionId) : undefined
 
   return {
     id: maybeToV2Id(caseGroup?.pseudoCase.__id__),
@@ -79,7 +79,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const id = toV2Id(caseId)
 
-  const collectionId = dataContext.pseudoCaseMap.get(caseId)?.collectionId ?? dataContext.ungrouped.id
+  const collectionId = dataContext.pseudoCaseMap.get(caseId)?.collectionId ?? dataContext.childCollection.id
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__)
 
@@ -94,7 +94,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
   const pseudoCase = dataContext.pseudoCaseMap.get(caseId)
   const children = pseudoCase?.childPseudoCaseIds?.map(cId => toV2Id(cId)) ??
     pseudoCase?.childCaseIds?.map(cId => toV2Id(cId)) ?? []
-  
+
   const caseIndex = dataContext.getCasesForCollection(collectionId).findIndex(aCase => aCase.__id__ === caseId)
 
   return {
@@ -164,34 +164,12 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
   }
 }
 
-export function convertUngroupedCollectionToV2(dataContext: IDataSet): ICodapV2CollectionV3 | undefined {
-  // TODO This will probably need to be reworked after upcoming v3 collection overhaul,
-  // so I'm leaving it bare bones for now.
-  const { name, title, id, labels: _labels } = dataContext.ungrouped
-  const v2Id = toV2Id(id)
-  const labels = _labels ? getSnapshot(_labels) : undefined
-  const ungroupedAttributes = dataContext.ungroupedAttributes
-  if (ungroupedAttributes.length > 0) {
-    return {
-      guid: v2Id,
-      id: v2Id,
-      labels,
-      name,
-      title,
-      attrs: ungroupedAttributes.map(attr => convertAttributeToV2(attr, dataContext)),
-      type: "DG.Collection"
-    }
-  }
-}
-
 export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): ICodapV2DataContextV3 {
   const { name, title, id, description } = dataSet
   const v2Id = toV2Id(id)
 
   const collections: ICodapV2CollectionV3[] =
-    dataSet.collectionGroups.map(collectionGroup => convertCollectionToV2(collectionGroup.collection, dataSet))
-  const ungroupedCollection = convertUngroupedCollectionToV2(dataSet)
-  if (ungroupedCollection) collections.push(ungroupedCollection)
+    dataSet.collections.map(collection => convertCollectionToV2(collection, dataSet))
 
   return {
     type: "DG.DataContext",
@@ -230,7 +208,7 @@ export function basicAttributeInfo(attribute: IAttribute) {
   return { name, id: toV2Id(id), title }
 }
 
-export function basicCollectionInfo(collection: ICollectionPropsModel) {
+export function basicCollectionInfo(collection: ICollectionModel) {
   const { name, id, title } = collection
   const v2Id = toV2Id(id)
   return { name, guid: v2Id, title, id: v2Id }

@@ -14,24 +14,24 @@ describe("DataInteractive CollectionHandler", () => {
     expect(handler.create?.({ dataContext }).success).toBe(false)
 
     // Collections require names
-    expect(dataset.collections.length).toBe(2)
+    expect(dataset.collections.length).toBe(3)
     const noNameResult = handler.create?.({ dataContext }, {})
     expect(noNameResult?.success).toBe(true)
     expect(noNameResult?.values).toEqual([])
-    expect(dataset.collections.length).toBe(2)
+    expect(dataset.collections.length).toBe(3)
 
     // Return information for existing collection when there's a name collision
     const sameNameResult = handler.create?.({ dataContext }, { name: c1.name })
     expect(sameNameResult?.success).toBe(true)
     const sameNameValues = sameNameResult?.values as DICollection[]
     expect(toV3CollectionId(sameNameValues[0].id!)).toBe(c1.id)
-    expect(dataset.collections.length).toBe(2)
+    expect(dataset.collections.length).toBe(3)
 
     // Add a right-most collection
     // Add attributes with attributes field
     const rightResult = handler.create?.({ dataContext }, { name: "right", attributes: [{ name: "a4" }] })
     expect(rightResult?.success).toBe(true)
-    expect(dataset.collections.length).toBe(3)
+    expect(dataset.collections.length).toBe(4)
     expect(dataset.collections[2].name).toBe("right")
     expect(dataset.collections[2].attributes.length).toBe(1)
     expect(dataset.collections[2].attributes[0]?.name).toBe("a4")
@@ -40,7 +40,7 @@ describe("DataInteractive CollectionHandler", () => {
     // Add attributes with attrs field
     const leftResult = handler.create?.({ dataContext }, { name: "left", parent: "root", attrs: [{ name: "a5"}] })
     expect(leftResult?.success).toBe(true)
-    expect(dataset.collections.length).toBe(4)
+    expect(dataset.collections.length).toBe(5)
     expect(dataset.collections[0].name).toBe("left")
     expect(dataset.collections[0].attributes.length).toBe(1)
     expect(dataset.collections[0].attributes[0]?.name).toBe("a5")
@@ -53,7 +53,7 @@ describe("DataInteractive CollectionHandler", () => {
       { name: "c4", parent: "c3", attrs: [{ name: "a7" }], attributes: [{ name: "a6" }] }
     ])
     expect(twoResult?.success).toBe(true)
-    expect(dataset.collections.length).toBe(6)
+    expect(dataset.collections.length).toBe(7)
     expect(dataset.collections[3].name).toBe("c3")
     expect(dataset.collections[3].attributes.length).toBe(0)
     expect(dataset.collections[4].name).toBe("c4")
@@ -72,7 +72,7 @@ describe("DataInteractive CollectionHandler", () => {
     expect(result?.success).toBe(true)
     expect((result?.values as DIDeleteCollectionResult).collections?.[0]).toBe(toV2Id(collectionId))
     expect(dataContext.attributes.length).toBe(2)
-    expect(dataContext.collections.length).toBe(1)
+    expect(dataContext.collections.length).toBe(2)
     expect(dataContext.getCollection(collectionId)).toBeUndefined()
   })
 
@@ -91,14 +91,14 @@ describe("DataInteractive CollectionHandler", () => {
     expect(groupedValues.attrs.length).toEqual(c1.attributes.length)
     expect(groupedValues.labels?.singleCase).toBe("singleCase")
 
-    // Ungrouped collection
-    const ungrouped = dataset.ungrouped
-    const ungroupedResult = handler.get?.({ dataContext: dataset, collection: ungrouped })
-    expect(ungroupedResult?.success).toBe(true)
-    const ungroupedValues = ungroupedResult?.values as ICodapV2CollectionV3
-    expect(ungroupedValues.name).toEqual(ungrouped.name)
-    expect(ungroupedValues.id).toEqual(toV2Id(ungrouped.id))
-    expect(ungroupedValues.attrs.length).toEqual(dataset.ungroupedAttributes.length)
+    // child collection
+    const childCollection = dataset.childCollection
+    const childCollectionResult = handler.get?.({ dataContext: dataset, collection: childCollection })
+    expect(childCollectionResult?.success).toBe(true)
+    const childCollectionValues = childCollectionResult?.values as ICodapV2CollectionV3
+    expect(childCollectionValues.name).toEqual(childCollection.name)
+    expect(childCollectionValues.id).toEqual(toV2Id(childCollection.id))
+    expect(childCollectionValues.attrs.length).toEqual(dataset.childCollection.attributes.length)
   })
 
   it("update works", () => {

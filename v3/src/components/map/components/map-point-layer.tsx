@@ -145,7 +145,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const connectingLines = connectingLinesForCases()
-    const parentAttr = dataset?.collections[0]?.attributes[0]
+    // TODO: is this the right rule for parent grouping attribute? Seems like it
+    // should depend on the collection(s) in which the plotted attributes reside.
+    const parentAttr = (dataset?.collections.length ?? 0) > 1 ? dataset?.collections[0]?.attributes[0] : undefined
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
     const pointColorAtIndex = mapModel.pointDescription.pointColorAtIndex

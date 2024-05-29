@@ -176,7 +176,9 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
     const connectingLines = connectingLinesForCases()
-    const parentAttr = dataset?.collections[0]?.attributes[0]
+    // TODO: is this the right rule for parent grouping attribute? Seems like it
+    // should depend on the collection(s) in which the plotted attributes reside.
+    const parentAttr = (dataset?.collections.length ?? 0) > 1 ? dataset?.collections[0]?.attributes[0] : undefined
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
     const cellKeys = dataConfiguration?.getAllCellKeys()

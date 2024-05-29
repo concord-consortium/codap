@@ -22,8 +22,8 @@ export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
 
 export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {
   const attributes = collectionId
-    ? dataSet.getGroupedCollection(collectionId)?.attributes ?? dataSet.ungroupedAttributes
-    : dataSet.attributes
+                      ? dataSet.getCollection(collectionId)?.attributes ?? []
+                      : dataSet.attributes
 
   const values: DICaseValues = {}
   const actualCaseIndex = dataSet.caseIDMap.get(caseId) ?? -1

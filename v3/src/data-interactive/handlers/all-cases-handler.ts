@@ -1,6 +1,6 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { getCaseValues } from "../data-interactive-utils"
 import { DIHandler, DIResources } from "../data-interactive-types"
+import { IValueType } from "../../models/data/attribute"
 import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
@@ -22,21 +22,23 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!collection) return collectionNotFoundResult
 
-    const cases = dataContext.getGroupsForCollection(collection.id)?.map((c, caseIndex) => {
-      const id = c.pseudoCase.__id__
+    const attributes = collection.attributes ?? []
 
-      const parent = maybeToV2Id(dataContext.getParentCase(id, collection.id)?.pseudoCase.__id__)
-
-      // iphone-frame was throwing an error when Array.from() wasn't used here for some reason.
-      const childPseudoCaseIds = c.childPseudoCaseIds && Array.from(c.childPseudoCaseIds)
-      const childCaseIds = c.childCaseIds && Array.from(c.childCaseIds)
-      const children = childPseudoCaseIds ?? childCaseIds ?? []
-
-      const values = getCaseValues(id, dataContext, collection.id)
-
+    const cases = dataContext.getCasesForCollection(collection.id).map(({ __id__ }, index) => {
+      const pseudoCase = dataContext.pseudoCaseMap.get(__id__)
+      const parentCase = dataContext.getParentCase(__id__, collection.id)
+      const parent = maybeToV2Id(parentCase?.pseudoCase.__id__)
+      const children: number[] = []
+      if (pseudoCase) {
+        children.push(...(pseudoCase.childPseudoCaseIds ?? pseudoCase.childCaseIds).map(childId => toV2Id(childId)))
+      }
+      const values: Record<string, IValueType> = {}
+      attributes.forEach(attr => {
+        if (attr) values[attr.name] = dataContext.getValue(__id__, attr.id)
+      })
       return {
-        case: { id: toV2Id(id), parent, children: children.map(child => toV2Id(child)), values },
-        caseIndex
+        case: { id: toV2Id(__id__), parent, children, values },
+        caseIndex: index
       }
     })
 

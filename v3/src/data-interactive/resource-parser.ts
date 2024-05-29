@@ -123,7 +123,7 @@ export function resolveResources(
 
   if ("collectionList" in resourceSelector) {
     if (dataContext) {
-      result.collectionList = [...dataContext.collectionModels]
+      result.collectionList = [...dataContext.collections]
     }
   }
 
@@ -142,7 +142,7 @@ export function resolveResources(
 
   if ("attributeList" in resourceSelector) {
     const attributeList: IAttribute[] = []
-    const attributes = collectionModel?.attributes ?? dataContext?.ungroupedAttributes ?? []
+    const attributes = collectionModel?.attributes ?? []
     attributes.forEach(attribute => {
       if (attribute) attributeList.push(attribute)
     })
@@ -151,7 +151,7 @@ export function resolveResources(
 
   const getCaseById = (caseId: string) =>
     dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
-  
+
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
     result.caseByID = getCaseById(caseId)

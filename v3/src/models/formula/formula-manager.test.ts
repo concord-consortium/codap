@@ -1,5 +1,6 @@
 import { observable, runInAction } from "mobx"
-import { DataSet, IDataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../data/data-set"
+import { IDataSet } from "../data/data-set"
+import { createDataSet } from "../data/data-set-conversion"
 import { Formula, IFormula } from "./formula"
 import { FormulaManager } from "./formula-manager"
 import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./utils/name-mapping-utils"
@@ -26,7 +27,7 @@ const getFakeAdapter = (formula: IFormula, dataSet: IDataSet) => {
 }
 
 const getManagerWithFakeAdapter = () => {
-  const dataSet = DataSet.create({ attributes: [{ name: "foo" }] as LEGACY_ATTRIBUTES_ARRAY_ANY })
+  const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
   const formula = Formula.create({ display: formulaDisplay })
   const adapter = getFakeAdapter(formula, dataSet)
   const manager = new FormulaManager()
@@ -75,15 +76,15 @@ describe("FormulaManager", () => {
   })
 
   describe("when formula has a circular dependency", () => {
-    it("registers formulas in a way that lets cirlcular detection algorithm to work correctly", () => {
+    it("registers formulas in a way that lets circular detection algorithm to work correctly", () => {
       // This test is a bit specific ot the attribute formula adapter, but it's pretty important as it ensures
       // that FormulaManager.registerAllFormulas is implemented in a way that delays error detection until all
       // the formulas are registered (necessary for circular dependency detection to work correctly).
-      const dataSet = DataSet.create({
+      const dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
-        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+        ]
       })
       dataSet.addCases([{ __id__: "1" }])
       const manager = new FormulaManager()

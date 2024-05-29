@@ -62,11 +62,12 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     }
 
     const calculateChildCollectionGroups = () => {
-      for (let i = collectionIndex + 1; i < dataSet.collections.length; i++) {
+      // process children of requested collection that are themselves parent collections
+      for (let i = collectionIndex + 1; i < dataSet.collections.length - 1; i++) {
         const collectionGroup = dataSet.collectionGroups[i]
         collectionGroup.groups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
       }
-      // Note that the child cases are never in any collection and they require separate processing.
+      // process child cases
       dataSet.childCases().forEach(childCase => processCase(childCase))
     }
 

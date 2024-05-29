@@ -12,12 +12,13 @@ context("hierarchical collections", () => {
   hierarchical.tests.forEach((h) => {
     it(`${h.testName}`, () => {
       const collections = h.collections
-      collections.forEach(collection => {
+      collections.forEach((collection, index) => {
+        cy.log("Testing collection:", index, "name:", collection.name)
         collection.attributes.forEach(attribute => {
+          cy.log("Moving attribute:", attribute.name)
           table.moveAttributeToParent(attribute.name, attribute.move)
           table.getColumnHeaders(collection.index+1).should("not.contain", attribute.name)
           table.getAttribute(attribute.name, collection.index).should("have.text", attribute.name)
-          // 
           cy.wait(2000)
         })
         table.getCollectionTitle(collection.index).should("have.text", collection.name)
@@ -26,6 +27,7 @@ context("hierarchical collections", () => {
         table.verifyAttributeValues(collection.attributes, values, collection.index)
         cy.wait(2000)
 
+        cy.log("Testing expanding/collapsing...")
         table.verifyCollapseAllGroupsButton(collection.index+1)
         table.collapseAllGroups(collection.index+1)
         table.getNumOfRows(collection.index+1).should("contain", collection.cases+1)

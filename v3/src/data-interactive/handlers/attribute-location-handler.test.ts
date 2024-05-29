@@ -1,4 +1,4 @@
-import { ICollectionPropsModel } from "../../models/data/collection"
+import { ICollectionModel } from "../../models/data/collection"
 import { diAttributeLocationHandler } from "./attribute-location-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -13,8 +13,7 @@ describe("DataInteractive AttributeLocationHandler", () => {
     const dataContext = dataset
     const resources = { attributeLocation: a1, dataContext }
 
-    const collectionAttributes = (collection: ICollectionPropsModel) =>
-      dataset.getGroupedCollection(collection.id)?.attributes
+    const collectionAttributes = (collection: ICollectionModel) => dataset.getCollection(collection.id)?.attributes
 
     expect(handler.update?.({})?.success).toBe(false)
     // Missing dataContext
@@ -30,11 +29,11 @@ describe("DataInteractive AttributeLocationHandler", () => {
 
     // Move attribute within the ungrouped collection
     // Indexes snap to the end of the array
-    expect(dataset.ungroupedAttributes[1].id).toBe(a6.id)
+    expect(dataset.childCollection.attributes[1]!.id).toBe(a6.id)
     expect(handler.update?.({ attributeLocation: a6, dataContext }, { position: -1 }).success).toBe(true)
-    expect(dataset.ungroupedAttributes[0].id).toBe(a6.id)
+    expect(dataset.childCollection.attributes[0]!.id).toBe(a6.id)
     expect(handler.update?.({ attributeLocation: a6, dataContext }, { position: 10 }).success).toBe(true)
-    expect(dataset.ungroupedAttributes[1].id).toBe(a6.id)
+    expect(dataset.childCollection.attributes[1]!.id).toBe(a6.id)
 
     // Move attribute within a grouped collection
     // If not specified, move the attribute to the far right
@@ -50,7 +49,7 @@ describe("DataInteractive AttributeLocationHandler", () => {
     expect(handler.update?.({ attributeLocation: a6, dataContext }, { collection: c1.name, position: 1 }).success)
       .toBe(true)
     expect(collectionAttributes(c1)?.length).toBe(3)
-    expect(dataset.ungroupedAttributes.length).toBe(1)
+    expect(dataset.childCollection.attributes.length).toBe(1)
     expect(collectionAttributes(c1)?.[1]?.id).toBe(a6.id)
     expect(collectionAttributes(c1)?.[2]?.id).toBe(a4.id)
 

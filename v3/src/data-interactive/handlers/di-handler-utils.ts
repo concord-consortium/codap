@@ -1,13 +1,13 @@
-import { CollectionModel, ICollectionPropsModel } from "../../models/data/collection"
+import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
+import { IAddCollectionOptions } from "../../models/data/data-set-types"
 import { v2NameTitleToV3Title } from "../../models/data/v2-model"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { DIAttribute, DICollection } from "../data-interactive-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
-export function createAttribute(
-  value: DIAttribute, dataContext: IDataSet, metadata?: ISharedCaseMetadata, collection?: ICollectionPropsModel
-) {
+export function createAttribute(value: DIAttribute, dataContext: IDataSet, collection?: ICollectionModel,
+                                metadata?: ISharedCaseMetadata) {
   const attributeSnapshot = convertValuesToAttributeSnapshot(value)
   if (attributeSnapshot) {
     const attribute = dataContext.addAttribute(attributeSnapshot, { collection: collection?.id })
@@ -23,11 +23,11 @@ export function createCollection(v2collection: DICollection, dataContext: IDataS
   // TODO Handle labels
   const { attrs, name: collectionName, title: collectionTitle } = v2collection
   const _title = v2NameTitleToV3Title(collectionName ?? "", collectionTitle)
-  const collection = CollectionModel.create({ name: collectionName, _title })
-  dataContext.addCollection(collection)
+  const options: IAddCollectionOptions = { after: dataContext.childCollection?.id }
+  const collection = dataContext.addCollection({ name: collectionName, _title }, options)
 
   attrs?.forEach(attr => {
-    createAttribute(attr, dataContext, metadata, collection)
+    createAttribute(attr, dataContext, collection, metadata)
   })
 
   return collection

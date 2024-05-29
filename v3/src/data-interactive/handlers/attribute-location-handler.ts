@@ -17,8 +17,7 @@ export const diAttributeLocationHandler: DIHandler = {
       : getCollection(dataContext, collection ? `${collection}` : undefined) ?? sourceCollection
     if (!targetCollection) return collectionNotFoundResult
 
-    const targetAttrs =
-      dataContext.getGroupedCollection(targetCollection.id)?.attributes ?? dataContext.ungroupedAttributes
+    const targetAttrs = dataContext.getCollection(targetCollection.id)?.attributes ?? []
     const numPos = Number(position)
 
     // If the position isn't specified or isn't a number, make the attribute the right-most

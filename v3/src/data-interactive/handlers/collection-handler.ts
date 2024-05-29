@@ -1,4 +1,4 @@
-import { CollectionModel, ICollectionModel, isCollectionModel } from "../../models/data/collection"
+import { ICollectionModel } from "../../models/data/collection"
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -6,7 +6,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import {
   DIHandler, DIResources, DIValues, DICreateCollection, DICollection, DIUpdateCollection
 } from "../data-interactive-types"
-import { convertCollectionToV2, convertUngroupedCollectionToV2 } from "../data-interactive-type-utils"
+import { convertCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
 import { createAttribute } from "./di-handler-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
@@ -54,9 +54,8 @@ export const diCollectionHandler: DIHandler = {
           }
         }
 
-        const newCollection = CollectionModel.create({ name, _title: title })
+        const newCollection = dataContext.addCollection({ name, _title: title }, { before: beforeCollectionId })
         newCollections.push(newCollection)
-        dataContext.addCollection(newCollection, beforeCollectionId)
 
         // Attributes can be specified in both attributes and attrs
         const _attributes = Array.isArray(attributes) ? attributes : []
@@ -65,7 +64,7 @@ export const diCollectionHandler: DIHandler = {
         newAttributes.forEach(newAttribute => {
           // Each attribute must have a unique name
           if (newAttribute.name && !dataContext.getAttributeByName(newAttribute.name)) {
-            createAttribute(newAttribute, dataContext, metadata, newCollection)
+            createAttribute(newAttribute, dataContext, newCollection, metadata)
           }
         })
 
@@ -84,7 +83,7 @@ export const diCollectionHandler: DIHandler = {
     if (!_collection) return collectionNotFoundResult
     const collectionId = _collection.id
     // For now, it's only possible to delete a grouped collection.
-    const collection = dataContext.getGroupedCollection(collectionId)
+    const collection = dataContext.getCollection(collectionId)
     if (!collection) return collectionNotFoundResult
 
     dataContext.applyModelChange(() => {
@@ -99,9 +98,7 @@ export const diCollectionHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!collection) return collectionNotFoundResult
 
-    const v2Collection = isCollectionModel(collection)
-      ? convertCollectionToV2(collection)
-      : convertUngroupedCollectionToV2(dataContext)
+    const v2Collection = convertCollectionToV2(collection)
     return {
       success: true,
       values: v2Collection

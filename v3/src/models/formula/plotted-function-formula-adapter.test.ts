@@ -1,4 +1,5 @@
-import { DataSet, IDataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../data/data-set"
+import { IDataSet } from "../data/data-set"
+import { createDataSet } from "../data/data-set-conversion"
 import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 import { GraphDataConfigurationModel } from "../../components/graph/models/graph-data-configuration-model"
@@ -7,7 +8,7 @@ import {
 } from "../../components/graph/adornments/plotted-function/plotted-function-adornment-model"
 
 const getTestEnv = () => {
-  const dataSet = DataSet.create({ attributes: [{ name: "foo" }] as LEGACY_ATTRIBUTES_ARRAY_ANY })
+  const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
   const adornment = PlottedFunctionAdornmentModel.create({ formula: { display: "1 + 2 + x", canonical: "1 + 2 + x" }})

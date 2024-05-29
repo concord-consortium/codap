@@ -43,32 +43,28 @@
  */
 
 import { observable, reaction, runInAction } from "mobx"
-import { addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, SnapshotIn, types } from "mobx-state-tree"
+import {
+  addDisposer, addMiddleware, getEnv, getSnapshot, hasEnv, Instance, isAlive, ReferenceIdentifier, SnapshotIn, types
+} from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
+import { CollectionModel, ICollectionModel, ICollectionModelSnapshot, isCollectionModel } from "./collection"
 import {
-  CollectionModel, CollectionPropsModel, ICollectionModel, ICollectionPropsModel, isCollectionModel
-} from "./collection"
-import {
-  CaseGroup, CaseID, IAddAttributeOptions, IAddCasesOptions, IAttributeChangeResult, ICase, ICaseCreation,
-  IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions,
-  IMoveAttributeOptions, symIndex, symParent
+  CaseGroup, CaseID, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
+  ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IMoveAttributeCollectionOptions,
+  symIndex, symParent
 } from "./data-set-types"
-// eslint-disable-next-line import/no-cycle
+/* eslint-disable import/no-cycle */
+import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
 import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
+/* eslint-enable import/no-cycle */
 import { applyModelChange } from "../history/apply-model-change"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kCaseIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { prf } from "../../utilities/profiler"
+import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
-
-// For testing purposes, it is convenient to build a DataSet using just the legacy `attributes`
-// array format, trusting that the preProcessSnapshot handler will convert the array to its
-// corresponding `attributesMap` and `attributes` references array properties. Rather than
-// forcing those tests to be rewritten, this type makes it explicit that these tests are relying
-// on this mechanism in a way that allows the resulting code to pass the TypeScript compiler.
-export type LEGACY_ATTRIBUTES_ARRAY_ANY = any
 
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
@@ -144,12 +140,9 @@ export interface CollectionGroup {
 export const DataSet = V2Model.named("DataSet").props({
   id: typeV3Id("DATA"),
   sourceID: types.maybe(types.string),
-  // ordered parent-most to child-most; no explicit collection for ungrouped (child-most) attributes
+  // ordered parent-most to child-most
   collections: types.array(CollectionModel),
-  // ungrouped (child-most) collection has properties, but no grouping attributes
-  ungrouped: types.optional(CollectionPropsModel, () => CollectionPropsModel.create()),
   attributesMap: types.map(Attribute),
-  attributes: types.array(types.reference(Attribute)),
   cases: types.array(CaseID),
   sourceName: types.maybe(types.string),
   description: types.maybe(types.string),
@@ -193,31 +186,83 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .preProcessSnapshot(snap => {
-  // convert legacy array of attribute models to attributesMap and array of references
-  if (snap.attributes?.length && typeof snap.attributes[0] === "object") {
-    const { attributes: _attributes, ...others } = snap
-    const legacyAttributes = _attributes as unknown as Array<IAttributeSnapshot>
+  // convert legacy collections/attributes implementation to current
+  if (isLegacyDataSetSnap(snap)) {
+    const { collections: _collections = [], attributes: _legacyAttributes, ungrouped, ...others } = snap
+
+    const attributeIds: string[] = []
+
+    // build the attributesMap (if necessary)
     const attributesMap: Record<string, IAttributeSnapshot> = {}
-    const attributes: string[] = []
-    legacyAttributes.forEach(attr => {
-      const attrId = attr.id || v3Id(kAttrIdPrefix)
-      attributesMap[attrId] = { id: attrId, ...attr }
-      attributes.push(attrId)
+    if (isOriginalDataSetSnap(snap)) {
+      const { attributes: _attributes } = snap
+      _attributes.forEach(attr => {
+        const attrId = attr.id || v3Id(kAttrIdPrefix)
+        attributeIds.push(attrId)
+        attributesMap[attrId] = { id: attrId, ...attr }
+      })
+    }
+    // extract the attribute ids
+    else if (isTempDataSetSnap(snap)) {
+      const { attributes: _attributes } = snap
+      attributeIds.push(..._attributes)
+    }
+
+    const collections: ICollectionModelSnapshot[] = [..._collections]
+
+    // identify parent attributes that shouldn't be in child collection
+    const parentAttrs = new Set<ReferenceIdentifier>()
+    collections.forEach(collection => {
+      collection.attributes?.forEach(attrId => {
+        attrId && parentAttrs.add(attrId)
+      })
     })
-    return { attributesMap, attributes, ...others }
+    // identify child collection attributes
+    const childAttrs: ReferenceIdentifier[] = []
+    attributeIds?.forEach(attrId => {
+      if (!parentAttrs.has(attrId)) {
+        childAttrs.push(attrId)
+      }
+    })
+
+    // create child collection
+    const childCollection: ICollectionModelSnapshot = {
+      name: t("DG.AppController.createDataSet.collectionName"),
+      ...ungrouped,
+      attributes: childAttrs
+    }
+    collections.push(childCollection)
+
+    return { attributesMap, collections, ...others }
   }
   return snap
 })
+.views(self => ({
+  get attributes() {
+    const attrs: IAttribute[] = []
+    self.collections.forEach(collection => {
+      collection.attributes.forEach(attr => {
+        attr && attrs.push(attr)
+      })
+    })
+    return attrs
+  },
+  get parentCollections() {
+    const _parentCollections = [...self.collections]
+    _parentCollections.splice(_parentCollections.length - 1, 1)
+    return _parentCollections
+  }
+}))
 .views(self => ({
   attrIndexFromID(id: string) {
     const index = self.attributes.findIndex(attr => attr.id === id)
     return index >= 0 ? index : undefined
   },
   get collectionIds() {
-    return [...self.collections.map(collection => collection.id), self.ungrouped.id]
+    return self.collections.map(collection => collection.id)
   },
-  get collectionModels(): ICollectionPropsModel[] {
-    return [...self.collections, self.ungrouped]
+  get childCollection(): ICollectionModel {
+    return self.collections[self.collections.length - 1]
   }
 }))
 .views(self => ({
@@ -228,59 +273,6 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.attributesMap.get(self.attrNameMap.get(name) ?? "")
   }
 }))
-.actions(self => ({
-  // change the attribute order within the data set itself; doesn't handle collections
-  moveAttribute(attributeID: string, options?: IMoveAttributeOptions) {
-    const attribute = self.getAttribute(attributeID)
-    const attrIndex = self.attrIndexFromID(attributeID)
-    if (attribute && attrIndex != null) {
-      if (options?.before) {
-        let beforeAttrIndex = self.attrIndexFromID(options.before)
-        if (beforeAttrIndex != null) {
-          if (beforeAttrIndex !== attrIndex && beforeAttrIndex !== attrIndex + 1) {
-            self.attributes.remove(attribute)
-            if (attrIndex < beforeAttrIndex) --beforeAttrIndex
-            self.attributes.splice(beforeAttrIndex, 0, attribute)
-          }
-          return
-        }
-      }
-      if (options?.after) {
-        let afterAttrIndex = self.attrIndexFromID(options.after)
-        if (afterAttrIndex != null) {
-          if (afterAttrIndex !== attrIndex && afterAttrIndex !== attrIndex - 1) {
-            self.attributes.remove(attribute)
-            if (attrIndex > afterAttrIndex) ++afterAttrIndex
-            self.attributes.splice(afterAttrIndex, 0, attribute)
-          }
-          return
-        }
-      }
-      // no before/after -- move attribute to end
-      if (attrIndex !== self.attributes.length - 1) {
-        self.attributes.remove(attribute)
-        self.attributes.push(attribute)
-      }
-    }
-  }
-}))
-.views(self => ({
-  // array of attributes that are grouped into collections
-  get groupedAttributes() {
-    const groupedAttrs: IAttribute[] = []
-    self.collections.forEach(collection => {
-      collection.attributes.forEach(attr => attr && groupedAttrs.push(attr))
-    })
-    return groupedAttrs
-  }
-}))
-.views(self => ({
-  // array of attributes _not_ grouped into collections
-  get ungroupedAttributes(): IAttribute[] {
-    const grouped = new Set(self.groupedAttributes.map(attr => attr.id))
-    return self.attributes.filter(attr => attr && !grouped.has(attr.id))
-  },
-}))
 .extend(self => {
   // we do our own caching because MST's auto-caching wasn't working as expected
   const _collectionGroups = observable.box<CollectionGroup[]>([])
@@ -288,57 +280,46 @@ export const DataSet = V2Model.named("DataSet").props({
   let _childCases: IGroupedCase[] = []
   const isValidCollectionGroups = observable.box(false)
 
-  function getGroupedCollection(collectionId: string): ICollectionModel | undefined {
-    return self.collections.find(coll => coll.id === collectionId)
-  }
-
-  function getCollection(collectionId: string): ICollectionPropsModel | undefined {
+  function getCollection(collectionId: string): ICollectionModel | undefined {
     if (!isAlive(self)) {
       console.warn("DataSet.getCollection called on a defunct DataSet")
       return
     }
-    return collectionId === self.ungrouped.id ? self.ungrouped : getGroupedCollection(collectionId)
+    return self.collections.find(({ id }) => id === collectionId)
   }
 
-  function getGroupedCollectionByName(name: string): ICollectionModel | undefined {
-    return self.collections.find(collection => collection.name === name)
-  }
-
-  function getCollectionByName(name: string): ICollectionPropsModel | undefined {
+  function getCollectionByName(collectionName: string): ICollectionModel | undefined {
     if (!isAlive(self)) {
       console.warn("DataSet.getCollectionByName called on a defunct DataSet")
       return
     }
-    return name === self.ungrouped.name ? self.ungrouped : getGroupedCollectionByName(name)
+    return self.collections.find(({ name }) => name === collectionName)
   }
 
   function getCollectionIndex(collectionId: string) {
-    // For consistency, treat ungrouped as the last / child-most collection
-    return collectionId === self.ungrouped.id
-      ? self.collections.length
-      : self.collections.findIndex(coll => coll.id === collectionId)
+    return self.collections.findIndex(({ id }) => id === collectionId)
   }
 
-  function getCollectionForAttribute(attributeId: string): ICollectionPropsModel | undefined {
-    return self.collections.find(coll => coll.getAttribute(attributeId)) ??
-            (self.attributes.find(attr => attr.id === attributeId) ? self.ungrouped : undefined)
+  function getCollectionForAttribute(attributeId: string): ICollectionModel | undefined {
+    return self.collections.find(coll => coll.getAttribute(attributeId))
+  }
+
+  function getCollectionForCase(caseId: string): ICollectionModel | undefined {
+    return self.collections.find(coll => coll.hasCase(caseId))
   }
 
   return {
     views: {
-      // get real collection from id (ungrouped collection is not considered to be a real collection)
-      getGroupedCollection,
-      // get collection from id (including ungrouped collection)
+      // get collection from id
       getCollection,
-      // get real collection from name (ungrouped collection is not considered to be a real collection)
-      getGroupedCollectionByName,
-      // get collection from name (including ungrouped collection)
+      // get collection from name
       getCollectionByName,
-      // get index from collection (including ungrouped collection)
+      // get index from collection
       getCollectionIndex,
-      // get collection from attribute. Ungrouped collection is returned for ungrouped attributes.
+      // get collection from attribute
       // undefined => attribute not present in dataset
       getCollectionForAttribute,
+      getCollectionForCase,
       // leaf-most child cases (i.e. those not grouped in a collection)
       childCases() {
         if (!isValidCollectionGroups.get()) {
@@ -351,9 +332,9 @@ export const DataSet = V2Model.named("DataSet").props({
       get collectionGroups() {
         if (isValidCollectionGroups.get()) return _collectionGroups.get()
 
-        // create groups for each collection (does not included ungrouped)
+        // create groups for each parent collection
         const newCollectionGroups: CollectionGroup[] =
-          self.collections.map(collection => ({ collection, groups: [], groupsMap: {} }))
+          self.parentCollections.map(collection => ({ collection, groups: [], groupsMap: {} }))
 
         prf.measure("DataSet.collectionGroups", () => {
           self.cases.forEach(aCase => {
@@ -483,83 +464,105 @@ export const DataSet = V2Model.named("DataSet").props({
       invalidateCollectionGroups() {
         isValidCollectionGroups.set(false)
       },
-      setUngroupedCollection(collection: ICollectionPropsModel) {
-        self.ungrouped = collection
-      },
-      addCollection(collection: ICollectionModel, beforeCollectionId?: string) {
-        const beforeIndex = beforeCollectionId ? getCollectionIndex(beforeCollectionId) : -1
+      addCollection(collection: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
+        // place the collection in the correct location
+        let beforeIndex = options?.before ? getCollectionIndex(options.before) : -1
+        if (beforeIndex < 0 && options?.after) {
+          beforeIndex = getCollectionIndex(options.after)
+          if (beforeIndex >= 0 && beforeIndex < self.collections.length) {
+            ++beforeIndex
+          }
+        }
+        // by default, new collections are added before the default child collection
+        if (beforeIndex < 0 && self.collections.length > 0) {
+          beforeIndex = self.collections.length - 1
+        }
         if (beforeIndex >= 0) {
           self.collections.splice(beforeIndex, 0, collection)
         }
         else {
           self.collections.push(collection)
         }
+        const newCollection = self.collections[beforeIndex >= 0 ? beforeIndex : self.collections.length - 1]
+        // remove any attributes from other collections
+        const attrIds: Array<ReferenceIdentifier | undefined> = [...(collection.attributes ?? [])]
+        attrIds?.forEach(attrId => {
+          const attrCollection = self.collections.find(_collection => {
+            return attrId && _collection !== newCollection && _collection.getAttribute(`${attrId}`)
+          })
+          if (attrId && attrCollection) attrCollection.removeAttribute(`${attrId}`)
+        })
+        // recalculate groups
         this.invalidateCollectionGroups()
+        return newCollection
       },
       removeCollection(collection: ICollectionModel) {
         self.collections.remove(collection)
       },
-      setCollectionForAttribute(attributeId: string, options?: IMoveAttributeCollectionOptions) {
-        const result: IAttributeChangeResult = {}
-        const attribute = self.attributes.find(attr => attr.id === attributeId)
-        const newCollection = options?.collection ? getGroupedCollection(options.collection) : undefined
-        const oldCollection = getCollectionForAttribute(attributeId)
-        if (attribute && oldCollection !== newCollection) {
-          if (attribute.hasFormula) {
-            // If the attribute has a formula, we need to reset all the calculated values to blank values so that they
-            // are not taken into account while calculating case grouping. After the grouping is done, the formula will
-            // be re-evaluated, and the values will be updated to the correct values again.
-            attribute.clearValues()
-          }
-          if (isCollectionModel(oldCollection)) {
-            // remove it from previous collection (if any)
-            if (oldCollection?.attributes.length > 1) {
-              oldCollection.removeAttribute(attributeId)
-            }
-            // remove the entire collection if it was the last attribute
-            else {
-              result.removedCollectionId = oldCollection.id
-              this.removeCollection(oldCollection)
-            }
-          }
-          if (newCollection) {
-            // add it to the new collection
-            newCollection.addAttribute(attribute, options)
-          }
-          else if (options?.before || options?.after) {
-            // move it within the data set
-            self.moveAttribute(attributeId, { withoutCustomUndo: true, ...options })
-          }
-          if (!isCollectionModel(oldCollection)) {
-            // if the last ungrouped attribute was moved into a collection, then eliminate
-            // the last collection, thus un-grouping the child-most attributes
-            const allAttrCount = self.attributes.length
-            const collectionAttrCount = self.collections
-                                          .reduce((sum, collection) => sum += collection.attributes.length, 0)
-            if (collectionAttrCount >= allAttrCount) {
-              result.removedCollectionId = self.ungrouped.id
-              self.collections.splice(self.collections.length - 1, 1)
-            }
-          }
-          this.invalidateCollectionGroups()
-        }
-        return result
-      },
-      // if beforeCollectionId is not specified, new collection is last (child-most)
-      moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
-        const attribute = self.getAttribute(attributeId)
-        if (attribute) {
-          const name = pluralize(attribute.name)
-          const collection = CollectionModel.create({ name })
-          this.addCollection(collection, beforeCollectionId)
-          this.setCollectionForAttribute(attributeId, { collection: collection.id })
-          return collection
-        }
-      }
     }
   }
 })
+.actions(self => ({
+  moveAttribute(attributeID: string, options?: IMoveAttributeCollectionOptions): IAttributeChangeResult {
+    let removedCollectionId: string | undefined
+    const attribute = self.getAttribute(attributeID)
+    const srcCollection = self.getCollectionForAttribute(attributeID)
+    const dstCollection = options?.before
+                            ? self.getCollectionForAttribute(options.before)
+                            : options?.after
+                              ? self.getCollectionForAttribute(options.after)
+                              : options?.collection
+                                ? self.getCollection(options.collection)
+                                : undefined
+    if (!attribute || !srcCollection) return {}
+    if (!dstCollection || srcCollection === dstCollection) {
+      srcCollection?.moveAttribute(attributeID, options)
+    }
+    else {
+      if (attribute.hasFormula) {
+        // If the attribute has a formula, we need to reset all the calculated values to blank values so that they
+        // are not taken into account while calculating case grouping. After the grouping is done, the formula will
+        // be re-evaluated, and the values will be updated to the correct values again.
+        attribute.clearValues()
+      }
+      if (srcCollection.getAttribute(attributeID) && srcCollection.attributes.length === 1) {
+        removedCollectionId = srcCollection.id
+        self.removeCollection(srcCollection)
+      }
+      else {
+        srcCollection.removeAttribute(attributeID)
+      }
+      dstCollection.addAttribute(attribute, options)
+      // update grouping
+      self.invalidateCollectionGroups()
+    }
+    return { removedCollectionId }
+  }
+}))
+.actions(self => ({
+  // if beforeCollectionId is not specified, new collection is last (child-most)
+  moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
+    const attribute = self.getAttribute(attributeId)
+    if (attribute) {
+      const name = pluralize(attribute.name)
+      const collectionSnap: ICollectionModelSnapshot = { name }
+      const collection = self.addCollection(collectionSnap, { before: beforeCollectionId })
+      self.moveAttribute(attributeId, { collection: collection.id })
+      return collection
+    }
+  }
+}))
 .views(self => ({
+  getParentCollection(collectionId?: string) {
+    const foundIndex = self.collections.findIndex(collection => collection.id === collectionId)
+    const parentIndex = foundIndex > 0 ? foundIndex - 1 : -1
+    return parentIndex >= 0 ? self.collections[parentIndex] : undefined
+  },
+  getChildCollection(collectionId?: string) {
+    const foundIndex = self.collections.findIndex(collection => collection.id === collectionId)
+    const childIndex = foundIndex < self.collections.length - 1 ? foundIndex + 1 : -1
+    return childIndex >= 0 ? self.collections[childIndex] : undefined
+  },
   getGroupsForCollection(collectionId?: string) {
     if (collectionId && self.getCollection(collectionId)) {
       for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
@@ -573,37 +576,46 @@ export const DataSet = V2Model.named("DataSet").props({
         }
       }
     }
-    return self.childCases().map(c => ({
-      childCaseIds: [] as string[],
-      childPseudoCaseIds: [] as string[],
-      collectionId: self.ungrouped.id,
-      pseudoCase: c
-    }))
   },
   getParentCollectionGroup(collectionId?: string) {
     if (collectionId && self.collectionGroups.length) {
-      if (self.ungrouped.id === collectionId) {
-        return self.collectionGroups[self.collectionGroups.length - 1]
-      } else if (self.getCollection(collectionId)) {
+      if (self.getCollection(collectionId)) {
+        const parentCollection = this.getParentCollection(collectionId)
         return self.collectionGroups.find((_collectionGroup, index) => {
-          return index < self.collectionGroups.length - 1 &&
-            self.collectionGroups[index + 1].collection.id === collectionId
+          return _collectionGroup.collection.id === parentCollection?.id
         })
       }
     }
   }
 }))
 .views(self => ({
-  getCasesForCollection(collectionId?: string) {
-    return self.getGroupsForCollection(collectionId)?.map(group => group.pseudoCase)
+  getCasesForCollection(collectionId?: string): ICase[] {
+    if (!collectionId || !self.getCollection(collectionId)) return []
+    // parent collection cases can be retrieved from the groups
+    const collectionGroups = self.getGroupsForCollection(collectionId)
+    if (collectionGroups) return collectionGroups.map(group => group.pseudoCase)
+    // child collection cases can be ordered by parent
+    const parentCollection = self.getParentCollection(collectionId || self.childCollection.id)
+    const parentGroups = parentCollection ? self.getGroupsForCollection(parentCollection.id) : undefined
+    if (parentGroups) {
+      const cases: ICase[] = []
+      parentGroups.forEach(group => {
+        const caseCount = cases.length
+        cases.push(...group.childCaseIds.map((__id__, index) => ({
+          __id__,
+          [symParent]: group.pseudoCase.__id__,
+          [symIndex]: caseCount + index
+        })))
+      })
+      return cases
+    }
+    // return child cases in data set order
+    return getSnapshot(self.cases) as ICase[]
   },
   getParentCase(caseId: string, collectionId?: string) {
     const parentCollectionGroup = self.getParentCollectionGroup(collectionId)
     return parentCollectionGroup?.groups.find(group =>
-      collectionId === self.ungrouped.id
-        ? group.childCaseIds.includes(caseId)
-        : group.childPseudoCaseIds?.includes(caseId)
-    )
+      (group.childPseudoCaseIds ?? group.childCaseIds)?.includes(caseId))
   },
   getCollectionGroupForAttributes(attributeIds: string[]) {
     // finds the child-most collection (if any) among the specified attributes
@@ -829,6 +841,11 @@ export const DataSet = V2Model.named("DataSet").props({
           attr.setLength(self.cases.length)
         })
 
+        // add initial collection if not already present
+        if (!self.collections.length) {
+          self.addCollection({ name: t("DG.AppController.createDataSet.collectionName") })
+        }
+
         if (!srcDataSet) {
           // set up middleware to add ids to inserted attributes and cases
           // adding the ids in middleware makes them available as action arguments
@@ -888,6 +905,7 @@ export const DataSet = V2Model.named("DataSet").props({
         const { before: beforeID, collection: collectionId } = options || {}
 
         // add attribute to attributesMap
+        let collection: ICollectionModel | undefined
         const attribute = self.attributesMap.put(snapshot)
 
         // add attribute to attrNameMap
@@ -895,21 +913,26 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // add attribute reference to attributes array
         const beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
-        if (beforeIndex >= 0) {
-          self.attributes.splice(beforeIndex, 0, attribute.id)
-        }
-        else {
-          self.attributes.push(attribute.id)
+        if (beforeID && beforeIndex >= 0) {
+          collection = self.getCollectionForAttribute(beforeID)
+          const collectionBeforeIndex = collection?.attributes.findIndex(attr => attr?.id === beforeID) ?? -1
+          if (collectionBeforeIndex >= 0) {
+            collection?.attributes.splice(collectionBeforeIndex, 0, attribute.id)
+          }
+          return attribute
         }
 
         // fill out any missing values
-        attribute.setLength(self.cases.length)
-
-        // add the attribute to the specified collection (if any)
-        if (collectionId) {
-          const collection = self.getGroupedCollection(collectionId)
-          collection?.addAttribute(attribute)
+        for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
+          attribute.addValue()
         }
+
+        // add the attribute to the specified collection (if any) or the childmost collection
+        if (!collection && collectionId) {
+          collection = self.getCollection(collectionId)
+        }
+        if (!collection) collection = self.childCollection
+        collection.addAttribute(attribute)
         return attribute
       },
 
@@ -936,14 +959,12 @@ export const DataSet = V2Model.named("DataSet").props({
             if (collection.attributes.length > 1) {
               collection.removeAttribute(attributeID)
             }
-            else {
+            else if (self.collections.length > 1) {
               result.removedCollectionId = collection.id
               self.removeCollection(collection)
             }
           }
 
-          // remove attribute from attributes array
-          self.attributes.remove(attribute)
           // remove attribute from attrNameMap
           self.attrNameMap.delete(attribute.name)
           // remove attribute from attributesMap
