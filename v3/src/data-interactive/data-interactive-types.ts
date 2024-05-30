@@ -2,7 +2,7 @@ import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICodapV2Attribute, ICodapV2AttributeV3, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
-import { ICase } from "../models/data/data-set-types"
+import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionPropsModel } from "../models/data/collection"
@@ -143,7 +143,7 @@ export interface DIResources {
   itemByCaseID?: ICase
   itemByID?: ICase
   itemCount?: number
-  itemSearch?: ICase[]
+  itemSearch?: ICaseID[]
 }
 
 // types for values accepted as inputs by the API
@@ -211,6 +211,7 @@ export interface DIResourceSelector {
   item?: string
   itemByCaseID?: string
   itemByID?: string
+  itemSearch?: string
   logMessage?: string
   type?: string
 }
@@ -222,3 +223,17 @@ export interface DIAction {
 }
 export type DIRequest = DIAction | DIAction[]
 export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
+
+export type DIQueryValue = number | string | boolean
+export type DIQueryFunction = (a?: DIQueryValue, b?: DIQueryValue) => boolean
+export interface DIParsedOperand {
+  attr?: IAttribute
+  name: string
+  value: DIQueryValue
+}
+export interface DIParsedQuery {
+  valid: boolean
+  func: DIQueryFunction
+  left?: DIParsedOperand
+  right?: DIParsedOperand
+}

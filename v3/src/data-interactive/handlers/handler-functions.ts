@@ -4,8 +4,8 @@ import { t } from "../../utilities/translation/translate"
 import {
   DICaseValues, DIFullCase, DIResources, DISuccessResult, DIUpdateCase, DIUpdateItemResult, DIValues
 } from "../data-interactive-types"
-import { getCaseRequestResultValues } from "../data-interactive-type-utils"
-import { attrNamesToIds, getCaseValues } from "../data-interactive-utils"
+import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
+import { attrNamesToIds } from "../data-interactive-utils"
 import { caseNotFoundResult, dataContextNotFoundResult, itemNotFoundResult } from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
@@ -48,10 +48,7 @@ export function getItem(resources: DIResources, item?: ICase) {
   if (!dataContext) return dataContextNotFoundResult
   if (!item) return itemNotFoundResult
 
-  return { success: true as const, values: {
-    id: toV2Id(item.__id__),
-    values: getCaseValues(item.__id__, dataContext)
-  }}
+  return { success: true as const, values: getV2ItemResult(dataContext, item.__id__) }
 }
 
 function itemResult({ changedCases, createdCases, deletedCases }: DIUpdateItemResult) {

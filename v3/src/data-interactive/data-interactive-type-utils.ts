@@ -210,6 +210,13 @@ export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): I
   }
 }
 
+export function getV2ItemResult(dataContext: IDataSet, itemId: string) {
+  return {
+    id: toV2Id(itemId),
+    values: getCaseValues(itemId, dataContext)
+  }
+}
+
 export function basicDataSetInfo(dataSet: IDataSet) {
   return {
     name: dataSet.name,

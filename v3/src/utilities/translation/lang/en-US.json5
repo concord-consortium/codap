@@ -93,6 +93,7 @@
     "V3.DI.Error.notFound": "Not found",
     "V3.DI.Error.selectionListIllegalValues": "%@1 selectionList requires a list of case IDs.",
     "V3.DI.Error.valuesRequired": "A values object is required for this request.",
+    "V3.DI.Error.couldNotParseQuery": "Unable to parse query.",
 
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
