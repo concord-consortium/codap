@@ -1,7 +1,9 @@
 import { ICase } from "../../models/data/data-set-types"
-import { toV3CaseId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
-import { DICaseValues, DIFullCase, DIResources, DIUpdateCase, DIValues } from "../data-interactive-types"
+import {
+  DICaseValues, DIFullCase, DIResources, DISuccessResult, DIUpdateCase, DIUpdateItemResult, DIValues
+} from "../data-interactive-types"
 import { getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { caseNotFoundResult, dataContextNotFoundResult } from "./di-results"
@@ -29,7 +31,19 @@ export function getCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true, values: getCaseRequestResultValues(aCase, dataContext) } as const
 }
 
+function itemResult({ changedCases, createdCases, deletedCases }: DIUpdateItemResult) {
+  return {
+    success: true,
+    values: {
+      changedCases: changedCases ?? [],
+      createdCases: createdCases ?? [],
+      deletedCases: deletedCases ?? []
+    }
+  } as DISuccessResult
+}
+
 export interface IUpdateCaseByOptions {
+  itemReturnStyle?: boolean
   nestedValues?: boolean // Case requests expect values: { values: { ... } }
   resourceName?: string
 }
@@ -40,7 +54,7 @@ export function updateCaseBy(
   if (!dataContext) return dataContextNotFoundResult
   if (!aCase) return caseNotFoundResult
 
-  const { nestedValues, resourceName } = options ?? {}
+  const { itemReturnStyle, nestedValues, resourceName } = options ?? {}
 
   const missingFieldResult = (field: string) => ({
     success: false,
@@ -59,6 +73,8 @@ export function updateCaseBy(
     const updatedAttributes = attrNamesToIds(_values, dataContext)
     dataContext.setCaseValues([{ ...updatedAttributes, __id__: aCase.__id__ }])
   })
+
+  if (itemReturnStyle) return itemResult({ changedCases: [toV2Id(aCase.__id__)] })
 
   return { success: true }
 }
@@ -82,7 +98,7 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   })
 
   if (caseIDs.length > 0) {
-    if (itemReturnStyle) return { success: true, changedCases: caseIDs, deletedCases: [], createCases: [] }
+    if (itemReturnStyle) return itemResult({ changedCases: caseIDs })
 
     return { success: true, caseIDs }
   }

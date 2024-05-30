@@ -24,13 +24,12 @@ export const diItemHandler: DIHandler = {
     const { dataContext, item } = resources
     if (!dataContext) return dataContextNotFoundResult
     if (!item) return itemNotFoundResult
-    const itemIds = [item.__id__]
 
     dataContext.applyModelChange(() => {
-      dataContext.removeCases(itemIds)
+      dataContext.removeCases([item.__id__])
     })
 
-    return { success: true, values: itemIds.map(id => toV2Id(id)) }
+    return { success: true, values: [toV2Id(item.__id__)] }
   },
 
   get(resources: DIResources) {
