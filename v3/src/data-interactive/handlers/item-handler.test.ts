@@ -86,18 +86,8 @@ describe("DataInteractive ItemHandler", () => {
     expect(a2.value(0)).toBe("x")
     expect(a2.value(1)).toBe("y")
     const multipleResult = handler.update!({ dataContext }, [
-      {
-        id: toV2Id(itemId),
-        values: {
-          a2: "q"
-        }
-      },
-      {
-        id: toV2Id(item2Id),
-        values: {
-          a2: "q"
-        }
-      }
+      { id: toV2Id(itemId), values: { a2: "q" } },
+      { id: toV2Id(item2Id), values: { a2: "q" } }
     ])
     expect(multipleResult.success).toBe(true)
     expect(a2.value(0)).toBe("q")

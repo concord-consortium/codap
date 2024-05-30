@@ -39,7 +39,7 @@ describe("DataInteractive ItemByIDHandler", () => {
   })
 
   it("update works", () => {
-    const { dataset: dataContext, a1, a2 } = setupTestDataset()
+    const { dataset: dataContext, a1 } = setupTestDataset()
     const itemByID = dataContext.getCaseAtIndex(0)!
     const itemId = itemByID.__id__
     const values = { a1: "c" } as DIItem
