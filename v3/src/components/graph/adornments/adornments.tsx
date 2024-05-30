@@ -156,9 +156,9 @@ export const Adornments = observer(function Adornments() {
   )
   return (
     <>
-      {graphModel.showMeasuresForSelection && <MeasuresForSelectionBanner />}
       {adornmentBanners &&
         <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
+          {graphModel.showMeasuresForSelection && <MeasuresForSelectionBanner />}
           {adornmentBanners}
         </div>
       }

@@ -12,7 +12,7 @@ export const MeasuresForSelectionBanner = observer(function MeasuresForSelection
                     : t("DG.SelectedInfoView.infoPlural", { vars: [dataConfig?.selection.length] })
   
   return (
-    <div className="measures-for-selection-banner" data-testid="measures-for-selection-banners">
+    <div className="measures-for-selection-banner" data-testid="measures-for-selection-banner">
       {content}
     </div>
   )
