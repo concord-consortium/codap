@@ -35,7 +35,7 @@ export const diItemHandler: DIHandler = {
     const { item } = resources
 
     if (item) {
-      return updateCaseBy(resources, values, item, { resourceName: "item" })
+      return updateCaseBy(resources, values, item, { itemReturnStyle: true, resourceName: "item" })
     } else {
       return updateCasesBy(resources, values, true)
     }

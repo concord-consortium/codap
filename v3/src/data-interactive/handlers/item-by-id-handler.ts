@@ -18,7 +18,7 @@ export const diItemByIDHandler: DIHandler = {
   update(resources: DIResources, values?: DIValues) {
     const { itemByID } = resources
 
-    return updateCaseBy(resources, values, itemByID, { resourceName: "itemByID" })
+    return updateCaseBy(resources, values, itemByID, { itemReturnStyle: true, resourceName: "itemByID" })
   }
 }
 
