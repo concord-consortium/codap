@@ -1,4 +1,5 @@
-import { DIItem, DISuccessResult } from "../data-interactive-types"
+import { toV2Id } from "../../utilities/codap-utils"
+import { DIFullCase, DIItem, DISuccessResult, DIUpdateItemResult } from "../data-interactive-types"
 import { setupTestDataset } from "./handler-test-utils"
 import { diItemHandler } from "./item-handler"
 
@@ -6,7 +7,7 @@ import { diItemHandler } from "./item-handler"
 describe("DataInteractive ItemHandler", () => {
   const handler = diItemHandler
 
-  it("create works as expected", () => {
+  it("create works", () => {
     const { dataset } = setupTestDataset()
 
     expect(handler.create?.({}).success).toBe(false)
@@ -29,5 +30,80 @@ describe("DataInteractive ItemHandler", () => {
     expect(result2.itemIDs?.length).toBe(2)
     expect(result2.itemIDs?.[0]).toBe(dataset.cases[7].__id__)
     expect(result2.itemIDs?.[1]).toBe(dataset.cases[8].__id__)
+  })
+
+  it("delete works", () => {
+    const { dataset: dataContext } = setupTestDataset()
+    const item = dataContext.getCaseAtIndex(0)!
+    const itemId = item.__id__
+
+    expect(handler.delete?.({ dataContext }).success).toBe(false)
+    expect(handler.delete?.({ item }).success).toBe(false)
+
+    expect(dataContext.getCase(itemId)).toBeDefined()
+    const result = handler.delete!({ dataContext, item })
+    expect(result?.success).toBe(true)
+    const values = result.values as number[]
+    expect(values[0]).toBe(toV2Id(itemId))
+    expect(dataContext.getCase(itemId)).toBeUndefined()
+  })
+
+  it("get works", () => {
+    const { dataset: dataContext, a1 } = setupTestDataset()
+    const item = dataContext.getCaseAtIndex(0)!
+
+    expect(handler.get?.({ dataContext }).success).toBe(false)
+    expect(handler.get?.({ item }).success).toBe(false)
+
+    const result = handler.get!({ dataContext, item })
+    expect(result.success).toBe(true)
+    const values = result.values as DIFullCase
+    expect(values.id).toBe(toV2Id(item.__id__))
+    expect(Object.keys(values.values!).length).toBe(3)
+    expect(values.values?.a1).toBe(a1.value(0))
+  })
+
+  it("update works", () => {
+    const { dataset: dataContext, a1, a2 } = setupTestDataset()
+    const item = dataContext.getCaseAtIndex(0)!
+    const itemId = item.__id__
+    const values = { a1: "c" } as DIItem
+
+    expect(handler.update?.({ item }, values).success).toBe(false)
+    expect(handler.update?.({ dataContext, item }).success).toBe(false)
+
+    // Update a single item by index
+    expect(a1.value(0)).toBe("a")
+    const singleResult = handler.update!({ dataContext, item }, values)
+    expect(singleResult.success).toBe(true)
+    expect(a1.value(0)).toBe("c")
+    const singleValues = singleResult.values as DIUpdateItemResult
+    expect(singleValues.changedCases?.[0]).toBe(toV2Id(itemId))
+
+    // Update multiple items by id
+    const item2 = dataContext.getCaseAtIndex(1)!
+    const item2Id = item2.__id__
+    expect(a2.value(0)).toBe("x")
+    expect(a2.value(1)).toBe("y")
+    const multipleResult = handler.update!({ dataContext }, [
+      {
+        id: toV2Id(itemId),
+        values: {
+          a2: "q"
+        }
+      },
+      {
+        id: toV2Id(item2Id),
+        values: {
+          a2: "q"
+        }
+      }
+    ])
+    expect(multipleResult.success).toBe(true)
+    expect(a2.value(0)).toBe("q")
+    expect(a2.value(1)).toBe("q")
+    const multipleValues = multipleResult.values as DIUpdateItemResult
+    expect(multipleValues.changedCases?.includes(toV2Id(itemId))).toBe(true)
+    expect(multipleValues.changedCases?.includes(toV2Id(item2Id))).toBe(true)
   })
 })
