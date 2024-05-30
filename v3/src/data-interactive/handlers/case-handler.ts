@@ -3,7 +3,7 @@ import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIFullCase, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { attrNamesToIds } from "../data-interactive-utils"
-import { updateCasesBy } from "./case-by-handler-functions"
+import { updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult } from "./di-results"
 
 export const diCaseHandler: DIHandler = {

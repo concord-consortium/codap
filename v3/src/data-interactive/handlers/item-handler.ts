@@ -1,9 +1,8 @@
-import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DICaseValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { attrNamesToIds, getCaseValues } from "../data-interactive-utils"
-import { updateCaseBy, updateCasesBy } from "./case-by-handler-functions"
-import { dataContextNotFoundResult, itemNotFoundResult, valuesRequiredResult } from "./di-results"
+import { attrNamesToIds } from "../data-interactive-utils"
+import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
+import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diItemHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
@@ -21,26 +20,15 @@ export const diItemHandler: DIHandler = {
   },
 
   delete(resources: DIResources) {
-    const { dataContext, item } = resources
-    if (!dataContext) return dataContextNotFoundResult
-    if (!item) return itemNotFoundResult
+    const { item } = resources
 
-    dataContext.applyModelChange(() => {
-      dataContext.removeCases([item.__id__])
-    })
-
-    return { success: true, values: [toV2Id(item.__id__)] }
+    return deleteItem(resources, item)
   },
 
   get(resources: DIResources) {
-    const { dataContext, item } = resources
-    if (!dataContext) return dataContextNotFoundResult
-    if (!item) return itemNotFoundResult
+    const { item } = resources
 
-    return { success: true, values: {
-      id: toV2Id(item.__id__),
-      values: getCaseValues(item.__id__, dataContext)
-    }}
+    return getItem(resources, item)
   },
 
   update(resources: DIResources, values?: DIValues) {

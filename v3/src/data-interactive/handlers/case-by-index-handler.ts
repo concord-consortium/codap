@@ -1,6 +1,6 @@
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { deleteCaseBy, getCaseBy, updateCaseBy } from "./case-by-handler-functions"
+import { deleteCaseBy, getCaseBy, updateCaseBy } from "./handler-functions"
 
 export const diCaseByIndexHandler: DIHandler = {
   delete(resources: DIResources) {

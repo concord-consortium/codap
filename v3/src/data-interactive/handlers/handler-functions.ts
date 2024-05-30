@@ -5,8 +5,8 @@ import {
   DICaseValues, DIFullCase, DIResources, DISuccessResult, DIUpdateCase, DIUpdateItemResult, DIValues
 } from "../data-interactive-types"
 import { getCaseRequestResultValues } from "../data-interactive-type-utils"
-import { attrNamesToIds } from "../data-interactive-utils"
-import { caseNotFoundResult, dataContextNotFoundResult } from "./di-results"
+import { attrNamesToIds, getCaseValues } from "../data-interactive-utils"
+import { caseNotFoundResult, dataContextNotFoundResult, itemNotFoundResult } from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
@@ -23,12 +23,35 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true }
 }
 
+export function deleteItem(resources: DIResources, item?: ICase) {
+  const { dataContext } = resources
+  if (!dataContext) return dataContextNotFoundResult
+  if (!item) return itemNotFoundResult
+
+  dataContext.applyModelChange(() => {
+    dataContext.removeCases([item.__id__])
+  })
+
+  return { success: true as const, values: [toV2Id(item.__id__)] }
+}
+
 export function getCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
   if (!aCase) return caseNotFoundResult
 
   return { success: true, values: getCaseRequestResultValues(aCase, dataContext) } as const
+}
+
+export function getItem(resources: DIResources, item?: ICase) {
+  const { dataContext } = resources
+  if (!dataContext) return dataContextNotFoundResult
+  if (!item) return itemNotFoundResult
+
+  return { success: true as const, values: {
+    id: toV2Id(item.__id__),
+    values: getCaseValues(item.__id__, dataContext)
+  }}
 }
 
 function itemResult({ changedCases, createdCases, deletedCases }: DIUpdateItemResult) {
