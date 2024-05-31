@@ -8,6 +8,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { AxisPlace } from "../../axis/axis-types"
+import { SubPlotCells } from "../models/sub-plot-cells"
 
 export interface IComputeBinPlacements {
   binWidth?: number
@@ -50,11 +51,13 @@ export interface IComputePrimaryCoord {
 
 export interface IComputeSecondaryCoord {
   baseCoord: number
+  dataConfig?: IGraphDataConfigurationModel
   extraSecondaryAxisScale: ScaleBand<string>
   extraSecondaryBandwidth: number
   extraSecondaryCat: string
   indexInBin: number
   isHistogram?: boolean
+  layout?: GraphLayout
   numExtraSecondaryBands: number
   overlap: number
   pointDiameter: number
@@ -63,7 +66,6 @@ export interface IComputeSecondaryCoord {
   secondaryAxisScale: ScaleBand<string>
   secondaryBandwidth: number
   secondaryCat: string
-  secondaryNumericUnitLength?: number
   secondarySign: number
 }
 
@@ -103,9 +105,9 @@ export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
  * bands, the overlap between points, the point diameter, and the primaryIsBottom flag.
  */
 export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
-  const { baseCoord, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
-          numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryAxisScale,
-          secondaryBandwidth, secondaryCat, secondarySign, isHistogram = false, secondaryNumericUnitLength = 0 } = props
+  const { baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
+          layout, numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent,
+          secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram = false } = props
   let catCoord = (
     !!secondaryCat && secondaryCat !== "__main__"
       ? secondaryAxisScale(secondaryCat) ?? 0
@@ -113,6 +115,9 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
     ) / numExtraSecondaryBands
   let extraCoord = !!extraSecondaryCat && extraSecondaryCat !== "__main__"
     ? (extraSecondaryAxisScale(extraSecondaryCat) ?? 0) : 0
+
+  const subPlotCells = layout && new SubPlotCells(layout, dataConfig)
+  const secondaryNumericUnitLength = subPlotCells ? subPlotCells.secondaryNumericUnitLength : 0
   if (primaryIsBottom) {
     extraCoord = secondaryAxisExtent - extraSecondaryBandwidth - extraCoord
     catCoord = extraSecondaryBandwidth - secondaryBandwidth - catCoord
@@ -122,7 +127,7 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
 
     return secondaryCoord
   } else {
-    const secondaryCoord = isHistogram
+    const secondaryCoord = isHistogram && secondaryNumericUnitLength
       ? baseCoord + extraCoord + secondarySign *
           (catCoord + secondaryNumericUnitLength / 2 + indexInBin * secondaryNumericUnitLength)
       : baseCoord + extraCoord + secondarySign * (catCoord + pointDiameter / 2 + indexInBin * (pointDiameter - overlap))

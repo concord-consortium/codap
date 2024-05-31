@@ -10,7 +10,6 @@ const kDefaultDataDisplayModel = {
   // required by AxisProviderContext
   getAxis: () => undefined,
   getNumericAxis: () => undefined,
-  hasHistogramAxis: () => false,
   hasDraggableNumericAxis: (axisModel: IAxisModel) => isNumericAxisModel(axisModel),
   nonDraggableAxisTicks: (formatter: (value: number) => string) => ({tickValues: [], tickLabels: []})
 } as unknown as IDataDisplayContentModel

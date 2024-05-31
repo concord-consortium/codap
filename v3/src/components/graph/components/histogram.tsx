@@ -10,11 +10,12 @@ import { computeBinPlacements } from "../utilities/dot-plot-utils"
 import { useDotPlot } from "../hooks/use-dot-plot"
 import { useDotPlotResponders } from "../hooks/use-dot-plot-responders"
 import { renderBarCovers } from "../utilities/bar-utils"
+import { SubPlotCells } from "../models/sub-plot-cells"
 
 export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: PlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,
           pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
-          refreshPointSelection, secondaryAttrRole, secondaryNumericUnitLength } = useDotPlot(pixiPoints)
+          refreshPointSelection, secondaryAttrRole } = useDotPlot(pixiPoints)
   const barCoversRef = useRef<SVGGElement>(null)
   const pointDisplayType = "bars"
 
@@ -26,7 +27,6 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit",
       extraSecondaryPlace = primaryIsBottom ? "rightCat" : "top",
       extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit",
-      primaryAxis = graphModel.getNumericAxis(primaryPlace),
       extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>,
       secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>,
       extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>,
@@ -40,10 +40,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       fullSecondaryBandwidth = secondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent,
       numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1),
       secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands,
-      { binWidth, maxBinEdge, minBinEdge, totalNumberOfBins } = graphModel.binDetails()
-
-    // Set the domain of the primary axis to the extent of the bins
-    primaryAxis?.setDomain(minBinEdge, maxBinEdge)
+      { binWidth, minBinEdge, totalNumberOfBins } = graphModel.binDetails(),
+      subPlotCells = new SubPlotCells(layout, dataConfig),
+      { secondaryNumericUnitLength } = subPlotCells
 
     const binPlacementProps = {
       binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge,
@@ -52,12 +51,8 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
     }
     const { bins } = computeBinPlacements(binPlacementProps)
     const primaryScaleDiff = primaryAxisScale(binWidth) - primaryAxisScale(0)
-    const getWidth = () => primaryIsBottom
-                             ? primaryScaleDiff / numExtraPrimaryBands
-                             : secondaryNumericUnitLength / numExtraSecondaryBands
-    const getHeight = () => primaryIsBottom
-                              ? secondaryNumericUnitLength / numExtraSecondaryBands
-                              : -primaryScaleDiff / numExtraPrimaryBands
+    const getWidth = () => primaryIsBottom ? primaryScaleDiff / numExtraPrimaryBands : secondaryNumericUnitLength
+    const getHeight = () => primaryIsBottom ? secondaryNumericUnitLength : -primaryScaleDiff / numExtraPrimaryBands
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
     const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
     const getLegendColor = dataConfig?.attributeID("legend") ? dataConfig?.getLegendColorForCase : undefined
@@ -75,9 +70,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
                 const barSecondaryDimension = secondaryNumericUnitLength * cell.length
                 const barWidth = primaryIsBottom
                                    ? primaryScaleDiff / numExtraPrimaryBands
-                                   : barSecondaryDimension / numExtraSecondaryBands
+                                   : barSecondaryDimension
                 const barHeight = primaryIsBottom
-                                    ? barSecondaryDimension / numExtraSecondaryBands
+                                    ? barSecondaryDimension
                                     : -primaryScaleDiff / numExtraPrimaryBands
                 const x = primaryIsBottom
                             ? getPrimaryScreenCoord(cell[0]) - barWidth / 2
@@ -112,10 +107,16 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
     })
   }, [abovePointsGroupRef, dataConfig, dataset, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel,
       isAnimating, layout, pixiPoints, pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale,
-      primaryIsBottom, primaryPlace, secondaryAttrRole, secondaryNumericUnitLength])
+      primaryIsBottom, primaryPlace, secondaryAttrRole])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
   useDotPlotResponders(refreshPointPositions)
+
+  useEffect(() => {
+    if (pixiPoints) {
+      pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
+    }
+  }, [pixiPoints, graphModel.pointsFusedIntoBars])
 
   // when points are fused into bars, we need to set the secondary axis scale type to linear
   useEffect(function handleFuseIntoBars() {

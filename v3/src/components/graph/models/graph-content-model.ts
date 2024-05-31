@@ -312,14 +312,24 @@ export const GraphContentModel = DataDisplayContentModel
       return computePointRadius(self.dataConfiguration.caseDataArray.length,
         self.pointDescription.pointSizeMultiplier, use)
     },
-    hasHistogramAxis() {
-      return self.pointDisplayType === "histogram"
-    },
-    histogramAxisTicks(): { tickValues: number[], tickLabels: string[] } {
-      return self.binnedAxisTicks()
-    },
     nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
-      return self.binnedAxisTicks(formatter)
+      const tickValues: number[] = []
+      const tickLabels: string[] = []
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
+
+      let currentStart = minBinEdge
+      let binCount = 0
+
+      while (binCount < totalNumberOfBins) {
+        const currentEnd = currentStart + binWidth
+        const formattedCurrentStart = formatter(currentStart)
+        const formattedCurrentEnd = formatter(currentEnd)
+        tickValues.push(currentStart + (binWidth / 2))
+        tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
+        currentStart += binWidth
+        binCount++
+      }
+      return { tickValues, tickLabels }
     },
     resetBinSettings() {
       const { binAlignment, binWidth } = self.binDetails({ initialize: true })
@@ -606,11 +616,12 @@ export const GraphContentModel = DataDisplayContentModel
   .actions(self => ({
     setBarCountAxis() {
       const { maxOverAllCells, maxCellLength, primaryRole, secondaryRole } = self.dataConfiguration
+      const { binWidth, minValue, totalNumberOfBins } = self.binDetails()
       const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
       const extraPrimAttrRole = primaryRole === "x" ? "topSplit" : "rightSplit"
       const extraSecAttrRole = primaryRole === "x" ? "rightSplit" : "topSplit"
       const maxCellCaseCount = self.pointDisplayType === "histogram"
-        ? maxCellLength(extraPrimAttrRole, extraSecAttrRole)
+        ? maxCellLength(extraPrimAttrRole, extraSecAttrRole, binWidth, minValue, totalNumberOfBins)
         : maxOverAllCells(extraPrimAttrRole, extraSecAttrRole)
       const countAxis = NumericAxisModel.create({
         scale: "linear",

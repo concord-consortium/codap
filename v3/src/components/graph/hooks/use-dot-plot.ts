@@ -21,7 +21,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const dataset = useDataSetContext()
   const layout = useGraphLayoutContext()
   const subPlotCells = useMemo(() => new SubPlotCells(layout, dataConfig), [dataConfig, layout])
-  const { secondaryNumericUnitLength } = subPlotCells
+  const { secondaryNumericScale } = subPlotCells
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
   const primaryIsBottom = primaryAttrRole === "x"
   const secondaryPlace = primaryIsBottom ? "left" : "top"
@@ -98,31 +98,31 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     if (!binMap[anID]) return 0
 
     const { category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin } = binMap[anID]
-    const onePixelOffset = primaryIsBottom ? -1 : 1
     const secondaryCoordProps = {
-      baseCoord, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
-      numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent,
-      secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram, secondaryNumericUnitLength
+      baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin, layout,
+      numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryNumericScale,
+      secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram
     }
-    let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps) + onePixelOffset
+    let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps)
 
     if (graphModel.pointDisplayType !== "histogram") {
+      const onePixelOffset = primaryIsBottom ? -1 : 1
       const casePrimaryValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(casePrimaryValue, binWidth, minBinEdge)
       secondaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "secondary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
         screenCoord: secondaryScreenCoord, primaryIsBottom
-      })
+      }) + onePixelOffset
     }
-
     return secondaryScreenCoord
-  }, [binMap, primaryIsBottom, baseCoord, extraSecondaryAxisScale, extraSecondaryBandwidth, numExtraSecondaryBands,
-      pointDiameter, secondaryAxisExtent, secondaryAxisScale, secondaryBandwidth, secondarySign, isHistogram,
-      secondaryNumericUnitLength, graphModel.pointDisplayType, dataset, primaryAttrID, binWidth, minBinEdge, bins])
+  }, [binMap, baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, layout, numExtraSecondaryBands,
+      pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryNumericScale, secondaryAxisScale,
+      secondaryBandwidth, secondarySign, isHistogram, graphModel.pointDisplayType, dataset, primaryAttrID, binWidth,
+      minBinEdge, bins])
 
   return {
     dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout, pointColor,
     pointDisplayType, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
-    refreshPointSelection, secondaryAttrRole, secondaryNumericUnitLength, subPlotCells
+    refreshPointSelection, secondaryAttrRole, subPlotCells
   }
 }

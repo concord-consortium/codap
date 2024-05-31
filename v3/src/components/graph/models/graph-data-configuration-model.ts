@@ -275,7 +275,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    cellMap(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+    cellMap(
+      extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+      binWidth = 0, minValue = 0, totalNumberOfBins = 0
+    ) {
       type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
       const primAttrID = self.primaryRole ? self.attributeID(self.primaryRole) : "",
         secAttrID = self.secondaryRole ? self.attributeID(self.secondaryRole) : "",
@@ -290,20 +293,24 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           }
         }),
         bins: BinMap = {}
+
       valueQuads?.forEach((aValue: any) => {
-        if (bins[aValue.primary] === undefined) {
-          bins[aValue.primary] = {}
+        const primaryValue = totalNumberOfBins > 0
+                               ? Math.floor((Number(aValue.primary) - minValue) / binWidth)
+                               : aValue.primary
+        if (bins[primaryValue] === undefined) {
+          bins[primaryValue] = {}
         }
-        if (bins[aValue.primary][aValue.secondary] === undefined) {
-          bins[aValue.primary][aValue.secondary] = {}
+        if (bins[primaryValue][aValue.secondary] === undefined) {
+          bins[primaryValue][aValue.secondary] = {}
         }
-        if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary] === undefined) {
-          bins[aValue.primary][aValue.secondary][aValue.extraPrimary] = {}
+        if (bins[primaryValue][aValue.secondary][aValue.extraPrimary] === undefined) {
+          bins[primaryValue][aValue.secondary][aValue.extraPrimary] = {}
         }
-        if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
-          bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
+        if (bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
+          bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
         }
-        bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
+        bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
       })
 
       return bins
@@ -323,16 +330,18 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         }, 0))
       }, 0)
     },
-    maxCellLength(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
-      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
+    maxCellLength(
+      extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+      binWidth: number, minValue: number, totalNumberOfBins: number
+    ) {
+      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole, binWidth, minValue, totalNumberOfBins)
       // Find and return the length of the record in bins with the most elements
-      const maxInBin = Math.max(...Object.values(bins).map(anExtraBins => {
-        return Math.max(...Object.values(anExtraBins).map(aBinArray => {
-          return Math.max(...Object.values(aBinArray).map(aBin => {
-            if (Array.isArray(aBin)) {
-              return Math.max(...aBin.map(innerArray => innerArray.length))
-            }
-            return 0
+      const maxInBin = Math.max(...Object.values(bins).map(pBin => {
+        return Math.max(...Object.values(pBin).map(sBin => {
+          return Math.max(...Object.values(sBin).map(epBin => {
+            return Math.max(...Object.values(epBin).map(esBin => {
+              return esBin
+            }))
           }))
         }))
       })) || 0
