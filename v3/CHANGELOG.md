@@ -1,5 +1,34 @@
 # Changelog
 
+## Version 3.0.0-pre.1652 - May 31, 2024
+
+### ✨ Features & Improvements:
+- **PT-187578056:** Parent Visibility Toggles should scroll nicely
+- **PT-187637447:** DI caseByIndex and caseByID requests
+- **PT-181846490:** Case table has tables for each collection
+- **PT-187626777:** User can specify how many standard errors are shown in the standard error bar
+- **PT-187495137:** An empty value for color attribute type has color editor
+- **PT-181840937:** The **Plugins** icon produces a menu of available plugins
+- **PT-187573595:** Use numeric ids for plugin compatibility
+- **PT-187690238:** DI Collection Requests
+- **PT-187651946:** Fix Multidata Plugin
+- **PT-187564414:** Fix Choosy Plugin
+- **PT-186227302:** Automation for undo/redo in slider component
+
+### 🐞 Bug Fixes:
+- **PT-187620092:** Map component zoom range not framed around dataset
+- **PT-187615908:** MST warnings on closing graph with assigned attribute
+- **PT-187628522:** MST warning on closing map
+- **PT-187628148:** Intercept Locked option missing from Measures menu
+- **PT-187654045:** Investigate and resolve slow CSV import performance
+- **PT-187531276:** CODAP provides **randomBinomial** and **randomNormal**
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  171367 bytes |                            0.02% |
+|  index.js | 5369390 bytes |                            0.02% |
+
 ## Version 3.0.0-pre.1652 - May 17, 2024
 
 ### ✨ Features & Improvements:
