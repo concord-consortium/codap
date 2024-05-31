@@ -69,8 +69,9 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const handleParentTogglesChange = () => {
-    const undoStringKey = graphModel?.showParentToggles ? "DG.Undo.disableNumberToggle" : "DG.Undo.enableNumberToggle"
-    const redoStringKey = graphModel?.showParentToggles ? "DG.Redo.disableNumberToggle" : "DG.Redo.enableNumberToggle"
+    const [undoStringKey, redoStringKey] = graphModel?.showParentToggles
+      ? ["DG.Undo.disableNumberToggle", "DG.Redo.disableNumberToggle"]
+      : ["DG.Undo.enableNumberToggle", "DG.Redo.enableNumberToggle"]
 
     dataConfig?.applyModelChange(
       () => graphModel?.setShowParentToggles(!graphModel?.showParentToggles),
@@ -79,12 +80,9 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const handleMeasuresForSelectionChange = () => {
-    const undoStringKey = graphModel?.showMeasuresForSelection
-                            ? "DG.Undo.disableMeasuresForSelection"
-                            : "DG.Undo.enableMeasuresForSelection"
-    const redoStringKey = graphModel?.showMeasuresForSelection
-                            ? "DG.Redo.disableMeasuresForSelection"
-                            : "DG.Redo.enableMeasuresForSelection"
+    const [undoStringKey, redoStringKey] = graphModel?.showMeasuresForSelection
+      ? ["DG.Undo.disableMeasuresForSelection", "DG.Redo.disableMeasuresForSelection"]
+      : ["DG.Undo.enableMeasuresForSelection", "DG.Redo.enableMeasuresForSelection"]
     dataConfig?.applyModelChange(
       () => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection),
       { undoStringKey, redoStringKey }
