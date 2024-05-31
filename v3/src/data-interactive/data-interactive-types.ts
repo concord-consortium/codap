@@ -114,6 +114,12 @@ export interface DIUpdateCollection {
   title?: string
   labels?: Partial<ICollectionLabels>
 }
+export interface DIUpdateDataContext extends DIDataContext {
+  sort?: {
+    attr?: string
+    isDescending?: boolean
+  }
+}
 export interface DINotification {
   request?: string
 }
