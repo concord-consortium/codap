@@ -8,7 +8,7 @@ import { maybeToV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
-import { V2Component, kV2CaseTableType } from "../data-interactive-component-types"
+import { V2Component, kV2CaseTableType, kV2GraphType } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diComponentHandler: DIHandler = {
@@ -16,17 +16,16 @@ export const diComponentHandler: DIHandler = {
     if (!values) return valuesRequiredResult
 
     const { type, dataContext } = values as V2Component
+    const { document } = appState
+    const sharedDataSet = getSharedDataSets(document).find(sds => sds.dataSet.name === dataContext)
+    const dataSet = sharedDataSet?.dataSet
 
+    const dataContextRequiredResult = {
+      success: false as const,
+      values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }) }
+    }
     if (type === kV2CaseTableType) {
-      if (!dataContext) {
-        return {
-          success: false,
-          values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "caseTable", "dataContext"] }) }
-        }
-      }
-      const { document } = appState
-      const sharedDataSet = getSharedDataSets(document).find(sds => sds.dataSet.name === dataContext)
-      const dataSet = sharedDataSet?.dataSet
+      if (!dataContext) return dataContextRequiredResult
       if (!dataSet) return dataContextNotFoundResult
 
       const manager = getSharedModelManager(document)
@@ -47,6 +46,9 @@ export const diComponentHandler: DIHandler = {
           type: kV2CaseTableType
         }
       }
+    } else if (type === kV2GraphType) {
+      if (!dataContext) return dataContextRequiredResult
+      if (!dataSet) return dataContextNotFoundResult
     }
 
     // TODO Handle other types:
