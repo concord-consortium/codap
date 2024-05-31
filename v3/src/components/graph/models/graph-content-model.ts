@@ -312,7 +312,7 @@ export const GraphContentModel = DataDisplayContentModel
       return computePointRadius(self.dataConfiguration.caseDataArray.length,
         self.pointDescription.pointSizeMultiplier, use)
     },
-    binnedAxisTicks(formatter?: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
       const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
@@ -330,21 +330,6 @@ export const GraphContentModel = DataDisplayContentModel
         binCount++
       }
       return { tickValues, tickLabels }
-    }
-  }))
-  .views(self => ({
-    getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
-      return computePointRadius(self.dataConfiguration.caseDataArray.length,
-        self.pointDescription.pointSizeMultiplier, use)
-    },
-    hasHistogramAxis() {
-      return self.pointDisplayType === "histogram"
-    },
-    histogramAxisTicks(): { tickValues: number[], tickLabels: string[] } {
-      return self.binnedAxisTicks()
-    },
-    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
-      return self.binnedAxisTicks(formatter)
     },
     resetBinSettings() {
       const { binAlignment, binWidth } = self.binDetails({ initialize: true })
