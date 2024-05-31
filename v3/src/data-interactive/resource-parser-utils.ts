@@ -11,7 +11,7 @@ export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParse
   
   const parseOperand = (_rawValue: string) => {
     // Trim whitespace
-    const rawValue = _rawValue.replace(/^\s+|\s+$/, '')
+    const rawValue = _rawValue.replace(/^\s+|\s+$/g, '')
 
     const numberValue = Number(rawValue)
     const value = rawValue === "true" ? true
