@@ -38,7 +38,7 @@ export const Adornments = observer(function Adornments() {
     )
   }, [graphModel, layout])
 
-  if (!adornments?.length) return null
+  if (!adornments?.length && !graphModel.showMeasuresForSelection) return null
 
   const adornmentBanners = adornments.map((adornment: IAdornmentModel) => {
     const componentContentInfo = getAdornmentContentInfo(adornment.type)
@@ -47,10 +47,10 @@ export const Adornments = observer(function Adornments() {
     const componentInfo = getAdornmentComponentInfo(adornment.type)
     const BannerComponent = componentInfo?.BannerComponent
     return (
-      BannerComponent && adornment.isVisible &&
+      BannerComponent && adornment.isVisible && 
         <BannerComponent key={componentInfo.type} model={adornment} />
     )
-  })
+  }).filter(banner => banner !== undefined)
 
   const xAttrId = dataConfig?.attributeID("x")
   const xAttrType = dataConfig?.attributeType("x")
@@ -156,7 +156,7 @@ export const Adornments = observer(function Adornments() {
   )
   return (
     <>
-      {adornmentBanners &&
+      {(adornmentBanners.length > 0 || graphModel.showMeasuresForSelection) &&
         <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
           {graphModel.showMeasuresForSelection && <MeasuresForSelectionBanner />}
           {adornmentBanners}
