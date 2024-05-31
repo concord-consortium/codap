@@ -22,11 +22,11 @@ describe("DataInteractive ItemSearchHandler", () => {
     expect(dataContext.cases.length).toBe(3)
     itemIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())
     const values = result.values as number[]
-    itemIds.forEach(id => expect(values.includes(toV2Id(id))))
+    itemIds.forEach(id => expect(values.includes(toV2Id(id))).toBe(true))
   })
 
   it("get works", () => {
-    const { dataset: dataContext, a1 } = setupTestDataset()
+    const { dataset: dataContext } = setupTestDataset()
     const itemSearch = [dataContext.cases[0], dataContext.cases[2], dataContext.cases[5]]
 
     expect(handler.get?.({ dataContext }).success).toBe(false)
