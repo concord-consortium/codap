@@ -283,6 +283,23 @@ context("Graph UI", () => {
     cy.wait(500)
     cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Show Parent Visibility Toggles")
   })
+  // TODO: Get the tests below working. For some reason, the banner isn't being rendered in Cypress even though it
+  // seems to render fine in the browser.
+  // it("It adds a banner to the graph when Show Measures for Selection is activated", () => {
+  //   cy.dragAttributeToTarget("table", "Sleep", "bottom")
+  //   cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
+  //   graph.getHideShowButton().click()
+  //   cy.wait(500)
+  //   cy.get("[data-testid=show-selection-measures]").click()
+  //   cy.wait(500)
+  //   cy.get("[data-testid=measures-for-selection-banner]")
+  //     .should("exist").and("have.text", "Showing measures for 0 selected cases")
+  //   graph.getHideShowButton().click()
+  //   cy.wait(500)
+  //   cy.get("[data-testid=show-selection-measures]").click()
+  //   cy.wait(500)
+  //   cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
+  // })
   it("disables Point Size control when display type is bars", () => {
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.wait(500)

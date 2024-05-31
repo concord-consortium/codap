@@ -1,6 +1,7 @@
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
-import { toV2Id, toV3CollectionId } from "../utilities/codap-utils"
+import { toV2Id, toV3AttrId, toV3CollectionId } from "../utilities/codap-utils"
 import { DICaseValues } from "./data-interactive-types"
 
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
@@ -54,4 +55,12 @@ export function getCollection(dataContext?: IDataSet, nameOrId?: string) {
 
   return dataContext?.getCollectionByName(nameOrId) ||
     dataContext?.getCollection(toV3CollectionId(nameOrId))
+}
+
+export function getAttribute(nameOrId: string, dataContext?: IDataSet, collection?: ICollectionModel) {
+  const canonicalAttrName = canonicalizeAttributeName(nameOrId)
+  // check collection first in case of ambiguous names in data set
+  return collection?.getAttributeByName(nameOrId) || collection?.getAttributeByName(canonicalAttrName) ||
+    dataContext?.getAttributeByName(nameOrId) || dataContext?.getAttributeByName(canonicalAttrName) ||
+    dataContext?.getAttribute(toV3AttrId(nameOrId)) // in case it's an id
 }

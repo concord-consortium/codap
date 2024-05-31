@@ -116,6 +116,19 @@ export const TableTileElements = {
   selectAttributeEditableState(state) {
     cy.get("[data-testid=attr-editable-radio] span").contains(state).click()
   },
+  // Edit Dataset Information Dialog
+  enterInfoName(name) {
+    cy.get("[data-testid=dataset-name-input]").type(name)
+  },
+  enterInfoSource(source) {
+   cy.get("[data-testid=dataset-source-input]").type(source)
+  },
+  enterInfoDate(date) {
+    cy.get("[data-testid=dataset-date-input]").type(date)
+  },
+  enterInfoDescription(description) {
+    cy.get("[data-testid=dataset-description-input]").type(description)
+  },
   getApplyButton() {
     return cy.get("[data-testid=Apply-button]")
   },
@@ -145,6 +158,22 @@ export const TableTileElements = {
     }
     this.getApplyButton().click()
   },
+  editDatasetInformation(name, source, date, description) {
+    this.getDatasetInfoButton().click()
+    if (name !== "") {
+       this.enterInfoName(`{selectAll}{backspace}${name}`)
+    }
+    if (source != null) {
+       this.enterInfoSource(`{selectAll}{backspace}${source}`)
+    }
+    if (date != null) {
+        this.enterInfoDate(`{selectAll}{backspace}${date}`)
+    }
+    if (description != null) {
+      this.enterInfoDescription(`{selectAll}{backspace}${description}`)
+    }
+    this.getApplyButton().click()
+   },
   getGridCell(row: number, column: number, collection = 1) {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
   },
@@ -207,8 +236,17 @@ export const TableTileElements = {
   getDeleteCasesButton() {
     return c.getInspectorPanel().find("[data-testid=delete-cases-button]")
   },
+  getDeleteMenuItem(item: string) {
+    return cy.get("[data-testid=trash-menu-list] button").contains(item)
+  },
+  selectItemFromDeleteMenu(item: string) {
+    this.getDeleteMenuItem(item).click({ force: true })
+  },
   getHideShowButton() {
     return c.getInspectorPanel().find("[data-testid=hide-show-button]")
+  },
+  getHideShowMenuItem(item: string) {
+    return cy.get("[data-testid=hide-show-menu-list] button").contains(item)
   },
   getRulerButton() {
     return c.getInspectorPanel().find("[data-testid=ruler-button]")

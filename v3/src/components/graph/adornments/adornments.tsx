@@ -14,6 +14,7 @@ import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
 import { updateCellKey } from "./adornment-utils"
 import { kGraphAdornmentsBannerHeight } from "./adornment-types"
+import { MeasuresForSelectionBanner } from "./measures-for-selection-banner"
 
 import "./adornments.scss"
 
@@ -29,7 +30,8 @@ export const Adornments = observer(function Adornments() {
 
   useEffect(function handleAdornmentBannerCountChange() {
     return mstAutorun(() => {
-      const bannerCount = graphModel.adornmentsStore.activeBannerCount
+      let bannerCount = graphModel.showMeasuresForSelection ? 1 : 0
+      bannerCount += graphModel.adornmentsStore.activeBannerCount
       const bannersHeight = bannerCount * kGraphAdornmentsBannerHeight
       layout.setDesiredExtent("banners", bannersHeight)
       }, { name: "Graph.handleAdornmentBannerCountChange" }, graphModel
@@ -154,11 +156,12 @@ export const Adornments = observer(function Adornments() {
   )
   return (
     <>
-    {adornmentBanners &&
-      <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
-        {adornmentBanners}
-      </div>
-    }
+      {adornmentBanners &&
+        <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
+          {graphModel.showMeasuresForSelection && <MeasuresForSelectionBanner />}
+          {adornmentBanners}
+        </div>
+      }
       <div className={containerClass} data-testid={kGraphAdornmentsClass} style={outerGridStyle}>
         {outerGridCells}
       </div>

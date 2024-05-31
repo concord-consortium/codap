@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-pre.1652",
+  "version": "3.0.0-pre.1671",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browser": {
@@ -178,7 +178,7 @@
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@concord-consortium/cloud-file-manager": "^2.0.0-pre.3",
-    "@concord-consortium/mobx-state-tree": "^5.4.0-cc.1",
+    "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@dnd-kit/core": "^6.1.0",
     "@floating-ui/react": "^0.26.9",
     "clsx": "^2.1.0",

@@ -119,6 +119,12 @@ export interface DIUpdateItemResult {
   createdCases?: number[]
   deletedCases?: number[]
 }
+export interface DIUpdateDataContext extends DIDataContext {
+  sort?: {
+    attr?: string
+    isDescending?: boolean
+  }
+}
 export interface DINotification {
   request?: string
 }
