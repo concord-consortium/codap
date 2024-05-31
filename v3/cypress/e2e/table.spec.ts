@@ -135,189 +135,189 @@ context("case table ui", () => {
         expect(postInsertRowCount).to.eq(initialRowCount - 1)
       })
 
-       // // checks for undo/redo
-       // cy.log("check for undo/redo after delete")
+      // // checks for undo/redo
+      // cy.log("check for undo/redo after delete")
 
-       // // Undo delete
-       // toolbar.getUndoTool().click()
+      // // Undo delete
+      // toolbar.getUndoTool().click()
 
-       // // Verify undo (check if row count is back to post-insert count)
-       // // TODO: add the check once bug is fixed (PT ##187597588)
-       // table.getNumOfRows().then(rowCount => {
-       //  const rowCountAfterUndo = parseInt(rowCount)
-       //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-       // })
+      // // Verify undo (check if row count is back to post-insert count)
+      // // TODO: add the check once bug is fixed (PT ##187597588)
+      // table.getNumOfRows().then(rowCount => {
+      //  const rowCountAfterUndo = parseInt(rowCount)
+      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
+      // })
 
-       // // Redo delete
-       // toolbar.getRedoTool().click()
+      // // Redo delete
+      // toolbar.getRedoTool().click()
 
-       // // Verify redo (check if row count is back to initial count)
-       // // TODO: add the check once bug is fixed (PT ##187597588)
-       //  table.getNumOfRows().then(rowCount => {
-       //  const rowCountAfterRedo = parseInt(rowCount)
-       //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-       // })
+      // // Verify redo (check if row count is back to initial count)
+      // // TODO: add the check once bug is fixed (PT ##187597588)
+      //  table.getNumOfRows().then(rowCount => {
+      //  const rowCountAfterRedo = parseInt(rowCount)
+      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
+      // })
     })
     it("select a case and delete unselected cases from inspector menu", () => {
-     let initialRowCount // Declare variable to hold initial row count
-     let postInsertRowCount // Declare variable to hold row count after delete
+      let initialRowCount // Declare variable to hold initial row count
+      let postInsertRowCount // Declare variable to hold row count after delete
 
-     // Get initial row count
-     table.getNumOfRows().then(rowCount => {
-       initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-     })
-
-     // Delete one case in table
-     //c.selectTile("table", 0)
-     table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-     table.getDeleteCasesButton().click()
-     table.getDeleteMenuItem("Delete Unselected Cases").click()
-
-     // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
-     table.getNumOfRows().then(rowCount => {
-       postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-       expect(postInsertRowCount).to.eq(2)
-       expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
+      // Get initial row count
+      table.getNumOfRows().then(rowCount => {
+        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
       })
 
-        // // checks for undo/redo
-        // cy.log("check for undo/redo after delete")
+      // Delete one case in table
+      //c.selectTile("table", 0)
+      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+      table.getDeleteCasesButton().click()
+      table.getDeleteMenuItem("Delete Unselected Cases").click()
 
-        // // Undo delete
-        // toolbar.getUndoTool().click()
+      // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+      table.getNumOfRows().then(rowCount => {
+        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postInsertRowCount).to.eq(2)
+        expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
+      })
 
-        // // Verify undo (check if row count is back to post-insert count)
-        // // TODO: add the check once bug is fixed (PT ##187597588)
-        // table.getNumOfRows().then(rowCount => {
-        //  const rowCountAfterUndo = parseInt(rowCount)
-        //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-        // })
+      // // checks for undo/redo
+      // cy.log("check for undo/redo after delete")
 
-        // // Redo delete
-        // toolbar.getRedoTool().click()
+      // // Undo delete
+      // toolbar.getUndoTool().click()
 
-        // // Verify redo (check if row count is back to initial count)
-        // // TODO: add the check once bug is fixed (PT ##187597588)
-        //  table.getNumOfRows().then(rowCount => {
-        //  const rowCountAfterRedo = parseInt(rowCount)
-        //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-        // })
-     })
+      // // Verify undo (check if row count is back to post-insert count)
+      // // TODO: add the check once bug is fixed (PT ##187597588)
+      // table.getNumOfRows().then(rowCount => {
+      //  const rowCountAfterUndo = parseInt(rowCount)
+      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
+      // })
+
+      // // Redo delete
+      // toolbar.getRedoTool().click()
+
+      // // Verify redo (check if row count is back to initial count)
+      // // TODO: add the check once bug is fixed (PT ##187597588)
+      //  table.getNumOfRows().then(rowCount => {
+      //  const rowCountAfterRedo = parseInt(rowCount)
+      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
+      // })
+    })
     it("check delete all cases from inspector menu", () => {
       let initialRowCount // Declare variable to hold initial row count
       let postInsertRowCount // Declare variable to hold row count after delete
 
-     // Get initial row count
-     table.getNumOfRows().then(rowCount => {
-      initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-    })
+      // Get initial row count
+      table.getNumOfRows().then(rowCount => {
+        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+      })
 
-     // Delete all cases in table
-     c.selectTile("table", 0)
-     table.getDeleteCasesButton().click()
-     table.getDeleteMenuItem("Delete All Cases").click()
+      // Delete all cases in table
+      c.selectTile("table", 0)
+      table.getDeleteCasesButton().click()
+      table.getDeleteMenuItem("Delete All Cases").click()
 
-     // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
-     table.getNumOfRows().then(rowCount => {
-      postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-       expect(postInsertRowCount).to.eq(1)
-       expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
-     })
+      // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+      table.getNumOfRows().then(rowCount => {
+        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postInsertRowCount).to.eq(1)
+        expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
+      })
     })
     it("check hide/show attribute from inspector menu", () => {
-     // Hide the attribute
-     table.openAttributeMenu("Mammal")
-     table.selectMenuItemFromAttributeMenu("Hide Attribute")
+      // Hide the attribute
+      table.openAttributeMenu("Mammal")
+      table.selectMenuItemFromAttributeMenu("Hide Attribute")
 
-     // Verify attribute is hidden
-     table.getColumnHeader(1).should("not.have.text", "Mammal")
-     table.getAttribute("Mammal").should("not.exist")
+      // Verify attribute is hidden
+      table.getColumnHeader(1).should("not.have.text", "Mammal")
+      table.getAttribute("Mammal").should("not.exist")
 
-     // Show all attributes
-     c.selectTile("table", 0)
-     table.getHideShowButton().click()
-     table.getHideShowMenuItem("Show 1 Hidden Attribute").click()
+      // Show all attributes
+      c.selectTile("table", 0)
+      table.getHideShowButton().click()
+      table.getHideShowMenuItem("Show 1 Hidden Attribute").click()
 
-     // Verify all attributes are shown
-     table.getColumnHeader(1).should("contain", "Mammal")
-     table.getAttribute("Mammal").should("exist")
- })
-     // // does set aside cases work? can we restore set aside cases? undo/redo?
-     // TODO: implement this test (blocker: need functionality of Set Aside Cases)
-     // PT: #187597833
-     // it.skip("tests for set aside cases with undo/redo", () => {
-     //   let initialRowCount, postInsertRowCount, postDeleteRowCount
+      // Verify all attributes are shown
+      table.getColumnHeader(1).should("contain", "Mammal")
+      table.getAttribute("Mammal").should("exist")
+    })
 
-     //   // Get initial row count
-     //   table.getNumOfRows().then(rowCount => {
-     //    initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-     //   })
+    // // does set aside cases work? can we restore set aside cases? undo/redo?
+    // TODO: implement this test (blocker: need functionality of Set Aside Cases)
+    // PT: #187597833
+    // it.skip("tests for set aside cases with undo/redo", () => {
+    //   let initialRowCount, postInsertRowCount, postDeleteRowCount
 
-     //   table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-     //   table.getHideShowButton().click()
-     //   table.getDeleteMenuItem("Set Aside Unselected Cases").click()
+    //   // Get initial row count
+    //   table.getNumOfRows().then(rowCount => {
+    //    initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+    //   })
 
-     //   // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
-     //   table.getNumOfRows().then(rowCount => {
-     //     postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-     //     expect(postInsertRowCount).to.eq(initialRowCount - 1 )
-     //   })
+    //   table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+    //   table.getHideShowButton().click()
+    //   table.getDeleteMenuItem("Set Aside Unselected Cases").click()
 
-     //    // // checks for undo/redo
-     //    // cy.log("check for undo/redo after delete")
+    //   // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+    //   table.getNumOfRows().then(rowCount => {
+    //     postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+    //     expect(postInsertRowCount).to.eq(initialRowCount - 1 )
+    //   })
 
-     //    // // Undo delete
-     //    // toolbar.getUndoTool().click()
+    //    // // checks for undo/redo
+    //    // cy.log("check for undo/redo after delete")
 
-     //    // // Verify undo (check if row count is back to post-insert count)
-     //    // // TODO: add the check once bug is fixed (PT ##187597588)
-     //    // table.getNumOfRows().then(rowCount => {
-     //    //  const rowCountAfterUndo = parseInt(rowCount)
-     //    //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-     //    // })
+    //    // // Undo delete
+    //    // toolbar.getUndoTool().click()
 
-     //    // // Redo delete
-     //    // toolbar.getRedoTool().click()
+    //    // // Verify undo (check if row count is back to post-insert count)
+    //    // // TODO: add the check once bug is fixed (PT ##187597588)
+    //    // table.getNumOfRows().then(rowCount => {
+    //    //  const rowCountAfterUndo = parseInt(rowCount)
+    //    //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
+    //    // })
 
-     //    // // Verify redo (check if row count is back to initial count)
-     //    // // TODO: add the check once bug is fixed (PT ##187597588)
-     //    //  table.getNumOfRows().then(rowCount => {
-     //    //  const rowCountAfterRedo = parseInt(rowCount)
-     //    //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-     //    // })
+    //    // // Redo delete
+    //    // toolbar.getRedoTool().click()
 
+    //    // // Verify redo (check if row count is back to initial count)
+    //    // // TODO: add the check once bug is fixed (PT ##187597588)
+    //    //  table.getNumOfRows().then(rowCount => {
+    //    //  const rowCountAfterRedo = parseInt(rowCount)
+    //    //  expect(rowCountAfterRedo).to.eq(initialRowCount)
+    //    // })
 
-     // })
+    // })
 
-     it("check New Attribute from inspector menu with undo/redo", () => {
-       c.selectTile("table", 0)
-       table.getRulerButton().click()
-       table.getRulerMenuItem("New Attribute in Mammals...").click()
+    it("check New Attribute from inspector menu with undo/redo", () => {
+      c.selectTile("table", 0)
+      table.getRulerButton().click()
+      table.getRulerMenuItem("New Attribute in Mammals...").click()
 
-       // verify new attribute exists
-       table.getColumnHeaders().should("have.length.be.within", 10, 11)
-       table.getAttribute("newAttr").should("exist")
-       table.getAttribute("newAttr").click()
-       table.getAttribute("newAttr").should("have.text", "newAttr")
+      // verify new attribute exists
+      table.getColumnHeaders().should("have.length.be.within", 10, 11)
+      table.getAttribute("newAttr").should("exist")
+      table.getAttribute("newAttr").click()
+      table.getAttribute("newAttr").should("have.text", "newAttr")
 
-       cy.log("check undo/redo after add new attribute")
-       // Perform Undo operation
-       toolbar.getUndoTool().click()
+      cy.log("check undo/redo after add new attribute")
+      // Perform Undo operation
+      toolbar.getUndoTool().click()
 
-       // Test if attribute is removed
-       table.getColumnHeaders().should("have.length.be.within", 9, 10)
-       table.getAttribute("newAttr").should("not.exist")
+      // Test if attribute is removed
+      table.getColumnHeaders().should("have.length.be.within", 9, 10)
+      table.getAttribute("newAttr").should("not.exist")
 
-       // Perform Redo operation
-       toolbar.getRedoTool().click()
+      // Perform Redo operation
+      toolbar.getRedoTool().click()
 
-       // verify new attribute exists
-       table.getColumnHeaders().should("have.length.be.within", 10, 11)
-       table.getAttribute("newAttr").should("exist")
-       table.getAttribute("newAttr").click()
-       table.getAttribute("newAttr").should("have.text", "newAttr")
-   })
- })
+      // verify new attribute exists
+      table.getColumnHeaders().should("have.length.be.within", 10, 11)
+      table.getAttribute("newAttr").should("exist")
+      table.getAttribute("newAttr").click()
+      table.getAttribute("newAttr").should("have.text", "newAttr")
+    })
+  })
   describe("case table header attribute menu", () => {
     it("verify add attribute with undo and redo", ()=>{
       // Add new attribute using Add New Attribute button (+)
@@ -495,7 +495,6 @@ context("case table ui", () => {
       //  const rowCountAfterRedo = parseInt(rowCount)
       //  expect(rowCountAfterRedo).to.eq(initialRowCount)
       // })
-
     })
     it("verify insert cases before a row by typing num of cases", () => {
 
@@ -658,7 +657,6 @@ context("case table ui", () => {
       toolbar.getRedoTool().click()
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
-
     })
     it("verify insert multiple cases below current case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -685,7 +683,6 @@ context("case table ui", () => {
       toolbar.getRedoTool().click()
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
-
     })
     it("verify insert multiple cases above current case at the top", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -712,7 +709,6 @@ context("case table ui", () => {
       toolbar.getRedoTool().click()
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
-
     })
     it("verify delete first case", () => {
       table.getCaseTableGrid().scrollTo("top")
@@ -947,6 +943,4 @@ context("case table ui", () => {
       table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
     })
   })
-
-
 })
