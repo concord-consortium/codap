@@ -1,0 +1,18 @@
+@use "../../vars.scss" as *;
+
+.measures-for-selection-banner {
+  background: $background-fill;
+  border: none;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  font: 12px "MuseoSans-500", sans-serif;
+  justify-content: center;
+  line-height: 1;
+  min-height: 22px;
+  overflow: hidden;
+  padding: 0 5px;
+  pointer-events: all;
+  text-align: left;
+  width: calc(100% - 10px);
+}

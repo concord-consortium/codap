@@ -69,11 +69,22 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const handleParentTogglesChange = () => {
-    const undoStringKey = graphModel?.showParentToggles ? "DG.Undo.disableNumberToggle" : "DG.Undo.enableNumberToggle"
-    const redoStringKey = graphModel?.showParentToggles ? "DG.Redo.disableNumberToggle" : "DG.Redo.enableNumberToggle"
+    const [undoStringKey, redoStringKey] = graphModel?.showParentToggles
+      ? ["DG.Undo.disableNumberToggle", "DG.Redo.disableNumberToggle"]
+      : ["DG.Undo.enableNumberToggle", "DG.Redo.enableNumberToggle"]
 
     dataConfig?.applyModelChange(
       () => graphModel?.setShowParentToggles(!graphModel?.showParentToggles),
+      { undoStringKey, redoStringKey }
+    )
+  }
+
+  const handleMeasuresForSelectionChange = () => {
+    const [undoStringKey, redoStringKey] = graphModel?.showMeasuresForSelection
+      ? ["DG.Undo.disableMeasuresForSelection", "DG.Redo.disableMeasuresForSelection"]
+      : ["DG.Undo.enableMeasuresForSelection", "DG.Redo.enableMeasuresForSelection"]
+    dataConfig?.applyModelChange(
+      () => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection),
       { undoStringKey, redoStringKey }
     )
   }
@@ -113,8 +124,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       <MenuItem onClick={handleParentTogglesChange} data-testid="show-parent-toggles">
         {parentToggleString}
       </MenuItem>
-      <MenuItem onClick={() => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection)}
-       data-testid="show-selection-measures">
+      <MenuItem onClick={handleMeasuresForSelectionChange} data-testid="show-selection-measures">
         {measuresForSelectionString}
       </MenuItem>
     </MenuList>
