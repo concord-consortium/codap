@@ -4,8 +4,11 @@ import { DataSet } from "../../models/data/data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIDataContext, DIHandler, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
+import {
+  DIDataContext, DIHandler, DIResources, DIUpdateDataContext, DIValues, diNotImplementedYet
+} from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
+import { getAttribute } from "../data-interactive-utils"
 import { createCollection } from "./di-handler-utils"
 import { dataContextNotFoundResult } from "./di-results"
 
@@ -63,12 +66,19 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    const values = _values as DIDataContext
+    const values = _values as DIUpdateDataContext
     if (values) {
       dataContext.applyModelChange(() => {
         const { metadata, title } = values
         if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
+
+        if (values.sort?.attr) {
+          const attribute = getAttribute(values.sort.attr, dataContext)
+          if (attribute) {
+            // TODO Perform the actual sort
+          }
+        }
       })
     }
 

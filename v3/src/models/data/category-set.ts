@@ -1,6 +1,6 @@
 import { observable, runInAction } from "mobx"
 import {
-  addDisposer, getEnv, IAnyStateTreeNode, Instance, isValidReference, resolveIdentifier, types
+  addDisposer, getEnv, hasEnv, IAnyStateTreeNode, Instance, isValidReference, resolveIdentifier, types
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -21,7 +21,7 @@ interface IProvisionalEnvironment {
 }
 
 export function getProvisionalDataSet(node: IAnyStateTreeNode | null) {
-  const env = node ? getEnv<IProvisionalEnvironment>(node) : {}
+  const env = node && hasEnv(node) ? getEnv<IProvisionalEnvironment>(node) : {}
   return env.provisionalDataSet
 }
 

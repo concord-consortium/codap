@@ -2,7 +2,9 @@ import {Instance, types} from "mobx-state-tree"
 import {getAdornmentComponentInfo} from "./adornment-component-info"
 import {AdornmentModelUnion, kDefaultFontSize} from "./adornment-types"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "./adornment-models"
+import {IMovableValueAdornmentModel} from "./movable-value/movable-value-adornment-model"
 import {kMovableValueType} from "./movable-value/movable-value-adornment-types"
+import {IUnivariateMeasureAdornmentModel} from "./univariate-measures/univariate-measure-adornment-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 
 /**
@@ -17,6 +19,18 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   showMeasureLabels: false,
   showSquaresOfResiduals: false
 })
+.views(self => ({
+  isShowingAdornment(type: string) {
+    return !!self.adornments.find(a => a.type === type)?.isVisible
+  },
+  get activeUnivariateMeasures() {
+    return self.adornments.filter(adornment => adornment.isUnivariateMeasure && adornment.isVisible) as
+            IUnivariateMeasureAdornmentModel[]
+  },
+  findAdornmentOfType<T extends IAdornmentModel = IAdornmentModel>(type: string): T | undefined {
+    return self.adornments.find(adornment => adornment.type === type) as T
+  }
+}))
 .actions(self => ({
   setDefaultFontSize(fontSize: number) {
     self.defaultFontSize = fontSize
@@ -47,13 +61,10 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   }
 }))
 .views(self => ({
-  isShowingAdornment(type: string) {
-    return !!self.adornments.find(a => a.type === type)?.isVisible
-  },
   get subPlotsHaveRegions() {
-    const movableValueAdornment = self.adornments.find(a => a.type === kMovableValueType)
+    const movableValueAdornment = self.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
     const movableValues = movableValueAdornment?.values
-    return movableValues?.size > 0
+    return !!movableValues?.size
   },
   subPlotRegionBoundaries(key: string, scale: ScaleNumericBaseType) {
     // When Movable Values are present, they define regions within a sub-plot which may affect the behavior of other
@@ -61,7 +72,8 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
     // used by those adornments to determine the sub-region boundaries. The boundaries are simply the numeric values
     // of each movable value in addition to the primary axis' min and max values.
     const [axisMin, axisMax] = scale.domain() as [number, number]
-    const movableValues = self.adornments.find(a => a.type === kMovableValueType)?.valuesForKey(key) ?? []
+    const movableValueAdornment = self.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
+    const movableValues = movableValueAdornment?.valuesForKey(key) ?? []
     return [axisMin, ...movableValues, axisMax].sort((a: number, b: number) => a - b)
   },
   get activeBannerCount() {
@@ -69,14 +81,6 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
       if (!adornment.isVisible) return false
       return getAdornmentComponentInfo(adornment.type)?.BannerComponent
     }).length
-  }
-}))
-.views(self => ({
-  get activeUnivariateMeasures() {
-    return self.adornments.filter(adornment => adornment.isUnivariateMeasure && adornment.isVisible)
-  },
-  findAdornmentOfType<T extends IAdornmentModel = IAdornmentModel>(type: string): T | undefined {
-    return self.adornments.find(adornment => adornment.type === type) as T
   }
 }))
 .actions(self => ({

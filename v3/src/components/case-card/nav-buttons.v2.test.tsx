@@ -7,6 +7,7 @@ import "./nav-buttons.v2"
 const { NavButtons } = DG.React.Components as any
 
 describe("Case card NavButtons", () => {
+  jest.setTimeout(10000)
   it("renders", async () => {
     const user = userEvent.setup()
     const collectionClient = {

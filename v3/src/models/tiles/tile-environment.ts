@@ -1,5 +1,5 @@
 import iframePhone from "iframe-phone"
-import { getEnv, IAnyStateTreeNode } from "mobx-state-tree"
+import { getEnv, hasEnv, IAnyStateTreeNode } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 // There's nothing wrong in explicit ISharedModelManager interface, but probably dependency cycle could have been also
 // avoided using `import type { SharedModelManager } from ...`.
@@ -14,7 +14,7 @@ export interface ITileEnvironment {
 }
 
 export function getTileEnvironment(node?: IAnyStateTreeNode) {
-  return node ? getEnv<ITileEnvironment | undefined>(node) : undefined
+  return node && hasEnv(node) ? getEnv<ITileEnvironment | undefined>(node) : undefined
 }
 
 export function getSharedModelManager(node?: IAnyStateTreeNode) {

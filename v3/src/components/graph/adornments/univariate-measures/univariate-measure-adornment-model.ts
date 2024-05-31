@@ -19,6 +19,9 @@ export const MeasureInstance = types.model("MeasureInstance", {
   setValue(value: number) {
     self.value = value
     self.isValid = true
+  },
+  setIsValid(isValid: boolean) {
+    self.isValid = isValid
   }
 }))
 
@@ -78,6 +81,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     },
     setShowMeasureLabels(showLabels: boolean) {
       self.showMeasureLabels = showLabels
+    },
+    invalidateMeasures() {
+      self.measures.forEach(measure => measure.setIsValid(false))
     }
   }))
   .views(self => ({

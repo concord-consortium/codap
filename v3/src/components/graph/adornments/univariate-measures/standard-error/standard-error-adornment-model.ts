@@ -19,9 +19,11 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
     setNumStErrs(numStErrs: number) {
       self._numStErrs = numStErrs
       self.dynamicNumStErrs = undefined
+      self.invalidateMeasures()
     },
     setDynamicNumStErrs(numStErrs: number | undefined) {
       self.dynamicNumStErrs = numStErrs
+      self.invalidateMeasures()
     }
   }))
   .views(self => ({

@@ -2,13 +2,12 @@ import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
 import { GlobalValueManager } from "../models/global/global-value-manager"
-// import { IDataSet } from "../models/data/data-set"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3AttrId, toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
-import { canonicalizeAttributeName, getCollection } from "./data-interactive-utils"
+import { getAttribute, getCollection } from "./data-interactive-utils"
 import { parseSearchQuery } from "./resource-parser-utils"
 
 /**
@@ -138,12 +137,7 @@ export function resolveResources(
   if (resourceSelector.attribute || resourceSelector.attributeLocation) {
     const attrKey = resourceSelector.attribute ? 'attribute' : 'attributeLocation'
     const attrNameOrId = resourceSelector[attrKey] ?? ""
-    const canonicalAttrName = canonicalizeAttributeName(attrNameOrId)
-    result[attrKey] =
-      // check collection first in case of ambiguous names in data set
-      collectionModel?.getAttributeByName(attrNameOrId) || collectionModel?.getAttributeByName(canonicalAttrName) ||
-      dataContext?.getAttributeByName(attrNameOrId) || dataContext?.getAttributeByName(canonicalAttrName) ||
-      dataContext?.getAttribute(toV3AttrId(attrNameOrId)) // in case it's an id
+    result[attrKey] = getAttribute(attrNameOrId, dataContext, collectionModel)
   }
 
   if ("attributeList" in resourceSelector) {
