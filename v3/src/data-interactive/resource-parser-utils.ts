@@ -6,6 +6,7 @@ export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParse
     return { valid: true, func: () => true }
   }
 
+  // RegExs here and below taken from CODAP v2
   const matches = query.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]+)/)
   if (!matches) return { valid: false, func: () => false }
   
