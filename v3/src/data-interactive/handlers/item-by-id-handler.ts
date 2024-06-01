@@ -1,14 +1,25 @@
-// import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, /*DIItem, DIResources, DIValues,*/ diNotImplementedYet } from "../data-interactive-types"
-
-// const dataContextNotFoundResult =
-//   { success: false, values: { error: t("V3.DI.Error.dataContextNotFound") } } as const
+import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { deleteItem, getItem, updateCaseBy } from "./handler-functions"
 
 export const diItemByIDHandler: DIHandler = {
-  delete: diNotImplementedYet,
-  get: diNotImplementedYet,
-  update: diNotImplementedYet
+  delete(resources: DIResources) {
+    const { itemByID } = resources
+
+    return deleteItem(resources, itemByID)
+  },
+
+  get(resources: DIResources) {
+    const { itemByID } = resources
+
+    return getItem(resources, itemByID)
+  },
+
+  update(resources: DIResources, values?: DIValues) {
+    const { itemByID } = resources
+
+    return updateCaseBy(resources, values, itemByID, { itemReturnStyle: true, resourceName: "itemByID" })
+  }
 }
 
 registerDIHandler("itemByID", diItemByIDHandler)

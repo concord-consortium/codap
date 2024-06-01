@@ -20,9 +20,10 @@ export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
   return tName
 }
 
-export function getCaseValues(caseId: string, collectionId: string, dataSet: IDataSet) {
-  const attributes = dataSet.getGroupedCollection(collectionId)?.attributes ??
-    dataSet.ungroupedAttributes
+export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {
+  const attributes = collectionId
+    ? dataSet.getGroupedCollection(collectionId)?.attributes ?? dataSet.ungroupedAttributes
+    : dataSet.attributes
 
   const values: DICaseValues = {}
   const actualCaseIndex = dataSet.caseIDMap.get(caseId) ?? -1
