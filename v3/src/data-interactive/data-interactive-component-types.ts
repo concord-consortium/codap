@@ -30,19 +30,36 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kWebViewTileType]: kV2WebViewType
 }
 
-export interface V2CaseTable {
-  type: "caseTable"
-  name?: string
-  title?: string
+export const kComponentTypeV2ToV3Map: Record<string, string> = {}
+for (const key in kComponentTypeV3ToV2Map) {
+  kComponentTypeV2ToV3Map[kComponentTypeV3ToV2Map[key]] = key
+}
+
+export interface V2Component {
+  cannotClose?: boolean
   dimensions?: {
     width: number
     height: number
   }
+  name?: string
   position?: string
-  cannotClose?: boolean
+  title?: string
+  type: string
+}
+export interface V2CaseTable extends V2Component {
   dataContext?: string
   horizontalScrollOffset?: number
   isIndexHidden?: boolean
+  type: "caseTable"
+}
+export interface V2Graph extends V2Component {
+  dataContext?: string
+  enableNumberToggle?: boolean
+  legendAttributeName?: string
+  numberToggleLastMode?: boolean
+  xAttributeName?: string
+  yAttributeName?: string
+  y2AttributeName?: string
 }
 
-export type V2Component = V2CaseTable
+export type V2SpecificComponent = V2CaseTable | V2Graph

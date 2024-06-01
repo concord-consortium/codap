@@ -49,6 +49,7 @@ export interface IImportDataSetOptions {
 }
 
 export interface INewTileOptions {
+  cannotClose?: boolean
   x?: number
   y?: number
   height?: number
@@ -84,12 +85,13 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
     },
-    createDefaultTileSnapshotOfType(tileType: string): ITileModelSnapshotIn | undefined {
+    createDefaultTileSnapshotOfType(tileType: string, options?: INewTileOptions): ITileModelSnapshotIn | undefined {
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)
       const id = v3Id(info?.prefix || "TILE")
       const content = info?.defaultContent({ env })
-      return content ? { id, content } : undefined
+      const cannotClose = options?.cannotClose
+      return content ? { id, content, cannotClose } : undefined
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       const tileIds = self.tileMap.keys()
@@ -130,7 +132,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const height = options?.height ?? (componentInfo.defaultHeight || 0)
       const row = self.getRowByIndex(0)
       if (row) {
-        const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType)
+        const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType, options)
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
