@@ -14,13 +14,13 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   if (!aCase) return caseNotFoundResult
 
   const pseudoCase = dataContext.pseudoCaseMap.get(aCase.__id__)
-  const cases = pseudoCase?.childCaseIds ?? [aCase.__id__]
+  const caseIds = pseudoCase?.childCaseIds ?? [aCase.__id__]
 
   dataContext.applyModelChange(() => {
-    dataContext.removeCases(cases)
+    dataContext.removeCases(caseIds)
   })
 
-  return { success: true }
+  return { success: true as const, values: [toV2Id(aCase.__id__)] }
 }
 
 export function deleteItem(resources: DIResources, item?: ICase) {
@@ -40,7 +40,7 @@ export function getCaseBy(resources: DIResources, aCase?: ICase) {
   if (!dataContext) return dataContextNotFoundResult
   if (!aCase) return caseNotFoundResult
 
-  return { success: true, values: getCaseRequestResultValues(aCase, dataContext) } as const
+  return { success: true as const, values: getCaseRequestResultValues(aCase, dataContext) }
 }
 
 export function getItem(resources: DIResources, item?: ICase) {
@@ -77,9 +77,9 @@ export function updateCaseBy(
   const { itemReturnStyle, nestedValues, resourceName } = options ?? {}
 
   const missingFieldResult = (field: string) => ({
-    success: false,
+    success: false as const,
     values: { error: t("V3.DI.Error.fieldRequired", { vars: ["update", resourceName ?? "case", field] }) }
-  } as const)
+  })
   if (!values) return missingFieldResult("values")
 
   let _values = values as DICaseValues
