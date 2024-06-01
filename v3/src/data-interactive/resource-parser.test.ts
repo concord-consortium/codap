@@ -5,13 +5,15 @@ import { appState } from "../models/app-state"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/tile-environment"
 import { toV2Id } from "../utilities/codap-utils"
-import { setupTestDataset } from "./handlers/handler-test-utils"
+import { setupTestDataset, testCases } from "./handlers/handler-test-utils"
 import { resolveResources } from "./resource-parser"
 
 describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
+  dataset.removeCases(dataset.cases.map(c => c.__id__))
+  dataset.addCases(testCases, { canonicalize: true })
   const c1 = dataset.collections[0]
   const c2 = dataset.collections[1]
   const a1 = dataset.getAttributeByName("a1")!
@@ -99,5 +101,47 @@ describe("DataInteractive ResourceParser", () => {
 
     const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)
+  })
+
+  it("finds item", () => {
+    expect(resolve(`dataContext[data].item`).item).toBeUndefined()
+    expect(resolve(`dataContext[data].item[-1]`).item).toBeUndefined()
+    expect(resolve(`dataContext[data].item[100]`).item).toBeUndefined()
+    expect(resolve(`dataContext[data].item[word]`).item).toBeUndefined()
+
+    const item = dataset.getCaseAtIndex(0)
+    expect(resolve(`dataContext[data].item[0]`).item?.__id__).toBe(item?.__id__)
+  })
+
+  it("finds itemByID", () => {
+    expect(resolve(`dataContext[data].itemByID[unknown]`).itemByID).toBeUndefined()
+
+    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    expect(resolve(`dataContext[data].itemByID[${toV2Id(itemId)}]`).itemByID?.__id__).toBe(itemId)
+  })
+
+  it("finds itemSearch", () => {
+    expect(resolve(`dataContext[data].itemSearch`).itemSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].itemSearch[]`).itemSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].itemSearch[bad search]`).itemSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].itemSearch[a1>]`).itemSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].itemSearch[!=2]`).itemSearch).toBeUndefined()
+
+    const allResult = resolve(`dataContext[data].itemSearch[*]`)
+    expect(allResult.itemSearch?.length).toBe(dataset.cases.length)
+
+    const a1Result = resolve(`dataContext[data].itemSearch[a1==a]`)
+    expect(a1Result.itemSearch?.length).toBe(3)
+
+    const a2Result = resolve(`dataContext[data].itemSearch[ x < a2 ]`)
+    expect(a2Result.itemSearch?.length).toBe(4)
+  })
+
+  it("finds itemByCaseID", () => {
+    expect(resolve(`dataContext[data].itemByCaseID[unknown]`).itemByCaseID).toBeUndefined()
+
+    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
   })
 })

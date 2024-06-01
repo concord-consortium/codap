@@ -62,7 +62,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
     parent: parentCollectionInfo
   } : undefined
 
-  const values = getCaseValues(caseId, collectionId, dataContext)
+  const values = getCaseValues(caseId, dataContext, collectionId)
 
   return {
     id: maybeToV2Id(caseGroup?.pseudoCase.__id__),
@@ -89,7 +89,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
     name: _collection.name
   } : undefined
 
-  const values = getCaseValues(caseId, collectionId, dataContext)
+  const values = getCaseValues(caseId, dataContext, collectionId)
 
   const pseudoCase = dataContext.pseudoCaseMap.get(caseId)
   const children = pseudoCase?.childPseudoCaseIds?.map(cId => toV2Id(cId)) ??
@@ -207,6 +207,13 @@ export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): I
     // preventReorg,
     // setAsideItems,
     // contextStorage
+  }
+}
+
+export function getV2ItemResult(dataContext: IDataSet, itemId: string) {
+  return {
+    id: toV2Id(itemId),
+    values: getCaseValues(itemId, dataContext)
   }
 }
 

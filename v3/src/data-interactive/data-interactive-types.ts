@@ -2,7 +2,7 @@ import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICodapV2Attribute, ICodapV2AttributeV3, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
-import { ICase } from "../models/data/data-set-types"
+import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionPropsModel } from "../models/data/collection"
@@ -114,6 +114,11 @@ export interface DIUpdateCollection {
   title?: string
   labels?: Partial<ICollectionLabels>
 }
+export interface DIUpdateItemResult {
+  changedCases?: number[]
+  createdCases?: number[]
+  deletedCases?: number[]
+}
 export interface DIUpdateDataContext extends DIDataContext {
   sort?: {
     attr?: string
@@ -140,11 +145,11 @@ export interface DIResources {
   global?: IGlobalValue
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
-  item?: DIItem
-  itemByCaseID?: DIItem
-  itemByID?: DIItem
+  item?: ICase
+  itemByCaseID?: ICase
+  itemByID?: ICase
   itemCount?: number
-  itemSearch?: DIItem[]
+  itemSearch?: ICaseID[]
 }
 
 // types for values accepted as inputs by the API
@@ -156,7 +161,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 export type DIResultAttributes = { attrs: ICodapV2AttributeV3[] }
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIGetCaseResult | DIGlobal | DIInteractiveFrame
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
-  DIAllCases | DIDeleteCollectionResult | DIResultAttributes | number
+  DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[]
 
 export interface DIMetadata {
   dirtyDocument?: boolean
@@ -209,6 +214,10 @@ export interface DIResourceSelector {
   dataContextList?: string
   global?: string
   interactiveFrame?: string
+  item?: string
+  itemByCaseID?: string
+  itemByID?: string
+  itemSearch?: string
   logMessage?: string
   type?: string
 }
@@ -220,3 +229,17 @@ export interface DIAction {
 }
 export type DIRequest = DIAction | DIAction[]
 export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
+
+export type DIQueryValue = number | string | boolean
+export type DIQueryFunction = (a?: DIQueryValue, b?: DIQueryValue) => boolean
+export interface DIParsedOperand {
+  attr?: IAttribute
+  name: string
+  value: DIQueryValue
+}
+export interface DIParsedQuery {
+  valid: boolean
+  func: DIQueryFunction
+  left?: DIParsedOperand
+  right?: DIParsedOperand
+}

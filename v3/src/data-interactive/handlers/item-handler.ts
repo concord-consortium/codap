@@ -1,6 +1,7 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIItem, DIResources, DIValues, diNotImplementedYet } from "../data-interactive-types"
+import { DICaseValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { attrNamesToIds } from "../data-interactive-utils"
+import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
 export const diItemHandler: DIHandler = {
@@ -9,7 +10,7 @@ export const diItemHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
-    const items = (Array.isArray(values) ? values : [values]) as DIItem[]
+    const items = (Array.isArray(values) ? values : [values]) as DICaseValues[]
     const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
     return {
       success: true,
@@ -17,8 +18,28 @@ export const diItemHandler: DIHandler = {
       itemIDs
     }
   },
-  get: diNotImplementedYet,
-  update: diNotImplementedYet
+
+  delete(resources: DIResources) {
+    const { item } = resources
+
+    return deleteItem(resources, item)
+  },
+
+  get(resources: DIResources) {
+    const { item } = resources
+
+    return getItem(resources, item)
+  },
+
+  update(resources: DIResources, values?: DIValues) {
+    const { item } = resources
+
+    if (item) {
+      return updateCaseBy(resources, values, item, { itemReturnStyle: true, resourceName: "item" })
+    } else {
+      return updateCasesBy(resources, values, true)
+    }
+  }
 }
 
 registerDIHandler("item", diItemHandler)
