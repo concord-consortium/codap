@@ -6,8 +6,9 @@ import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
-import { ActionName, DIResources, DIResourceSelector } from "./data-interactive-types"
+import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
+import { parseSearchQuery } from "./resource-parser-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -186,11 +187,21 @@ export function resolveResources(
     result.itemByID = dataContext?.getCase(itemId)
   }
 
-  // if (resourceSelector.itemSearch) {
-  //   const dataSet = result.dataContext && result.dataContext.get('dataSet');
-  //   result.itemSearch = dataSet && dataSet.getItemsBySearch(
-  //       resourceSelector.itemSearch) ;
-  // }
+  if (resourceSelector.itemSearch && dataContext) {
+    const { func, left, right, valid } = parseSearchQuery(resourceSelector.itemSearch, dataContext)
+    if (valid) {
+      result.itemSearch = dataContext.cases.filter(aCase => {
+        const itemIndex = dataContext.caseIndexFromID(aCase.__id__)
+        const getValue = (operand?: DIParsedOperand) => {
+          if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+
+          return operand?.value
+        }
+
+        return func(getValue(left), getValue(right))
+      })
+    }
+  }
 
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
