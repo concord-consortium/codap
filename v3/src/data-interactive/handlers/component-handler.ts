@@ -20,7 +20,7 @@ export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
 
-    const { type, dimensions, name, title } = values as V2Component
+    const { type, cannotClose, dimensions, name, title } = values as V2Component
     const { document } = appState
 
     function getSharedDataSet(dataContext: string) {
@@ -66,7 +66,7 @@ export const diComponentHandler: DIHandler = {
         }
       }
     } else if (kComponentTypeV2ToV3Map[type]) {
-      const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], dimensions)
+      const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], { cannotClose, ...dimensions })
       if (!tile) return { success: false, values: { error: "Unable to create tile." } }
 
       if (title) {
@@ -94,6 +94,7 @@ export const diComponentHandler: DIHandler = {
                 }
               }
             }
+            // TODO Figure out how to do this without setTimeout
             setTimeout(() => {
               setAttribute("legend", legendAttributeName)
               setAttribute("x", xAttributeName)

@@ -72,7 +72,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
           data-testid="component-minimize-button">
           <MinimizeIcon className="component-minimize-icon" onPointerDown={onMinimizeTile}/>
         </Button>
-        {!!tile?.cannotClose &&
+        {!tile?.cannotClose &&
           <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
             onPointerDown={()=>onCloseTile?.(tileId)} data-testid="component-close-button"/>
         }
