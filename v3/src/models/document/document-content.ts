@@ -13,6 +13,7 @@ import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
 import { ComponentRect } from "../../utilities/animation-utils"
 import { v3Id } from "../../utilities/codap-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
+import { t } from "../../utilities/translation/translate"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
@@ -20,7 +21,7 @@ import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import {getSharedDataSetFromDataSetId, getSharedDataSets, getTileCaseMetadata, linkTileToDataSet}
   from "../shared/shared-data-utils"
-import { t } from "../../utilities/translation/translate"
+import { ITileContentSnapshotWithType } from "../tiles/tile-content"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:
@@ -50,6 +51,7 @@ export interface IImportDataSetOptions {
 
 export interface INewTileOptions {
   cannotClose?: boolean
+  content?: ITileContentSnapshotWithType
   x?: number
   y?: number
   height?: number
@@ -89,7 +91,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)
       const id = v3Id(info?.prefix || "TILE")
-      const content = info?.defaultContent({ env })
+      const content = options?.content ?? info?.defaultContent({ env })
       const cannotClose = options?.cannotClose
       return content ? { id, content, cannotClose } : undefined
     },

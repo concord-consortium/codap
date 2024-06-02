@@ -1,11 +1,16 @@
+import { SetRequired } from "type-fest"
 import { createOrShowTableForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { kSliderTileType } from "../../components/slider/slider-defs"
+import { ISliderModel, ISliderSnapshot } from "../../components/slider/slider-model"
 import { IWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
+import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -13,8 +18,8 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import {
-  kComponentTypeV2ToV3Map, kV2CaseTableType, kV2GraphType, kV2WebViewType, V2CaseTable, V2Component, V2Graph,
-  V2WebView
+  kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseTableType, kV2GraphType, kV2SliderType, kV2WebViewType,
+  V2CaseTable, V2Component, V2Graph, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -43,6 +48,7 @@ export const diComponentHandler: DIHandler = {
       values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }) }
     }
     return document.applyModelChange(() => {
+      // Special case for table, which requires a dataset
       if (type === kV2CaseTableType) {
         const { dataContext } = values as V2CaseTable
         if (!dataContext) return dataContextRequiredResult
@@ -59,7 +65,7 @@ export const diComponentHandler: DIHandler = {
         const tile = createOrShowTableForDataset(sharedDataSet)
         if (!tile) return { success: false, values: { error: "Unable to create tile." } }
 
-        // TODO Handle more options, like isIndexHidden
+        // TODO Handle horizontalScrollOffset and isIndexHidden 
         return {
           success: true,
           values: {
@@ -68,10 +74,28 @@ export const diComponentHandler: DIHandler = {
             type
           }
         }
+      // General case
       } else if (kComponentTypeV2ToV3Map[type]) {
-        const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], { cannotClose, ...dimensions })
+        // If a global value is specified, we can't use the default slider content snapshot,
+        // so we create a custom content snapshot here.
+        let content: ITileContentSnapshotWithType | undefined
+        if (type === kV2SliderType) {
+          const { globalValueName } = values as V2Slider
+          if (globalValueName) {
+            const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
+            const global = globalManager?.getValueByName(globalValueName)
+            if (!global) return { success: false, values: { error: `Global not found: '${globalValueName}'` } }
+
+            content = { type: kSliderTileType, globalValue: global.id } as SetRequired<ISliderSnapshot, "type">
+          }
+        }
+
+        // Create the tile
+        const options = { cannotClose, content, ...dimensions }
+        const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
         if (!tile) return { success: false, values: { error: "Unable to create tile." } }
 
+        // Set the tile's title
         if (title) {
           tile.setTitle(title)
         } else if (name) {
@@ -80,7 +104,13 @@ export const diComponentHandler: DIHandler = {
 
         // TODO Handle position
 
-        if (type === kV2GraphType) {
+        // Update components based on unique type options
+        // Calculator
+        if (type === kV2CalculatorType) {
+          // No special options for calculator
+
+        // Graph
+        } else if (type === kV2GraphType) {
           const graphTile = tile.content as IGraphContentModel
           const {
             dataContext, legendAttributeName, xAttributeName, yAttributeName, y2AttributeName
@@ -110,6 +140,17 @@ export const diComponentHandler: DIHandler = {
               // TODO Handle enableNumberToggle and numberToggleLastMode
             }
           }
+
+        // Slider
+        } else if (type === kV2SliderType) {
+          const sliderTile = tile.content as ISliderModel
+          const { lowerBound, upperBound } = values as V2Slider
+          if (lowerBound != null) sliderTile.setAxisMin(lowerBound)
+          if (upperBound != null) sliderTile.setAxisMax(upperBound)
+
+          // TODO Handle animationDirection and animationMode
+
+        // WebView
         } else if (type === kV2WebViewType) {
           const webViewTile = tile.content as IWebViewModel
           const { URL } = values as V2WebView
@@ -129,7 +170,6 @@ export const diComponentHandler: DIHandler = {
       // TODO Handle other types:
       // map
       // slider
-      // calculator
       // text
       // guide
       return { success: false, values: { error: `Unsupported component type ${type}` } }
