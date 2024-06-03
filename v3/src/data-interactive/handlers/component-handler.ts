@@ -113,7 +113,8 @@ export const diComponentHandler: DIHandler = {
         } else if (type === kV2GraphType) {
           const graphTile = tile.content as IGraphContentModel
           const {
-            dataContext, legendAttributeName, xAttributeName, yAttributeName, y2AttributeName
+            dataContext, enableNumberToggle, legendAttributeName, numberToggleLastMode, xAttributeName,
+            yAttributeName, y2AttributeName
           } = values as V2Graph
           if (dataContext) {
             const dataSet = getDataSet(dataContext)
@@ -131,10 +132,26 @@ export const diComponentHandler: DIHandler = {
               }
               // TODO Figure out how to do this without setTimeout
               setTimeout(() => {
-                setAttribute("legend", legendAttributeName)
-                setAttribute("x", xAttributeName)
-                setAttribute("y", yAttributeName)
-                setAttribute("yPlus", y2AttributeName)
+                graphTile.applyModelChange(() => {
+                  setAttribute("legend", legendAttributeName)
+                  setAttribute("x", xAttributeName)
+                  setAttribute("y", yAttributeName)
+                  setAttribute("yPlus", y2AttributeName)
+                  if (enableNumberToggle != null) graphTile.setShowParentToggles(enableNumberToggle)
+                  if (numberToggleLastMode != null) {
+                    graphTile.setShowOnlyLastCase(numberToggleLastMode)
+                    if (numberToggleLastMode) {
+                      const caseIds = dataSet.cases.map(aCase => aCase.__id__)
+                      const lastCaseId = caseIds[caseIds.length - 1]
+                      const hiddenCaseIDs = caseIds.filter(caseId => caseId !== lastCaseId)
+                      console.log(`layers`, graphTile.layers)
+                      graphTile.layers.forEach(layer => {
+                        console.log(`Hiding`, hiddenCaseIDs)
+                        layer.dataConfiguration.setHiddenCases(hiddenCaseIDs)
+                      })
+                    }
+                  }
+                })
               })
 
               // TODO Handle enableNumberToggle and numberToggleLastMode
