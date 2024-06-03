@@ -30,4 +30,13 @@ context("CloudFileManager", () => {
     cfm.getModalDialog().should("not.exist")
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
   })
+  // it("Opens a CODAP document via CFM Open dialog", () => {
+
+  // })
+  // it("Opens a csv document via CFM Open dialog", () => {
+
+  // })
+  // it("Opens a JSON document via CFM Open dialog", () => {
+
+  // })
 })
