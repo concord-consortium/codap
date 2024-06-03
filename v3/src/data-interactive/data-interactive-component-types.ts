@@ -30,7 +30,9 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kWebViewTileType]: kV2WebViewType
 }
 
-export const kComponentTypeV2ToV3Map: Record<string, string> = {}
+export const kComponentTypeV2ToV3Map: Record<string, string> = {
+  [kV2GameType]: kWebViewTileType
+}
 for (const key in kComponentTypeV3ToV2Map) {
   kComponentTypeV2ToV3Map[kComponentTypeV3ToV2Map[key]] = key
 }

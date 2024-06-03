@@ -18,7 +18,7 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import {
-  kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseTableType, kV2GraphType, kV2SliderType, kV2WebViewType,
+  kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseTableType, kV2GameType, kV2GraphType, kV2SliderType, kV2WebViewType,
   V2CaseTable, V2Component, V2Graph, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
@@ -183,7 +183,7 @@ export const diComponentHandler: DIHandler = {
           // TODO Handle animationDirection and animationMode
 
         // WebView
-        } else if (type === kV2WebViewType) {
+        } else if ([kV2GameType, kV2WebViewType].includes(type)) {
           const webViewTile = tile.content as IWebViewModel
           const { URL } = values as V2WebView
           if (URL) webViewTile.setUrl(URL)
@@ -201,9 +201,10 @@ export const diComponentHandler: DIHandler = {
 
       // TODO Handle other types:
       // map
-      // slider
       // text
       // guide
+      // case card
+      // image view
       return { success: false, values: { error: `Unsupported component type ${type}` } }
     })
   },
