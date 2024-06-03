@@ -14,21 +14,20 @@ context("Calculator", () => {
   it("populates default title", () => {
     c.getComponentTitle("calculator").should("contain", calculatorName)
   })
-  it("updates calculator title", () => {
+  it("updates calculator title with undo/redo", () => {
     const newCalculatorName = "my calc"
     c.getComponentTitle("calculator").should("have.text", calculatorName)
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
 
-     // Undo title change
-     // Note: This title does not update. Instead it goes to "my Cal" when the undo button is pressed
-     // See PT bug #187033159
-     // toolbar.getUndoTool().click()
-     // c.getComponentTitle("calculator").should("have.text", calculatorName)
+    cy.log("Check update calculator title with undo/redo")
+    // Undo title change
+    toolbar.getUndoTool().click()
+    c.getComponentTitle("calculator").should("have.text", calculatorName)
 
-     // Redo title change
-     // toolbar.getRedoTool().click()
-     // c.getComponentTitle("calculator").should("have.text", newCalculatorName)
+    // Redo title change
+    toolbar.getRedoTool().click()
+    c.getComponentTitle("calculator").should("have.text", newCalculatorName)
   })
   it("close calculator from toolshelf with undo/redo", () => {
     const newCalculatorName = "my calc"
@@ -38,6 +37,8 @@ context("Calculator", () => {
 
     c.getIconFromToolshelf("calc").click()
     c.checkComponentDoesNotExist("calculator")
+
+    cy.log("Check undo/redo of close and open calculator component")
 
     // Undo closing calculator (Reopen)
     toolbar.getUndoTool().click()
