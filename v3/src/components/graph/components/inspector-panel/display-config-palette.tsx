@@ -64,12 +64,20 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   }
 
   const handleSetFuseIntoBars = (fuseIntoBars: boolean) => {
-    graphModel?.setPointsFusedIntoBars(fuseIntoBars)
-    if (fuseIntoBars) {
-      graphModel?.pointDescription.setPointStrokeSameAsFill(true)
-    } else {
-      graphModel?.pointDescription.setPointStrokeSameAsFill(false)
-    }
+    const [undoStringKey, redoStringKey] = fuseIntoBars
+      ? ["DG.Undo.graph.fuseDotsToRectangles", "DG.Redo.graph.fuseDotsToRectangles"]
+      : ["DG.Undo.graph.dissolveRectanglesToDots", "DG.Redo.graph.dissolveRectanglesToDots"]
+
+    graphModel?.applyModelChange(() => {
+        graphModel?.setPointsFusedIntoBars(fuseIntoBars)
+        if (fuseIntoBars) {
+          graphModel?.pointDescription.setPointStrokeSameAsFill(true)
+        } else {
+          graphModel?.pointDescription.setPointStrokeSameAsFill(false)
+        }
+      },
+      { undoStringKey, redoStringKey }
+    )
   }
 
   return (
