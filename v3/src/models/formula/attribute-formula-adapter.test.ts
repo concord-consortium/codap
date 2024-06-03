@@ -1,10 +1,11 @@
-import { DataSet, IDataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../data/data-set"
+import { IDataSet } from "../data/data-set"
+import { createDataSet } from "../data/data-set-conversion"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const getTestEnv = () => {
-  const dataSet = DataSet.create({
-    attributes: [{ name: "foo", formula: { display: "1 + 2", canonical: "1 + 2" } }] as LEGACY_ATTRIBUTES_ARRAY_ANY
+  const dataSet = createDataSet({
+    attributes: [{ name: "foo", formula: { display: "1 + 2", canonical: "1 + 2" } }]
   })
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
@@ -52,11 +53,11 @@ describe("AttributeFormulaAdapter", () => {
 
   describe("getFormulaError", () => {
     it("should detect dependency cycles", () => {
-      const dataSet = DataSet.create({
+      const dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
-        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+        ]
       })
       dataSet.attributes[0].formula!.setCanonicalExpression(
         `${localAttrIdToCanonical(dataSet.attrIDFromName("bar")!)} + 1`
@@ -84,11 +85,11 @@ describe("AttributeFormulaAdapter", () => {
 
   describe("setupFormulaObservers", () => {
     it("should setup observer detecting hierarchy updates", () => {
-      const dataSet = DataSet.create({
+      const dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "1 + 2", canonical: "1 + 2" } },
           { name: "bar" }
-        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+        ]
       })
       dataSet.addCases([{ __id__: "1" }])
       const attribute = dataSet.attributes[0]

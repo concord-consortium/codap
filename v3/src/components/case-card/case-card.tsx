@@ -52,7 +52,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   if (!cardModel || !data) return null
 
   // access observable properties that should trigger re-renders
-  data.collectionModels.map(({ name }) => name)
+  data.collections.map(({ name }) => name)
   data.attributes.map(({ name }) => name)
   data.cases.map(({ __id__ }) => __id__)
   data.selectionChanges   // eslint-disable-line no-unused-expressions

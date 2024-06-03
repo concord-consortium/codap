@@ -66,7 +66,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   // }
 
   function handleTopClick() {
-    parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
+    caseMetadata?.applyModelChange(() => {
+      parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
+    }, {
+      undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
+      redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
+    })
   }
 
   function handleExpandCollapseClick(parentCaseId: string) {

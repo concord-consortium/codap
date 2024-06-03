@@ -2,8 +2,8 @@ import {
   CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, getCanonicalNameMap, getDisplayNameMap, globalValueIdToCanonical,
   idToCanonical, isCanonicalName, localAttrIdToCanonical, rmCanonicalPrefix, safeSymbolName
 } from "./name-mapping-utils"
+import { createDataSet } from "../../data/data-set-conversion"
 import { getFormulaTestEnv } from "../test-utils/formula-test-utils"
-import { DataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../../data/data-set"
 import { GlobalValueManager } from "../../global/global-value-manager"
 import { basicCanonicalNameToDependency } from "./formula-dependency-utils"
 
@@ -131,12 +131,12 @@ describe("getDisplayNameMap", () => {
 
   describe("when there are local attributes or globals with the name 'caseIndex'", () => {
     it("resolves 'caseIndex' to a special value (special value takes precedence over anything else)", () => {
-      const dataSet = DataSet.create({
+      const dataSet = createDataSet({
         id: "dataSet",
         name: "dataSet",
         attributes: [
           { id: "DATA_SET_ATTR_ID", name: "caseIndex" },
-        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+        ]
       })
       const nameMap = getDisplayNameMap({
         localDataSet: dataSet,
@@ -155,12 +155,12 @@ describe("getDisplayNameMap", () => {
 
   describe("when a local attribute and a global value have the same name", () => {
     it("resolves this name to the local attribute (local attributes take precedence over global values)", () => {
-      const dataSet = DataSet.create({
+      const dataSet = createDataSet({
         id: "dataSet",
         name: "dataSet",
         attributes: [
           { id: "DATA_SET_ATTR_ID", name: "fooBar" },
-        ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+        ]
       })
       const nameMap = getDisplayNameMap({
         localDataSet: dataSet,

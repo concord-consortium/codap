@@ -23,7 +23,7 @@ describe("DataInteractive ResourceParser", () => {
   dataset.collectionGroups // set up the pseudoCases
   const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)
-  
+
   it("finds dataContext", () => {
     expect(resolve("").dataContext?.id).toBe(dataset.id)
     expect(resolve("dataContext[data]").dataContext?.id).toBe(dataset.id)
@@ -56,7 +56,7 @@ describe("DataInteractive ResourceParser", () => {
     const { collectionList } = resolve("dataContext[data].collectionList")
     expect(collectionList?.length).toBe(3)
     expect(collectionList?.[0].id).toBe(dataset.collections[0].id)
-    expect(collectionList?.[2].id).toBe(dataset.ungrouped.id)
+    expect(collectionList?.[2].id).toBe(dataset.collections[2].id)
   })
 
   it("finds collection", () => {
@@ -96,8 +96,9 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[unknown].caseByIndex[0]`).caseByIndex).toBeUndefined()
 
     const itemId = dataset.getCaseAtIndex(0)!.__id__
-    const ungroupedId = toV2Id(dataset.ungrouped.id)
-    expect(resolve(`dataContext[data].collection[${ungroupedId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(itemId)
+    const childCollectionId = toV2Id(dataset.childCollection.id)
+    expect(resolve(`dataContext[data].collection[${childCollectionId}].caseByIndex[0]`).caseByIndex?.__id__)
+      .toBe(itemId)
 
     const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)

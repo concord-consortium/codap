@@ -73,7 +73,7 @@ describe(`V2 "mammals.codap"`, () => {
     const collection = context.collections[0]
     const data = mammals.dataSets[0].dataSet
     expect(data.id).toBe(`DATA${context.guid}`)
-    expect(data.ungrouped.id).toBe(`COLL${collection.guid}`)
+    expect(data.collections[0].id).toBe(`COLL${collection.guid}`)
     expect(data.attributes.length).toBe(9)
     expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
     expect(data.cases.length).toBe(27)
@@ -118,7 +118,7 @@ describe(`V2 "24cats.codap"`, () => {
     const context = cats.contexts[0]
     const [v2ParentCollection, v2ChildCollection] = context.collections
     const data = cats.dataSets[0].dataSet
-    expect(data.collections.length).toBe(1) // plus ungrouped makes two
+    expect(data.collections.length).toBe(2)
     expect(data.collections[0].attributes.length).toBe(1)
     expect(data.attributes.length).toBe(9)
     expect(data.cases.length).toBe(24)

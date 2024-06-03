@@ -19,6 +19,6 @@ describe("DataInteractive CaseCountHandler", () => {
 
     expect(handler.get?.({ collection: dataset.collections[0] })?.success).toBe(false)
     expect(handler.get?.({ dataContext: dataset, collection: dataset.collections[0] })?.values).toBe(2)
-    expect(handler.get?.({ dataContext: dataset, collection: dataset.ungrouped })?.values).toBe(4)
+    expect(handler.get?.({ dataContext: dataset, collection: dataset.childCollection })?.values).toBe(4)
   })
 })

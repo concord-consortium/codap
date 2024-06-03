@@ -1,5 +1,6 @@
+import { SetRequired } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
-import { CollectionModel, CollectionPropsModel } from "../models/data/collection"
+import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
@@ -88,6 +89,7 @@ export class CodapV2Document {
   }
 
   registerCollections(data: IDataSet, metadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
+    let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
       const { attrs = [], cases = [], guid, name = "", title, type = "DG.Collection" } = collection
       const _title = v2NameTitleToV3Title(name, title)
@@ -98,17 +100,23 @@ export class CodapV2Document {
       this.registerAttributes(data, metadata, attrs, level)
       this.registerCases(data, cases, level)
 
-      if (level > 0) {
-        const collectionModel = CollectionModel.create({ id: toV3CollectionId(guid), name, _title })
-        attrs.forEach(attr => {
-          const attrModel = data.attrFromName(attr.name)
-          attrModel && collectionModel.addAttribute(attrModel)
-        })
-        data.addCollection(collectionModel)
+      const attributes = attrs.map(attr => {
+        const attrModel = data.attrFromName(attr.name)
+        return attrModel?.id
+      }).filter(attrId => !!attrId) as string[]
+
+      const collectionSnap: SetRequired<ICollectionModelSnapshot, "attributes"> = {
+        id: toV3CollectionId(guid),
+        name,
+        _title,
+        attributes
       }
-      else {
-        data.setUngroupedCollection(CollectionPropsModel.create({ id: toV3CollectionId(guid), name, _title }))
+      // remove default collection
+      if (index === 0) {
+        data.removeCollection(data.collections[0])
       }
+      // add the imported collections
+      prevCollection = data.addCollection(collectionSnap, { after: prevCollection?.id })
     })
   }
 

@@ -105,15 +105,13 @@ export const DocumentContentModel = BaseDocumentContentModel
       const sharedModelManager = getSharedModelManager(self)
       // DataSets must have unique names
       const baseDataSetName = snapshot?.name || t("DG.AppController.createDataSet.name")
-      const baseCollectionName = snapshot?.ungrouped?.name || t("DG.AppController.createDataSet.collectionName")
-      const ungrouped = { name: baseCollectionName, ...snapshot?.ungrouped }
       let name = baseDataSetName
       const existingNames = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
                               .map((sharedModel: ISharedDataSet) => sharedModel.dataSet.name) ?? []
       for (let i = 2; existingNames.includes(name); ++i) {
         name = `${baseDataSetName} ${i}`
       }
-      const dataSet: IDataSetSnapshot = { ...snapshot, name, ungrouped }
+      const dataSet: IDataSetSnapshot = { ...snapshot, name }
       const sharedDataSet = SharedDataSet.create({ providerId, dataSet })
       sharedModelManager?.addSharedModel(sharedDataSet)
 

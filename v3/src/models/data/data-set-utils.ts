@@ -1,21 +1,20 @@
 import { isAlive } from "mobx-state-tree"
 import { kIndexColumnKey } from "../../components/case-table/case-table-types"
-import {IAttribute} from "./attribute"
-import {ICollectionPropsModel, isCollectionModel} from "./collection"
-import {IDataSet} from "./data-set"
+import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
+import { IAttribute } from "./attribute"
+import { ICollectionModel } from "./collection"
+import { IDataSet } from "./data-set"
 import {
   deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
 
-export function getCollectionAttrs(collection: ICollectionPropsModel, data?: IDataSet) {
+export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {
     console.warn("DataSetUtils.getCollectionAttrs called for defunct collection")
     return []
   }
-  return (isCollectionModel(collection)
-    ? Array.from(collection.attributes) as IAttribute[]
-    : data?.ungroupedAttributes) ?? []
+  return Array.from(collection.attributes) as IAttribute[]
 }
 
 export function collectionCaseIdFromIndex(index: number, data?: IDataSet, collectionId?: string) {
@@ -39,7 +38,6 @@ export function collectionCaseIndexFromId(caseId: string, data?: IDataSet, colle
  */
 export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: IDataSet) {
   if (!data) return undefined
-  if (data.ungroupedAttributes.some(attr => attrIDs.includes(attr.id))) return undefined
   const collections = data.collections
   for (let i = collections.length - 1; i >= 0; --i) {
     const collection = collections[i]
@@ -47,13 +45,20 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
   }
 }
 
+export function firstVisibleParentAttribute(data?: IDataSet, collectionId?: string): IAttribute | undefined {
+  if (!collectionId) return
+  const metadata = data && getSharedCaseMetadataFromDataset(data)
+  const parentCollection = data?.getParentCollection(collectionId)
+  return parentCollection?.attributes.find(attr => attr && !metadata?.isHidden(attr.id))
+}
+
 interface IMoveAttributeParameters {
   afterAttrId?: string
   attrId: string
   dataset: IDataSet
   includeNotifications?: boolean
-  sourceCollection?: ICollectionPropsModel
-  targetCollection: ICollectionPropsModel
+  sourceCollection?: ICollectionModel
+  targetCollection: ICollectionModel
   undoable?: boolean
 }
 export function moveAttribute({
@@ -69,20 +74,11 @@ export function moveAttribute({
   const modelChangeOptions = { notifications, undoStringKey, redoStringKey }
 
   if (targetCollection.id === sourceCollection?.id) {
-    if (isCollectionModel(targetCollection)) {
-      // move the attribute within a collection
-      dataset.applyModelChange(
-        () => targetCollection.moveAttribute(attrId, options),
-        modelChangeOptions
-      )
-    }
-    else {
-      // move an ungrouped attribute within the DataSet
-      dataset.applyModelChange(
-        () => dataset.moveAttribute(attrId, options),
-        modelChangeOptions
-      )
-    }
+    // move the attribute within a collection
+    dataset.applyModelChange(
+      () => targetCollection.moveAttribute(attrId, options),
+      modelChangeOptions
+    )
   }
   else {
     // move the attribute to a new collection
@@ -95,7 +91,7 @@ export function moveAttribute({
 
     dataset.applyModelChange(
       () => {
-        result = dataset.setCollectionForAttribute(attrId, { collection: targetCollection?.id, ...options })
+        result = dataset.moveAttribute(attrId, { collection: targetCollection?.id, ...options })
       },
       { notifications: _notifications, undoStringKey, redoStringKey }
     )

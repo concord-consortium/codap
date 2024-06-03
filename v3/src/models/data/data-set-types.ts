@@ -1,4 +1,5 @@
 import { Instance, types } from "mobx-state-tree"
+import { RequireAtLeastOne } from "type-fest"
 import { IValueType } from "./attribute"
 import { kCaseIdPrefix, v3Id } from "../../utilities/codap-utils"
 
@@ -51,12 +52,18 @@ export interface IAddAttributeOptions {
 export interface IMoveAttributeOptions {
   before?: string;  // id of attribute before which the moved attribute should be placed
   after?: string;   // id of attribute after which the moved attribute should be placed
-  withoutCustomUndo?: boolean;
 }
 
-export interface IMoveAttributeCollectionOptions extends IMoveAttributeOptions {
-  collection?: string // id of destination collection; undefined => no collection (ungrouped)
+export interface IAddCollectionOptions {
+  before?: string;  // id of collection before which the new collection should be placed
+  after?: string;   // id of collection after which the new collection should be placed
 }
+
+export interface IMoveAttributeCollectionOptionsBase extends IMoveAttributeOptions {
+  collection?: string // id of destination collection
+}
+export type IMoveAttributeCollectionOptions =
+  RequireAtLeastOne<IMoveAttributeCollectionOptionsBase, "before" | "after" | "collection">
 
 export interface IAttributeChangeResult {
   removedCollectionId?: string

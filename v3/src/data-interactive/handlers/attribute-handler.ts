@@ -34,7 +34,7 @@ export const diAttributeHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       attributeValues.forEach(attributeValue => {
         if (attributeValue) {
-          const attribute = createAttribute(attributeValue, dataContext, metadata, collection)
+          const attribute = createAttribute(attributeValue, dataContext, collection, metadata)
           if (attribute) attributes.push(attribute)
         }
       })

@@ -24,7 +24,7 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
 
     this.disposer = mstAutorun(() => {
       const prevCollections = this.collections
-      this.collections = this.data.collectionModels.map(dsCollection => {
+      this.collections = this.data.collections.map(dsCollection => {
         const foundCollection = prevCollections.find(dgCollection => dgCollection.id === dsCollection.id)
         return foundCollection ?? new DGCollectionClient(data, dsCollection, this)
       })
@@ -61,7 +61,7 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
     const pseudoCase = this.data.pseudoCaseMap.get(caseId)
     const dsCollection = pseudoCase
                           ? this.data.getCollection(pseudoCase.collectionId)
-                          : this.data.ungrouped
+                          : this.data.childCollection
     const collectionClient = this.getCollectionByID(dsCollection?.id ?? "")
     return collectionClient?.get("collection")
   }

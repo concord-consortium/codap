@@ -1,4 +1,4 @@
-import { ICollectionPropsModel } from "../data/collection"
+import { ICollectionModel } from "../data/collection"
 import { IDataSet } from "../data/data-set"
 import { DGCase } from "./dg-case"
 import { DGCollection } from "./dg-collection"
@@ -26,7 +26,7 @@ export class DGCollectionClient extends SCObject {
   collection: DGCollection
   casesController: DGCasesController
 
-  constructor(readonly data: IDataSet, collection: ICollectionPropsModel, readonly api: DGDataContextAPI) {
+  constructor(readonly data: IDataSet, collection: ICollectionModel, readonly api: DGDataContextAPI) {
     super()
     this.collection = new DGCollection(data, collection, api)
     this.casesController = new DGCasesController(data, api)

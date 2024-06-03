@@ -3,8 +3,8 @@ import { render, screen } from "@testing-library/react"
 import { userEvent } from '@testing-library/user-event'
 import React from "react"
 import { DG } from "../../v2/dg-compat.v2"
+import { createDataSet } from "../../models/data/data-set-conversion"
 import { DGDataContext } from "../../models/v2/dg-data-context"
-import { DataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../../models/data/data-set"
 import { t } from "../../utilities/translation/translate"
 import "./case-card.v2"
 const { CaseCard } = DG.React as any
@@ -22,10 +22,8 @@ describe("CaseCard component", () => {
   })
 
   it("renders a flat data set", async () => {
-    const data = DataSet.create({
-      attributes: [
-        { id: "AttrId", name: "AttrName" }
-      ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+    const data = createDataSet({
+      attributes: [{ id: "AttrId", name: "AttrName" }]
     })
     data.addCases([{ __id__: "Case1", AttrId: "foo" }, { __id__: "Case2", AttrId: "bar" }])
     const context = new DGDataContext(data)
@@ -135,7 +133,7 @@ describe("CaseCard component", () => {
         isSelectedCallback={() => mockIsSelected()}
       />
     )
-    expect(screen.getByText("1 selected of 3")).toBeInTheDocument()
+    expect(screen.getByText("1 selected of 3 Cases")).toBeInTheDocument()
 
     // clicking attribute name brings up menu
     await user.click(attrName)
@@ -155,11 +153,11 @@ describe("CaseCard component", () => {
   })
 
   it("renders a hierarchical data set", async () => {
-    const data = DataSet.create({
+    const data = createDataSet({
       attributes: [
         { id: "Attr1Id", name: "Attr1Name" },
         { id: "Attr2Id", name: "Attr2Name" }
-      ] as LEGACY_ATTRIBUTES_ARRAY_ANY
+      ]
     })
     data.addCases([
       { __id__: "Case1", Attr1Id: "foo", Attr2Id: 1 },

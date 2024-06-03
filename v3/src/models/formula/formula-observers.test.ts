@@ -247,7 +247,6 @@ describe("observeDatasetHierarchyChanges", () => {
     dataSet.collections.forEach(collection => {
       attrs.push(collection.attributes.map(attr => attr!.id))
     })
-    attrs.push(dataSet.ungroupedAttributes.map(attr => attr.id))
     return attrs
   }
   it("should call recalculateCallback with ALL_CASES when attribute is moved between collections", () => {

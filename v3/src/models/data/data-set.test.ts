@@ -1,8 +1,10 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
-import { CollectionModel, CollectionPropsModel } from "./collection"
-import { DataSet, LEGACY_ATTRIBUTES_ARRAY_ANY, fromCanonical, toCanonical } from "./data-set"
+import { IAttributeSnapshot } from "./attribute"
+import { ICollectionModelSnapshot } from "./collection"
+import { DataSet, fromCanonical, toCanonical } from "./data-set"
+import { createDataSet } from "./data-set-conversion"
 import { CaseID, ICaseID } from "./data-set-types"
 
 let message = () => ""
@@ -90,6 +92,63 @@ test("Canonicalization", () => {
   expect(toCanonical(ds, { foo: "bar", ...a1Case })).toEqual(a1Canonical)
   expect(mockConsoleWarn).toHaveBeenCalledTimes(1)
   mockConsole.mockRestore()
+})
+
+test("DataSet original flat snapshot conversion", () => {
+  const ungrouped: ICollectionModelSnapshot = { name: "Ungrouped" }
+  const attributes: IAttributeSnapshot[] = [
+    { name: "a1" },
+    { name: "a2" },
+    { name: "a3" }
+  ]
+  const data = DataSet.create({
+    name: "Data",
+    ungrouped,
+    attributes
+  } as any)
+  expect(data.collections.length).toBe(1)
+  expect(data.childCollection.name).toBe("Ungrouped")
+  expect(data.attributesMap.size).toBe(3)
+  expect(data.attributes.length).toBe(3)
+})
+
+test("DataSet original hierarchical snapshot conversion", () => {
+  const ungrouped: ICollectionModelSnapshot = { name: "Ungrouped" }
+  const attributes: IAttributeSnapshot[] = [
+    { id: "a1Id", name: "a1" },
+    { id: "a2Id", name: "a2" },
+    { id: "a3Id", name: "a3" }
+  ]
+  const collections: ICollectionModelSnapshot[] = [
+    { name: "Collection1", attributes: ["a1Id"] }
+  ]
+  const data = DataSet.create({
+    name: "Data",
+    collections,
+    ungrouped,
+    attributes
+  } as any)
+  expect(data.collections.length).toBe(2)
+  expect(data.collections[0].attributes.length).toBe(1)
+  expect(data.childCollection.name).toBe("Ungrouped")
+  expect(data.childCollection.attributes.length).toBe(2)
+  expect(data.attributesMap.size).toBe(3)
+  expect(data.attributes.length).toBe(3)
+})
+
+test("DataSet temporary flat snapshot conversion", () => {
+  const attributes: string[] = ["a1Id", "a2Id", "a3Id"]
+  const data = DataSet.create({
+    name: "Data",
+    attributesMap: {
+      a1Id: { id: "a1Id", name: "a1" },
+      a2Id: { id: "a2Id", name: "a2" },
+      a3Id: { id: "a3Id", name: "a3" }
+    },
+    attributes
+  } as any)
+  expect(data.attributesMap.size).toBe(3)
+  expect(data.attributes.length).toBe(3)
 })
 
 test("DataSet basic functionality", () => {
@@ -387,28 +446,28 @@ test("hierarchical collection support", () => {
   const data = DataSet.create({ name: "data" })
   expect(data.id).toBeDefined()
 
-  expect(data.ungrouped.name).toBe("")
-  expect(data.collectionIds).toEqual([data.ungrouped.id])
-  expect(data.collectionModels).toEqual([data.ungrouped])
-  data.setUngroupedCollection(CollectionPropsModel.create({ name: "Cases" }))
-  expect(data.ungrouped.name).toBe("Cases")
-  expect(data.collectionIds).toEqual([data.ungrouped.id])
-  expect(data.collectionModels).toEqual([data.ungrouped])
+  expect(data.collections.length).toBe(1)
+  expect(data.collectionIds).toEqual([data.childCollection.id])
+  expect(data.collections).toEqual([data.childCollection])
+  expect(data.childCollection.name).toBe("Cases")
 
-  const collection = CollectionModel.create({ name: "ParentCollection" })
-  const collectionId = collection.id
-  data.addCollection(collection)
-  expect(data.collectionIds).toEqual([collection.id, data.ungrouped.id])
-  expect(data.collectionModels).toEqual([collection, data.ungrouped])
+  const parentCollection = data.addCollection({ name: "ParentCollection" })
+  const parentCollectionId = parentCollection.id
+  expect(data.collectionIds).toEqual([parentCollection.id, data.childCollection.id])
+  expect(data.collections).toEqual([parentCollection, data.childCollection])
+  expect(data.getParentCollection(data.childCollection.id)).toBe(parentCollection)
+  expect(data.getParentCollection(parentCollection.id)).toBeUndefined()
+  expect(data.getChildCollection(parentCollection.id)).toBe(data.childCollection)
+  expect(data.getChildCollection(data.childCollection.id)).toBeUndefined()
 
   const childAttr = data.addAttribute({ name: "childAttr" })
-  const parentAttr = data.addAttribute({ name: "parentAttr" }, { collection: collectionId })
-  expect(collection.getAttribute(childAttr.id)).toBeUndefined()
-  expect(collection.getAttribute(parentAttr.id)).toBe(parentAttr)
+  const parentAttr = data.addAttribute({ name: "parentAttr" }, { collection: parentCollectionId })
+  expect(parentCollection.getAttribute(childAttr.id)).toBeUndefined()
+  expect(parentCollection.getAttribute(parentAttr.id)).toBe(parentAttr)
 
   destroy(data)
   jestSpyConsole("warn", spy => {
-    data.getCollection(collectionId)
+    data.getCollection(parentCollectionId)
     expect(spy).toHaveBeenCalledTimes(1)
 
     data.getCollectionByName("ParentCollection")
@@ -417,9 +476,9 @@ test("hierarchical collection support", () => {
 })
 
 test("Canonical case functionality", () => {
-  const dataset = DataSet.create({
+  const dataset = createDataSet({
                     name: "data",
-                    attributes: [{ name: "str" }, { name: "num" }] as LEGACY_ATTRIBUTES_ARRAY_ANY
+                    attributes: [{ name: "str" }, { name: "num" }]
                   }),
         strAttrID = dataset.attributes[0].id,
         numAttrID = dataset.attributes[1].id
@@ -649,13 +708,11 @@ test("DataSet collection helpers", () => {
   const ds = DataSet.create({ name: "data" })
   ds.addAttribute({ name: "attr1" })
   ds.addAttribute({ name: "attr2" })
-  expect(ds.ungrouped).toBeDefined()
-  expect(ds.collections.length).toBe(0)
-  ds.moveAttributeToNewCollection(ds.attributes[0].id)
   expect(ds.collections.length).toBe(1)
+  ds.moveAttributeToNewCollection(ds.attributes[0].id)
+  expect(ds.collections.length).toBe(2)
 
   // Test collection helpers using the actual, grouped collection (instance of CollectionModel).
-  expect(ds.getGroupedCollection(ds.collections[0].id)).toBeDefined()
   expect(ds.getCollection(ds.collections[0].id)).toBeDefined()
   expect(ds.getCollectionIndex(ds.collections[0].id)).toEqual(0)
   expect(ds.getCollectionForAttribute(ds.attributes[0].id)).toBe(ds.collections[0])
@@ -663,10 +720,9 @@ test("DataSet collection helpers", () => {
 
   // Test collection helpers using the the ungrouped collection stand-in. It's not considered be a grouped collection,
   // but other collection-related helpers handle it as expected.
-  expect(ds.getGroupedCollection(ds.ungrouped.id)).not.toBeDefined()
-  expect(ds.getCollection(ds.ungrouped.id)).toBeDefined()
-  expect(ds.getCollectionIndex(ds.ungrouped.id)).toEqual(1)
-  expect(ds.getCollectionForAttribute(ds.attributes[1].id)).toBe(ds.ungrouped)
+  expect(ds.getCollection(ds.childCollection.id)).toBeDefined()
+  expect(ds.getCollectionIndex(ds.childCollection.id)).toEqual(1)
+  expect(ds.getCollectionForAttribute(ds.attributes[1].id)).toBe(ds.childCollection)
 
   expect(ds.getCollectionForAttribute("non-existent-attr-ID")).toBeUndefined()
 })
