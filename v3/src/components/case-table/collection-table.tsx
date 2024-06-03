@@ -16,6 +16,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -42,6 +43,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const caseTableModel = useCaseTableModel()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
+  const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
@@ -127,7 +129,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }, [columns, caseTableModel])
 
   const rows = collectionTableModel?.rows
-  if (!data || !rows) return null
+  if (!data || !rows || !visibleAttributes.length) return null
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
