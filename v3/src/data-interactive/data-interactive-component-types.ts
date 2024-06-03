@@ -56,10 +56,14 @@ export interface V2CaseTable extends V2Component {
   type: "caseTable"
 }
 export interface V2Graph extends V2Component {
+  captionAttributeName?: string
   dataContext?: string
   enableNumberToggle?: boolean
   legendAttributeName?: string
   numberToggleLastMode?: boolean
+  rightNumericAttributeName?: string
+  rightSplitAttributeName?: string
+  topSplitAttributeName?: string
   type: "graph"
   xAttributeName?: string
   yAttributeName?: string
