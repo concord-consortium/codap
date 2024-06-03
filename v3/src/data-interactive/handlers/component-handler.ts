@@ -3,7 +3,7 @@ import { createOrShowTableForDataset } from "../../components/case-table/case-ta
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
-import { ISliderModel, ISliderSnapshot } from "../../components/slider/slider-model"
+import { ISliderModel, ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
 import { IWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
@@ -85,6 +85,20 @@ export const diComponentHandler: DIHandler = {
             const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
             const global = globalManager?.getValueByName(globalValueName)
             if (!global) return { success: false, values: { error: `Global not found: '${globalValueName}'` } }
+
+            // Multiple sliders for one global value are not allowed
+            let existingTile = false
+            document.content?.tileMap.forEach(sliderTile => {
+              if (isSliderModel(sliderTile.content) && sliderTile.content.globalValue.id === global.id) {
+                existingTile = true
+              }
+            })
+            if (existingTile) {
+              return {
+                success: false,
+                values: { error: `Cannot create multiple sliders for ${globalValueName}` }
+              }
+            }
 
             content = { type: kSliderTileType, globalValue: global.id } as SetRequired<ISliderSnapshot, "type">
           }
