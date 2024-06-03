@@ -1,5 +1,6 @@
 import { isAlive } from "mobx-state-tree"
 import { kIndexColumnKey } from "../../components/case-table/case-table-types"
+import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
@@ -42,6 +43,13 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
     const collection = collections[i]
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
   }
+}
+
+export function firstVisibleParentAttribute(data?: IDataSet, collectionId?: string): IAttribute | undefined {
+  if (!collectionId) return
+  const metadata = data && getSharedCaseMetadataFromDataset(data)
+  const parentCollection = data?.getParentCollection(collectionId)
+  return parentCollection?.attributes.find(attr => attr && !metadata?.isHidden(attr.id))
 }
 
 interface IMoveAttributeParameters {

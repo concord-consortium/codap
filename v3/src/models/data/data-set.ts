@@ -481,9 +481,11 @@ export const DataSet = V2Model.named("DataSet").props({
           self.collections.splice(beforeIndex, 0, collection)
         }
         else {
+          // by default, new collections are added as the childmost collection
+          beforeIndex = self.collections.length
           self.collections.push(collection)
         }
-        const newCollection = self.collections[beforeIndex >= 0 ? beforeIndex : self.collections.length - 1]
+        const newCollection = self.collections[beforeIndex]
         // remove any attributes from other collections
         const attrIds: Array<ReferenceIdentifier | undefined> = [...(collection.attributes ?? [])]
         attrIds?.forEach(attrId => {
@@ -540,7 +542,7 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .actions(self => ({
-  // if beforeCollectionId is not specified, new collection is last (child-most)
+  // if beforeCollectionId is not specified, new collection is parent of the child-most collection
   moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
     const attribute = self.getAttribute(attributeId)
     if (attribute) {

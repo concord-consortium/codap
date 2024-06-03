@@ -33,7 +33,7 @@ export const CollectionModel = V2Model
   getAttributeByName(name: string) {
     return self.attributes.find(attribute => attribute?.name === name)
   },
-  get caseIdMap() {
+  get caseIdToIndexMap() {
     const idMap: Map<string, number> = new Map()
     self.caseIds.forEach((caseId, index) => idMap.set(caseId, index))
     return idMap
@@ -41,7 +41,7 @@ export const CollectionModel = V2Model
 }))
 .views(self => ({
   hasCase(caseId: string) {
-    return self.caseIdMap.get(caseId) != null
+    return self.caseIdToIndexMap.get(caseId) != null
   }
 }))
 .actions(self => ({
@@ -112,14 +112,14 @@ export const CollectionModel = V2Model
 .actions(self => ({
   addCases(caseIds: string[], options?: IAddCasesOptions) {
     if (options?.before) {
-      const beforeIndex = self.caseIdMap.get(options.before)
+      const beforeIndex = self.caseIdToIndexMap.get(options.before)
       if (beforeIndex != null) {
         self.caseIds.splice(beforeIndex, 0, ...caseIds)
         return
       }
     }
     if (options?.after) {
-      const afterIndex = self.caseIdMap.get(options.after)
+      const afterIndex = self.caseIdToIndexMap.get(options.after)
       if (afterIndex != null && afterIndex < self.caseIds.length - 1) {
         self.caseIds.splice(afterIndex + 1, 0, ...caseIds)
         return
@@ -130,7 +130,7 @@ export const CollectionModel = V2Model
   removeCases(caseIds: string[]) {
     const entries: Array<{ caseId: string, index: number }> = []
     caseIds.forEach(caseId => {
-      const index = self.caseIdMap.get(caseId)
+      const index = self.caseIdToIndexMap.get(caseId)
       if (index != null) {
         entries.push({ caseId, index })
       }

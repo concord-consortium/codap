@@ -3,12 +3,14 @@ import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import * as PIXI from "pixi.js"
+import {useMap} from "react-leaflet"
+import {useDebouncedCallback} from "use-debounce"
+import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
+import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import {useDebouncedCallback} from "use-debounce"
-import {useMap} from "react-leaflet"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
-import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
 import {DataTip} from "../../data-display/components/data-tip"
 import {CaseData} from "../../data-display/d3-types"
 import {
@@ -23,7 +25,6 @@ import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-point
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapPointGrid} from "./map-point-grid"
-import { mstAutorun } from "../../../utilities/mst-autorun"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
 
@@ -145,16 +146,15 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const connectingLines = connectingLinesForCases()
-    // TODO: is this the right rule for parent grouping attribute? Seems like it
-    // should depend on the collection(s) in which the plotted attributes reside.
-    const parentAttr = (dataset?.collections.length ?? 0) > 1 ? dataset?.collections[0]?.attributes[0] : undefined
+    const childmostCollectionId = idOfChildmostCollectionForAttributes(dataConfiguration?.attributes ?? [], dataset)
+    const parentAttr = firstVisibleParentAttribute(dataset, childmostCollectionId)
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
     const pointColorAtIndex = mapModel.pointDescription.pointColorAtIndex
 
     renderConnectingLines({ connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines })
-  }, [connectingLinesForCases, dataset?.collections, mapModel.pointDescription.pointColorAtIndex, renderConnectingLines,
-      showConnectingLines])
+  }, [connectingLinesForCases, dataConfiguration, dataset, mapModel.pointDescription.pointColorAtIndex,
+      renderConnectingLines, showConnectingLines])
 
   const callMatchCirclesToData = useCallback(() => {
     if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
