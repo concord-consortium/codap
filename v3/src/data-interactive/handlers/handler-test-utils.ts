@@ -1,4 +1,3 @@
-import { CollectionModel } from "../../models/data/collection"
 import { DataSet } from "../../models/data/data-set"
 
 export const testCases = [
@@ -10,11 +9,15 @@ export const testCases = [
   { a1: "b", a2: "y", a3: 6 },
 ]
 export const setupTestDataset = () => {
-  const dataset = DataSet.create({ name: "data" })
-  const c1 = CollectionModel.create({ name: "collection1" })
-  const c2 = CollectionModel.create({ name: "collection2" })
-  dataset.addCollection(c1)
-  dataset.addCollection(c2)
+  const dataset = DataSet.create({
+    name: "data",
+    collections: [
+      { name: "collection1" },
+      { name: "collection2" },
+      { name: "collection3" }
+    ]
+  })
+  const [c1, c2] = dataset.collections
   const a1 = dataset.addAttribute({ name: "a1" }, { collection: c1.id })
   const a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })
   const a3 = dataset.addAttribute({ name: "a3" })

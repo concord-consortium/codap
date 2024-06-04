@@ -69,24 +69,15 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
       let collection: ICollectionModel | undefined
 
       // Determine if the old collection will become empty and therefore get removed
-      // TODO Revisit this after collection overhaul. Can we just use dataSet.getCollection(oldCollectionId)
-      // to determine if the old collection still exists?
       const oldCollectionId = dataSet.getCollectionForAttribute(attrId)?.id
       let removedOldCollection = false
-      if (oldCollectionId) {
-        if (oldCollectionId === dataSet.ungrouped.id) {
-          if (dataSet.ungroupedAttributes.length <= 1) removedOldCollection = true
-        } else {
-          const oldCollectionLength = dataSet.getGroupedCollection(oldCollectionId)?.attributes.length
-          if (oldCollectionLength && oldCollectionLength <= 1) removedOldCollection = true
-        }
-      }
 
       dataSet.applyModelChange(() => {
         collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
         if (collection) {
           lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
         }
+        removedOldCollection = !!(oldCollectionId && !dataSet.getCollection(oldCollectionId))
       }, {
         notifications: () => {
           const notifications: INotification[] = []
@@ -107,7 +98,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     if (!tableModel || !data) return null
 
-    const collections = data.collectionModels
+    const collections = data.collections
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
       tableModel?.setScrollLeft(contentRef.current?.scrollLeft ?? 0)
     }

@@ -5,7 +5,7 @@ import { IDataSet } from "../models/data/data-set"
 import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICollectionLabels, ICollectionPropsModel } from "../models/data/collection"
+import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 
 export type DICaseValue = string | number | boolean | undefined
@@ -137,8 +137,8 @@ export interface DIResources {
   caseByIndex?: ICase
   caseFormulaSearch?: DICase[]
   caseSearch?: DICase[]
-  collection?: ICollectionPropsModel
-  collectionList?: ICollectionPropsModel[]
+  collection?: ICollectionModel
+  collectionList?: ICollectionModel[]
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]

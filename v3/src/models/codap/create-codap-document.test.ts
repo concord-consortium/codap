@@ -87,10 +87,13 @@ describe("createCodapDocument", () => {
                   values: ["1", "2", "3"]
                 }
               },
-              attributes: ["test-8"],
               cases: [{ __id__: "test-9" }, { __id__: "test-10" }, { __id__: "test-11" }],
-              collections: [],
-              ungrouped: { id: "test-6", name: "Cases" },
+              collections: [{
+                id: "test-7",
+                name: "Cases",
+                attributes: ["test-8"],
+                caseIds: []
+              }],
               id: "test-5",
               snapSelection: []
             },

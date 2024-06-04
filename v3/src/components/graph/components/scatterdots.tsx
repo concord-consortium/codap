@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import {appState} from "../../../models/app-state"
+import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
@@ -176,7 +177,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
     const { connectingLinesForCases } = scatterPlotFuncs(layout, dataConfiguration)
     const connectingLines = connectingLinesForCases()
-    const parentAttr = dataset?.collections[0]?.attributes[0]
+    const childmostCollectionId = idOfChildmostCollectionForAttributes(dataConfiguration?.attributes ?? [], dataset)
+    const parentAttr = firstVisibleParentAttribute(dataset, childmostCollectionId)
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
     const cellKeys = dataConfiguration?.getAllCellKeys()
@@ -199,7 +201,7 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
       await pixiPoints?.setAllPointsScale(scaleFactor, transitionDuration)
       graphModel.pointDescription.setPointSizeMultiplier(origPointSizeMultiplier.current)
     }
-  }, [showConnectingLines, layout, dataConfiguration, dataset?.collections, pointSizeMultiplier, renderConnectingLines,
+  }, [showConnectingLines, layout, dataConfiguration, dataset, pointSizeMultiplier, renderConnectingLines,
       graphModel, pixiPoints])
 
   const refreshSquares = useCallback(() => {

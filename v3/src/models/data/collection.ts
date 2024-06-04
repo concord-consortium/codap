@@ -1,6 +1,6 @@
 import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { IMoveAttributeOptions } from "./data-set-types"
+import { IAddCasesOptions, IMoveAttributeOptions } from "./data-set-types"
 import { V2Model } from "./v2-model"
 import { kCollectionIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 
@@ -13,10 +13,37 @@ export const CollectionLabels = types.model("CollectionLabels", {
 })
 export interface ICollectionLabels extends Instance<typeof CollectionLabels> {}
 
-export const CollectionPropsModel = V2Model.named("CollectionProps").props({
+
+export const CollectionModel = V2Model
+.named("Collection")
+.props({
   id: typeV3Id(kCollectionIdPrefix),
-  labels: types.maybe(CollectionLabels)
+  labels: types.maybe(CollectionLabels),
+  // attributes in left-to-right order
+  attributes: types.array(types.safeReference(Attribute)),
+  caseIds: types.array(types.string)
 })
+.views(self => ({
+  getAttribute(attrId: string) {
+    return self.attributes.find(attribute => attribute?.id === attrId)
+  },
+  getAttributeIndex(attrId: string) {
+    return self.attributes.findIndex(attribute => attribute?.id === attrId)
+  },
+  getAttributeByName(name: string) {
+    return self.attributes.find(attribute => attribute?.name === name)
+  },
+  get caseIdToIndexMap() {
+    const idMap: Map<string, number> = new Map()
+    self.caseIds.forEach((caseId, index) => idMap.set(caseId, index))
+    return idMap
+  }
+}))
+.views(self => ({
+  hasCase(caseId: string) {
+    return self.caseIdToIndexMap.get(caseId) != null
+  }
+}))
 .actions(self => ({
   setSingleCase(singleCase: string) {
     if (self.labels) {
@@ -63,25 +90,6 @@ export const CollectionPropsModel = V2Model.named("CollectionProps").props({
     if (labels.setOfCasesWithArticle) self.setSetOfCasesWithArticle(labels.setOfCasesWithArticle)
   }
 }))
-export interface ICollectionPropsModel extends Instance<typeof CollectionPropsModel> {}
-
-export const CollectionModel = CollectionPropsModel
-.named("Collection")
-.props({
-  // grouping attributes in left-to-right order
-  attributes: types.array(types.safeReference(Attribute))
-})
-.views(self => ({
-  getAttribute(attrId: string) {
-    return self.attributes.find(attr => attr?.id === attrId)
-  },
-  getAttributeIndex(attrId: string) {
-    return self.attributes.findIndex(attr => attr?.id === attrId)
-  },
-  getAttributeByName(name: string) {
-    return self.attributes.find(attribute => attribute?.name === name)
-  }
-}))
 .actions(self => ({
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1
@@ -99,6 +107,43 @@ export const CollectionModel = CollectionPropsModel
   removeAttribute(attrId: string) {
     const attr = self.getAttribute(attrId)
     attr && self.attributes.remove(attr)
+  }
+}))
+.actions(self => ({
+  addCases(caseIds: string[], options?: IAddCasesOptions) {
+    if (options?.before) {
+      const beforeIndex = self.caseIdToIndexMap.get(options.before)
+      if (beforeIndex != null) {
+        self.caseIds.splice(beforeIndex, 0, ...caseIds)
+        return
+      }
+    }
+    if (options?.after) {
+      const afterIndex = self.caseIdToIndexMap.get(options.after)
+      if (afterIndex != null && afterIndex < self.caseIds.length - 1) {
+        self.caseIds.splice(afterIndex + 1, 0, ...caseIds)
+        return
+      }
+    }
+    self.caseIds.push(...caseIds)
+  },
+  removeCases(caseIds: string[]) {
+    const entries: Array<{ caseId: string, index: number }> = []
+    caseIds.forEach(caseId => {
+      const index = self.caseIdToIndexMap.get(caseId)
+      if (index != null) {
+        entries.push({ caseId, index })
+      }
+    })
+    // remove the cases from the rear so that prior indices aren't affected
+    entries.sort((a, b) => b.index - a.index)
+    entries.forEach(({ caseId, index }) => {
+      if (self.caseIds[index] !== caseId) {
+        /* istanbul ignore next */
+        console.warn("Collection.removeCases encountered case id indexing inconsistency")
+      }
+      self.caseIds.splice(index, 1)
+    })
   }
 }))
 .actions(self => ({

@@ -4,7 +4,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
-import { ICollectionModel, ICollectionPropsModel } from "./collection"
+import { ICollectionModel } from "./collection"
 
 const action = "notify"
 function makeCallback(operation: string, other?: any) {
@@ -48,7 +48,7 @@ export function deleteCollectionNotification(dataSet?: IDataSet) {
   return notification("deleteCollection", result, dataSet)
 }
 
-export function updateCollectionNotification(collection?: ICollectionPropsModel, dataSet?: IDataSet) {
+export function updateCollectionNotification(collection?: ICollectionModel, dataSet?: IDataSet) {
   const result = { success: true, properties: { name: collection?.name } }
   return notification("updateCollection", result, dataSet)
 }
@@ -94,12 +94,12 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   return notification("updateCases", result, data)
 }
 
-// selectCasesNotificaiton returns a function that will later be called to determine if the selection
+// selectCasesNotification returns a function that will later be called to determine if the selection
 // actually changed and a notification is necessary to broadcast
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const oldSelection = Array.from(dataset.selection)
   const oldSelectionSet = new Set(oldSelection)
-  
+
   return () => {
     const newSelection = Array.from(dataset.selection)
     const newSelectionSet = new Set(newSelection)

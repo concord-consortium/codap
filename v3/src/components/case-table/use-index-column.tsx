@@ -9,7 +9,7 @@ import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { ICollectionPropsModel } from "../../models/data/collection"
+import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
@@ -19,7 +19,7 @@ import { t } from "../../utilities/translation/translate"
 interface IColSpanProps {
   data?: IDataSet
   metadata?: ISharedCaseMetadata
-  collection: ICollectionPropsModel
+  collection: ICollectionModel
 }
 function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: IColSpanProps) {
   // collapsed rows span the entire table

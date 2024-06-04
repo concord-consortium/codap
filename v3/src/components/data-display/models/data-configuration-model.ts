@@ -80,14 +80,14 @@ export const DataConfigurationModel = types
             .filter(id => !!id),
           childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
-          const childmostCollection = self.dataset?.getGroupedCollection(childmostCollectionID),
+          const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
             childmostCollectionAttributes = childmostCollection?.attributes
           if (childmostCollectionAttributes?.length) {
             const firstAttribute = childmostCollectionAttributes[0]
             return firstAttribute?.id
           }
         }
-        return self.dataset?.ungroupedAttributes[0]?.id
+        return self.dataset?.childCollection.attributes[0]?.id
       }
 
       let attrID = this.attributeDescriptionForRole(role)?.attributeID || ""

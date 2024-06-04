@@ -29,8 +29,13 @@ export const diDataContextHandler: DIHandler = {
       gDataBroker.addDataSet(dataSet)
       const metadata = getSharedCaseMetadataFromDataset(dataSet)
 
-      // Create and add collections and attributes
-      collections?.forEach(v2collection => createCollection(v2collection, dataSet, metadata))
+      if (collections?.length) {
+        // remove the default collection
+        dataSet.removeCollection(dataSet.collections[0])
+
+        // Create and add collections and attributes
+        collections.forEach(v2collection => createCollection(v2collection, dataSet, metadata))
+      }
 
       return {
         success: true,

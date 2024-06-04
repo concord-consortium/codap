@@ -1,13 +1,14 @@
 import {
   PlottedValueAdornmentModel
 } from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-model"
-import { DataSet, IDataSet, LEGACY_ATTRIBUTES_ARRAY_ANY } from "../data/data-set"
+import { GraphDataConfigurationModel } from "../../components/graph/models/graph-data-configuration-model"
+import { IDataSet } from "../data/data-set"
+import { createDataSet } from "../data/data-set-conversion"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
-import { GraphDataConfigurationModel } from "../../components/graph/models/graph-data-configuration-model"
 
 const getTestEnv = () => {
-  const dataSet = DataSet.create({ attributes: [{ name: "foo" }] as LEGACY_ATTRIBUTES_ARRAY_ANY })
+  const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
   const adornment = PlottedValueAdornmentModel.create({ formula: { display: "1 + 2", canonical: "1 + 2" }})

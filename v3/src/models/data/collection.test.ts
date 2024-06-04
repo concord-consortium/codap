@@ -1,6 +1,6 @@
 import { destroy, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { CollectionModel, CollectionPropsModel, ICollectionModel, isCollectionModel } from "./collection"
+import { CollectionModel, ICollectionModel, isCollectionModel } from "./collection"
 
 const Tree = types.model("Tree", {
   attributes: types.array(Attribute),
@@ -21,21 +21,21 @@ const Tree = types.model("Tree", {
 describe("CollectionModel", () => {
 
   it("Simple properties work as expected", () => {
-    const withName = CollectionPropsModel.create({ name: "name" })
+    const withName = CollectionModel.create({ name: "name" })
     expect(withName.title).toBe("name")
     withName.setTitle("newName")
     expect(withName.title).toBe("newName")
-    expect(isCollectionModel(withName)).toBe(false)
+    expect(isCollectionModel(withName)).toBe(true)
 
-    const withNameAndTitle = CollectionPropsModel.create({ name: "name", _title: "title" })
+    const withNameAndTitle = CollectionModel.create({ name: "name", _title: "title" })
     expect(withNameAndTitle.title).toBe("title")
     withNameAndTitle.setTitle("newTitle")
     expect(withNameAndTitle.title).toBe("newTitle")
-    expect(isCollectionModel(withNameAndTitle)).toBe(false)
+    expect(isCollectionModel(withNameAndTitle)).toBe(true)
   })
 
   it("labels work as expected", () => {
-    const c1 = CollectionPropsModel.create({ name: "c1" })
+    const c1 = CollectionModel.create({ name: "c1" })
     expect(c1.labels).toBeUndefined()
     c1.setSingleCase("singleCase")
     expect(c1.labels?.singleCase).toBe("singleCase")
@@ -51,24 +51,24 @@ describe("CollectionModel", () => {
     expect(c1.labels?.setOfCases).toBe("setOfCases")
     expect(c1.labels?.setOfCasesWithArticle).toBe("setOfCasesWithArticle")
 
-    const c2 = CollectionPropsModel.create({ name: "c2" })
+    const c2 = CollectionModel.create({ name: "c2" })
     expect(c2.labels).toBeUndefined()
     c2.setPluralCase("pluralCase")
     expect(c2.labels?.pluralCase).toBe("pluralCase")
     c2.setSingleCase("singleCase")
     expect(c2.labels?.singleCase).toBe("singleCase")
 
-    const c3 = CollectionPropsModel.create({ name: "c3" })
+    const c3 = CollectionModel.create({ name: "c3" })
     expect(c3.labels).toBeUndefined()
     c3.setSingleCaseWithArticle("singleCaseWithArticles")
     expect(c3.labels?.singleCaseWithArticle).toBe("singleCaseWithArticles")
 
-    const c4 = CollectionPropsModel.create({ name: "c4" })
+    const c4 = CollectionModel.create({ name: "c4" })
     expect(c4.labels).toBeUndefined()
     c4.setSetOfCases("setOfCases")
     expect(c4.labels?.setOfCases).toBe("setOfCases")
 
-    const c5 = CollectionPropsModel.create({ name: "c5" })
+    const c5 = CollectionModel.create({ name: "c5" })
     expect(c5.labels).toBeUndefined()
     c5.setSetOfCasesWithArticle("setOfCasesWithArticle")
     expect(c5.labels?.setOfCasesWithArticle).toBe("setOfCasesWithArticle")
@@ -97,6 +97,7 @@ describe("CollectionModel", () => {
     collection.addAttribute(undefined as any as IAttribute)
     expect(collection.getAttribute("a")).toBeUndefined()
     expect(collection.getAttributeIndex("a")).toBe(-1)
+    expect(collection.getAttributeByName("a")).toBeUndefined()
   })
 
   it("can add/move/remove attributes", () => {
@@ -141,6 +142,39 @@ describe("CollectionModel", () => {
     expect(collection.getAttributeByName("b")).toBeUndefined()
     collection.removeAttribute("a")
     expect(collection.attributes.length).toBe(0)
+  })
+
+  it("can add/remove cases", () => {
+    const collection = CollectionModel.create()
+    expect(isCollectionModel(collection)).toBe(true)
+    expect(collection.caseIds.length).toBe(0)
+    expect(collection.caseIdToIndexMap.size).toBe(0)
+    collection.addCases(["case3", "case6"])
+    expect(collection.hasCase("case2")).toBe(false)
+    expect(collection.hasCase("case3")).toBe(true)
+    expect(collection.caseIds.length).toBe(2)
+    expect(collection.caseIdToIndexMap.size).toBe(2)
+    collection.addCases(["case1", "case2"], { before: "case3" })
+    expect(collection.hasCase("case2")).toBe(true)
+    expect(collection.caseIds.length).toBe(4)
+    expect(collection.caseIdToIndexMap.size).toBe(4)
+    expect(collection.caseIds).toEqual(["case1", "case2", "case3", "case6"])
+    collection.addCases(["case4", "case5"], { after: "case3" })
+    expect(collection.caseIds.length).toBe(6)
+    expect(collection.caseIdToIndexMap.size).toBe(6)
+    expect(collection.caseIds).toEqual(["case1", "case2", "case3", "case4", "case5", "case6"])
+
+    collection.removeCases(["case1", "case3", "case5"])
+    expect(collection.caseIds.length).toBe(3)
+    expect(collection.caseIdToIndexMap.size).toBe(3)
+    expect(collection.hasCase("case2")).toBe(true)
+    expect(collection.hasCase("case3")).toBe(false)
+
+    collection.removeCases(["case2", "case4", "case6"])
+    expect(collection.caseIds.length).toBe(0)
+    expect(collection.caseIdToIndexMap.size).toBe(0)
+    expect(collection.hasCase("case2")).toBe(false)
+    expect(collection.hasCase("case3")).toBe(false)
   })
 
 })

@@ -46,7 +46,7 @@ describe("DataInteractive AllCasesHandler", () => {
     const c2c4 = getCase(result2, 3)
     checkCase(c2c4, "a2", "z", 1, c1c2.id)
 
-    const result3 = handler.get?.({ dataContext: dataset, collection: dataset?.ungrouped }) as GetAllCasesResult
+    const result3 = handler.get?.({ dataContext: dataset, collection: dataset?.childCollection }) as GetAllCasesResult
     expect(result3.success).toBe(true)
     expect(result3.values.cases?.length).toBe(6)
     checkCase(getCase(result3, 0), "a3", "1", 0, c2c1.id)

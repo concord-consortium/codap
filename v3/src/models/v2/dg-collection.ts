@@ -1,4 +1,4 @@
-import { ICollectionPropsModel, isCollectionModel } from "../data/collection"
+import { ICollectionModel, isCollectionModel } from "../data/collection"
 import { IDataSet } from "../data/data-set"
 import { mstAutorun } from "../../utilities/mst-autorun"
 // eslint-disable-next-line import/no-cycle
@@ -11,14 +11,12 @@ export class DGCollection extends SCObject {
   attrs: DGAttribute[] = []
   disposer: () => void
 
-  constructor(readonly data: IDataSet, readonly collection: ICollectionPropsModel, readonly api: DGDataContextAPI) {
+  constructor(readonly data: IDataSet, readonly collection: ICollectionModel, readonly api: DGDataContextAPI) {
     super()
 
     this.disposer = mstAutorun(() => {
       const prevAttrs = this.attrs
-      const dsAttributes = isCollectionModel(this.collection)
-                            ? this.collection.attributes
-                            : this.data.ungroupedAttributes
+      const dsAttributes = this.collection.attributes
       const newAttrs: DGAttribute[] = []
       dsAttributes.forEach(dsAttr => {
         if (dsAttr) {
