@@ -1,4 +1,5 @@
 import { kCalculatorTileType } from "../components/calculator/calculator-defs"
+import { kCaseCardTileType } from "../components/case-card/case-card-defs"
 import { kCaseTableTileType } from "../components/case-table/case-table-defs"
 import { kGraphTileType } from "../components/graph/graph-defs"
 import { kMapTileType } from "../components/map/map-defs"
@@ -20,7 +21,7 @@ export const kV2WebViewType = "webView"
 export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kCalculatorTileType]: kV2CalculatorType,
   [kCaseTableTileType]: kV2CaseTableType,
-  // kV2CaseCardType
+  [kCaseCardTileType]: kV2CaseCardType,
   [kGraphTileType]: kV2GraphType,
   // kV2GuideViewType
   // kV2ImageType

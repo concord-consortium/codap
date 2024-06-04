@@ -1,5 +1,7 @@
 import { SetRequired } from "type-fest"
-import { createOrShowTableForDataset } from "../../components/case-table/case-table-utils"
+import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { createOrShowTableOrCardForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
@@ -18,8 +20,8 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import {
-  kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseTableType, kV2GameType, kV2GraphType, kV2SliderType, kV2WebViewType,
-  V2CaseTable, V2Component, V2Graph, V2Slider, V2WebView
+  kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType, kV2GraphType,
+  kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -49,7 +51,7 @@ export const diComponentHandler: DIHandler = {
     }
     return document.applyModelChange(() => {
       // Special case for table, which requires a dataset
-      if (type === kV2CaseTableType) {
+      if ([kV2CaseCardType, kV2CaseTableType].includes(type)) {
         const { dataContext } = values as V2CaseTable
         if (!dataContext) return dataContextRequiredResult
         const sharedDataSet = getSharedDataSet(dataContext)
@@ -62,7 +64,8 @@ export const diComponentHandler: DIHandler = {
           return { success: false, values: { error: t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }) } }
         }
 
-        const tile = createOrShowTableForDataset(sharedDataSet)
+        const tileType = type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType
+        const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType)
         if (!tile) return { success: false, values: { error: "Unable to create tile." } }
 
         // TODO Handle horizontalScrollOffset and isIndexHidden 

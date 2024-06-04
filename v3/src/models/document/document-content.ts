@@ -225,27 +225,33 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
+    // TODO This action involves specific tile types, so it should not be in the generic document content model.
+    // I'm leaving it here for now so it's clear how it's changed in this PR.
     // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
-    toggleCardTable(tileID: string, tileType: typeof kCaseCardTileType | typeof kCaseTableTileType) {
+    // Returns the shown tile.
+    toggleCardTable(tileID: string) {
       const tileModel = self.getTile(tileID),
-        tileLayout = self.getTileLayoutById(tileID)
-      if (tileLayout && tileModel && isFreeTileLayout(tileLayout)) {
+        tileLayout = self.getTileLayoutById(tileID),
+        tileType = tileModel?.content.type
+      if (tileLayout && tileType && isFreeTileLayout(tileLayout) &&
+          [kCaseCardTileType, kCaseTableTileType].includes(tileType)) {
         const otherTileType = tileType === kCaseTableTileType ? kCaseCardTileType : kCaseTableTileType,
           caseMetadata = getTileCaseMetadata(tileModel.content),
           datasetID = caseMetadata?.data?.id ?? "",
           sharedData = getSharedDataSetFromDataSetId(caseMetadata, datasetID),
           otherTileId = tileType === kCaseTableTileType
             ? caseMetadata?.caseCardTileId : caseMetadata?.caseTableTileId
-        self.toggleNonDestroyableTileVisibility(tileID)
+        tileLayout.setHidden(true)
         if (otherTileId) {
           self.toggleNonDestroyableTileVisibility(otherTileId)
           caseMetadata?.setLastShownTableOrCardTileId(otherTileId)
+          return self.getTile(otherTileId)
         } else {
           const componentInfo = getTileComponentInfo(otherTileType),
             { x, y } = tileLayout,
             options = {x, y, width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight },
             otherTile = self.createTile(otherTileType, options)
-            if (otherTile && caseMetadata && sharedData) {
+          if (otherTile && caseMetadata && sharedData) {
             if (tileType === kCaseTableTileType) {
               caseMetadata.setCaseCardTileId(otherTile.id)
             } else {
@@ -256,6 +262,7 @@ export const DocumentContentModel = BaseDocumentContentModel
             manager?.addTileSharedModel(otherTile.content, sharedData, true)
             manager?.addTileSharedModel(otherTile.content, caseMetadata, true)
           }
+          return otherTile
         }
       }
     }

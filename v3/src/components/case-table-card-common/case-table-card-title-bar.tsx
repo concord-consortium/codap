@@ -72,7 +72,7 @@ export const CaseTableCardTitleBar =
       const suffix = tileInfo.toggleSuffix
       e.stopPropagation()
       documentContent?.applyModelChange(() => {
-        tile && documentContent?.toggleCardTable(tile.id, tileInfo.thisType)
+        tile && documentContent?.toggleCardTable(tile.id)
       }, {
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`

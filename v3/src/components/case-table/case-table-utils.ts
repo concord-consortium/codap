@@ -1,3 +1,4 @@
+import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
@@ -13,7 +14,14 @@ import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kTitleBarHeight } from "../constants"
 import { kCaseTableTileType } from "./case-table-defs"
 
-export const createTableForDataset = (model: ISharedDataSet, caseMetadata: ISharedCaseMetadata) => {
+// TODO Move this file into a neutral spot outside of the table.
+// I'm leaving it here for now so it's easier to see what's changing in this PR.
+
+export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
+
+export const createTableOrCardForDataset = (
+  sharedDataSet: ISharedDataSet, caseMetadata: ISharedCaseMetadata, tileType: kCardOrTableTileType = kCaseTableTileType
+) => {
   const document = appState.document
   const { content } = document
   const row = content?.getRowByIndex(0)
@@ -27,12 +35,17 @@ export const createTableForDataset = (model: ISharedDataSet, caseMetadata: IShar
     return
   }
 
-  const tile = createDefaultTileOfType(kCaseTableTileType)
+  const tile = createDefaultTileOfType(tileType)
   if (!tile) return
 
-  manager?.addTileSharedModel(tile.content, model, true)
+  manager?.addTileSharedModel(tile.content, sharedDataSet, true)
   manager?.addTileSharedModel(tile.content, caseMetadata, true)
-  caseMetadata.setCaseTableTileId(tile.id)
+  if (tileType === kCaseTableTileType) {
+    caseMetadata.setCaseTableTileId(tile.id)
+  } else {
+    caseMetadata.setCaseCardTileId(tile.id)
+  }
+  caseMetadata.setLastShownTableOrCardTileId(tile.id)
 
   const width = caseTableComponentInfo.defaultWidth || 0
   const height = caseTableComponentInfo.defaultHeight || 0
@@ -55,24 +68,31 @@ export const createTableForDataset = (model: ISharedDataSet, caseMetadata: IShar
   return tile
 }
 
-export const createOrShowTableForDataset = (sharedDataset: ISharedDataSet) => {
+export const createOrShowTableOrCardForDataset = (
+  _sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType
+) => {
   const document = appState.document
   const { content } = document
   const manager = getSharedModelManager(document)
   const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
 
-  const model = manager?.getSharedModelsByType("SharedDataSet")
-    .find(m => m.id === sharedDataset.id) as ISharedDataSet | undefined
-  const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === model?.dataSet.id)
-  if (!model || !caseMetadata) return
+  const sharedDataSet = manager?.getSharedModelsByType("SharedDataSet")
+    .find(m => m.id === _sharedDataSet.id) as ISharedDataSet | undefined
+  const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === sharedDataSet?.dataSet.id)
+  if (!sharedDataSet || !caseMetadata) return
   const existingTileId = caseMetadata.lastShownTableOrCardTileId
-  if (existingTileId) { // We already have a case table so make sure it's visible and has focus
-    if (content?.isTileHidden(existingTileId)) {
-      content?.toggleNonDestroyableTileVisibility(existingTileId)
+  if (existingTileId) { // We already have a case card/table so make sure it's visible and has focus
+    const existingTile = content?.getTile(existingTileId)
+    if (existingTile?.content.type === tileType) {
+      if (content?.isTileHidden(existingTileId)) {
+        content?.toggleNonDestroyableTileVisibility(existingTileId)
+      }
+      uiState.setFocusedTile(existingTileId)
+      return content?.tileMap.get(existingTileId)
+    } else {
+      return content?.toggleCardTable(existingTileId)
     }
-    uiState.setFocusedTile(existingTileId)
-    return content?.tileMap.get(existingTileId)
   } else {  // We don't already have a table for this dataset
-    return createTableForDataset(model, caseMetadata)
+    return createTableOrCardForDataset(sharedDataSet, caseMetadata, tileType)
   }
 }
