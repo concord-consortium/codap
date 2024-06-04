@@ -35,7 +35,6 @@ context("CloudFileManager", () => {
    it("Opens a local document using different methods", () => {
     const fileName = "../v3/cypress/fixtures/mammals.codap"
     const CSVFileName = "../v3/cypress/fixtures/map-data.csv"
-    const JSONFileName = "../v3/cypress/fixtures/hierarchical.json"
 
     cy.log("Opens a CODAP document from a local file using CFM dialog")
 
