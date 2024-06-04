@@ -1,4 +1,5 @@
 import { CfmElements as cfm } from "../support/elements/cfm"
+import { TableTileElements as table } from "../support/elements/table-tile"
 
 context("CloudFileManager", () => {
   beforeEach(function () {
@@ -30,9 +31,25 @@ context("CloudFileManager", () => {
     cfm.getModalDialog().should("not.exist")
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
   })
-  // it("Opens a CODAP document via CFM Open dialog", () => {
+   it.only("Opens a CODAP document using different methods", () => {
+    // cfm.getHamburgerMenuButton().click()
+    // cfm.getHamburgerMenu().contains("li", "Open...").click()
+    // cfm.getHamburgerMenu().should("not.exist")
+    // cfm.getModalDialog().contains(".modal-dialog-title", "Open")
+    // cfm.getModalDialog().contains("", "Local File").click()
+    // cfm.getModalDialog()
+    // .contains(".dropArea", "Drop file here or click here to select a file.")
+    // .should("exist")
+    // .click({force:true})
+    // cy.wait(1000)
 
-  // })
+    cy.log("Opens a CODAP document from a local file")
+    const fileName = "../v3/cypress/fixtures/mammals.codap"
+    cfm.openLocalDoc(fileName)
+    table.getAttribute("Order").should("have.text", "Order")
+    table.getGridCell(2, 2).should("contain", "African Elephant")
+
+   })
   // it("Opens a csv document via CFM Open dialog", () => {
 
   // })
