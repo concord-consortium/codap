@@ -6,6 +6,7 @@ import { useCollectionContext, useParentCollectionContext } from "../../hooks/us
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
+import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { t } from "../../utilities/translation/translate"
@@ -21,6 +22,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const parentCollectionId = useParentCollectionContext()
   const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)
+  const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
   const parentScrollTop = parentTableModel?.scrollTop ?? 0
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
@@ -89,7 +91,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
 
   return (
     <div className={classes} ref={handleRef}>
-      {parentCollectionId && parentTableModel && childTableModel &&
+      {parentCollectionId && parentTableModel && childTableModel && visibleParentAttributes.length > 0 &&
         <>
           <div className="spacer-top">
             {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
