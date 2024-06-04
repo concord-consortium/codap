@@ -82,6 +82,14 @@ export const MapContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
+    setCenter(center: ILatLngSnapshot) {
+      self.center = center
+    },
+    setZoom(zoom: number) {
+      self.zoom = zoom
+    }
+  }))
+  .actions(self => ({
     // Each layer can have one legend attribute. The layer that can handle the given legend attribute must already
     // be present in the layers array
     setLegendAttributeID(datasetID: string, attributeID: string) {
@@ -91,8 +99,8 @@ export const MapContentModel = DataDisplayContentModel
       }
     },
     setCenterAndZoom(center: ILatLngSnapshot, zoom: number) {
-      self.center = center
-      self.zoom = zoom
+      self.setCenter(center)
+      self.setZoom(zoom)
     },
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

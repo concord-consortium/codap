@@ -4,6 +4,7 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { IMapContentModel } from "../../components/map/models/map-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
 import { ISliderModel, ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
 import { IWebViewModel } from "../../components/web-view/web-view-model"
@@ -21,7 +22,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import {
   kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType, kV2GraphType,
-  kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Slider, V2WebView
+  kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -77,6 +78,7 @@ export const diComponentHandler: DIHandler = {
             type
           }
         }
+
       // General case
       } else if (kComponentTypeV2ToV3Map[type]) {
         // If a global value is specified, we can't use the default slider content snapshot,
@@ -176,6 +178,26 @@ export const diComponentHandler: DIHandler = {
             }
           }
 
+        // Map
+        } else if (type === kV2MapType) {
+          const mapTile = tile.content as IMapContentModel
+          const { center, dataContext, legendAttributeName, zoom } = values as V2Map
+          // TODO These get overwritten by defaults. A two second timeout will fix it, but an immediate timeout won't.
+          // How should these be set?
+          if (center) mapTile.setCenter({ lat: center[0], lng: center[1] })
+          if (zoom != null) mapTile.setZoom(zoom)
+          // TODO Is the legend set up in v3?
+          if (dataContext) {
+            const dataSet = getDataSet(dataContext)
+            if (dataSet) {
+              const layer = mapTile.layers.find(l => l.data?.id === dataSet.id)
+              if (legendAttributeName) {
+                const attribute = dataSet.getAttributeByName(legendAttributeName)
+                if (attribute) layer?.dataConfiguration.setAttribute("legend", { attributeID: attribute.id })
+              }
+            }
+          }
+
         // Slider
         } else if (type === kV2SliderType) {
           const sliderTile = tile.content as ISliderModel
@@ -185,7 +207,7 @@ export const diComponentHandler: DIHandler = {
 
           // TODO Handle animationDirection and animationMode
 
-        // WebView
+        // WebView/Plugin
         } else if ([kV2GameType, kV2WebViewType].includes(type)) {
           const webViewTile = tile.content as IWebViewModel
           const { URL } = values as V2WebView
@@ -203,10 +225,8 @@ export const diComponentHandler: DIHandler = {
       }
 
       // TODO Handle other types:
-      // map
       // text
       // guide
-      // case card
       // image view
       return { success: false, values: { error: `Unsupported component type ${type}` } }
     })
