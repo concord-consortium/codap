@@ -539,7 +539,7 @@ context("Graph UI", () => {
         expect(valueNum).to.be.closeTo(4, 0.1)
       })
     })
-    it("shows a bar graph for one categorical attr on primary axis with 'Fuse Dots into Bars' checked", () => {
+    it("shows a bar graph when there's one categorical attr on primary axis and 'Fuse Dots into Bars' is checked", () => {
       cy.dragAttributeToTarget("table", "Habitat", "bottom")
       cy.get("[data-testid=bar-cover]").should("not.exist")
       graph.getDisplayConfigButton().click()
@@ -547,8 +547,7 @@ context("Graph UI", () => {
         .and("not.be.checked")
       cy.get("[data-testid=bar-chart-checkbox]").click()
       cy.get("[data-testid=bar-chart-checkbox]").find("input").should("be.checked")
-      // TODO: It would be better to check for the exact number of bars,
-      // but the number seems to vary depending on whether
+      // TODO: It would be better to check for the exact number of bars, but the number seems to vary depending on whether
       // you're running the test locally or in CI for some mysterious reason.
       // cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 3)
       cy.get("[data-testid=bar-cover]").should("exist")
