@@ -4,10 +4,10 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 
 context("CloudFileManager", () => {
   beforeEach(function () {
-      const queryParams = "?mouseSensor"
-      const url = `${Cypress.config("index")}${queryParams}`
-      cy.visit(url)
-      cy.wait(2500)
+    const queryParams = "?mouseSensor"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2500)
   })
   it("Opens Mammals example document via CFM Open dialog", () => {
     // hamburger menu is hidden initially
@@ -32,7 +32,7 @@ context("CloudFileManager", () => {
     cfm.getModalDialog().should("not.exist")
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
   })
-   it("Opens a local document using different methods", () => {
+  it("Opens a local document using different methods", () => {
     const fileName = "../v3/cypress/fixtures/mammals.codap"
     const CSVFileName = "../v3/cypress/fixtures/map-data.csv"
 
@@ -46,9 +46,9 @@ context("CloudFileManager", () => {
     cfm.getModalDialog().contains(".modal-dialog-title", "Open")
     cfm.getModalDialog().contains("", "Local File").click()
     cfm.getModalDialog()
-    .contains(".dropArea", "Drop file here or click here to select a file.")
-    .should("exist")
-    .click({force:true})
+      .contains(".dropArea", "Drop file here or click here to select a file.")
+      .should("exist")
+      .click({force:true})
     cy.get('input[type=file]').selectFile(fileName)
 
     // Verify table in Mammals exists
@@ -87,5 +87,5 @@ context("CloudFileManager", () => {
 
     // Verify document was closed (Map data table doesn't exist)
     c.checkComponentDoesNotExist("table")
-   })
+  })
 })
