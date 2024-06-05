@@ -25,6 +25,7 @@ import {
   kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
+import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
@@ -201,11 +202,17 @@ export const diComponentHandler: DIHandler = {
         // Slider
         } else if (type === kV2SliderType) {
           const sliderTile = tile.content as ISliderModel
-          const { lowerBound, upperBound } = values as V2Slider
+          const { animationDirection, animationMode, lowerBound, upperBound } = values as V2Slider
           if (lowerBound != null) sliderTile.setAxisMin(lowerBound)
           if (upperBound != null) sliderTile.setAxisMax(upperBound)
-
-          // TODO Handle animationDirection and animationMode
+          if (animationDirection != null) {
+            const _animationDirection = AnimationDirections[animationDirection]
+            if (_animationDirection) sliderTile.setAnimationDirection(_animationDirection)
+          }
+          if (animationMode != null) {
+            const _animationMode = AnimationModes[animationMode]
+            if (_animationMode) sliderTile.setAnimationMode(_animationMode)
+          }
 
         // WebView/Plugin
         } else if ([kV2GameType, kV2WebViewType].includes(type)) {
