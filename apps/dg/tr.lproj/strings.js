@@ -50,7 +50,7 @@ SC.stringsFor("tr", {
               "DG.AppController.exportDocument.cancelTooltip": "Dışa aktarımı iptal et",
               "DG.AppController.feedbackDialog.dialogTitle": "Geri Bildirim Yap",
               "DG.AppController.feedbackDialog.subHeaderText": "Geri bildirimleriniz bizim için önemli!",
-              "DG.AppController.feedbackDialog.messageText": "Ürünümüzü geliştirmemize yardımcı olun. Sorularınızı, isteklerinizi ve sistem hatalarını bize bildirin. Teşekkür ederiz!",
+              "DG.AppController.feedbackDialog.messageText": "Ürünümüzü geliştirmemize lütfen yardımcı olun. Sorularınızı, isteklerinizi ve sistem hatalarını bize iletebilirsiniz. Teşekkür ederiz!",
               "DG.AppController.feedbackDialog.subjectHint": "Geri bildiriminiz nedir",
               "DG.AppController.feedbackDialog.feedbackHint": "Ayrıntılar",
               "DG.AppController.feedbackDialog.submitFeedbackButton": "Gönder",
@@ -828,7 +828,7 @@ SC.stringsFor("tr", {
               "DG.CaseCard.addCaseButton": "veri ekle",
               "DG.Undo.DataContext.join": "%@ verisinin %@ verisiyle birleştirilmesini geri al",
               "DG.Redo.DataContext.join": "%@ verisinin %@ verisiyle birleştirilmesini yinele",
-              "DG.Collection.joinTip": "%@ değişkeniyle %@ değişkenini eşleştirerek %@ içindeki %@ başlıklı veriyi %@ içindeki başlıklı %@ veriyle birleştir",
+              "DG.Collection.joinTip": "%@ değişkeniyle %@ değişkenini eşleştirerek %@ içindeki %@ başlıklı veriyi %@ içindeki %@ başlıklı veriyle birleştir",
               "DG.Inspector.graphPlotPoints": "Noktalar",
               "DG.Inspector.graphBarForEachPoint": "Her nokta için sütun oluştur",
               "DG.Undo.graph.changeBarChartFunction": "Sütun grafiği formülünü değiştirmeyi geri al",
@@ -1102,7 +1102,7 @@ SC.stringsFor("tr", {
               "DG.Inspector.graphBoxPlotNormalCurveOptions": "Kutu Grafiği ve Normal Dağılım Eğrisi",
               "DG.Inspector.graphBoxPlotGaussianFitOptions": "Kutu Grafiği ve Gauss Eğrisi",
               "DG.Inspector.graphOtherValuesOptions": "Çizilen ve Değiştirilebilen Değerler",
-              "DG.plugin.Sampler.measures.instructions": "Aşağıdaki şablonu kullanarak her örneklem için ortak ölçümleri hesapla.",
+              "DG.plugin.Sampler.measures.instructions": "Aşağıda verilen seçenekleri kullanarak örnekleminiz için ortak ölçümler atayabilirsiniz.",
               "DG.plugin.Sampler.measures.select-measure": "Ölçüm seç: ",
               "DG.plugin.Sampler.measures.add-measure": "Ölçüm Ekle",
               "DG.plugin.Sampler.measures.mean": "Ortalama",
@@ -1131,6 +1131,6 @@ SC.stringsFor("tr", {
               "DG.plugin.Sampler.measures.percent-formula-pt-2": " / sayı()",
               "DG.plugin.Sampler.measures.name-label": "Ölçümü isimlendir: ",
               "DG.plugin.Testimate.name": "İstatistiksel sınayıcı",
-              "DG.plugin.Testimate.description": "Bu eklentide klasik çıkarımsal yöntemleri kullanarak hipotezler test edebilirsiniz.",
-              "DG.plugin.PurpleAir.title": "Purple Air"
+              "DG.plugin.Testimate.description": "Bu eklentide klasik çıkarımsal yöntemler kullanılarak hipotezler test edilebilir.",
+              "DG.plugin.PurpleAir.title": "Mor Hava"
 });
