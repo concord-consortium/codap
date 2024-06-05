@@ -336,15 +336,20 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     ) {
       const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole, binWidth, minValue, totalNumberOfBins)
       // Find and return the length of the record in bins with the most elements
-      const maxInBin = Math.max(...Object.values(bins).map(pBin => {
-        return Math.max(...Object.values(pBin).map(sBin => {
-          return Math.max(...Object.values(sBin).map(epBin => {
-            return Math.max(...Object.values(epBin).map(esBin => {
-              return esBin
-            }))
-          }))
-        }))
-      })) || 0
+      let maxInBin = 0
+      for (const pKey in bins) {
+        const pBin = bins[pKey]
+        for (const sKey in pBin) {
+          const sBin = pBin[sKey]
+          for (const epKey in sBin) {
+            const epBin = sBin[epKey]
+            for (const esKey in epBin) {
+              const esBin = epBin[esKey]
+              maxInBin = Math.max(maxInBin, esBin)
+            }
+          }
+        }
+      }
       return maxInBin
     },
     cellKey(index: number) {

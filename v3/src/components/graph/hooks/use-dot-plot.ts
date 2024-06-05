@@ -29,6 +29,11 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
   const extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat"
   const extraPrimaryAttrID = dataConfig?.attributeID(extraPrimaryRole) ?? ""
+  // TODO: Instead of using `layout.getAxisScale` and casting to `ScaleBand<string>` to set
+  // `extraPrimaryAxisScale`, `secondaryAxisScale`, and `extraSecondaryAxisScale` below, we should use
+  // `layout.getBandScale`. We're not doing so now because using `layout.getBandScale` here breaks things in
+  // strange ways. It's possibly related to the fact `getBandScale` can return `undefined` whereas `getAxisScale`
+  // will always return a scale of some kind.
   const extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>
   const numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1)
   const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"

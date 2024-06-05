@@ -70,11 +70,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
 
     graphModel?.applyModelChange(() => {
         graphModel?.setPointsFusedIntoBars(fuseIntoBars)
-        if (fuseIntoBars) {
-          graphModel?.pointDescription.setPointStrokeSameAsFill(true)
-        } else {
-          graphModel?.pointDescription.setPointStrokeSameAsFill(false)
-        }
+        graphModel?.pointDescription.setPointStrokeSameAsFill(fuseIntoBars)
       },
       { undoStringKey, redoStringKey }
     )

@@ -17,7 +17,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
           pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
           refreshPointSelection, secondaryAttrRole } = useDotPlot(pixiPoints)
   const barCoversRef = useRef<SVGGElement>(null)
-  const pointDisplayType = "bars"
+  const pointDisplayType = "histogram"
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
@@ -112,16 +112,13 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
   useDotPlotResponders(refreshPointPositions)
 
-  useEffect(() => {
-    if (pixiPoints) {
-      pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
-    }
-  }, [pixiPoints, graphModel.pointsFusedIntoBars])
-
-  // when points are fused into bars, we need to set the secondary axis scale type to linear
+  // when points are fused into bars, update pixiPoints and set the secondary axis scale type to linear
   useEffect(function handleFuseIntoBars() {
     return mstAutorun(
       () => {
+        if (pixiPoints) {
+          pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
+        }
         if (graphModel.pointsFusedIntoBars) {
           const secondaryRole = graphModel.dataConfiguration.primaryRole === "x" ? "y" : "x"
           const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
@@ -130,7 +127,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       },
       {name: "useAxis [handleFuseIntoBars]"}, graphModel
     )
-  }, [graphModel, layout])
+  }, [graphModel, layout, pixiPoints])
 
   return (
     <>
