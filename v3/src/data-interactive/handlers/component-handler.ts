@@ -183,21 +183,29 @@ export const diComponentHandler: DIHandler = {
         } else if (type === kV2MapType) {
           const mapTile = tile.content as IMapContentModel
           const { center, dataContext, legendAttributeName, zoom } = values as V2Map
-          // TODO These get overwritten by defaults. A two second timeout will fix it, but an immediate timeout won't.
-          // How should these be set?
-          if (center) mapTile.setCenter({ lat: center[0], lng: center[1] })
-          if (zoom != null) mapTile.setZoom(zoom)
-          // TODO Is the legend set up in v3?
-          if (dataContext) {
-            const dataSet = getDataSet(dataContext)
-            if (dataSet) {
-              const layer = mapTile.layers.find(l => l.data?.id === dataSet.id)
-              if (legendAttributeName) {
-                const attribute = dataSet.getAttributeByName(legendAttributeName)
-                if (attribute) layer?.dataConfiguration.setAttribute("legend", { attributeID: attribute.id })
+          // TODO Figure out a way to set the center and zoom without setTimeout.
+          // Center and zoom require an actual wait to not get overwritten.
+          setTimeout(() => {
+            mapTile.applyModelChange(() => {
+              if (center) mapTile.setCenter({ lat: center[0], lng: center[1] })
+              if (zoom != null) mapTile.setZoom(zoom)
+            })
+          }, 575)
+          // TODO Figure out a way to set the legend attribute without setTimeout.
+          // This is in a separate setTimeout because it doesn't require a wait like center and zoom.
+          setTimeout(() => {
+            mapTile.applyModelChange(() => {
+              if (dataContext) {
+                const dataSet = getDataSet(dataContext)
+                if (dataSet) {
+                  if (legendAttributeName) {
+                    const attribute = dataSet.getAttributeByName(legendAttributeName)
+                    if (attribute) mapTile.setLegendAttributeID(dataSet.id, attribute.id)
+                  }
+                }
               }
-            }
-          }
+            })
+          })
 
         // Slider
         } else if (type === kV2SliderType) {
