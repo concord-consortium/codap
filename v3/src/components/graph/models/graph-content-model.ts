@@ -407,9 +407,9 @@ export const GraphContentModel = DataDisplayContentModel
         const maxBinValue = minBinEdge + (binIndex + 1) * binWidth
         // "<n> of <total> (<p>%) are ≥ L and < U"
         const attrArray = [ firstCount, secondCount, percent, minBinValue, maxBinValue ]
-        const translationKey = legendAttrID
-          ? firstCount === 1 ? "DG.HistogramView.barTipSingular" : "DG.HistogramView.barTipPlural"
-          : firstCount === 1 ? "DG.HistogramView.barTipNoLegendSingular" : "DG.HistogramView.barTipNoLegendPlural"
+        const translationKey = firstCount === 1
+                                 ? "DG.HistogramView.barTipNoLegendSingular"
+                                 : "DG.HistogramView.barTipNoLegendPlural"
         tipText = t(translationKey, {vars: attrArray})
       } else {  
         const topSplitMatches = self.matchingCasesForAttr(topSplitAttrID, caseTopSplitValue)
