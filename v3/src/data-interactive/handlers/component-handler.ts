@@ -51,7 +51,7 @@ export const diComponentHandler: DIHandler = {
       values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }) }
     }
     return document.applyModelChange(() => {
-      // Special case for table, which requires a dataset
+      // Special case for caseCard and caseTable, which require a dataset
       if ([kV2CaseCardType, kV2CaseTableType].includes(type)) {
         const { dataContext } = values as V2CaseTable
         if (!dataContext) return dataContextRequiredResult
