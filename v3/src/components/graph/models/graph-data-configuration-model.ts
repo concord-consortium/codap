@@ -275,7 +275,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
-    cellMap(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+    cellMap(
+      extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+      binWidth = 0, minValue = 0, totalNumberOfBins = 0
+    ) {
       type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
       const primAttrID = self.primaryRole ? self.attributeID(self.primaryRole) : "",
         secAttrID = self.secondaryRole ? self.attributeID(self.secondaryRole) : "",
@@ -290,20 +293,24 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           }
         }),
         bins: BinMap = {}
+
       valueQuads?.forEach((aValue: any) => {
-        if (bins[aValue.primary] === undefined) {
-          bins[aValue.primary] = {}
+        const primaryValue = totalNumberOfBins > 0
+                               ? Math.floor((Number(aValue.primary) - minValue) / binWidth)
+                               : aValue.primary
+        if (bins[primaryValue] === undefined) {
+          bins[primaryValue] = {}
         }
-        if (bins[aValue.primary][aValue.secondary] === undefined) {
-          bins[aValue.primary][aValue.secondary] = {}
+        if (bins[primaryValue][aValue.secondary] === undefined) {
+          bins[primaryValue][aValue.secondary] = {}
         }
-        if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary] === undefined) {
-          bins[aValue.primary][aValue.secondary][aValue.extraPrimary] = {}
+        if (bins[primaryValue][aValue.secondary][aValue.extraPrimary] === undefined) {
+          bins[primaryValue][aValue.secondary][aValue.extraPrimary] = {}
         }
-        if (bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
-          bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
+        if (bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
+          bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
         }
-        bins[aValue.primary][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
+        bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
       })
 
       return bins
@@ -312,7 +319,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .views(self => ({
     maxOverAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
       const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
-      // Now find and return the maximum value in the bins
+      // Find and return the maximum value in the bins
       return Object.keys(bins).reduce((hMax, hKey) => {
         return Math.max(hMax, Object.keys(bins[hKey]).reduce((vMax, vKey) => {
           return Math.max(vMax, Object.keys(bins[hKey][vKey]).reduce((epMax, epKey) => {
@@ -322,6 +329,28 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           }, 0))
         }, 0))
       }, 0)
+    },
+    maxCellLength(
+      extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+      binWidth: number, minValue: number, totalNumberOfBins: number
+    ) {
+      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole, binWidth, minValue, totalNumberOfBins)
+      // Find and return the length of the record in bins with the most elements
+      let maxInBin = 0
+      for (const pKey in bins) {
+        const pBin = bins[pKey]
+        for (const sKey in pBin) {
+          const sBin = pBin[sKey]
+          for (const epKey in sBin) {
+            const epBin = sBin[epKey]
+            for (const esKey in epBin) {
+              const esBin = epBin[esKey]
+              maxInBin = Math.max(maxInBin, esBin)
+            }
+          }
+        }
+      }
+      return maxInBin
     },
     cellKey(index: number) {
       const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.getCategoriesOptions()

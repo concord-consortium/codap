@@ -100,6 +100,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         // if plot is not univariate and the attribute type changes, we need to update the pointConfig
         if (graphModel?.plotType !== "dotPlot" && !graphModel?.pointsFusedIntoBars) {
           graphModel?.setPointConfig("points")
+        // if the attribute change results in a univariate plot, make sure points are only fused into bars
+        // if the pointDisplayType is histogram
+        } else if (graphModel?.plotType === "dotPlot" && graphModel?.pointDisplayType !== "histogram") {
+          graphModel?.setPointsFusedIntoBars(false)
         }
         // If points are fused into bars and a secondary attribute is added or the primary attribute is removed,
         // unfuse the points. Otherwise, if a primary attribute exists, make sure the bar graph's count axis gets

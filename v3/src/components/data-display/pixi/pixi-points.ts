@@ -634,7 +634,7 @@ export class PixiPoints {
     // If the display type has changed, we need to prepare for the transition between types
     // For now, the only display type values PixiPoints supports are "points" and "bars", so
     // all other display type values passed to this method will be treated as "points".
-    const displayType = _displayType !== "bars" ? "points" : "bars"
+    const displayType = _displayType !== "bars" && _displayType !== "histogram" ? "points" : "bars"
     if (this.displayType !== displayType) {
       this.displayTypeTransitionState.isActive = true
       this.forEachPoint(point => {

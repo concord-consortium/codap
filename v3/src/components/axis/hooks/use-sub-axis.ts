@@ -109,9 +109,7 @@ export const useSubAxis = ({
             const formatter = (value: number) => multiScale.formatValueForScale(value)
             const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
             axisScale.tickValues(tickValues)
-            axisScale.tickFormat((d, i) => {
-              return tickLabels[i]
-            })
+            axisScale.tickFormat((d, i) => tickLabels[i])
           }
           select(subAxisElt)
             .attr("transform", initialTransform)

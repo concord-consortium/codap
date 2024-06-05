@@ -27,7 +27,9 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const plotType = graphModel?.plotType
   const plotHasExactlyOneCategoricalAxis = graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis
   const showPointDisplayType = plotType !== "dotChart" || !plotHasExactlyOneCategoricalAxis
-  const showFuseIntoBars = plotType === "dotChart" && plotHasExactlyOneCategoricalAxis
+  const showFuseIntoBars = (plotType === "dotChart" && plotHasExactlyOneCategoricalAxis) ||
+                           (plotType === "dotPlot" && pointDisplayType === "bins") ||
+                           pointDisplayType === "histogram"
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -62,12 +64,16 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   }
 
   const handleSetFuseIntoBars = (fuseIntoBars: boolean) => {
-    graphModel?.setPointsFusedIntoBars(fuseIntoBars)
-    if (fuseIntoBars) {
-      graphModel?.pointDescription.setPointStrokeSameAsFill(true)
-    } else {
-      graphModel?.pointDescription.setPointStrokeSameAsFill(false)
-    }
+    const [undoStringKey, redoStringKey] = fuseIntoBars
+      ? ["DG.Undo.graph.fuseDotsToRectangles", "DG.Redo.graph.fuseDotsToRectangles"]
+      : ["DG.Undo.graph.dissolveRectanglesToDots", "DG.Redo.graph.dissolveRectanglesToDots"]
+
+    graphModel?.applyModelChange(() => {
+        graphModel?.setPointsFusedIntoBars(fuseIntoBars)
+        graphModel?.pointDescription.setPointStrokeSameAsFill(fuseIntoBars)
+      },
+      { undoStringKey, redoStringKey }
+    )
   }
 
   return (
@@ -80,7 +86,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     >
       <Flex className="palette-form" direction="column">
       {showPointDisplayType && (
-        <RadioGroup defaultValue={pointDisplayType}>
+        <RadioGroup defaultValue={pointDisplayType === "histogram" ? "bins" : pointDisplayType}>
           <Stack>
             <Radio
               size="md"
@@ -109,7 +115,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           </Stack>
         </RadioGroup>
       )}
-        {showPointDisplayType && pointDisplayType === "bins" && (
+        {showPointDisplayType && (pointDisplayType === "bins" || pointDisplayType === "histogram") && (
           <Stack>
             <Box className="inline-input-group" data-testid="graph-bin-width-setting">
               <FormLabel className="form-label">
@@ -141,13 +147,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </Box>
           </Stack>       
         )}
-      { // For now this option is only available for dot charts, but it should eventually
-        // be available for univariate plot graphs as well.
-        showFuseIntoBars &&
+      {showFuseIntoBars &&
           <Checkbox
             data-testid="bar-chart-checkbox"
             mt="6px" isChecked={pointsFusedIntoBars}
-            onChange={e => handleSetFuseIntoBars(e.target.checked)}>
+            onChange={e => handleSetFuseIntoBars(e.target.checked)}
+          >
             {t("DG.Inspector.graphBarChart")}
           </Checkbox>
        }
