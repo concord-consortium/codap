@@ -1,6 +1,8 @@
 @import "../../components/vars";
 
 .codap-container {
+  // set up a stacking context so component z-index values don't interact with others
+  isolation: isolate;
   width: 100%;
   height: calc(100% - $menu-bar-height - $tool-shelf-height);
   background: url("../../assets/bg-grid-grey-v3.png");

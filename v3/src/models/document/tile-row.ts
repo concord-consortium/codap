@@ -1,5 +1,6 @@
 import { Instance, SnapshotIn, SnapshotOut, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
+import { applyModelChange } from "../history/apply-model-change"
 
 /*
   Represents the layout of a set of tiles/components within a section of a document. The term
@@ -87,6 +88,7 @@ export const TileRowModel = types
       // "derived" models should override
     }
   }))
+.actions(applyModelChange)
 
 export interface ITileRowModel extends Instance<typeof TileRowModel> {}
 export interface ITileRowSnapshotIn extends SnapshotIn<typeof TileRowModel> {}

@@ -30,7 +30,7 @@ describe("createCodapDocument", () => {
     expect(doc.key).toBe("test-1")
     expect(doc.type).toBe("CODAP")
     expect(omitUndefined(getSnapshot(doc.content!))).toEqual({
-      rowMap: { "test-3": { id: "test-3", type: "free", savedOrder: [], tiles: {} } },
+      rowMap: { "test-3": { id: "test-3", type: "free", maxZIndex: 0, tiles: {} } },
       rowOrder: ["test-3"],
       sharedModelMap: {
         "test-2": { sharedModel: { id: "test-2", type: "GlobalValueManager", globals: {} }, tiles: [] }
@@ -67,7 +67,7 @@ describe("createCodapDocument", () => {
 
     // the resulting document content contains the contents of the DataSet
     expect(snapContent).toEqual({
-      rowMap: { "test-3": { id: "test-3", type: "free", savedOrder: [], tiles: {} } },
+      rowMap: { "test-3": { id: "test-3", type: "free", maxZIndex: 0, tiles: {} } },
       rowOrder: ["test-3"],
       sharedModelMap: {
         "test-2": {
