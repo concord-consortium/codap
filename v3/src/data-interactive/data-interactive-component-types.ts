@@ -52,6 +52,10 @@ export interface V2Component {
 export interface V2Calculator extends V2Component {
   type: "calculator"
 }
+export interface V2CaseCard extends V2Component {
+  dataContext?: string
+  type: "caseCard"
+}
 export interface V2CaseTable extends V2Component {
   dataContext?: string
   horizontalScrollOffset?: number
@@ -106,5 +110,5 @@ export interface V2WebView extends V2Component {
   URL?: string
 }
 
-export type V2SpecificComponent = V2Calculator | V2CaseTable | V2Graph | V2Guide | V2Map | V2Slider | V2Text |
-  V2WebView
+export type V2SpecificComponent = V2Calculator | V2CaseCard | V2CaseTable | V2Graph | V2Guide | V2Map |
+  V2Slider | V2Text | V2WebView

@@ -173,17 +173,19 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    toggleSingletonTileVisibility(tileType: string) {
+    toggleSingletonTileVisibility(tileType: string, setHidden?: boolean) {
       const tiles = self?.getTilesOfType(tileType)
       if (tiles.length > 1) {
         console.error("DocumentContent.toggleSingletonTileVisibility:",
                       `encountered ${tiles.length} tiles of type ${tileType}`)
       }
       if (tiles && tiles.length > 0) {
-        const tileLayout = self.getTileLayoutById(tiles[0].id)
+        const tile = tiles[0]
+        const tileLayout = self.getTileLayoutById(tile.id)
         if (isFreeTileLayout(tileLayout)) {
-          tileLayout.setHidden(!tileLayout.isHidden)
+          tileLayout.setHidden(setHidden ?? !tileLayout.isHidden)
         }
+        return tile
       } else {
         return self.createTile(tileType)
       }
@@ -202,7 +204,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
-          self.toggleSingletonTileVisibility(tileType)
+          return self.toggleSingletonTileVisibility(tileType, false)
         } else {
           return self.createTile(tileType, options)
         }
