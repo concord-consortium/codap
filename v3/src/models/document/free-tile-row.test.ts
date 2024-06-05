@@ -24,7 +24,7 @@ describe("FreeTileRow", () => {
     expect(row.tiles.size).toBe(0)
     expect(row.acceptDefaultInsert).toBe(true)
     expect(row.removeWhenEmpty).toBe(false)
-    expect(row.last).toBe("")
+    expect(row.last).toBeUndefined()
     expect(row.tileCount).toBe(0)
     expect(row.hasTile("foo")).toBe(false)
 
@@ -82,7 +82,7 @@ describe("FreeTileRow", () => {
     row.removeTile("tile-2")
     expect(row.tiles.size).toBe(0)
     expect(row.tiles.get("tile-2")?.tileId).toBeUndefined()
-    expect(row.last).toBe("")
+    expect(row.last).toBeUndefined()
     expect(row.tileIds).toEqual([])
   })
 
@@ -96,19 +96,19 @@ describe("FreeTileRow", () => {
     row.moveTileToTop("tile-2")
     expect(row.tiles.size).toBe(3)
     expect(row.last).toBe("tile-2")
-    expect(row.tileIds).toEqual(["tile-1", "tile-3", "tile-2"])
+    expect(row.tileIds).toEqual(["tile-1", "tile-2", "tile-3"])
 
     // move from beginning to last (top)
     row.moveTileToTop("tile-1")
     expect(row.tiles.size).toBe(3)
     expect(row.last).toBe("tile-1")
-    expect(row.tileIds).toEqual(["tile-3", "tile-2", "tile-1"])
+    expect(row.tileIds).toEqual(["tile-1", "tile-2", "tile-3"])
 
     // move from end to last (nop)
     row.moveTileToTop("tile-1")
     expect(row.tiles.size).toBe(3)
     expect(row.last).toBe("tile-1")
-    expect(row.tileIds).toEqual(["tile-3", "tile-2", "tile-1"])
+    expect(row.tileIds).toEqual(["tile-1", "tile-2", "tile-3"])
   })
 
   it("generates efficient patches", () => {
@@ -127,9 +127,12 @@ describe("FreeTileRow", () => {
     reverses = []
     row.insertTile("tile-3", { x: 100, y: 100, width: 100, height: 100 })
     expect(patches).toEqual([
-      `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100}}`
+      `{"op":"replace","path":"/maxZIndex","value":3}`,
+      // eslint-disable-next-line max-len
+      `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100,"zIndex":3}}`
     ])
     expect(reverses).toEqual([
+      `{"op":"replace","path":"/maxZIndex","value":2}`,
       `{"op":"remove","path":"/tiles/tile-3"}`
     ])
 
@@ -137,15 +140,27 @@ describe("FreeTileRow", () => {
     patches = []
     reverses = []
     row.moveTileToTop("tile-2")
-    expect(patches).toEqual([])
-    expect(reverses).toEqual([])
+    expect(patches).toEqual([
+      `{"op":"replace","path":"/maxZIndex","value":4}`,
+      `{"op":"replace","path":"/tiles/tile-2/zIndex","value":4}`
+    ])
+    expect(reverses).toEqual([
+      `{"op":"replace","path":"/maxZIndex","value":3}`,
+      `{"op":"replace","path":"/tiles/tile-2/zIndex","value":2}`
+    ])
 
     // move from beginning to last (top)
     patches = []
     reverses = []
     row.moveTileToTop("tile-1")
-    expect(patches).toEqual([])
-    expect(reverses).toEqual([])
+    expect(patches).toEqual([
+      `{"op":"replace","path":"/maxZIndex","value":5}`,
+      `{"op":"replace","path":"/tiles/tile-1/zIndex","value":5}`
+    ])
+    expect(reverses).toEqual([
+      `{"op":"replace","path":"/maxZIndex","value":4}`,
+      `{"op":"replace","path":"/tiles/tile-1/zIndex","value":1}`
+    ])
 
     // remove first tile
     patches = []
@@ -155,28 +170,11 @@ describe("FreeTileRow", () => {
       `{"op":"remove","path":"/tiles/tile-3"}`
     ])
     expect(reverses).toEqual([
-      `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100}}`
+      // eslint-disable-next-line max-len
+      `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100,"zIndex":3}}`
     ])
 
     disposer()
-  })
-
-  it("preprocessSnapshot supports legacy and current formats", () => {
-    const legacyRow = FreeTileRow.create({
-      tiles: {
-        "tile-1": { tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 }
-      },
-      order: ["tile-1"]
-    })
-    expect(legacyRow.order).toEqual(["tile-1"])
-
-    const modernRow = FreeTileRow.create({
-      tiles: {
-        "tile-1": { tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 }
-      },
-      savedOrder: ["tile-1"]
-    })
-    expect(modernRow.order).toEqual(["tile-1"])
   })
 
   it("serializes correctly when prepareSnapshot() is called", () => {
@@ -188,23 +186,23 @@ describe("FreeTileRow", () => {
     expect(getSnapshot(row)).toEqual({
       id: row.id,
       type: "free",
+      maxZIndex: 2,
       tiles: {
-        "tile-1": { tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 },
-        "tile-2": { tileId: "tile-2", x: 50, y: 50, width: 100, height: 100 }
-      },
-      savedOrder: []
+        "tile-1": { tileId: "tile-1", x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
+        "tile-2": { tileId: "tile-2", x: 50, y: 50, width: 100, height: 100, zIndex: 2 }
+      }
     })
 
     // after prepareSnapshot(), savedOrder is correct
     row.prepareSnapshot()
     expect(getSnapshot(row)).toEqual({
       id: row.id,
+      maxZIndex: 2,
       type: "free",
       tiles: {
-        "tile-1": { tileId: "tile-1", x: 0, y: 0, width: 100, height: 100 },
-        "tile-2": { tileId: "tile-2", x: 50, y: 50, width: 100, height: 100 }
-      },
-      savedOrder: ["tile-1", "tile-2"]
+        "tile-1": { tileId: "tile-1", x: 0, y: 0, width: 100, height: 100, zIndex: 1 },
+        "tile-2": { tileId: "tile-2", x: 50, y: 50, width: 100, height: 100, zIndex: 2 }
+      }
     })
   })
 

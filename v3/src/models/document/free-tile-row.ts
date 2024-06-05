@@ -1,8 +1,6 @@
-import { observable } from "mobx"
-import { Instance, SnapshotIn, addDisposer, onPatch, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ITileInRowOptions, ITileRowModel, TileRowModel } from "./tile-row"
 import { withoutUndo } from "../history/without-undo"
-import { applyModelChange } from "../history/apply-model-change"
 
 /*
   Represents the layout of a set of tiles/components with arbitrary rectangular bounds that can
@@ -20,6 +18,7 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   y: types.number,
   width: types.maybe(types.number),
   height: types.maybe(types.number),
+  zIndex: types.maybe(types.number),
   isHidden: types.maybe(types.boolean),
   isMinimized: types.maybe(types.boolean)
 })
@@ -40,6 +39,9 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
     self.width = width
     self.height = height
   },
+  setZIndex(zIndex: number) {
+    self.zIndex = Math.trunc(zIndex)
+  },
   setHidden(isHidden: boolean) {
     // only store it if it's true
     self.isHidden = isHidden || undefined
@@ -49,7 +51,6 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
     self.isMinimized = isMinimized || undefined
   }
 }))
-.actions(applyModelChange)
 
 export interface IFreeTileLayout extends Instance<typeof FreeTileLayout> {}
 export interface IFreeTileLayoutSnapshot extends SnapshotIn<typeof FreeTileLayout> {}
@@ -64,6 +65,7 @@ export interface IFreeTileInRowOptions extends ITileInRowOptions {
   y: number
   width?: number
   height?: number
+  zIndex?: number
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
               !!options && ("x" in options && options.x != null) && ("y" in options && options.y != null)
@@ -77,15 +79,8 @@ export const FreeTileRow = TileRowModel
   .props({
     type: types.optional(types.literal("free"), "free"),
     tiles: types.map(FreeTileLayout), // tile id => layout
-    savedOrder: types.array(types.string)  // tile ids ordered from back to front
+    maxZIndex: 0
   })
-  .preProcessSnapshot((snap: any) => {
-    const { order, ...others } = snap
-    return order ? { savedOrder: order, ...others } : snap
-  })
-  .volatile(self => ({
-    order: observable.array<string>()
-  }))
   .views(self => ({
     get acceptDefaultInsert() {
       return true
@@ -100,11 +95,19 @@ export const FreeTileRow = TileRowModel
   .views(self => ({
     // id of last (top) node in list
     get last() {
-      return self.order.length > 0 ? self.order[self.order.length - 1] : ""
+      let topTileId: string | undefined
+      let topZIndex = 0
+      self.tiles.forEach(tileLayout => {
+        if ((tileLayout.zIndex ?? 0) > topZIndex) {
+          topTileId = tileLayout.tileId
+          topZIndex = tileLayout.zIndex ?? 0
+        }
+      })
+      return topTileId
     },
-    // returns tile ids in list/traversal order
+    // returns tile ids in traversal order
     get tileIds() {
-      return self.order
+      return Array.from(self.tiles.keys())
     },
     get tileCount() {
       return self.tiles.size
@@ -121,46 +124,23 @@ export const FreeTileRow = TileRowModel
     }
   }))
   .actions(self => ({
-    afterCreate() {
-      // initialize volatile order from savedOrder on creation
-      self.order.replace([...self.savedOrder])
-
-      addDisposer(self, onPatch(self, ({ op, path }) => {
-        // update order whenever tiles are added/removed
-        if (op === "add" || op === "remove") {
-          const match = /^\/tiles\/(.+)$/.exec(path)
-          const tileId = match?.[1]
-          if (tileId) {
-            // newly added tiles should be front-most
-            if (op === "add") {
-              self.order.push(tileId)
-            }
-            // removed tiles should be removed from order
-            else {
-              self.order.remove(tileId)
-            }
-          }
-        }
-      }))
+    nextZIndex() {
+      return ++self.maxZIndex
     },
-    prepareSnapshot() {
-      withoutUndo({ suppressWarning: true })
-      self.savedOrder.replace(self.order)
+    setMaxZIndex(zIndex: number) {
+      self.maxZIndex = zIndex
     },
     insertTile(tileId: string, options?: ITileInRowOptions) {
-      const { x = 50, y = 50, width = undefined, height = undefined } = isFreeTileInRowOptions(options) ? options : {}
-      self.tiles.set(tileId, { tileId, x, y, width, height })
+      const { x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex() } =
+        isFreeTileInRowOptions(options) ? options : {}
+      self.tiles.set(tileId, { tileId, x, y, width, height, zIndex })
     },
     removeTile(tileId: string) {
       self.tiles.delete(tileId)
     },
     moveTileToTop(tileId: string) {
       withoutUndo({ suppressWarning: true })
-      const index = self.order.findIndex(id => id === tileId)
-      if ((index >= 0) && (index < self.order.length - 1)) {
-        self.order.splice(index, 1)
-        self.order.push(tileId)
-      }
+      self.getNode(tileId)?.setZIndex(this.nextZIndex())
     },
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
       const freeTileLayout = self.getNode(tileId)

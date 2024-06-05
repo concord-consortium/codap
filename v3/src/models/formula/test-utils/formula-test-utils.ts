@@ -25,7 +25,7 @@ import { displayToCanonical } from "../utils/canonicalization-utils"
 // sliders.
 
 export const getFormulaTestEnv = () => {
-  const doc = createCodapDocument(testDoc)
+  const doc = createCodapDocument(testDoc as any)
   const dataSets = getSharedDataSets(doc).map(sharedDs => sharedDs.dataSet)
 
   const mammals = dataSets.find(dataSet => dataSet.name === "Mammals")

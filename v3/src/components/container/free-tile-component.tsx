@@ -23,9 +23,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const tileId = tile.id
   const tileType = tile.content.type
   const rowTile = row.tiles.get(tileId)
-  const { x: left, y: top, width, height } = rowTile || {}
+  const { x: left, y: top, width, height, zIndex } = rowTile || {}
   const { active } = useDndContext()
-  const tileStyle: React.CSSProperties = { left, top, width, height }
+  const tileStyle: React.CSSProperties = { left, top, width, height, zIndex }
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
   const {setNodeRef, transform} = useDraggableTile(draggableOptions,
     activeDrag => {
@@ -76,7 +76,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
       document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
-      mtile.applyModelChange(() => {
+      row.applyModelChange(() => {
         mtile.setSize(resizingWidth, resizingHeight)
         mtile.setPosition(resizingLeft, mtile.y)
       }, {
@@ -88,7 +88,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
     document.body.addEventListener("pointermove", onPointerMove, { capture: true })
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
-  }, [])
+  }, [row])
 
   const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {
     rowTile && handleResizePointerDown(e, rowTile, "bottom-right")
@@ -113,8 +113,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const startStyleTop = top || 0
   const startStyleLeft = left || 0
   const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
-    width, height, transition: "none"}
-  const minimizedStyle = { left, top, width, height: kTitleBarHeight }
+    width, height, zIndex, transition: "none"}
+  const minimizedStyle = { left, top, width, height: kTitleBarHeight, zIndex }
   const style = rowTile?.isMinimized
                   ? minimizedStyle
                   : tileId === resizingTileId
