@@ -660,11 +660,12 @@ export const pathBasis = (p0: Point, p1: Point, p2: Point, p3: Point) => {
    * Returns the point that is the weighted sum of the specified control points,
    * using the specified weights. This method requires that there are four
    * weights and four control points.
+   * We round to 2 decimal places to keep the length of path strings relatively short.
    */
   const weight = (w: number[]) => {
     return {
-      x: w[0] * p0.x + w[1] * p1.x + w[2] * p2.x + w[3] * p3.x,
-      y: w[0] * p0.y  + w[1] * p1.y  + w[2] * p2.y  + w[3] * p3.y
+      x: Math.round((w[0] * p0.x + w[1] * p1.x + w[2] * p2.x + w[3] * p3.x) * 100) / 100,
+      y: Math.round((w[0] * p0.y  + w[1] * p1.y  + w[2] * p2.y  + w[3] * p3.y) * 100) / 100
     }
   }
 

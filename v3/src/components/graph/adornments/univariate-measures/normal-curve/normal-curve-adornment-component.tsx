@@ -128,7 +128,6 @@ export const NormalCurveAdornmentComponent = observer(
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)
       if (!spannerRef || !measure) return
-      // const selection = select(valueRef.current)
       const selection = select(spannerRef.current)
       selection.attr("class", "measure-container")  // So the classes applied to the text tip
       // will be scoped to the spanner
@@ -140,13 +139,6 @@ export const NormalCurveAdornmentComponent = observer(
       )
       const textTipWidth = measureText(textContent, "bold 12px sans-serif")
       const lineOffset = 5
-      /*
-            const rangeOffset = rangeValue && rangeValue !== plotValue
-              ? isVertical.current
-                ? helper.xScale(rangeValue) - helper.xScale(plotValue)
-                : helper.yScale(rangeValue) - helper.yScale(plotValue)
-              : 0
-      */
       const cellWidth = layout.plotWidth / cellCounts.x  // Use the full width of the graph
       const cellHeight = layout.plotHeight / cellCounts.y  // Use the full height of the graph
       let x = cellWidth * cellCoords.col + (isVertical.current
@@ -154,11 +146,6 @@ export const NormalCurveAdornmentComponent = observer(
         : Math.max(0, (plotWidth - plotWidth / 2) / cellCounts.x - textTipWidth / 2 + cellWidth * cellCoords.col))
       const y = cellHeight * cellCoords.row + (isVertical.current ? plotHeight / 2
         : helper.yScale(plotValue) / cellCounts.y - lineOffset)
-      /*
-            if ((rangeValue || rangeValue === 0) && !isVertical.current) {
-              y = (helper.yScale(plotValue) + rangeOffset) / cellCounts.y - lineOffset
-            }
-      */
 
       // If x plus the approximate width of the text tip would extend beyond the right boundary of the graph, set x to
       // graph's width minus the text tip width or zero, whichever is greater.
@@ -217,7 +204,7 @@ export const NormalCurveAdornmentComponent = observer(
           pixelMin = isVertical.current ? pixelRange[0] : pixelRange[1],
           pixelMax = isVertical.current ? pixelRange[1] : pixelRange[0],
           // todo: For a gaussian fit amplitude is a fitted parameter
-          amplitude = numCellsNumeric / (stdDev * sqrtTwoPi) * caseCount * binWidth,
+          amplitude = (numCellsNumeric / (stdDev * sqrtTwoPi)) * caseCount * binWidth,
           points = [],
           kPixelGap = 1,
           meanSegmentPixelLength = countAxisFunc(normalF(mean)) - countAxisFunc(0),
