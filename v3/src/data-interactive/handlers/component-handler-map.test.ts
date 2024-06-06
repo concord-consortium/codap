@@ -12,13 +12,13 @@ import { setupTestDataset } from "./handler-test-utils"
 describe("DataInteractive ComponentHandler Map", () => {
   const handler = diComponentHandler
   const documentContent = appState.document.content!
-  const { dataset, a1 } = setupTestDataset()
+  const { dataset } = setupTestDataset()
   documentContent.createDataSet(getSnapshot(dataset))
 
   it("create map works", async () => {
     // Create a map tile with no options
     expect(documentContent.tileMap.size).toBe(0)
-    const vanillaResult = handler.create!({}, { type: "map" })!
+    const vanillaResult = handler.create!({}, { type: "map" })
     expect(vanillaResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const vanillaResultValues = vanillaResult.values as DIComponentInfo
@@ -27,14 +27,14 @@ describe("DataInteractive ComponentHandler Map", () => {
     expect(isMapContentModel(vanillaTile.content)).toBe(true)
 
     // Delete a graph tile
-    const deleteResult = handler.delete!({ component: vanillaTile })!
+    const deleteResult = handler.delete!({ component: vanillaTile })
     expect(deleteResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(0)
 
     // Create a map with options
     const result = handler.create!({}, {
       type: "map", title: "map2024", cannotClose: true, center: [20, 24], zoom: 3, legendAttributeName: "a1"
-    })!
+    })
     expect(result.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const resultValues = result.values as DIComponentInfo

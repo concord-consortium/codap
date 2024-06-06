@@ -1,14 +1,9 @@
-import { getSnapshot } from "mobx-state-tree"
-import { isCalculatorModel } from "../../components/calculator/calculator-model"
-import { kCalculatorIdPrefix } from "../../components/calculator/calculator-registration"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
-import { setupTestDataset } from "./handler-test-utils"
 import { kWebViewIdPrefix } from "../../components/web-view/web-view-registration"
 import { IWebViewModel, isWebViewModel } from "../../components/web-view/web-view-model"
-import { V2Game, V2WebView } from "../data-interactive-component-types"
 
 
 describe("DataInteractive ComponentHandler WebView and Game", () => {
@@ -18,7 +13,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
   it("create webView and game work", () => {
     // Create a blank webView
     expect(documentContent.tileMap.size).toBe(0)
-    const result = handler.create!({}, { type: "webView" })!
+    const result = handler.create!({}, { type: "webView" })
     expect(result.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const resultValues = result.values as DIComponentInfo
@@ -33,7 +28,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
 
     // Create webView with url
     const wikipediaUrl = "https://wikipedia.org"
-    const result2 = handler.create!({}, { type: "webView", URL: wikipediaUrl })!
+    const result2 = handler.create!({}, { type: "webView", URL: wikipediaUrl })
     expect(result2.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const result2Values = result2.values as DIComponentInfo
@@ -44,7 +39,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
 
     // Create game with url
     const multidataUrl = "https://codap.concord.org/multidata-plugin/"
-    const result3 = handler.create!({}, { type: "game", URL: multidataUrl })!
+    const result3 = handler.create!({}, { type: "game", URL: multidataUrl })
     expect(result3.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(2)
     const result3Values = result3.values as DIComponentInfo

@@ -2,8 +2,7 @@ import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { getGlobalValueManager } from "../../models/tiles/tile-environment"
+import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { kSliderIdPrefix } from "../../components/slider/slider-registration"
 import { ISliderModel, isSliderModel } from "../../components/slider/slider-model"
 import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
@@ -18,7 +17,7 @@ describe("DataInteractive ComponentHandler Slider", () => {
   it("create slider works", async () => {
     // Create slider with no value specified
     expect(documentContent.tileMap.size).toBe(0)
-    const newValueResult = handler.create!({}, { type: "slider" })!
+    const newValueResult = handler.create!({}, { type: "slider" })
     expect(newValueResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const newValueResultValues = newValueResult.values as DIComponentInfo
@@ -27,13 +26,14 @@ describe("DataInteractive ComponentHandler Slider", () => {
     expect(isSliderModel(newValueTile.content)).toBe(true)
 
     // Delete slider tile
-    const deleteResult = handler.delete!({ component: newValueTile })!
+    const deleteResult = handler.delete!({ component: newValueTile })
     expect(deleteResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(0)
 
     // Create slider with value and other options specified
     const oldValueResult = handler.create!({}, {
-      type: "slider", globalValueName: "global", lowerBound: -100, upperBound: 100, animationDirection: 0, animationMode: 1
+      type: "slider", globalValueName: "global", lowerBound: -100, upperBound: 100,
+      animationDirection: 0, animationMode: 1
     })
     expect(oldValueResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
