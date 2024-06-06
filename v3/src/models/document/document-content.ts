@@ -52,6 +52,7 @@ export interface IImportDataSetOptions {
 export interface INewTileOptions {
   cannotClose?: boolean
   content?: ITileContentSnapshotWithType
+  toggleSingleton?: boolean
   x?: number
   y?: number
   height?: number
@@ -204,7 +205,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
-          return self.toggleSingletonTileVisibility(tileType, false)
+          return self.toggleSingletonTileVisibility(tileType, options?.toggleSingleton ? undefined : false)
         } else {
           return self.createTile(tileType, options)
         }
