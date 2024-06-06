@@ -51,6 +51,10 @@ export const diComponentHandler: DIHandler = {
       success: false as const,
       values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }) }
     }
+    const componentNotCreatedResult = {
+      success: false as const,
+      values: { error: t("V3.DI.Error.componentNotCreated") }
+    }
     return document.applyModelChange(() => {
       // Special case for caseCard and caseTable, which require a dataset
       if ([kV2CaseCardType, kV2CaseTableType].includes(type)) {
@@ -68,7 +72,7 @@ export const diComponentHandler: DIHandler = {
 
         const tileType = type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType
         const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType)
-        if (!tile) return { success: false, values: { error: "Unable to create tile." } }
+        if (!tile) return componentNotCreatedResult
 
         // TODO Handle horizontalScrollOffset and isIndexHidden 
         return {
@@ -90,7 +94,12 @@ export const diComponentHandler: DIHandler = {
           if (globalValueName) {
             const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
             const global = globalManager?.getValueByName(globalValueName)
-            if (!global) return { success: false, values: { error: `Global not found: '${globalValueName}'` } }
+            if (!global) {
+              return {
+                success: false,
+                values: { error: t("V3.DI.Error.globalNotFound", { vars: [globalValueName] }) }
+              }
+            }
 
             // Multiple sliders for one global value are not allowed
             let existingTile = false
@@ -102,7 +111,7 @@ export const diComponentHandler: DIHandler = {
             if (existingTile) {
               return {
                 success: false,
-                values: { error: `Cannot create multiple sliders for ${globalValueName}` }
+                values: { error: t("V3.DI.Error.noMultipleSliders", { vars: [globalValueName] }) }
               }
             }
 
@@ -113,7 +122,7 @@ export const diComponentHandler: DIHandler = {
         // Create the tile
         const options = { cannotClose, content, ...dimensions }
         const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
-        if (!tile) return { success: false, values: { error: "Unable to create tile." } }
+        if (!tile) return componentNotCreatedResult
 
         // Set the tile's title
         if (title) {
@@ -243,7 +252,7 @@ export const diComponentHandler: DIHandler = {
       // text
       // guide
       // image view
-      return { success: false, values: { error: `Unsupported component type ${type}` } }
+      return { success: false, values: { error: t("V3.DI.Error.unsupportedComponent", { vars: [type] }) } }
     })
   },
   
