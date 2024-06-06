@@ -17,6 +17,9 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
     },
     computeStandardDeviation(attrId: string, cellKey: Record<string, string>,
                              dataConfig: IGraphDataConfigurationModel) {
+      // Cast to Number should not be necessary, but there appears to be an issue with the mathjs type signature.
+      // See https://github.com/josdejong/mathjs/issues/2429 for some history, although that bug is supposedly
+      // fixed, but a variant of it seems to be re-occurring.
       return Number(std(self.getCaseValues(attrId, cellKey, dataConfig)))
     },
     computeStandardError(attrId: string, cellKey: Record<string, string>,

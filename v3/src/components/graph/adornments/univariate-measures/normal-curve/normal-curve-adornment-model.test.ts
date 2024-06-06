@@ -13,13 +13,13 @@ describe("NormalCurveModel", () => {
     mean.setShowMeasureLabels(true)
     expect(mean.showMeasureLabels).toBe(true)
   })
-  it("can have a new standard error value added to its measures map", () => {
+  it("can have a new normal curve added to its measures map", () => {
     const adornment = NormalCurveAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
     adornment.addMeasure(10)
     expect(adornment.measures.size).toBe(1)
   })
-  it("can have an existing normal curve value removed from its measures map", () => {
+  it("can have an existing normal curve removed from its measures map", () => {
     const adornment = NormalCurveAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
     adornment.addMeasure(10)

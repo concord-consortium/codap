@@ -54,7 +54,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
       }
       const { binMap, overlap } = computeBinPlacements(binPlacementProps)
-      graphModel.setPointOverlap(overlap) // So that if we draw a normal curvie, it can use the overlap
+      graphModel.setPointOverlap(overlap) // So that if we draw a normal curve, it can use the overlap
 
       interface ISubPlotDetails {
         cases: string[]

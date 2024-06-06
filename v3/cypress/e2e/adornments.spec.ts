@@ -266,32 +266,32 @@ context("Graph adornments", () => {
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean-absolute-deviation]").click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
-       // add tests for undo and redo for MAD
+    // add tests for undo and redo for MAD
 
-       toolbar.getUndoTool().click()
-       cy.wait(250)
+    toolbar.getUndoTool().click()
+    cy.wait(250)
 
-       // The MAD adornment should be visible again after an undo
-       cy.get("[data-testid=graph-adornments-grid]").should("exist")
-       cy.get("[data-testid=graph-adornments-grid]")
-         .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-       cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-       cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-       cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=mean-absolute-deviation]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-cover]").should("not.exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-range]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-min]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-min-cover]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-max]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-max-cover]").should("exist")
-       cy.get("*[data-testid^=mean-absolute-deviation-tip]").should("exist").should("not.be.visible")
-       cy.wait(250)
+    // The MAD adornment should be visible again after an undo
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]")
+      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=mean-absolute-deviation]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-cover]").should("not.exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-range]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-min]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-min-cover]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-max]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-max-cover]").should("exist")
+    cy.get("*[data-testid^=mean-absolute-deviation-tip]").should("exist").should("not.be.visible")
+    cy.wait(250)
 
-       // The standard deviation adornment should be hidden after a redo
-       toolbar.getRedoTool().click()
-       cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-      })
+    // The standard deviation adornment should be hidden after a redo
+    toolbar.getRedoTool().click()
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+  })
   it("adds box plot adornment to the graph when Box Plot checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Height", "bottom")
@@ -321,19 +321,18 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=box-plot-outlier-cover]").should("not.exist")
     // TODO: Test Show Outliers option. Test that labels appear on mouseover.
 
+    // add tests for undo and redo for box plot
 
-      // add tests for undo and redo for box plot
+    toolbar.getUndoTool().click()
+    cy.wait(250)
 
-       toolbar.getUndoTool().click()
-       cy.wait(250)
+    // The box plot adornment should be invisible after an undo
+    // how to test this one? bpCheckbox.should("not.be.visible")?
+    cy.wait(250)
 
-       // The box plot adornment should be invisible after an undo
-       // how to test this one? bpCheckbox.should("not.be.visible")?
-       cy.wait(250)
-
-       // The box plot adornment should be visible again after a redo
-       toolbar.getRedoTool().click()
-       cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    // The box plot adornment should be visible again after a redo
+    toolbar.getRedoTool().click()
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]")
       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
@@ -354,52 +353,20 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=box-plot-outlier]").should("not.exist")
     cy.get("*[data-testid^=box-plot-outlier-cover]").should("not.exist")
   })
-  it("adds a least squares line to graph when Least Squares Line checkbox is checked", () => {
+  it("adds normal curve adornment to the graph when Normal Curve checkbox is checked", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Mass", "bottom")
-    cy.dragAttributeToTarget("table", "Speed", "left")
+    cy.dragAttributeToTarget("table", "Height", "bottom")
     graph.getDisplayValuesButton().click()
-    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("have.attr", "disabled")
-    cy.get("[data-testid=adornment-checkbox-lsrl]").click()
+    graph.getInspectorPalette().should("be.visible")
+    graph.getInspectorPalette().find("[data-testid=adornment-toggle-boxPlotAndNormalCurve]").click()
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-normal-curve]").should("be.visible").click()
+    cy.get("[data-testid=adornment-checkbox-show-measure-labels]").click()
     cy.get("[data-testid=graph-adornments-grid]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]")
       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-cover]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
-      .should(
-        "contain.html",
-        "<span><em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009</span>"
-      )
-    cy.get("*[data-testid=lsrl-confidence-band]").should("exist").should("not.have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("not.have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("not.have.attr", "d")
-    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("not.have.attr", "disabled")
-    cy.get("[data-testid=adornment-show-confidence-bands-options]").click()
-    cy.get("*[data-testid=lsrl-confidence-band]").should("have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("have.attr", "d")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
-      .should(
-        "contain.html",
-        // eslint-disable-next-line max-len
-        "<span><em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009<br>SE<sub>slope</sub> = 0.003</span>"
-      )
-    // TODO: Test that mousing over equation highlights the line and vice versa
-    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are
-    // multiple least squares lines)
-
-    // TODO: Add a test undo/redo for the least squares line
-
-    // toolbar.getUndoTool().click()
-    // cy.wait(250)
-    // Show Confidence Bands should not be visible after an undo
-    // bug reported here: #187005022
-
-    // TODO: Least square lines should not be visible after a second undo
-
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=normal-curve]").should("exist")
   })
   it("adds movable labels for univariate measures to graph when Show Measure Labels checkbox is checked", () => {
     c.selectTile("graph", 0)
@@ -431,21 +398,21 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-checkbox-show-measure-labels]").click()
     cy.get("*[data-testid^=mean-measure-labels-tip]").should("not.exist")
     // add tests for undo and redo for Show Measures label; checkbox
-     toolbar.getUndoTool().click()
-     cy.wait(250)
+    toolbar.getUndoTool().click()
+    cy.wait(250)
 
-     // The Show Measures label should be visible again after an undo
-     cy.get("[data-testid=graph-adornments-grid]").should("exist")
-     cy.get("[data-testid=graph-adornments-grid]")
-       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=mean]").should("exist")
+    // The Show Measures label should be visible again after an undo
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]")
+      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=mean]").should("exist")
 
-     // The Show Measures label should be hidden after a redo
-     toolbar.getRedoTool().click()
-     cy.get("*[data-testid^=mean-measure-labels-tip]").should("not.exist")
-      })
+    // The Show Measures label should be hidden after a redo
+    toolbar.getRedoTool().click()
+    cy.get("*[data-testid^=mean-measure-labels-tip]").should("not.exist")
+  })
   it("adds movable line to graph when Movable Line checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
@@ -470,181 +437,22 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
     // add tests for undo and redo for Moveable Line checkbox
-     toolbar.getUndoTool().click()
-     cy.wait(250)
+    toolbar.getUndoTool().click()
+    cy.wait(250)
 
-     // The Show Measures label should be visible again after an undo
-     cy.get("[data-testid=graph-adornments-grid]").should("exist")
-     cy.get("[data-testid=graph-adornments-grid]")
-       .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-     cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line]").should("exist")
-     cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
-       .find("[data-testid=movable-line-equation-]").should("not.be.empty")
-
-     // The Show Measures label should be hidden after a redo
-     toolbar.getRedoTool().click()
-     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-  })
-  it("locks intercept of LSRL and movable line when Lock Intercept checkbox is checked", () => {
-    c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.dragAttributeToTarget("table", "Speed", "left")
-    graph.getDisplayValuesButton().click()
-    cy.get("[data-testid=adornment-checkbox-intercept-locked]").find("input")
-      .should("not.be.checked").should("have.attr", "disabled")
-    cy.get("[data-testid=adornment-checkbox-lsrl]").click()
-    cy.get("[data-testid=adornment-show-confidence-bands-options]").click()
-    cy.get("*[data-testid=lsrl-confidence-band]").should("have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("have.attr", "d")
-    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
-    cy.get("[data-testid=adornment-checkbox-intercept-locked]").find("input").should("not.have.attr", "disabled")
-    cy.get("[data-testid=adornment-checkbox-intercept-locked]").click()
-    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("have.attr", "disabled")
-    cy.get("*[data-testid=lsrl-confidence-band]").should("not.have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-cover]").should("exist").should("not.have.attr", "d")
-    cy.get("*[data-testid=lsrl-confidence-band-shading]").should("exist").should("not.have.attr", "d")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
-      .should("not.contain.html", "r<sup>2</sup> = ")
+    // The Show Measures label should be visible again after an undo
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]")
+      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line]").should("exist")
     cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
-      .find("[data-testid=movable-line-equation-]")
-      .should("not.contain.html", "(<em>Sleep</em>) + ")
-    cy.get("[data-testid=adornment-checkbox-intercept-locked]").click()
-    cy.get("[data-testid=adornment-show-confidence-bands-options]").find("input").should("not.have.attr", "disabled")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
-      .should("contain.html", "r<sup>2</sup> = ")
-    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
-      .find("[data-testid=movable-line-equation-]")
-      .should("contain.html", "(<em>Sleep</em>) + ")
+      .find("[data-testid=movable-line-equation-]").should("not.be.empty")
 
-      // TODO: add tests for undo and redo for LSRL
-
-  })
-  it("adds movable point to graph when Movable Point checkbox is checked", () => {
-    c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.dragAttributeToTarget("table", "Speed", "left")
-    graph.getDisplayValuesButton().click()
-
-    graph.getInspectorPalette().should("be.visible")
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-movable-point]").should("be.visible").click()
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=movable-point]").should("exist")
-    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are multiple points)
-    // TODO: Test dragging of point
-    cy.wait(250)
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-movable-point]").click()
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-
-    // Adds a test for undo and redo of Moveable point
-    toolbar.getUndoTool().click()
-    cy.wait(250)
-
-    // The Moveable point should be visible again after an undo
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=movable-point]").should("exist")
-    cy.wait(250)
-
-    // The Moveable point should be hidden after a redo
+    // The Show Measures label should be hidden after a redo
     toolbar.getRedoTool().click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-  })
-  it("adds plotted function UI to graph when Plotted Function checkbox is checked", () => {
-    c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.dragAttributeToTarget("table", "Mass", "left")
-    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
-    graph.getDisplayValuesButton().click()
-
-    graph.getInspectorPalette().should("be.visible")
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").should("be.visible").click()
-    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 22\)/)
-    cy.get("[data-testid=graph-adornments-banners]").should("exist")
-    cy.get("[data-testid=plotted-function-control]").should("exist")
-    cy.get("[data-testid=plotted-function-control-label]").should("exist")
-    cy.get("[data-testid=plotted-function-control-value]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=plotted-function-control-label]").should("exist").should("have.text", "Mass")
-    cy.get("[data-testid=plotted-function-control-value]").should("exist").should("have.text", "")
-    cy.wait(250)
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").click()
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
-
-    // Adds a test for undo and redo for plotted function checkbox
-    toolbar.getUndoTool().click()
-    cy.wait(250)
-
-    // The plotted function should be visible again after an undo
-    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 22\)/)
-    cy.get("[data-testid=graph-adornments-banners]").should("exist")
-    cy.get("[data-testid=plotted-function-control]").should("exist")
-    cy.get("[data-testid=plotted-function-control-label]").should("exist")
-    cy.get("[data-testid=plotted-function-control-value]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=plotted-function-control-label]").should("exist").should("have.text", "Mass")
-    cy.get("[data-testid=plotted-function-control-value]").should("exist").should("have.text", "")
-    cy.wait(250)
-
-    // The plotted function should be hidden after a redo
-    toolbar.getRedoTool().click()
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-    cy.get("[data-testid=plot-cell-background]").should("have.attr", "transform").and("match", /translate\(.*, 0\)/)
-
-  })
-  it("allows adding a plotted function to the graph by entering a value into the plotted function UI", () => {
-    c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.dragAttributeToTarget("table", "Mass", "left")
-    graph.getDisplayValuesButton().click()
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").click()
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=plotted-function-control-value]").click()
-    cy.get("[data-testid=edit-formula-value-form]").find("[data-testid=formula-value-input]").type("10")
-    cy.get("[data-testid=Apply-button]").click()
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=plotted-function]").should("exist")
-    cy.get("*[data-testid^=plotted-function-path]").should("exist")
-    // TODO: Also test the above after attributes are added to top and right axes
-    // (i.e. when there are multiple plotted functions)
-
-    // Adds a test for undo and redo for plotted function UI checkbox
-    toolbar.getUndoTool().click()
-    cy.wait(250)
-
-    // The plotted function should be visible again after an undo
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.wait(250)
-
-    // The plotted function should be hidden after a redo
-    toolbar.getRedoTool().click()
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=plotted-function]").should("exist")
-    cy.get("*[data-testid^=plotted-function-path]").should("exist")
   })
   it("adds plotted value UI to graph when Plotted Value checkbox is checked", () => {
     c.selectTile("graph", 0)
@@ -838,95 +646,5 @@ context("Graph adornments", () => {
     cy.wait(500)
     graph.getDisplayValuesButton().click()
     cy.get(".sub-count").should("have.length", 10).and("have.class", "y-axis").and("have.class", "binned-points-count")
-  })
-  it("adds squares of residuals squares to the plot when the Squares of Residuals checkbox is checked", () => {
-    c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.dragAttributeToTarget("table", "Speed", "left")
-    graph.getDisplayValuesButton().click()
-
-    graph.getInspectorPalette().should("be.visible")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").should("be.visible")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input").should("have.attr", "disabled")
-    cy.get("*[data-testid^=movable-line-squares]").should("not.exist")
-    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
-    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
-      .find("[data-testid=movable-line-equation-]")
-      .should("not.contain.html", "Sum of squares = ")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input").should("not.have.attr", "disabled")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").click()
-    cy.get("*[data-testid^=movable-line-squares]").should("exist")
-    cy.get("*[data-testid^=movable-line-squares]").find("rect").should("have.attr", "stroke", "#4682b4")
-    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
-      .find("[data-testid=movable-line-equation-]")
-      .should("contain.html", "Sum of squares = ")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").click()
-    cy.get("*[data-testid^=movable-line-squares]").should("not.exist")
-    cy.get("[data-testid=adornment-checkbox-lsrl]").click()
-    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=lsrl-equation-container-]")
-      .find("[data-testid=lsrl-equation-]")
-      .should("not.contain.html", "Sum of squares = ")
-    cy.get("*[data-testid^=lsrl-squares]").should("not.exist")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").click()
-    cy.get("*[data-testid^=lsrl-squares]").should("exist")
-    cy.get("*[data-testid^=lsrl-squares]").find("rect").should("have.attr", "stroke", "#008000")
-    cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=lsrl-equation-container-]")
-      .find("[data-testid=lsrl-equation-]")
-      .should("contain.html", "Sum of squares = ")
-    cy.get("[data-testid=adornment-checkbox-lsrl]").click()
-    cy.get("*[data-testid^=lsrl-squares]").should("not.exist")
-    cy.get("[data-testid=adornment-checkbox-movable-line]").click()
-    cy.get("*[data-testid^=movable-line-squares]").should("not.exist")
-    cy.get("[data-testid=adornment-checkbox-squares-of-residuals]").find("input").should("have.attr", "disabled")
-  })
-
-  it("adds connecting lines to the plot when the Connecting Lines checkbox is checked", () => {
-    c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
-    cy.dragAttributeToTarget("table", "Speed", "left")
-    graph.getDisplayValuesButton().click()
-
-    graph.getInspectorPalette().should("be.visible")
-    cy.get("[data-testid=adornment-checkbox-connecting-lines]").should("be.visible")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
-    // TODO: Update the below once the connecting lines and related dot animation is re-instated
-    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
-    //   cy.wrap(dot).should("have.attr", "r", 6)
-    // })
-    cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
-    // TODO: Update the below once the connecting lines and related dot animation is re-instated
-    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
-    //   cy.wrap(dot).should("have.attr", "r", 3)
-    // })
-    // Since the circle elements for the graph's case dots overlay the lines' path element in various places, we
-    // use force: true so we don't need to figure out exactly where to click.
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
-    graph.getDisplayValuesButton().click()
-    cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
-    cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
-    // TODO: Update the below once the connecting lines and related dot animation is re-instated
-    // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
-    //   cy.wrap(dot).should("have.attr", "r", 6)
-    // })
-
-    // Adds a test for undo and redo for connecting lines checkbox
-    toolbar.getUndoTool().click()
-    cy.wait(250)
-
-    // Connecting lines should be visible again after an undo
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
-    cy.wait(250)
-
-    // Connecting lines should be hidden after a redo. this piece is a bit flaky so commented out for now.
-    //toolbar.getRedoTool().click()
-    //cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
   })
 })
