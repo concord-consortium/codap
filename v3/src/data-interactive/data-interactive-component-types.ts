@@ -62,6 +62,10 @@ export interface V2CaseTable extends V2Component {
   isIndexHidden?: boolean
   type: "caseTable"
 }
+export interface V2Game extends V2Component {
+  type: "game"
+  URL?: string
+}
 export interface V2Graph extends V2Component {
   captionAttributeName?: string
   dataContext?: string
@@ -110,5 +114,5 @@ export interface V2WebView extends V2Component {
   URL?: string
 }
 
-export type V2SpecificComponent = V2Calculator | V2CaseCard | V2CaseTable | V2Graph | V2Guide | V2Map |
+export type V2SpecificComponent = V2Calculator | V2CaseCard | V2CaseTable | V2Game | V2Graph | V2Guide | V2Map |
   V2Slider | V2Text | V2WebView
