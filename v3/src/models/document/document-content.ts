@@ -52,7 +52,8 @@ export interface IImportDataSetOptions {
 export interface INewTileOptions {
   cannotClose?: boolean
   content?: ITileContentSnapshotWithType
-  toggleSingleton?: boolean
+  title?: string
+  setSingletonHidden?: boolean // If undefined, singleton visibility will be toggled
   x?: number
   y?: number
   height?: number
@@ -94,7 +95,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       const id = v3Id(info?.prefix || "TILE")
       const content = options?.content ?? info?.defaultContent({ env })
       const cannotClose = options?.cannotClose
-      return content ? { id, content, cannotClose } : undefined
+      const title = options?.title
+      return content ? { id, content, cannotClose, title } : undefined
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       const tileIds = self.tileMap.keys()
@@ -174,7 +176,7 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    toggleSingletonTileVisibility(tileType: string, setHidden?: boolean) {
+    toggleSingletonTileVisibility(tileType: string, options?: INewTileOptions) {
       const tiles = self?.getTilesOfType(tileType)
       if (tiles.length > 1) {
         console.error("DocumentContent.toggleSingletonTileVisibility:",
@@ -184,11 +186,11 @@ export const DocumentContentModel = BaseDocumentContentModel
         const tile = tiles[0]
         const tileLayout = self.getTileLayoutById(tile.id)
         if (isFreeTileLayout(tileLayout)) {
-          tileLayout.setHidden(setHidden ?? !tileLayout.isHidden)
+          tileLayout.setHidden(options?.setSingletonHidden ?? !tileLayout.isHidden)
         }
         return tile
       } else {
-        return self.createTile(tileType)
+        return self.createTile(tileType, options)
       }
     },
     toggleNonDestroyableTileVisibility(tileLayoutId: string | undefined) {
@@ -205,7 +207,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
-          return self.toggleSingletonTileVisibility(tileType, options?.toggleSingleton ? undefined : false)
+          return self.toggleSingletonTileVisibility(tileType, options)
         } else {
           return self.createTile(tileType, options)
         }

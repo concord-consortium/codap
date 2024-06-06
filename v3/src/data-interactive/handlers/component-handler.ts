@@ -6,8 +6,10 @@ import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { IMapContentModel } from "../../components/map/models/map-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
-import { ISliderModel, ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
-import { IWebViewModel } from "../../components/web-view/web-view-model"
+import { ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
+import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
+import { kWebViewTileType } from "../../components/web-view/web-view-defs"
+import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
@@ -25,13 +27,12 @@ import {
   kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
-import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
 
-    const { type, cannotClose, dimensions, name, title } = values as V2Component
+    const { type, cannotClose, dimensions, name, title: _title } = values as V2Component
     const { document } = appState
 
     function getSharedDataSet(dataContext: string) {
@@ -86,11 +87,19 @@ export const diComponentHandler: DIHandler = {
 
       // General case
       } else if (kComponentTypeV2ToV3Map[type]) {
-        // If a global value is specified, we can't use the default slider content snapshot,
-        // so we create a custom content snapshot here.
         let content: ITileContentSnapshotWithType | undefined
-        if (type === kV2SliderType) {
-          const { globalValueName } = values as V2Slider
+
+        // Calculator
+        if (type === kV2CalculatorType) {
+          // No special options for calculator
+
+        // Slider
+        } else if (type === kV2SliderType) {
+          const {
+            animationDirection: _animationDirection, animationMode: _animationMode, globalValueName,
+            lowerBound, upperBound
+          } = values as V2Slider
+
           if (globalValueName) {
             const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
             const global = globalManager?.getValueByName(globalValueName)
@@ -115,21 +124,29 @@ export const diComponentHandler: DIHandler = {
               }
             }
 
-            content = { type: kSliderTileType, globalValue: global.id } as SetRequired<ISliderSnapshot, "type">
+            const animationDirection = _animationDirection != null
+              ? AnimationDirections[Number(_animationDirection)] : undefined
+            const animationMode = _animationMode != null ? AnimationModes[_animationMode] : undefined
+            content = {
+              type: kSliderTileType,
+              animationDirection,
+              animationMode,
+              axis: { min: lowerBound, max: upperBound, place: "bottom" },
+              globalValue: global.id
+            } as SetRequired<ISliderSnapshot, "type">
           }
+
+        // WebView/Plugin
+        } else if ([kV2GameType, kV2WebViewType].includes(type)) {
+          const { URL } = values as V2WebView
+          content = { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type">
         }
 
         // Create the tile
-        const options = { cannotClose, content, ...dimensions }
+        const title = _title ?? name
+        const options = { cannotClose, content, ...dimensions, title }
         const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
         if (!tile) return componentNotCreatedResult
-
-        // Set the tile's title
-        if (title) {
-          tile.setTitle(title)
-        } else if (name) {
-          tile.setTitle(name)
-        }
 
         // TODO Handle position
 
@@ -215,27 +232,6 @@ export const diComponentHandler: DIHandler = {
               }
             })
           })
-
-        // Slider
-        } else if (type === kV2SliderType) {
-          const sliderTile = tile.content as ISliderModel
-          const { animationDirection, animationMode, lowerBound, upperBound } = values as V2Slider
-          if (lowerBound != null) sliderTile.setAxisMin(lowerBound)
-          if (upperBound != null) sliderTile.setAxisMax(upperBound)
-          if (animationDirection != null) {
-            const _animationDirection = AnimationDirections[animationDirection]
-            if (_animationDirection) sliderTile.setAnimationDirection(_animationDirection)
-          }
-          if (animationMode != null) {
-            const _animationMode = AnimationModes[animationMode]
-            if (_animationMode) sliderTile.setAnimationMode(_animationMode)
-          }
-
-        // WebView/Plugin
-        } else if ([kV2GameType, kV2WebViewType].includes(type)) {
-          const webViewTile = tile.content as IWebViewModel
-          const { URL } = values as V2WebView
-          if (URL) webViewTile.setUrl(URL)
         }
 
         return {

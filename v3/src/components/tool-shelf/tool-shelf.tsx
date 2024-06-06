@@ -118,7 +118,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     }
     const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType] || []
     document?.content?.applyModelChange(() => {
-      document?.content?.createOrShowTile?.(tileType, { toggleSingleton: true })
+      document?.content?.createOrShowTile?.(tileType)
     }, { undoStringKey, redoStringKey })
   }
 
