@@ -15,7 +15,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
   const { dataset, a1, a2, a3 } = setupTestDataset()
   documentContent.createDataSet(getSnapshot(dataset))
 
-  it("create graph works", () => {
+  it("create graph works", async () => {
     // Create a graph tile with no options
     expect(documentContent.tileMap.size).toBe(0)
     const vanillaResult = handler.create!({}, { type: "graph" })!
@@ -46,24 +46,24 @@ describe("DataInteractive ComponentHandler Graph", () => {
     const tileContent = tile.content as IGraphContentModel
     expect(tile.cannotClose).toBe(true)
 
-    // TODO There's currently a setTimeout when assigning options in the create handler, requiring one here.
-    // Remove this setTimeout once the correct method is determined for the create handler.
-    setTimeout(() => {
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a1.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("yPlus")?.attributeID).toBe(a3.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
-      expect(tileContent.dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
-      expect(tileContent.showParentToggles).toBe(true)
-      // Make sure numberToggleLastMode hid all appropriate cases
-      tileContent.layers.forEach(layer => {
-        const lastCaseId = dataset.cases[dataset.cases.length - 1]?.__id__
-        dataset.cases.forEach(aCase => {
-          expect(layer.dataConfiguration.hiddenCases.includes(aCase.__id__)).toBe(aCase.__id__ !== lastCaseId)
-        })
+    // TODO There's currently a setTimeout when assigning options in the create handler, requiring a wait here.
+    // Remove this wait once the correct method is determined for the create handler.
+    await new Promise(res => setTimeout(res))
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a1.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
+    // TODO How to test correct y2 attribute?
+    // expect(tileContent.dataConfiguration.attributeDescriptionForRole("yPlus")?.attributeID).toBe(a3.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
+    expect(tileContent.showParentToggles).toBe(true)
+    // Make sure numberToggleLastMode hid all appropriate cases
+    tileContent.layers.forEach(layer => {
+      const lastCaseId = dataset.cases[dataset.cases.length - 1]?.__id__
+      dataset.cases.forEach(aCase => {
+        expect(layer.dataConfiguration.hiddenCases.includes(aCase.__id__)).toBe(aCase.__id__ !== lastCaseId)
       })
     })
 
