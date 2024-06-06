@@ -91,15 +91,13 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
   }, [datasetsMap]),
 
     onDragStart = useCallback((event: PointerEvent) => {
-      // plotBounds.left and plotBounds.top used to be subtracted from startX and startY. But it seems to be no longer
-      // necessary after dragging is reimplemented without D3. Leaving these lines here just in case some bugs appear.
-      // const {computedBounds} = layout
-      // const plotBounds = computedBounds.plot
       appState.beginPerformance()
       selectionTree.current = prepareTree(pixiPointsArrayRef.current)
-      const targetRect = (event.target as HTMLElement).getBoundingClientRect()
-      startX.current = event.x - targetRect.left
-      startY.current = event.y - targetRect.top
+      // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
+      // bounding rect of the SVG element.
+      const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
+      startX.current = event.x - bgRect.left
+      startY.current = event.y - bgRect.top
       width.current = 0
       height.current = 0
       if (!event.shiftKey) {
