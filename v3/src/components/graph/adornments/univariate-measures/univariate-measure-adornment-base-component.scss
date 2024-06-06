@@ -67,6 +67,23 @@
     }
   }
 
+  .normal-curve {
+    fill: none;
+    stroke: #027d34;
+    stroke-width: 1px;
+  }
+
+  .normal-curve-hover-cover {
+    stroke: #027d34;
+    stroke-width: 6px;
+    opacity: 0.001;
+    pointer-events: all;
+
+    &:hover, &.highlighted {
+      opacity: .2;
+    }
+  }
+
   .measure-tip {
     display: none;
     fill: #000;

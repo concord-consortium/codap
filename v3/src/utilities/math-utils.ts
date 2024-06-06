@@ -127,3 +127,13 @@ export function goodTickValue(iMin: number, iMax: number) {
   return Math.max(power * base, Number.MIN_VALUE)
 }
 
+// The normal distribution function. The amplitude is the height of the curve at the mean.
+// The mean is the center of the curve. The sigma is the standard deviation of the curve.
+// The formula for the normal distribution is:
+// f(x) = amplitude * exp(-(x - mean)^2 / (2 * sigma^2))
+export function normal(x: number, amp: number, mu: number, sigma: number) {
+  const exponent = -(Math.pow(x - mu, 2) / (2 * Math.pow(sigma, 2)))
+  return amp * Math.exp(exponent)
+}
+
+

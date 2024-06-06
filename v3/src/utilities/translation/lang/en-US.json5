@@ -904,7 +904,7 @@
     // DG.PlottedAverageAdornment
     "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@", // "mean=123.456"
     "DG.PlottedAverageAdornment.medianValueTitle": "median=%@", // "median=123.456"
-    "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "±1 SD, 123.456"
+    "DG.PlottedAverageAdornment.stDevValueTitle": "SD=%@", // "±1 SD, 123.456"
     "DG.PlottedAverageAdornment.stErrValueTitle": "%@ SE%@mean%@=%@", // "2 SE=123.456" 2nd & 3rd args for subscripting
     "DG.PlottedAverageAdornment.madValueTitle": "±1 MAD, %@", // "±1 MAD, 123.456"
     "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
