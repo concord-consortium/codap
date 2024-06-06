@@ -17,7 +17,7 @@ describe("DataInteractive ComponentHandler Calculator", () => {
   it("create works", () => {
     // Create a calculator tile
     expect(documentContent.tileMap.size).toBe(0)
-    const result = handler.create?.({}, { type: "calculator", name: "calc" })!
+    const result = handler.create!({}, { type: "calculator", name: "calc" })!
     expect(result.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const resultValues = result.values as DIComponentInfo
@@ -34,7 +34,7 @@ describe("DataInteractive ComponentHandler Calculator", () => {
     expect(documentContent.isTileHidden(tile.id)).toBe(true)
 
     // Show a hidden calculator tile
-    const result2 = handler.create?.({}, { type: "calculator" })!
+    const result2 = handler.create!({}, { type: "calculator" })!
     expect(result2.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     expect(documentContent.isTileHidden(tile.id)).toBe(false)

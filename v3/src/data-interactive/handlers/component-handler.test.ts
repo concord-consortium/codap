@@ -29,7 +29,7 @@ describe("DataInteractive ComponentHandler", () => {
 
     // Create a table tile
     expect(documentContent.tileMap.size).toBe(0)
-    const result = handler.create?.({}, { type: "caseTable", dataContext: "data" })!
+    const result = handler.create!({}, { type: "caseTable", dataContext: "data" })!
     expect(result.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const resultValues = result.values as DIComponentInfo
@@ -41,13 +41,13 @@ describe("DataInteractive ComponentHandler", () => {
     // Show a hidden table tile
     documentContent.toggleNonDestroyableTileVisibility(tile.id)
     expect(documentContent.isTileHidden(tile.id)).toBe(true)
-    const result2 = handler.create?.({}, { type: "caseTable", dataContext: "data" })!
+    const result2 = handler.create!({}, { type: "caseTable", dataContext: "data" })!
     expect(result2.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     expect(documentContent.isTileHidden(tile.id)).toBe(false)
 
     // Create a case card when a table is showing
-    const cardResult = handler.create?.({}, { type: "caseCard", dataContext: "data" })!
+    const cardResult = handler.create!({}, { type: "caseCard", dataContext: "data" })!
     expect(cardResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(2)
     expect(documentContent.isTileHidden(tile.id)).toBe(true)
@@ -61,7 +61,7 @@ describe("DataInteractive ComponentHandler", () => {
     // Create a card card when no table exists for the dataset
     const { dataset: dataset2 } = setupTestDataset({ datasetName: "data2" })
     documentContent.createDataSet(getSnapshot(dataset2))
-    const card2Result = handler.create?.({}, { type: "caseCard", dataContext: "data2" })!
+    const card2Result = handler.create!({}, { type: "caseCard", dataContext: "data2" })!
     expect(card2Result.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(3)
     const card2ResultValues = card2Result.values as DIComponentInfo

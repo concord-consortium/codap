@@ -18,7 +18,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
   it("create graph works", () => {
     // Create a graph tile with no options
     expect(documentContent.tileMap.size).toBe(0)
-    const vanillaResult = handler.create?.({}, { type: "graph" })!
+    const vanillaResult = handler.create!({}, { type: "graph" })!
     expect(vanillaResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const vanillaResultValues = vanillaResult.values as DIComponentInfo
@@ -27,12 +27,12 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(isGraphContentModel(vanillaTile.content)).toBe(true)
 
     // Delete a graph tile
-    const deleteResult = handler.delete?.({ component: vanillaTile })!
+    const deleteResult = handler.delete!({ component: vanillaTile })!
     expect(deleteResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(0)
 
     // Create a graph with options
-    const result = handler.create?.({}, {
+    const result = handler.create!({}, {
       type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a1", yAttributeName: "a2",
       y2AttributeName: "a3", legendAttributeName: "a1", captionAttributeName: "a2", rightNumericAttributeName: "a3",
       rightSplitAttributeName: "a1", topSplitAttributeName: "a2", enableNumberToggle: true, numberToggleLastMode: true
@@ -68,7 +68,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     })
 
     // Create multiple graphs for the same dataset
-    const result2 = handler.create?.({}, { type: "graph", dataContext: "data" })!
+    const result2 = handler.create!({}, { type: "graph", dataContext: "data" })!
     expect(result2.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(2)
     const result2Values = result2.values as DIComponentInfo
