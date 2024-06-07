@@ -1,16 +1,16 @@
-import React, {useCallback, useEffect, useRef} from "react"
-import {select} from "d3"
+import React, { useCallback, useRef } from "react"
+import { select } from "d3"
 import { t } from "../../../utilities/translation/translate"
-import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
-import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {AttributeType} from "../../../models/data/attribute"
-import {IDataSet} from "../../../models/data/data-set"
-import {GraphPlace, isVertical} from "../../axis-graph-shared"
-import {AttributeLabel} from "../../data-display/components/attribute-label"
-import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
-import {useTileModelContext} from "../../../hooks/use-tile-model-context"
-import {getStringBounds} from "../../axis/axis-utils"
+import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-configuration-context"
+import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
+import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
+import { AttributeType } from "../../../models/data/attribute"
+import { IDataSet } from "../../../models/data/data-set"
+import { GraphPlace, isVertical } from "../../axis-graph-shared"
+import { AttributeLabel } from "../../data-display/components/attribute-label"
+import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { getStringBounds } from "../../axis/axis-utils"
 
 import vars from "../../vars.scss"
 
@@ -22,8 +22,10 @@ interface IAttributeLabelProps {
 }
 
 export const GraphAttributeLabel =
-  function GraphAttributeLabel({place, onTreatAttributeAs, onRemoveAttribute,
-                                 onChangeAttribute}: IAttributeLabelProps) {
+  function GraphAttributeLabel({
+                                 place, onTreatAttributeAs, onRemoveAttribute,
+                                 onChangeAttribute
+                               }: IAttributeLabelProps) {
     const graphModel = useGraphContentModelContext(),
       dataConfiguration = useGraphDataConfigurationContext(),
       layout = useGraphLayoutContext(),
@@ -50,11 +52,11 @@ export const GraphAttributeLabel =
       const unusedClassName = useClickHereCue ? 'attribute-label' : 'empty-label'
       const visibility = hideClickHereCue ? 'hidden' : 'visible'
       const labelFont = useClickHereCue ? vars.emptyLabelFont : vars.labelFont
-      return { useClickHereCue, className, unusedClassName, labelFont, visibility }
+      return {useClickHereCue, className, unusedClassName, labelFont, visibility}
     }, [dataConfiguration, graphModel, isTileSelected, place])
 
     const getLabel = useCallback(() => {
-      const { useClickHereCue } = getClickHereCue()
+      const {useClickHereCue} = getClickHereCue()
       if (useClickHereCue) {
         return t('DG.AxisView.emptyGraphCue')
       }
@@ -66,10 +68,25 @@ export const GraphAttributeLabel =
       return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
         .filter(aName => aName !== '').join(', ')
     }, [dataConfiguration?.secondaryRole, dataset, getAttributeIDs, getClickHereCue,
-        graphModel.pointsFusedIntoBars, place])
+      graphModel.pointsFusedIntoBars, place])
 
     const refreshAxisTitle = useCallback(() => {
-      const {labelFont, className, visibility} = getClickHereCue(),
+
+      const updateSelection = (selection:  any) => {
+        return selection
+          .attr('class', className)
+          .attr('text-anchor', 'middle')
+          .attr('data-testid', className)
+          .attr("transform", labelTransform + tRotation)
+          .attr('class', className)
+          .attr('data-testid', className)
+          .style('visibility', visibility)
+          .attr('x', tX)
+          .attr('y', tY)
+          .text(label)
+      }
+
+      const {labelFont, className, unusedClassName, visibility} = getClickHereCue(),
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
@@ -84,48 +101,21 @@ export const GraphAttributeLabel =
           : place === 'legend' ? labelBounds.height / 2
             : place === 'top' ? labelBounds.height : bounds.height - labelBounds.height / 2,
         tRotation = isVertical(place) ? ` rotate(-90,${tX},${tY})` : ''
-      select(labelRef.current)
-        .selectAll(`text.${className}`)
+
+      select(labelRef.current).selectAll(`text.${unusedClassName}`).remove()
+
+      const labelTextSelection = select(labelRef.current).selectAll(`text.${className}`)
+      labelTextSelection
         .data([1])
         .join(
-          enter => enter,
+          (enter) =>
+            enter.append('text')
+              .attr('text-anchor', 'middle')
+              .call(updateSelection),
           (update) =>
-            update
-              .attr("transform", labelTransform + tRotation)
-              .attr('class', className)
-              .attr('data-testid', className)
-              .style('visibility', visibility)
-              .attr('x', tX)
-              .attr('y', tY)
-              .text(label)
-        )
-    }, [getClickHereCue, getLabel, layout, place])
-
-    useEffect(function setupTitle() {
-
-      const { className, unusedClassName } = getClickHereCue()
-
-      const removeUnusedLabel = () => {
-        select(labelRef.current)
-          .selectAll(`text.${unusedClassName}`)
-          .remove()
-      }
-
-      if (labelRef.current) {
-        removeUnusedLabel()
-        select(labelRef.current)
-          .selectAll(`text.${className}`)
-          .data([1])
-          .join(
-            (enter) =>
-              enter.append('text')
-                .attr('class', className)
-                .attr('text-anchor', 'middle')
-                .attr('data-testid', className)
+            update.call(updateSelection),
           )
-        refreshAxisTitle()
-      }
-    }, [getClickHereCue, place, refreshAxisTitle])
+    }, [getClickHereCue, getLabel, layout, place])
 
     return (
       <AttributeLabel
