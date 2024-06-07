@@ -51,7 +51,7 @@ export class DataBroker {
   }
 
   get summaries() {
-    return Array.from(this.dataSets.values()).map(({ id, name, attributes, cases }) =>
+    return Array.from(this.dataSets.values()).map(({ id, name, attributes, items: cases }) =>
       ({ id, name, attributes: attributes.length, cases: cases.length }))
   }
 

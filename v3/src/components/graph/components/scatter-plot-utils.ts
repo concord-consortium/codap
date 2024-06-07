@@ -61,7 +61,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
   function connectingLinesForCases() {
     const lineDescriptions: IConnectingLineDescription[] = []
     const dataset = dataConfiguration?.dataset
-    dataset?.cases.forEach(c => {
+    dataset?.items.forEach(c => {
       yAttrIDs.forEach((_yAttrID, plotNum) => {
         const line = connectingLine(c.__id__, plotNum)
         line && lineDescriptions.push(line)
@@ -87,7 +87,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     const dataset = dataConfiguration?.dataset
     lineDescriptions.forEach((lineDescription: ILineDescription) => {
       const { category, cellKey, intercept, slope } = lineDescription
-      dataset?.cases.forEach(caseData => {
+      dataset?.items.forEach(caseData => {
         const legendID = dataConfiguration?.attributeID("legend")
         const legendType = dataConfiguration?.attributeType("legend")
         const legendValue = caseData.__id__ && legendID ? dataset?.getStrValue(caseData.__id__, legendID) : null

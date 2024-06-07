@@ -85,7 +85,7 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
   }
 
   getCases() {
-    return this.data.cases.map(({ __id__ }) => new DGCase(this.data, __id__, this))
+    return this.data.items.map(({ __id__ }) => new DGCase(this.data, __id__, this))
   }
 
   getNewAttributeName() {

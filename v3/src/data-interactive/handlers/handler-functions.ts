@@ -1,5 +1,5 @@
 import { ICase } from "../../models/data/data-set-types"
-import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import {
   DICaseValues, DIFullCase, DIResources, DISuccessResult, DIUpdateCase, DIUpdateItemResult, DIValues
@@ -108,8 +108,12 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   dataContext.applyModelChange(() => {
     cases.forEach(aCase => {
       const { id } = aCase
-      const v3Id = id && toV3CaseId(id)
-      if (v3Id && aCase.values && (dataContext.getCase(v3Id) || dataContext.pseudoCaseMap.get(v3Id))) {
+      const v3CaseId = id ? toV3CaseId(id) : undefined
+      const v3ItemId = id ? toV3ItemId(id) : undefined
+      const dcCase = v3CaseId ? dataContext.pseudoCaseMap.get(v3CaseId) : undefined
+      const dcItem = v3ItemId ? dataContext.getCase(v3ItemId) : undefined
+      const v3Id = dcCase ? v3CaseId : v3ItemId
+      if (id && aCase.values && v3Id && (dcItem || dcCase)) {
         caseIDs.push(id)
         const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
         dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])

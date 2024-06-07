@@ -87,7 +87,7 @@ describe("createCodapDocument", () => {
                   values: ["1", "2", "3"]
                 }
               },
-              cases: [{ __id__: "test-9" }, { __id__: "test-10" }, { __id__: "test-11" }],
+              items: [{ __id__: "test-9" }, { __id__: "test-10" }, { __id__: "test-11" }],
               collections: [{
                 id: "test-7",
                 name: "Cases",

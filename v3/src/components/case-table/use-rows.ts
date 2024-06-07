@@ -24,7 +24,7 @@ export const useRows = () => {
 
   const getCases = useCallback(() => data?.collectionGroups?.length
                                       ? data.getCasesForCollection(collectionId)
-                                      : data ? getSnapshot(data.cases) as IGroupedCase[] : [],
+                                      : data ? getSnapshot(data.items) : [],
                                 [collectionId, data])
 
   // reload the cache, e.g. on change of DataSet
@@ -152,13 +152,13 @@ export const useRows = () => {
         // non-hierarchical data sets can respond more efficiently to some actions
         if (!isHierarchical && hierarchicalResetRowCacheActions.includes(action.name)) {
           const getCasesToUpdate = (_cases: ICase[], index?: number) => {
-            lowestIndex.current = index != null ? index : data.cases.length
+            lowestIndex.current = index != null ? index : data.items.length
             const casesToUpdate = []
             for (let i=0; i<_cases.length; ++i) {
               lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__) ?? Infinity)
             }
-            for (let j=lowestIndex.current; j < data.cases.length; ++j) {
-              casesToUpdate.push(data.cases[j])
+            for (let j=lowestIndex.current; j < data.items.length; ++j) {
+              casesToUpdate.push(data.items[j])
             }
             return casesToUpdate
           }

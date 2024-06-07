@@ -19,6 +19,6 @@ describe("CSV import", () => {
     }
     const data = convertParsedCsvToDataSet(result, "Test")
     expect(data.attributes.length).toBe(3)
-    expect(data.cases.length).toBe(3)
+    expect(data.items.length).toBe(3)
   })
 })

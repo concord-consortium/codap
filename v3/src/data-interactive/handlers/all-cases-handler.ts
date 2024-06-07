@@ -10,7 +10,7 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     dataContext.applyModelChange(() => {
-      dataContext.removeCases(dataContext.cases.map(c => c.__id__))
+      dataContext.removeCases(dataContext.items.map(c => c.__id__))
     }, {
       undoStringKey: "DG.Undo.data.deleteCases",
       redoStringKey: "DG.Redo.data.deleteCases"

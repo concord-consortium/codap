@@ -12,7 +12,7 @@ describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
-  dataset.removeCases(dataset.cases.map(c => c.__id__))
+  dataset.removeCases(dataset.items.map(c => c.__id__))
   dataset.addCases(testCases, { canonicalize: true })
   const c1 = dataset.collections[0]
   const c2 = dataset.collections[1]
@@ -148,7 +148,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].itemSearch[!=2]`).itemSearch).toBeUndefined()
 
     const allResult = resolve(`dataContext[data].itemSearch[*]`)
-    expect(allResult.itemSearch?.length).toBe(dataset.cases.length)
+    expect(allResult.itemSearch?.length).toBe(dataset.items.length)
 
     const a1Result = resolve(`dataContext[data].itemSearch[a1==a]`)
     expect(a1Result.itemSearch?.length).toBe(3)

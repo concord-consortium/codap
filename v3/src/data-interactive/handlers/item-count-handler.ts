@@ -6,8 +6,8 @@ export const diItemCountHandler: DIHandler = {
   get(resources: DIResources) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
-    
-    return { success: true, values: dataContext.cases.length }
+
+    return { success: true, values: dataContext.items.length }
   }
 }
 

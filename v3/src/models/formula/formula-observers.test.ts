@@ -81,7 +81,7 @@ describe("getLookupCasesToRecalculate", () => {
 })
 
 describe("observeLocalAttributes", () => {
-  const dataSet = DataSet.create({ id: "ds1", cases: [] })
+  const dataSet = DataSet.create({ id: "ds1", items: [] })
 
   describe("when there's no aggregate dependency", () => {
     const formulaDependenciesWithoutAggregate: ILocalAttributeDependency[] = [
@@ -145,7 +145,7 @@ describe("observeLocalAttributes", () => {
 
 describe("observeLookupDependencies", () => {
   it("should call recalculateCallback with ALL_CASES when case is added, removed or updated", () => {
-    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const dataSet = DataSet.create({ id: "ds1", items: [] })
     const formulaDependencies: ILookupDependency[] = [
       { type: "lookup", dataSetId: "ds1", attrId: "attr1", keyAttrId: "attr2" },
     ]
@@ -186,7 +186,7 @@ describe("observeGlobalValues", () => {
 
 describe("observeSymbolNameChanges", () => {
   it("should call nameUpdateCallback when symbol name is changed", () => {
-    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const dataSet = DataSet.create({ id: "ds1", items: [] })
     dataSet.addAttribute({ id: "attr1", name: "attr1" })
     const globalValueManager = GlobalValueManager.create()
     const globalValue = GlobalValue.create({ name: "global1", _value: 0 })
@@ -204,7 +204,7 @@ describe("observeSymbolNameChanges", () => {
   })
 
   it("should call nameUpdateCallback when a new symbol becomes available", () => {
-    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const dataSet = DataSet.create({ id: "ds1", items: [] })
     const globalValueManager = GlobalValueManager.create()
     const nameUpdateCallback = jest.fn()
     const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
@@ -220,7 +220,7 @@ describe("observeSymbolNameChanges", () => {
   })
 
   it("should call nameUpdateCallback when a symbol becomes unavailable", () => {
-    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const dataSet = DataSet.create({ id: "ds1", items: [] })
     const globalValueManager = GlobalValueManager.create()
     const globalValue = GlobalValue.create({ name: "global2", _value: 0 })
     globalValueManager.addValue(globalValue)
@@ -250,7 +250,7 @@ describe("observeDatasetHierarchyChanges", () => {
     return attrs
   }
   it("should call recalculateCallback with ALL_CASES when attribute is moved between collections", () => {
-    const dataSet = DataSet.create({ id: "ds1", cases: [] })
+    const dataSet = DataSet.create({ id: "ds1", items: [] })
     dataSet.addAttribute({ id: "aId", name: "a" })
     dataSet.addAttribute({ id: "bId", name: "b" })
     dataSet.addAttribute({ id: "cId", name: "c" })

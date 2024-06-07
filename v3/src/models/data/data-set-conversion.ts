@@ -2,12 +2,14 @@ import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
 // eslint-disable-next-line import/no-cycle
 import { DataSet, IDataSetSnapshot } from "./data-set"
+import { ICaseID } from "./data-set-types"
 
 // originally, `attributesMap` didn't exist and `attributes` was an array of attributes
 interface IOriginalDataSetSnap {
   collections: Array<ICollectionModelSnapshot>
   attributes: Array<IAttributeSnapshot>
   ungrouped: Omit<ICollectionModelSnapshot, "attributes">
+  cases: ICaseID[]
 }
 export function isOriginalDataSetSnap(snap: IDataSetSnapshot): snap is IOriginalDataSetSnap {
   return (!("attributesMap" in snap) && "attributes" in snap &&
