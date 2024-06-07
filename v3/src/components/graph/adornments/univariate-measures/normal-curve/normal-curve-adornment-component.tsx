@@ -44,7 +44,9 @@ export const NormalCurveAdornmentComponent = observer(
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
     }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
+    const isHistogram = graphModel.pointDisplayType === "histogram"
     const numericScale = isVertical.current ? helper.xScale : helper.yScale
+    const countScale = isHistogram ? (isVertical.current ? helper.yScale : helper.xScale) : undefined
     const {cellCounts} = useAdornmentCells(model, cellKey)
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
@@ -174,7 +176,6 @@ export const NormalCurveAdornmentComponent = observer(
        *   - the line segment representing a specified number of standard errors on each side of the mean
        */
       const symbolPathF = (p: { x: number, y: number, width: number, cellHeight: number }, iIsHorizontal: boolean) => {
-
         const normalF = (x: number) => {
           return normal(x, amplitude, mean, stdDev)
         }
@@ -184,27 +185,37 @@ export const NormalCurveAdornmentComponent = observer(
           return iIsHorizontal ? p.y - tStackCoord : p.x + tStackCoord
         }
 
+        const countToScreenCoordFromHistogram = (iCount: number) => {
+          if (!countScale) {
+            return 0
+          } else {
+            return isVertical.current ? countScale(iCount) / cellCounts.y : countScale(iCount) / cellCounts.x
+          }
+        }
+
+        const countAxisFunc = isHistogram ? countToScreenCoordFromHistogram : countToScreenCoordFromDotPlot,
+          sqrtTwoPi = Math.sqrt(2 * Math.PI),
+          pointRadius = graphModel.getPointRadius(),
+          numCellsNumeric = isVertical.current ? cellCounts.x : cellCounts.y,
+          overlap = graphModel.pointOverlap,
+          binWidth = isHistogram ? graphModel.binWidth
+            : Math.abs(numericScale.invert(pointRadius * 2) - numericScale.invert(0))
+
+        if (!countAxisFunc || binWidth === undefined) return ""
+
         let path = ''
 /*
         let sESegment = '',
           sESegmentPixelLength: number
 */
 
-
-        const sqrtTwoPi = Math.sqrt(2 * Math.PI),
-          // isHistogram = false, //this.getPath('model.plotModel.dotsAreFused'),
-          countAxisFunc = /*isHistogram ? tCountAxisView.dataToCoordinate.bind(tCountAxisView)
-            :*/ countToScreenCoordFromDotPlot,
-          pointRadius = graphModel.getPointRadius(),
-          numCellsNumeric = isVertical.current ? cellCounts.x : cellCounts.y,
-          overlap = graphModel.pointOverlap,
-          binWidth = /*isHistogram ? tParentPlotView.getPath('model.width')
-            :*/ Math.abs(numericScale.invert(pointRadius * 2) - numericScale.invert(0)),
+        const
           pixelRange = numericScale.range(),
           pixelMin = isVertical.current ? pixelRange[0] : pixelRange[1],
           pixelMax = isVertical.current ? pixelRange[1] : pixelRange[0],
+          numeratorForAmplitude = isHistogram ? 1 : numCellsNumeric,
           // todo: For a gaussian fit amplitude is a fitted parameter
-          amplitude = (numCellsNumeric / (stdDev * sqrtTwoPi)) * caseCount * binWidth,
+          amplitude = (numeratorForAmplitude / (stdDev * sqrtTwoPi)) * caseCount * binWidth,
           points = [],
           kPixelGap = 1,
           meanSegmentPixelLength = countAxisFunc(normalF(mean)) - countAxisFunc(0),
@@ -272,8 +283,8 @@ export const NormalCurveAdornmentComponent = observer(
         .attr("id", `${helper.generateIdString("path")}`)
         .attr("data-testid", `${helper.measureSlug}-normal-curve`)
         .attr("d", theSymbolPath)
-    }, [caseCount, cellCounts.x, cellCounts.y, graphModel, helper, isVertical,
-      layout.plotHeight, mean, numericScale, stdDev, valueRef])
+    }, [caseCount, cellCounts.x, cellCounts.y, countScale, graphModel, helper, isHistogram, isVertical,
+              layout.plotHeight, mean, numericScale, stdDev, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance,
                                               selectionsObj: INormalCurveSelections, labelObj: ILabel) => {

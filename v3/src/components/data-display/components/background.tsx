@@ -108,7 +108,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         })
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [datasetsArray, marqueeState, pixiPointsArrayRef]),
+    }, [bgRef, datasetsArray, marqueeState, pixiPointsArrayRef]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0 && datasetsArray.length) {
