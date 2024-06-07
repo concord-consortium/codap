@@ -1,17 +1,18 @@
-import { Instance, types } from "mobx-state-tree"
 import { RequireAtLeastOne } from "type-fest"
 import { IValueType } from "./attribute"
-import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 
-export const CaseID = types.model("CaseID", {
-  __id__: types.optional(types.string, () => v3Id(kItemIdPrefix))
-})
-export interface ICaseID extends Instance<typeof CaseID> {}
 
-// a case is represented as an object with an __id__ and an arbitrary set of properties/values
-export interface ICase {
-  __id__: string;
+export interface IItemID {
+  __id__: string
+}
+export interface ICaseID extends IItemID {
+}
+
+// a case/item is represented as an object with an __id__ and an arbitrary set of properties/values
+export interface IItem extends IItemID {
   [key: string]: IValueType;
+}
+export interface ICase extends IItem {
 }
 // when creating cases, the __id__ is optional (it will be generated)
 export interface ICaseCreation {

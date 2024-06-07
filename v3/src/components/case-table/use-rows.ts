@@ -1,6 +1,5 @@
 import { format } from "d3"
 import { reaction } from "mobx"
-import { getSnapshot } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -24,7 +23,7 @@ export const useRows = () => {
 
   const getCases = useCallback(() => data?.collectionGroups?.length
                                       ? data.getCasesForCollection(collectionId)
-                                      : data ? getSnapshot(data.items) : [],
+                                      : data ? data.items as ICase[] : [],
                                 [collectionId, data])
 
   // reload the cache, e.g. on change of DataSet

@@ -5,7 +5,7 @@ import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
 import { DataSet, fromCanonical, toCanonical } from "./data-set"
 import { createDataSet } from "./data-set-conversion"
-import { CaseID, ICaseID } from "./data-set-types"
+import { ICaseID } from "./data-set-types"
 
 let message = () => ""
 
@@ -53,17 +53,6 @@ declare global {
     }
   }
 }
-
-test("CaseID functionality", () => {
-  const caseID = CaseID.create({ __id__: "0" })
-  expect(caseID.__id__).toBeDefined()
-
-  const copy = clone(caseID)
-  expect(copy.__id__).toBe(caseID.__id__)
-
-  const caseID2 = CaseID.create({})
-  expect(caseID2.__id__).toBeDefined()
-})
 
 test("Canonicalization", () => {
   const ds = DataSet.create({ name: "data" })
