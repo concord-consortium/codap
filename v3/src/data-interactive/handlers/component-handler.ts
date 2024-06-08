@@ -4,7 +4,11 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
-import { IMapContentModel } from "../../components/map/models/map-content-model"
+import { IMapBaseLayerModelSnapshot } from "../../components/map/models/map-base-layer-model"
+import { IMapModelContentSnapshot } from "../../components/map/models/map-content-model"
+import { kMapTileType } from "../../components/map/map-defs"
+import { IMapPointLayerModelSnapshot } from "../../components/map/models/map-point-layer-model"
+import { IMapPolygonLayerModelSnapshot } from "../../components/map/models/map-polygon-layer-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
 import { ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
 import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
@@ -20,13 +24,18 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
-import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import {
   kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType, kV2GraphType,
   kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
 } from "../data-interactive-component-types"
+import { registerDIHandler } from "../data-interactive-handler"
+import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
+import {
+  datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
+} from "../../components/map/utilities/map-utils"
+import { AttributeDescriptionsMapSnapshot } from "../../components/data-display/models/data-configuration-model"
+import { INewTileOptions } from "../../models/document/document-content"
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
@@ -88,10 +97,90 @@ export const diComponentHandler: DIHandler = {
       // General case
       } else if (kComponentTypeV2ToV3Map[type]) {
         let content: ITileContentSnapshotWithType | undefined
+        const extraOptions: INewTileOptions = {}
 
         // Calculator
         if (type === kV2CalculatorType) {
           // No special options for calculator
+
+        // Map
+        } else if (type === kV2MapType) {
+          const { center: _center, dataContext: _dataContext, legendAttributeName, zoom } = values as V2Map
+          const dataContext = _dataContext ? getDataSet(_dataContext) : undefined
+          const legendAttributeId = legendAttributeName
+            ? dataContext?.getAttributeByName(legendAttributeName)?.id : undefined
+          const layers:
+            Array<IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot> = []
+          let layerIndex = 0
+          getSharedDataSets(document).forEach(sharedDataSet => {
+            const dataset = sharedDataSet.dataSet
+            const metadata = getCaseMetadata(dataset.id)
+            if (metadata) {
+              if (datasetHasLatLongData(dataset)) {
+                const { latId, longId } = latLongAttributesFromDataSet(dataset)
+                const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
+                  lat: { attributeID: latId },
+                  long: { attributeID: longId }
+                }
+                if (dataset.id === dataContext?.id && legendAttributeId) {
+                  _attributeDescriptions.legend = { attributeID: legendAttributeId }
+                }
+                layers.push({
+                  // connectingLinesAreVisible: false,
+                  dataConfiguration: {
+                    _attributeDescriptions,
+                    dataset: dataset.id,
+                    // hiddenCases: [],
+                    metadata: metadata.id,
+                    type: "dataConfigurationType"
+                  },
+                  // displayItemDescription: {
+                  //   _itemColors: ["#e6805b"],
+                  //   _itemStrokeColor: "white",
+                  //   _itemStrokeSameAsFill: false,
+                  //   _pointSizeMultiplier: 1
+                  // },
+                  // gridModel: {
+                  //   isVisible: false,
+                  //   _gridMultiplier: 1
+                  // },
+                  // isVisible: true,
+                  layerIndex: layerIndex++,
+                  // pointsAreVisible: true,
+                  type: "mapPointLayer"
+                })
+              } else if (datasetHasBoundaryData(dataset)) {
+                // Add layer
+              }
+            }
+          })
+
+          const center = _center ? { lat: _center[0], lng: _center[1] } : undefined
+          const mapContent: IMapModelContentSnapshot = {
+            type: kMapTileType,
+            // baseMapLayerIsVisible: true,
+            // baseMapLayerName: "topo",
+            center,
+            // isTransparent: false,
+            layers,
+            // plotBackgroundColor: "#FFFFFF01",
+            // pointDescription: {
+            //   _itemColors: ["#E6805B"],
+            //   _itemStrokeColor: "#FFFFFF",
+            //   _itemStrokeSameAsFill: false,
+            //   _pointSizeMultiplier: 1
+            // },
+            // pointDisplayType: "points",
+            zoom
+          }
+          content = mapContent as ITileContentSnapshotWithType
+          if (center || zoom != null) extraOptions.transitionComplete = true
+          // content = {
+          //   type: kMapTileType,
+          //   center,
+          //   layers,
+          //   zoom
+          // } as SetRequired<IMapContentModel, "type">
 
         // Slider
         } else if (type === kV2SliderType) {
@@ -144,7 +233,7 @@ export const diComponentHandler: DIHandler = {
 
         // Create the tile
         const title = _title ?? name
-        const options = { cannotClose, content, ...dimensions, title }
+        const options = { cannotClose, content, ...dimensions, title, ...extraOptions }
         const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
         if (!tile) return componentNotCreatedResult
 
@@ -206,32 +295,32 @@ export const diComponentHandler: DIHandler = {
           }
 
         // Map
-        } else if (type === kV2MapType) {
-          const mapTile = tile.content as IMapContentModel
-          const { center, dataContext, legendAttributeName, zoom } = values as V2Map
-          // TODO Figure out a way to set the center and zoom without setTimeout.
-          // Center and zoom require an actual wait to not get overwritten.
-          setTimeout(() => {
-            mapTile.applyModelChange(() => {
-              if (center) mapTile.setCenter({ lat: center[0], lng: center[1] })
-              if (zoom != null) mapTile.setZoom(zoom)
-            })
-          }, 575)
-          // TODO Figure out a way to set the legend attribute without setTimeout.
-          // This is in a separate setTimeout because it doesn't require a wait like center and zoom.
-          setTimeout(() => {
-            mapTile.applyModelChange(() => {
-              if (dataContext) {
-                const dataSet = getDataSet(dataContext)
-                if (dataSet) {
-                  if (legendAttributeName) {
-                    const attribute = dataSet.getAttributeByName(legendAttributeName)
-                    if (attribute) mapTile.setLegendAttributeID(dataSet.id, attribute.id)
-                  }
-                }
-              }
-            })
-          })
+        // } else if (type === kV2MapType) {
+        //   const mapTile = tile.content as IMapContentModel
+        //   const { center, dataContext, legendAttributeName, zoom } = values as V2Map
+        //   // TODO Figure out a way to set the center and zoom without setTimeout.
+        //   // Center and zoom require an actual wait to not get overwritten.
+        //   setTimeout(() => {
+        //     mapTile.applyModelChange(() => {
+        //       if (center) mapTile.setCenter({ lat: center[0], lng: center[1] })
+        //       if (zoom != null) mapTile.setZoom(zoom)
+        //     })
+        //   }, 575)
+        //   // TODO Figure out a way to set the legend attribute without setTimeout.
+        //   // This is in a separate setTimeout because it doesn't require a wait like center and zoom.
+        //   setTimeout(() => {
+        //     mapTile.applyModelChange(() => {
+        //       if (dataContext) {
+        //         const dataSet = getDataSet(dataContext)
+        //         if (dataSet) {
+        //           if (legendAttributeName) {
+        //             const attribute = dataSet.getAttributeByName(legendAttributeName)
+        //             if (attribute) mapTile.setLegendAttributeID(dataSet.id, attribute.id)
+        //           }
+        //         }
+        //       }
+        //     })
+        //   })
         }
 
         return {

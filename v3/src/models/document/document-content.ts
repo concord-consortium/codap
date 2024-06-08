@@ -57,6 +57,7 @@ export interface INewTileOptions {
   x?: number
   y?: number
   height?: number
+  transitionComplete?: boolean
   width?: number
 }
 
@@ -96,7 +97,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       const content = options?.content ?? info?.defaultContent({ env })
       const cannotClose = options?.cannotClose
       const title = options?.title
-      return content ? { id, content, cannotClose, title } : undefined
+      const transitionComplete = options?.transitionComplete
+      return content ? { id, content, cannotClose, title, transitionComplete } : undefined
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       const tileIds = self.tileMap.keys()
