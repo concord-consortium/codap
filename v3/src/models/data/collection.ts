@@ -23,6 +23,10 @@ export const CollectionModel = V2Model
   attributes: types.array(types.safeReference(Attribute)),
   caseIds: types.array(types.string)
 })
+.volatile(self => ({
+  parent: undefined as ICollectionModel | undefined,
+  child: undefined as ICollectionModel | undefined
+}))
 .views(self => ({
   getAttribute(attrId: string) {
     return self.attributes.find(attribute => attribute?.id === attrId)
@@ -32,6 +36,28 @@ export const CollectionModel = V2Model
   },
   getAttributeByName(name: string) {
     return self.attributes.find(attribute => attribute?.name === name)
+  },
+  // attributes of immediate parent collection
+  get parentAttrs(): IAttribute[] {
+    return self.parent ? self.parent.attributes.filter(attr => !!attr) as IAttribute[] : []
+  },
+  // attributes of all parent collections
+  get allParentAttrs(): IAttribute[] {
+    const attrs: IAttribute[] = []
+
+    function addParentAttrs(collection: ICollectionModel) {
+      if (collection.parent) {
+        addParentAttrs(collection.parent)
+      }
+      collection.attributes.forEach(attr => {
+        attr && attrs.push(attr)
+      })
+    }
+    if (self.parent) {
+      addParentAttrs(self.parent)
+    }
+
+    return attrs
   },
   get caseIdToIndexMap() {
     const idMap: Map<string, number> = new Map()
@@ -91,6 +117,12 @@ export const CollectionModel = V2Model
   }
 }))
 .actions(self => ({
+  setParent(parent: ICollectionModel) {
+    self.parent = parent
+  },
+  setChild(child: ICollectionModel) {
+    self.child = child
+  },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1
     const afterIndex = options?.after ? self.getAttributeIndex(options.after) : -1
@@ -160,4 +192,15 @@ export interface ICollectionModelSnapshot extends SnapshotIn<typeof CollectionMo
 
 export function isCollectionModel(model?: IAnyStateTreeNode): model is ICollectionModel {
   return !!model && getType(model) === CollectionModel
+}
+
+export function syncCollectionLinks(collections: ICollectionModel[]) {
+  collections.forEach((collection, index) => {
+    if (index > 0) {
+      collection.setParent(collections[index - 1])
+    }
+    if (index < collections.length - 1) {
+      collection.setChild(collections[index + 1])
+    }
+  })
 }

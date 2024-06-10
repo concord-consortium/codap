@@ -42,13 +42,15 @@
   of people on the planet for whom that reference makes any sense.
  */
 
-import { observable, reaction, runInAction } from "mobx"
+import { comparer, observable, reaction, runInAction } from "mobx"
 import {
   addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, ReferenceIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { CollectionModel, ICollectionModel, ICollectionModelSnapshot, isCollectionModel } from "./collection"
+import {
+  CollectionModel, ICollectionModel, ICollectionModelSnapshot, isCollectionModel, syncCollectionLinks
+} from "./collection"
 import {
   CaseGroup, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult,
   ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IItem,
@@ -503,6 +505,7 @@ export const DataSet = V2Model.named("DataSet").props({
           beforeIndex = self.collections.length
           self.collections.push(collection)
         }
+
         const newCollection = self.collections[beforeIndex]
         // remove any attributes from other collections
         const attrIds: Array<ReferenceIdentifier | undefined> = [...(collection.attributes ?? [])]
@@ -518,7 +521,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       removeCollection(collection: ICollectionModel) {
         self.collections.remove(collection)
-      },
+      }
     }
   }
 })
@@ -884,10 +887,16 @@ export const DataSet = V2Model.named("DataSet").props({
             next(call)
           }))
 
-          // invalidate collection groups when collections change
+          // when collections change...
           addDisposer(self, reaction(
             () => self.collectionIds,
-            () => self.invalidateCollectionGroups()
+            () => {
+              // update parent/child links
+              syncCollectionLinks(self.collections)
+              // invalidate collection groups
+              self.invalidateCollectionGroups()
+            },
+            { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
           ))
         }
       },

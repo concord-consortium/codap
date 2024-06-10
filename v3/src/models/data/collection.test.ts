@@ -1,6 +1,6 @@
 import { destroy, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { CollectionModel, ICollectionModel, isCollectionModel } from "./collection"
+import { CollectionModel, ICollectionModel, isCollectionModel, syncCollectionLinks } from "./collection"
 
 const Tree = types.model("Tree", {
   attributes: types.array(Attribute),
@@ -175,6 +175,40 @@ describe("CollectionModel", () => {
     expect(collection.caseIdToIndexMap.size).toBe(0)
     expect(collection.hasCase("case2")).toBe(false)
     expect(collection.hasCase("case3")).toBe(false)
+  })
+
+  it("can synchronize volatile parent/child links and retrieve parent attributes", () => {
+    // root model so attribute references can be used in collections
+    const Model = types.model("Model", {
+      attributes: types.array(Attribute),
+      collections: types.array(CollectionModel)
+    })
+    const collections = [{ id: "c1", name: "c1" }, { id: "c2", name: "c2" }, { id: "c3", name: "c3" }]
+    const a1 = Attribute.create({ id: "a1", name: "a1" })
+    const a2 = Attribute.create({ id: "a2", name: "a2" })
+    const a3 = Attribute.create({ id: "a3", name: "a3" })
+    const a4 = Attribute.create({ id: "a4", name: "a4" })
+    const attributes = [a1, a2, a3, a4]
+    const root = Model.create({ attributes, collections })
+    syncCollectionLinks(root.collections)
+    const [c1, c2, c3] = root.collections
+    expect(c1.parent).toBeUndefined()
+    expect(c1.child).toBe(c2)
+    expect(c2.parent).toBe(c1)
+    expect(c2.child).toBe(c3)
+    expect(c3.parent).toBe(c2)
+    expect(c3.child).toBeUndefined()
+
+    c1.addAttribute(a1)
+    c2.addAttribute(a2)
+    c2.addAttribute(a3)
+    c3.addAttribute(a4)
+    expect(c1.parentAttrs.map(attr => attr.id)).toEqual([])
+    expect(c1.allParentAttrs.map(attr => attr.id)).toEqual([])
+    expect(c2.parentAttrs.map(attr => attr.id)).toEqual(["a1"])
+    expect(c2.allParentAttrs.map(attr => attr.id)).toEqual(["a1"])
+    expect(c3.parentAttrs.map(attr => attr.id)).toEqual(["a2", "a3"])
+    expect(c3.allParentAttrs.map(attr => attr.id)).toEqual(["a1", "a2", "a3"])
   })
 
 })
