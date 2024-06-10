@@ -3,18 +3,30 @@ import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
-import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
+import {
+  AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
+} from "../../components/data-display/models/data-configuration-model"
+import { kGraphTileType } from "../../components/graph/graph-defs"
+import { IGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
+import { kGraphDataConfigurationType } from "../../components/graph/models/graph-data-configuration-model"
+import {
+  IGraphPointLayerModelSnapshot, kGraphPointLayerType
+} from "../../components/graph/models/graph-point-layer-model"
 import { IMapBaseLayerModelSnapshot } from "../../components/map/models/map-base-layer-model"
 import { IMapModelContentSnapshot } from "../../components/map/models/map-content-model"
 import { kMapTileType } from "../../components/map/map-defs"
 import { IMapPointLayerModelSnapshot } from "../../components/map/models/map-point-layer-model"
 import { IMapPolygonLayerModelSnapshot } from "../../components/map/models/map-polygon-layer-model"
+import {
+  datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
+} from "../../components/map/utilities/map-utils"
 import { kSliderTileType } from "../../components/slider/slider-defs"
 import { ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
 import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
+import { INewTileOptions } from "../../models/document/document-content"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
@@ -31,11 +43,6 @@ import {
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
 import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
-import {
-  datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
-} from "../../components/map/utilities/map-utils"
-import { AttributeDescriptionsMapSnapshot } from "../../components/data-display/models/data-configuration-model"
-import { INewTileOptions } from "../../models/document/document-content"
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
@@ -102,6 +109,82 @@ export const diComponentHandler: DIHandler = {
         // Calculator
         if (type === kV2CalculatorType) {
           // No special options for calculator
+
+        // Graph
+        } else if (type === kV2GraphType) {
+          const {
+            captionAttributeName, dataContext: _dataContext, enableNumberToggle: showParentToggles, legendAttributeName,
+            numberToggleLastMode: showOnlyLastCase, rightNumericAttributeName, rightSplitAttributeName,
+            topSplitAttributeName, xAttributeName, yAttributeName, y2AttributeName
+          } = values as V2Graph
+          const attributeNames: Record<string, string | undefined> = {
+            captionAttributeName, legendAttributeName, rightNumericAttributeName, rightSplitAttributeName,
+            topSplitAttributeName, xAttributeName, y2AttributeName
+          }
+          const roleFromAttrKey: Record<string, GraphAttrRole> = {
+            xAttributeName: "x",
+            yAttributeName: "y",
+            y2AttributeName: "rightNumeric",
+            rightNumericAttributeName: "rightNumeric",
+            captionAttributeName: "caption",
+            legendAttributeName: "legend",
+            topSplitAttributeName: "topSplit",
+            rightSplitAttributeName: "rightSplit"
+          }
+          let layerIndex = 0
+          const layers: Array<IGraphPointLayerModelSnapshot> = []
+          getSharedDataSets(document).forEach(sharedDataSet => {
+            const dataset = sharedDataSet.dataSet
+            const metadata = getCaseMetadata(dataset.id)
+            if (metadata) {
+              // let primaryRole: PrimaryAttrRole | undefined
+              const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
+              if (dataset.name === _dataContext) {
+                for (const attributeType in attributeNames) {
+                  const attributeName = attributeNames[attributeType]
+                  if (attributeName) {
+                    const attribute = dataset.getAttributeByName(attributeName)
+                    if (attribute) {
+                      const attributeRole = roleFromAttrKey[attributeType]
+                      if (attributeRole) {
+                        _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: "categorical" }
+                      }
+                    }
+                  }
+                }
+              }
+              const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
+              if (yAttributeName) {
+                const yAttribute = dataset.getAttributeByName(yAttributeName)
+                if (yAttribute) {
+                  _yAttributeDescriptions.push({ attributeID: yAttribute.id })
+                }
+              }
+              const allButLastCaseIds = dataset.cases.map(aCase => aCase.__id__).slice(0, dataset.cases.length - 1)
+              const hiddenCases = showOnlyLastCase ? allButLastCaseIds : []
+              layers.push({
+                dataConfiguration: {
+                  type: kGraphDataConfigurationType,
+                  dataset: dataset.id,
+                  hiddenCases,
+                  metadata: metadata.id,
+                  _attributeDescriptions,
+                  _yAttributeDescriptions
+                },
+                layerIndex: layerIndex++,
+                type: kGraphPointLayerType
+              })
+            }
+          })
+
+          const graphContent: IGraphContentModelSnapshot = {
+            type: kGraphTileType,
+            layers,
+            showOnlyLastCase,
+            showParentToggles
+          }
+          content = graphContent as ITileContentSnapshotWithType
+          // extraOptions.transitionComplete = true
 
         // Map
         } else if (type === kV2MapType) {
@@ -245,54 +328,54 @@ export const diComponentHandler: DIHandler = {
           // No special options for calculator
 
         // Graph
-        } else if (type === kV2GraphType) {
-          const graphTile = tile.content as IGraphContentModel
-          const {
-            captionAttributeName, dataContext, enableNumberToggle, legendAttributeName, numberToggleLastMode,
-            rightNumericAttributeName, rightSplitAttributeName, topSplitAttributeName, xAttributeName,
-            yAttributeName, y2AttributeName
-          } = values as V2Graph
-          if (dataContext) {
-            const dataSet = getDataSet(dataContext)
-            if (dataSet) {
-              const caseMetadata = getCaseMetadata(dataSet.id)
-              graphTile.layers.forEach(layer => layer.dataConfiguration.setDataset(dataSet, caseMetadata))
+        // } else if (type === kV2GraphType) {
+        //   const graphTile = tile.content as IGraphContentModel
+        //   const {
+        //     captionAttributeName, dataContext, enableNumberToggle, legendAttributeName, numberToggleLastMode,
+        //     rightNumericAttributeName, rightSplitAttributeName, topSplitAttributeName, xAttributeName,
+        //     yAttributeName, y2AttributeName
+        //   } = values as V2Graph
+        //   if (dataContext) {
+        //     const dataSet = getDataSet(dataContext)
+        //     if (dataSet) {
+        //       const caseMetadata = getCaseMetadata(dataSet.id)
+        //       graphTile.layers.forEach(layer => layer.dataConfiguration.setDataset(dataSet, caseMetadata))
 
-              const setAttribute = (role: GraphAttrRole, attributeName?: string) => {
-                if (attributeName) {
-                  const attribute = dataSet.getAttributeByName(attributeName)
-                  if (attribute) {
-                    graphTile.setAttributeID(role, dataSet.id, attribute.id)
-                  }
-                }
-              }
-              // TODO Figure out how to do this without setTimeout
-              setTimeout(() => {
-                graphTile.applyModelChange(() => {
-                  setAttribute("caption", captionAttributeName)
-                  setAttribute("legend", legendAttributeName)
-                  setAttribute("rightNumeric", rightNumericAttributeName)
-                  setAttribute("rightSplit", rightSplitAttributeName)
-                  setAttribute("topSplit", topSplitAttributeName)
-                  setAttribute("x", xAttributeName)
-                  setAttribute("y", yAttributeName)
-                  setAttribute("yPlus", y2AttributeName)
-                  if (enableNumberToggle != null) graphTile.setShowParentToggles(enableNumberToggle)
-                  if (numberToggleLastMode != null) {
-                    graphTile.setShowOnlyLastCase(numberToggleLastMode)
-                    if (numberToggleLastMode) {
-                      const caseIds = dataSet.cases.map(aCase => aCase.__id__)
-                      const lastCaseId = caseIds[caseIds.length - 1]
-                      const hiddenCaseIDs = caseIds.filter(caseId => caseId !== lastCaseId)
-                      graphTile.layers.forEach(layer => {
-                        layer.dataConfiguration.setHiddenCases(hiddenCaseIDs)
-                      })
-                    }
-                  }
-                })
-              })
-            }
-          }
+        //       const setAttribute = (role: GraphAttrRole, attributeName?: string) => {
+        //         if (attributeName) {
+        //           const attribute = dataSet.getAttributeByName(attributeName)
+        //           if (attribute) {
+        //             graphTile.setAttributeID(role, dataSet.id, attribute.id)
+        //           }
+        //         }
+        //       }
+        //       // TODO Figure out how to do this without setTimeout
+        //       setTimeout(() => {
+        //         graphTile.applyModelChange(() => {
+        //           setAttribute("caption", captionAttributeName)
+        //           setAttribute("legend", legendAttributeName)
+        //           setAttribute("rightNumeric", rightNumericAttributeName)
+        //           setAttribute("rightSplit", rightSplitAttributeName)
+        //           setAttribute("topSplit", topSplitAttributeName)
+        //           setAttribute("x", xAttributeName)
+        //           setAttribute("y", yAttributeName)
+        //           setAttribute("yPlus", y2AttributeName)
+        //           if (enableNumberToggle != null) graphTile.setShowParentToggles(enableNumberToggle)
+        //           if (numberToggleLastMode != null) {
+        //             graphTile.setShowOnlyLastCase(numberToggleLastMode)
+        //             if (numberToggleLastMode) {
+        //               const caseIds = dataSet.cases.map(aCase => aCase.__id__)
+        //               const lastCaseId = caseIds[caseIds.length - 1]
+        //               const hiddenCaseIDs = caseIds.filter(caseId => caseId !== lastCaseId)
+        //               graphTile.layers.forEach(layer => {
+        //                 layer.dataConfiguration.setHiddenCases(hiddenCaseIDs)
+        //               })
+        //             }
+        //           }
+        //         })
+        //       })
+        //     }
+        //   }
 
         // Map
         // } else if (type === kV2MapType) {
