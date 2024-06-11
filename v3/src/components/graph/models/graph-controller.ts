@@ -87,6 +87,10 @@ export class GraphController {
             axisMultiScale.setNumericDomain(axisModel.domain)
           }
         }
+        else {
+          // During rehydration we need to reset each axis scale
+          layout.resetAxisScale(axisPlace)
+        }
       })
       this.callMatchCirclesToData()
       this.attrConfigForInitGraph = dataConfig.attributeDescriptionsStr
