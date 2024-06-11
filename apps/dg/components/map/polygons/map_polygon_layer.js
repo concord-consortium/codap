@@ -230,6 +230,8 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
   updateSelection: function() {
     if( !this.get('model'))
       return;   // because this can get called by pending changes after I have been destroyed
+    if( !this.getPath('model.isVisible'))
+      return; // because this can get called when the polygon layer has just been hidden and leaflet can't respond
 
     // Use long path for selection because we can call this before bindings have happened
     // There must be a better way?
