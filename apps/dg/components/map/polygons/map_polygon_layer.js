@@ -80,7 +80,7 @@ DG.MapPolygonLayer = DG.PlotLayer.extend(
         tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor,
         tStrokeSameAsFill = tModel.get('strokeSameAsFill'),
         tIsNumeric = tLegendDesc && tLegendDesc.get('isNumeric'),
-        tQuantileValues = tConfig.get('legendQuantiles');
+        tQuantileValues = tConfig && tConfig.get('legendQuantiles');
     return {
       map: this.get('map' ),
       polygonVarID: tModel.getPath('dataConfiguration.polygonAttributeDescription.attributeID'),
