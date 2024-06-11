@@ -60,6 +60,9 @@ export const ComponentElements = {
   getCloseButton(component, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=component-close-button]")
   },
+  getResizeControl(component, index = 0) {
+    return this.getComponentTile(component, index).find(".codap-component-corner.bottom-right")
+  },
   checkToolTip(element, tooltipText) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)
   },

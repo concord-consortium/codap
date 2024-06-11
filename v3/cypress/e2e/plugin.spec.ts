@@ -142,6 +142,22 @@ context("codap plugins", () => {
     })
   })
 
+  it("doesn't reload the iframe/plugin on selection change", () => {
+    openAPITester()
+
+    const cmd1 = `{
+      "action": "get",
+      "resource": "componentList"
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+
+    c.getComponentTitleBar("table").click()
+    c.getComponentTitleBar("codap-web-view").click()
+    // if the prior response is still present, then the iframe wasn't reloaded
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+  })
+
   it('will broadcast notifications', () => {
     openAPITester()
     webView.toggleAPITesterFilter()

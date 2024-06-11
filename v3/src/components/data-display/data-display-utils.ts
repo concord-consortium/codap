@@ -62,19 +62,12 @@ export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?:
 interface IHandleClickOnBarProps {
   event: PointerEvent
   dataConfig: IDataConfigurationModel
-  primaryAttrRole: "x" | "y"
   barCover: IBarCover
 }
 
-export const handleClickOnBar = ({ event, dataConfig, primaryAttrRole, barCover }: IHandleClickOnBarProps) => {
-  const { primeSplitCat, secSplitCat, legendCat, primeCat, secCat } = barCover
+export const handleClickOnBar = ({ event, dataConfig, barCover }: IHandleClickOnBarProps) => {
   const extendSelection = event.shiftKey
-  if (primeCat) {
-    const caseIDs = dataConfig.getCasesForCategoryValues(
-      primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
-    )
-    setOrExtendSelection(caseIDs, dataConfig.dataset, extendSelection)
-  }
+  setOrExtendSelection(barCover.caseIDs, dataConfig.dataset, extendSelection)
 }
 
 export interface IMatchCirclesProps {

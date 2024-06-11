@@ -70,6 +70,7 @@ export const GraphContentModel = DataDisplayContentModel
     axes: types.map(AxisModelUnion),
     _binAlignment: types.maybe(types.number),
     _binWidth: types.maybe(types.number),
+    pointsAreBinned: types.optional(types.boolean, false),
     pointsFusedIntoBars: types.optional(types.boolean, false),
     // TODO: should the default plot be something like "nullPlot" (which doesn't exist yet)?
     plotType: types.optional(types.enumeration([...PlotTypes]), "casePlot"),
@@ -87,7 +88,8 @@ export const GraphContentModel = DataDisplayContentModel
     dragBinIndex: -1,
     dynamicBinAlignment: undefined as number | undefined,
     dynamicBinWidth: undefined as number | undefined,
-    prevDataSetId: ""
+    prevDataSetId: "",
+    pointOverlap: 0,  // Set by plots so that it is accessible to adornments
   }))
   .preProcessSnapshot(snap => {
     // some properties were historically written out as null because NaN => null in JSON
@@ -107,7 +109,10 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setDragBinIndex(index: number) {
       self.dragBinIndex = index
-    }
+    },
+    setPointOverlap(overlap: number) {
+      self.pointOverlap = overlap
+    },
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {
@@ -150,7 +155,8 @@ export const GraphContentModel = DataDisplayContentModel
       return self.dataConfiguration.attributeID(place) ?? ''
     },
     axisShouldShowGridLines(place: AxisPlace) {
-      return self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)
+      return (self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)) ||
+             (self.pointDisplayType === "histogram")
     },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
                                   dataset: IDataSet | undefined,
@@ -279,6 +285,30 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setDynamicBinWidth(width: number) {
       self.dynamicBinWidth = width
+    },
+    binnedAxisTicks(formatter?: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
+      const tickValues: number[] = []
+      const tickLabels: string[] = []
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
+
+      let currentStart = minBinEdge
+      let binCount = 0
+
+      while (binCount < totalNumberOfBins) {
+        const currentEnd = currentStart + binWidth
+        if (formatter) {
+          const formattedCurrentStart = formatter(currentStart)
+          const formattedCurrentEnd = formatter(currentEnd)
+          tickValues.push(currentStart + (binWidth / 2))
+          tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
+        } else {
+          tickValues.push(currentStart + binWidth)
+          tickLabels.push(`${currentEnd}`)
+        }
+        currentStart += binWidth
+        binCount++
+      }
+      return { tickValues, tickLabels }
     }
   }))
   .views(self => ({
@@ -295,12 +325,9 @@ export const GraphContentModel = DataDisplayContentModel
       let binCount = 0
 
       while (binCount < totalNumberOfBins) {
-        const formattedCurrentStart = formatter
-          ? formatter(currentStart)
-          : currentStart
-        const formattedCurrentEnd = formatter
-          ? formatter(currentStart + binWidth)
-          : currentStart + binWidth
+        const currentEnd = currentStart + binWidth
+        const formattedCurrentStart = formatter(currentStart)
+        const formattedCurrentEnd = formatter(currentEnd)
         tickValues.push(currentStart + (binWidth / 2))
         tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
         currentStart += binWidth
@@ -318,9 +345,31 @@ export const GraphContentModel = DataDisplayContentModel
       self.setBinAlignment(binAlignment)
       self.setBinWidth(binWidth)
     },
+    matchingCasesForAttr(attrID: string, value?: string, _allCases?: ICase[]) {
+      const dataset = self.dataConfiguration?.dataset
+      const allCases = _allCases ?? dataset?.cases
+      let matchingCases: ICase[] = []
+
+      if (self.pointDisplayType === "histogram") {
+        const { binWidth, minBinEdge } = self.binDetails()
+        const binIndex = Math.floor((Number(value) - minBinEdge) / binWidth)
+        matchingCases = allCases?.filter(aCase => {
+          const caseValue = dataset?.getNumeric(aCase.__id__, attrID) ?? 0
+          const bin = Math.floor((caseValue - minBinEdge) / binWidth)
+          return bin === binIndex
+        }) as ICase[] ?? []
+      } else if (attrID && value) {
+        matchingCases = allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrID) === value) as ICase[] ?? []
+      }
+
+      return matchingCases
+    }
+  }))
+  .views(self => ({
     fusedCasesTipText(caseID: string, legendAttrID?: string) {
       const dataConfig = self.dataConfiguration
       const dataset = dataConfig.dataset
+      const isHistogram = self.pointDisplayType === "histogram"
       const float = format('.1~f')
       const primaryRole = dataConfig?.primaryRole
       const primaryAttrID = primaryRole && dataConfig?.attributeID(primaryRole)
@@ -330,49 +379,74 @@ export const GraphContentModel = DataDisplayContentModel
       const caseTopSplitValue = topSplitAttrID && dataset?.getStrValue(caseID, topSplitAttrID)
       const caseRightSplitValue = rightSplitAttrID && dataset?.getStrValue(caseID, rightSplitAttrID)
       const caseLegendValue = legendAttrID && dataset?.getStrValue(caseID, legendAttrID)
-      const getMatchingCases = (attrID?: string, value?: string, _allCases?: ICase[]) => {
-        const allCases = _allCases ?? dataset?.cases
-        const matchingCases = attrID && value
-          ? allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrID) === value) ?? []
-          : []
-        return matchingCases as ICase[]
-      }
+      if (!primaryAttrID) return ""
 
-      // for each existing attribute, get the cases that have the same value as the current case
-      const primaryMatches = getMatchingCases(primaryAttrID, casePrimaryValue)
-      const topSplitMatches = getMatchingCases(topSplitAttrID, caseTopSplitValue)
-      const rightSplitMatches = getMatchingCases(rightSplitAttrID, caseRightSplitValue)
-      const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
-      const legendMatches = getMatchingCases(legendAttrID, caseLegendValue, primaryMatches)
+      let tipText = ""
       const cellKey: Record<string, string> = {
-        ...(casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
+        ...(!isHistogram && casePrimaryValue && {[primaryAttrID]: casePrimaryValue}),
         ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
         ...(caseRightSplitValue && {[rightSplitAttrID]: caseRightSplitValue})
       }
+      const primaryMatches = self.matchingCasesForAttr(primaryAttrID, casePrimaryValue)
       const casesInSubPlot = dataConfig?.subPlotCases(cellKey) ?? []
-      const totalCases = [
-        legendMatches.length,
-        bothSplitMatches.length,
-        topSplitMatches.length,
-        rightSplitMatches.length,
-        dataset?.cases.length ?? 0
-      ].find(length => length > 0) ?? 0
-      const legendMatchesInSubplot = legendAttrID
-        ? casesInSubPlot.filter(aCaseID => dataset?.getStrValue(aCaseID, legendAttrID) === caseLegendValue).length
-        :  0
-      const caseCategoryString = caseLegendValue ? casePrimaryValue : ""
-      const caseLegendCategoryString = caseLegendValue || casePrimaryValue
-      const firstCount = legendAttrID ? legendMatchesInSubplot : casesInSubPlot.length
-      const secondCount = legendAttrID ? casesInSubPlot.length : totalCases
-      const percent = float(100 * firstCount / secondCount)
-      // <n> of <m> <category> (<p>%) are <legend category>
-      const attrArray = [
-        firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString
-      ]
-      return t("DG.BarChartModel.cellTipPlural", {vars: attrArray})
-    }
-  }))
-  .views(self => ({
+
+      if (isHistogram) {
+        const allMatchingCases = primaryMatches.filter(aCaseID => {
+          if (topSplitAttrID) {
+            const topSplitVal = dataset?.getStrValue(aCaseID.__id__, topSplitAttrID)
+            if (topSplitVal !== caseTopSplitValue) return false
+          }
+          if (rightSplitAttrID) {
+            const rightSplitVal = dataset?.getStrValue(aCaseID.__id__, rightSplitAttrID)
+            if (rightSplitVal !== caseRightSplitValue) return false
+          }
+          return true
+        })
+        const { binWidth, minBinEdge } = self.binDetails()
+        const binIndex = Math.floor((Number(casePrimaryValue) - minBinEdge) / binWidth)
+        const firstCount = allMatchingCases.length
+        const secondCount = casesInSubPlot.length
+        const percent = float(100 * firstCount / secondCount)
+        const minBinValue = minBinEdge + binIndex * binWidth
+        const maxBinValue = minBinEdge + (binIndex + 1) * binWidth
+        // "<n> of <total> (<p>%) are ≥ L and < U"
+        const attrArray = [ firstCount, secondCount, percent, minBinValue, maxBinValue ]
+        const translationKey = firstCount === 1
+                                 ? "DG.HistogramView.barTipNoLegendSingular"
+                                 : "DG.HistogramView.barTipNoLegendPlural"
+        tipText = t(translationKey, {vars: attrArray})
+      } else {  
+        const topSplitMatches = self.matchingCasesForAttr(topSplitAttrID, caseTopSplitValue)
+        const rightSplitMatches = self.matchingCasesForAttr(rightSplitAttrID, caseRightSplitValue)
+        const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
+        const legendMatches = legendAttrID
+                                ? self.matchingCasesForAttr(legendAttrID, caseLegendValue, primaryMatches)
+                                : []
+        const totalCases = [
+          legendMatches.length,
+          bothSplitMatches.length,
+          topSplitMatches.length,
+          rightSplitMatches.length,
+          dataset?.cases.length ?? 0
+        ].find(length => length > 0) ?? 0
+        const legendMatchesInSubplot = legendAttrID
+          ? casesInSubPlot.filter(aCaseID => dataset?.getStrValue(aCaseID, legendAttrID) === caseLegendValue).length
+          :  0
+        const caseCategoryString = caseLegendValue ? casePrimaryValue : ""
+        const caseLegendCategoryString = caseLegendValue || casePrimaryValue
+        const firstCount = legendAttrID ? legendMatchesInSubplot : casesInSubPlot.length
+        const secondCount = legendAttrID ? casesInSubPlot.length : totalCases
+        const percent = float(100 * firstCount / secondCount)
+        // <n> of <m> <category> (<p>%) are <legend category>
+        const attrArray = [ firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString ]
+        const translationKey = legendAttrID
+          ? firstCount === 1 ? "DG.BarChartModel.cellTipSingular" : "DG.BarChartModel.cellTipPlural"
+          : firstCount === 1 ? "DG.BarChartModel.cellTipNoLegendSingular" : "DG.BarChartModel.cellTipNoLegendPlural"
+        tipText = t(translationKey, {vars: attrArray})
+      }
+
+      return tipText
+    },
     cellParams(primaryCellWidth: number, primaryHeight: number) {
       const pointDiameter = 2 * self.getPointRadius()
       const catMap: CatMapType = {}
@@ -521,6 +595,10 @@ export const GraphContentModel = DataDisplayContentModel
         const { binWidth, binAlignment } = self.binDetails({ initialize: true })
         self.setBinWidth(binWidth)
         self.setBinAlignment(binAlignment)
+        self.pointsAreBinned = true
+      } else if (configType !== "histogram") {
+        self.pointsFusedIntoBars = false
+        self.pointsAreBinned = false
       }
     },
     setPlotBackgroundColor(color: string) {
@@ -541,11 +619,14 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     setBarCountAxis() {
-      const { maxOverAllCells, primaryRole, secondaryRole } = self.dataConfiguration
+      const { maxOverAllCells, maxCellLength, primaryRole, secondaryRole } = self.dataConfiguration
+      const { binWidth, minValue, totalNumberOfBins } = self.binDetails()
       const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
       const extraPrimAttrRole = primaryRole === "x" ? "topSplit" : "rightSplit"
       const extraSecAttrRole = primaryRole === "x" ? "rightSplit" : "topSplit"
-      const maxCellCaseCount = maxOverAllCells(extraPrimAttrRole, extraSecAttrRole)
+      const maxCellCaseCount = self.pointDisplayType === "histogram"
+        ? maxCellLength(extraPrimAttrRole, extraSecAttrRole, binWidth, minValue, totalNumberOfBins)
+        : maxOverAllCells(extraPrimAttrRole, extraSecAttrRole)
       const countAxis = NumericAxisModel.create({
         scale: "linear",
         place: secondaryPlace,
@@ -566,16 +647,17 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     setPointsFusedIntoBars(fuseIntoBars: boolean) {
-      if (fuseIntoBars !== self.pointsFusedIntoBars) {
-        if (fuseIntoBars) {
-          self.setPointConfig("bars")
-          self.setBarCountAxis()
-        } else {
-          self.setPointConfig("points")
-          self.unsetBarCountAxis()
-        }
-        self.pointsFusedIntoBars = fuseIntoBars
+      if (fuseIntoBars === self.pointsFusedIntoBars) return
+    
+      if (fuseIntoBars) {
+        self.setPointConfig(self.plotType !== "dotPlot" ? "bars" : "histogram")
+        self.setBarCountAxis()
+      } else {
+        self.setPointConfig(self.pointsAreBinned ? "bins" : "points")
+        self.unsetBarCountAxis()
       }
+    
+      self.pointsFusedIntoBars = fuseIntoBars
     },
   }))
   .views(self => ({

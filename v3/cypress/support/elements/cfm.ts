@@ -2,6 +2,10 @@ export const CfmElements = {
   openLocalDoc(filename: string) {
     cy.get('#codap-app-id').selectFile(filename, { action: 'drag-drop' })
   },
+  closeDocument() {
+    this.getHamburgerMenuButton().click()
+    this.getHamburgerMenu().contains("li", "Close").click()
+  },
   getMenuBar() {
     return cy.get('#codap-menu-bar-id')
   },
@@ -19,5 +23,10 @@ export const CfmElements = {
     this.getHamburgerMenu().find("li").contains("Open...").click()
     this.getModalDialog().find(".selectable").contains(filename).eq(0).click()
     this.getModalDialog().find("button").contains("Open").click()
+  },
+  openLocalFile(filename: string) {
+    this.getHamburgerMenuButton().click()
+    this.getHamburgerMenu().find("li").contains("Open...").click()
+    this.getModalDialog().find(".selectable").contains(filename).eq(1).click()
   }
 }

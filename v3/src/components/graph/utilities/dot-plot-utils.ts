@@ -8,6 +8,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { AxisPlace } from "../../axis/axis-types"
+import { SubPlotCells } from "../models/sub-plot-cells"
 
 export interface IComputeBinPlacements {
   binWidth?: number
@@ -50,10 +51,13 @@ export interface IComputePrimaryCoord {
 
 export interface IComputeSecondaryCoord {
   baseCoord: number
+  dataConfig?: IGraphDataConfigurationModel
   extraSecondaryAxisScale: ScaleBand<string>
   extraSecondaryBandwidth: number
   extraSecondaryCat: string
   indexInBin: number
+  isHistogram?: boolean
+  layout?: GraphLayout
   numExtraSecondaryBands: number
   overlap: number
   pointDiameter: number
@@ -78,8 +82,8 @@ export interface IAdjustCoordForStacks {
 }
 
 /*
- * Returns a point's coordinate on the primary axis in a dot plot or binned dot plot. It takes into account the
- * primary and extra primary axis scales, the extra primary bandwidth, and the number of bins (if any).
+ * Returns a point's coordinate on the primary axis in a dot plot, binned dot plot, or histogram. It takes into
+ * account the primary and extra primary axis scales, the extra primary bandwidth, and the number of bins (if any).
  */
 export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
   const { anID, binWidth = 0, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned = false,
@@ -96,14 +100,14 @@ export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
 }
 
 /*
- * Returns a point's coordinate on the secondary axis in a dot plot or binned dot plot. It takes into account the
- * primary and secondary axis scales, the primary and secondary bandwidths, the number of extra secondary bands, the
- * overlap between points, the point diameter, and the primaryIsBottom flag.
+ * Returns a point's coordinate on the secondary axis in a dot plot, binned dot plot, or histogram. It takes into
+ * account the primary and secondary axis scales, the primary and secondary bandwidths, the number of extra secondary
+ * bands, the overlap between points, the point diameter, and the primaryIsBottom flag.
  */
 export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
-  const { baseCoord, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
-          numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryAxisScale,
-          secondaryBandwidth, secondaryCat, secondarySign } = props
+  const { baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
+          layout, numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent,
+          secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram = false } = props
   let catCoord = (
     !!secondaryCat && secondaryCat !== "__main__"
       ? secondaryAxisScale(secondaryCat) ?? 0
@@ -111,14 +115,24 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
     ) / numExtraSecondaryBands
   let extraCoord = !!extraSecondaryCat && extraSecondaryCat !== "__main__"
     ? (extraSecondaryAxisScale(extraSecondaryCat) ?? 0) : 0
+
+  const subPlotCells = layout && new SubPlotCells(layout, dataConfig)
+  const secondaryNumericUnitLength = subPlotCells ? subPlotCells.secondaryNumericUnitLength : 0
   if (primaryIsBottom) {
     extraCoord = secondaryAxisExtent - extraSecondaryBandwidth - extraCoord
     catCoord = extraSecondaryBandwidth - secondaryBandwidth - catCoord
-    return baseCoord - catCoord - extraCoord -
-      pointDiameter / 2 - indexInBin * (pointDiameter - overlap)
+    const secondaryCoord = isHistogram
+      ? baseCoord - catCoord - extraCoord - secondaryNumericUnitLength / 2 - indexInBin * secondaryNumericUnitLength
+      : baseCoord - catCoord - extraCoord - pointDiameter / 2 - indexInBin * (pointDiameter - overlap)
+
+    return secondaryCoord
   } else {
-    return baseCoord + extraCoord + secondarySign * (catCoord + pointDiameter / 2 +
-      indexInBin * (pointDiameter - overlap))
+    const secondaryCoord = isHistogram && secondaryNumericUnitLength
+      ? baseCoord + extraCoord + secondarySign *
+          (catCoord + secondaryNumericUnitLength / 2 + indexInBin * secondaryNumericUnitLength)
+      : baseCoord + extraCoord + secondarySign * (catCoord + pointDiameter / 2 + indexInBin * (pointDiameter - overlap))
+
+    return secondaryCoord
   }
 }
 
@@ -213,6 +227,8 @@ export const calculatePointStacking = (pointCount: number, pointDiameter: number
 export const adjustCoordForStacks = (props: IAdjustCoordForStacks) => {
   const { anID, axisType, binForCase, binMap, bins, pointDiameter, secondaryBandwidth, screenCoord,
           primaryIsBottom } = props
+  if (!binMap[anID]) return screenCoord
+
   let adjustedCoord = screenCoord
   const { category, extraCategory, extraPrimaryCategory, indexInBin } = binMap[anID]
   const casesInBin = binMap[anID]
