@@ -18,7 +18,7 @@ interface IProps {
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
   const [resizingTileStyle, setResizingTileStyle] =
-    useState<{left: number, top: number, width?: number, height?: number, transition: string}>()
+    useState<{left: number, top: number, width?: number, height?: number, zIndex?: number, transition: string}>()
   const [resizingTileId, setResizingTileId] = useState("")
   const tileId = tile.id
   const tileType = tile.content.type
@@ -70,8 +70,12 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
         resizingWidth = addIfDefined(startWidth, xDelta)
       }
 
-      setResizingTileStyle({left: resizingLeft, top: mtile.y, width: resizingWidth, height: resizingHeight,
-                              transition: "none"})
+      setResizingTileStyle({
+        left: resizingLeft, top: mtile.y,
+        width: resizingWidth, height: resizingHeight,
+        zIndex: mtile.zIndex,
+        transition: "none"
+      })
     }
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
