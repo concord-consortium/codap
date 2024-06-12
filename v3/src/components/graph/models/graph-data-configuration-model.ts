@@ -2,6 +2,7 @@ import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-
 import {comparer, reaction} from "mobx"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
+import { withoutUndo } from "../../../models/history/without-undo"
 import {typedId} from "../../../utilities/js-utils"
 import {cachedFnFactory, cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
 import {AxisPlace} from "../../axis/axis-types"
@@ -579,6 +580,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   })
   .actions(self => ({
     setPrimaryRole(role: GraphAttrRole) {
+      withoutUndo()
       if (role === 'x' || role === 'y') {
         self.primaryRole = role
       }
