@@ -111,6 +111,13 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
     this.getAxisMultiScale(place)?.setLength(length)
   }
 
+  @action resetAxisScale(place: AxisPlace) {
+    const multiScale = this.getAxisMultiScale(place)
+    multiScale.setCategorySet(undefined)
+    multiScale.setScaleType("ordinal")
+    multiScale.setRepetitions(1)
+  }
+
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
     this.desiredExtents.set(place, extent)
     this.updateScaleRanges(this.plotWidth, this.plotHeight)

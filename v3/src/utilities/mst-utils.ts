@@ -1,7 +1,12 @@
 import {
   IAnyStateTreeNode, IDisposer, isAlive, ISerializedActionCall, getParent, getType,
-  IOnActionOptions, onAction, hasParent, types
+  IOnActionOptions, onAction, hasParent, types, getSnapshot
 } from "mobx-state-tree"
+
+
+export function safeGetSnapshot<S>(target?: IAnyStateTreeNode): S | undefined {
+  return target ? getSnapshot(target) : undefined
+}
 
 /**
  * This creates the definition for a type field in MST.

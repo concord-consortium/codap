@@ -4,7 +4,7 @@ import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import { withoutUndo } from "../../../models/history/without-undo"
 import {typedId} from "../../../utilities/js-utils"
-import {cachedFnFactory, cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
+import { cachedFnFactory, cachedFnWithArgsFactory, safeGetSnapshot } from "../../../utilities/mst-utils"
 import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
@@ -68,7 +68,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         {...getSnapshot(self._attributeDescriptions)}
       delete descriptions.rightNumeric
       if (self._yAttributeDescriptions.length > 0) {
-        descriptions.y = self._yAttributeDescriptions[0]
+        descriptions.y = safeGetSnapshot(self._yAttributeDescriptions[0])
       }
       return descriptions
     },
@@ -80,7 +80,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      * For all other roles we return the attribute description for the role.
      */
     attributeDescriptionForRole(role: GraphAttrRole) {
-      return role === 'y' ? this.yAttributeDescriptions[0]
+      return role === 'y' ? safeGetSnapshot(this.yAttributeDescriptions[0])
         : role === 'rightNumeric' ? self._attributeDescriptions.get('rightNumeric')
           : this.attributeDescriptions[role]
     },
