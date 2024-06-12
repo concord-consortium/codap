@@ -13,7 +13,7 @@ import { ITileModel } from "../tiles/tile-model"
 import { ComponentRect } from "../../utilities/animation-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { t } from "../../utilities/translation/translate"
-import { createTileOfType, INewTileOptions } from "../codap/create-tile"
+import { createTileSnapshotOfType, INewTileOptions } from "../codap/create-tile"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
@@ -115,7 +115,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const row = self.getRowByIndex(0)
       if (row) {
         const env = getTileEnvironment(self)
-        const newTileSnapshot = createTileOfType(tileType, env, options)
+        const newTileSnapshot = createTileSnapshotOfType(tileType, env, options)
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}

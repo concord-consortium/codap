@@ -17,12 +17,17 @@ export interface INewTileOptions {
   width?: number
 }
 
-export function createTileOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {
+export function createTileSnapshotOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {
   const info = getTileContentInfo(tileType)
   const id = v3Id(info?.prefix || "TILE")
   const content = options?.content ?? info?.defaultContent({ env })
   const cannotClose = options?.cannotClose
   const title = options?.title
   const transitionComplete = options?.transitionComplete
-  return content ? TileModel.create({ cannotClose, content, id, title, transitionComplete }) : undefined
+  return content ? { cannotClose, content, id, title, transitionComplete } : undefined
+}
+
+export function createTileOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {
+  const snapshot = createTileSnapshotOfType(tileType, env, options)
+  return snapshot ? TileModel.create(snapshot) : undefined
 }
