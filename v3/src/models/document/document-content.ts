@@ -90,7 +90,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
     },
-    createDefaultTileSnapshotOfType(tileType: string, options?: INewTileOptions): ITileModelSnapshotIn | undefined {
+    createTileSnapshotOfType(tileType: string, options?: INewTileOptions): ITileModelSnapshotIn | undefined {
       const env = getTileEnvironment(self)
       const info = getTileContentInfo(tileType)
       const id = v3Id(info?.prefix || "TILE")
@@ -137,7 +137,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const height = options?.height ?? (componentInfo.defaultHeight || 0)
       const row = self.getRowByIndex(0)
       if (row) {
-        const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType, options)
+        const newTileSnapshot = self.createTileSnapshotOfType(tileType, options)
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}

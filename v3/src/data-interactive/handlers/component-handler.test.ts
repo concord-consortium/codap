@@ -1,4 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
+import { ICaseCardModel, isCaseCardModel } from "../../components/case-card/case-card-model"
+import { kCaseCardIdPrefix } from "../../components/case-card/case-card-registration"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
 import { appState } from "../../models/app-state"
@@ -7,8 +9,6 @@ import { V2CaseCard } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
 import { setupTestDataset } from "./handler-test-utils"
-import { kCaseCardIdPrefix } from "../../components/case-card/case-card-registration"
-import { ICaseCardModel, isCaseCardModel } from "../../components/case-card/case-card-model"
 
 
 describe("DataInteractive ComponentHandler", () => {
