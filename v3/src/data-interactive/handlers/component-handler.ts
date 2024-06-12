@@ -4,7 +4,7 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import {
-  AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
+  AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
 } from "../../components/data-display/models/data-configuration-model"
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { IGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
@@ -15,10 +15,11 @@ import {
 import { IMapBaseLayerModelSnapshot } from "../../components/map/models/map-base-layer-model"
 import { IMapModelContentSnapshot } from "../../components/map/models/map-content-model"
 import { kMapTileType } from "../../components/map/map-defs"
+import { kMapPointLayerType, kMapPolygonLayerType } from "../../components/map/map-types"
 import { IMapPointLayerModelSnapshot } from "../../components/map/models/map-point-layer-model"
 import { IMapPolygonLayerModelSnapshot } from "../../components/map/models/map-polygon-layer-model"
 import {
-  datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
+  boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
 } from "../../components/map/utilities/map-utils"
 import { kSliderTileType } from "../../components/slider/slider-defs"
 import { ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
@@ -203,6 +204,22 @@ export const diComponentHandler: DIHandler = {
             const dataset = sharedDataSet.dataSet
             const metadata = getCaseMetadata(dataset.id)
             if (metadata) {
+              const LayerTypes = [kMapPointLayerType, kMapPolygonLayerType] as const
+              type LayerType = typeof LayerTypes[number]
+              const addLayer = (_type: LayerType, _attributeDescriptions: AttributeDescriptionsMapSnapshot) => {
+                layers.push({
+                  dataConfiguration: {
+                    _attributeDescriptions,
+                    dataset: dataset.id,
+                    metadata: metadata.id,
+                    type: kDataConfigurationType
+                  },
+                  layerIndex: layerIndex++,
+                  type: _type
+                })
+              }
+
+              // Point Layer
               if (datasetHasLatLongData(dataset)) {
                 const { latId, longId } = latLongAttributesFromDataSet(dataset)
                 const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
@@ -212,32 +229,14 @@ export const diComponentHandler: DIHandler = {
                 if (dataset.id === dataContext?.id && legendAttributeId) {
                   _attributeDescriptions.legend = { attributeID: legendAttributeId }
                 }
-                layers.push({
-                  // connectingLinesAreVisible: false,
-                  dataConfiguration: {
-                    _attributeDescriptions,
-                    dataset: dataset.id,
-                    // hiddenCases: [],
-                    metadata: metadata.id,
-                    type: "dataConfigurationType"
-                  },
-                  // displayItemDescription: {
-                  //   _itemColors: ["#e6805b"],
-                  //   _itemStrokeColor: "white",
-                  //   _itemStrokeSameAsFill: false,
-                  //   _pointSizeMultiplier: 1
-                  // },
-                  // gridModel: {
-                  //   isVisible: false,
-                  //   _gridMultiplier: 1
-                  // },
-                  // isVisible: true,
-                  layerIndex: layerIndex++,
-                  // pointsAreVisible: true,
-                  type: "mapPointLayer"
-                })
+                addLayer(kMapPointLayerType, _attributeDescriptions)
+
+              // Polygon Layer
               } else if (datasetHasBoundaryData(dataset)) {
-                // Add layer
+                const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
+                  polygon: { attributeID: boundaryAttributeFromDataSet(dataset) }
+                }
+                addLayer(kMapPolygonLayerType, _attributeDescriptions)
               }
             }
           })
@@ -245,29 +244,13 @@ export const diComponentHandler: DIHandler = {
           const center = _center ? { lat: _center[0], lng: _center[1] } : undefined
           const mapContent: IMapModelContentSnapshot = {
             type: kMapTileType,
-            // baseMapLayerIsVisible: true,
-            // baseMapLayerName: "topo",
             center,
-            // isTransparent: false,
             layers,
-            // plotBackgroundColor: "#FFFFFF01",
-            // pointDescription: {
-            //   _itemColors: ["#E6805B"],
-            //   _itemStrokeColor: "#FFFFFF",
-            //   _itemStrokeSameAsFill: false,
-            //   _pointSizeMultiplier: 1
-            // },
-            // pointDisplayType: "points",
             zoom
           }
           content = mapContent as ITileContentSnapshotWithType
+          // If the center or zoom are specified, we need to prevent CODAP from automatically focusing the map
           if (center || zoom != null) extraOptions.transitionComplete = true
-          // content = {
-          //   type: kMapTileType,
-          //   center,
-          //   layers,
-          //   zoom
-          // } as SetRequired<IMapContentModel, "type">
 
         // Slider
         } else if (type === kV2SliderType) {
@@ -318,6 +301,11 @@ export const diComponentHandler: DIHandler = {
           content = { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type">
         }
 
+        // TODO Handle other types:
+        // text
+        // guide
+        // image view
+
         // Create the tile
         const title = _title ?? name
         const options = { cannotClose, content, ...dimensions, title, ...extraOptions }
@@ -325,40 +313,6 @@ export const diComponentHandler: DIHandler = {
         if (!tile) return componentNotCreatedResult
 
         // TODO Handle position
-
-        // Update components based on unique type options
-        // Calculator
-        if (type === kV2CalculatorType) {
-          // No special options for calculator
-
-        // Map
-        // } else if (type === kV2MapType) {
-        //   const mapTile = tile.content as IMapContentModel
-        //   const { center, dataContext, legendAttributeName, zoom } = values as V2Map
-        //   // TODO Figure out a way to set the center and zoom without setTimeout.
-        //   // Center and zoom require an actual wait to not get overwritten.
-        //   setTimeout(() => {
-        //     mapTile.applyModelChange(() => {
-        //       if (center) mapTile.setCenter({ lat: center[0], lng: center[1] })
-        //       if (zoom != null) mapTile.setZoom(zoom)
-        //     })
-        //   }, 575)
-        //   // TODO Figure out a way to set the legend attribute without setTimeout.
-        //   // This is in a separate setTimeout because it doesn't require a wait like center and zoom.
-        //   setTimeout(() => {
-        //     mapTile.applyModelChange(() => {
-        //       if (dataContext) {
-        //         const dataSet = getDataSet(dataContext)
-        //         if (dataSet) {
-        //           if (legendAttributeName) {
-        //             const attribute = dataSet.getAttributeByName(legendAttributeName)
-        //             if (attribute) mapTile.setLegendAttributeID(dataSet.id, attribute.id)
-        //           }
-        //         }
-        //       }
-        //     })
-        //   })
-        }
 
         return {
           success: true,
@@ -370,10 +324,6 @@ export const diComponentHandler: DIHandler = {
         }
       }
 
-      // TODO Handle other types:
-      // text
-      // guide
-      // image view
       return { success: false, values: { error: t("V3.DI.Error.unsupportedComponent", { vars: [type] }) } }
     })
   },
