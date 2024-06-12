@@ -44,10 +44,6 @@ describe("DataInteractive ComponentHandler Map", () => {
     const tileContent = tile.content as IMapContentModel
     expect(tile.cannotClose).toBe(true)
     expect(tile.title).toBe("map2024")
-
-    // TODO There's currently a setTimeout when assigning options in the create handler, requiring a wait here.
-    // Remove this wait once the correct method is determined for the create handler.
-    await new Promise(res => setTimeout(res, 600))
     expect(tileContent.center.lat).toBe(20)
     expect(tileContent.center.lng).toBe(24)
     expect(tileContent.zoom).toBe(3)

@@ -34,7 +34,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // Create a graph with options
     const result = handler.create!({}, {
       type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a1", yAttributeName: "a2",
-      y2AttributeName: "a3", legendAttributeName: "a1", captionAttributeName: "a2", rightNumericAttributeName: "a3",
+      legendAttributeName: "a1", captionAttributeName: "a2", rightNumericAttributeName: "a3",
       rightSplitAttributeName: "a1", topSplitAttributeName: "a2", enableNumberToggle: true, numberToggleLastMode: true
     })
     expect(result.success).toBe(true)
@@ -45,14 +45,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(isGraphContentModel(tile.content)).toBe(true)
     const tileContent = tile.content as IGraphContentModel
     expect(tile.cannotClose).toBe(true)
-
-    // TODO There's currently a setTimeout when assigning options in the create handler, requiring a wait here.
-    // Remove this wait once the correct method is determined for the create handler.
-    await new Promise(res => setTimeout(res))
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a1.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
-    // TODO How to test correct y2 attribute?
-    // expect(tileContent.dataConfiguration.attributeDescriptionForRole("yPlus")?.attributeID).toBe(a3.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
@@ -68,12 +62,15 @@ describe("DataInteractive ComponentHandler Graph", () => {
     })
 
     // Create multiple graphs for the same dataset
-    const result2 = handler.create!({}, { type: "graph", dataContext: "data" })
+    const result2 = handler.create!({}, { type: "graph", dataContext: "data", y2AttributeName: "a3" })
     expect(result2.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(2)
     const result2Values = result2.values as DIComponentInfo
     const tile2 = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, result2Values.id!))!
     expect(tile2).toBeDefined()
     expect(isGraphContentModel(tile2.content)).toBe(true)
+    const tile2Content = tile2.content as IGraphContentModel
+    // y2 and rightNumeric both set rightNumeric, so it's not possible to test them on the same graph
+    expect(tile2Content.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
   })
 })
