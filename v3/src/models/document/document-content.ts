@@ -9,11 +9,11 @@ import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
-import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
+import { ITileModel } from "../tiles/tile-model"
 import { ComponentRect } from "../../utilities/animation-utils"
-import { v3Id } from "../../utilities/codap-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { t } from "../../utilities/translation/translate"
+import { createTileOfType, INewTileOptions } from "../codap/create-tile"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
@@ -21,7 +21,6 @@ import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import {getSharedDataSetFromDataSetId, getSharedDataSets, getTileCaseMetadata, linkTileToDataSet}
   from "../shared/shared-data-utils"
-import { ITileContentSnapshotWithType } from "../tiles/tile-content"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:
@@ -47,18 +46,6 @@ import { ITileContentSnapshotWithType } from "../tiles/tile-content"
 export interface IImportDataSetOptions {
   createDefaultTile?: boolean // default true
   defaultTileType?: string    // default kCaseTableTileType
-}
-
-export interface INewTileOptions {
-  cannotClose?: boolean
-  content?: ITileContentSnapshotWithType
-  title?: string
-  setSingletonHidden?: boolean // If undefined, singleton visibility will be toggled
-  x?: number
-  y?: number
-  height?: number
-  transitionComplete?: boolean
-  width?: number
 }
 
 export const DocumentContentModel = BaseDocumentContentModel
@@ -89,16 +76,6 @@ export const DocumentContentModel = BaseDocumentContentModel
 
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
-    },
-    createTileSnapshotOfType(tileType: string, options?: INewTileOptions): ITileModelSnapshotIn | undefined {
-      const env = getTileEnvironment(self)
-      const info = getTileContentInfo(tileType)
-      const id = v3Id(info?.prefix || "TILE")
-      const content = options?.content ?? info?.defaultContent({ env })
-      const cannotClose = options?.cannotClose
-      const title = options?.title
-      const transitionComplete = options?.transitionComplete
-      return content ? { id, content, cannotClose, title, transitionComplete } : undefined
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       const tileIds = self.tileMap.keys()
@@ -137,7 +114,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       const height = options?.height ?? (componentInfo.defaultHeight || 0)
       const row = self.getRowByIndex(0)
       if (row) {
-        const newTileSnapshot = self.createTileSnapshotOfType(tileType, options)
+        const env = getTileEnvironment(self)
+        const newTileSnapshot = createTileOfType(tileType, env, options)
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
@@ -234,7 +212,7 @@ export const DocumentContentModel = BaseDocumentContentModel
     // I'm leaving it here for now so it's clear how it's changed in this PR.
     // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
     // Returns the shown tile.
-    toggleCardTable(tileID: string) {
+    toggleCardTable(tileID: string, _options?: INewTileOptions) {
       const tileModel = self.getTile(tileID),
         tileLayout = self.getTileLayoutById(tileID),
         tileType = tileModel?.content.type
@@ -254,7 +232,7 @@ export const DocumentContentModel = BaseDocumentContentModel
         } else {
           const componentInfo = getTileComponentInfo(otherTileType),
             { x, y } = tileLayout,
-            options = {x, y, width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight },
+            options = { ..._options, x, y, width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight },
             otherTile = self.createTile(otherTileType, options)
           if (otherTile && caseMetadata && sharedData) {
             if (tileType === kCaseTableTileType) {

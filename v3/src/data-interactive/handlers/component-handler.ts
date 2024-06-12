@@ -27,7 +27,7 @@ import { AnimationDirections, AnimationModes } from "../../components/slider/sli
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
-import { INewTileOptions } from "../../models/document/document-content"
+import { INewTileOptions } from "../../models/codap/create-tile"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
@@ -88,8 +88,11 @@ export const diComponentHandler: DIHandler = {
           return { success: false, values: { error: t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }) } }
         }
 
+        const title = _title ?? name
+        const options = { cannotClose, ...dimensions, title }
+
         const tileType = type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType
-        const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType)
+        const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType, options)
         if (!tile) return componentNotCreatedResult
 
         // TODO Handle horizontalScrollOffset and isIndexHidden 

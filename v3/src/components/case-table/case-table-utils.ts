@@ -1,6 +1,7 @@
 import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import {
   ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
@@ -20,7 +21,8 @@ import { kCaseTableTileType } from "./case-table-defs"
 export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
 
 export const createTableOrCardForDataset = (
-  sharedDataSet: ISharedDataSet, caseMetadata: ISharedCaseMetadata, tileType: kCardOrTableTileType = kCaseTableTileType
+  sharedDataSet: ISharedDataSet, caseMetadata: ISharedCaseMetadata, tileType: kCardOrTableTileType = kCaseTableTileType,
+  options?: INewTileOptions
 ) => {
   const document = appState.document
   const { content } = document
@@ -35,7 +37,7 @@ export const createTableOrCardForDataset = (
     return
   }
 
-  const tile = createDefaultTileOfType(tileType)
+  const tile = createDefaultTileOfType(tileType, options)
   if (!tile) return
 
   manager?.addTileSharedModel(tile.content, sharedDataSet, true)
@@ -49,7 +51,9 @@ export const createTableOrCardForDataset = (
 
   const width = caseTableComponentInfo.defaultWidth || 0
   const height = caseTableComponentInfo.defaultHeight || 0
-  const {x, y} = getPositionOfNewComponent({width, height})
+  let {x, y} = getPositionOfNewComponent({width, height})
+  if (options?.x != null) x = options.x
+  if (options?.y != null) y = options.y
   const from: ComponentRect = { x: 0, y: 0, width: 0, height: kTitleBarHeight },
     to: ComponentRect = { x, y, width, height: height + kTitleBarHeight}
   content?.insertTileInRow(tile, row, from)
@@ -69,7 +73,7 @@ export const createTableOrCardForDataset = (
 }
 
 export const createOrShowTableOrCardForDataset = (
-  _sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType
+  _sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType, options?: INewTileOptions
 ) => {
   const document = appState.document
   const { content } = document
@@ -90,9 +94,9 @@ export const createOrShowTableOrCardForDataset = (
       uiState.setFocusedTile(existingTileId)
       return content?.tileMap.get(existingTileId)
     } else {
-      return content?.toggleCardTable(existingTileId)
+      return content?.toggleCardTable(existingTileId, options)
     }
-  } else {  // We don't already have a table for this dataset
-    return createTableOrCardForDataset(sharedDataSet, caseMetadata, tileType)
+  } else {  // We don't already have a card/table for this dataset
+    return createTableOrCardForDataset(sharedDataSet, caseMetadata, tileType, options)
   }
 }
