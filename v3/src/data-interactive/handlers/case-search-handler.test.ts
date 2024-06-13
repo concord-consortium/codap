@@ -22,11 +22,9 @@ describe("DataInteractive CaseSearchHandler", () => {
     caseSearch.forEach((item, index) => {
       expect(values[index].id).toBe(toV2Id(item.pseudoCase.__id__))
       const itemIndex = dataContext.caseIndexFromID(item.childCaseIds[0])!
-      collection.attributes.forEach(
-        attribute => {
-          if (attribute) expect(values[index].values?.[attribute.name]).toBe(attribute.value(itemIndex))
-        }
-      )
+      collection.attributes.forEach(attribute => {
+        expect(attribute && values[index].values?.[attribute.name]).toBe(attribute?.value(itemIndex))
+      })
     })
   })
 })
