@@ -308,6 +308,13 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.collections.find(coll => coll.hasCase(caseId))
   }
 
+  function getUniqueCollectionName(name: string) {
+    let suffix = 1
+    let collectionName = name
+    while (getCollectionByName(collectionName)) collectionName = `${name}${suffix++}`
+    return collectionName
+  }
+
   return {
     views: {
       // get collection from id
@@ -320,6 +327,7 @@ export const DataSet = V2Model.named("DataSet").props({
       // undefined => attribute not present in dataset
       getCollectionForAttribute,
       getCollectionForCase,
+      getUniqueCollectionName,
       // leaf-most child cases (i.e. those not grouped in a collection)
       childCases() {
         if (!isValidCollectionGroups.get()) {
@@ -464,7 +472,12 @@ export const DataSet = V2Model.named("DataSet").props({
       invalidateCollectionGroups() {
         isValidCollectionGroups.set(false)
       },
-      addCollection(collection: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
+      addCollection(collectionSnap: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
+        // ensure collection has a unique name
+        const { name, ...rest } = collectionSnap
+        const _name = getUniqueCollectionName(name ?? "")
+        const collection = { name: _name, ...rest }
+        
         // place the collection in the correct location
         let beforeIndex = options?.before ? getCollectionIndex(options.before) : -1
         if (beforeIndex < 0 && options?.after) {
