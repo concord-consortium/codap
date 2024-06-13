@@ -167,6 +167,12 @@ export function resolveResources(
     }
   }
 
+  const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
+    if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+
+    return operand?.value
+  }
+
   if (resourceSelector.caseSearch && collection && dataContext) {
     const { func, left, right, valid } = parseSearchQuery(resourceSelector.caseSearch, collection)
     if (valid) {
@@ -176,13 +182,9 @@ export function resolveResources(
         const itemId = aCase?.childCaseIds[0]
         if (itemId) {
           const itemIndex = dataContext.caseIndexFromID(itemId)
-          const getValue = (operand?: DIParsedOperand) => {
-            if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
-
-              return operand?.value
+          if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
+            result.caseSearch?.push(aCase)
           }
-
-          if (func(getValue(left), getValue(right))) result.caseSearch?.push(aCase)
         }
       })
     }
@@ -209,13 +211,7 @@ export function resolveResources(
     if (valid) {
       result.itemSearch = dataContext.cases.filter(aCase => {
         const itemIndex = dataContext.caseIndexFromID(aCase.__id__)
-        const getValue = (operand?: DIParsedOperand) => {
-          if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
-
-          return operand?.value
-        }
-
-        return func(getValue(left), getValue(right))
+        return func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))
       })
     }
   }
