@@ -1,7 +1,8 @@
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { DIParsedQuery, DIQueryFunction } from "./data-interactive-types"
 
-export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParsedQuery {
+export function parseSearchQuery(query: string, dataContextOrCollection?: IDataSet | ICollectionModel): DIParsedQuery {
   if (query === "*") {
     return { valid: true, func: () => true }
   }
@@ -21,7 +22,7 @@ export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParse
       : numberValue
     return {
       value,
-      attr: dataContext?.getAttributeByName(rawValue),
+      attr: dataContextOrCollection?.getAttributeByName(rawValue),
       name: rawValue
     }
   }
