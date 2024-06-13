@@ -464,6 +464,10 @@ test("hierarchical collection support", () => {
   const parentAttr = data.addAttribute({ name: "parentAttr" }, { collection: parentCollectionId })
   expect(parentCollection.getAttribute(childAttr.id)).toBeUndefined()
   expect(parentCollection.getAttribute(parentAttr.id)).toBe(parentAttr)
+  
+  // Names must be unique
+  const parentCollection2 = data.addCollection({ name: "ParentCollection" })
+  expect(parentCollection2.name).toBe("ParentCollection1")
 
   destroy(data)
   jestSpyConsole("warn", spy => {
