@@ -295,7 +295,7 @@ context("Test graph axes attribute menu", () => {
     ah.openAxisAttributeMenu("left")
     ah.verifyAxisMenuIsClosed("left")
   })
-  it.only("will add and remove categorical attribute to x axis from attribute menu with undo/redo", () => {
+  it("will add and remove categorical attribute to x axis from attribute menu with undo/redo", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.addAttributeToAxis(arrayOfAttributes[7], "bottom") // Habitat => x-axis
     ah.verifyTickMarksDoNotExist("left")
@@ -305,7 +305,7 @@ context("Test graph axes attribute menu", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
 
     // Undo the addition of the categorical attribute
-    // used force:true because Cypress fails locally at this step
+    // Used force:true because Cypress fails locally at this step
     toolbar.getUndoTool().click({force:true})
     cy.wait(500)
 
