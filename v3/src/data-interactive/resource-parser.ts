@@ -183,7 +183,7 @@ export function resolveResources(
         if (itemId) {
           const itemIndex = dataContext.caseIndexFromID(itemId)
           if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
-            result.caseSearch?.push(aCase)
+            result.caseSearch?.push(aCase.pseudoCase)
           }
         }
       })

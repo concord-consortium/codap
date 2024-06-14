@@ -12,8 +12,8 @@ export const diCaseSearchHandler: DIHandler = {
 
     return {
       success: true,
-      values: resources.caseSearch?.map(caseGroup => 
-        getCaseRequestResultValues(caseGroup.pseudoCase, dataContext).case)
+      values: resources.caseSearch?.map(aCase => 
+        getCaseRequestResultValues(aCase, dataContext).case)
     }
   }
 }

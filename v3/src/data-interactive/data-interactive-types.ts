@@ -2,7 +2,7 @@ import { RequireAtLeastOne } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICodapV2Attribute, ICodapV2AttributeV3, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { IDataSet } from "../models/data/data-set"
-import { CaseGroup, ICase, ICaseID } from "../models/data/data-set-types"
+import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
@@ -136,7 +136,7 @@ export interface DIResources {
   caseByID?: ICase
   caseByIndex?: ICase
   caseFormulaSearch?: DICase[]
-  caseSearch?: CaseGroup[]
+  caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
