@@ -1,5 +1,37 @@
 # Changelog
 
+## Version 3.0.0-pre.1652 - June 14, 2024
+
+### ✨ Features & Improvements:
+- **PT-187459320:** Graph has option to Show Measures for Selection
+- **PT-186948982:** The user can configure a numeric univariate plot to display a histogram
+- **PT-186948671:** The user can cause a normal curve to be drawn on top of a dot plot
+- **PT-187425759:** DataSet: eliminate `ungrouped` "collection"; synchronize attribute handling between DataSet and Collections
+- **PT-187751261:** User can plot a normal curve on top of a histogram
+- **PT-187278604:** Bring back undo/redo calc component rename tests
+- **PT-187692388:** DI Item Requests
+- **PT-187709040:** DI ItemSearch Requests
+- **PT-187612773:** Add checks for undo/redo of Slider component open and close
+- **PT-187612475:** Automation of Graph Inspector panel
+- **PT-185315412:** Automation for import of CSV and CODAP docs
+
+### 🐞 Bug Fixes:
+- **PT-187637670:** Attribute index sticking issue when hiding attributes in mammals dataset
+- **PT-187281586:** Fix webView iframe reload problem
+- **PT-187728058:** Marquee selection shows up in wrong subplot
+- **PT-187744843:** Axis attribute label not showing
+- **PT-187757747:** Drag-switching x-y attributes is broken
+- **PT-187751757:** Components disappear behind table when resizing
+- **PT-187628465:** Experiments in sampler opening in new tables
+- **PT-187333878:** Overlapping URL menu in Sampler Plugin on CODAP
+- **PT-187757811:** Rehydrating graph problem
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  172010 bytes |                            0.37% |
+|  index.js | 5391618 bytes |                            0.41% |
+
 ## Version 3.0.0-pre.1652 - May 31, 2024
 
 ### ✨ Features & Improvements:
