@@ -160,7 +160,10 @@ export const DataSet = V2Model.named("DataSet").props({
   selectionChanges: 0,
   // map from pseudo-case ID to the CaseGroup it represents
   pseudoCaseMap: new Map<string, CaseGroup>(),
-  transactionCount: 0
+  transactionCount: 0,
+  // fields used by the Collaborative plugin
+  preventAttributeDeletion: false,
+  respectEditableItemAttribute: false
 }))
 .volatile(() => {
   let cachingCount = 0
@@ -518,6 +521,12 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .actions(self => ({
+  setPreventAttributeDeletion(value: boolean) {
+    self.preventAttributeDeletion = value
+  },
+  setRespectEditableItemAttribute(value: boolean) {
+    self.respectEditableItemAttribute = value
+  },
   moveAttribute(attributeID: string, options?: IMoveAttributeCollectionOptions): IAttributeChangeResult {
     let removedCollectionId: string | undefined
     const attribute = self.getAttribute(attributeID)
