@@ -136,7 +136,7 @@ export interface DIResources {
   caseByID?: ICase
   caseByIndex?: ICase
   caseFormulaSearch?: DICase[]
-  caseSearch?: DICase[]
+  caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
@@ -208,6 +208,7 @@ export interface DIResourceSelector {
   case?: string
   caseByID?: string
   caseByIndex?: string
+  caseSearch?: string
   collection?: string
   component?: string
   dataContext?: string

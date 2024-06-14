@@ -167,9 +167,28 @@ export function resolveResources(
     }
   }
 
-  // if (resourceSelector.caseSearch) {
-  //   result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
-  // }
+  const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
+    if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+
+    return operand?.value
+  }
+
+  if (resourceSelector.caseSearch && collection && dataContext) {
+    const { func, left, right, valid } = parseSearchQuery(resourceSelector.caseSearch, collection)
+    if (valid) {
+      result.caseSearch = []
+      dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
+        const aCase = dataContext.pseudoCaseMap.get(caseGroup.__id__)
+        const itemId = aCase?.childCaseIds[0]
+        if (itemId) {
+          const itemIndex = dataContext.caseIndexFromID(itemId)
+          if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
+            result.caseSearch?.push(aCase.pseudoCase)
+          }
+        }
+      })
+    }
+  }
 
   // if (resourceSelector.caseFormulaSearch) {
   //   result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
@@ -192,13 +211,7 @@ export function resolveResources(
     if (valid) {
       result.itemSearch = dataContext.cases.filter(aCase => {
         const itemIndex = dataContext.caseIndexFromID(aCase.__id__)
-        const getValue = (operand?: DIParsedOperand) => {
-          if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
-
-          return operand?.value
-        }
-
-        return func(getValue(left), getValue(right))
+        return func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))
       })
     }
   }
