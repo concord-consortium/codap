@@ -27,6 +27,44 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       return this.computeStandardDeviation(attrId, cellKey, dataConfig) /
         Math.sqrt(self.getCaseCount(attrId, cellKey, dataConfig))
     },
+    computeHistogram(binAlignment:number, binWidth:number, attrId: string, cellKey: Record<string, string>,
+                     dataConfig: IGraphDataConfigurationModel) {
+      // binAlignment is the left edge of a bin, not necessarily the first bin
+      // The data values are placed in bins with the given binAlignment and binWidth.
+      // Return an array of the bin centers and an array of the bin counts.
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      // Create a map to store counts for each bin
+      const binCounts: { [center: number]: number } = {}
+
+      caseValues.forEach(value => {
+        // Determine which bin the value belongs to
+        const binIndex = Math.floor((value - binAlignment) / binWidth)
+        // Calculate the center of the bin
+        const binCenter = binAlignment + binIndex * binWidth + binWidth / 2
+
+        // Increment the count for the bin
+        if (binCounts[binCenter] === undefined) {
+          binCounts[binCenter] = 1
+        } else {
+          binCounts[binCenter]++
+        }
+      })
+
+      // Determine the range of bins
+      const minValue = Math.min(...caseValues)
+      const maxValue = Math.max(...caseValues)
+      const minBinIndex = Math.floor((minValue - binAlignment) / binWidth)
+      const maxBinIndex = Math.floor((maxValue - binAlignment) / binWidth)
+
+      // Extract the bin centers and counts into an array of objects
+      const result: { x:number, y:number}[] = []
+      for (let binIndex = minBinIndex; binIndex <= maxBinIndex; binIndex++) {
+        const binCenter = binAlignment + binIndex * binWidth + binWidth / 2
+        const count = binCounts[binCenter] || 0
+        result.push({ x: binCenter, y: count })
+      }
+      return result
+    },
   }))
 
 export interface INormalCurveAdornmentModel extends Instance<typeof NormalCurveAdornmentModel> {}

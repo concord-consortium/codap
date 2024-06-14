@@ -10,8 +10,8 @@ import { PlotType } from "../graphing-types"
 export const AdornmentsStore = AdornmentsBaseStore
   .named("AdornmentsStore")
   .views(self => ({
-    getAdornmentsMenuItems(plotType: PlotType) {
-      return getAdornmentsMenuItemsFromTheStore(self, plotType)
+    getAdornmentsMenuItems(plotType: PlotType, useGaussianOptions: boolean) {
+      return getAdornmentsMenuItemsFromTheStore(self, plotType, useGaussianOptions)
     },
   }))
 

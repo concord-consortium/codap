@@ -2,19 +2,22 @@ import React from "react"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
+import { useGraphOptions } from "../../hooks/use-graph-options"
 import {
   kNormalCurveClass, kNormalCurveLabelKey, kNormalCurveType, kNormalCurvePrefix,
   kNormalCurveUndoAddKey, kNormalCurveRedoAddKey, kNormalCurveRedoRemoveKey,
-  kNormalCurveUndoRemoveKey
+  kNormalCurveUndoRemoveKey, kGaussianFitLabelKey
 } from "./normal-curve-adornment-types"
 import { NormalCurveAdornmentModel } from "./normal-curve-adornment-model"
 import { NormalCurveAdornmentComponent } from "./normal-curve-adornment-component"
 
 const Controls = () => {
+  const { isGaussianFit } = useGraphOptions()
+  const labelKey = isGaussianFit ? kGaussianFitLabelKey : kNormalCurveLabelKey
   return (
     <AdornmentCheckbox
       classNameValue={kNormalCurveClass}
-      labelKey={kNormalCurveLabelKey}
+      labelKey={labelKey}
       type={kNormalCurveType}
     />
   )

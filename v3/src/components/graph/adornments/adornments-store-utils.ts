@@ -34,22 +34,30 @@ export function isMeasureMenuItem(item: IMeasureMenuItem | IGroupItem): item is 
   return item.type !== 'Group'
 }
 
-export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStore, plotType: PlotType) {
+export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStore, plotType: PlotType,
+                                                   useGaussianOptions: boolean) {
   const measureMenuItems: MeasureMenuItemArray = []
 
   function constructMeasureItem(measure: IMeasure): IMeasureMenuItem {
+    const isGaussianFit = measure.title === "DG.Inspector.graphPlottedNormal" && useGaussianOptions,
+      measureTitle = isGaussianFit ? "DG.Inspector.graphPlottedGaussianFit" : measure.title
+    const adornmentComponentInfo = getAdornmentComponentInfo(measure.type)
+
     return {
-      title: measure.title,
+      title: measureTitle,
       type: measure.type,
       checked: theStore.isShowingAdornment(measure.type),
-      componentInfo: getAdornmentComponentInfo(measure.type),
+      componentInfo: adornmentComponentInfo,
       componentContentInfo: getAdornmentContentInfo(measure.type),
     }
   }
 
   function constructGroupItem(group: IMeasure): IGroupItem {
+    const groupTitle = (group.title === "DG.Inspector.graphBoxPlotNormalCurveOptions" && useGaussianOptions)
+      ? "DG.Inspector.graphBoxPlotGaussianFitOptions"
+      : group.title
     return {
-      title: group.title,
+      title: groupTitle,
       type: group.type,
       rulerStateKey: group.rulerStateKey,
       menuItems: group.items?.map(constructMeasureItem) || []

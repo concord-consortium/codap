@@ -3,6 +3,7 @@ import { Box, Checkbox, Flex, FormControl } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { t } from "../../../../utilities/translation/translate"
 import { ITileModel } from "../../../../models/tiles/tile-model"
+import { getDocumentContentPropertyFromNode } from "../../../../utilities/mst-utils"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { GraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { GraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
@@ -24,7 +25,10 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
   tile, panelRect, buttonRect, setShowPalette
 }: IProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile.content : undefined
-  const measures = graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType)
+  const useGaussianOptions = graphModel?.pointDisplayType === "histogram" &&
+    getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
+  const measures =
+    graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType, useGaussianOptions)
 
   return (
     <InspectorPalette

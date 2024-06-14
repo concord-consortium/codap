@@ -1,5 +1,7 @@
 import {FormatLocaleDefinition, formatLocale} from "d3-format"
 
+export const sqrtTwoPi = Math.sqrt(2 * Math.PI)
+
 // locale which uses ASCII minus sign and ignores grouping and currency
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
 const asciiFormat = asciiLocale.format
@@ -136,4 +138,69 @@ export function normal(x: number, amp: number, mu: number, sigma: number) {
   return amp * Math.exp(exponent)
 }
 
+type XYToNumberFunction = (x: number, y: number) => number
+
+/**
+ * Gradient descent algorithm that fits a gaussian to points that are typically the top-middles of
+ * a histogram by least squares optimizing mu and sigma. The amplitude is assumed to be fixed.
+ */
+export function fitGaussianGradientDescent(points: {x:number, y:number}[], amp:number, mu0:number, sigma0:number) {
+
+  function sumOfSquares(points1: {x:number, y:number}[], amp1:number, mu1:number, sigma1:number) {
+    return points1.reduce(function(sum, p) {
+      return sum + Math.pow(p.y - normal(p.x, amp1, mu1, sigma1), 2)
+    }, 0)
+  }
+
+  // Function to compute the gradient of f at (x, y)
+  function gradient(f:XYToNumberFunction, x:number, y:number, h?:number) {
+    h = h || 1e-3
+    const fxPlus = f(x + h, y),
+      fxMinus = f(x - h, y),
+      dfdx = (fxPlus - fxMinus) / (2 * h),
+      fyPlus = f(x, y + h),
+      fyMinus = f(x, y - h),
+      dfdy = (fyPlus - fyMinus) / (2 * h)
+    return [dfdx, dfdy]
+  }
+
+  // Gradient Descent function to find local minimum of f(x, y)
+  function gradientDescent(f:XYToNumberFunction, x0:number, y0:number, numericRange:number) {
+
+    const learningRate = 0.001,
+      iterations = 1000,
+      tolerance = 1e-5
+    let x = x0, y = y0, prevValue = f(x, y)/*,
+         logInterval = iterations / 10*/
+
+    for (let i = 0; i < iterations; i++) {
+      const gradient_ = gradient(f, x, y, numericRange / 100),
+        dfdx = gradient_[0],
+        dfdy = gradient_[1]
+
+      // Update x and y
+      x -= learningRate * dfdx
+      y -= learningRate * dfdy
+
+      const newValue = f(x, y)
+      if (Math.abs(newValue - prevValue) < tolerance) {
+        break
+      }
+      prevValue = newValue
+    }
+
+    return [x, y]
+  }
+
+  /**
+   * We define this function to pass to gradientDescent, which expects a function of two variables.
+   */
+  function fToMinimize(mu:number, sigma:number) {
+    return sumOfSquares(points, amp, mu, sigma)
+  }
+
+  const muSigma = gradientDescent(fToMinimize, mu0, sigma0, sigma0)
+
+  return { mu: muSigma[0], sigma: muSigma[1] }
+}
 
