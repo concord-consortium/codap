@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import ReactDOMFactories from "react-dom-factories"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
+import React from 'react'
+import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
 
 import "./attribute-name-cell.v2"
 import "./attribute-value-cell.v2"
@@ -229,6 +231,19 @@ iDataContext.doSelectCases({
               this.currEditField = null
               this.setState({ attrIdOfValueToEdit: null })
             }
+          },
+
+          /**
+           *  --------------Show the modal for editing attribute properties--------
+           */
+          editAttributeModal(attributeId, isOpen) {
+            if (attributeId) {
+              this.setState({modalIsOpen: isOpen, currentAttributeId: attributeId})
+            }
+          },
+
+          closeModal() {
+            this.setState({ modalIsOpen: false, currentAttributeId: null })
           },
 
           /**
@@ -501,11 +516,7 @@ iDataContext.doSelectCases({
                   }
                 }.bind(this),
                 editAttribute = function () {
-                  this.updateAttribute = function(iAttrRef, iChangedAttrProps) {
-                    updateAttribute(iChangedAttrProps)
-                  }
-                  var attributePane = DG.AttributeEditorView.create({attrRef: {attribute: iAttr}, attrUpdater: this})
-                  attributePane.append()
+                  this.editAttributeModal(iAttr.get('id'), true)
                 }.bind(this),
 
                 editFormula = function () {
@@ -906,7 +917,13 @@ return tResult
             return div({
               className: 'react-data-card dg-wants-wheel',
               onMouseDownCapture: DG.Core.setClickHandlingForReact,
-            }, tCollEntries)
+            },
+            tCollEntries,
+            this.state.modalIsOpen && React.createElement(EditAttributePropertiesModal, {
+              attributeId: this.state.currentAttributeId,
+              isOpen: this.state.modalIsOpen,
+              onClose: this.closeModal
+            }))
           }
         }
       }()), [])
