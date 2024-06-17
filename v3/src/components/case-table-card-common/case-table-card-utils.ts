@@ -70,17 +70,15 @@ export const createTableOrCardForDataset = (
 }
 
 export const createOrShowTableOrCardForDataset = (
-  _sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType, options?: INewTileOptions
+  sharedDataSet: ISharedDataSet, tileType: kCardOrTableTileType = kCaseTableTileType, options?: INewTileOptions
 ) => {
   const document = appState.document
   const { content } = document
   const manager = getSharedModelManager(document)
   const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
-
-  const sharedDataSet = manager?.getSharedModelsByType("SharedDataSet")
-    .find(m => m.id === _sharedDataSet.id) as ISharedDataSet | undefined
   const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === sharedDataSet?.dataSet.id)
   if (!sharedDataSet || !caseMetadata) return
+  
   const existingTileId = caseMetadata.lastShownTableOrCardTileId
   if (existingTileId) { // We already have a case card/table so make sure it's visible and has focus
     const existingTile = content?.getTile(existingTileId)
