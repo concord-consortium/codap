@@ -325,7 +325,7 @@ export const CollectionModel = V2Model
       () => {
         self.groupKeyCaseIds.clear()
         if (self.child) self.itemData.invalidate()
-      }, { name: "CollectionModel.sortedAttributes reaction", equals: comparer.structural }
+      }, { name: "CollectionModel.sortedDataAttributes reaction", equals: comparer.structural }
     ))
   },
   prepareSnapshot() {
