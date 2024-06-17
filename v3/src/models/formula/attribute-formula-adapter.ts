@@ -70,7 +70,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
 
     const calculateSameLevelGroups = () => {
       const formulaCollection = dataSet.collections[collectionIndex]
-      formulaCollection?.caseGroups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
+      formulaCollection?.caseGroups.forEach((group: CaseGroup) => processCase(group.groupedCase))
     }
 
     // Note that order of execution of these functions is critical. First, we need to calculate child collection groups,
@@ -95,7 +95,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     const formulaCollection = dataSet.collections[collectionIndex]
     if (formulaCollection) {
       formulaCollection.caseGroups.forEach((group: CaseGroup) =>
-        caseChildrenCount[group.pseudoCase.__id__] =
+        caseChildrenCount[group.groupedCase.__id__] =
           group.childCaseIds ? group.childCaseIds.length : group.childItemIds.length
       )
     }

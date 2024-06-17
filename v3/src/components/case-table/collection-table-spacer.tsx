@@ -80,7 +80,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     // collapse the parent case
     caseMetadata?.setIsCollapsed(parentCaseId, !caseMetadata?.isCollapsed(parentCaseId))
     // scroll to the first expanded/collapsed child case (if necessary)
-    const parentPseudoCase = data?.pseudoCaseMap.get(parentCaseId)
+    const parentPseudoCase = data?.caseGroupMap.get(parentCaseId)
     const firstChildId = parentPseudoCase?.childCaseIds?.[0] || parentPseudoCase?.childItemIds?.[0]
     const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)

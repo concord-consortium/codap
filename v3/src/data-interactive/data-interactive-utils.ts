@@ -29,7 +29,7 @@ export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: 
   const actualCaseIndex = dataSet.itemIDMap.get(caseId) ?? -1
   attributes.map(attribute => {
     if (attribute?.name) {
-      values[attribute.name] = dataSet.pseudoCaseMap.get(caseId)?.pseudoCase[attribute.id] ??
+      values[attribute.name] = dataSet.caseGroupMap.get(caseId)?.groupedCase[attribute.id] ??
         attribute?.value(actualCaseIndex)
     }
   })

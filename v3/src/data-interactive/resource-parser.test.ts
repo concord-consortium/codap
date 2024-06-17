@@ -85,7 +85,7 @@ describe("DataInteractive ResourceParser", () => {
     const itemId = dataset.getCaseAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].caseByID[${toV2Id(itemId)}]`).caseByID?.__id__).toBe(itemId)
 
-    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
     expect(resolve(`dataContext[data].caseByID[${toV2Id(caseId)}]`).caseByID?.__id__).toBe(caseId)
   })
 
@@ -99,7 +99,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[${childCollectionId}].caseByIndex[0]`).caseByIndex?.__id__)
       .toBe(itemId)
 
-    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)
   })
 
@@ -159,7 +159,7 @@ describe("DataInteractive ResourceParser", () => {
   it("finds itemByCaseID", () => {
     expect(resolve(`dataContext[data].itemByCaseID[unknown]`).itemByCaseID).toBeUndefined()
 
-    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
     const itemId = dataset.getCaseAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
   })

@@ -184,7 +184,7 @@ describe("DataSet collections", () => {
     expect(data.attrIndexFromID("cId")).toBe(2)
   })
 
-  it("selects all child cases when selecting a parent/pseudo-case", () => {
+  it("selects all child cases when selecting a parent case", () => {
     data.moveAttributeToNewCollection("aId")
     const pseudoCases = data.getCasesForAttributes(["aId"])
     data.selectCases([pseudoCases[0].__id__])
@@ -195,11 +195,11 @@ describe("DataSet collections", () => {
     expect(data.selection.size).toBe(9)
   })
 
-  it("sets values of all cases when setting values of pseudo-cases", () => {
+  it("sets values of all cases when setting values of parent cases", () => {
     data.moveAttributeToNewCollection("aId")
-    const pseudoCases = data.getCasesForAttributes(["aId"])
-    const pseudoCase = { ...pseudoCases[0], aId: "4" }
-    data.setCaseValues([pseudoCase])
+    const parentCases = data.getCasesForAttributes(["aId"])
+    const parentCase = { ...parentCases[0], aId: "4" }
+    data.setCaseValues([parentCase])
     for (const caseId of data.collections[0].caseGroups[0].childItemIds) {
       expect(data.getValue(caseId, "aId")).toBe("4")
     }

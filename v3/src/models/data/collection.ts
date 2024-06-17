@@ -178,7 +178,7 @@ export const CollectionModel = V2Model
 
           caseGroup = {
             collectionId: self.id,
-            pseudoCase: {
+            groupedCase: {
               __id__: caseId,
               ...parent,
               [symIndex]: newCaseIndex
@@ -249,7 +249,7 @@ export const CollectionModel = V2Model
         runInAction(() => _caseGroups.set(caseGroups))
 
         const cases = self.caseIds
-                        .map(caseId => self.getCaseGroup(caseId)?.pseudoCase)
+                        .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
                         .filter(groupedCase => !!groupedCase) as IGroupedCase[]
         runInAction(() => _cases.set(cases))
       }

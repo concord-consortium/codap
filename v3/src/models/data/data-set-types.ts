@@ -95,8 +95,8 @@ export interface IGroupedCase extends ICase {
 export interface CaseGroup {
   // id of collection containing the group
   collectionId: string
-  // id of pseudo-case and attribute values
-  pseudoCase: IGroupedCase
+  // object that represents the case
+  groupedCase: IGroupedCase
   // ids of child cases in the group (if any)
   childCaseIds?: string[]
   // ids of leaf child cases (items) in the group

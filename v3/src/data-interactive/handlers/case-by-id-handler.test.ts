@@ -9,7 +9,7 @@ describe("DataInteractive CaseByIDHandler", () => {
     const { dataset, a3 } = setupTestDataset()
     const aCase = dataset.getCaseAtIndex(4)
     const caseId = aCase!.__id__
-    const pseudoCase = Array.from(dataset.pseudoCaseMap.values())[1].pseudoCase
+    const pseudoCase = Array.from(dataset.caseGroupMap.values())[1].groupedCase
     const pseudoCaseId = pseudoCase.__id__
     return { dataContext: dataset, aCase, caseId, pseudoCase, pseudoCaseId, a3 }
   }
@@ -41,7 +41,7 @@ describe("DataInteractive CaseByIDHandler", () => {
     expect(a3.numValues[dataContext.caseIndexFromID(caseId)!]).toBe(10)
 
     expect(handler.update?.({ dataContext, caseByID: pseudoCase }, { values: { a3: 100 } }).success).toBe(true)
-    dataContext.pseudoCaseMap.get(pseudoCaseId)?.childItemIds.forEach(id => {
+    dataContext.caseGroupMap.get(pseudoCaseId)?.childItemIds.forEach(id => {
       expect(a3.numValues[dataContext.caseIndexFromID(id)!]).toBe(100)
     })
   })
@@ -56,7 +56,7 @@ describe("DataInteractive CaseByIDHandler", () => {
     expect(handler.delete?.({ dataContext, caseByID: aCase }).success).toBe(true)
     expect(dataContext.getCase(caseId)).toBeUndefined()
 
-    const childCaseIds = dataContext.pseudoCaseMap.get(pseudoCaseId)!.childItemIds
+    const childCaseIds = dataContext.caseGroupMap.get(pseudoCaseId)!.childItemIds
     childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeDefined())
     expect(handler.delete?.({ dataContext, caseByID: pseudoCase }).success).toBe(true)
     childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())

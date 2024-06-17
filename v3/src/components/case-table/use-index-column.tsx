@@ -43,8 +43,8 @@ export const useIndexColumn = () => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row
     const index = _index != null ? _index : data?.caseIndexFromID(__id__)
     const collapsedCases = (data && parentId && caseMetadata?.isCollapsed(parentId))
-                            ? data.pseudoCaseMap.get(parentId)?.childCaseIds?.length ??
-                              data.pseudoCaseMap.get(parentId)?.childItemIds.length
+                            ? data.caseGroupMap.get(parentId)?.childCaseIds?.length ??
+                              data.caseGroupMap.get(parentId)?.childItemIds.length
                             : undefined
     return (
       <IndexCell caseId={__id__} index={index} collapsedCases={collapsedCases} />

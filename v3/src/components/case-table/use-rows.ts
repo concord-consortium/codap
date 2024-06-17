@@ -199,7 +199,7 @@ export const useRows = () => {
     const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
-        const caseGroup = data?.pseudoCaseMap.get(caseId)
+        const caseGroup = data?.caseGroupMap.get(caseId)
         const childCaseIds = caseGroup?.childCaseIds ?? caseGroup?.childItemIds
         const firstChildCaseId = childCaseIds?.[0]
         if (firstChildCaseId) {
@@ -226,8 +226,8 @@ export const useRows = () => {
     data?.applyModelChange(
       () => data.setCaseValues(caseValues),
       {
-        // TODO notificaitons should be () => updateCasesNotification, but that won't work well
-        // until pseudo case ids are persistent
+        // TODO notifications should be () => updateCasesNotification, but that won't work well
+        // until case ids are persistent
         notifications: updateCasesNotification(data, caseValues),
         undoStringKey: "DG.Undo.caseTable.editCellValue",
         redoStringKey: "DG.Redo.caseTable.editCellValue"

@@ -149,8 +149,8 @@ export const DataSet = V2Model.named("DataSet").props({
   // MobX-observable set of selected case IDs
   selection: observable.set<string>(),
   selectionChanges: 0,
-  // map from pseudo-case ID to the CaseGroup it represents
-  pseudoCaseMap: new Map<string, CaseGroup>(),
+  // map from case ID to the CaseGroup it represents
+  caseGroupMap: new Map<string, CaseGroup>(),
   transactionCount: 0
 }))
 .extend(self => {
@@ -422,7 +422,7 @@ export const DataSet = V2Model.named("DataSet").props({
 .views(self => ({
   validateCaseGroups() {
     if (!self.isValidCaseGroups) {
-      self.pseudoCaseMap.clear()
+      self.caseGroupMap.clear()
       self.collections.forEach((collection, index) => {
         // update the cases
         collection.updateCaseGroups()
@@ -432,7 +432,7 @@ export const DataSet = V2Model.named("DataSet").props({
         const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
         collection.completeCaseGroups(parentCaseGroups)
         // update the pseudoCaseMap
-        collection.caseGroups.forEach(group => self.pseudoCaseMap.set(group.pseudoCase.__id__, group))
+        collection.caseGroups.forEach(group => self.caseGroupMap.set(group.groupedCase.__id__, group))
       })
       self.setValidCaseGroups()
     }
@@ -578,7 +578,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
-        const pseudoCase = self.pseudoCaseMap.get(caseID)
+        const pseudoCase = self.caseGroupMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase?.childItemIds[0] : caseID
         const index = self.itemIDMap.get(_caseId)
         return index != null ? this.getValueAtIndex(index, attributeID) : undefined
@@ -598,7 +598,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
-        const pseudoCase = self.pseudoCaseMap.get(caseID)
+        const pseudoCase = self.caseGroupMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase.childItemIds[0] : caseID
         const index = self.itemIDMap.get(_caseId)
         return index != null ? this.getStrValueAtIndex(index, attributeID) : ""
@@ -618,7 +618,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // The values of a pseudo-case are considered to be the values of the first real case.
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
-        const pseudoCase = self.pseudoCaseMap.get(caseID)
+        const pseudoCase = self.caseGroupMap.get(caseID)
         const _caseId = pseudoCase ? pseudoCase.childItemIds[0] : caseID
         const index = _caseId ? self.itemIDMap.get(_caseId) : undefined
         return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
@@ -648,7 +648,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       isCaseSelected(caseId: string) {
         // a pseudo-case is selected if all of its individual cases are selected
-        const group = self.pseudoCaseMap.get(caseId)
+        const group = self.caseGroupMap.get(caseId)
         return group
                 ? group.childItemIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
@@ -839,7 +839,7 @@ export const DataSet = V2Model.named("DataSet").props({
         const items: IItem[] = []
         cases.forEach(aCase => {
           // convert each parent case change to a change to each underlying item
-          const caseGroup = self.pseudoCaseMap.get(aCase.__id__)
+          const caseGroup = self.caseGroupMap.get(aCase.__id__)
           if (caseGroup?.childCaseIds?.length) {
             items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
           }
@@ -907,7 +907,7 @@ export const DataSet = V2Model.named("DataSet").props({
       selectCases(caseIds: string[], select = true) {
         const ids: string[] = []
         caseIds.forEach(id => {
-          const pseudoCase = self.pseudoCaseMap.get(id)
+          const pseudoCase = self.caseGroupMap.get(id)
           if (pseudoCase) {
             ids.push(...pseudoCase.childItemIds)
           } else {
@@ -928,7 +928,7 @@ export const DataSet = V2Model.named("DataSet").props({
       setSelectedCases(caseIds: string[]) {
         const ids: string[] = []
         caseIds.forEach(id => {
-          const pseudoCase = self.pseudoCaseMap.get(id)
+          const pseudoCase = self.caseGroupMap.get(id)
           if (pseudoCase) {
             ids.push(...pseudoCase.childItemIds)
           } else {
@@ -943,7 +943,7 @@ export const DataSet = V2Model.named("DataSet").props({
 })
 .views(self => ({
   getParentValues(parentId: string) {
-    const parentCase = self.pseudoCaseMap.get(parentId)
+    const parentCase = self.caseGroupMap.get(parentId)
     const parentCollection = self.getCollection(parentCase?.collectionId)
     const values: Record<string, string> = {}
     parentCollection?.allAttributes.forEach(attr => {

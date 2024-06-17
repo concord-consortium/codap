@@ -150,7 +150,7 @@ export function resolveResources(
   }
 
   const getCaseById = (caseId: string) =>
-    dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+    dataContext?.caseGroupMap.get(caseId)?.groupedCase ?? dataContext?.getCase(caseId)
 
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
@@ -219,7 +219,7 @@ export function resolveResources(
 
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
-    const itemId = dataContext?.pseudoCaseMap.get(caseId)?.childItemIds[0]
+    const itemId = dataContext?.caseGroupMap.get(caseId)?.childItemIds[0]
     if (itemId) result.itemByCaseID = dataContext?.getCase(itemId)
   }
 
