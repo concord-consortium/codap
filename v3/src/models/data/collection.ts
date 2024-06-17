@@ -237,8 +237,14 @@ export const CollectionModel = V2Model
         if (parentCaseGroups) {
           self.caseIds.splice(0, self.caseIds.length)
           // sort cases by parent cases
-          parentCaseGroups.forEach(group => {
-            const childCaseIds = group.childCaseIds ?? []
+          parentCaseGroups.forEach(parentGroup => {
+            const childCaseIds = parentGroup.childCaseIds ?? []
+            // update indices
+            childCaseIds.forEach((childCaseId, index) => {
+              const caseGroup = self.getCaseGroup(childCaseId)
+              caseGroup && (caseGroup.groupedCase[symIndex] = index)
+            })
+            // append case ids in grouped order
             self.caseIds.push(...childCaseIds)
           })
         }
