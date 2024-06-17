@@ -104,6 +104,25 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)
   })
 
+  it("finds caseSearch", () => {
+    expect(resolve(`dataContext[data].caseSearch[a1==a]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[bad search]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[a2>]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[1!=2]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[a1==a]`).caseSearch).toBeUndefined()
+
+    const allResult = resolve(`dataContext[data].collection[collection2].caseSearch[*]`)
+    expect(allResult.caseSearch?.length).toBe(dataset.getCasesForCollection(c2.id).length)
+
+    const a1Result = resolve(`dataContext[data].collection[collection1].caseSearch[a1==a]`)
+    expect(a1Result.caseSearch?.length).toBe(1)
+
+    const a2Result = resolve(`dataContext[data].collection[collection2].caseSearch[ x < a2 ]`)
+    expect(a2Result.caseSearch?.length).toBe(3)
+  })
+
   it("finds item", () => {
     expect(resolve(`dataContext[data].item`).item).toBeUndefined()
     expect(resolve(`dataContext[data].item[-1]`).item).toBeUndefined()
