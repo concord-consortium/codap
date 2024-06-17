@@ -70,7 +70,8 @@ export const DataConfigurationModel = types
       return this.attributeDescriptions[role]
     },
     // returns empty string (rather than undefined) for roles without attributes
-    attributeID(role: AttrRole) {
+    attributeID(role: AttrRole, _dataset?: IDataSet) {
+      const dataset = _dataset ?? self.dataset
 
       const defaultCaptionAttributeID = () => {
         // We find the childmost collection and return the first attribute in that collection. If there is no
@@ -78,16 +79,16 @@ export const DataConfigurationModel = types
         const attrIDs = (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend'] as const)
             .map(aRole => this.attributeID(aRole))
             .filter(id => !!id),
-          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
+          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, dataset)
         if (childmostCollectionID) {
-          const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
+          const childmostCollection = dataset?.getCollection(childmostCollectionID),
             childmostCollectionAttributes = childmostCollection?.attributes
           if (childmostCollectionAttributes?.length) {
             const firstAttribute = childmostCollectionAttributes[0]
             return firstAttribute?.id
           }
         }
-        return self.dataset?.childCollection.attributes[0]?.id
+        return dataset?.childCollection.attributes[0]?.id
       }
 
       let attrID = this.attributeDescriptionForRole(role)?.attributeID || ""
@@ -96,13 +97,14 @@ export const DataConfigurationModel = types
       }
       return attrID
     },
-    attributeType(role: AttrRole) {
+    attributeType(role: AttrRole, _dataset?: IDataSet) {
+      const dataset = _dataset ?? self.dataset
       const desc = this.attributeDescriptionForRole(role)
       if (desc?.type) {
         return desc.type
       }
       const attrID = this.attributeID(role)
-      const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
+      const attr = attrID ? dataset?.attrFromID(attrID) : undefined
       return attr?.type
     },
     get places() {
@@ -253,10 +255,11 @@ export const DataConfigurationModel = types
       return self.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
         .filter((aValue: number) => isFinite(aValue))
     },
-    categorySetForAttrRole(role: AttrRole) {
-      if (self.metadata) {
-        const attributeID = self.attributeID(role) || ''
-        return self.metadata.getCategorySet(attributeID)
+    categorySetForAttrRole(role: AttrRole, _metadata?: ISharedCaseMetadata, _dataset?: IDataSet) {
+      const metadata = _metadata ?? self.metadata
+      if (metadata) {
+        const attributeID = self.attributeID(role, _dataset) || ''
+        return metadata.getCategorySet(attributeID)
       }
     },
     potentiallyCategoricalRoles(): AttrRole[] {

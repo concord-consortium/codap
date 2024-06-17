@@ -1,3 +1,4 @@
+import { getSnapshot } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
 import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
@@ -7,8 +8,10 @@ import {
   AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
 } from "../../components/data-display/models/data-configuration-model"
 import { kGraphTileType } from "../../components/graph/graph-defs"
-import { IGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
+import { GraphContentModel, IGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
 import { kGraphDataConfigurationType } from "../../components/graph/models/graph-data-configuration-model"
+import { GraphLayout } from "../../components/graph/models/graph-layout"
+import { syncModelWithAttributeConfiguration } from "../../components/graph/models/graph-model-utils"
 import {
   IGraphPointLayerModelSnapshot, kGraphPointLayerType
 } from "../../components/graph/models/graph-point-layer-model"
@@ -28,8 +31,11 @@ import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
+import { IDataSet } from "../../models/data/data-set"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
-import { kSharedCaseMetadataType, SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import {
+  ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
+} from "../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
@@ -138,10 +144,16 @@ export const diComponentHandler: DIHandler = {
 
           let layerIndex = 0
           const layers: Array<IGraphPointLayerModelSnapshot> = []
+          let firstDataSet: IDataSet | undefined
+          let firstMetaData: ISharedCaseMetadata | undefined
           getSharedDataSets(document).forEach(sharedDataSet => {
             const dataset = sharedDataSet.dataSet
             const metadata = getCaseMetadata(dataset.id)
             if (metadata) {
+              if (!firstDataSet) {
+                firstDataSet = dataset
+                firstMetaData = metadata
+              }
               const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
               const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
               let hiddenCases: string[] = []
@@ -186,13 +198,20 @@ export const diComponentHandler: DIHandler = {
             }
           })
 
+          // Create a GraphContentModel, call syncModelWithAttributeConfiguration to set up its primary role,
+          // plot type, and axes properly, then use its snapshot
           const graphContent: IGraphContentModelSnapshot = {
             type: kGraphTileType,
             layers,
             showOnlyLastCase,
             showParentToggles
           }
-          content = graphContent as ITileContentSnapshotWithType
+          const graphModel = GraphContentModel.create(graphContent)
+          syncModelWithAttributeConfiguration(graphModel, new GraphLayout(), firstDataSet, firstMetaData)
+
+          // Layers will get mangled in the model because it's not in the same tree as the dataset,
+          // so we use the constructed layers here
+          content = { ...getSnapshot(graphModel), layers } as ITileContentSnapshotWithType
 
         // Map
         } else if (type === kV2MapType) {
