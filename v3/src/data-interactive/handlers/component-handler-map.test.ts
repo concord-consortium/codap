@@ -26,7 +26,7 @@ describe("DataInteractive ComponentHandler Map", () => {
     expect(vanillaTile).toBeDefined()
     expect(isMapContentModel(vanillaTile.content)).toBe(true)
 
-    // Delete a graph tile
+    // Delete a map tile
     const deleteResult = handler.delete!({ component: vanillaTile })
     expect(deleteResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(0)
