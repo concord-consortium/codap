@@ -232,7 +232,7 @@ export const DocumentContentModel = BaseDocumentContentModel
         } else {
           const componentInfo = getTileComponentInfo(otherTileType),
             { x, y } = tileLayout,
-            options = { ..._options, x, y, width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight },
+            options = { width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight, ..._options, x, y },
             otherTile = self.createTile(otherTileType, options)
           if (otherTile && caseMetadata && sharedData) {
             if (tileType === kCaseTableTileType) {
