@@ -3,7 +3,6 @@ import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
 import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
-import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
@@ -19,8 +18,7 @@ import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
-import {getSharedDataSetFromDataSetId, getSharedDataSets, getTileCaseMetadata, linkTileToDataSet}
-  from "../shared/shared-data-utils"
+import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:
@@ -205,49 +203,6 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       }
       self.deleteTile(tileId)
-    }
-  }))
-  .actions(self => ({
-    // TODO This action involves specific tile types, so it should not be in the generic document content model.
-    // I'm leaving it here for now so it's clear how it's changed in this PR.
-    // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
-    // Returns the shown tile.
-    toggleCardTable(tileID: string, _options?: INewTileOptions) {
-      const tileModel = self.getTile(tileID),
-        tileLayout = self.getTileLayoutById(tileID),
-        tileType = tileModel?.content.type
-      if (tileLayout && tileType && isFreeTileLayout(tileLayout) &&
-          [kCaseCardTileType, kCaseTableTileType].includes(tileType)) {
-        const otherTileType = tileType === kCaseTableTileType ? kCaseCardTileType : kCaseTableTileType,
-          caseMetadata = getTileCaseMetadata(tileModel.content),
-          datasetID = caseMetadata?.data?.id ?? "",
-          sharedData = getSharedDataSetFromDataSetId(caseMetadata, datasetID),
-          otherTileId = tileType === kCaseTableTileType
-            ? caseMetadata?.caseCardTileId : caseMetadata?.caseTableTileId
-        tileLayout.setHidden(true)
-        if (otherTileId) {
-          self.toggleNonDestroyableTileVisibility(otherTileId)
-          caseMetadata?.setLastShownTableOrCardTileId(otherTileId)
-          return self.getTile(otherTileId)
-        } else {
-          const componentInfo = getTileComponentInfo(otherTileType),
-            { x, y } = tileLayout,
-            options = { width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight, ..._options, x, y },
-            otherTile = self.createTile(otherTileType, options)
-          if (otherTile && caseMetadata && sharedData) {
-            if (tileType === kCaseTableTileType) {
-              caseMetadata.setCaseCardTileId(otherTile.id)
-            } else {
-              caseMetadata.setCaseTableTileId(otherTile.id)
-            }
-            caseMetadata.setLastShownTableOrCardTileId(otherTile.id)
-            const manager = getTileEnvironment(tileModel)?.sharedModelManager
-            manager?.addTileSharedModel(otherTile.content, sharedData, true)
-            manager?.addTileSharedModel(otherTile.content, caseMetadata, true)
-          }
-          return otherTile
-        }
-      }
     }
   }))
   .actions(self => ({
