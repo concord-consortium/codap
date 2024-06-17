@@ -166,7 +166,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   const handleTreatAttrAs = useCallback((place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
     dataset && graphModel.applyModelChange(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
-      graphController?.syncModelWithAttributeConfiguration()
+      graphController?.handleAttributeAssignment()
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
       redoStringKey: "V3.Redo.attributeTreatAs"
@@ -178,7 +178,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     const disposer = graphModel && onAnyAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
         startAnimation()
-        graphController?.syncModelWithAttributeConfiguration()
+        graphController?.handleAttributeAssignment()
       }
     })
     return () => disposer?.()

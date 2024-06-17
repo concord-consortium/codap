@@ -73,7 +73,7 @@ describe("GraphController", () => {
     model.setAttributeID(role, data.id, attrId)
     // in the full graph code, `syncModelWithAttributeConfiguration` is called by a MobX reaction,
     // which then triggers a call to `syncAxisScalesWithModel`, but here we call them directly for testing simplicity
-    controller.syncModelWithAttributeConfiguration()
+    controller.handleAttributeAssignment()
     controller.syncAxisScalesWithModel()
   }
 
