@@ -1,14 +1,14 @@
-import {axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
-import {matchCirclesToData} from "../../data-display/data-display-utils"
-import {PixiPoints} from "../../data-display/pixi/pixi-points"
-import {setNiceDomain} from "../utilities/graph-utils"
-import {IGraphContentModel} from "./graph-content-model"
-import {GraphLayout} from "./graph-layout"
-import {PlotType} from "../graphing-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   CategoricalAxisModel, EmptyAxisModel, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
+import {axisPlaceToAttrRole, graphPlaceToAttrRole} from "../../data-display/data-display-types"
+import {matchCirclesToData} from "../../data-display/data-display-utils"
+import {PixiPoints} from "../../data-display/pixi/pixi-points"
+import { PlotType } from "../graphing-types"
+import {setNiceDomain} from "../utilities/graph-utils"
+import {IGraphContentModel} from "./graph-content-model"
+import {GraphLayout} from "./graph-layout"
 
 // keys are [primaryAxisType][secondaryAxisType]
 const plotChoices: Record<string, Record<string, PlotType>> = {
@@ -42,7 +42,7 @@ export class GraphController {
       this.graphModel.dataConfiguration.setDataset(dataset, metadata)
     }
 
-    this.updateGraph()
+    this.syncAxisScalesWithModel()
   }
 
   setPrimaryRoleAndPlotType() {
@@ -140,10 +140,7 @@ export class GraphController {
 
   // Called after restore from document or undo/redo, i.e. the models are all configured
   // appropriately but the scales and other non-serialized properties need to be synced.
-  updateGraph() {
-    this.setPrimaryRoleAndPlotType()
-    this.setupAxes()
-
+  syncAxisScalesWithModel() {
     const {graphModel, layout} = this,
       dataConfig = graphModel?.dataConfiguration
     if (dataConfig && layout) {
@@ -170,6 +167,11 @@ export class GraphController {
       })
       this.callMatchCirclesToData()
     }
+  }
+
+  syncModelWithAttributeConfiguration() {
+    this.setPrimaryRoleAndPlotType()
+    this.setupAxes()
   }
 
   clearGraph() {

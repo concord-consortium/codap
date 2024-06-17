@@ -117,7 +117,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     // `initializeGraph()` has mechanisms to prevent running redundantly.
     return mstReaction(
       () => graphModel.dataConfiguration.attributeDescriptionsStr,
-      () => graphController.updateGraph(),
+      () => graphController.syncAxisScalesWithModel(),
       {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
 
@@ -166,17 +166,19 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   const handleTreatAttrAs = useCallback((place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
     dataset && graphModel.applyModelChange(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
+      graphController?.syncModelWithAttributeConfiguration()
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
       redoStringKey: "V3.Redo.attributeTreatAs"
     })
-  }, [dataset, graphModel])
+  }, [dataset, graphController, graphModel])
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAnyAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
         startAnimation()
+        graphController?.syncModelWithAttributeConfiguration()
       }
     })
     return () => disposer?.()
