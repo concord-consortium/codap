@@ -13,10 +13,7 @@ import { uiState } from "../../models/ui-state"
 import { ComponentRect } from "../../utilities/animation-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kTitleBarHeight } from "../constants"
-import { kCaseTableTileType } from "./case-table-defs"
-
-// TODO Move this file into a neutral spot outside of the table.
-// I'm leaving it here for now so it's easier to see what's changing in this PR.
+import { kCaseTableTileType } from "../case-table/case-table-defs"
 
 export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
 

@@ -1,7 +1,7 @@
 import { SetRequired } from "type-fest"
 import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
+import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { createOrShowTableOrCardForDataset } from "../../components/case-table/case-table-utils"
 import { GraphAttrRole } from "../../components/data-display/data-display-types"
 import {
   AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
