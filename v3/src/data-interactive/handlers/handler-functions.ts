@@ -14,7 +14,7 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   if (!aCase) return caseNotFoundResult
 
   const pseudoCase = dataContext.pseudoCaseMap.get(aCase.__id__)
-  const caseIds = pseudoCase?.childCaseIds ?? [aCase.__id__]
+  const caseIds = pseudoCase?.childItemIds ?? [aCase.__id__]
 
   dataContext.applyModelChange(() => {
     dataContext.removeCases(caseIds)

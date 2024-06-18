@@ -90,16 +90,17 @@ export interface IGroupedCase extends ICase {
   [symIndex]?: number
 }
 
-// represents a set of cases which have common grouped values (a pseudo-case)
+// represents a case in a collection which have a set of common grouped values
+// and potentially a set of child cases.
 export interface CaseGroup {
   // id of collection containing the group
   collectionId: string
   // id of pseudo-case and attribute values
   pseudoCase: IGroupedCase
-  // ids of leaf child cases (actual cases) in the group
-  childCaseIds: string[]
-  // ids of child pseudo cases in the group (if any)
-  childPseudoCaseIds?: string[]
+  // ids of child cases in the group (if any)
+  childCaseIds?: string[]
+  // ids of leaf child cases (items) in the group
+  childItemIds: string[]
   // stringified version of grouped case values for easy comparison/categorization
-  valuesJson: string
+  groupKey: string
 }

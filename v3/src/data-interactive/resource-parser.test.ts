@@ -14,13 +14,12 @@ describe("DataInteractive ResourceParser", () => {
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
   dataset.removeCases(dataset.items.map(c => c.__id__))
   dataset.addCases(testCases, { canonicalize: true })
+  dataset.validateCaseGroups()
   const c1 = dataset.collections[0]
   const c2 = dataset.collections[1]
   const a1 = dataset.getAttributeByName("a1")!
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!
-  // eslint-disable-next-line no-unused-expressions
-  dataset.collectionGroups // set up the pseudoCases
   const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)
 

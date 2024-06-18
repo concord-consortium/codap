@@ -140,6 +140,15 @@ test("DataSet temporary flat snapshot conversion", () => {
   expect(data.attributes.length).toBe(3)
 })
 
+test("DataSet volatile caching", () => {
+  const data = DataSet.create({ name: "data" })
+  expect(data.isValidCaseGroups).toBe(false)
+  data.setValidCaseGroups()
+  expect(data.isValidCaseGroups).toBe(true)
+  data.invalidateCaseGroups()
+  expect(data.isValidCaseGroups).toBe(false)
+})
+
 test("DataSet basic functionality", () => {
   const dataset = DataSet.create({ name: "data" })
   expect(dataset.id).toBeDefined()

@@ -49,12 +49,11 @@ import {
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import {
-  CollectionModel, ICollectionModel, ICollectionModelSnapshot, isCollectionModel, syncCollectionLinks
+  CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
 } from "./collection"
 import {
-  CaseGroup, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult,
-  ICase, ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IGroupedCase, IItem,
-  IMoveAttributeCollectionOptions, symIndex, symParent
+  CaseGroup, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
+  ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions
 } from "./data-set-types"
 /* eslint-disable import/no-cycle */
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
@@ -63,8 +62,7 @@ import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-s
 import { applyModelChange } from "../history/apply-model-change"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
-import { kAttrIdPrefix, kCaseIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
-import { prf } from "../../utilities/profiler"
+import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
 
@@ -130,15 +128,6 @@ export function toCanonical(ds: IDataSet, cases: CaseOrArray): CaseOrArray {
           : toCanonicalCase(ds, cases)
 }
 
-// represents the set of grouped cases at a particular level of the hierarchy
-export interface CollectionGroup {
-  collection: ICollectionModel
-  // each group represents a single case at this level along with links to child cases
-  groups: CaseGroup[]
-  // map from valuesJson to corresponding CaseGroup
-  groupsMap: Record<string, CaseGroup>
-}
-
 export const DataSet = V2Model.named("DataSet").props({
   id: typeV3Id("DATA"),
   sourceID: types.maybe(types.string),
@@ -164,6 +153,22 @@ export const DataSet = V2Model.named("DataSet").props({
   pseudoCaseMap: new Map<string, CaseGroup>(),
   transactionCount: 0
 }))
+.extend(self => {
+  const _isValidCaseGroups = observable.box<boolean>(false)
+  return {
+    views: {
+      get isValidCaseGroups() {
+        return _isValidCaseGroups.get()
+      },
+      invalidateCaseGroups() {
+        runInAction(() => _isValidCaseGroups.set(false))
+      },
+      setValidCaseGroups() {
+        runInAction(() => _isValidCaseGroups.set(true))
+      }
+    }
+  }
+})
 .volatile(() => {
   let cachingCount = 0
   const caseCache = new Map<string, ICase>()
@@ -281,13 +286,7 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .extend(self => {
-  // we do our own caching because MST's auto-caching wasn't working as expected
-  const _collectionGroups = observable.box<CollectionGroup[]>([])
-  // array of child-most cases, i.e. cases not grouped in a collection
-  let _childCases: IGroupedCase[] = []
-  const isValidCollectionGroups = observable.box(false)
-
-  function getCollection(collectionId: string): ICollectionModel | undefined {
+  function getCollection(collectionId?: string): ICollectionModel | undefined {
     if (!isAlive(self)) {
       console.warn("DataSet.getCollection called on a defunct DataSet")
       return
@@ -303,7 +302,7 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.collections.find(({ name }) => name === collectionName)
   }
 
-  function getCollectionIndex(collectionId: string) {
+  function getCollectionIndex(collectionId?: string) {
     return self.collections.findIndex(({ id }) => id === collectionId)
   }
 
@@ -334,157 +333,15 @@ export const DataSet = V2Model.named("DataSet").props({
       // undefined => attribute not present in dataset
       getCollectionForAttribute,
       getCollectionForCase,
-      getUniqueCollectionName,
-      // leaf-most child cases (i.e. those not grouped in a collection)
-      childCases() {
-        if (!isValidCollectionGroups.get()) {
-          // childCases array cache is built by collectionGroups()
-          this.collectionGroups // eslint-disable-line no-unused-expressions
-        }
-        return _childCases
-      },
-      // the resulting collection groups
-      get collectionGroups() {
-        if (isValidCollectionGroups.get()) return _collectionGroups.get()
-
-        // create groups for each parent collection
-        const newCollectionGroups: CollectionGroup[] =
-          self.parentCollections.map(collection => ({ collection, groups: [], groupsMap: {} }))
-
-        prf.measure("DataSet.collectionGroups", () => {
-          self.items.forEach(aCase => {
-            const index = self.itemIDMap.get(aCase.__id__) ?? -1
-            // parent attributes used for grouping are cumulative
-            const parentAttrs: IAttribute[] = []
-            newCollectionGroups.forEach(({ collection, groups, groupsMap }, collIndex) => {
-              const collectionAttrs: IAttribute[] = Array.from(collection.attributes) as IAttribute[]
-              const parentValues: Record<string, string> = {}
-              const cumulativeValues: Record<string, string> = {}
-              parentAttrs.forEach(attr => {
-                parentValues[attr.id] = attr.value(index)
-                cumulativeValues[attr.id] = attr.value(index)
-              })
-              collectionAttrs.forEach(attr => {
-                cumulativeValues[attr.id] = attr.value(index)
-              })
-              // group by stringified values of grouped attributes
-              const parentValuesJson = JSON.stringify(parentValues)
-              const cumulativeValuesJson = JSON.stringify(cumulativeValues)
-              if (!groupsMap[cumulativeValuesJson]) {
-                // start a new group with just this case (for now)
-                // note: PCAS ids are considered ephemeral and should not be stored/serialized,
-                // because they can be regenerated whenever the data changes.
-                const pseudoCase: IGroupedCase = { __id__: v3Id(kCaseIdPrefix), ...cumulativeValues }
-                groupsMap[cumulativeValuesJson] = {
-                  collectionId: collection.id,
-                  pseudoCase,
-                  childCaseIds: [aCase.__id__],
-                  valuesJson: cumulativeValuesJson
-                }
-                if (collIndex === 0) {
-                  // for the first collection, index is just position in the array
-                  pseudoCase[symIndex] = groups.length
-                  groups.push(groupsMap[cumulativeValuesJson])
-                }
-                else {
-                  // for collections after the first, index is determined from position in parent
-                  // and we must link up parent cases to child cases
-                  const parentCollectionGroup = newCollectionGroups[collIndex - 1]
-                  const parentCaseGroup = parentCollectionGroup.groupsMap[parentValuesJson]
-                  if (parentCaseGroup) {
-                    const parentPseudoCase = parentCaseGroup.pseudoCase
-                    let indexOfLastCaseWithSameParent = -1
-
-                    // add link from child to parent
-                    pseudoCase[symParent] = parentPseudoCase.__id__
-
-                    // add link from parent to child
-                    if (!parentCaseGroup.childPseudoCaseIds) {
-                      // this is the first child of the corresponding parent pseudo-case
-                      parentCaseGroup.childPseudoCaseIds = [pseudoCase.__id__]
-                      pseudoCase[symIndex] = 0
-                    }
-                    else {
-                      // add a new child to the corresponding parent pseudo-case
-                      pseudoCase[symIndex] = parentCaseGroup.childPseudoCaseIds.length
-                      parentCaseGroup.childPseudoCaseIds.push(pseudoCase.__id__)
-
-                      // add new group as last case of parent
-                      for (let i = 0; i < groups.length; ++i) {
-                        if (groups[i].pseudoCase[symParent] === pseudoCase[symParent]) {
-                          indexOfLastCaseWithSameParent = i
-                        }
-                        else if (indexOfLastCaseWithSameParent >= 0) {
-                          break
-                        }
-                      }
-                    }
-                    // add the new pseudo-case at its appropriate place in the array
-                    if (indexOfLastCaseWithSameParent >= 0) {
-                      groups.splice(indexOfLastCaseWithSameParent + 1, 0, groupsMap[cumulativeValuesJson])
-                    }
-                    else {
-                      groups.push(groupsMap[cumulativeValuesJson])
-                    }
-                  }
-                  else {
-                    /* istanbul ignore next */
-                    console.warn(`Failed to find expected parent for case ${cumulativeValuesJson}!`)
-                  }
-                }
-              }
-              else {
-                // add the case to an existing group
-                groupsMap[cumulativeValuesJson].childCaseIds.push(aCase.__id__)
-              }
-              parentAttrs.push(...collectionAttrs)
-            })
-          })
-        })
-
-        _childCases = []
-        const lastCollectionGroup = newCollectionGroups.length
-                                      ? newCollectionGroups[newCollectionGroups.length - 1]
-                                      : undefined
-        if (lastCollectionGroup) {
-          // if there are collections, then child cases are determined by the parents
-          lastCollectionGroup?.groups.forEach(group => {
-            _childCases.push(...group.childCaseIds.map((caseId, index) =>
-              ({__id__: caseId, [symParent]: group.pseudoCase.__id__, [symIndex]: index })))
-          })
-        }
-        else {
-          // in the absence of collections, use the original cases
-          _childCases = self.items.map(c => ({ __id__: c.__id__ }))
-        }
-
-        // clear map from pseudo-case id to pseudo-case
-        self.pseudoCaseMap.clear()
-
-        // update map from pseudo-case id to pseudo-case
-        newCollectionGroups.forEach(collectionGroup => {
-          collectionGroup.groups.forEach(caseGroup => {
-            self.pseudoCaseMap.set(caseGroup.pseudoCase.__id__, caseGroup)
-          })
-        })
-
-        runInAction(() => {
-          _collectionGroups.set(newCollectionGroups)
-          isValidCollectionGroups.set(true)
-        })
-        return _collectionGroups.get()
-      }
+      getUniqueCollectionName
     },
     actions: {
-      invalidateCollectionGroups() {
-        isValidCollectionGroups.set(false)
-      },
-      addCollection(collectionSnap: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
+      addCollection(collection: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
         // ensure collection has a unique name
         const { name, ...rest } = collectionSnap
         const _name = getUniqueCollectionName(name ?? "")
         const collection = { name: _name, ...rest }
-        
+
         // place the collection in the correct location
         let beforeIndex = options?.before ? getCollectionIndex(options.before) : -1
         if (beforeIndex < 0 && options?.after) {
@@ -516,7 +373,7 @@ export const DataSet = V2Model.named("DataSet").props({
           if (attrId && attrCollection) attrCollection.removeAttribute(`${attrId}`)
         })
         // recalculate groups
-        this.invalidateCollectionGroups()
+        self.invalidateCaseGroups()
         return newCollection
       },
       removeCollection(collection: ICollectionModel) {
@@ -557,9 +414,34 @@ export const DataSet = V2Model.named("DataSet").props({
       }
       dstCollection.addAttribute(attribute, options)
       // update grouping
-      self.invalidateCollectionGroups()
+      self.invalidateCaseGroups()
     }
     return { removedCollectionId }
+  }
+}))
+.views(self => ({
+  validateCaseGroups() {
+    if (!self.isValidCaseGroups) {
+      self.pseudoCaseMap.clear()
+      self.collections.forEach((collection, index) => {
+        // update the cases
+        collection.updateCaseGroups()
+      })
+      self.collections.forEach((collection, index) => {
+        // complete the case groups, including sorting child collection cases into groups
+        const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
+        collection.completeCaseGroups(parentCaseGroups)
+        // update the pseudoCaseMap
+        collection.caseGroups.forEach(group => self.pseudoCaseMap.set(group.pseudoCase.__id__, group))
+      })
+      self.setValidCaseGroups()
+    }
+  }
+}))
+.views(self => ({
+  childCases() {
+    self.validateCaseGroups()
+    return self.collections[self.collections.length - 1].cases
   }
 }))
 .actions(self => ({
@@ -587,93 +469,32 @@ export const DataSet = V2Model.named("DataSet").props({
     return childIndex >= 0 ? self.collections[childIndex] : undefined
   },
   getGroupsForCollection(collectionId?: string) {
-    if (collectionId && self.getCollection(collectionId)) {
-      for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
-        const collectionGroup = self.collectionGroups[i]
-        if (!isAlive(collectionGroup.collection)) {
-          /* istanbul ignore next */
-          console.warn("DataSet.getCasesForCollection encountered defunct collection in collectionGroup")
-        }
-        else if (collectionGroup.collection.id === collectionId) {
-          return collectionGroup.groups
-        }
-      }
-    }
-  },
-  getParentCollectionGroup(collectionId?: string) {
-    if (collectionId && self.collectionGroups.length) {
-      if (self.getCollection(collectionId)) {
-        const parentCollection = this.getParentCollection(collectionId)
-        return self.collectionGroups.find((_collectionGroup, index) => {
-          return _collectionGroup.collection.id === parentCollection?.id
-        })
-      }
-    }
+    self.validateCaseGroups()
+    return self.getCollection(collectionId)?.caseGroups ?? []
   }
 }))
 .views(self => ({
   getCasesForCollection(collectionId?: string): readonly ICase[] {
-    if (!collectionId || !self.getCollection(collectionId)) return []
-    // parent collection cases can be retrieved from the groups
-    const collectionGroups = self.getGroupsForCollection(collectionId)
-    if (collectionGroups) return collectionGroups.map(group => group.pseudoCase)
-    // child collection cases can be ordered by parent
-    const parentCollection = self.getParentCollection(collectionId || self.childCollection.id)
-    const parentGroups = parentCollection ? self.getGroupsForCollection(parentCollection.id) : undefined
-    if (parentGroups) {
-      const cases: ICase[] = []
-      parentGroups.forEach(group => {
-        const caseCount = cases.length
-        cases.push(...group.childCaseIds.map((__id__, index) => ({
-          __id__,
-          [symParent]: group.pseudoCase.__id__,
-          [symIndex]: caseCount + index
-        })))
-      })
-      return cases
-    }
-    // return child cases in data set order
-    return self.items as ICase[]
+    self.validateCaseGroups()
+    return self.getCollection(collectionId)?.cases ?? []
   },
   getParentCase(caseId: string, collectionId?: string) {
-    const parentCollectionGroup = self.getParentCollectionGroup(collectionId)
-    return parentCollectionGroup?.groups.find(group =>
-      (group.childPseudoCaseIds ?? group.childCaseIds)?.includes(caseId))
+    self.validateCaseGroups()
+    const parentCollectionId = self.getCollection(collectionId)?.parent?.id
+    return self.getCollection(parentCollectionId)?.findParentCaseGroup(caseId)
   },
-  getCollectionGroupForAttributes(attributeIds: string[]) {
-    // finds the child-most collection (if any) among the specified attributes
-    let collectionIndex = -1
-    for (const attrId of attributeIds) {
-      let attrCollectionIndex = -1
-      for (let i = self.collectionGroups.length - 1; i >= 0; --i) {
-        const collectionGroup = self.collectionGroups[i]
-        if (collectionGroup.collection.getAttribute(attrId)) {
-          attrCollectionIndex = Math.max(i, attrCollectionIndex)
-        }
+  getCollectionForAttributes(attributeIds: string[]) {
+    self.validateCaseGroups()
+    for (let i = self.collections.length - 1; i >= 0; --i) {
+      const collection = self.collections[i]
+      if (attributeIds.some(attrId => collection.getAttribute(attrId))) {
+        return collection
       }
-      if (attrCollectionIndex < 0) {
-        // if we get here then the attribute isn't grouped, so no collection group can be returned
-        return null
-      }
-      collectionIndex = Math.max(collectionIndex, attrCollectionIndex)
     }
-    // return the child-most collection that included any of the attributes
-    return self.collectionGroups[collectionIndex]
   },
   getCasesForAttributes(attributeIds: string[]) {
-    const collectionGroup = this.getCollectionGroupForAttributes(attributeIds)
-    if (collectionGroup) {
-      return collectionGroup.groups.map(group => group.pseudoCase)
-    } else {
-      // If there are no groups, regular cases can be used
-      return self.childCases()
-    }
-  }
-}))
-.views(self => ({
-  getParentValues(parentId: string) {
-    const parentCase = self.pseudoCaseMap.get(parentId)
-    return parentCase ? JSON.parse(parentCase.valuesJson) : {}
+    const collection = this.getCollectionForAttributes(attributeIds)
+    return collection?.cases ?? []
   }
 }))
 .extend(self => {
@@ -758,7 +579,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
         const pseudoCase = self.pseudoCaseMap.get(caseID)
-        const _caseId = pseudoCase ? pseudoCase?.childCaseIds[0] : caseID
+        const _caseId = pseudoCase ? pseudoCase?.childItemIds[0] : caseID
         const index = self.itemIDMap.get(_caseId)
         return index != null ? this.getValueAtIndex(index, attributeID) : undefined
       },
@@ -778,7 +599,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
         const pseudoCase = self.pseudoCaseMap.get(caseID)
-        const _caseId = pseudoCase ? pseudoCase.childCaseIds[0] : caseID
+        const _caseId = pseudoCase ? pseudoCase.childItemIds[0] : caseID
         const index = self.itemIDMap.get(_caseId)
         return index != null ? this.getStrValueAtIndex(index, attributeID) : ""
       },
@@ -798,7 +619,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // For grouped attributes, these will be the grouped values. Clients shouldn't be
         // asking for ungrouped values from pseudo-cases.
         const pseudoCase = self.pseudoCaseMap.get(caseID)
-        const _caseId = pseudoCase ? pseudoCase.childCaseIds[0] : caseID
+        const _caseId = pseudoCase ? pseudoCase.childItemIds[0] : caseID
         const index = _caseId ? self.itemIDMap.get(_caseId) : undefined
         return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
       },
@@ -829,7 +650,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // a pseudo-case is selected if all of its individual cases are selected
         const group = self.pseudoCaseMap.get(caseId)
         return group
-                ? group.childCaseIds.every(id => self.selection.has(id))
+                ? group.childItemIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
       },
       get isInTransaction() {
@@ -845,61 +666,6 @@ export const DataSet = V2Model.named("DataSet").props({
      * and setting multiple cases, there's a single function for setting multiple cases.
      */
     actions: {
-      afterCreate() {
-        const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
-              { srcDataSet } = context
-
-        // build attrNameMap
-        self.attributesMap.forEach(attr => {
-          self.attrNameMap.set(attr.name, attr.id)
-        })
-
-        // build itemIDMap
-        self.items.forEach((aCase, index) => {
-          self.itemIDMap.set(aCase.__id__, index)
-        })
-
-        // make sure attributes have appropriate length, including attributes with formulas
-        self.attributesMap.forEach(attr => {
-          attr.setLength(self.items.length)
-        })
-
-        // add initial collection if not already present
-        if (!self.collections.length) {
-          self.addCollection({ name: t("DG.AppController.createDataSet.collectionName") })
-        }
-
-        if (!srcDataSet) {
-          // set up middleware to add ids to inserted attributes and cases
-          // adding the ids in middleware makes them available as action arguments
-          // to derived DataSets.
-          addDisposer(self, addMiddleware(self, (call, next) => {
-            if (call.context === self && call.name === "addAttribute") {
-              const { id = v3Id(kAttrIdPrefix), ...others } = call.args[0] as IAttributeSnapshot
-              call.args[0] = { id, ...others }
-            }
-            else if (call.context === self && call.name === "addCases") {
-              call.args[0] = (call.args[0] as ICaseCreation[]).map(iCase => {
-                const { __id__ = v3Id(kItemIdPrefix), ...others } = iCase
-                return { __id__, ...others }
-              })
-            }
-            next(call)
-          }))
-
-          // when collections change...
-          addDisposer(self, reaction(
-            () => self.collectionIds,
-            () => {
-              // update parent/child links
-              syncCollectionLinks(self.collections)
-              // invalidate collection groups
-              self.invalidateCollectionGroups()
-            },
-            { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
-          ))
-        }
-      },
       beginTransaction() {
         ++self.transactionCount
       },
@@ -1058,7 +824,7 @@ export const DataSet = V2Model.named("DataSet").props({
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
 
         // invalidate collectionGroups (including childCases)
-        self.invalidateCollectionGroups()
+        self.invalidateCaseGroups()
         return ids
       },
 
@@ -1070,17 +836,15 @@ export const DataSet = V2Model.named("DataSet").props({
       // For instance, a scatter plot that is dragging many points but affecting only two
       // attributes can indicate that, which can enable more efficient responses.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
-        const ungroupedCases: ICase[] = []
-        // convert each pseudo-case change to a change to each underlying case
+        const items: IItem[] = []
         cases.forEach(aCase => {
+          // convert each parent case change to a change to each underlying item
           const caseGroup = self.pseudoCaseMap.get(aCase.__id__)
-          if (caseGroup) {
-            ungroupedCases.push(...caseGroup.childCaseIds.map(id => ({ ...aCase, __id__: id })))
+          if (caseGroup?.childCaseIds?.length) {
+            items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
           }
         })
-        const _cases = ungroupedCases.length > 0
-                        ? ungroupedCases
-                        : cases
+        const _cases = items.length > 0 ? items : cases
         const before = getCases(_cases.map(({ __id__ }) => __id__))
         if (self.isCaching()) {
           // update the cases in the cache
@@ -1107,7 +871,7 @@ export const DataSet = V2Model.named("DataSet").props({
         }, setCaseValuesCustomUndoRedo)
 
         // only changes to parent collection attributes invalidate grouping
-        ungroupedCases.length && self.invalidateCollectionGroups()
+        items.length && self.invalidateCaseGroups()
       },
 
       removeCases(caseIDs: string[]) {
@@ -1126,8 +890,8 @@ export const DataSet = V2Model.named("DataSet").props({
             }
           }
         })
-        // invalidate collectionGroups (including childCases)
-        self.invalidateCollectionGroups()
+        // invalidate case groups (including childCases)
+        self.invalidateCaseGroups()
       },
 
       selectAll(select = true) {
@@ -1145,7 +909,7 @@ export const DataSet = V2Model.named("DataSet").props({
         caseIds.forEach(id => {
           const pseudoCase = self.pseudoCaseMap.get(id)
           if (pseudoCase) {
-            ids.push(...pseudoCase.childCaseIds)
+            ids.push(...pseudoCase.childItemIds)
           } else {
             ids.push(id)
           }
@@ -1166,7 +930,7 @@ export const DataSet = V2Model.named("DataSet").props({
         caseIds.forEach(id => {
           const pseudoCase = self.pseudoCaseMap.get(id)
           if (pseudoCase) {
-            ids.push(...pseudoCase.childCaseIds)
+            ids.push(...pseudoCase.childItemIds)
           } else {
             ids.push(id)
           }
@@ -1177,7 +941,80 @@ export const DataSet = V2Model.named("DataSet").props({
     }
   }
 })
+.views(self => ({
+  getParentValues(parentId: string) {
+    const parentCase = self.pseudoCaseMap.get(parentId)
+    const parentCollection = self.getCollection(parentCase?.collectionId)
+    const values: Record<string, string> = {}
+    parentCollection?.allAttributes.forEach(attr => {
+      const attrValue = self.getStrValue(parentId, attr.id)
+      if (attrValue) {
+        values[attr.id] = attrValue
+      }
+    })
+    return values
+  }
+}))
 .actions(self => ({
+  afterCreate() {
+    const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
+          { srcDataSet } = context
+
+    // build attrNameMap
+    self.attributesMap.forEach(attr => {
+      self.attrNameMap.set(attr.name, attr.id)
+    })
+
+    // build itemIDMap
+    self.items.forEach((aCase, index) => {
+      self.itemIDMap.set(aCase.__id__, index)
+    })
+
+    // make sure attributes have appropriate length, including attributes with formulas
+    self.attributesMap.forEach(attr => {
+      attr.setLength(self.items.length)
+    })
+
+    // add initial collection if not already present
+    if (!self.collections.length) {
+      self.addCollection({ name: t("DG.AppController.createDataSet.collectionName") })
+    }
+
+    if (!srcDataSet) {
+      // set up middleware to add ids to inserted attributes and cases
+      // adding the ids in middleware makes them available as action arguments
+      // to derived DataSets.
+      addDisposer(self, addMiddleware(self, (call, next) => {
+        if (call.context === self && call.name === "addAttribute") {
+          const { id = v3Id(kAttrIdPrefix), ...others } = call.args[0] as IAttributeSnapshot
+          call.args[0] = { id, ...others }
+        }
+        else if (call.context === self && call.name === "addCases") {
+          call.args[0] = (call.args[0] as ICaseCreation[]).map(iCase => {
+            const { __id__ = v3Id(kItemIdPrefix), ...others } = iCase
+            return { __id__, ...others }
+          })
+        }
+        next(call)
+      }))
+
+      // when collections change...
+      addDisposer(self, reaction(
+        () => self.collectionIds,
+        () => {
+          // update parent/child links and provide access to item data
+          const itemData: IItemData = {
+            itemIds: () => self.itemIds,
+            getValue: (itemId: string, attrId: string) => self.getStrValue(itemId, attrId) ?? "",
+            invalidate: () => self.invalidateCaseGroups()
+          }
+          syncCollectionLinks(self.collections, itemData)
+          self.invalidateCaseGroups()
+        },
+        { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
+      ))
+    }
+  },
   commitCache() {
     self.setCaseValues(Array.from(self.caseCache.values()))
   },

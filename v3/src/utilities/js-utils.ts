@@ -107,3 +107,26 @@ export function safeDomIdentifier(value: string) {
 
   return validId
 }
+
+/*
+ * isEquivalentArray()
+ *
+ * returns true if the contents of the arrays are identical according to ===
+ */
+export function isEquivalentArray<T = any>(array1: T[], array2: T[]) {
+  return array1.length === array2.length &&
+         array1.every((value, index) => value === array2[index])
+}
+
+/*
+ * isEquivalentSet()
+ *
+ * returns true if the contents of the sets are identical
+ */
+export function isEquivalentSet<T = any>(set1: Set<T>, set2: Set<T>) {
+  if (set1.size !== set2.size) return false
+  for (const elem of set1) {
+    if (!set2.has(elem)) return false
+  }
+  return true
+}

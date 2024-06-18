@@ -92,8 +92,8 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
   const values = getCaseValues(caseId, dataContext, collectionId)
 
   const pseudoCase = dataContext.pseudoCaseMap.get(caseId)
-  const children = pseudoCase?.childPseudoCaseIds?.map(cId => toV2Id(cId)) ??
-    pseudoCase?.childCaseIds?.map(cId => toV2Id(cId)) ?? []
+  const children = pseudoCase?.childCaseIds?.map(cId => toV2Id(cId)) ??
+    pseudoCase?.childItemIds?.map(cId => toV2Id(cId)) ?? []
 
   const caseIndex = dataContext.getCasesForCollection(collectionId).findIndex(aCase => aCase.__id__ === caseId)
 

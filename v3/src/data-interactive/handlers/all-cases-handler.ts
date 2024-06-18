@@ -30,7 +30,7 @@ export const diAllCasesHandler: DIHandler = {
       const parent = maybeToV2Id(parentCase?.pseudoCase.__id__)
       const children: number[] = []
       if (pseudoCase) {
-        children.push(...(pseudoCase.childPseudoCaseIds ?? pseudoCase.childCaseIds).map(childId => toV2Id(childId)))
+        children.push(...(pseudoCase.childCaseIds ?? []).map(childId => toV2Id(childId)))
       }
       const values: Record<string, IValueType> = {}
       attributes.forEach(attr => {

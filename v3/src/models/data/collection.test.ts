@@ -1,6 +1,8 @@
-import { destroy, isAlive, types } from "mobx-state-tree"
+import { destroy, getSnapshot, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { CollectionModel, ICollectionModel, isCollectionModel, syncCollectionLinks } from "./collection"
+import {
+  CollectionModel, ICollectionModel, IItemData, defaultItemData, isCollectionModel, syncCollectionLinks
+} from "./collection"
 
 const Tree = types.model("Tree", {
   attributes: types.array(Attribute),
@@ -40,6 +42,7 @@ describe("CollectionModel", () => {
     c1.setSingleCase("singleCase")
     expect(c1.labels?.singleCase).toBe("singleCase")
     c1.setLabels({
+      singleCase: "singleCase",
       pluralCase: "pluralCase",
       singleCaseWithArticle: "singleCaseWithArticle",
       setOfCases: "setOfCases",
@@ -74,7 +77,37 @@ describe("CollectionModel", () => {
     expect(c5.labels?.setOfCasesWithArticle).toBe("setOfCasesWithArticle")
   })
 
-  it("handles undefined references", () => {
+  it("empty collections work as expected", () => {
+    const c1 = CollectionModel.create({ name: "c1" })
+    c1.updateCaseGroups()
+    expect(c1.caseIds).toEqual([])
+    expect(c1.caseIdToIndexMap.size).toBe(0)
+    expect(c1.caseIdToGroupKeyMap.size).toBe(0)
+    expect(c1.groupKeyCaseId()).toBeUndefined()
+    expect(c1.attributesArray).toEqual([])
+    expect(c1.sortedDataAttributes).toEqual([])
+    expect(c1.allParentAttrs).toEqual([])
+    expect(c1.allParentDataAttrs).toEqual([])
+    expect(c1.allAttributes).toEqual([])
+    expect(c1.allDataAttributes).toEqual([])
+    expect(c1.sortedParentDataAttrs).toEqual([])
+    expect(c1.cases).toEqual([])
+    expect(c1.caseGroups).toEqual([])
+
+    expect(defaultItemData.itemIds()).toEqual([])
+    expect(defaultItemData.getValue("foo", "bar")).toBe("")
+
+    jestSpyConsole("warn", spy => {
+      c1.addChildCase("foo", "bar")
+      expect(spy).toHaveBeenCalled()
+    })
+
+    expect(c1.getCaseGroup("foo")).toBeUndefined()
+    expect(c1.findParentCaseGroup("foo")).toBeUndefined()
+    c1.completeCaseGroups([{} as any])
+  })
+
+  it("handles undefined attribute references", () => {
     const tree = Tree.create()
     const collection = CollectionModel.create()
     expect(isCollectionModel(collection)).toBe(true)
@@ -83,6 +116,14 @@ describe("CollectionModel", () => {
     tree.addAttribute(attribute)
     collection.addAttribute(attribute)
     expect(collection.attributes.length).toBe(1)
+
+    expect(collection.sortedDataAttributes).toEqual([attribute])
+    expect(collection.allParentAttrs).toEqual([])
+    expect(collection.allParentDataAttrs).toEqual([])
+    expect(collection.allAttributes).toEqual([attribute])
+    expect(collection.allDataAttributes).toEqual([attribute])
+    expect(collection.sortedParentDataAttrs).toEqual([])
+
     tree.destroyAttribute(attribute)
     expect(collection.attributes.length).toBe(0)
     expect(collection.getAttribute("a")).toBeUndefined()
@@ -144,39 +185,6 @@ describe("CollectionModel", () => {
     expect(collection.attributes.length).toBe(0)
   })
 
-  it("can add/remove cases", () => {
-    const collection = CollectionModel.create()
-    expect(isCollectionModel(collection)).toBe(true)
-    expect(collection.caseIds.length).toBe(0)
-    expect(collection.caseIdToIndexMap.size).toBe(0)
-    collection.addCases(["case3", "case6"])
-    expect(collection.hasCase("case2")).toBe(false)
-    expect(collection.hasCase("case3")).toBe(true)
-    expect(collection.caseIds.length).toBe(2)
-    expect(collection.caseIdToIndexMap.size).toBe(2)
-    collection.addCases(["case1", "case2"], { before: "case3" })
-    expect(collection.hasCase("case2")).toBe(true)
-    expect(collection.caseIds.length).toBe(4)
-    expect(collection.caseIdToIndexMap.size).toBe(4)
-    expect(collection.caseIds).toEqual(["case1", "case2", "case3", "case6"])
-    collection.addCases(["case4", "case5"], { after: "case3" })
-    expect(collection.caseIds.length).toBe(6)
-    expect(collection.caseIdToIndexMap.size).toBe(6)
-    expect(collection.caseIds).toEqual(["case1", "case2", "case3", "case4", "case5", "case6"])
-
-    collection.removeCases(["case1", "case3", "case5"])
-    expect(collection.caseIds.length).toBe(3)
-    expect(collection.caseIdToIndexMap.size).toBe(3)
-    expect(collection.hasCase("case2")).toBe(true)
-    expect(collection.hasCase("case3")).toBe(false)
-
-    collection.removeCases(["case2", "case4", "case6"])
-    expect(collection.caseIds.length).toBe(0)
-    expect(collection.caseIdToIndexMap.size).toBe(0)
-    expect(collection.hasCase("case2")).toBe(false)
-    expect(collection.hasCase("case3")).toBe(false)
-  })
-
   it("can synchronize volatile parent/child links and retrieve parent attributes", () => {
     // root model so attribute references can be used in collections
     const Model = types.model("Model", {
@@ -190,7 +198,7 @@ describe("CollectionModel", () => {
     const a4 = Attribute.create({ id: "a4", name: "a4" })
     const attributes = [a1, a2, a3, a4]
     const root = Model.create({ attributes, collections })
-    syncCollectionLinks(root.collections)
+    syncCollectionLinks(root.collections, defaultItemData)
     const [c1, c2, c3] = root.collections
     expect(c1.parent).toBeUndefined()
     expect(c1.child).toBe(c2)
@@ -203,12 +211,92 @@ describe("CollectionModel", () => {
     c2.addAttribute(a2)
     c2.addAttribute(a3)
     c3.addAttribute(a4)
-    expect(c1.parentAttrs.map(attr => attr.id)).toEqual([])
-    expect(c1.allParentAttrs.map(attr => attr.id)).toEqual([])
-    expect(c2.parentAttrs.map(attr => attr.id)).toEqual(["a1"])
-    expect(c2.allParentAttrs.map(attr => attr.id)).toEqual(["a1"])
-    expect(c3.parentAttrs.map(attr => attr.id)).toEqual(["a2", "a3"])
-    expect(c3.allParentAttrs.map(attr => attr.id)).toEqual(["a1", "a2", "a3"])
+    expect(c1.allParentDataAttrs.map(attr => attr.id)).toEqual([])
+    expect(c2.allParentDataAttrs.map(attr => attr.id)).toEqual(["a1"])
+    expect(c3.allParentDataAttrs.map(attr => attr.id)).toEqual(["a1", "a2", "a3"])
   })
 
+  it("can group cases appropriately", () => {
+    // root model so attribute references can be used in collections
+    const Model = types.model("Model", {
+      attributes: types.array(Attribute),
+      collections: types.array(CollectionModel)
+    })
+    const collections = [{ id: "c1", name: "groups" }, { id: "c2", name: "cases" }]
+    const a1 = Attribute.create({ id: "a1", name: "a1" })
+    const a2 = Attribute.create({ id: "a2", name: "a2" })
+    const a3 = Attribute.create({ id: "a3", name: "a3" })
+    const a4 = Attribute.create({ id: "a4", name: "a4" })
+    const attributes = [a1, a2, a3, a4]
+    const root = Model.create({ attributes, collections })
+    const [c1, c2] = root.collections
+    c1.addAttribute(a1)
+    c2.addAttribute(a2)
+
+    const itemData: IItemData = {
+      itemIds: () => ["0", "1", "2", "3", "4", "5"],
+      getValue: (itemId: string, attrId: string) => {
+        const index = +itemId
+        return attrId === "a1"
+                ? ["a", "b"][index % 2]
+                : itemId
+      },
+      invalidate: jest.fn()
+    }
+    syncCollectionLinks(root.collections, itemData)
+
+    root.collections.forEach((collection, index) => {
+      // update the cases
+      collection.updateCaseGroups()
+
+      expect(collection.findParentCaseGroup("foo")).toBeUndefined()
+    })
+
+    root.collections.forEach((collection, index) => {
+      // sort child collection cases into groups
+      const parentCaseGroups = index > 0 ? root.collections[index - 1].caseGroups : undefined
+      collection.completeCaseGroups(parentCaseGroups)
+    })
+
+    expect(c1.caseIds.length).toBe(2)
+    expect(c1.cases.length).toBe(2)
+    expect(c2.caseIds).toEqual(["0", "2", "4", "1", "3", "5"])
+    expect(c2.findParentCaseGroup("foo")).toBeUndefined()
+    expect(c1.caseGroups[0].childCaseIds).toEqual(["0", "2", "4"])
+    expect(c1.caseGroups[0].childItemIds).toEqual(["0", "2", "4"])
+    expect(c1.caseGroups[1].childCaseIds).toEqual(["1", "3", "5"])
+    expect(c1.caseGroups[1].childItemIds).toEqual(["1", "3", "5"])
+
+    itemData.itemIds().forEach((itemId, index) => {
+      expect(c2.hasCase(itemId)).toBe(true)
+      expect(c2.getCaseIndex(itemId)).toBe(index)
+      expect(c2.getCaseGroup(itemId)!.childItemIds).toEqual([itemId])
+      expect(c1.findParentCaseGroup(itemId)).toBe(c1.caseGroups[+itemId % 2])
+    })
+
+    // serializes group key => case id map appropriately
+    c1.prepareSnapshot()
+    const aGroupKey = '["a"]'
+    const bGroupKey = '["b"]'
+    const aCaseId = c1.caseIds[0]
+    const bCaseId = c1.caseIds[1]
+    expect(c1._groupKeyCaseIds).toEqual([[aGroupKey, aCaseId], [bGroupKey, bCaseId]])
+
+    const c1Snap = getSnapshot(c1)
+    const c1New = CollectionModel.create(c1Snap)
+    expect(c1New.groupKeyCaseIds.get(aGroupKey)).toBe(aCaseId)
+    expect(c1New.groupKeyCaseIds.get(bGroupKey)).toBe(bCaseId)
+
+    // childmost collection doesn't serialize its mapping since case id === item id
+    c2.prepareSnapshot()
+    expect(c2._groupKeyCaseIds).toEqual([])
+
+    // adding an attribute to the child collection doesn't invalidate grouping
+    c2.addAttribute(a4)
+    expect(itemData.invalidate).not.toHaveBeenCalled()
+
+    // adding an attribute to the parent collection does invalidate grouping
+    c1.addAttribute(a3)
+    expect(itemData.invalidate).toHaveBeenCalledTimes(1)
+  })
 })

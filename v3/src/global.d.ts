@@ -11,3 +11,5 @@ declare namespace process {
     [index: string]: string
   }
 }
+
+type Maybe<T> = T | undefined

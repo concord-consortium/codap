@@ -3,7 +3,7 @@ import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
 // eslint-disable-next-line import/no-cycle
-import { DataSet, IDataSetSnapshot } from "./data-set"
+import { DataSet, IDataSet, IDataSetSnapshot } from "./data-set"
 import { SetOptional } from "type-fest"
 
 export const LegacyCaseID = types.model("CaseID", {
@@ -44,7 +44,7 @@ export function isLegacyDataSetSnap(snap: IDataSetSnapshot): snap is ILegacyData
   return isOriginalDataSetSnap(snap) || isTempDataSetSnap(snap) || isPreItemDataSetSnap(snap)
 }
 
-export function createDataSet(snap: IDataSetSnapshot | ILegacyDataSetSnap) {
+export function createDataSet(snap: IDataSetSnapshot | ILegacyDataSetSnap): IDataSet {
   // preProcessSnapshot handler will perform the necessary conversion internally
   return DataSet.create(snap as IDataSetSnapshot)
 }

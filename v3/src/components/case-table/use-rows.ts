@@ -21,10 +21,9 @@ export const useRows = () => {
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
 
-  const getCases = useCallback(() => data?.collectionGroups?.length
-                                      ? data.getCasesForCollection(collectionId)
-                                      : data ? data.items as ICase[] : [],
-                                [collectionId, data])
+  const getCases = useCallback(() => {
+    return data?.getCasesForCollection(collectionId) ?? []
+  }, [collectionId, data])
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
@@ -110,14 +109,16 @@ export const useRows = () => {
 
     // rebuild the entire cache after grouping changes
     const reactionDisposer = reaction(
-      () => data?.collectionGroups,
-      () => {
-        resetRowCache()
-        if (appState.appMode === "performance") {
-          syncRowsToDom()
-        }
-        else {
-          syncRowsToRdg()
+      () => data?.isValidCaseGroups,
+      isValid => {
+        if (isValid) {
+          resetRowCache()
+          if (appState.appMode === "performance") {
+            syncRowsToDom()
+          }
+          else {
+            syncRowsToRdg()
+          }
         }
       }, { name: "useRows.useEffect.reaction [collectionGroups]", fireImmediately: true }
     )
@@ -199,7 +200,7 @@ export const useRows = () => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
         const caseGroup = data?.pseudoCaseMap.get(caseId)
-        const childCaseIds = caseGroup?.childPseudoCaseIds ?? caseGroup?.childCaseIds
+        const childCaseIds = caseGroup?.childCaseIds ?? caseGroup?.childItemIds
         const firstChildCaseId = childCaseIds?.[0]
         if (firstChildCaseId) {
           const row = rowCache.get(firstChildCaseId)

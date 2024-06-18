@@ -22,5 +22,6 @@ export const setupTestDataset = () => {
   const a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })
   const a3 = dataset.addAttribute({ name: "a3" })
   dataset.addCases(testCases, { canonicalize: true })
+  dataset.validateCaseGroups()
   return { dataset, c1, c2, a1, a2, a3 }
 }

@@ -13,7 +13,7 @@ jest.mock("../../utilities/codap-utils", () => {
   }
 })
 
-describe("CollectionGroups", () => {
+describe("DataSet collections", () => {
 
   let data: IDataSet
 
@@ -48,30 +48,34 @@ describe("CollectionGroups", () => {
     return attrs
   }
 
+  function noSymbols(obj: any) {
+    // JSON.stringify-ing removes symbol-keyed properties
+    return JSON.parse(JSON.stringify(obj))
+  }
+
   it("handles ungrouped data", () => {
-    expect(data.collectionGroups).toEqual([])
     expect(data.getCasesForCollection("foo")).toEqual([])
-    expect(data.getCasesForCollection(data.collections[0].id)).toEqual(data.items)
-    expect(data.getCasesForAttributes(["aId"])).toEqual(data.items)
-    expect(data.getCasesForAttributes(["bId"])).toEqual(data.items)
-    expect(data.getCasesForAttributes(["cId"])).toEqual(data.items)
+    expect(noSymbols(data.getCasesForCollection(data.collections[0].id))).toEqual(data.items)
+    expect(noSymbols(data.getCasesForAttributes(["aId"]))).toEqual(data.items)
+    expect(noSymbols(data.getCasesForAttributes(["bId"]))).toEqual(data.items)
+    expect(noSymbols(data.getCasesForAttributes(["cId"]))).toEqual(data.items)
     expect(data.collections.length).toEqual(1)
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["aId", "bId", "cId"])
     // case caches are updated when cases are added/removed
     const allCases = data.items.map(({ __id__ }) => ({ __id__ }))
     const childCases = data.childCases()
-    expect(childCases).toEqual(allCases)
+    expect(noSymbols(childCases)).toEqual(allCases)
     data.addCases([{ __id__: "4-5-6", aId: 4, bId: 5, cId: 6 }])
-    const allCases2 = data.items.map(({ __id__ }) => ({ __id__ }))
-    expect(allCases2).not.toEqual(allCases)
+    const allItems2 = data.items.map(({ __id__ }) => ({ __id__ }))
+    expect(allItems2).not.toEqual(allCases)
     const childCases2 = data.childCases()
     expect(childCases2).not.toEqual(childCases)
-    expect(childCases2).toEqual(allCases2)
+    expect(noSymbols(childCases2)).toEqual(allItems2)
     data.removeCases(["4-5-6"])
-    const allCases3 = data.items.map(({ __id__ }) => ({ __id__ }))
+    const allItems3 = data.items.map(({ __id__ }) => ({ __id__ }))
     const childCases3 = data.childCases()
     expect(childCases3).toEqual(childCases)
-    expect(childCases3).toEqual(allCases3)
+    expect(noSymbols(childCases3)).toEqual(allItems3)
   })
 
   it("handles grouping by a single attribute", () => {
@@ -80,13 +84,12 @@ describe("CollectionGroups", () => {
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["bId", "cId"])
 
     expect(collection.id).toBe("test-3")
-    expect(data.collectionGroups.length).toBe(1)
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     expect(data.getCollection(collection.id)).toBe(collection)
     const aCases = data.getCasesForAttributes(["aId"])
     expect(data.getCasesForCollection(collection.id)).toEqual(aCases)
     expect(aCases.length).toBe(3)
-    expect(aCases.map((c: any) => c.aId)).toEqual(["1", "2", "3"])
+    expect(aCases.map(aCase => data.getStrValue(aCase.__id__, "aId"))).toEqual(["1", "2", "3"])
     const abCases = data.getCasesForAttributes(["aId", "bId"])
     expect(abCases.length).toBe(27)
   })
@@ -99,7 +102,6 @@ describe("CollectionGroups", () => {
     expect(attributesByCollection()).toEqual([["aId", "bId"], ["cId"]])
 
     expect(collection.id).toBe("test-3")
-    expect(data.collectionGroups.length).toBe(1)
     const aCases = data.getCasesForAttributes(["aId"])
     expect(aCases.length).toBe(9)
     expect(data.getCasesForCollection(collection.id)).toEqual(aCases)
@@ -114,22 +116,21 @@ describe("CollectionGroups", () => {
   it("handles multiple groupings", () => {
     const collection1 = data.addCollection({ attributes: ["aId"] })
     expect(data.collections.length).toBe(2)
-    expect(data.collectionGroups.length).toBe(1)
     const collection2 = data.addCollection({ attributes: ["bId"] })
     expect(data.collections.length).toBe(3)
     expect(data.collections[0].attributes.map(attr => attr!.id)).toEqual(["aId"])
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["cId"])
     expect(attributesByCollection()).toEqual([["aId"], ["bId"], ["cId"]])
 
-    expect(data.collectionGroups.length).toBe(2)
     const aCases = data.getCasesForAttributes(["aId"])
     expect(data.getCasesForCollection(collection1.id)).toEqual(aCases)
     expect(aCases.length).toBe(3)
-    expect(aCases.map((c: any) => c.aId)).toEqual(["1", "2", "3"])
+    expect(aCases.map(aCase => data.getStrValue(aCase.__id__, "aId"))).toEqual(["1", "2", "3"])
     const bCases = data.getCasesForAttributes(["bId"])
     expect(data.getCasesForCollection(collection2.id)).toEqual(bCases)
     expect(bCases.length).toBe(9)
-    expect(bCases.map((c: any) => c.bId)).toEqual(["1", "2", "3", "1", "2", "3", "1", "2", "3"])
+    expect(bCases.map(aCase => data.getStrValue(aCase.__id__, "bId")))
+      .toEqual(["1", "2", "3", "1", "2", "3", "1", "2", "3"])
     const abCases = data.getCasesForAttributes(["aId", "bId"])
     expect(abCases.length).toBe(9)
     const cCases = data.getCasesForAttributes(["cId"])
@@ -140,13 +141,13 @@ describe("CollectionGroups", () => {
     // add another set of default cases
     addDefaultCases(b => 4)
     const _aCases = data.getCasesForAttributes(["aId"])
-    expect(_aCases.map((c: any) => c.aId)).toEqual(["1", "2", "3"])
+    expect(_aCases.map(aCase => data.getStrValue(aCase.__id__, "aId"))).toEqual(["1", "2", "3"])
     const _bCases = data.getCasesForAttributes(["bId"])
-    expect(_bCases.map((c: any) => c.bId)).toEqual(["1", "2", "3", "4", "1", "2", "3", "4", "1", "2", "3", "4"])
+    expect(_bCases.map(aCase => data.getStrValue(aCase.__id__, "bId")))
+      .toEqual(["1", "2", "3", "4", "1", "2", "3", "4", "1", "2", "3", "4"])
   })
 
   it("handles moving attributes between collections", () => {
-    expect(data.collectionGroups.length).toBe(0)
     // move attr "a" to a new collection
     data.moveAttributeToNewCollection("aId")
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
@@ -199,8 +200,7 @@ describe("CollectionGroups", () => {
     const pseudoCases = data.getCasesForAttributes(["aId"])
     const pseudoCase = { ...pseudoCases[0], aId: "4" }
     data.setCaseValues([pseudoCase])
-    const collectionGroup = data.collectionGroups[0]
-    for (const caseId of collectionGroup.groups[0].childCaseIds) {
+    for (const caseId of data.collections[0].caseGroups[0].childItemIds) {
       expect(data.getValue(caseId, "aId")).toBe("4")
     }
   })
@@ -222,11 +222,10 @@ describe("CollectionGroups", () => {
     data.moveAttributeToNewCollection("aId")
     expect(data.collections[0].attributes.map(attr => attr!.id)).toEqual(["aId"])
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["bId", "cId"])
-    expect(data.collectionGroups.length).toBe(1)
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     const aCases = data.getCasesForAttributes(["aId"])
     expect(aCases.length).toBe(1) // (!) without formula it'd be equal to 3
-    expect(aCases.map((c: any) => c.aId)).toEqual([""]) // formula needs to be re-evaluated
+    expect(aCases.map(aCase => data.getStrValue(aCase.__id__, "aId"))).toEqual([""]) // formula needs to be re-evaluated
     const abCases = data.getCasesForAttributes(["aId", "bId"])
     expect(abCases.length).toBe(27)
   })

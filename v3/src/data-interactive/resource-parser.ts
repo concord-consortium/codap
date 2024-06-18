@@ -219,7 +219,7 @@ export function resolveResources(
 
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
-    const itemId = dataContext?.pseudoCaseMap.get(caseId)?.childCaseIds[0]
+    const itemId = dataContext?.pseudoCaseMap.get(caseId)?.childItemIds[0]
     if (itemId) result.itemByCaseID = dataContext?.getCase(itemId)
   }
 
