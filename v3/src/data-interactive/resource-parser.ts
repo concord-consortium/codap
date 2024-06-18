@@ -180,10 +180,11 @@ export function resolveResources(
       dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
         const aCase = dataContext.pseudoCaseMap.get(caseGroup.__id__)
         const itemId = aCase?.childCaseIds[0]
-        if (itemId) {
-          const itemIndex = dataContext.caseIndexFromID(itemId)
+        const item = dataContext.getCase(itemId ?? caseGroup.__id__)
+        if (item) {
+          const itemIndex = dataContext.caseIndexFromID(item.__id__)
           if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
-            result.caseSearch?.push(aCase.pseudoCase)
+            result.caseSearch?.push(aCase?.pseudoCase ?? item)
           }
         }
       })
