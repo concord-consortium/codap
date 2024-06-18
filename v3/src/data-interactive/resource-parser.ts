@@ -179,12 +179,12 @@ export function resolveResources(
     if (valid) {
       result.caseSearch = []
       dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
-        const aCase = dataContext.pseudoCaseMap.get(caseGroup.__id__)
-        const itemId = aCase?.childCaseIds[0]
+        const aCase = dataContext.caseGroupMap.get(caseGroup.__id__)
+        const itemId = aCase?.childItemIds[0]
         if (itemId) {
           const itemIndex = dataContext.caseIndexFromID(itemId)
           if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
-            result.caseSearch?.push(aCase.pseudoCase)
+            result.caseSearch?.push(aCase.groupedCase)
           }
         }
       })

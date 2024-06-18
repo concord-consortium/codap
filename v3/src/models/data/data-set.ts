@@ -336,7 +336,7 @@ export const DataSet = V2Model.named("DataSet").props({
       getUniqueCollectionName
     },
     actions: {
-      addCollection(collection: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
+      addCollection(collectionSnap: ICollectionModelSnapshot, options?: IAddCollectionOptions) {
         // ensure collection has a unique name
         const { name, ...rest } = collectionSnap
         const _name = getUniqueCollectionName(name ?? "")
