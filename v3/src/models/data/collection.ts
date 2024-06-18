@@ -1,3 +1,4 @@
+import { comparer, observable, reaction, runInAction } from "mobx"
 import { addDisposer, getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
 import {
@@ -5,7 +6,6 @@ import {
 } from "./data-set-types"
 import { V2Model } from "./v2-model"
 import { kCaseIdPrefix, kCollectionIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
-import { comparer, observable, reaction, runInAction } from "mobx"
 
 export const CollectionLabels = types.model("CollectionLabels", {
   singleCase: "",

@@ -431,7 +431,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // complete the case groups, including sorting child collection cases into groups
         const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
         collection.completeCaseGroups(parentCaseGroups)
-        // update the pseudoCaseMap
+        // update the caseGroupMap
         collection.caseGroups.forEach(group => self.caseGroupMap.set(group.groupedCase.__id__, group))
       })
       self.setValidCaseGroups()

@@ -1,10 +1,10 @@
 import { Instance, types } from "mobx-state-tree"
+import { SetOptional } from "type-fest"
 import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
 // eslint-disable-next-line import/no-cycle
 import { DataSet, IDataSet, IDataSetSnapshot } from "./data-set"
-import { SetOptional } from "type-fest"
 
 export const LegacyCaseID = types.model("CaseID", {
   __id__: types.optional(types.string, () => v3Id(kItemIdPrefix))
