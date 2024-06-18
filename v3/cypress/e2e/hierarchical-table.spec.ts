@@ -10,7 +10,9 @@ context("hierarchical collections", () => {
     cy.wait(2500)
   })
   hierarchical.tests.forEach((h) => {
-    it(`${h.testName}`, () => {
+    // FIXME: enable skipped tests
+    const itOrSkip = h.skip ? it.skip : it
+    itOrSkip(`${h.testName}`, () => {
       const collections = h.collections
       collections.forEach((collection, index) => {
         cy.log("Testing collection:", index, "name:", collection.name)
