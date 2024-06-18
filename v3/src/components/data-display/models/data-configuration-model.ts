@@ -1,7 +1,10 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
 import {comparer, reaction} from "mobx"
+import {
+  addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
+  resolveIdentifier, SnapshotIn, types
+} from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
-import {addDisposer, getSnapshot, Instance, ISerializedActionCall, SnapshotIn, types} from "mobx-state-tree"
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
@@ -38,14 +41,48 @@ export type AttributeDescriptionsMapSnapshot = Partial<Record<AttrRole, IAttribu
 export const kUnknownDataConfigurationType = "unknownDataConfigurationType"
 export const kDataConfigurationType = "dataConfigurationType"
 
+// A DataConfigurationModel (or a containing tile model) can be created with an environment containing
+// a provisional dataset and metadata. In this case, the provisional dataset or metadata will be retrieved
+// instead of the DataConfiguration's own. This allows the DI system to set up a graph tile snapshot,
+// referencing the dataset and metadata as necessary, outside of the main MST tree.
+interface IProvisionalEnvironment {
+  provisionalDataSet?: IDataSet
+  provisionalMetadata?: ISharedCaseMetadata
+}
+
+export function getProvisionalDataSet(node: IAnyStateTreeNode | null) {
+  const env = node && hasEnv(node) ? getEnv<IProvisionalEnvironment>(node) : {}
+  return env.provisionalDataSet
+}
+
+export function getProvisionalMetadata(node: IAnyStateTreeNode | null) {
+  const env = node && hasEnv(node) ? getEnv<IProvisionalEnvironment>(node) : {}
+  return env.provisionalMetadata
+}
+
 export const DataConfigurationModel = types
   .model('DataConfigurationModel', {
     id: types.optional(types.identifier, () => typedId("DCON")),
     type: types.optional(types.string, kDataConfigurationType),
     // keys are AttrRoles, excluding y role
     _attributeDescriptions: types.map(AttributeDescription),
-    dataset: types.safeReference(DataSet),
-    metadata: types.safeReference(SharedCaseMetadata),
+    dataset: types.safeReference(DataSet, {
+      get(identifier: string, parent: IAnyStateTreeNode | null): any {
+        return getProvisionalDataSet(parent) ?? resolveIdentifier<typeof DataSet>(DataSet, parent, identifier)
+      },
+      set(dataSet: IDataSet) {
+        return dataSet.id
+      }
+    }),
+    metadata: types.safeReference(SharedCaseMetadata, {
+      get(identifier: string, parent: IAnyStateTreeNode | null): any {
+        return getProvisionalMetadata(parent) ??
+          resolveIdentifier<typeof SharedCaseMetadata>(SharedCaseMetadata, parent, identifier)
+      },
+      set(metadata: ISharedCaseMetadata) {
+        return metadata.id
+      }
+    }),
     hiddenCases: types.array(types.string),
     displayOnlySelectedCases: types.maybe(types.boolean)
   })
@@ -70,25 +107,23 @@ export const DataConfigurationModel = types
       return this.attributeDescriptions[role]
     },
     // returns empty string (rather than undefined) for roles without attributes
-    attributeID(role: AttrRole, _dataset?: IDataSet) {
-      const dataset = _dataset ?? self.dataset
-
+    attributeID(role: AttrRole) {
       const defaultCaptionAttributeID = () => {
         // We find the childmost collection and return the first attribute in that collection. If there is no
         // childmost collection, we return the first attribute in the dataset.
         const attrIDs = (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend'] as const)
             .map(aRole => this.attributeID(aRole))
             .filter(id => !!id),
-          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, dataset)
+          childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
-          const childmostCollection = dataset?.getCollection(childmostCollectionID),
+          const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
             childmostCollectionAttributes = childmostCollection?.attributes
           if (childmostCollectionAttributes?.length) {
             const firstAttribute = childmostCollectionAttributes[0]
             return firstAttribute?.id
           }
         }
-        return dataset?.childCollection.attributes[0]?.id
+        return self.dataset?.childCollection.attributes[0]?.id
       }
 
       let attrID = this.attributeDescriptionForRole(role)?.attributeID || ""
@@ -97,14 +132,13 @@ export const DataConfigurationModel = types
       }
       return attrID
     },
-    attributeType(role: AttrRole, _dataset?: IDataSet) {
-      const dataset = _dataset ?? self.dataset
+    attributeType(role: AttrRole) {
       const desc = this.attributeDescriptionForRole(role)
       if (desc?.type) {
         return desc.type
       }
       const attrID = this.attributeID(role)
-      const attr = attrID ? dataset?.attrFromID(attrID) : undefined
+      const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
     },
     get places() {
@@ -255,11 +289,10 @@ export const DataConfigurationModel = types
       return self.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
         .filter((aValue: number) => isFinite(aValue))
     },
-    categorySetForAttrRole(role: AttrRole, _metadata?: ISharedCaseMetadata, _dataset?: IDataSet) {
-      const metadata = _metadata ?? self.metadata
-      if (metadata) {
-        const attributeID = self.attributeID(role, _dataset) || ''
-        return metadata.getCategorySet(attributeID)
+    categorySetForAttrRole(role: AttrRole) {
+      if (self.metadata) {
+        const attributeID = self.attributeID(role) || ''
+        return self.metadata.getCategorySet(attributeID)
       }
     },
     potentiallyCategoricalRoles(): AttrRole[] {

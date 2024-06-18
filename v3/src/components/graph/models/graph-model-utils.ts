@@ -1,5 +1,3 @@
-import { IDataSet } from "../../../models/data/data-set"
-import { ISharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
 import {
   CategoricalAxisModel, EmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
@@ -17,14 +15,14 @@ const plotChoices: Record<string, Record<string, PlotType>> = {
   categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
 }
 
-function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel, _dataset?: IDataSet) {
+function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
   const dataConfig = graphModel?.dataConfiguration
   const oldPrimaryRole = dataConfig?.primaryRole ?? "x"
   const axisPlace = oldPrimaryRole === "x" ? "bottom" : "left"
-  const attributeType = dataConfig?.attributeType(graphPlaceToAttrRole[axisPlace], _dataset) ?? 'empty'
+  const attributeType = dataConfig?.attributeType(graphPlaceToAttrRole[axisPlace]) ?? 'empty'
   const otherAxisPlace = axisPlace === "bottom" ? "left" : "bottom"
   const otherAttrRole = axisPlaceToAttrRole[otherAxisPlace]
-  const otherAttributeType = dataConfig?.attributeType(graphPlaceToAttrRole[otherAxisPlace], _dataset) ?? 'empty',
+  const otherAttributeType = dataConfig?.attributeType(graphPlaceToAttrRole[otherAxisPlace]) ?? 'empty',
   // Numeric attributes get priority for primaryRole when present. First one that is already present
   // and then the newly assigned one. If there is an already assigned categorical then its place is
   // the primaryRole, or, lastly, the newly assigned place
@@ -38,18 +36,15 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel, _dataset?: ID
   graphModel?.setPlotType(plotChoices[primaryType][otherAttributeType])
 }
 
-function setupAxes(
-  graphModel: IGraphContentModel, layout: GraphLayout, _dataset?: IDataSet, _metadata?: ISharedCaseMetadata
-) {
+function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
   const setupAxis = (place: AxisPlace) => {
     const dataConfig = graphModel?.dataConfiguration
-    const dataset = _dataset ?? dataConfig?.dataset
     const attrRole = graphPlaceToAttrRole[place],
-      attributeID = dataConfig?.attributeID(attrRole, dataset),
-      attr = attributeID ? dataset?.attrFromID(attributeID) : undefined,
+      attributeID = dataConfig?.attributeID(attrRole),
+      attr = attributeID ? dataConfig?.dataset?.attrFromID(attributeID) : undefined,
       primaryRole = dataConfig?.primaryRole,
       secondaryPlace = primaryRole === 'x' ? 'left' : 'bottom',
-      attrType = dataConfig?.attributeType(attrRole, dataset),
+      attrType = dataConfig?.attributeType(attrRole),
       fallbackType = (place === secondaryPlace && graphModel?.pointsFusedIntoBars) ? 'numeric' : 'empty',
       requiredType = attrType ?? fallbackType,
       currAxisModel = graphModel?.getAxis(place),
@@ -76,7 +71,7 @@ function setupAxes(
           layout.setAxisScaleType(place, 'band')
         }
         layout.getAxisMultiScale(place)?.
-          setCategorySet(dataConfig?.categorySetForAttrRole(attrRole, _metadata, dataset))
+          setCategorySet(dataConfig?.categorySetForAttrRole(attrRole))
       }
         break
       case 'empty': {
@@ -96,9 +91,7 @@ function setupAxes(
   AxisPlaces.forEach(setupAxis)
 }
 
-export function syncModelWithAttributeConfiguration(
-  graphModel: IGraphContentModel, layout: GraphLayout, _dataset?: IDataSet, _metadata?: ISharedCaseMetadata
-) {
-  setPrimaryRoleAndPlotType(graphModel, _dataset)
-  setupAxes(graphModel, layout, _dataset, _metadata)
+export function syncModelWithAttributeConfiguration(graphModel: IGraphContentModel, layout: GraphLayout) {
+  setPrimaryRoleAndPlotType(graphModel)
+  setupAxes(graphModel, layout)
 }

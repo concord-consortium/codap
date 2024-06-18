@@ -144,20 +144,18 @@ export const diComponentHandler: DIHandler = {
 
           let layerIndex = 0
           const layers: Array<IGraphPointLayerModelSnapshot> = []
-          let firstDataSet: IDataSet | undefined
-          let firstMetaData: ISharedCaseMetadata | undefined
+          let provisionalDataSet: IDataSet | undefined
+          let provisionalMetadata: ISharedCaseMetadata | undefined
           getSharedDataSets(document).forEach(sharedDataSet => {
             const dataset = sharedDataSet.dataSet
             const metadata = getCaseMetadata(dataset.id)
             if (metadata) {
-              if (!firstDataSet) {
-                firstDataSet = dataset
-                firstMetaData = metadata
-              }
               const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
               const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
               let hiddenCases: string[] = []
               if (dataset.name === _dataContext) {
+                provisionalDataSet = dataset
+                provisionalMetadata = metadata
                 for (const attributeType in attributeNames) {
                   const attributeName = attributeNames[attributeType]
                   if (attributeName) {
@@ -206,8 +204,10 @@ export const diComponentHandler: DIHandler = {
             showOnlyLastCase,
             showParentToggles
           }
-          const graphModel = GraphContentModel.create(graphContent)
-          syncModelWithAttributeConfiguration(graphModel, new GraphLayout(), firstDataSet, firstMetaData)
+          // We use an environment with a provisionalDataSet and Metadata so the dummy model can be set up with
+          // them, even though they are not part of the same MST tree.
+          const graphModel = GraphContentModel.create(graphContent, { provisionalDataSet, provisionalMetadata })
+          syncModelWithAttributeConfiguration(graphModel, new GraphLayout())
 
           // Layers will get mangled in the model because it's not in the same tree as the dataset,
           // so we use the constructed layers here
