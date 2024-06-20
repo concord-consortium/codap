@@ -61,7 +61,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         indices: Record<string, number>
       }
       const subPlotDetails = new Map<string, ISubPlotDetails>()
-      dataset?.cases.forEach(aCase => {
+      dataset?.items.forEach(aCase => {
         const subPlotKey = dataConfig?.subPlotKey(aCase.__id__) ?? {}
         const subPlotMapKey = JSON.stringify(subPlotKey)
         let details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)

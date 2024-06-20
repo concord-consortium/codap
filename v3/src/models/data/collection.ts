@@ -1,8 +1,11 @@
-import { getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { comparer, observable, reaction, runInAction } from "mobx"
+import { addDisposer, getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
-import { IAddCasesOptions, IMoveAttributeOptions } from "./data-set-types"
+import {
+  CaseGroup, IGroupedCase, IMoveAttributeOptions, symIndex, symParent
+} from "./data-set-types"
 import { V2Model } from "./v2-model"
-import { kCollectionIdPrefix, typeV3Id } from "../../utilities/codap-utils"
+import { kCaseIdPrefix, kCollectionIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 
 export const CollectionLabels = types.model("CollectionLabels", {
   singleCase: "",
@@ -13,6 +16,19 @@ export const CollectionLabels = types.model("CollectionLabels", {
 })
 export interface ICollectionLabels extends Instance<typeof CollectionLabels> {}
 
+// interface to data provided by DataSet
+export interface IItemData {
+  itemIds: () => string[]
+  getValue: (itemId: string, attrId: string) => string
+  invalidate: () => void
+}
+
+// used for initialization and tests
+export const defaultItemData: IItemData = {
+  itemIds: () => [],
+  getValue: () => "",
+  invalidate: () => null
+}
 
 export const CollectionModel = V2Model
 .named("Collection")
@@ -21,8 +37,36 @@ export const CollectionModel = V2Model
   labels: types.maybe(CollectionLabels),
   // attributes in left-to-right order
   attributes: types.array(types.safeReference(Attribute)),
-  caseIds: types.array(types.string)
+  // array of [group key (stringified attribute values), case id] tuples
+  // serialized so that case ids are persistent
+  _groupKeyCaseIds: types.maybe(types.frozen<Array<[string, string]>>())
 })
+.volatile(self => ({
+  parent: undefined as ICollectionModel | undefined,
+  child: undefined as ICollectionModel | undefined,
+  // map from group key (stringified attribute values) => case id
+  groupKeyCaseIds: new Map<string, string>(),
+  itemData: defaultItemData,
+  // case ids in case table/render order
+  caseIds: [] as string[],
+  // map from case id to case index
+  caseIdToIndexMap: new Map<string, number>(),
+  // map from case id to group key (stringified attribute values)
+  caseIdToGroupKeyMap: new Map<string, string>(),
+  // map from group key (stringified attribute values) to CaseGroup
+  caseGroupMap: new Map<string, CaseGroup>()
+}))
+.actions(self => ({
+  setParent(parent: ICollectionModel) {
+    self.parent = parent
+  },
+  setChild(child: ICollectionModel) {
+    self.child = child
+  },
+  setItemData(itemData: IItemData) {
+    self.itemData = itemData
+  }
+}))
 .views(self => ({
   getAttribute(attrId: string) {
     return self.attributes.find(attribute => attribute?.id === attrId)
@@ -33,15 +77,194 @@ export const CollectionModel = V2Model
   getAttributeByName(name: string) {
     return self.attributes.find(attribute => attribute?.name === name)
   },
-  get caseIdToIndexMap() {
-    const idMap: Map<string, number> = new Map()
-    self.caseIds.forEach((caseId, index) => idMap.set(caseId, index))
-    return idMap
+  get attributesArray(): IAttribute[] {
+    return Array.from(self.attributes).filter(attr => !!attr) as IAttribute[]
+  },
+  // non-formula attributes
+  get dataAttributesArray(): IAttribute[] {
+    return Array.from(self.attributes).filter(attr => attr && !attr.hasFormula) as IAttribute[]
+  },
+  // sorted non-formula attributes
+  get sortedDataAttributes(): IAttribute[] {
+    return this.dataAttributesArray.sort((a, b) => a.id.localeCompare(b.id))
+  },
+  // attributes of all parent collections
+  get allParentAttrs(): IAttribute[] {
+    const attrs: IAttribute[] = []
+
+    function addParentAttrs(collection: ICollectionModel) {
+      if (collection.parent) {
+        addParentAttrs(collection.parent)
+      }
+      collection.attributes.forEach(attr => {
+        attr && attrs.push(attr)
+      })
+    }
+    if (self.parent) {
+      addParentAttrs(self.parent)
+    }
+
+    return attrs
+  },
+  // non-formula attributes of all parent collections
+  get allParentDataAttrs() {
+    return this.allParentAttrs.filter(attr => !attr.hasFormula)
+  }
+}))
+.views(self => ({
+  get allAttributes() {
+    return [...self.allParentAttrs, ...self.attributesArray]
+  },
+  // all non-formula
+  get allDataAttributes() {
+    // sort the attributes by id so that original attribute order doesn't affect the result
+    return [...self.allParentDataAttrs, ...self.dataAttributesArray].sort((a, b) => a.id.localeCompare(b.id))
+  },
+  // sorted non-formula attributes of parent collections
+  get sortedParentDataAttrs() {
+    return self.allParentDataAttrs.sort((a, b) => a.id.localeCompare(b.id))
+  }
+}))
+.views(self => ({
+  groupKey(itemId: string) {
+    // only parent collections group cases; child collections "group" by itemId
+    if (!self.child) return itemId
+    const allValues = self.allDataAttributes.map(attr => self.itemData.getValue(itemId, attr.id))
+    return JSON.stringify(allValues)
+  },
+  parentGroupKey(itemId: string) {
+    if (!self.parent) return
+    const allValues = self.sortedParentDataAttrs.map(attr => self.itemData.getValue(itemId, attr.id))
+    return JSON.stringify(allValues)
+  },
+  groupKeyCaseId(groupKey?: string) {
+    if (!groupKey) return undefined
+    // groupKey === itemId === caseId for child-most collection
+    if (!self.child) return groupKey
+    let caseId = self.groupKeyCaseIds.get(groupKey)
+    if (!caseId) {
+      caseId = v3Id(kCaseIdPrefix)
+      self.groupKeyCaseIds.set(groupKey, caseId)
+    }
+    return caseId
+  }
+}))
+.actions(self => ({
+  clearCases() {
+    self.caseIds = []
+    self.caseIdToIndexMap.clear()
+    self.caseIdToGroupKeyMap.clear()
+    self.caseGroupMap.clear()
+  }
+}))
+.views(self => ({
+  updateCaseGroups() {
+    self.clearCases()
+    self.itemData.itemIds().forEach(itemId => {
+      const groupKey = self.groupKey(itemId)
+      const caseId = self.groupKeyCaseId(groupKey)
+      if (groupKey && caseId) {
+        let caseGroup = self.caseGroupMap.get(groupKey)
+        if (!caseGroup) {
+          const newCaseIndex = self.caseIds.length
+          self.caseIds.push(caseId)
+          self.caseIdToIndexMap.set(caseId, newCaseIndex)
+          self.caseIdToGroupKeyMap.set(caseId, groupKey)
+
+          const parentGroupKey = self.parentGroupKey(itemId)
+          const parentCaseId = self.parent?.groupKeyCaseId(parentGroupKey)
+          const parent = parentCaseId ? { [symParent]: parentCaseId } : {}
+          parentCaseId && self.parent?.addChildCase(parentCaseId, caseId)
+
+          caseGroup = {
+            collectionId: self.id,
+            groupedCase: {
+              __id__: caseId,
+              ...parent,
+              [symIndex]: newCaseIndex
+            },
+            childItemIds: [itemId],
+            groupKey
+          }
+          self.caseGroupMap.set(groupKey, caseGroup)
+        }
+        else {
+          caseGroup.childItemIds.push(itemId)
+        }
+      }
+    })
   }
 }))
 .views(self => ({
   hasCase(caseId: string) {
-    return self.caseIdToIndexMap.get(caseId) != null
+    return self.caseIdToIndexMap.has(caseId)
+  },
+  getCaseIndex(caseId: string) {
+    return self.caseIdToIndexMap.get(caseId)
+  },
+  getCaseGroup(caseId: string) {
+    const groupKey = self.caseIdToGroupKeyMap.get(caseId)
+    return groupKey ? self.caseGroupMap.get(groupKey) : undefined
+  },
+  addChildCase(parentCaseId: string, childCaseId: string) {
+    const groupKey = self.caseIdToGroupKeyMap.get(parentCaseId)
+    const caseGroup = groupKey && self.caseGroupMap.get(groupKey)
+    if (caseGroup) {
+      if (!caseGroup.childCaseIds) {
+        caseGroup.childCaseIds = [childCaseId]
+      }
+      else {
+        caseGroup.childCaseIds.push(childCaseId)
+      }
+    }
+    else {
+      console.warn("CollectionModel.addChildCase -- missing parent case:", parentCaseId)
+    }
+  },
+}))
+.extend(self => {
+  const _caseGroups = observable.box<CaseGroup[]>([])
+  const _cases = observable.box<IGroupedCase[]>([])
+  return {
+    views: {
+      get caseGroups() {
+        return _caseGroups.get()
+      },
+      get cases() {
+        return _cases.get()
+      },
+      completeCaseGroups(parentCaseGroups?: CaseGroup[]) {
+        if (parentCaseGroups) {
+          self.caseIds.splice(0, self.caseIds.length)
+          // sort cases by parent cases
+          parentCaseGroups.forEach(parentGroup => {
+            const childCaseIds = parentGroup.childCaseIds ?? []
+            // update indices
+            childCaseIds.forEach((childCaseId, index) => {
+              const caseGroup = self.getCaseGroup(childCaseId)
+              caseGroup && (caseGroup.groupedCase[symIndex] = index)
+            })
+            // append case ids in grouped order
+            self.caseIds.push(...childCaseIds)
+          })
+        }
+
+        const caseGroups = self.caseIds
+                            .map(caseId => self.getCaseGroup(caseId))
+                            .filter(group => !!group) as CaseGroup[]
+        runInAction(() => _caseGroups.set(caseGroups))
+
+        const cases = self.caseIds
+                        .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
+                        .filter(groupedCase => !!groupedCase) as IGroupedCase[]
+        runInAction(() => _cases.set(cases))
+      }
+    }
+  }
+})
+.views(self => ({
+  findParentCaseGroup(childCaseId: string): Maybe<CaseGroup> {
+    return self.caseGroups.find(group => group.childCaseIds?.includes(childCaseId))
   }
 }))
 .actions(self => ({
@@ -91,6 +314,23 @@ export const CollectionModel = V2Model
   }
 }))
 .actions(self => ({
+  afterCreate() {
+    if (self._groupKeyCaseIds) {
+      self.groupKeyCaseIds = new Map<string, string>(self._groupKeyCaseIds)
+    }
+
+    // changes to this collection's attributes invalidate grouping and persistent ids
+    addDisposer(self, reaction(
+      () => self.sortedDataAttributes.map(attr => attr.id),
+      () => {
+        self.groupKeyCaseIds.clear()
+        if (self.child) self.itemData.invalidate()
+      }, { name: "CollectionModel.sortedDataAttributes reaction", equals: comparer.structural }
+    ))
+  },
+  prepareSnapshot() {
+    self._groupKeyCaseIds = Array.from(self.groupKeyCaseIds.entries())
+  },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1
     const afterIndex = options?.after ? self.getAttributeIndex(options.after) : -1
@@ -110,43 +350,6 @@ export const CollectionModel = V2Model
   }
 }))
 .actions(self => ({
-  addCases(caseIds: string[], options?: IAddCasesOptions) {
-    if (options?.before) {
-      const beforeIndex = self.caseIdToIndexMap.get(options.before)
-      if (beforeIndex != null) {
-        self.caseIds.splice(beforeIndex, 0, ...caseIds)
-        return
-      }
-    }
-    if (options?.after) {
-      const afterIndex = self.caseIdToIndexMap.get(options.after)
-      if (afterIndex != null && afterIndex < self.caseIds.length - 1) {
-        self.caseIds.splice(afterIndex + 1, 0, ...caseIds)
-        return
-      }
-    }
-    self.caseIds.push(...caseIds)
-  },
-  removeCases(caseIds: string[]) {
-    const entries: Array<{ caseId: string, index: number }> = []
-    caseIds.forEach(caseId => {
-      const index = self.caseIdToIndexMap.get(caseId)
-      if (index != null) {
-        entries.push({ caseId, index })
-      }
-    })
-    // remove the cases from the rear so that prior indices aren't affected
-    entries.sort((a, b) => b.index - a.index)
-    entries.forEach(({ caseId, index }) => {
-      if (self.caseIds[index] !== caseId) {
-        /* istanbul ignore next */
-        console.warn("Collection.removeCases encountered case id indexing inconsistency")
-      }
-      self.caseIds.splice(index, 1)
-    })
-  }
-}))
-.actions(self => ({
   moveAttribute(attrId: string, options?: IMoveAttributeOptions) {
     const attr = self.getAttribute(attrId)
     if (attr) {
@@ -160,4 +363,16 @@ export interface ICollectionModelSnapshot extends SnapshotIn<typeof CollectionMo
 
 export function isCollectionModel(model?: IAnyStateTreeNode): model is ICollectionModel {
   return !!model && getType(model) === CollectionModel
+}
+
+export function syncCollectionLinks(collections: ICollectionModel[], itemData: IItemData) {
+  collections.forEach((collection, index) => {
+    if (index > 0) {
+      collection.setParent(collections[index - 1])
+    }
+    if (index < collections.length - 1) {
+      collection.setChild(collections[index + 1])
+    }
+    collection.setItemData(itemData)
+  })
 }

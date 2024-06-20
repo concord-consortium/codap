@@ -132,7 +132,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 // temporary until we have an input row
 const NoCasesMessage = observer(function NoCasesMessage() {
   const data = useDataSetContext()
-  return !data?.cases.length
+  return !data?.items.length
           ? <div className="no-cases-message">{t("V3.caseTable.noCases")}</div>
           : null
 })

@@ -116,7 +116,7 @@ export const lookupFunctions = {
       }
       // lookupByKey can be executed in aggregate context, so we need to handle array arguments.
       const fn = (keyAttrValue: FValue) => {
-        for (const c of dataSet.cases) {
+        for (const c of dataSet.items) {
           const val = dataSet.getValue(c.__id__, keyAttrId)
           if (equal(val, keyAttrValue)) {
             return dataSet.getValue(c.__id__, attrId) || UNDEF_RESULT

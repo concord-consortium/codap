@@ -26,11 +26,10 @@ export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: 
                       : dataSet.attributes
 
   const values: DICaseValues = {}
-  const actualCaseIndex = dataSet.caseIDMap.get(caseId) ?? -1
+  const itemIndex = dataSet.itemIDMap.get(caseId) ?? -1
   attributes.map(attribute => {
     if (attribute?.name) {
-      values[attribute.name] = dataSet.pseudoCaseMap.get(caseId)?.pseudoCase[attribute.id] ??
-        attribute?.value(actualCaseIndex)
+      values[attribute.name] = dataSet.getValue(caseId, attribute.id) ?? attribute?.value(itemIndex)
     }
   })
 

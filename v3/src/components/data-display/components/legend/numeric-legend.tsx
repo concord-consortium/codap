@@ -51,11 +51,11 @@ export const NumericLegend =
          *  2. If `displayOnlySelectedCases` is true and not all cases are visible, the legend displays the range of all
          *     cases, both hidden and visible.
          *  3. Otherwise, the legend displays the range of only the visible cases.
-         *  
+         *
          *  TODO: When `displayOnlySelectedCases` is true and all visible cases have the exact same value for the legend
          *  attribute, the legend should only reflect the values of the case(s) shown.
          */
-        const allCasesCount = dataConfiguration?.dataset?.cases.length ?? 0
+        const allCasesCount = dataConfiguration?.dataset?.items.length ?? 0
         const hiddenCasesCount = dataConfiguration?.hiddenCases.length ?? 0
         const allCasesHidden = hiddenCasesCount === allCasesCount
         if (allCasesHidden) {
