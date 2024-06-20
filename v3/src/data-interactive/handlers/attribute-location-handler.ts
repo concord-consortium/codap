@@ -13,7 +13,7 @@ export const diAttributeLocationHandler: DIHandler = {
 
     const { collection, position } = (values ?? {}) as DIAttributeLocationValues
     const targetCollection = collection === "parent"
-      ? dataContext.getParentCollectionGroup(sourceCollection?.id)?.collection
+      ? dataContext.getParentCollection(sourceCollection?.id)
       : getCollection(dataContext, collection ? `${collection}` : undefined) ?? sourceCollection
     if (!targetCollection) return collectionNotFoundResult
 

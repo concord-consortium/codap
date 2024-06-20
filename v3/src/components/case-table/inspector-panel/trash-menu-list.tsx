@@ -16,11 +16,11 @@ export const TrashMenuList = () => {
   }
 
    const handleDeleteUnselectedCases = () => {
-    data?.removeCases(data.cases.filter(c => !data.selection.has(c.__id__)).map(c => c.__id__))
+    data?.removeCases(data.items.filter(c => !data.selection.has(c.__id__)).map(c => c.__id__))
   }
 
   const handleDeleteAllCases = () => {
-    data?.removeCases(Array.from(data.cases.map(c => c.__id__)))
+    data?.removeCases(Array.from(data.items.map(c => c.__id__)))
   }
 
   return (

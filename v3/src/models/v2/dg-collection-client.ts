@@ -50,7 +50,7 @@ export class DGCollectionClient extends SCObject {
 
   getCaseAt(caseIndex: number) {
     // TODO: deal with hierarchy
-    return new DGCase(this.data, this.data.cases[caseIndex].__id__, this.api)
+    return new DGCase(this.data, this.data.items[caseIndex].__id__, this.api)
   }
 
   getCaseIndexByID(caseId: string) {

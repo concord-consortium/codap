@@ -21,7 +21,7 @@ interface ICaseButton {
 interface ICreateCaseButtons {
   caseIDs: string[]
   dataset?: IDataSet
-  hiddenCases: string[] 
+  hiddenCases: string[]
   isCollectionSet: boolean
 }
 
@@ -77,7 +77,7 @@ export const ParentToggles = observer(function ParentToggles() {
   const dataset = dataConfig?.dataset
   const isCollectionSet = !!(dataset && dataset.collections?.length > 0)
   const hiddenCases = dataConfig?.hiddenCases ?? []
-  const caseIDs = dataset?.cases.map((c) => c.__id__) ?? []
+  const caseIDs = dataset?.items.map((c) => c.__id__) ?? []
   const caseButtons = createCaseButtons({ caseIDs, dataset, isCollectionSet, hiddenCases })
   const caseButtonsListWidth = caseButtons.reduce((acc, button) => acc + button.width + TEXT_OFFSET, 0)
   const isOnlyLastShown = !!graphModel?.showOnlyLastCase
@@ -215,12 +215,12 @@ export const ParentToggles = observer(function ParentToggles() {
     for (let i = startIndex; i !== endIndex; i += increment) {
       const buttonWidth = caseButtons[i].width + TEXT_OFFSET
       buttonsVisibleWidth += buttonWidth
-  
+
       if (buttonsVisibleWidth > availableWidth) {
         buttonsVisibleWidth -= buttonWidth
         break
       }
-  
+
       newOffset += buttonWidth
 
       if (direction === "right") {
@@ -245,7 +245,7 @@ export const ParentToggles = observer(function ParentToggles() {
   const renderCaseButtons = () => {
     return (
       <div className="parent-toggles-case-buttons" data-testid="parent-toggles-case-buttons">
-        {showLeftButton && 
+        {showLeftButton &&
           <button
             className="parent-toggles-case-buttons-left"
             data-testid="parent-toggles-case-buttons-left"

@@ -25,6 +25,7 @@ export const kCaseIdPrefix = "CASE"
 export const kCollectionIdPrefix = "COLL"
 export const kDataSetIdPrefix = "DATA"
 export const kGlobalIdPrefix = "GLOB"
+export const kItemIdPrefix = "ITEM"
 export const kTileIdPrefix = "TILE"
 
 export const toV3AttrId = (v2Id: number | string) => toV3Id(kAttrIdPrefix, v2Id)
@@ -32,6 +33,7 @@ export const toV3CaseId = (v2Id: number | string) => toV3Id(kCaseIdPrefix, v2Id)
 export const toV3CollectionId = (v2Id: number | string) => toV3Id(kCollectionIdPrefix, v2Id)
 export const toV3DataSetId = (v2Id: number | string) => toV3Id(kDataSetIdPrefix, v2Id)
 export const toV3GlobalId = (v2Id: number | string) => toV3Id(kGlobalIdPrefix, v2Id)
+export const toV3ItemId = (v2Id: number | string) => toV3Id(kItemIdPrefix, v2Id)
 export const toV3TileId = (v2Id: number | string) => toV3Id(kTileIdPrefix, v2Id)
 
 export function toV2Id(_v3Id: string) {

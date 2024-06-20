@@ -1,17 +1,18 @@
-import { Instance, types } from "mobx-state-tree"
 import { RequireAtLeastOne } from "type-fest"
 import { IValueType } from "./attribute"
-import { kCaseIdPrefix, v3Id } from "../../utilities/codap-utils"
 
-export const CaseID = types.model("CaseID", {
-  __id__: types.optional(types.string, () => v3Id(kCaseIdPrefix))
-})
-export interface ICaseID extends Instance<typeof CaseID> {}
 
-// a case is represented as an object with an __id__ and an arbitrary set of properties/values
-export interface ICase {
-  __id__: string;
+export interface IItemID {
+  __id__: string
+}
+export interface ICaseID extends IItemID {
+}
+
+// a case/item is represented as an object with an __id__ and an arbitrary set of properties/values
+export interface IItem extends IItemID {
   [key: string]: IValueType;
+}
+export interface ICase extends IItem {
 }
 // when creating cases, the __id__ is optional (it will be generated)
 export interface ICaseCreation {
@@ -89,16 +90,17 @@ export interface IGroupedCase extends ICase {
   [symIndex]?: number
 }
 
-// represents a set of cases which have common grouped values (a pseudo-case)
+// represents a case in a collection which have a set of common grouped values
+// and potentially a set of child cases.
 export interface CaseGroup {
   // id of collection containing the group
   collectionId: string
-  // id of pseudo-case and attribute values
-  pseudoCase: IGroupedCase
-  // ids of leaf child cases (actual cases) in the group
-  childCaseIds: string[]
-  // ids of child pseudo cases in the group (if any)
-  childPseudoCaseIds?: string[]
+  // object that represents the case
+  groupedCase: IGroupedCase
+  // ids of child cases in the group (if any)
+  childCaseIds?: string[]
+  // ids of leaf child cases (items) in the group
+  childItemIds: string[]
   // stringified version of grouped case values for easy comparison/categorization
-  valuesJson: string
+  groupKey: string
 }

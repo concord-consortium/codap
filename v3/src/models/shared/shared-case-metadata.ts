@@ -39,7 +39,7 @@ export const SharedCaseMetadata = SharedModel
   .views(self => ({
     // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
-      const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}
+      const { collectionId, groupKey: valuesJson } = self.data?.caseGroupMap.get(caseId) || {}
       return (collectionId && valuesJson && self.collections.get(collectionId)?.collapsed.get(valuesJson)) ?? false
     },
     // true if passed the id of a hidden attribute, false otherwise
@@ -61,18 +61,18 @@ export const SharedCaseMetadata = SharedModel
       self.lastShownTableOrCardTileId = tileId
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
-      const { collectionId, valuesJson } = self.data?.pseudoCaseMap.get(caseId) || {}
-      if (collectionId && valuesJson) {
+      const { collectionId, groupKey } = self.data?.caseGroupMap.get(caseId) || {}
+      if (collectionId && groupKey) {
         let tableCollection = self.collections.get(collectionId)
         if (isCollapsed) {
           if (!tableCollection) {
             tableCollection = CollectionTableMetadata.create()
             self.collections.set(collectionId, tableCollection)
           }
-          tableCollection.collapsed.set(valuesJson, true)
+          tableCollection.collapsed.set(groupKey, true)
         }
         else if (tableCollection) {
-          tableCollection.collapsed.delete(valuesJson)
+          tableCollection.collapsed.delete(groupKey)
         }
       }
     },

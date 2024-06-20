@@ -347,7 +347,7 @@ export const GraphContentModel = DataDisplayContentModel
     },
     matchingCasesForAttr(attrID: string, value?: string, _allCases?: ICase[]) {
       const dataset = self.dataConfiguration?.dataset
-      const allCases = _allCases ?? dataset?.cases
+      const allCases = _allCases ?? dataset?.items
       let matchingCases: ICase[] = []
 
       if (self.pointDisplayType === "histogram") {
@@ -415,7 +415,7 @@ export const GraphContentModel = DataDisplayContentModel
                                  ? "DG.HistogramView.barTipNoLegendSingular"
                                  : "DG.HistogramView.barTipNoLegendPlural"
         tipText = t(translationKey, {vars: attrArray})
-      } else {  
+      } else {
         const topSplitMatches = self.matchingCasesForAttr(topSplitAttrID, caseTopSplitValue)
         const rightSplitMatches = self.matchingCasesForAttr(rightSplitAttrID, caseRightSplitValue)
         const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
@@ -427,7 +427,7 @@ export const GraphContentModel = DataDisplayContentModel
           bothSplitMatches.length,
           topSplitMatches.length,
           rightSplitMatches.length,
-          dataset?.cases.length ?? 0
+          dataset?.items.length ?? 0
         ].find(length => length > 0) ?? 0
         const legendMatchesInSubplot = legendAttrID
           ? casesInSubPlot.filter(aCaseID => dataset?.getStrValue(aCaseID, legendAttrID) === caseLegendValue).length
@@ -648,7 +648,7 @@ export const GraphContentModel = DataDisplayContentModel
   .actions(self => ({
     setPointsFusedIntoBars(fuseIntoBars: boolean) {
       if (fuseIntoBars === self.pointsFusedIntoBars) return
-    
+
       if (fuseIntoBars) {
         self.setPointConfig(self.plotType !== "dotPlot" ? "bars" : "histogram")
         self.setBarCountAxis()
@@ -656,7 +656,7 @@ export const GraphContentModel = DataDisplayContentModel
         self.setPointConfig(self.pointsAreBinned ? "bins" : "points")
         self.unsetBarCountAxis()
       }
-    
+
       self.pointsFusedIntoBars = fuseIntoBars
     },
   }))

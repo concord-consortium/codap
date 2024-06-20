@@ -5,7 +5,7 @@ import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3CaseId, toV3GlobalId, toV3Id, toV3ItemId, toV3TileId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
 import { parseSearchQuery } from "./resource-parser-utils"
@@ -150,11 +150,12 @@ export function resolveResources(
   }
 
   const getCaseById = (caseId: string) =>
-    dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+    dataContext?.caseGroupMap.get(caseId)?.groupedCase ?? dataContext?.getCase(caseId)
 
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
-    result.caseByID = getCaseById(caseId)
+    const itemId = toV3ItemId(resourceSelector.caseByID)
+    result.caseByID = getCaseById(caseId) ?? getCaseById(itemId)
   }
 
   if (resourceSelector.caseByIndex && collection) {
@@ -178,13 +179,13 @@ export function resolveResources(
     if (valid) {
       result.caseSearch = []
       dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
-        const aCase = dataContext.pseudoCaseMap.get(caseGroup.__id__)
-        const itemId = aCase?.childCaseIds[0]
+        const aCase = dataContext.caseGroupMap.get(caseGroup.__id__)
+        const itemId = aCase?.childItemIds[0]
         const item = dataContext.getCase(itemId ?? caseGroup.__id__)
         if (item) {
           const itemIndex = dataContext.caseIndexFromID(item.__id__)
           if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
-            result.caseSearch?.push(aCase?.pseudoCase ?? item)
+            result.caseSearch?.push(aCase?.groupedCase ?? item)
           }
         }
       })
@@ -203,14 +204,14 @@ export function resolveResources(
   }
 
   if (resourceSelector.itemByID) {
-    const itemId = toV3CaseId(resourceSelector.itemByID)
+    const itemId = toV3ItemId(resourceSelector.itemByID)
     result.itemByID = dataContext?.getCase(itemId)
   }
 
   if (resourceSelector.itemSearch && dataContext) {
     const { func, left, right, valid } = parseSearchQuery(resourceSelector.itemSearch, dataContext)
     if (valid) {
-      result.itemSearch = dataContext.cases.filter(aCase => {
+      result.itemSearch = dataContext.items.filter(aCase => {
         const itemIndex = dataContext.caseIndexFromID(aCase.__id__)
         return func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))
       })
@@ -219,7 +220,7 @@ export function resolveResources(
 
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
-    const itemId = dataContext?.pseudoCaseMap.get(caseId)?.childCaseIds[0]
+    const itemId = dataContext?.caseGroupMap.get(caseId)?.childItemIds[0]
     if (itemId) result.itemByCaseID = dataContext?.getCase(itemId)
   }
 

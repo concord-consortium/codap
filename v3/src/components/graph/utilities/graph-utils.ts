@@ -623,7 +623,7 @@ interface ISumOfSquares {
 
 export const calculateSumOfSquares = ({ cellKey, dataConfig, intercept, slope }: ISumOfSquares) => {
   const dataset = dataConfig?.dataset
-  const caseData = dataset?.cases
+  const caseData = dataset?.items
   const xAttrID = dataConfig?.attributeID("x") ?? ""
   const yAttrID = dataConfig?.attributeID("y") ?? ""
   let sumOfSquares = 0

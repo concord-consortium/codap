@@ -9,7 +9,7 @@ describe("DataInteractive CaseSearchHandler", () => {
 
   it("get works", () => {
     const { dataset: dataContext, c2: collection } = setupTestDataset()
-    const cases = dataContext.getGroupsForCollection(collection.id)!.map(c => c.pseudoCase)
+    const cases = dataContext.getGroupsForCollection(collection.id).map(c => c.groupedCase)
     const caseSearch = [cases[0], cases[2], cases[3]]
 
     expect(handler.get?.({ dataContext, collection }).success).toBe(false)
@@ -21,7 +21,7 @@ describe("DataInteractive CaseSearchHandler", () => {
     const values = result.values as DIFullCase[]
     caseSearch.forEach((item, index) => {
       expect(values[index].id).toBe(toV2Id(item.__id__))
-      const itemIndex = dataContext.caseIndexFromID(dataContext.pseudoCaseMap.get(item.__id__)!.childCaseIds[0])!
+      const itemIndex = dataContext.caseIndexFromID(dataContext.caseGroupMap.get(item.__id__)!.childItemIds[0])!
       collection.attributes.forEach(attribute => {
         expect(attribute && values[index].values?.[attribute.name]).toBe(attribute?.value(itemIndex))
       })
