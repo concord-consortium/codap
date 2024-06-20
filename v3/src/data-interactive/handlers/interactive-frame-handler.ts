@@ -19,8 +19,10 @@ export const diInteractiveFrameHandler: DIHandler = {
         externalUndoAvailable: true,
         id: toV2Id(interactiveFrame.id),
         name: interactiveFrame.title,
+        preventAttributeDeletion: webViewContent?.preventAttributeDeletion,
         preventBringToFront: false,
         preventDataContextReorg: false,
+        respectEditableItemAttribute: webViewContent?.respectEditableItemAttribute,
         savedState: webViewContent?.state,
         standaloneUndoModeAvailable: false,
         title: interactiveFrame.title,
@@ -40,15 +42,21 @@ export const diInteractiveFrameHandler: DIHandler = {
     // TODO: Expand to handle additional values
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noIFResult
+    const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     // CODAP v2 seems to ignore interactiveFrame updates when an array is passed for values
     if (Array.isArray(_values)) return { success: true }
 
     const values = _values as DIInteractiveFrame
+    const { dimensions, preventAttributeDeletion, respectEditableItemAttribute, title } = values
     interactiveFrame.applyModelChange(() => {
-      if (values?.title) interactiveFrame.setTitle(values.title)
-      if (values?.dimensions) {
-        appState.document.content?.setTileDimensions(interactiveFrame.id, values.dimensions)
+      if (dimensions) {
+        appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
+      if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
+      if (respectEditableItemAttribute != null) {
+        webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)
+      }
+      if (title) interactiveFrame.setTitle(title)
     })
     return { success: true }
   }
