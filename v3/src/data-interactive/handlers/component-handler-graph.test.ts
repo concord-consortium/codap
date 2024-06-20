@@ -55,9 +55,9 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(tileContent.showParentToggles).toBe(true)
     // Make sure numberToggleLastMode hid all appropriate cases
     tileContent.layers.forEach(layer => {
-      const lastCaseId = dataset.cases[dataset.cases.length - 1]?.__id__
-      dataset.cases.forEach(aCase => {
-        expect(layer.dataConfiguration.hiddenCases.includes(aCase.__id__)).toBe(aCase.__id__ !== lastCaseId)
+      const lastCaseId = dataset.itemIds[dataset.itemIds.length - 1]
+      dataset.itemIds.forEach(itemId => {
+        expect(layer.dataConfiguration.hiddenCases.includes(itemId)).toBe(itemId !== lastCaseId)
       })
     })
 

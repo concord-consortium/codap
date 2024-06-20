@@ -177,7 +177,7 @@ export const diComponentHandler: DIHandler = {
                 }
 
                 if (showOnlyLastCase) {
-                  hiddenCases = dataset.cases.map(aCase => aCase.__id__).slice(0, dataset.cases.length - 1)
+                  hiddenCases = dataset.itemIds.slice(0, dataset.itemIds.length - 1)
                 }
               }
 
