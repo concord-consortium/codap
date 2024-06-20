@@ -71,9 +71,10 @@ describe("GraphController", () => {
     const place = attrRoleToGraphPlace[role]
     expect(place).toBeTruthy()
     model.setAttributeID(role, data.id, attrId)
-    // in the full graph code, `handleAttributeAssignment` is called by a MobX reaction,
-    // but here we call it directly for testing simplicity
-    controller.handleAttributeAssignment(place!, data.id, attrId)
+    // in the full graph code, `syncModelWithAttributeConfiguration` is called by a MobX reaction,
+    // which then triggers a call to `syncAxisScalesWithModel`, but here we call them directly for testing simplicity
+    controller.handleAttributeAssignment()
+    controller.syncAxisScalesWithModel()
   }
 
   it("methods bail appropriately when not fully defined", () => {
@@ -82,25 +83,19 @@ describe("GraphController", () => {
       layout: undefined as any,
       instanceId
     })
-    _controller.initializeGraph()
+    _controller.syncAxisScalesWithModel()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.clearGraph()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
-    _controller.handleAttributeAssignment("bottom", data.id, "xId")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
-    _controller.handleAttributeAssignment("bottom", "bogusId", "xId")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
-    _controller.handleAttributeAssignment("bottom", data.id, "bogusId")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
     _controller.setProperties(model)
-    _controller.initializeGraph()
+    _controller.syncAxisScalesWithModel()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
 
     _controller.setProperties(model)
-    _controller.initializeGraph()
+    _controller.syncAxisScalesWithModel()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
     _controller.callMatchCirclesToData()
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(1)
@@ -151,7 +146,7 @@ describe("GraphController", () => {
 
     // scatter plot => empty plot
     controller.clearGraph()
-    controller.initializeGraph()  // triggered by reaction in Graph component normally
+    controller.syncAxisScalesWithModel()  // triggered by reaction in Graph component normally
     expect(model.plotType).toBe("casePlot")
     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
@@ -175,7 +170,7 @@ describe("GraphController", () => {
      * deserialization
      */
     applySnapshot(tree, emptyPlotSnap)
-    controller.initializeGraph()
+    controller.syncAxisScalesWithModel()
     expect(model.plotType).toBe("casePlot")
     expect(isEmptyAxisModel(model.axes.get("bottom"))).toBe(true)
     expect(getScaleType("bottom")).toBe("ordinal")
@@ -183,7 +178,7 @@ describe("GraphController", () => {
     expect(getScaleType("left")).toBe("ordinal")
 
     applySnapshot(tree, dotPlotSnap)
-    controller.initializeGraph()
+    controller.syncAxisScalesWithModel()
     expect(model.plotType).toBe("dotPlot")
     expect(isNumericAxisModel(model.axes.get("bottom"))).toBe(true)
     expect(getScaleType("bottom")).toBe("linear")
@@ -191,7 +186,7 @@ describe("GraphController", () => {
     expect(getScaleType("left")).toBe("ordinal")
 
     applySnapshot(tree, dotChartSnap)
-    controller.initializeGraph()
+    controller.syncAxisScalesWithModel()
     expect(model.plotType).toBe("dotChart")
     expect(isEmptyAxisModel(model.axes.get("bottom"))).toBe(true)
     expect(getScaleType("bottom")).toBe("ordinal")
@@ -199,7 +194,7 @@ describe("GraphController", () => {
     expect(getScaleType("left")).toBe("band")
 
     applySnapshot(tree, scatterPlotSnap)
-    controller.initializeGraph()
+    controller.syncAxisScalesWithModel()
     expect(model.plotType).toBe("scatterPlot")
     expect(isNumericAxisModel(model.axes.get("bottom"))).toBe(true)
     expect(getScaleType("bottom")).toBe("linear")

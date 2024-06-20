@@ -6,7 +6,7 @@ import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
-import { V2Component } from "./data-interactive-component-types"
+import { V2SpecificComponent } from "./data-interactive-component-types"
 
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
@@ -158,7 +158,8 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DICreateCollection | DINewCase | DIUpdateCase | DINotification | V2Component
+  DIGlobal | DIInteractiveFrame | DICreateCollection | DINewCase | DIUpdateCase | DINotification |
+  V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
