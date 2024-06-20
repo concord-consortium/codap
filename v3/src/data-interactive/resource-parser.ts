@@ -3,12 +3,11 @@ import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
 import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
-import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3CaseId, toV3GlobalId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
-import { parseSearchQuery } from "./resource-parser-utils"
+import { findTileFromV2Id, parseSearchQuery } from "./resource-parser-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -102,12 +101,7 @@ export function resolveResources(
   if (resourceSelector.component) {
     // TODO Get tile by name?
     const { component } = resourceSelector
-    // We look for every possible v3 id the component might have (because each tile type has a different prefix).
-    // Is there a better way to do this?
-    const possibleIds =
-      [component, toV3TileId(component), ...getTilePrefixes().map(prefix => toV3Id(prefix, component))]
-    const componentId = possibleIds.find(id => document.content?.getTile(id))
-    if (componentId) result.component = document.content?.getTile(componentId)
+    result.component = findTileFromV2Id(component)
   }
 
   if (resourceSelector.global) {

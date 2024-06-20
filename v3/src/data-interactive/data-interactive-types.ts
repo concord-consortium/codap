@@ -120,6 +120,7 @@ export interface DIUpdateItemResult {
   deletedCases?: number[]
 }
 export interface DIUpdateDataContext extends DIDataContext {
+  managingController?: string
   sort?: {
     attr?: string
     isDescending?: boolean

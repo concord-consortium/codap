@@ -9,6 +9,7 @@ import {
 } from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { getAttribute } from "../data-interactive-utils"
+import { findTileFromV2Id } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { dataContextNotFoundResult } from "./di-results"
 
@@ -74,12 +75,17 @@ export const diDataContextHandler: DIHandler = {
     const values = _values as DIUpdateDataContext
     if (values) {
       dataContext.applyModelChange(() => {
-        const { metadata, title } = values
+        const { managingController, metadata, sort, title } = values
         if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
 
-        if (values.sort?.attr) {
-          const attribute = getAttribute(values.sort.attr, dataContext)
+        if (managingController) {
+          const tile = findTileFromV2Id(managingController)
+          if (tile) dataContext.setManagingControllerId(tile.id)
+        }
+
+        if (sort?.attr) {
+          const attribute = getAttribute(sort.attr, dataContext)
           if (attribute) {
             // TODO Perform the actual sort
           }
