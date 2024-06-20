@@ -8,9 +8,12 @@ export const testCases = [
   { a1: "a", a2: "x", a3: 5 },
   { a1: "b", a2: "y", a3: 6 },
 ]
-export const setupTestDataset = () => {
+interface ITestDatasetOptions {
+  datasetName?: string
+}
+export const setupTestDataset = (options?: ITestDatasetOptions) => {
   const dataset = DataSet.create({
-    name: "data",
+    name: options?.datasetName ?? "data",
     collections: [
       { name: "collection1" },
       { name: "collection2" },

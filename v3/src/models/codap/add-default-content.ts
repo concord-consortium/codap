@@ -3,27 +3,22 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
-import { v3Id } from "../../utilities/codap-utils"
 import { urlParams } from "../../utilities/url-params"
 import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
 import { IMosaicTileInRowOptions, isMosaicTileRow } from "../document/mosaic-tile-row"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { SharedDataSet } from "../shared/shared-data-set"
-import { getTileContentInfo } from "../tiles/tile-content-info"
 import { getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
-import { TileModel } from "../tiles/tile-model"
+import { createTileOfType, INewTileOptions } from "./create-tile"
 
 const isTableOnly = urlParams.tableOnly !== undefined
 
 type ILayoutOptions = IFreeTileInRowOptions | IMosaicTileInRowOptions | undefined
 
-export function createDefaultTileOfType(tileType: string) {
+export function createDefaultTileOfType(tileType: string, options?: INewTileOptions) {
   const env = getTileEnvironment(appState.document)
-  const info = getTileContentInfo(tileType)
-  const id = v3Id(info?.prefix || "TILE")
-  const content = info?.defaultContent({ env })
-  return content ? TileModel.create({ id, content }) : undefined
+  return createTileOfType(tileType, env, options)
 }
 
 export function addDefaultComponents() {

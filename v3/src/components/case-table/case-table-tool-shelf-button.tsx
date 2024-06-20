@@ -2,20 +2,22 @@ import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { t } from "../../utilities/translation/translate"
-import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { appState } from "../../models/app-state"
-import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
-import { DataSet, toCanonical } from "../../models/data/data-set"
-import { gDataBroker } from "../../models/data/data-broker"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
-import { kCaseTableTileType } from "./case-table-defs"
+import { gDataBroker } from "../../models/data/data-broker"
+import { DataSet, toCanonical } from "../../models/data/data-set"
+import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
+import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { t } from "../../utilities/translation/translate"
+import {
+  createOrShowTableOrCardForDataset, createTableOrCardForDataset
+} from "../case-table-card-common/case-table-card-utils"
 import { CodapModal } from "../codap-modal"
+import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
+import { kCaseTableTileType } from "./case-table-defs"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
 import AlertIcon from "../../assets/icons/icon-alert.svg"
-import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
-import { createOrShowTableForDataset, createTableForDataset } from "./case-table-utils"
 
 import "../tool-shelf/tool-shelf.scss"
 
@@ -41,7 +43,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
-      createTableForDataset(sharedData, caseMetadata)
+      createTableOrCardForDataset(sharedData, caseMetadata)
     }, {
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create"
@@ -60,7 +62,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
-            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableForDataset(dataset)}
+            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"

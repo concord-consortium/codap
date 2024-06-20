@@ -6,8 +6,7 @@ import {clsx} from "clsx"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
-import {GraphAttrRole, attrRoleToGraphPlace, graphPlaceToAttrRole, kPortalClass}
-  from "../../data-display/data-display-types"
+import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
 import {kGraphClass} from "../graphing-types"
@@ -118,7 +117,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     // `initializeGraph()` has mechanisms to prevent running redundantly.
     return mstReaction(
       () => graphModel.dataConfiguration.attributeDescriptionsStr,
-      () => graphController.initializeGraph(),
+      () => graphController.syncAxisScalesWithModel(),
       {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
 
@@ -164,10 +163,10 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     }
   }, [dataset, graphModel, handleChangeAttribute])
 
-  const handleTreatAttrAs = useCallback((place: GraphPlace, attrId: string, treatAs: AttributeType) => {
+  const handleTreatAttrAs = useCallback((place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
     dataset && graphModel.applyModelChange(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
-      dataset && graphController?.handleAttributeAssignment(place, dataset.id, attrId)
+      graphController?.handleAttributeAssignment()
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
       redoStringKey: "V3.Redo.attributeTreatAs"
@@ -178,10 +177,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   useEffect(function handleNewAttributeID() {
     const disposer = graphModel && onAnyAction(graphModel, action => {
       if (isSetAttributeIDAction(action)) {
-        const [role, dataSetId, attrID] = action.args,
-          graphPlace = attrRoleToGraphPlace[role]
         startAnimation()
-        graphPlace && graphController?.handleAttributeAssignment(graphPlace, dataSetId, attrID)
+        graphController?.handleAttributeAssignment()
       }
     })
     return () => disposer?.()
