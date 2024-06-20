@@ -12,15 +12,14 @@ describe("DataInteractive ResourceParser", () => {
   const { content } = appState.document
   content?.createDataSet(getSnapshot(setupTestDataset().dataset))
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
-  dataset.removeCases(dataset.cases.map(c => c.__id__))
+  dataset.removeCases(dataset.items.map(c => c.__id__))
   dataset.addCases(testCases, { canonicalize: true })
+  dataset.validateCaseGroups()
   const c1 = dataset.collections[0]
   const c2 = dataset.collections[1]
   const a1 = dataset.getAttributeByName("a1")!
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!
-  // eslint-disable-next-line no-unused-expressions
-  dataset.collectionGroups // set up the pseudoCases
   const tile = content!.createOrShowTile(kWebViewTileType)!
   const resolve = (resource: string) => resolveResources(resource, "get", tile)
 
@@ -86,7 +85,7 @@ describe("DataInteractive ResourceParser", () => {
     const itemId = dataset.getCaseAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].caseByID[${toV2Id(itemId)}]`).caseByID?.__id__).toBe(itemId)
 
-    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
     expect(resolve(`dataContext[data].caseByID[${toV2Id(caseId)}]`).caseByID?.__id__).toBe(caseId)
   })
 
@@ -100,8 +99,27 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[${childCollectionId}].caseByIndex[0]`).caseByIndex?.__id__)
       .toBe(itemId)
 
-    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)
+  })
+
+  it("finds caseSearch", () => {
+    expect(resolve(`dataContext[data].caseSearch[a1==a]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[bad search]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[a2>]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[1!=2]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[a1==a]`).caseSearch).toBeUndefined()
+
+    const allResult = resolve(`dataContext[data].collection[collection2].caseSearch[*]`)
+    expect(allResult.caseSearch?.length).toBe(dataset.getCasesForCollection(c2.id).length)
+
+    const a1Result = resolve(`dataContext[data].collection[collection1].caseSearch[a1==a]`)
+    expect(a1Result.caseSearch?.length).toBe(1)
+
+    const a2Result = resolve(`dataContext[data].collection[collection2].caseSearch[ x < a2 ]`)
+    expect(a2Result.caseSearch?.length).toBe(3)
   })
 
   it("finds item", () => {
@@ -129,7 +147,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].itemSearch[!=2]`).itemSearch).toBeUndefined()
 
     const allResult = resolve(`dataContext[data].itemSearch[*]`)
-    expect(allResult.itemSearch?.length).toBe(dataset.cases.length)
+    expect(allResult.itemSearch?.length).toBe(dataset.items.length)
 
     const a1Result = resolve(`dataContext[data].itemSearch[a1==a]`)
     expect(a1Result.itemSearch?.length).toBe(3)
@@ -141,7 +159,7 @@ describe("DataInteractive ResourceParser", () => {
   it("finds itemByCaseID", () => {
     expect(resolve(`dataContext[data].itemByCaseID[unknown]`).itemByCaseID).toBeUndefined()
 
-    const caseId = Array.from(dataset.pseudoCaseMap.values())[0].pseudoCase.__id__
+    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
     const itemId = dataset.getCaseAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
   })

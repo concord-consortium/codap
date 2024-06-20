@@ -101,7 +101,7 @@ describe("getScreenCoord", () => {
     dataset.addAttribute({name: "a"})
     dataset.addCases(toCanonical(dataset, [{a: 3}]))
     const attrID = dataset.attributes[0].id,
-      caseID = dataset.cases[0].__id__,
+      caseID = dataset.items[0].__id__,
       scale = scaleLinear([0, 100], [20, 200]),
       coord1 = getScreenCoord(dataset, caseID, attrID, scale)
     scale.domain([100, 0])

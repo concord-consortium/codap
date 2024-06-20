@@ -32,6 +32,6 @@ describe("DocumentContent", () => {
     const ds = gDataBroker.getDataSetByName("test")
     expect(ds).toBeDefined()
     expect(ds?.attributes.length).toBe(2)
-    expect(ds?.cases.length).toBe(2)
+    expect(ds?.items.length).toBe(2)
   })
 })

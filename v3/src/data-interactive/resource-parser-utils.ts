@@ -1,10 +1,11 @@
 import { appState } from "../models/app-state"
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { DIParsedQuery, DIQueryFunction } from "./data-interactive-types"
 
-export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParsedQuery {
+export function parseSearchQuery(query: string, dataContextOrCollection?: IDataSet | ICollectionModel): DIParsedQuery {
   if (query === "*") {
     return { valid: true, func: () => true }
   }
@@ -24,7 +25,7 @@ export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParse
       : numberValue
     return {
       value,
-      attr: dataContext?.getAttributeByName(rawValue),
+      attr: dataContextOrCollection?.getAttributeByName(rawValue),
       name: rawValue
     }
   }

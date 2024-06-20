@@ -61,7 +61,7 @@ export class FilteredCases {
     // cases when cases are inserted, but that would be more code to write/maintain and running
     // the filter function over an array of cases should be quick so rather than succumb to the
     // temptation of premature optimization, let's wait to see whether it becomes a bottleneck.
-    const rawCases = this.collectionID ? this.source.getCasesForCollection(this.collectionID) : this.source.cases
+    const rawCases = this.collectionID ? this.source.getCasesForCollection(this.collectionID) : this.source.items
     return rawCases
             .map(aCase => aCase.__id__)
             .filter(id => !this.filter || this.filter(this.source, id, this.casesArrayNumber))
