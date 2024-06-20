@@ -3,24 +3,22 @@ import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
 import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
-import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
-import { ITileModel, ITileModelSnapshotIn } from "../tiles/tile-model"
+import { ITileModel } from "../tiles/tile-model"
 import { ComponentRect } from "../../utilities/animation-utils"
-import { v3Id } from "../../utilities/codap-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
+import { t } from "../../utilities/translation/translate"
+import { createTileSnapshotOfType, INewTileOptions } from "../codap/create-tile"
 import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
-import {getSharedDataSetFromDataSetId, getSharedDataSets, getTileCaseMetadata, linkTileToDataSet}
-  from "../shared/shared-data-utils"
-import { t } from "../../utilities/translation/translate"
+import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:
@@ -46,13 +44,6 @@ import { t } from "../../utilities/translation/translate"
 export interface IImportDataSetOptions {
   createDefaultTile?: boolean // default true
   defaultTileType?: string    // default kCaseTableTileType
-}
-
-export interface INewTileOptions {
-  x?: number
-  y?: number
-  height?: number
-  width?: number
 }
 
 export const DocumentContentModel = BaseDocumentContentModel
@@ -83,13 +74,6 @@ export const DocumentContentModel = BaseDocumentContentModel
 
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
-    },
-    createDefaultTileSnapshotOfType(tileType: string): ITileModelSnapshotIn | undefined {
-      const env = getTileEnvironment(self)
-      const info = getTileContentInfo(tileType)
-      const id = v3Id(info?.prefix || "TILE")
-      const content = info?.defaultContent({ env })
-      return content ? { id, content } : undefined
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       const tileIds = self.tileMap.keys()
@@ -128,7 +112,8 @@ export const DocumentContentModel = BaseDocumentContentModel
       const height = options?.height ?? (componentInfo.defaultHeight || 0)
       const row = self.getRowByIndex(0)
       if (row) {
-        const newTileSnapshot = self.createDefaultTileSnapshotOfType(tileType)
+        const env = getTileEnvironment(self)
+        const newTileSnapshot = createTileSnapshotOfType(tileType, env, options)
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
@@ -169,19 +154,21 @@ export const DocumentContentModel = BaseDocumentContentModel
     }
   }))
   .actions(self => ({
-    toggleSingletonTileVisibility(tileType: string) {
+    toggleSingletonTileVisibility(tileType: string, options?: INewTileOptions) {
       const tiles = self?.getTilesOfType(tileType)
       if (tiles.length > 1) {
         console.error("DocumentContent.toggleSingletonTileVisibility:",
                       `encountered ${tiles.length} tiles of type ${tileType}`)
       }
       if (tiles && tiles.length > 0) {
-        const tileLayout = self.getTileLayoutById(tiles[0].id)
+        const tile = tiles[0]
+        const tileLayout = self.getTileLayoutById(tile.id)
         if (isFreeTileLayout(tileLayout)) {
-          tileLayout.setHidden(!tileLayout.isHidden)
+          tileLayout.setHidden(options?.setSingletonHidden ?? !tileLayout.isHidden)
         }
+        return tile
       } else {
-        return self.createTile(tileType)
+        return self.createTile(tileType, options)
       }
     },
     toggleNonDestroyableTileVisibility(tileLayoutId: string | undefined) {
@@ -198,7 +185,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileInfo = getTileContentInfo(tileType)
       if (tileInfo) {
         if (tileInfo.isSingleton) {
-          self.toggleSingletonTileVisibility(tileType)
+          return self.toggleSingletonTileVisibility(tileType, options)
         } else {
           return self.createTile(tileType, options)
         }
@@ -216,42 +203,6 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       }
       self.deleteTile(tileId)
-    }
-  }))
-  .actions(self => ({
-    // TileID is that of a case table or case card tile. Toggle its visibility and create and/or show the other.
-    toggleCardTable(tileID: string, tileType: typeof kCaseCardTileType | typeof kCaseTableTileType) {
-      const tileModel = self.getTile(tileID),
-        tileLayout = self.getTileLayoutById(tileID)
-      if (tileLayout && tileModel && isFreeTileLayout(tileLayout)) {
-        const otherTileType = tileType === kCaseTableTileType ? kCaseCardTileType : kCaseTableTileType,
-          caseMetadata = getTileCaseMetadata(tileModel.content),
-          datasetID = caseMetadata?.data?.id ?? "",
-          sharedData = getSharedDataSetFromDataSetId(caseMetadata, datasetID),
-          otherTileId = tileType === kCaseTableTileType
-            ? caseMetadata?.caseCardTileId : caseMetadata?.caseTableTileId
-        self.toggleNonDestroyableTileVisibility(tileID)
-        if (otherTileId) {
-          self.toggleNonDestroyableTileVisibility(otherTileId)
-          caseMetadata?.setLastShownTableOrCardTileId(otherTileId)
-        } else {
-          const componentInfo = getTileComponentInfo(otherTileType),
-            { x, y } = tileLayout,
-            options = {x, y, width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight },
-            otherTile = self.createTile(otherTileType, options)
-            if (otherTile && caseMetadata && sharedData) {
-            if (tileType === kCaseTableTileType) {
-              caseMetadata.setCaseCardTileId(otherTile.id)
-            } else {
-              caseMetadata.setCaseTableTileId(otherTile.id)
-            }
-            caseMetadata.setLastShownTableOrCardTileId(otherTile.id)
-            const manager = getTileEnvironment(tileModel)?.sharedModelManager
-            manager?.addTileSharedModel(otherTile.content, sharedData, true)
-            manager?.addTileSharedModel(otherTile.content, caseMetadata, true)
-          }
-        }
-      }
     }
   }))
   .actions(self => ({
