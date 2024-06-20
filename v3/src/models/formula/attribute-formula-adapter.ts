@@ -62,22 +62,15 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     }
 
     const calculateChildCollectionGroups = () => {
-      // process children of requested collection that are themselves parent collections
-      for (let i = collectionIndex + 1; i < dataSet.collections.length - 1; i++) {
-        const collectionGroup = dataSet.collectionGroups[i]
-        collectionGroup.groups.forEach((group: CaseGroup) => processCase(group.pseudoCase))
+      // process children of requested collection
+      for (let i = collectionIndex + 1; i < dataSet.collections.length; i++) {
+        dataSet.collections[i].cases.forEach(aCase => processCase(aCase))
       }
-      // process child cases
-      dataSet.childCases().forEach(childCase => processCase(childCase))
     }
 
     const calculateSameLevelGroups = () => {
-      const formulaCollection = dataSet.collectionGroups[collectionIndex]
-      if (formulaCollection) {
-        dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
-          processCase(group.pseudoCase)
-        )
-      }
+      const formulaCollection = dataSet.collections[collectionIndex]
+      formulaCollection?.caseGroups.forEach((group: CaseGroup) => processCase(group.groupedCase))
     }
 
     // Note that order of execution of these functions is critical. First, we need to calculate child collection groups,
@@ -96,14 +89,14 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     const { attributeId } = formulaExtraMetadata
 
     const collectionId = dataSet.getCollectionForAttribute(attributeId)?.id
-    const collectionIndex = dataSet.getCollectionIndex(collectionId || "")
+    const collectionIndex = dataSet.getCollectionIndex(collectionId)
     const caseChildrenCount: Record<string, number> = {}
 
-    const formulaCollection = dataSet.collectionGroups[collectionIndex]
+    const formulaCollection = dataSet.collections[collectionIndex]
     if (formulaCollection) {
-      dataSet.collectionGroups[collectionIndex].groups.forEach((group: CaseGroup) =>
-        caseChildrenCount[group.pseudoCase.__id__] =
-          group.childPseudoCaseIds ? group.childPseudoCaseIds.length : group.childCaseIds.length
+      formulaCollection.caseGroups.forEach((group: CaseGroup) =>
+        caseChildrenCount[group.groupedCase.__id__] =
+          group.childCaseIds ? group.childCaseIds.length : group.childItemIds.length
       )
     }
 
@@ -165,10 +158,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
 
     const childMostAggregateCollectionIndex =
       getFormulaChildMostAggregateCollectionIndex(formula.canonical, dataSet) ?? collectionIndex
-    const childMostCollectionGroup = dataSet.collectionGroups[childMostAggregateCollectionIndex]
-    const childMostCollectionCaseIds = childMostCollectionGroup
-      ? childMostCollectionGroup.groups.map((group: CaseGroup) => group.pseudoCase.__id__) || []
-      : dataSet.childCases().map(c => c.__id__)
+    const childMostCollectionCaseIds = dataSet.collections[childMostAggregateCollectionIndex].caseIds
 
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,

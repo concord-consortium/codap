@@ -10,7 +10,7 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     dataContext.applyModelChange(() => {
-      dataContext.removeCases(dataContext.cases.map(c => c.__id__))
+      dataContext.removeCases(dataContext.items.map(c => c.__id__))
     }, {
       undoStringKey: "DG.Undo.data.deleteCases",
       redoStringKey: "DG.Redo.data.deleteCases"
@@ -25,12 +25,12 @@ export const diAllCasesHandler: DIHandler = {
     const attributes = collection.attributes ?? []
 
     const cases = dataContext.getCasesForCollection(collection.id).map(({ __id__ }, index) => {
-      const pseudoCase = dataContext.pseudoCaseMap.get(__id__)
+      const pseudoCase = dataContext.caseGroupMap.get(__id__)
       const parentCase = dataContext.getParentCase(__id__, collection.id)
-      const parent = maybeToV2Id(parentCase?.pseudoCase.__id__)
+      const parent = maybeToV2Id(parentCase?.groupedCase.__id__)
       const children: number[] = []
       if (pseudoCase) {
-        children.push(...(pseudoCase.childPseudoCaseIds ?? pseudoCase.childCaseIds).map(childId => toV2Id(childId)))
+        children.push(...(pseudoCase.childCaseIds ?? []).map(childId => toV2Id(childId)))
       }
       const values: Record<string, IValueType> = {}
       attributes.forEach(attr => {

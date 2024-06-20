@@ -58,7 +58,7 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
   }
 
   getCollectionForCase(caseId: string) {
-    const pseudoCase = this.data.pseudoCaseMap.get(caseId)
+    const pseudoCase = this.data.caseGroupMap.get(caseId)
     const dsCollection = pseudoCase
                           ? this.data.getCollection(pseudoCase.collectionId)
                           : this.data.childCollection
@@ -85,7 +85,7 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
   }
 
   getCases() {
-    return this.data.cases.map(({ __id__ }) => new DGCase(this.data, __id__, this))
+    return this.data.items.map(({ __id__ }) => new DGCase(this.data, __id__, this))
   }
 
   getNewAttributeName() {

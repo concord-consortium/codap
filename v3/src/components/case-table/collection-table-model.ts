@@ -21,7 +21,7 @@ export class CollectionTableModel {
   lastScrollStep = 0
   scrollStep = 0
 
-  // rowCache contains all rows, whether collapsed or not; key is [pseudo-]case id
+  // rowCache contains all rows, whether collapsed or not; key is case id
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
   // Therefore, we cache each case object and update it when appropriate.
   @observable.shallow rowCache = new Map<string, TRow>()
