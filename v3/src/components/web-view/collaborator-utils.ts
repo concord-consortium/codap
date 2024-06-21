@@ -36,3 +36,10 @@ export function isItemEditable(dataset: IDataSet, itemId: string) {
     // }
   return !!dataset.getStrValue(itemId, editableAttribute.id)
 }
+
+// caseId can be a case or item id
+export function isCaseEditable(dataset: IDataSet, caseId: string) {
+  const aCase = dataset.caseGroupMap.get(caseId)
+  const itemIds = aCase?.childItemIds ?? [caseId]
+  return itemIds?.every(itemId => isItemEditable(dataset, itemId))
+}
