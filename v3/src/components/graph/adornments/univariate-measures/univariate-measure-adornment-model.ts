@@ -59,6 +59,10 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     get hasRange() {
       return false
     },
+    get labelLines() {
+      // derived models should override if their labels have multiple lines
+      return 1
+    },
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
       // derived models should override if they have a range
       return {min: NaN, max: NaN}

@@ -115,10 +115,8 @@ export const NormalCurveAdornmentComponent = observer(
       if (!numericAttrId || !dataConfig) return
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
-      const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
       const labelOffset = 20
-      const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * labelOffset : 0
+      const topOffset = labelOffset * adornmentsStore?.getLabelLinesAboveAdornment(model) ?? 0
       const labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current

@@ -12,6 +12,9 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
     labelTitle: types.optional(types.literal(kNormalCurveValueTitleKey), kNormalCurveValueTitleKey),
   })
   .views(self => ({
+    get labelLines() {
+      return 2  // But if it's a gaussian fit it's 3 and we have deal with specially
+    },
     computeMean(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       return mean(self.getCaseValues(attrId, cellKey, dataConfig))
     },
