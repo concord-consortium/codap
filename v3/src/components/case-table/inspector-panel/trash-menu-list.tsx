@@ -1,34 +1,63 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
+import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { selectAllCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
+import { isItemEditable } from "../../web-view/collaborator-utils"
 
-export const TrashMenuList = () => {
+export const TrashMenuList = observer(function TrashMenuList() {
   const data = useDataSetContext()
+  let deletableItems: string[] = []
+  let deletableSelectedItems: string[] = []
+  let deletableUnselectedItems: string[] = []
+  if (data) {
+    deletableItems = data.itemIds.filter(itemId => isItemEditable(data, itemId))
+    deletableSelectedItems = Array.from(data.selection).filter(itemId => isItemEditable(data, itemId))
+    // TODO n^2
+    deletableUnselectedItems = deletableItems.filter(itemId => !deletableSelectedItems.includes(itemId))
+  }
+  const disableDeleteAllItems = deletableItems.length < 1
+  const disableDeleteSelectedItems = deletableSelectedItems.length < 1
+  const disableDeleteUnselectedItems = deletableUnselectedItems.length < 1
 
   const handleSelectAllCases = () => {
     selectAllCases(data)
   }
 
   const handleDeleteSelectedCases = () => {
-    data?.removeCases(Array.from(data.selection))
+    data?.removeCases(deletableSelectedItems)
   }
 
-   const handleDeleteUnselectedCases = () => {
-    data?.removeCases(data.items.filter(c => !data.selection.has(c.__id__)).map(c => c.__id__))
+  const handleDeleteUnselectedCases = () => {
+    data?.removeCases(deletableUnselectedItems)
   }
 
   const handleDeleteAllCases = () => {
-    data?.removeCases(Array.from(data.items.map(c => c.__id__)))
+    data?.removeCases(deletableItems)
   }
 
   return (
     <MenuList data-testid="trash-menu-list">
       <MenuItem onClick={handleSelectAllCases}>{t("DG.Inspector.selection.selectAll")}</MenuItem>
-      <MenuItem onClick={handleDeleteSelectedCases}>{t("DG.Inspector.selection.deleteSelectedCases")}</MenuItem>
-      <MenuItem onClick={handleDeleteUnselectedCases}>{t("DG.Inspector.selection.deleteUnselectedCases")}</MenuItem>
-      <MenuItem onClick={handleDeleteAllCases}>{t("DG.Inspector.deleteAll")}</MenuItem>
+      <MenuItem
+        isDisabled={disableDeleteSelectedItems}
+        onClick={handleDeleteSelectedCases}
+      >
+        {t("DG.Inspector.selection.deleteSelectedCases")}
+      </MenuItem>
+      <MenuItem
+        isDisabled={disableDeleteUnselectedItems}
+        onClick={handleDeleteUnselectedCases}
+      >
+        {t("DG.Inspector.selection.deleteUnselectedCases")}
+      </MenuItem>
+      <MenuItem
+        isDisabled={disableDeleteAllItems}
+        onClick={handleDeleteAllCases}
+      >
+        {t("DG.Inspector.deleteAll")}
+      </MenuItem>
     </MenuList>
   )
-}
+})
