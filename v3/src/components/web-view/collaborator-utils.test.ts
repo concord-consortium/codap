@@ -12,7 +12,7 @@ import "./web-view-registration"
 describe('Collaborator Utils', () => {
   it("plugins can control datasets", () => {
     const { content } = appState.document
-    const dataSet = content?.createDataSet({ name: "dataSet1" }).sharedDataSet.dataSet!
+    const dataSet = content!.createDataSet({ name: "dataSet1" }).sharedDataSet.dataSet
     const tile1 = createDefaultTileOfType(kWebViewTileType)!
     content?.insertTileInDefaultRow(tile1)
     const webView1 = tile1.content as IWebViewModel
@@ -42,7 +42,7 @@ describe('Collaborator Utils', () => {
 
   it("determines item and case editability", () => {
     const { content } = appState.document
-    const dataSet = content?.createDataSet(getSnapshot(setupTestDataset().dataset)).sharedDataSet.dataSet!
+    const dataSet = content!.createDataSet(getSnapshot(setupTestDataset().dataset)).sharedDataSet.dataSet
     dataSet.removeCases(dataSet.items.map(c => c.__id__))
     dataSet.addCases(testCases, { canonicalize: true })
     const editableAttribute = dataSet.addAttribute({ name: "__editable__" })
