@@ -14,8 +14,8 @@ export const TrashMenuList = observer(function TrashMenuList() {
   if (data) {
     deletableItems = data.itemIds.filter(itemId => isItemEditable(data, itemId))
     deletableSelectedItems = Array.from(data.selection).filter(itemId => isItemEditable(data, itemId))
-    // TODO n^2
-    deletableUnselectedItems = deletableItems.filter(itemId => !deletableSelectedItems.includes(itemId))
+    const deletableSelectedItemsSet = new Set(deletableSelectedItems)
+    deletableUnselectedItems = deletableItems.filter(itemId => !deletableSelectedItemsSet.has(itemId))
   }
   const disableDeleteAllItems = deletableItems.length < 1
   const disableDeleteSelectedItems = deletableSelectedItems.length < 1
