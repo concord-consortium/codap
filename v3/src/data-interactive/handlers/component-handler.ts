@@ -9,7 +9,9 @@ import {
 } from "../../components/data-display/models/data-configuration-model"
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { GraphContentModel, IGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
-import { kGraphDataConfigurationType } from "../../components/graph/models/graph-data-configuration-model"
+import {
+  IGraphDataConfigurationModel, kGraphDataConfigurationType
+} from "../../components/graph/models/graph-data-configuration-model"
 import { GraphLayout } from "../../components/graph/models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "../../components/graph/models/graph-model-utils"
 import {
@@ -187,6 +189,7 @@ export const diComponentHandler: DIHandler = {
                   dataset: dataset.id,
                   hiddenCases,
                   metadata: metadata.id,
+                  primaryRole: "y",
                   _attributeDescriptions,
                   _yAttributeDescriptions
                 },
@@ -210,8 +213,23 @@ export const diComponentHandler: DIHandler = {
           syncModelWithAttributeConfiguration(graphModel, new GraphLayout())
 
           // Layers will get mangled in the model because it's not in the same tree as the dataset,
-          // so we use the constructed layers here
-          content = { ...getSnapshot(graphModel), layers } as ITileContentSnapshotWithType
+          // so we mostly use the constructed layers. However, the primaryRole is determined in the model,
+          // so we have to copy that over into the constructed layers.
+          const finalLayers: Array<IGraphPointLayerModelSnapshot> = []
+          for (let i = 0; i < layers.length; i++) {
+            const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
+            const primaryRole = dataConfiguration.primaryRole
+            const currentLayer = layers[i]
+            const currentDataConfiguration = currentLayer.dataConfiguration
+            finalLayers.push({
+              ...currentLayer,
+              dataConfiguration: {
+                ...currentDataConfiguration,
+                primaryRole
+              }
+            })
+          }
+          content = { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType
 
         // Map
         } else if (type === kV2MapType) {
