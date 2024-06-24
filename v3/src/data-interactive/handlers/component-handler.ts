@@ -189,7 +189,6 @@ export const diComponentHandler: DIHandler = {
                   dataset: dataset.id,
                   hiddenCases,
                   metadata: metadata.id,
-                  primaryRole: "y",
                   _attributeDescriptions,
                   _yAttributeDescriptions
                 },
