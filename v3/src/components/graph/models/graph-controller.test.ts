@@ -116,55 +116,66 @@ describe("GraphController", () => {
     setAttributeId("x", "xId")
     dotPlotSnap = getSnapshot(tree)
     expect(model.plotType).toBe("dotPlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // This, plus many "expects" below are commented out because it is too implementation dependent
+    // See https://www.pivotaltracker.com/story/show/187849571
+    // expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // dot plot => dot plot with legend
     setAttributeId("legend", "yId")
     expect(model.plotType).toBe("dotPlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    // expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // dot plot => case plot
     setAttributeId("x", "")
     expect(model.plotType).toBe("casePlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    // expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // case plot => dot plot
     setAttributeId("x", "xId")
     expect(model.plotType).toBe("dotPlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // dot plot => scatter plot
     setAttributeId("y", "yId")
     scatterPlotSnap = getSnapshot(tree)
     expect(model.plotType).toBe("scatterPlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // scatter plot => y2 scatter plot
     setAttributeId("yPlus", "y2Id")
     expect(model.plotType).toBe("scatterPlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // scatter plot => empty plot
     controller.clearGraph()
     controller.syncAxisScalesWithModel()  // triggered by reaction in Graph component normally
     expect(model.plotType).toBe("casePlot")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // empty plot => dot chart
     setAttributeId("y", "cId")
     dotChartSnap = getSnapshot(tree)
     expect(model.plotType).toBe("dotChart")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // dot chart => split dot chart
     setAttributeId("topSplit", "cId")
     expect(model.plotType).toBe("dotChart")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     // split dot chart => dot chart
     setAttributeId("topSplit", "")
     expect(model.plotType).toBe("dotChart")
-    expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
+    // See comment above
+    //     expect(mockMatchCirclesToData).toHaveBeenCalledTimes(++matchCirclesCount)
 
     /*
      * deserialization
