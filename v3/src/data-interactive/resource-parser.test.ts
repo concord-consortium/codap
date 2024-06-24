@@ -120,6 +120,9 @@ describe("DataInteractive ResourceParser", () => {
 
     const a2Result = resolve(`dataContext[data].collection[collection2].caseSearch[ x < a2 ]`)
     expect(a2Result.caseSearch?.length).toBe(3)
+
+    const a3Result = resolve(`dataContext[data].collection[${dataset.childCollection.name}].caseSearch[a3>=2]`)
+    expect(a3Result.caseSearch?.length).toBe(5)
   })
 
   it("finds item", () => {
