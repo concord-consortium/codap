@@ -151,7 +151,10 @@ export const DataSet = V2Model.named("DataSet").props({
   selectionChanges: 0,
   // map from case ID to the CaseGroup it represents
   caseGroupMap: new Map<string, CaseGroup>(),
-  transactionCount: 0
+  transactionCount: 0,
+  // the id of the interactive frame handling this dataset
+  // used by the Collaborative plugin
+  managingControllerId: ""
 }))
 .extend(self => {
   const _isValidCaseGroups = observable.box<boolean>(false)
@@ -383,6 +386,9 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .actions(self => ({
+  setManagingControllerId(id: string) {
+    self.managingControllerId = id
+  },
   moveAttribute(attributeID: string, options?: IMoveAttributeCollectionOptions): IAttributeChangeResult {
     let removedCollectionId: string | undefined
     const attribute = self.getAttribute(attributeID)

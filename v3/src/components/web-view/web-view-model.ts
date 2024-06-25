@@ -4,6 +4,9 @@ import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
+export const kDefaultPreventAttributeDeletion = false
+export const kDefaultRespectEditableItemAttribute = false
+
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
   .props({
@@ -13,7 +16,10 @@ export const WebViewModel = TileContentModel
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
-    isPlugin: false
+    isPlugin: false,
+    // fields used by the Collaborative plugin
+    preventAttributeDeletion: kDefaultPreventAttributeDeletion,
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
@@ -30,6 +36,12 @@ export const WebViewModel = TileContentModel
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       self.dataInteractiveController?.call(message, callback)
+    },
+    setPreventAttributeDeletion(value: boolean) {
+      self.preventAttributeDeletion = value
+    },
+    setRespectEditableItemAttribute(value: boolean) {
+      self.respectEditableItemAttribute = value
     }
   }))
   .actions(self => ({

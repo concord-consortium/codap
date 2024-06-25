@@ -8,6 +8,7 @@ import {
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { t } from "../../../utilities/translation/translate"
+import { getPreventAttributeDeletion } from "../../web-view/collaborator-utils"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
@@ -75,6 +76,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     }
   }
 
+  const disableDeleteAttribute = data && getPreventAttributeDeletion(data)
+
   const handleEditAttributePropsOpen = () => {
     attributePropsModal.onOpen()
     onModalOpen(true)
@@ -136,7 +139,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={handleHideAttribute}>
           {t("DG.TableController.headerMenuItems.hideAttribute")}
         </MenuItem>
-        <MenuItem onClick={() => handleDeleteAttribute()}>
+        <MenuItem onClick={() => handleDeleteAttribute()} isDisabled={disableDeleteAttribute}>
           {t("DG.TableController.headerMenuItems.deleteAttribute")}
         </MenuItem>
       </MenuList>

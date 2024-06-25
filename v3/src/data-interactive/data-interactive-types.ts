@@ -78,6 +78,7 @@ export interface DIGetCaseResult {
   caseIndex?: number
 }
 export interface DIInteractiveFrame {
+  cannotClose?: boolean
   dimensions?: {
     height?: number
     width?: number
@@ -85,8 +86,10 @@ export interface DIInteractiveFrame {
   externalUndoAvailable?: boolean
   id?: string | number
   name?: string
+  preventAttributeDeletion?: boolean
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
+  respectEditableItemAttribute?: boolean
   savedState?: unknown
   standaloneUndoModeAvailable?: boolean
   title?: string
@@ -120,6 +123,7 @@ export interface DIUpdateItemResult {
   deletedCases?: number[]
 }
 export interface DIUpdateDataContext extends DIDataContext {
+  managingController?: string
   sort?: {
     attr?: string
     isDescending?: boolean
