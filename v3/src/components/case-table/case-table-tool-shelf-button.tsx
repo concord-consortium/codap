@@ -6,6 +6,9 @@ import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
+import {
+  dataContextCountChangedNotification, dataContextDeletedNotification
+} from "../../models/data/data-set-notifications"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { t } from "../../utilities/translation/translate"
@@ -15,9 +18,10 @@ import {
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
+
+import AlertIcon from "../../assets/icons/icon-alert.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import TrashIcon from "../../assets/icons/icon-trash.svg"
-import AlertIcon from "../../assets/icons/icon-alert.svg"
 
 import "../tool-shelf/tool-shelf.scss"
 
@@ -45,6 +49,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       getFormulaManager(document)?.addDataSet(ds)
       createTableOrCardForDataset(sharedData, caseMetadata)
     }, {
+      notifications: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create"
     })
@@ -122,6 +127,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         manager?.removeSharedModel(dataSetId)
         getFormulaManager(document)?.removeDataSet(dataSetId)
       }, {
+        notifications: data ? dataContextDeletedNotification(data) : undefined,
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete"
       })
