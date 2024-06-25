@@ -1,6 +1,7 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
+import { urlParams } from "../../utilities/url-params"
 import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
@@ -48,6 +49,9 @@ export interface IImportDataSetOptions {
 
 export const DocumentContentModel = BaseDocumentContentModel
   .named("DocumentContent")
+  .volatile(() => ({
+    _gaussianFitEnabled: false
+  }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)
   .actions(self => ({
@@ -151,6 +155,9 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       }
       return false
+    },
+    get gaussianFitEnabled() {
+      return self._gaussianFitEnabled || urlParams.gaussianFit !== undefined
     }
   }))
   .actions(self => ({
@@ -232,6 +239,12 @@ export const DocumentContentModel = BaseDocumentContentModel
       getFormulaManager(self)?.addDataSet(data)
 
       return sharedData
+    }
+  }))
+  .actions(self => ({
+    // The plugin api can set the gaussianFitEnabled state
+    setGaussianFitEnabled(enabled: boolean) {
+      self._gaussianFitEnabled = enabled
     }
   }))
 

@@ -11,6 +11,7 @@ import { UnivariateMeasureAdornmentHelper } from "./univariate-measure-adornment
 import { UnivariateMeasureAdornmentBaseComponent } from "./univariate-measure-adornment-base-component"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
+import { useGraphOptions } from "../hooks/use-graph-options"
 
 export const UnivariateMeasureAdornmentSimpleComponent = observer(
   function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
@@ -27,6 +28,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
     const valueObjRef = useRef<IValue>({})
+    const {isGaussianFit} = useGraphOptions()
 
     const highlightCovers = useCallback((highlight: boolean) => {
       const covers = selectAll(`#${helper.measureSlug}-${containerId} .${helper.measureSlug}-cover`)
@@ -59,10 +61,10 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     ) => {
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
-      const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
       const labelOffset = 20
-      const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * labelOffset : 0
+      // We have to pass isGaussianFit to getLabelLinesAboveAdornment because the Gaussian fit is a special case where
+      // if there is a gaussianFit (not just a normal curve), we need to add an extra line for the adornment title.
+      const topOffset = labelOffset * adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0
       let labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current
@@ -101,8 +103,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [adornmentsStore?.activeUnivariateMeasures, cellCounts.x, containerId, helper, highlightCovers,
-      highlightLabel, isVertical, labelRef, model])
+    }, [adornmentsStore, cellCounts.x, containerId, helper, highlightCovers, highlightLabel, isGaussianFit,
+              isVertical, labelRef, model])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       const selection = select(valueRef.current)

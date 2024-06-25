@@ -1,11 +1,12 @@
-import {Instance, types} from "mobx-state-tree"
-import {getAdornmentComponentInfo} from "./adornment-component-info"
-import {AdornmentModelUnion, kDefaultFontSize} from "./adornment-types"
-import {IAdornmentModel, IUpdateCategoriesOptions} from "./adornment-models"
-import {IMovableValueAdornmentModel} from "./movable-value/movable-value-adornment-model"
-import {kMovableValueType} from "./movable-value/movable-value-adornment-types"
-import {IUnivariateMeasureAdornmentModel} from "./univariate-measures/univariate-measure-adornment-model"
-import {ScaleNumericBaseType} from "../../axis/axis-types"
+import { Instance, types } from "mobx-state-tree"
+import { getAdornmentComponentInfo } from "./adornment-component-info"
+import { AdornmentModelUnion, kDefaultFontSize } from "./adornment-types"
+import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
+import { IMovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
+import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
+import { IUnivariateMeasureAdornmentModel } from "./univariate-measures/univariate-measure-adornment-model"
+import { ScaleNumericBaseType } from "../../axis/axis-types"
+import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
 
 /**
  * The AdornmentsBaseStore is a model that manages the adornments that are displayed on a graph. It provides methods for
@@ -29,6 +30,24 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   },
   findAdornmentOfType<T extends IAdornmentModel = IAdornmentModel>(type: string): T | undefined {
     return self.adornments.find(adornment => adornment.type === type) as T
+  },
+  getLabelLinesAboveAdornment(adornment: IAdornmentModel, isGaussianFit: boolean = false) {
+    let lines = 0, found = false
+    self.adornments.forEach((a) => {
+      if (a.isVisible && !found) {
+        if (a === adornment) {
+          found = true
+        } else {
+          // The gaussian fit adornment gets an extra line for the title of its label
+          lines += a.labelLines + (isGaussianFit && a.type === kNormalCurveType ? 1 : 0)
+        }
+        const componentInfo = getAdornmentComponentInfo(a.type)
+        if (componentInfo?.BannerComponent) {
+          lines += 1
+        }
+      }
+    })
+    return lines
   }
 }))
 .actions(self => ({

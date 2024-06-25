@@ -72,6 +72,10 @@ export const AdornmentModel = types.model("AdornmentModel", {
       const yCellCount = yCats.length * ySubAxesCount
       return {x: xCellCount, y: yCellCount}
     },
+    get labelLines() {
+      // derived models should override if they show measure labels
+      return 0
+    },
   }))
   .actions(self => ({
     setVisibility(isVisible: boolean) {
