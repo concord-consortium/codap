@@ -73,7 +73,7 @@ describe("DataSet undo/redo", () => {
     data.applyModelChange(
       () => data.setCaseValues([{ __id__: "caseId", "aId": 2, "bId": 3 }]),
       { undoStringKey: "Undo edit value", redoStringKey: "Redo edit value" })
-    expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })
+    expect(data.getItem("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })
 
     let timedOut = false
     try {
@@ -89,12 +89,12 @@ describe("DataSet undo/redo", () => {
     expect(undoManager?.redoEntry?.clientData).toBeUndefined()
 
     undoManager?.undo()
-    expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 1, "bId": 2 })
+    expect(data.getItem("caseId")).toEqual({ __id__: "caseId", "aId": 1, "bId": 2 })
     expect(undoManager?.undoEntry?.clientData).toBeUndefined()
     expect(undoManager?.redoEntry?.clientData).toBeDefined()
 
     undoManager?.redo()
-    expect(data.getCase("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })
+    expect(data.getItem("caseId")).toEqual({ __id__: "caseId", "aId": 2, "bId": 3 })
     expect(undoManager?.undoEntry?.clientData).toBeDefined()
     expect(undoManager?.redoEntry?.clientData).toBeUndefined()
   })

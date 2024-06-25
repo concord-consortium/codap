@@ -111,7 +111,7 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       const v3CaseId = id ? toV3CaseId(id) : undefined
       const v3ItemId = id ? toV3ItemId(id) : undefined
       const dcCase = v3CaseId ? dataContext.caseGroupMap.get(v3CaseId) : undefined
-      const dcItem = v3ItemId ? dataContext.getCase(v3ItemId) : undefined
+      const dcItem = v3ItemId ? dataContext.getItem(v3ItemId) : undefined
       const v3Id = dcCase ? v3CaseId : v3ItemId
       if (id && aCase.values && v3Id && (dcItem || dcCase)) {
         caseIDs.push(id)

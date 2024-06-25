@@ -562,7 +562,7 @@ export const DataConfigurationModel = types
       // whether the value changes result in adding/removing any cases from the filtered set
       // a single call to setCaseValues can result in up to three calls to the handlers
       if (cases.added.length) {
-        const newCases = self.dataset?.getCases(cases.added)
+        const newCases = self.dataset?.getItems(cases.added)
         self.handlers.forEach(handler => handler({name: "addCases", args: [newCases]}))
       }
       if (cases.removed.length) {

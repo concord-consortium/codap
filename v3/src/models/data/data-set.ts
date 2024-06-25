@@ -509,34 +509,34 @@ export const DataSet = V2Model.named("DataSet").props({
    */
   const attrIDFromName = (name: string) => self.attrNameMap.get(name)
 
-  function getCase(caseID: string, options?: IGetCaseOptions): ICase | undefined {
-    const index = self.itemIDMap.get(caseID)
+  function getItem(itemID: string, options?: IGetCaseOptions): ICase | undefined {
+    const index = self.itemIDMap.get(itemID)
     if (index == null) { return undefined }
 
     const { canonical = true, numeric = true } = options || {}
-    const aCase: ICase = { __id__: caseID }
+    const item: ICase = { __id__: itemID }
     self.attributes.forEach((attr) => {
       const key = canonical ? attr.id : attr.name
-      aCase[key] = numeric && attr.isNumeric(index) ? attr.numeric(index) : attr.value(index)
+      item[key] = numeric && attr.isNumeric(index) ? attr.numeric(index) : attr.value(index)
     })
-    return aCase
+    return item
   }
 
-  function getCases(caseIDs: string[], options?: IGetCaseOptions): ICase[] {
-    const cases: ICase[] = []
-    caseIDs.forEach((caseID) => {
-      const aCase = getCase(caseID, options)
-      if (aCase) {
-        cases.push(aCase)
+  function getItems(itemIDs: string[], options?: IGetCaseOptions): ICase[] {
+    const items: ICase[] = []
+    itemIDs.forEach((caseID) => {
+      const item = getItem(caseID, options)
+      if (item) {
+        items.push(item)
       }
     })
-    return cases
+    return items
   }
 
-  function getCaseAtIndex(index: number, options?: IGetCaseOptions) {
-    const aCase = self.items[index],
-          id = aCase?.__id__
-    return id ? getCase(id, options) : undefined
+  function getItemAtIndex(index: number, options?: IGetCaseOptions) {
+    const item = self.items[index],
+          id = item?.__id__
+    return id ? getItem(id, options) : undefined
   }
 
   function setCaseValues(caseValues: ICase) {
@@ -572,7 +572,7 @@ export const DataSet = V2Model.named("DataSet").props({
         return self.itemIDMap.get(id)
       },
       caseIDFromIndex(index: number) {
-        return getCaseAtIndex(index)?.__id__
+        return getItemAtIndex(index)?.__id__
       },
       nextCaseID(id: string) {
         const index = self.itemIDMap.get(id),
@@ -640,15 +640,15 @@ export const DataSet = V2Model.named("DataSet").props({
         const attr = self.getAttribute(attributeID)
         return attr?.numeric(index)
       },
-      getCase,
-      getCases,
-      getCaseAtIndex,
+      getItem,
+      getItems,
+      getItemAtIndex,
       getCasesAtIndex(start = 0, options?: IGetCasesOptions) {
         const { count = self.items.length } = options || {}
         const endIndex = Math.min(start + count, self.items.length),
               cases = []
         for (let i = start; i < endIndex; ++i) {
-          cases.push(getCaseAtIndex(i, options))
+          cases.push(getItemAtIndex(i, options))
         }
         return cases
       },
@@ -851,7 +851,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         })
         const _cases = items.length > 0 ? items : cases
-        const before = getCases(_cases.map(({ __id__ }) => __id__))
+        const before = getItems(_cases.map(({ __id__ }) => __id__))
         if (self.isCaching()) {
           // update the cases in the cache
           _cases.forEach(aCase => {
@@ -870,7 +870,7 @@ export const DataSet = V2Model.named("DataSet").props({
           })
         }
         // custom undo/redo since values aren't observed all the way down
-        const after = getCases(_cases.map(({ __id__ }) => __id__))
+        const after = getItems(_cases.map(({ __id__ }) => __id__))
         withCustomUndoRedo<ISetCaseValuesCustomPatch>({
           type: "DataSet.setCaseValues",
           data: { dataId: self.id, before, after }

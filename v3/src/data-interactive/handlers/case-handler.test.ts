@@ -13,7 +13,7 @@ describe("DataInteractive CaseHandler", () => {
     const confirmNewCase = (newCase: DINewCase) => {
       expect(newCase.itemID).toBeDefined()
       expect(oldCaseIds.includes(newCase.itemID!)).toBe(false)
-      expect(dataset.getCase(toV3ItemId(newCase.itemID!))).toBeDefined()
+      expect(dataset.getItem(toV3ItemId(newCase.itemID!))).toBeDefined()
 
       // TODO Check newCase.id
     }

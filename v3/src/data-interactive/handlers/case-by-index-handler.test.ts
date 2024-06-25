@@ -7,7 +7,7 @@ describe("DataInteractive CaseByIndexHandler", () => {
   const handler = diCaseByIndexHandler
   function setup() {
     const { dataset, a3 } = setupTestDataset()
-    const aCase = dataset.getCaseAtIndex(4)
+    const aCase = dataset.getItemAtIndex(4)
     const caseId = aCase!.__id__
     const pseudoCase = Array.from(dataset.caseGroupMap.values())[1].groupedCase
     const pseudoCaseId = pseudoCase.__id__
@@ -52,13 +52,13 @@ describe("DataInteractive CaseByIndexHandler", () => {
     expect(handler.delete?.({}).success).toBe(false)
     expect(handler.delete?.({ dataContext }).success).toBe(false)
 
-    expect(dataContext.getCase(caseId)).toBeDefined()
+    expect(dataContext.getItem(caseId)).toBeDefined()
     expect(handler.delete?.({ dataContext, caseByIndex: aCase }).success).toBe(true)
-    expect(dataContext.getCase(caseId)).toBeUndefined()
+    expect(dataContext.getItem(caseId)).toBeUndefined()
 
     const childCaseIds = dataContext.caseGroupMap.get(pseudoCaseId)!.childItemIds
-    childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeDefined())
+    childCaseIds.forEach(id => expect(dataContext.getItem(id)).toBeDefined())
     expect(handler.delete?.({ dataContext, caseByIndex: pseudoCase }).success).toBe(true)
-    childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())
+    childCaseIds.forEach(id => expect(dataContext.getItem(id)).toBeUndefined())
   })
 })
