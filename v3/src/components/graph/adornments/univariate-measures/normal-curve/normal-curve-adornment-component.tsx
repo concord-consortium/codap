@@ -147,8 +147,8 @@ export const NormalCurveAdornmentComponent = observer(
       selectionsObj.normalCurveHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [numericAttrId, dataConfig, labelRef, adornmentsStore?.activeUnivariateMeasures, model,
-      cellCounts.x, isVertical, helper, containerId, highlightCovers, highlightLabel])
+    }, [numericAttrId, dataConfig, labelRef, adornmentsStore, model, cellCounts.x, isVertical, helper,
+              containerId, highlightCovers, highlightLabel])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)

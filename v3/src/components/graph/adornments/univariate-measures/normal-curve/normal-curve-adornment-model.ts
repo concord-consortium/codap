@@ -60,13 +60,13 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       const maxBinIndex = Math.floor((maxValue - binAlignment) / binWidth)
 
       // Extract the bin centers and counts into an array of objects
-      const result: { x:number, y:number}[] = []
+      const results: { x:number, y:number}[] = []
       for (let binIndex = minBinIndex; binIndex <= maxBinIndex; binIndex++) {
         const binCenter = binAlignment + binIndex * binWidth + binWidth / 2
         const count = binCounts[binCenter] || 0
-        result.push({ x: binCenter, y: count })
+        results.push({ x: binCenter, y: count })
       }
-      return result
+      return results
     },
   }))
 

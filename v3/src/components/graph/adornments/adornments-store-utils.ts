@@ -41,13 +41,12 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
   function constructMeasureItem(measure: IMeasure): IMeasureMenuItem {
     const isGaussianFit = measure.title === "DG.Inspector.graphPlottedNormal" && useGaussianOptions,
       measureTitle = isGaussianFit ? "DG.Inspector.graphPlottedGaussianFit" : measure.title
-    const adornmentComponentInfo = getAdornmentComponentInfo(measure.type)
 
     return {
       title: measureTitle,
       type: measure.type,
       checked: theStore.isShowingAdornment(measure.type),
-      componentInfo: adornmentComponentInfo,
+      componentInfo: getAdornmentComponentInfo(measure.type),
       componentContentInfo: getAdornmentContentInfo(measure.type),
     }
   }
