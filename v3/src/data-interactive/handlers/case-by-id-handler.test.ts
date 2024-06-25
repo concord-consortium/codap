@@ -1,21 +1,13 @@
 import { maybeToV2Id } from "../../utilities/codap-utils"
 import { DIGetCaseResult } from "../data-interactive-types"
 import { diCaseByIDHandler } from "./case-by-id-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupForCaseTest } from "./handler-test-utils"
 
 describe("DataInteractive CaseByIDHandler", () => {
   const handler = diCaseByIDHandler
-  function setup() {
-    const { dataset, a3 } = setupTestDataset()
-    const item = dataset.getItemAtIndex(4)!
-    const itemId = item.__id__
-    const aCase = Array.from(dataset.caseGroupMap.values())[1].groupedCase
-    const caseId = aCase.__id__
-    return { dataContext: dataset, item, itemId, aCase, caseId, a3 }
-  }
 
   it("get works as expected", () => {
-    const { dataContext, item, itemId, aCase, caseId } = setup()
+    const { dataContext, item, itemId, aCase, caseId } = setupForCaseTest()
 
     expect(handler.get?.({})?.success).toBe(false)
     expect(handler.get?.({ dataContext })?.success).toBe(false)
@@ -31,7 +23,7 @@ describe("DataInteractive CaseByIDHandler", () => {
   })
 
   it("update works as expected", () => {
-    const { dataContext, item, itemId, aCase, caseId, a3 } = setup()
+    const { dataContext, item, itemId, aCase, caseId, a3 } = setupForCaseTest()
     const caseResources = { dataContext, caseByID: item }
 
     expect(handler.update?.({}).success).toBe(false)
@@ -49,7 +41,7 @@ describe("DataInteractive CaseByIDHandler", () => {
   })
 
   it("delete works as expected", () => {
-    const { dataContext, item, itemId, aCase, caseId } = setup()
+    const { dataContext, item, itemId, aCase, caseId } = setupForCaseTest()
 
     expect(handler.delete?.({}).success).toBe(false)
     expect(handler.delete?.({ dataContext }).success).toBe(false)
