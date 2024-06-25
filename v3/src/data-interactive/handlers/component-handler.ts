@@ -3,7 +3,7 @@ import { SetRequired } from "type-fest"
 import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { GraphAttrRole } from "../../components/data-display/data-display-types"
+import { attrRoleToGraphPlace, GraphAttrRole } from "../../components/data-display/data-display-types"
 import {
   AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
 } from "../../components/data-display/models/data-configuration-model"
@@ -51,7 +51,7 @@ import {
 } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
-import { componentNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
+import { componentNotFoundResult, dataContextNotFoundResult, errorResult, valuesRequiredResult } from "./di-results"
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
@@ -73,14 +73,9 @@ export const diComponentHandler: DIHandler = {
       return caseMetadatas?.find(cm => cm.data?.id === dataSetId)
     }
 
-    const dataContextRequiredResult = {
-      success: false as const,
-      values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }) }
-    }
-    const componentNotCreatedResult = {
-      success: false as const,
-      values: { error: t("V3.DI.Error.componentNotCreated") }
-    }
+    const dataContextRequiredResult =
+      errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }))
+    const componentNotCreatedResult = errorResult(t("V3.DI.Error.componentNotCreated"))
     return document.applyModelChange(() => {
       // Special case for caseCard and caseTable, which require a dataset
       if ([kV2CaseCardType, kV2CaseTableType].includes(type)) {
@@ -93,7 +88,7 @@ export const diComponentHandler: DIHandler = {
 
         const caseMetadata = getCaseMetadata(dataSet.id)
         if (!caseMetadata) {
-          return { success: false, values: { error: t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }) } }
+          return errorResult(t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }))
         }
 
         const title = _title ?? name
@@ -213,10 +208,34 @@ export const diComponentHandler: DIHandler = {
 
           // Layers will get mangled in the model because it's not in the same tree as the dataset,
           // so we mostly use the constructed layers. However, the primaryRole is determined in the model,
-          // so we have to copy that over into the constructed layers.
+          // so we have to copy that over into the constructed layers. We also make sure all attribute assignments
+          // are legal here.
           const finalLayers: Array<IGraphPointLayerModelSnapshot> = []
           for (let i = 0; i < layers.length; i++) {
             const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
+            const { dataset } = dataConfiguration
+            if (dataset && dataset.name === _dataContext) {
+              // Make sure all attributes can legally fulfill their specified roles
+              for (const attributeType in attributeNames) {
+                const attributeName = attributeNames[attributeType]
+                if (attributeName) {
+                  const attribute = dataset.getAttributeByName(attributeName)
+                  if (attribute) {
+                    const attributeRole = roleFromAttrKey[attributeType]
+                    const attributePlace = attrRoleToGraphPlace[attributeRole]
+                    if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
+                      attributePlace, dataset, attribute.id, { allowSameAttr: true }
+                    )) {
+                      return errorResult(
+                        t("V3.DI.Error.illegalAttributeAssignment", { vars: [attributeName, attributeRole] })
+                      )
+                    }
+                  }
+                }
+              }
+            }
+
+            // Use the primaryRole found by syncModelWithAttributeConfiguration
             const primaryRole = dataConfiguration.primaryRole
             const currentLayer = layers[i]
             const currentDataConfiguration = currentLayer.dataConfiguration
@@ -302,10 +321,7 @@ export const diComponentHandler: DIHandler = {
             const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
             const global = globalManager?.getValueByName(globalValueName)
             if (!global) {
-              return {
-                success: false,
-                values: { error: t("V3.DI.Error.globalNotFound", { vars: [globalValueName] }) }
-              }
+              return errorResult(t("V3.DI.Error.globalNotFound", { vars: [globalValueName] }))
             }
 
             // Multiple sliders for one global value are not allowed
@@ -316,10 +332,7 @@ export const diComponentHandler: DIHandler = {
               }
             })
             if (existingTile) {
-              return {
-                success: false,
-                values: { error: t("V3.DI.Error.noMultipleSliders", { vars: [globalValueName] }) }
-              }
+              return errorResult(t("V3.DI.Error.noMultipleSliders", { vars: [globalValueName] }))
             }
 
             const animationDirection = _animationDirection != null
@@ -363,7 +376,7 @@ export const diComponentHandler: DIHandler = {
         }
       }
 
-      return { success: false, values: { error: t("V3.DI.Error.unsupportedComponent", { vars: [type] }) } }
+      return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [type] }))
     })
   },
   

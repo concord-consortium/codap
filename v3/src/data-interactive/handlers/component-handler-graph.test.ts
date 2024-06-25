@@ -6,14 +6,19 @@ import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset, testCases } from "./handler-test-utils"
 
 
 describe("DataInteractive ComponentHandler Graph", () => {
   const handler = diComponentHandler
   const documentContent = appState.document.content!
-  const { dataset, a1, a2, a3 } = setupTestDataset()
-  documentContent.createDataSet(getSnapshot(dataset))
+  const { dataset: _dataset } = setupTestDataset()
+  const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
+  dataset.addCases(testCases, { canonicalize: true })
+  dataset.validateCaseGroups()
+  const a1 = dataset.getAttributeByName("a1")!
+  const a2 = dataset.getAttributeByName("a2")!
+  const a3 = dataset.getAttributeByName("a3")!
 
   it("create graph works", async () => {
     // Create a graph tile with no options
@@ -31,9 +36,17 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(deleteResult.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(0)
 
+    // Attributes must be the correct type
+    expect(handler.create!({}, {
+      type: "graph", dataContext: "data", rightNumericAttributeName: "a1"
+    }).success).toBe(false)
+    expect(handler.create!({}, {
+      type: "graph", dataContext: "data", rightSplitAttributeName: "a3", xAttributeName: "a3"
+    }).success).toBe(false)
+
     // Create a graph with options
     const result = handler.create!({}, {
-      type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a1", yAttributeName: "a2",
+      type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a3", yAttributeName: "a2",
       legendAttributeName: "a1", captionAttributeName: "a2", rightNumericAttributeName: "a3",
       rightSplitAttributeName: "a1", topSplitAttributeName: "a2", enableNumberToggle: true, numberToggleLastMode: true
     })
@@ -45,7 +58,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(isGraphContentModel(tile.content)).toBe(true)
     const tileContent = tile.content as IGraphContentModel
     expect(tile.cannotClose).toBe(true)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a1.id)
+    expect(tileContent.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
     expect(tileContent.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
@@ -62,7 +75,9 @@ describe("DataInteractive ComponentHandler Graph", () => {
     })
 
     // Create multiple graphs for the same dataset
-    const result2 = handler.create!({}, { type: "graph", dataContext: "data", y2AttributeName: "a3" })
+    const result2 = handler.create!({}, {
+      type: "graph", dataContext: "data", xAttributeName: "a3", y2AttributeName: "a3"
+    })
     expect(result2.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(2)
     const result2Values = result2.values as DIComponentInfo
