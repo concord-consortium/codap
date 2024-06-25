@@ -162,6 +162,17 @@ context("codap plugins", () => {
     openAPITester()
     webView.toggleAPITesterFilter()
 
+    cy.log("Broadcast dataContextCountChanged notifications when dataset is added to document")
+    table.createNewTableFromToolshelf()
+    webView.confirmAPITesterResponseContains(/"operation":\s"dataContextCountChanged/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast dataContextDeleted notifications when dataset is deleted")
+    table.deleteDataSetFromToolshelf(1)
+    webView.confirmAPITesterResponseContains(/"operation":\s"dataContextDeleted/)
+    webView.confirmAPITesterResponseContains(/"deletedContext":\s"New\sDataset/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast select cases notifications")
     table.getCell(2, 2).click()
     webView.confirmAPITesterResponseContains(/"operation":\s"selectCases/)

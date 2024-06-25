@@ -214,9 +214,14 @@ export const TableTileElements = {
     c.getIconFromToolshelf("table").click()
     cy.get("[data-testid=tool-shelf-table-new-clipboard]").click()
   },
-  openExistingTableFromToolshelf(name) {
+  openExistingTableFromToolshelf(name: string) {
     c.getIconFromToolshelf("table").click()
     cy.get(`[data-testid=tool-shelf-table-${name}]`).click()
+  },
+  deleteDataSetFromToolshelf(index = 0) {
+    c.getIconFromToolshelf("table").click()
+    cy.get(`.tool-shelf-menu-trash-icon`).eq(index).click()
+    cy.get(`.delete-data-set-button-delete`).click()
   },
   getToggleCardView() {
     return cy.get("[data-testid=case-table-toggle-view]")
@@ -380,9 +385,5 @@ export const TableTileElements = {
     for (let rowIndex = 0; rowIndex < error.cases; rowIndex++) {
       this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", error.value)
     }
-  },
-  createNewDataset() {
-    c.getIconFromToolshelf("table").click()
-    cy.get("[data-testid=tool-shelf-table-new]").click()
   }
 }
