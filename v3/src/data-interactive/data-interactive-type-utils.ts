@@ -66,7 +66,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
 
   return {
     id: maybeToV2Id(caseGroup?.groupedCase.__id__),
-    itemId: maybeToV2Id(dataContext.getCase(caseId)?.__id__),
+    itemId: maybeToV2Id(dataContext.getItem(caseId)?.__id__),
     parent,
     context,
     collection,
@@ -79,7 +79,8 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const id = toV2Id(caseId)
 
-  const collectionId = dataContext.caseGroupMap.get(caseId)?.collectionId ?? dataContext.childCollection.id
+  const caseGroup = dataContext.caseGroupMap.get(caseId)
+  const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
 
@@ -91,9 +92,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const values = getCaseValues(caseId, dataContext, collectionId)
 
-  const pseudoCase = dataContext.caseGroupMap.get(caseId)
-  const children = pseudoCase?.childCaseIds?.map(cId => toV2Id(cId)) ??
-    pseudoCase?.childItemIds?.map(cId => toV2Id(cId)) ?? []
+  const children = caseGroup?.childCaseIds?.map(cId => toV2Id(cId)) ?? []
 
   const caseIndex = dataContext.getCasesForCollection(collectionId).findIndex(aCase => aCase.__id__ === caseId)
 

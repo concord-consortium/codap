@@ -15,12 +15,12 @@ describe("DataInteractive ItemSearchHandler", () => {
     expect(handler.delete?.({ dataContext }).success).toBe(false)
     expect(handler.delete?.({ itemSearch }).success).toBe(false)
 
-    itemIds.forEach(id => expect(dataContext.getCase(id)).toBeDefined())
+    itemIds.forEach(id => expect(dataContext.getItem(id)).toBeDefined())
     expect(dataContext.items.length).toBe(6)
     const result = handler.delete!({ dataContext, itemSearch })
     expect(result?.success).toBe(true)
     expect(dataContext.items.length).toBe(3)
-    itemIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())
+    itemIds.forEach(id => expect(dataContext.getItem(id)).toBeUndefined())
     const values = result.values as number[]
     itemIds.forEach(id => expect(values.includes(toV2Id(id))).toBe(true))
   })

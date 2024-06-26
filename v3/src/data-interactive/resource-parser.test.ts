@@ -82,7 +82,7 @@ describe("DataInteractive ResourceParser", () => {
   it("finds caseByID", () => {
     expect(resolve(`dataContext[data].caseByID[unknown]`).caseByID).toBeUndefined()
 
-    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    const itemId = dataset.getItemAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].caseByID[${toV2Id(itemId)}]`).caseByID?.__id__).toBe(itemId)
 
     const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
@@ -94,7 +94,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[-1]`).caseByIndex).toBeUndefined()
     expect(resolve(`dataContext[data].collection[unknown].caseByIndex[0]`).caseByIndex).toBeUndefined()
 
-    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    const itemId = dataset.getItemAtIndex(0)!.__id__
     const childCollectionId = toV2Id(dataset.childCollection.id)
     expect(resolve(`dataContext[data].collection[${childCollectionId}].caseByIndex[0]`).caseByIndex?.__id__)
       .toBe(itemId)
@@ -131,14 +131,14 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].item[100]`).item).toBeUndefined()
     expect(resolve(`dataContext[data].item[word]`).item).toBeUndefined()
 
-    const item = dataset.getCaseAtIndex(0)
+    const item = dataset.getItemAtIndex(0)
     expect(resolve(`dataContext[data].item[0]`).item?.__id__).toBe(item?.__id__)
   })
 
   it("finds itemByID", () => {
     expect(resolve(`dataContext[data].itemByID[unknown]`).itemByID).toBeUndefined()
 
-    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    const itemId = dataset.getItemAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].itemByID[${toV2Id(itemId)}]`).itemByID?.__id__).toBe(itemId)
   })
 
@@ -163,7 +163,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].itemByCaseID[unknown]`).itemByCaseID).toBeUndefined()
 
     const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
-    const itemId = dataset.getCaseAtIndex(0)!.__id__
+    const itemId = dataset.getItemAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
   })
 })

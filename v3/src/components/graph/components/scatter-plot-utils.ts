@@ -50,7 +50,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     const xValue = getXCoord(caseID)
     const yValue = getYCoord(caseID, plotNum)
     if (isFinite(xValue) && isFinite(yValue)) {
-      const caseData = dataset?.getCase(caseID, { numeric: false })
+      const caseData = dataset?.getItem(caseID, { numeric: false })
       if (caseData) {
         const lineCoords: [number, number] = [xValue, yValue]
         return { caseData, lineCoords, plotNum }
@@ -94,7 +94,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
         // If the line has a category and it does not match the categorical legend value,
         // do not render squares.
         if (category && legendValue !== category && legendType === "categorical") return
-        const fullCaseData = dataset?.getCase(caseData.__id__, { numeric: false })
+        const fullCaseData = dataset?.getItem(caseData.__id__, { numeric: false })
         if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
           const square = residualSquare(slope, intercept, caseData.__id__)
           if (!isFinite(square.x) || !isFinite(square.y)) return

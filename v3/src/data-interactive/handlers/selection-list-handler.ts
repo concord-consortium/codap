@@ -17,7 +17,7 @@ function updateSelection(
   if (!dataSet || !applySelection) return dataContextNotFoundResult
   if (!values || !Array.isArray(values)) return illegalValuesResult(action)
 
-  const caseIds = values.map(value => value.toString()).filter(caseID => !!dataSet.getCase(caseID))
+  const caseIds = values.map(value => value.toString()).filter(caseID => !!dataSet.getItem(caseID))
   // TODO Filter based on collection
   applySelection(caseIds)
   return { success: true }

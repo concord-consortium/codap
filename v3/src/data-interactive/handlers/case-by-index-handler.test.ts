@@ -1,36 +1,28 @@
 import { maybeToV2Id } from "../../utilities/codap-utils"
 import { DIGetCaseResult } from "../data-interactive-types"
 import { diCaseByIndexHandler } from "./case-by-index-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupForCaseTest } from "./handler-test-utils"
 
 describe("DataInteractive CaseByIndexHandler", () => {
   const handler = diCaseByIndexHandler
-  function setup() {
-    const { dataset, a3 } = setupTestDataset()
-    const aCase = dataset.getCaseAtIndex(4)
-    const caseId = aCase!.__id__
-    const pseudoCase = Array.from(dataset.caseGroupMap.values())[1].groupedCase
-    const pseudoCaseId = pseudoCase.__id__
-    return { dataContext: dataset, aCase, caseId, pseudoCase, pseudoCaseId, a3 }
-  }
 
   it("get works as expected", () => {
-    const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId } = setup()
+    const { dataContext, item, itemId, aCase, caseId } = setupForCaseTest()
 
     expect(handler.get?.({})?.success).toBe(false)
     expect(handler.get?.({ dataContext })?.success).toBe(false)
-    expect(handler.get?.({ caseByIndex: aCase })?.success).toBe(false)
+    expect(handler.get?.({ caseByIndex: item })?.success).toBe(false)
 
-    const caseResult = handler.get?.({ dataContext, caseByIndex: aCase })?.values as DIGetCaseResult
-    expect(caseResult.case.id).toBe(maybeToV2Id(caseId))
+    const caseResult = handler.get?.({ dataContext, caseByIndex: item })?.values as DIGetCaseResult
+    expect(caseResult.case.id).toBe(maybeToV2Id(itemId))
 
-    const pseudoCaseResult = handler.get?.({ dataContext, caseByIndex: pseudoCase })?.values as DIGetCaseResult
-    expect(pseudoCaseResult.case.id).toBe(maybeToV2Id(pseudoCaseId))
+    const pseudoCaseResult = handler.get?.({ dataContext, caseByIndex: aCase })?.values as DIGetCaseResult
+    expect(pseudoCaseResult.case.id).toBe(maybeToV2Id(caseId))
   })
 
   it("update works as expected", () => {
-    const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId, a3 } = setup()
-    const caseResources = { dataContext, caseByIndex: aCase }
+    const { dataContext, item, itemId, aCase, caseId, a3 } = setupForCaseTest()
+    const caseResources = { dataContext, caseByIndex: item }
 
     expect(handler.update?.({}).success).toBe(false)
     expect(handler.update?.({ dataContext }).success).toBe(false)
@@ -38,27 +30,27 @@ describe("DataInteractive CaseByIndexHandler", () => {
     expect(handler.update?.(caseResources, {}).success).toBe(false)
 
     expect(handler.update?.(caseResources, { values: { a3: 10 } }).success).toBe(true)
-    expect(a3.numValues[dataContext.caseIndexFromID(caseId)!]).toBe(10)
+    expect(a3.numValues[dataContext.caseIndexFromID(itemId)!]).toBe(10)
 
-    expect(handler.update?.({ dataContext, caseByIndex: pseudoCase }, { values: { a3: 100 } }).success).toBe(true)
-    dataContext.caseGroupMap.get(pseudoCaseId)?.childItemIds.forEach(id => {
+    expect(handler.update?.({ dataContext, caseByIndex: aCase }, { values: { a3: 100 } }).success).toBe(true)
+    dataContext.caseGroupMap.get(caseId)?.childItemIds.forEach(id => {
       expect(a3.numValues[dataContext.caseIndexFromID(id)!]).toBe(100)
     })
   })
 
   it("delete works as expected", () => {
-    const { dataContext, aCase, caseId, pseudoCase, pseudoCaseId } = setup()
+    const { dataContext, item, itemId, aCase, caseId } = setupForCaseTest()
 
     expect(handler.delete?.({}).success).toBe(false)
     expect(handler.delete?.({ dataContext }).success).toBe(false)
 
-    expect(dataContext.getCase(caseId)).toBeDefined()
-    expect(handler.delete?.({ dataContext, caseByIndex: aCase }).success).toBe(true)
-    expect(dataContext.getCase(caseId)).toBeUndefined()
+    expect(dataContext.getItem(itemId)).toBeDefined()
+    expect(handler.delete?.({ dataContext, caseByIndex: item }).success).toBe(true)
+    expect(dataContext.getItem(itemId)).toBeUndefined()
 
-    const childCaseIds = dataContext.caseGroupMap.get(pseudoCaseId)!.childItemIds
-    childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeDefined())
-    expect(handler.delete?.({ dataContext, caseByIndex: pseudoCase }).success).toBe(true)
-    childCaseIds.forEach(id => expect(dataContext.getCase(id)).toBeUndefined())
+    const childCaseIds = dataContext.caseGroupMap.get(caseId)!.childItemIds
+    childCaseIds.forEach(id => expect(dataContext.getItem(id)).toBeDefined())
+    expect(handler.delete?.({ dataContext, caseByIndex: aCase }).success).toBe(true)
+    childCaseIds.forEach(id => expect(dataContext.getItem(id)).toBeUndefined())
   })
 })

@@ -144,7 +144,7 @@ export function resolveResources(
   }
 
   const getCaseById = (caseId: string) =>
-    dataContext?.caseGroupMap.get(caseId)?.groupedCase ?? dataContext?.getCase(caseId)
+    dataContext?.caseGroupMap.get(caseId)?.groupedCase ?? dataContext?.getItem(caseId)
 
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
@@ -175,7 +175,7 @@ export function resolveResources(
       dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
         const aCase = dataContext.caseGroupMap.get(caseGroup.__id__)
         const itemId = aCase?.childItemIds[0]
-        const item = dataContext.getCase(itemId ?? caseGroup.__id__)
+        const item = dataContext.getItem(itemId ?? caseGroup.__id__)
         if (item) {
           const itemIndex = dataContext.caseIndexFromID(item.__id__)
           if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
@@ -193,13 +193,13 @@ export function resolveResources(
   if (resourceSelector.item) {
     const index = Number(resourceSelector.item)
     if (!isNaN(index)) {
-      result.item = dataContext?.getCaseAtIndex(index)
+      result.item = dataContext?.getItemAtIndex(index)
     }
   }
 
   if (resourceSelector.itemByID) {
     const itemId = toV3ItemId(resourceSelector.itemByID)
-    result.itemByID = dataContext?.getCase(itemId)
+    result.itemByID = dataContext?.getItem(itemId)
   }
 
   if (resourceSelector.itemSearch && dataContext) {
@@ -215,7 +215,7 @@ export function resolveResources(
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
     const itemId = dataContext?.caseGroupMap.get(caseId)?.childItemIds[0]
-    if (itemId) result.itemByCaseID = dataContext?.getCase(itemId)
+    if (itemId) result.itemByCaseID = dataContext?.getItem(itemId)
   }
 
   // DG.ObjectMap.forEach(resourceSelector, function (key, value) {

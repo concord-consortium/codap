@@ -120,7 +120,7 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
 
     const convertCaseIdsToV2FullCases = (caseIds: string[]) => {
       return caseIds.map(caseId => {
-        const c = dataset.getCase(caseId)
+        const c = dataset.getItem(caseId)
         return c && convertCaseToV2FullCase(c, dataset)
       }).filter(c => !!c)
     }

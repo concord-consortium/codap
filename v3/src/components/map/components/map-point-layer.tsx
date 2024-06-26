@@ -66,7 +66,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     const xValue = getScreenX(caseID)
     const yValue = getScreenY(caseID)
     if (isFinite(xValue) && isFinite(yValue)) {
-      const caseData = dataset?.getCase(caseID, { numeric: false })
+      const caseData = dataset?.getItem(caseID, { numeric: false })
       if (caseData) {
         const lineCoords: [number, number] = [xValue, yValue]
         return { caseData, lineCoords }

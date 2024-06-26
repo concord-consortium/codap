@@ -28,3 +28,12 @@ export const setupTestDataset = (options?: ITestDatasetOptions) => {
   dataset.validateCaseGroups()
   return { dataset, c1, c2, a1, a2, a3 }
 }
+
+export function setupForCaseTest() {
+  const { dataset, a3 } = setupTestDataset()
+  const item = dataset.getItemAtIndex(4)!
+  const itemId = item.__id__
+  const aCase = Array.from(dataset.caseGroupMap.values())[1].groupedCase
+  const caseId = aCase.__id__
+  return { dataContext: dataset, item, itemId, aCase, caseId, a3 }
+}
