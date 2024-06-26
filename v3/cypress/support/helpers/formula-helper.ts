@@ -35,7 +35,7 @@ export const FormulaHelper = {
     table.editFormula(attributeName, formula, collectionIndex)
   },
   createNewDataset() {
-    table.createNewDataset()
+    table.createNewTableFromToolshelf()
   },
   insertCases(rowIndex: number, numOfCases: number) {
     table.openIndexMenuForRow(rowIndex)

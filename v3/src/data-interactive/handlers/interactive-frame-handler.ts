@@ -47,7 +47,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(_values)) return { success: true }
 
     const values = _values as DIInteractiveFrame
-    const { dimensions, preventAttributeDeletion, respectEditableItemAttribute, title } = values
+    const { dimensions, name, preventAttributeDeletion, respectEditableItemAttribute, title } = values
     interactiveFrame.applyModelChange(() => {
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
@@ -56,6 +56,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (respectEditableItemAttribute != null) {
         webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)
       }
+      if (name) interactiveFrame.setTitle(name)
       if (title) interactiveFrame.setTitle(title)
     })
     return { success: true }
