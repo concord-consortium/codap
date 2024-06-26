@@ -169,6 +169,13 @@ export const DocumentContentModel = BaseDocumentContentModel
       }
       if (tiles && tiles.length > 0) {
         const tile = tiles[0]
+
+        // Update existing tile with new settings
+        if (options?.title != null) {
+          tile.setTitle(options.title)
+        }
+        
+        // Change visibility of existing tile
         const tileLayout = self.getTileLayoutById(tile.id)
         if (isFreeTileLayout(tileLayout)) {
           tileLayout.setHidden(options?.setSingletonHidden ?? !tileLayout.isHidden)
