@@ -17,29 +17,39 @@ describe("DataInteractive AttributeHandler", () => {
   })
 
   it("create works as expected", () => {
-    const dataContext = DataSet.create({})
-    const resources = { dataContext }
-    expect(handler.create?.(resources).success).toEqual(false)
-    expect(dataContext.attributes.length).toBe(0)
-    const name1 = "test"
-    expect(handler.create?.(resources, { name: name1 }).success).toEqual(true)
-    expect(dataContext.attributes.length).toBe(1)
-    expect(dataContext.attributes[0].name).toBe(name1)
-    const name2 = "test2"
-    expect(handler.create?.(resources, [{ name: name2 }, {}]).success).toEqual(false)
-    expect(dataContext.attributes.length).toBe(1)
-    const name3 = "test3"
-    const results = handler.create?.(resources, [{ name: name2 }, { name: name3 }])
-    expect(results?.success).toEqual(true)
-    expect((results?.values as DIResultAttributes)?.attrs?.length).toBe(2)
-    expect(dataContext.attributes.length).toBe(3)
-    expect(dataContext.attributes[1].name).toBe(name2)
-    expect(dataContext.attributes[2].name).toBe(name3)
+    const { dataset: dataContext, c1 } = setupTestDataset()
+    const resources = { dataContext, collection: c1 }
+    const create = handler.create!
 
-    const { dataset, c1 } = setupTestDataset()
+    expect(create(resources).success).toEqual(false)
+    expect(create({ dataContext }, { name: "noCollection" }).success).toEqual(false)
+
+    expect(dataContext.attributes.length).toBe(3)
     expect(c1.attributes.length).toBe(1)
-    expect(handler.create?.({ dataContext: dataset, collection: c1 }, [{ name: name1 }]).success).toBe(true)
+    const name1 = "test"
+    expect(create(resources, { name: name1 }).success).toEqual(true)
+    expect(dataContext.attributes.length).toBe(4)
     expect(c1.attributes.length).toBe(2)
+    const testAttr = c1.attributes[1]!
+    expect(testAttr.name).toBe(name1)
+
+    expect(testAttr.description).toBeUndefined()
+    const description = "Test Description"
+    expect(create(resources, { name: name1, description }).success).toBe(true)
+    expect(c1.attributes.length).toBe(2)
+    expect(testAttr.description).toBe(description)
+
+    const name2 = "test2"
+    expect(create(resources, [{ name: name2 }, {}]).success).toEqual(false)
+    expect(dataContext.attributes.length).toBe(4)
+
+    const name3 = "test3"
+    const results = create(resources, [{ name: name2 }, { name: name3 }])
+    expect(results.success).toEqual(true)
+    expect((results.values as DIResultAttributes).attrs.length).toBe(2)
+    expect(dataContext.attributes.length).toBe(6)
+    expect(c1.attributes[2]!.name).toBe(name2)
+    expect(c1.attributes[3]!.name).toBe(name3)
   })
 
   it("update works as expected", () => {
