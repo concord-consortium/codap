@@ -11,6 +11,7 @@ import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
+import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
 import { IDocumentModelSnapshot } from "../models/document/document"
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
@@ -28,7 +29,6 @@ import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
-import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
 
 registerTileTypes([])
 
