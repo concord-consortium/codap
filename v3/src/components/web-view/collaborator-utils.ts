@@ -25,7 +25,7 @@ export function getPreventAttributeDeletion(dataset: IDataSet) {
 }
 
 // respectEditableItemAttribute affects a dataset's items in several ways, based on a special attribute named
-// "__editable__". If an item's value in "__editable__" is falsy, the following hold true:
+// "__editable__". If an item's value in "__editable__" is falsy or "false", the following hold true:
 // - Its cells cannot be edited.
 // - It cannot be deleted using mass delete options from the trash menu.
 export function getRespectEditableItemAttribute(dataset: IDataSet) {
@@ -37,7 +37,8 @@ export function isItemEditable(dataset: IDataSet, itemId: string) {
   const editableAttribute = dataset.getAttributeByName("__editable__")
   if (!editableAttribute) return true
   // TODO Handle editable attribute with formula?
-  return !!dataset.getStrValue(itemId, editableAttribute.id)
+  const strValue = dataset.getStrValue(itemId, editableAttribute.id)
+  return !!strValue && strValue.toLowerCase() !== "false"
 }
 
 // caseId can be a case or item id
