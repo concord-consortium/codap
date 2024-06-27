@@ -96,6 +96,7 @@ export interface DIInteractiveFrame {
   version?: string
 }
 export type DIItem = DICaseValues
+export type DIItemValues = DIItem | { values: DIItem }
 export interface DICreateCollection {
   name?: string
   title?: string
@@ -158,8 +159,8 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DICreateCollection | DINewCase | DIUpdateCase | DINotification |
-  V2SpecificComponent
+  DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
+  DINotification | V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -176,7 +177,7 @@ export interface DISuccessResult {
   success: true
   values?: DIResultValues
   caseIDs?: number[]
-  itemIDs?: string[]
+  itemIDs?: number[]
 }
 
 export interface DIErrorResult {

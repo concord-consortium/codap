@@ -1,6 +1,6 @@
+import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DICaseValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { attrNamesToIds } from "../data-interactive-utils"
+import { DIHandler, DIItem, DIItemValues, DIResources, DIValues } from "../data-interactive-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -10,12 +10,22 @@ export const diItemHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
-    const items = (Array.isArray(values) ? values : [values]) as DICaseValues[]
-    const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
+    const _items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
+    const items: DIItem[] = []
+    // Some very naughty plugins create items with values like [{ values: { ... } }] instead of like [{ ... }],
+    // so we accommodate that extra layer of indirection here.
+    _items.forEach(item => {
+      if (typeof item.values === "object") {
+        items.push(item.values)
+      } else {
+        items.push(item as DIItem)
+      }
+    })
+    const itemIDs = dataContext.addCases(items, { canonicalize: true })
     return {
       success: true,
       // caseIDs, // TODO This should include all cases created, both grouped and ungrouped
-      itemIDs
+      itemIDs: itemIDs.map(itemID => toV2Id(itemID))
     }
   },
 
