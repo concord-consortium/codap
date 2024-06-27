@@ -27,7 +27,7 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       editable: values.editable == null || !!values.editable,
       // hidden is part of metadata, not the attribute model
       // renameable: values.renameable, // TODO renameable not part of IAttribute yet
-      // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
+      deleteable: values.deleteable,
       formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
@@ -104,7 +104,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { name, type, title, description, editable, id, precision } = attribute
+  const { name, type, title, description, deleteable, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
   return {
     name,
@@ -120,7 +120,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     editable,
     hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
     renameable: true, // TODO What should this be?
-    deleteable: true, // TODO What should this be?
+    deleteable,
     formula: attribute.formula?.display,
     // deletedFormula: self.deletedFormula, // TODO What should this be?
     guid: v2Id,
