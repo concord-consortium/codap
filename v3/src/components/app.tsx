@@ -28,6 +28,7 @@ import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
+import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
 
 registerTileTypes([])
 
@@ -44,6 +45,7 @@ export const App = observer(function App() {
       appState.document.content?.applyModelChange(() => {
         sharedData = appState.document.content?.importDataSet(data, options)
       }, {
+        notifications: dataContextCountChangedNotification,
         undoStringKey: "V3.Undo.import.data",
         redoStringKey: "V3.Redo.import.data"
       })

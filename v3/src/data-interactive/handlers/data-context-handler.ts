@@ -1,7 +1,9 @@
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
-import { dataContextCountChangedNotification, dataContextDeletedNotification } from "../../models/data/data-set-notifications"
+import {
+  dataContextCountChangedNotification, dataContextDeletedNotification
+} from "../../models/data/data-set-notifications"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { registerDIHandler } from "../data-interactive-handler"
