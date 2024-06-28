@@ -11,6 +11,7 @@ import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
+import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
 import { IDocumentModelSnapshot } from "../models/document/document"
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
@@ -44,6 +45,7 @@ export const App = observer(function App() {
       appState.document.content?.applyModelChange(() => {
         sharedData = appState.document.content?.importDataSet(data, options)
       }, {
+        notifications: dataContextCountChangedNotification,
         undoStringKey: "V3.Undo.import.data",
         redoStringKey: "V3.Redo.import.data"
       })
