@@ -62,7 +62,11 @@ export const diCollectionHandler: DIHandler = {
           }
         }
 
-        const newCollection = dataContext.addCollection({ name, _title: title }, { before: beforeCollectionId })
+        // If no before collection is specified, we have to explicitly put the new collection after the
+        // child-most collection
+        const options = beforeCollectionId ? { before: beforeCollectionId }
+          : { after: dataContext.collectionIds[dataContext.collectionIds.length - 1] }
+        const newCollection = dataContext.addCollection({ name, _title: title }, options)
         newCollections.push(newCollection)
 
         // Attributes can be specified in both attributes and attrs
