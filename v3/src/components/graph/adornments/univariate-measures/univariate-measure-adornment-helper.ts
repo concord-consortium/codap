@@ -1,4 +1,5 @@
 import { select } from "d3"
+import { t } from "../../../../utilities/translation/translate"
 import { Point } from "../../../data-display/data-display-types"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { ILineCoords, ILineSpecs, IRange, IRangeSpecs, IRectSpecs, IValue } from "./univariate-measure-adornment-types"
@@ -8,8 +9,10 @@ import { isBoxPlotAdornment } from "./box-plot/box-plot-adornment-model"
 import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { valueLabelString } from "../../utilities/graph-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { kMeanType } from "./mean/mean-adornment-types"
 import { kMedianType } from "./median/median-adornment-types"
+import { kErrorBarStrokeColor, kStandardErrorValueTitleKey } from "./standard-error/standard-error-adornment-types"
 import { IAdornmentsStore } from "../adornments-store"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 
@@ -255,5 +258,24 @@ export class UnivariateMeasureAdornmentHelper {
     measure?.setLabelCoords({x, y})
   }
 
+  computeTextContentForStdErr(dataConfiguration: IGraphDataConfigurationModel, isVertical: boolean, stdErr: number,
+                                       numStErrs: number, inHTML: boolean) {
+    const primaryAttributeID = dataConfiguration?.primaryAttributeID
+    const primaryAttribute = primaryAttributeID
+      ? dataConfiguration?.dataset?.attrFromID(primaryAttributeID) : undefined
+    const primaryAttributeUnits = primaryAttribute?.units
+    const stdErrorString = this.formatValueForScale(isVertical, numStErrs * stdErr)
+    const numStdErrsString = numStErrs === 1 ? '' : parseFloat(numStErrs.toFixed(2)).toString()
+    const substitutionVars = inHTML ? [`${numStdErrsString}`,
+      '<sub style="vertical-align: sub">',
+      '</sub>', stdErrorString] : [`${numStdErrsString}`, '', '', stdErrorString]
+    const valueString = t(kStandardErrorValueTitleKey, {vars: substitutionVars}) +
+      (inHTML ? (primaryAttributeUnits ? ` ${primaryAttributeUnits}` : "") : "")
+    const unitsString = `${primaryAttributeUnits ? ` ${primaryAttributeUnits}` : ""}`
+    const unitsContent = inHTML ? `<span style="color:grey">${unitsString}</span>` : unitsString
+    const valueContent = inHTML
+      ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}${unitsContent}</p>` : valueString
+    return `${valueContent}${(inHTML ? '' : unitsString)}`
+  }
 
 }

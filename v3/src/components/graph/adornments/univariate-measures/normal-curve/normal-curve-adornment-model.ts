@@ -13,7 +13,7 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
   })
   .views(self => ({
     get labelLines() {
-      return 2  // But if it's a gaussian fit it's 3 and we have deal with specially
+      return 2  // But if it's a gaussian fit it's 3 (or 4 if showing standard error) and we do special handling
     },
     computeMean(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       return mean(self.getCaseValues(attrId, cellKey, dataConfig))
