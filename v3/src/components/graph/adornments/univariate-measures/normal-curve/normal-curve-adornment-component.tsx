@@ -298,92 +298,92 @@ export const NormalCurveAdornmentComponent = observer(
   }, [caseCount, cellCounts.x, cellCounts.y, countScale, graphModel, helper, isHistogram,
             isVertical, layout.plotHeight, mean, numStdErrs, numericScale, stdDev, stdError, valueRef])
 
-const addAdornmentElements = useCallback((measure: IMeasureInstance,
-                                          selectionsObj: INormalCurveSelections, labelObj: ILabel) => {
-  if (!numericAttrId || !dataConfig || mean === undefined || isNaN(mean) ||
-    isNaN(stdDev) || !numericScale.invert) return
-  const numericAttr = dataConfig?.dataset?.attrFromID(numericAttrId) ?? null
-  const numericAttrUnits = numericAttr?.units
-  const meanDisplayValue = helper.formatValueForScale(isVertical.current, mean)
-  const sdDisplayValue = helper.formatValueForScale(isVertical.current, stdDev)
+    const addAdornmentElements = useCallback((measure: IMeasureInstance,
+                                              selectionsObj: INormalCurveSelections, labelObj: ILabel) => {
+      if (!numericAttrId || !dataConfig || mean === undefined || isNaN(mean) ||
+        isNaN(stdDev) || !numericScale.invert) return
+      const numericAttr = dataConfig?.dataset?.attrFromID(numericAttrId) ?? null
+      const numericAttrUnits = numericAttr?.units
+      const meanDisplayValue = helper.formatValueForScale(isVertical.current, mean)
+      const sdDisplayValue = helper.formatValueForScale(isVertical.current, stdDev)
 
-  addNormalCurve(selectionsObj)
+      addNormalCurve(selectionsObj)
 
-  const gaussianFitTitle = useGaussianFit
-    ? showLabel
-      ? `<p style="text-decoration-line:underline;color:${kNormalCurveStrokeColor}"> ${t(kGaussianFitLabelKey)} </p>`
-      : `${t(kGaussianFitLabelKey)}: `
-    : ""
+      const gaussianFitTitle = useGaussianFit
+        ? showLabel
+          ? `<p style="text-decoration-line:underline;color:${kNormalCurveStrokeColor}"> ${t(kGaussianFitLabelKey)} </p>`
+          : `${t(kGaussianFitLabelKey)}: `
+        : ""
 
-  const meanValueString = t(kNormalCurveMeanValueTitleKey, {vars: [meanDisplayValue]})
-  const sdValueString = t(kNormalCurveStdDevValueTitleKey, {vars: [sdDisplayValue]})
+      const meanValueString = t(kNormalCurveMeanValueTitleKey, {vars: [meanDisplayValue]})
+      const sdValueString = t(kNormalCurveStdDevValueTitleKey, {vars: [sdDisplayValue]})
 
-  const unitsString = `${numericAttrUnits ? ` ${numericAttrUnits}` : ""}`
-  const unitsContent = showLabel ? `<span style="color:grey">${unitsString}</span>` : unitsString
-  const meanValueContent = showLabel
-    ? `<p style = "color:${kNormalCurveStrokeColor}">${meanValueString}${unitsContent}</p>`
-    : `${meanValueString}, `
-  const sdValueContent = showLabel
-    ? `<p style = "color:${kNormalCurveStrokeColor}">${sdValueString}${unitsContent}</p>`
-    : sdValueString
-  const stdErrValueContent = stdError
-    ? helper.computeTextContentForStdErr(dataConfig, isVertical.current, stdError, numStdErrs, showLabel) : ""
-  const textContent = `${gaussianFitTitle}${meanValueContent}${sdValueContent}${stdErrValueContent}`
+      const unitsString = `${numericAttrUnits ? ` ${numericAttrUnits}` : ""}`
+      const unitsContent = showLabel ? `<span style="color:grey">${unitsString}</span>` : unitsString
+      const meanValueContent = showLabel
+        ? `<p style = "color:${kNormalCurveStrokeColor}">${meanValueString}${unitsContent}</p>`
+        : `${meanValueString}, `
+      const sdValueContent = showLabel
+        ? `<p style = "color:${kNormalCurveStrokeColor}">${sdValueString}${unitsContent}</p>`
+        : sdValueString
+      const stdErrValueContent = stdError
+        ? helper.computeTextContentForStdErr(dataConfig, isVertical.current, stdError, numStdErrs, showLabel) : ""
+      const textContent = `${gaussianFitTitle}${meanValueContent}${sdValueContent}${stdErrValueContent}`
 
-  // If showLabels is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
-  // otherwise we add a text tip that only appears when the user mouses over the value line or the range boundaries.
-  if (showLabel) {
-    addLabels(labelObj, measure, textContent, selectionsObj, mean)
-  } else {
-    addTextTip(mean, textContent, selectionsObj)
-  }
-}, [numericAttrId, dataConfig, mean, stdDev, numericScale.invert, helper, isVertical, addNormalCurve,
-          useGaussianFit, showLabel, stdError, numStdErrs, addLabels, addTextTip])
+      // If showLabels is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
+      // otherwise we add a text tip that only appears when the user mouses over the value line or the range boundaries.
+      if (showLabel) {
+        addLabels(labelObj, measure, textContent, selectionsObj, mean)
+      } else {
+        addTextTip(mean, textContent, selectionsObj)
+      }
+    }, [numericAttrId, dataConfig, mean, stdDev, numericScale.invert, helper, isVertical, addNormalCurve,
+      useGaussianFit, showLabel, stdError, numStdErrs, addLabels, addTextTip])
 
 // Add the lines and their associated covers and labels
-const refreshValues = useCallback(() => {
-  if (!model.isVisible) return
-  const measure = model?.measures.get(helper.instanceKey)
+    const refreshValues = useCallback(() => {
+      if (!model.isVisible) return
+      const measure = model?.measures.get(helper.instanceKey)
 
-  // We're creating a new set of elements, so remove the old ones
-  Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
-  valueObjRef.current = {}
-  const newLabelObj: ILabel = {}
-  const selection = select(valueRef.current)
-  const labelSelection = select(labelRef.current)
+      // We're creating a new set of elements, so remove the old ones
+      Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
+      valueObjRef.current = {}
+      const newLabelObj: ILabel = {}
+      const selection = select(valueRef.current)
+      const labelSelection = select(labelRef.current)
 
-  // Remove the previous value's elements
-  selection.html(null)
-  labelSelection.html(null)
+      // Remove the previous value's elements
+      selection.html(null)
+      labelSelection.html(null)
 
-  if (measure) {
-    addAdornmentElements(measure, valueObjRef.current, newLabelObj)
+      if (measure) {
+        addAdornmentElements(measure, valueObjRef.current, newLabelObj)
+      }
+    }, [addAdornmentElements, helper.instanceKey, labelRef, model.isVisible, model?.measures, valueRef])
+
+    useEffect(() => {
+      // Clean up any existing elements
+      return () => {
+        Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
+      }
+    }, [])
+
+    return (
+      <UnivariateMeasureAdornmentBaseComponent
+        classFromKey={helper.classFromKey}
+        containerId={containerId}
+        labelRef={labelRef}
+        measureSlug={helper.measureSlug}
+        model={model}
+        showLabel={!!showLabel}
+        valueRef={valueRef}
+        refreshValues={refreshValues}
+        setIsVertical={(adornmentIsVertical: boolean) => {
+          isVertical.current = adornmentIsVertical
+        }}
+        xAxis={xAxis}
+        yAxis={yAxis}
+      />
+    )
   }
-}, [addAdornmentElements, helper.instanceKey, labelRef, model.isVisible, model?.measures, valueRef])
-
-useEffect(() => {
-  // Clean up any existing elements
-  return () => {
-    Object.values(valueObjRef.current).forEach((aSelection) => aSelection.remove())
-  }
-}, [])
-
-return (
-  <UnivariateMeasureAdornmentBaseComponent
-    classFromKey={helper.classFromKey}
-    containerId={containerId}
-    labelRef={labelRef}
-    measureSlug={helper.measureSlug}
-    model={model}
-    showLabel={!!showLabel}
-    valueRef={valueRef}
-    refreshValues={refreshValues}
-    setIsVertical={(adornmentIsVertical: boolean) => {
-      isVertical.current = adornmentIsVertical
-    }}
-    xAxis={xAxis}
-    yAxis={yAxis}
-  />
-)
-}
 )
