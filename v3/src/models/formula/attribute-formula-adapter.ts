@@ -122,6 +122,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
 
   computeFormula(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+    console.log(`--- computeFormula`)
     const { formula, dataSet } = formulaContext
     const { attributeId } = extraMetadata
 
@@ -176,6 +177,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
     let compiledFormula: EvalFunction
     try {
       compiledFormula = math.compile(formula.canonical)
+      console.log(` -- compiled Formula`, compiledFormula)
     } catch (e: any) {
       return this.setFormulaError(formulaContext, extraMetadata, formulaError(e.message))
     }
@@ -210,6 +212,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
   }
 
   setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {
+    console.log(`ooo setting up formula observers`)
     const { dataSet } = formulaContext
     return observeDatasetHierarchyChanges(dataSet, (casesToRecalculate?: CaseList) => {
       this.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
