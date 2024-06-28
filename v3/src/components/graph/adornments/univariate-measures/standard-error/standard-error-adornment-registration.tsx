@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback, useEffect } from "react"
 import { Flex, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper }
   from "@chakra-ui/react"
 import { translate } from "../../../../../utilities/translation/translate"
@@ -20,7 +20,7 @@ const Controls = () => {
   const existingAdornment =
     adornmentsStore.findAdornmentOfType<IStandardErrorAdornmentModel>(kStandardErrorType)
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     if (existingAdornment) {
       graphModel.applyModelChange(
         () => {
@@ -38,7 +38,14 @@ const Controls = () => {
         }
       )
     }
-  }
+  }, [existingAdornment, graphModel])
+
+  useEffect(() => {
+    // Return a cleanup function that will be called when the component is unmounted
+    return () => {
+      handleBlur()
+    }
+  }, [handleBlur])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

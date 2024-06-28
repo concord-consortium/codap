@@ -1,8 +1,8 @@
 import { Instance, types } from "mobx-state-tree"
 import { mean, std } from "mathjs"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
-import { UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel }
-  from "../univariate-measure-adornment-model"
+import { IAdornmentModel } from "../../adornment-models"
+import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kStandardErrorValueTitleKey, kStandardErrorType } from "./standard-error-adornment-types"
 
 export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
@@ -40,7 +40,7 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       // If there are less than two values, the adornment should not render.
       if (caseValues.length < 2) return
-      return self.numStErrs * Number(std(caseValues)) / Math.sqrt(caseValues.length)
+      return Number(std(caseValues)) / Math.sqrt(caseValues.length)
     }
   }))
   .views(self => ({
@@ -49,7 +49,7 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
       // If there are less than two values, the adornment should not render.
       if (caseValues.length < 2) return { min: NaN, max: NaN }
       const meanValue = mean(caseValues)
-      const standardErrors = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
+      const standardErrors = self.numStErrs * Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
       const min = meanValue - standardErrors
       const max = meanValue + standardErrors
       return { min, max }
@@ -57,7 +57,7 @@ export const StandardErrorAdornmentModel = UnivariateMeasureAdornmentModel
   }))
 
 export interface IStandardErrorAdornmentModel extends Instance<typeof StandardErrorAdornmentModel> {}
-export function isStandardErrorAdornment(adornment: IUnivariateMeasureAdornmentModel):
+export function isStandardErrorAdornment(adornment: IAdornmentModel | undefined):
   adornment is IStandardErrorAdornmentModel {
-  return adornment.type === kStandardErrorType
+  return adornment ? adornment.type === kStandardErrorType : false
 }
