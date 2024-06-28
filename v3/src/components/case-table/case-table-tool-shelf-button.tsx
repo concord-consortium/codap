@@ -122,12 +122,12 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
   const handleDeleteDataSet = () => {
     setModalOpen(false)
     onClose()
-    if (dataSetId) {
+    if (data) {
       document.applyModelChange(() => {
         manager?.removeSharedModel(dataSetId)
         getFormulaManager(document)?.removeDataSet(dataSetId)
       }, {
-        notifications: data ? dataContextDeletedNotification(data) : undefined,
+        notifications: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete"
       })
