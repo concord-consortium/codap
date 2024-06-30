@@ -140,7 +140,7 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  updateLines(line: ILSRLine, key="", index: number) {
+  updateLines(line: ILSRLine, key:string, index: number) {
     const { category, equationCoords, intercept, rSquared, sdResiduals, slope } = line
     const existingLines = self.lines.get(key)
     const newLines = existingLines ? [...existingLines] : []
