@@ -165,6 +165,33 @@ export function normal(x: number, amp: number, mu: number, sigma: number) {
   return amp * Math.exp(exponent)
 }
 
+/**
+ * Get the quantile
+ * sortedArray is an array of finite numeric values (no non-numeric or missing values allowed)
+ * quantile [0.0-1.0] to calculate, e.g. first quartile = 0.25
+ * return quantile value or undefined if ioArray has no elements
+ */
+export function quantileOfSortedArray (sortedArray:number[], quantile:number) {
+  const lastIndex = sortedArray.length - 1,
+    i = lastIndex * quantile, // quantile's numeric-real index in 0-(n-1) array
+    i1 = Math.floor(i),
+    i2 = Math.ceil(i),
+    fraction = i - i1
+  if (i < 0) {
+    return undefined // length === 0, or quantile < 0.0
+  } else if (i >= lastIndex) {
+    return sortedArray[lastIndex] // quantile >= 1.0
+  } else if (i === i1) {
+    return sortedArray[i1] // quantile falls on data value exactly
+  } else {
+    // quantile between two data values
+    // note that quantile algorithms vary on method used to get value here, there is no fixed standard.
+    return (sortedArray[i2] * fraction + sortedArray[i1] * (1.0 - fraction))
+  }
+}
+
+
+
 type XYToNumberFunction = (x: number, y: number) => number
 
 /**

@@ -143,6 +143,9 @@ export const DocumentContentModel = BaseDocumentContentModel
     },
     get gaussianFitEnabled() {
       return self._gaussianFitEnabled || urlParams.gaussianFit !== undefined
+    },
+    get iciEnabled() {
+      return urlParams.ICI !== undefined
     }
   }))
   .actions(self => ({

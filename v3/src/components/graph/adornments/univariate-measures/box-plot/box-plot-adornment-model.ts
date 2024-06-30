@@ -1,5 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { median } from "mathjs"
+import { quantileOfSortedArray } from "../../../../../utilities/math-utils"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kBoxPlotType, kBoxPlotValueTitleKey } from "./box-plot-adornment-types"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
@@ -10,32 +11,19 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
   .props({
     type: types.optional(types.literal(kBoxPlotType), kBoxPlotType),
     labelTitle: types.optional(types.literal(kBoxPlotValueTitleKey), kBoxPlotValueTitleKey),
-    showOutliers: types.optional(types.boolean, false)
+    showOutliers: types.optional(types.boolean, false),
+    // showICI can only be set to true when the ICI=yes url parameter is present. But, if present in a saved
+    // document, the ICI will be shown.
+    showICI: types.optional(types.boolean, false),  // show informal confidence interval
   })
   .views(() => ({
     get hasRange() {
       return true
     },
-    getQuantileValue(quantile: number, caseValues: number[]) {
-      if (caseValues.length === 0) return NaN
+    getQuantileValue(quantile: 25 | 75, caseValues: number[]) {
       const sortedCaseValues = caseValues.sort((a, b) => a - b)
-      const lastIndex = sortedCaseValues.length - 1
-      const i = lastIndex * quantile / 100
-      const i1 = Math.floor(i)
-      const i2 = Math.ceil(i)
-      const fraction = i - i1
-
-      if (i < 0) {
-        return 0 // length === 0, or quantile < 0.0
-      } else if (i >= lastIndex) {
-        return sortedCaseValues[lastIndex] // quantile >= 1.0
-      } else if (i === i1) {
-        return sortedCaseValues[i1] // quantile falls on data value exactly
-      } else {
-        // quantile between two data values;
-        // note that quantile algorithms vary on method used to get value here, there is no fixed standard.
-        return (sortedCaseValues[i2] * fraction + sortedCaseValues[i1] * (1.0 - fraction))
-      }
+      const quantileValue = quantileOfSortedArray(sortedCaseValues, quantile / 100)
+      return quantileValue || NaN
     }
   }))
   .views(self => ({
@@ -50,6 +38,12 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     interquartileRange(caseValues: number[]) {
       return self.upperQuartile(caseValues) - self.lowerQuartile(caseValues)
     },
+    iqr(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      // BoxPlotAdornmentComponent can more easily access the IQR value by calling this method
+      // than by passing in caseValues to interquartileRange.
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig).filter(v => !Number.isNaN(v))
+      return this.interquartileRange(caseValues)
+    }
   }))
   .views(self => ({
     // Returns the minimum value to use in constructing the whisker line. If we're showing outliers, we need to return
@@ -102,11 +96,21 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       const upperQuartile = self.upperQuartile(caseValues)
       const max = upperQuartile + 1.5 * interquartileRange
       return caseValues.filter(v => v > max).sort((a, b) => a - b)
+    },
+    computeICIRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      const medianValue = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
+      const interquartileRange = self.interquartileRange(caseValues)
+      const ici = 1.5 * interquartileRange / Math.sqrt(caseValues.length)
+      return { min: medianValue - ici, max: medianValue + ici }
     }
   }))
   .actions(self => ({
     setShowOutliers(showOutliers: boolean) {
       self.showOutliers = showOutliers
+    },
+    setShowICI(showICI: boolean) {
+      self.showICI = showICI
     }
   }))
 

@@ -16,14 +16,19 @@ import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-a
 import "./box-plot-adornment-component.scss"
 
 interface IBoxPlotValue extends IValue {
+  iqrCover?: Selection<SVGRectElement, unknown, null, undefined>
   whiskerLower?: Selection<SVGLineElement, unknown, null, undefined>
   whiskerLowerCover?: Selection<SVGLineElement, unknown, null, undefined>
   lowerOutliers?: Selection<SVGPathElement, number, SVGGElement | null, unknown>
   lowerOutliersCovers?: Selection<SVGRectElement, number, SVGGElement | null, unknown>
+  q1Cover?: Selection<SVGLineElement, unknown, null, undefined>
+  q3Cover?: Selection<SVGLineElement, unknown, null, undefined>
   whiskerUpper?: Selection<SVGLineElement, unknown, null, undefined>
   whiskerUpperCover?: Selection<SVGLineElement, unknown, null, undefined>
   upperOutliers?: Selection<SVGPathElement, number, SVGGElement | null, unknown>
   upperOutliersCovers?: Selection<SVGRectElement, number, SVGGElement | null, unknown>
+  ici?: Selection<SVGLineElement, unknown, null, undefined>
+  iciCover?: Selection<SVGLineElement, unknown, null, undefined>
 }
 
 export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
@@ -176,16 +181,92 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     valueObj.upperOutliersCovers = showOutliers ? newOutlierCovers(upperOutliers, "upper") : undefined
   }, [dataConfig, attrId, model, cellKey, helper, calculateWhiskerCoords, newOutliers, newOutlierCovers])
 
+  const addICI = useCallback((valueObj: IBoxPlotValue) => {
+
+    const calculateIciCoords = () => {
+      const subplotWidth = plotWidth / cellCounts.x
+      const subplotHeight = plotHeight / cellCounts.y
+      return {
+        x1: !isVertical.current ? subplotWidth / 2 : helper.xScale(iciRange.min) / cellCounts.x,
+        x2: !isVertical.current ? subplotWidth / 2 : helper.xScale(iciRange.max) / cellCounts.x,
+        y1: isVertical.current ? subplotHeight / 2 : helper.yScale(iciRange.min) / cellCounts.y,
+        y2: isVertical.current ? subplotHeight / 2 : helper.yScale(iciRange.max) / cellCounts.y
+      }
+    }
+
+    if (!dataConfig || !attrId) return
+    const iciClass = clsx("measure-line", "box-plot-line", `${helper.measureSlug}-ici`)
+    const iciCoverClass = clsx("measure-cover", "box-plot-cover", `${helper.measureSlug}-ici`)
+    const iciRange = model.computeICIRange(attrId, cellKey, dataConfig)
+    const iciId = helper.generateIdString("ici")
+    const iciCoverId = helper.generateIdString("ici-cover")
+    const iciCoords = calculateIciCoords()
+    const iciSpecs = {
+      isVertical: isVertical.current,
+      lineClass: iciClass,
+      lineId: iciId,
+      offset: -5,
+      x1: iciCoords.x1,
+      x2: iciCoords.x2,
+      y1: iciCoords.y1,
+      y2: iciCoords.y2
+    }
+    const iciCoverSpecs = {...iciSpecs, lineClass: iciCoverClass, lineId: iciCoverId}
+    valueObj.ici = helper.newLine(valueRef.current, iciSpecs)
+    valueObj.iciCover = helper.newLine(valueRef.current, iciCoverSpecs)
+  }, [dataConfig, attrId, helper, model, cellKey, plotWidth, cellCounts.x, cellCounts.y, plotHeight])
+
+  const addQCovers = useCallback((valueObj: IBoxPlotValue) => {
+
+    const calculateQCoverSpecs = (qValue: number) => {
+      const calculateQCoords = (value:number) => {
+        // The coordinates are those of the bottom and top edges of the box portion of the box plot
+        // They are the same as for the median (aka line)
+        const subplotWidth = plotWidth / cellCounts.x
+        const subplotHeight = plotHeight / cellCounts.y
+        const offset = 2 * boxPlotOffset
+        return {
+          x1: !isVertical.current ? subplotWidth / 2 - offset : helper.xScale(value) / cellCounts.x,
+          x2: !isVertical.current ? subplotWidth / 2 + offset : helper.xScale(value) / cellCounts.x,
+          y1: isVertical.current ? subplotHeight / 2 - offset : helper.yScale(value) / cellCounts.y,
+          y2: isVertical.current ? subplotHeight / 2 + offset : helper.yScale(value) / cellCounts.y
+        }
+      }
+
+      const qCoords = calculateQCoords(qValue)
+      return {
+        isVertical: isVertical.current,
+        lineClass: qCoverClass,
+        lineId: qCoverId,
+        offset: -5,
+        x1: qCoords.x1,
+        x2: qCoords.x2,
+        y1: qCoords.y1,
+        y2: qCoords.y2
+      }
+    }
+
+    if (!dataConfig || !attrId) return
+    const qCoverClass = clsx("measure-cover", "box-plot-cover", `${helper.measureSlug}-q`)
+    const caseValues = model.getCaseValues(attrId, cellKey, dataConfig)
+    const qCoverId = helper.generateIdString("q-cover")
+    const q1CoverSpecs = calculateQCoverSpecs(model.lowerQuartile(caseValues))
+    const q3CoverSpecs = calculateQCoverSpecs(model.upperQuartile(caseValues))
+    valueObj.q1Cover = helper.newLine(valueRef.current, q1CoverSpecs)
+    valueObj.q3Cover = helper.newLine(valueRef.current, q3CoverSpecs)
+  }, [dataConfig, attrId, helper, model, cellKey, plotWidth, cellCounts.x, cellCounts.y, plotHeight])
+
   const addBoxPlotLabels = useCallback((textContent: string, valueObj: IBoxPlotValue, labelsObj: ILabel) => {
     const container = select(labelRef.current)
     const textId = helper.generateIdString("label")
     const labels = textContent.split("\n")
     const covers = [
       valueObj.whiskerLowerCover,
-      valueObj.rangeMinCover,
+      valueObj.q1Cover,
       valueObj.cover,
-      valueObj.rangeMaxCover,
-      valueObj.whiskerUpperCover
+      valueObj.q3Cover,
+      valueObj.whiskerUpperCover,
+      // valueObj.iqrCover
     ]
 
     for (let i = 0; i < labels.length; i++) {
@@ -229,6 +310,23 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   }, [attrId, cellKey, dataConfig, helper, labelRef, model, toggleBoxPlotLabels])
 
   const addAdornmentElements = useCallback((valueObj: IBoxPlotValue, labelsObj: ILabel) => {
+
+    const addMedian = () => {
+      const lineSpecs = {
+        isVertical: isVertical.current,
+        lineClass,
+        lineId,
+        offset: boxPlotOffset * -1,
+        x1: !isVertical.current ? coords.x1 - boxPlotOffset : coords.x1,
+        x2: !isVertical.current ? coords.x2 + boxPlotOffset * 3 : coords.x1,
+        y1: isVertical.current ? coords.y1 - boxPlotOffset : coords.y1,
+        y2: isVertical.current ? coords.y2 + boxPlotOffset * 3 : coords.y1
+      }
+      const coverSpecs = {...lineSpecs, lineClass: coverClass, lineId: coverId}
+      valueObj.line = helper.newLine(valueRef.current, lineSpecs)
+      valueObj.cover = helper.newLine(valueRef.current, coverSpecs)
+    }
+
     if (!attrId || !dataConfig) return
     const value = model.measureValue(attrId, cellKey, dataConfig)
     if (value === undefined || isNaN(value)) return
@@ -237,25 +335,15 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       helper.adornmentSpecs(attrId, dataConfig, value, isVertical.current, cellCounts, secondaryAxisX, secondaryAxisY)
     const translationVars = [
       model.minWhiskerValue(attrId, cellKey, dataConfig),
-      measureRange.min,
-      displayValue,
-      measureRange.max,
-      model.maxWhiskerValue(attrId, cellKey, dataConfig)
+      measureRange.min, // Q1
+      displayValue, // median
+      measureRange.max, // Q3
+      model.maxWhiskerValue(attrId, cellKey, dataConfig),
+      model.iqr(attrId, cellKey, dataConfig)
     ]
     const textContent = `${t(model.labelTitle, { vars: translationVars })}`
-    const lineSpecs = {
-      isVertical: isVertical.current,
-      lineClass,
-      lineId,
-      offset: boxPlotOffset * -1,
-      x1: !isVertical.current ? coords.x1 - boxPlotOffset : coords.x1,
-      x2: !isVertical.current ? coords.x2 + boxPlotOffset * 3 : coords.x1,
-      y1: isVertical.current ? coords.y1 - boxPlotOffset : coords.y1,
-      y2: isVertical.current ? coords.y2 + boxPlotOffset * 3 : coords.y1
-    }
-    const coverSpecs = {...lineSpecs, lineClass: coverClass, lineId: coverId}
-    valueObj.line = helper.newLine(valueRef.current, lineSpecs)
-    valueObj.cover = helper.newLine(valueRef.current, coverSpecs)
+
+    addMedian()
 
     if ((measureRange?.min || measureRange?.min === 0) && (measureRange?.max || measureRange?.max === 0)) {
       const rangeSpecs = {
@@ -275,9 +363,13 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       helper.addRange(valueRef.current, valueObj, rangeSpecs)
     }
     addWhiskers(valueObj, measureRange, model.showOutliers)
+    addQCovers(valueObj)
+    if (model.showICI) {
+      addICI(valueObj)
+    }
     addBoxPlotLabels(textContent, valueObj, labelsObj)
-  }, [addBoxPlotLabels, addWhiskers, attrId, cellCounts, cellKey, dataConfig, helper, model,
-      secondaryAxisX, secondaryAxisY])
+  }, [addBoxPlotLabels, addICI, addWhiskers, addQCovers, attrId, cellCounts, cellKey, dataConfig,
+            helper, model, secondaryAxisX, secondaryAxisY])
 
   const refreshValues = useCallback(() => {
     if (!model.isVisible) return
