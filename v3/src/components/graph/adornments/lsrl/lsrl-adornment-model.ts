@@ -140,12 +140,12 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  updateLines(line: ILSRLine, key="", index?: number) {
+  updateLines(line: ILSRLine, key:string, index: number) {
     const { category, equationCoords, intercept, rSquared, sdResiduals, slope } = line
     const existingLines = self.lines.get(key)
     const newLines = existingLines ? [...existingLines] : []
     // Remove any pre-existing line in newLines at specified index, otherwise we can end up with duplicates.
-    ;(index != null) && newLines.splice(index, 1)
+    newLines.splice(index, 1)
     const newLine = LSRLInstance.create(line)
     newLine.setCategory(category)
     newLine.setIntercept(intercept)
@@ -153,7 +153,7 @@ export const LSRLAdornmentModel = AdornmentModel
     newLine.setSlope(slope)
     newLine.setSdResiduals(sdResiduals)
     equationCoords && newLine.setEquationCoords(equationCoords)
-    newLines.push(newLine)
+    newLines[index] = newLine
     self.lines.set(key, newLines)
   },
   setShowConfidenceBands(showConfidenceBands: boolean) {

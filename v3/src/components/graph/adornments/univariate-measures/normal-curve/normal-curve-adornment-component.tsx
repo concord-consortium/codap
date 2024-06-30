@@ -311,7 +311,7 @@ export const NormalCurveAdornmentComponent = observer(
 
       const gaussianFitTitle = useGaussianFit
         ? showLabel
-          ? `<p style="text-decoration-line:underline;color:${kNormalCurveStrokeColor}"> ${t(kGaussianFitLabelKey)} </p>`
+          ? `<p style="text-decoration-line:underline;color:${kNormalCurveStrokeColor}"> ${t(kGaussianFitLabelKey)}</p>`
           : `${t(kGaussianFitLabelKey)}: `
         : ""
 
