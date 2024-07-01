@@ -12,6 +12,7 @@ import { ILabel } from "../univariate-measure-adornment-types"
 import { IStandardErrorAdornmentModel } from "./standard-error-adornment-model"
 import { IMeasureInstance } from "../univariate-measure-adornment-model"
 import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-adornment-base-component"
+import { useGraphOptions } from "../../hooks/use-graph-options"
 
 interface IStandardErrorSelections {
   errorBar?: Selection<SVGPathElement, unknown, null, undefined>
@@ -23,7 +24,6 @@ interface IStandardErrorSelections {
 
 const kErrorBarPathClass = "standard-error-path",
   kFullHighLinesClass = "full-height-lines",
-  kErrorBarStrokeColor = "#f6768e",
   kBarCoord = 12  // Pixels from top or right edge of the plot
 
 export const StandardErrorAdornmentComponent = observer(
@@ -42,6 +42,7 @@ export const StandardErrorAdornmentComponent = observer(
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
     const valueObjRef = useRef<IStandardErrorSelections>({})
+    const {isGaussianFit} = useGraphOptions()
     const range = dataConfig
       ? model.computeMeasureRange(numericAttrId, cellKey, dataConfig) : {min: NaN, max: NaN}
     const rangeValue = range.max - range.min
@@ -82,10 +83,8 @@ export const StandardErrorAdornmentComponent = observer(
       if (!numericAttrId || !dataConfig) return
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
-      const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
-      const labelOffset = 20
-      const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * labelOffset : 0
+      const lineHeight = 20
+      const topOffset = lineHeight * adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0
       const labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current
@@ -116,8 +115,8 @@ export const StandardErrorAdornmentComponent = observer(
       selectionsObj.errorBarHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [numericAttrId, dataConfig, labelRef, adornmentsStore?.activeUnivariateMeasures, model,
-              cellCounts.x, isVertical, helper, containerId, highlightCovers, highlightLabel])
+    }, [numericAttrId, dataConfig, labelRef, adornmentsStore, model, isGaussianFit, cellCounts.x,
+              isVertical, helper, containerId, highlightCovers, highlightLabel])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IStandardErrorSelections) => {
       const measure = model?.measures.get(helper.instanceKey)
@@ -239,29 +238,17 @@ export const StandardErrorAdornmentComponent = observer(
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance,
                                               selectionsObj: IStandardErrorSelections, labelObj: ILabel) => {
+
       if (!numericAttrId || !dataConfig) return
-      const value = model.measureValue(numericAttrId, cellKey, dataConfig)
-      if (value === undefined || isNaN(value) || isNaN(range.min) || isNaN(range.max)) return
+      const stdErr = model.measureValue(numericAttrId, cellKey, dataConfig)
+      if (stdErr === undefined || isNaN(stdErr) || isNaN(range.min) || isNaN(range.max)) return
 
       addErrorBar(valueObjRef.current)
 
-      const primaryAttrId = dataConfig?.primaryAttributeID
-      const primaryAttr = primaryAttrId ? dataConfig?.dataset?.attrFromID(primaryAttrId) : undefined
-      const primaryAttrUnits = primaryAttr?.units
-      const displayValue = helper.formatValueForScale(isVertical.current, value)
-      const numStErrsString = model.numStErrs === 1 ? ''
-        : parseFloat(model.numStErrs.toFixed(2)).toString()
-      const translationVars = showLabel ? [`${numStErrsString}`,
-        '<sub style="vertical-align: sub">', '</sub>', displayValue] : [`${numStErrsString}`, '', '', displayValue]
-      const valueString = t(model.labelTitle, {vars: translationVars})
+      const textContent = helper.computeTextContentForStdErr(dataConfig, isVertical.current, stdErr,
+        model.numStErrs, showLabel)
 
-      const unitsString = `${primaryAttrUnits ? ` ${primaryAttrUnits}` : ""}`
-      const unitsContent = showLabel ? `<span style="color:grey">${unitsString}</span>` : unitsString
-      const valueContent = showLabel
-        ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}${unitsContent}</p>` : valueString
-      const textContent = `${valueContent}${(showLabel ? '' : unitsString)}`
-
-      // If showLabels is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
+      // If showLabel is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
       // otherwise we add a text tip that only appears when the user mouses over the value line or the range boundaries.
       if (showLabel) {
         addLabels(labelObj, measure, textContent, selectionsObj, range.max)

@@ -3,10 +3,11 @@ import { getAdornmentComponentInfo } from "./adornment-component-info"
 import { AdornmentModelUnion, kDefaultFontSize } from "./adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
 import { IMovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
-import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
 import { IUnivariateMeasureAdornmentModel } from "./univariate-measures/univariate-measure-adornment-model"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
+import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
 import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
+import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
 
 /**
  * The AdornmentsBaseStore is a model that manages the adornments that are displayed on a graph. It provides methods for
@@ -39,7 +40,10 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
           found = true
         } else {
           // The gaussian fit adornment gets an extra line for the title of its label
-          lines += a.labelLines + (isGaussianFit && a.type === kNormalCurveType ? 1 : 0)
+          // and an extra line if showing the standard error
+          lines += a.labelLines + (isGaussianFit && a.type === kNormalCurveType
+            ? 1 + (this.isShowingAdornment(kStandardErrorType) ? 1 : 0)
+            : 0)
         }
         const componentInfo = getAdornmentComponentInfo(a.type)
         if (componentInfo?.BannerComponent) {
