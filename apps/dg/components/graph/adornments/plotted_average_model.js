@@ -462,7 +462,7 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
             iValue.lowerWhisker = iValue.vals[0];
             iValue.upperWhisker = iValue.vals[iValue.vals.length - 1];
           }
-          iValue.ICI = tShowICI ? iValue.IQR / Math.sqrt(iValue.vals.length) : undefined;
+          iValue.ICI = tShowICI ? 1.5 * iValue.IQR / Math.sqrt(iValue.vals.length) : undefined;
         }
       });
     }
