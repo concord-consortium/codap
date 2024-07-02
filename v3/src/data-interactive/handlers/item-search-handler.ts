@@ -46,10 +46,12 @@ export const diItemSearchHandler: DIHandler = {
         itemIds.forEach((id, index) => {
           const itemIndex = itemOrder[index]
           const item = dataContext.getItem(id) as ICase
-          dataContext.removeCases([id])
-          const before = dataContext.itemIds[itemIndex]
-          dataContext.addCases([item], { before })
-          dataContext.validateCaseGroups()
+          if (item && itemIndex && isFinite(itemIndex)) {
+            dataContext.removeCases([id])
+            const before = dataContext.itemIds[itemIndex]
+            dataContext.addCases([item], { before })
+            dataContext.validateCaseGroups()
+          }
         })
       } else {
         // Otherwise, move all the items to the beginning or end
