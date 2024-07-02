@@ -546,7 +546,28 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 deleteAttribute = function () {
-                  DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'))
+                  const data = iContext.data
+                  const attrId = iAttr.get('id')
+                  var result = undefined
+
+                  const attributeToDelete = iContext.data.attrFromID(attrId)
+                  console.log("Before removal, attribute:", attributeToDelete)
+
+                  if (attributeToDelete) {
+                    attributeToDelete.prepareSnapshot()
+                    data.applyModelChange(() => {
+                      result = data.removeAttribute(attrId)
+                      console.log("Attribute removed, result:", result)
+
+                    }, {
+                      notifications: () => {
+                        const notifications = [removeAttributesNotification([attrId], data)]
+                        if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
+                        return notifications
+                      }
+                    })
+                  }
+                  console.log("After removal attempt")
                 }.bind(this),
 
                 deleteAttributeFormula = function () {
