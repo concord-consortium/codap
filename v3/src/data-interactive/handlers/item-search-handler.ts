@@ -1,8 +1,10 @@
 import { toV2Id } from "../../utilities/codap-utils"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
-import { DIHandler, DIResources } from "../data-interactive-types"
-import { couldNotParseQueryResult, dataContextNotFoundResult } from "./di-results"
+import { ICase } from "../../models/data/data-set-types"
+import { DIHandler, DIItemSearchNotify, DIResources, DIValues } from "../data-interactive-types"
+import { couldNotParseQueryResult, dataContextNotFoundResult, errorResult, valuesRequiredResult } from "./di-results"
 
 export const diItemSearchHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -25,6 +27,43 @@ export const diItemSearchHandler: DIHandler = {
 
     const values = itemSearch.map(aCase => getV2ItemResult(dataContext, aCase.__id__))
     return { success: true, values }
+  },
+
+  notify(resources: DIResources, values?: DIValues) {
+    const { dataContext, itemSearch } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!itemSearch) return couldNotParseQueryResult
+
+    if (!values) return valuesRequiredResult
+    const { itemOrder } = values as DIItemSearchNotify
+    if (!itemOrder) return errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Notify", "itemSearch", "itemOrder"] }))
+
+    dataContext.applyModelChange(() => {
+      const itemIds = itemSearch.map(({ __id__ }) => __id__)
+      if (Array.isArray(itemOrder)) {
+        // When itemOrder is an array, move each item to the specified index in order
+        // Note that this means later items can impact the position of earlier items
+        itemIds.forEach((id, index) => {
+          const itemIndex = itemOrder[index]
+          const item = dataContext.getItem(id) as ICase
+          dataContext.removeCases([id])
+          const before = dataContext.itemIds[itemIndex]
+          dataContext.addCases([item], { before })
+          dataContext.validateCaseGroups()
+        })
+      } else {
+        // Otherwise, move all the items to the beginning or end
+        const items = itemIds.map(id => dataContext.getItem(id)) as ICase[]
+        dataContext.removeCases(itemIds)
+        const options = itemOrder === "first" && dataContext.itemIds.length > 0
+          ? { before: dataContext.itemIds[0] }
+          : undefined
+        dataContext.addCases(items, options)
+      }
+      dataContext.validateCaseGroups()
+    })
+
+    return { success: true }
   }
 }
 

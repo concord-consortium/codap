@@ -133,6 +133,9 @@ export interface DIUpdateDataContext extends DIDataContext {
 export interface DINotification {
   request?: string
 }
+export interface DIItemSearchNotify {
+  itemOrder?: "first" | "last" | number[]
+}
 
 export interface DIResources {
   attribute?: IAttribute
@@ -160,7 +163,7 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | V2SpecificComponent
+  DINotification | DIItemSearchNotify | V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
