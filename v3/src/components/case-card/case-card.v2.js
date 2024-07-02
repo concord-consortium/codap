@@ -5,6 +5,10 @@ import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
 import React from 'react'
 import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
+import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
+import { createAttributesNotification, removeAttributesNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { uniqueName } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 
 import "./attribute-name-cell.v2"
 import "./attribute-value-cell.v2"
@@ -234,16 +238,27 @@ iDataContext.doSelectCases({
           },
 
           /**
-           *  --------------Show the modal for editing attribute properties--------
+           *  --------------Show the modal for editing attribute --------
            */
-          editAttributeModal(attributeId, isOpen) {
+          editAttributePropModal(attributeId, isOpen) {
             if (attributeId) {
-              this.setState({modalIsOpen: isOpen, currentAttributeId: attributeId})
+              this.setState({editAttributePropModalIsOpen: isOpen, currentAttributeId: attributeId})
             }
           },
 
-          closeModal() {
-            this.setState({ modalIsOpen: false, currentAttributeId: null })
+          closeEditAttributePropModal() {
+            this.setState({ editAttributePropModalIsOpen: false, currentAttributeId: null })
+          },
+
+          editFormulaModal(attributeId, isOpen) {
+            if (attributeId) {
+              this.setState({editFormulaModalIsOpen: isOpen, currentAttributeId: attributeId})
+            }
+          },
+
+          closeEditFormulaModal() {
+            this.setState({ editFormulaModalIsOpen: false, currentAttributeId: null })
+            this.incrementStateCount()
           },
 
           /**
@@ -516,14 +531,11 @@ iDataContext.doSelectCases({
                   }
                 }.bind(this),
                 editAttribute = function () {
-                  this.editAttributeModal(iAttr.get('id'), true)
+                  this.editAttributePropModal(iAttr.get('id'), true)
                 }.bind(this),
 
                 editFormula = function () {
-                  iContext.invokeLater(function () {
-                    DG.DataContextUtilities.editAttributeFormula(iContext, iCollection,
-                        iAttr.get('name'), iAttr.get('formula'))
-                  }, 30)
+                  this.editFormulaModal(iAttr.get('id'), true)
                 }.bind(this),
 
                 hideAttribute = function () {
@@ -535,7 +547,28 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 deleteAttribute = function () {
-                  DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'))
+                  const data = iContext.data
+                  const attrId = iAttr.get('id')
+                  var result = undefined
+
+                  const attributeToDelete = iContext.data.attrFromID(attrId)
+                  console.log("Before removal, attribute:", attributeToDelete)
+
+                  if (attributeToDelete) {
+                    attributeToDelete.prepareSnapshot()
+                    data.applyModelChange(() => {
+                      result = data.removeAttribute(attrId)
+                      console.log("Attribute removed, result:", result)
+
+                    }, {
+                      notifications: () => {
+                        const notifications = [removeAttributesNotification([attrId], data)]
+                        if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
+                        return notifications
+                      }
+                    })
+                  }
+                  console.log("After removal attempt")
                 }.bind(this),
 
                 deleteAttributeFormula = function () {
@@ -564,14 +597,22 @@ iDataContext.doSelectCases({
                 },
 
                 makeNewAttribute = function() {
-                  var collection = iContext.getCollectionByID(iCollection.get('id')),
-                      position = 1, // Just after the first attribute
-                      onComplete = function(attrName) {
-                                    var attrRef = iContext.getAttrRefByName(attrName),
-                                        attrID = attrRef?.attribute.get('id')
-                                    attrID && this.setState({ attrIdOfNameToEdit: attrID })
-                                  }.bind(this)
-                  DG.DataContextUtilities.newAttribute(iContext, collection, position, onComplete)
+                  const data = iContext.data
+                  const collection = iContext.getCollectionByID(iCollection.get("id"))
+                  var beforeAttrID = collection.get("attrs")[1].attribute.id // Just after the first attribute
+
+                  var attribute
+                  data?.applyModelChange(() => {
+                    const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
+                      (aName) => !data.attributes.find(attr => aName === attr.name)
+                    )
+                    attribute = data.addAttribute({ name: newAttrName }, { before: beforeAttrID, collection: iCollection.id })
+                  }, {
+                    notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+                    undoStringKey: "DG.Undo.caseTable.createAttribute",
+                    redoStringKey: "DG.Redo.caseTable.createAttribute"
+                  })
+                  // }
                 }.bind(this)
 
             /**
@@ -919,10 +960,15 @@ return tResult
               onMouseDownCapture: DG.Core.setClickHandlingForReact,
             },
             tCollEntries,
-            this.state.modalIsOpen && React.createElement(EditAttributePropertiesModal, {
+            this.state.editAttributePropModalIsOpen && React.createElement(EditAttributePropertiesModal, {
               attributeId: this.state.currentAttributeId,
-              isOpen: this.state.modalIsOpen,
-              onClose: this.closeModal
+              isOpen: this.state.editAttributePropModalIsOpen,
+              onClose: this.closeEditAttributePropModal
+            }),
+            this.state.editFormulaModalIsOpen && React.createElement(EditFormulaModal, {
+              attributeId: this.state.currentAttributeId,
+              isOpen: this.state.editFormulaModalIsOpen,
+              onClose: this.closeEditFormulaModal
             }))
           }
         }
