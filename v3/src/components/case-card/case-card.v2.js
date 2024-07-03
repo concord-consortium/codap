@@ -540,15 +540,7 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 hideAttribute = function () {
-                  const attrId = iAttr.get('id')
-                  iCaseMetadata?.applyModelChange(
-                    () => iCaseMetadata?.setIsHidden(attrId, true),
-                    {
-                      notifications: hideAttributeNotification([attrId], iContext.data),
-                      undoStringKey: "DG.Undo.caseTable.hideAttribute",
-                      redoStringKey: "DG.Redo.caseTable.hideAttribute"
-                    }
-                  )
+                  DG.DataContextUtilities.hideAttribute(iContext, iCaseMetadata, iAttr.get('id'))
                   this.incrementStateCount() // Force a re-render
                 }.bind(this),
 
@@ -557,26 +549,7 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 deleteAttribute = function () {
-                  const data = iContext.data
-                  const attrId = iAttr.get('id')
-                  var result = undefined
-
-                  const attributeToDelete = iContext.data.attrFromID(attrId)
-
-                  if (attributeToDelete) {
-                    attributeToDelete.prepareSnapshot()
-                    data.applyModelChange(() => {
-                      result = data.removeAttribute(attrId)
-                      console.log("Attribute removed, result:", result)
-
-                    }, {
-                      notifications: () => {
-                        const notifications = [removeAttributesNotification([attrId], data)]
-                        if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
-                        return notifications
-                      }
-                    })
-                  }
+                  DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'))
                 }.bind(this),
 
                 deleteAttributeFormula = function () {
@@ -605,35 +578,13 @@ iDataContext.doSelectCases({
                 },
 
                 makeNewAttribute = function() {
-                  // const data = iContext.data
-                  // const collection = iContext.getCollectionByID(iCollection.get("id"))
-                  // var beforeAttrID = collection.get("attrs")[1].attribute.id // Just after the first attribute
-
-                  // var attribute
-                  // data?.applyModelChange(() => {
-                  //   const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
-                  //     (aName) => !data.attributes.find(attr => aName === attr.name)
-                  //   )
-                  //   attribute = data.addAttribute({ name: newAttrName }, { before: beforeAttrID, collection: iCollection.id })
-                  // }, {
-                  //   notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
-                  //   undoStringKey: "DG.Undo.caseTable.createAttribute",
-                  //   redoStringKey: "DG.Redo.caseTable.createAttribute"
-                  // })
-                  const data = iContext.data
-                  const collectionId = iCollection.get('id')
-                  const beforeAttrID = iCollection.get('attrs')[1].attribute.id // Just after the first attribute
-                  let attribute
-                  data?.applyModelChange(() => {
-                    const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
-                      (aName) => !data.attributes.find(attr => aName === attr.name)
-                    )
-                    attribute = data.addAttribute({ name: newAttrName }, { before: beforeAttrID, collection: collectionId })
-                  }, {
-                    notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
-                    undoStringKey: "DG.Undo.caseTable.createAttribute",
-                    redoStringKey: "DG.Redo.caseTable.createAttribute"
-                  })
+                  const position = 1 // Just after the first attribute
+                  const onComplete = function(attrName) {
+                                var attrRef = iContext.getAttrRefByName(attrName),
+                                    attrID = attrRef?.attribute.get('id')
+                                attrID && this.setState({ attrIdOfNameToEdit: attrID })
+                              }.bind(this)
+                  DG.DataContextUtilities.newAttribute(iContext, iCollection, position, onComplete)
                 }.bind(this)
 
             /**

@@ -2,8 +2,7 @@ import { useMergeRefs } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
 import { useResizeDetector } from "react-resize-detector"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
+import { useDataSet } from "../../hooks/use-data-set"
 import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
 
@@ -23,8 +22,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-card"
 */
-  const data = useDataSetContext()
-  const caseMetadata = useCaseMetadata()
+  const {data, metadata} = useDataSet()
   const cardModel = useCaseCardModel()
   const containerRef = useRef<HTMLDivElement>(null)
   const mergeRefs = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
@@ -93,7 +91,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
           <DGCaseCard
             size={{ width, height }}
             context={context}
-            caseMetaData={caseMetadata}
+            caseMetaData={metadata}
             columnWidthMap={columnWidths}
             isSelectedCallback={() => false}
             onResizeColumn={handleResizeColumn}
