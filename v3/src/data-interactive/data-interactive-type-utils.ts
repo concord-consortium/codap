@@ -16,8 +16,10 @@ import { getCaseValues } from "./data-interactive-utils"
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
   if (values.name) {
+    const id = values.cid
     return {
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
+      id,
       userType: v3TypeFromV2TypeString(values.type),
       // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
       // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
