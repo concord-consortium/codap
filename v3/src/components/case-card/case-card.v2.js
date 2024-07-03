@@ -6,10 +6,6 @@ import { SC } from "../../v2/sc-compat"
 import React from 'react'
 import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
 import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
-import { createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
-import { SharedCaseMetaDataPropType } from "../../models/shared/shared-case-metadata"
-import { uniqueName } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
 
 import "./attribute-name-cell.v2"
 import "./attribute-value-cell.v2"
@@ -17,6 +13,17 @@ import "./collection-header.v2"
 import "./column-resize-handle.v2"
 import "../../utilities/v2/dg-case-display-utils.v2"
 import "../../utilities/v2/dg-data-context-utilities.v2"
+
+export const SharedCaseMetaDataPropType = PropTypes.shape({
+  type: PropTypes.any,
+  data: PropTypes.any,
+  collections: PropTypes.object,
+  categories: PropTypes.object,
+  hidden: PropTypes.object,
+  caseTableTileId: PropTypes.string,
+  caseCardTileId: PropTypes.string,
+  lastShownTableOrCardTileId: PropTypes.string // used to restore the last shown tile both have been hidden
+})
 
 DG.React.ready(function () {
   var div = ReactDOMFactories.div,
