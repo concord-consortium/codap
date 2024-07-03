@@ -744,10 +744,6 @@ export const DataSet = V2Model.named("DataSet").props({
           if (collectionBeforeIndex >= 0) {
             collection?.attributes.splice(collectionBeforeIndex, 0, attribute.id)
           }
-          // fill out any missing values
-          for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
-            attribute.addValue()
-          }
           return attribute
         }
 
