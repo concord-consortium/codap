@@ -292,7 +292,7 @@ iDataContext.doSelectCases({
             })
           },
 
-          renderAttribute (iContext, iCollection, iCases,
+          renderAttribute (iContext, iCaseMetadata, iCollection, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             /**
              * -------------------------Dragging this attribute----------------
@@ -551,7 +551,6 @@ iDataContext.doSelectCases({
                   var result = undefined
 
                   const attributeToDelete = iContext.data.attrFromID(attrId)
-                  console.log("Before removal, attribute:", attributeToDelete)
 
                   if (attributeToDelete) {
                     attributeToDelete.prepareSnapshot()
@@ -567,7 +566,6 @@ iDataContext.doSelectCases({
                       }
                     })
                   }
-                  console.log("After removal attempt")
                 }.bind(this),
 
                 deleteAttributeFormula = function () {
@@ -855,6 +853,7 @@ return tSortedSelection.map(function(iEntry) {
 
             var tCollEntries = [],
                 tContext = this.props.context,
+                tCaseMetadata = this.props.caseMetaData,
                 tChildmostSelection = getChildmostSelection(tContext)
             // collection loop
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
@@ -912,7 +911,7 @@ return tResult
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
                     if (!tCaseMetadata?.isHidden(iAttr.get("id"))) {
                       tAttrEntries.push(
-                          this.renderAttribute(tContext, iCollection, tCases,
+                          this.renderAttribute(tContext, tCaseMetadata, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
                               tChildmostSelection))
                     }
@@ -969,6 +968,7 @@ return tResult
     size: PropTypes.shape({ width: PropTypes.number }),
     // the data context
     context: PropTypes.instanceOf(DG.DataContext).isRequired,
+    caseMetaData: SharedCaseMetaDataPropType.isRequired,
     // drag/drop support
     dragStatus: PropTypes.object,
     // map from collection name => column width percentage (0-1)

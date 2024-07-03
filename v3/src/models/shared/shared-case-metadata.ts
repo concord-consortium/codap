@@ -4,6 +4,7 @@ import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data
 import { DataSet, IDataSet } from "../data/data-set"
 import { ISharedModel, SharedModel } from "./shared-model"
 import { applyModelChange } from "../history/apply-model-change"
+import { any, object, shape, string } from "prop-types"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
 
@@ -147,3 +148,14 @@ export interface SetIsCollapsedAction extends ISerializedActionCall {
 export function isSetIsCollapsedAction(action: ISerializedActionCall): action is SetIsCollapsedAction {
   return action.name === "setIsCollapsed"
 }
+
+export const SharedCaseMetaDataPropType = shape({
+  type: any,
+  data: any,
+  collections: object,
+  categories: object,
+  hidden: object,
+  caseTableTileId: string,
+  caseCardTileId: string,
+  lastShownTableOrCardTileId: string // used to restore the last shown tile both have been hidden
+})
