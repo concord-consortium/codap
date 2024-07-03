@@ -32,9 +32,9 @@ describe("DataInteractive CollectionHandler", () => {
     const rightResult = handler.create?.({ dataContext }, { name: "right", attributes: [{ name: "a4" }] })
     expect(rightResult?.success).toBe(true)
     expect(dataset.collections.length).toBe(4)
-    expect(dataset.collections[2].name).toBe("right")
-    expect(dataset.collections[2].attributes.length).toBe(1)
-    expect(dataset.collections[2].attributes[0]?.name).toBe("a4")
+    expect(dataset.collections[3].name).toBe("right")
+    expect(dataset.collections[3].attributes.length).toBe(1)
+    expect(dataset.collections[3].attributes[0]?.name).toBe("a4")
 
     // Add a left-most collection
     // Add attributes with attrs field
