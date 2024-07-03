@@ -913,6 +913,11 @@ export const DataSet = V2Model.named("DataSet").props({
         // add attribute to attrNameMap
         self.attrNameMap.set(attribute.name, attribute.id)
 
+        // fill out any missing values
+        for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
+          attribute.addValue()
+        }
+
         // add attribute reference to attributes array
         const beforeIndex = beforeID ? self.attrIndexFromID(beforeID) ?? -1 : -1
         if (beforeID && beforeIndex >= 0) {
@@ -921,16 +926,7 @@ export const DataSet = V2Model.named("DataSet").props({
           if (collectionBeforeIndex >= 0) {
             collection?.attributes.splice(collectionBeforeIndex, 0, attribute.id)
           }
-          // fill out any missing values
-          for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
-            attribute.addValue()
-          }
           return attribute
-        }
-
-        // fill out any missing values
-        for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
-          attribute.addValue()
         }
 
         // add the attribute to the specified collection (if any) or the childmost collection
