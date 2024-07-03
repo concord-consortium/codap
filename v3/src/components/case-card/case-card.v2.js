@@ -605,16 +605,30 @@ iDataContext.doSelectCases({
                 },
 
                 makeNewAttribute = function() {
-                  const data = iContext.data
-                  const collection = iContext.getCollectionByID(iCollection.get("id"))
-                  var beforeAttrID = collection.get("attrs")[1].attribute.id // Just after the first attribute
+                  // const data = iContext.data
+                  // const collection = iContext.getCollectionByID(iCollection.get("id"))
+                  // var beforeAttrID = collection.get("attrs")[1].attribute.id // Just after the first attribute
 
-                  var attribute
+                  // var attribute
+                  // data?.applyModelChange(() => {
+                  //   const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
+                  //     (aName) => !data.attributes.find(attr => aName === attr.name)
+                  //   )
+                  //   attribute = data.addAttribute({ name: newAttrName }, { before: beforeAttrID, collection: iCollection.id })
+                  // }, {
+                  //   notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+                  //   undoStringKey: "DG.Undo.caseTable.createAttribute",
+                  //   redoStringKey: "DG.Redo.caseTable.createAttribute"
+                  // })
+                  const data = iContext.data
+                  const collectionId = iCollection.get('id')
+                  const beforeAttrID = iCollection.get('attrs')[1].attribute.id // Just after the first attribute
+                  let attribute
                   data?.applyModelChange(() => {
                     const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
                       (aName) => !data.attributes.find(attr => aName === attr.name)
                     )
-                    attribute = data.addAttribute({ name: newAttrName }, { before: beforeAttrID, collection: iCollection.id })
+                    attribute = data.addAttribute({ name: newAttrName }, { before: beforeAttrID, collection: collectionId })
                   }, {
                     notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
                     undoStringKey: "DG.Undo.caseTable.createAttribute",
