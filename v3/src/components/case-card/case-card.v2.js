@@ -6,7 +6,8 @@ import { SC } from "../../v2/sc-compat"
 import React from 'react'
 import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
 import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
-import { createAttributesNotification, removeAttributesNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { SharedCaseMetaDataPropType } from "../../models/shared/shared-case-metadata"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 
@@ -294,7 +295,7 @@ iDataContext.doSelectCases({
             })
           },
 
-          renderAttribute (iContext, iCollection, iCases,
+          renderAttribute (iContext, iCaseMetadata, iCollection, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             /**
              * -------------------------Dragging this attribute----------------
@@ -539,7 +540,16 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 hideAttribute = function () {
-                  DG.DataContextUtilities.hideAttribute(iContext, iAttr.get('id'))
+                  const attrId = iAttr.get('id')
+                  iCaseMetadata?.applyModelChange(
+                    () => iCaseMetadata?.setIsHidden(attrId, true),
+                    {
+                      notifications: hideAttributeNotification([attrId], iContext.data),
+                      undoStringKey: "DG.Undo.caseTable.hideAttribute",
+                      redoStringKey: "DG.Redo.caseTable.hideAttribute"
+                    }
+                  )
+                  this.incrementStateCount() // Force a re-render
                 }.bind(this),
 
                 attributeCanBeHidden = function () {
@@ -552,7 +562,6 @@ iDataContext.doSelectCases({
                   var result = undefined
 
                   const attributeToDelete = iContext.data.attrFromID(attrId)
-                  console.log("Before removal, attribute:", attributeToDelete)
 
                   if (attributeToDelete) {
                     attributeToDelete.prepareSnapshot()
@@ -568,7 +577,6 @@ iDataContext.doSelectCases({
                       }
                     })
                   }
-                  console.log("After removal attempt")
                 }.bind(this),
 
                 deleteAttributeFormula = function () {
@@ -612,7 +620,6 @@ iDataContext.doSelectCases({
                     undoStringKey: "DG.Undo.caseTable.createAttribute",
                     redoStringKey: "DG.Redo.caseTable.createAttribute"
                   })
-                  // }
                 }.bind(this)
 
             /**
@@ -865,6 +872,7 @@ return tSortedSelection.map(function(iEntry) {
 
             var tCollEntries = [],
                 tContext = this.props.context,
+                tCaseMetadata = this.props.caseMetaData,
                 tChildmostSelection = getChildmostSelection(tContext)
             // collection loop
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
@@ -919,9 +927,9 @@ return tResult
                       tResizeHandle
 
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                    if (!iAttr.get('hidden')) {
+                    if (!tCaseMetadata.isHidden(iAttr.get("id"))) {
                       tAttrEntries.push(
-                          this.renderAttribute(tContext, iCollection, tCases,
+                          this.renderAttribute(tContext, tCaseMetadata, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
                               tChildmostSelection))
                     }
@@ -978,6 +986,7 @@ return tResult
     size: PropTypes.shape({ width: PropTypes.number }),
     // the data context
     context: PropTypes.instanceOf(DG.DataContext).isRequired,
+    caseMetaData: SharedCaseMetaDataPropType.isRequired,
     // drag/drop support
     dragStatus: PropTypes.object,
     // map from collection name => column width percentage (0-1)
