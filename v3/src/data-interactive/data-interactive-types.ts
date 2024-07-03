@@ -96,7 +96,7 @@ export interface DIInteractiveFrame {
   version?: string
 }
 export type DIItem = DICaseValues
-export type DIItemValues = DIItem | { values: DIItem }
+export type DIItemValues = DIItem | { id?: string | number, values: DIItem }
 export interface DICreateCollection {
   name?: string
   title?: string
