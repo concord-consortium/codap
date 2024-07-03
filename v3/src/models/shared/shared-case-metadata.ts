@@ -148,14 +148,3 @@ export interface SetIsCollapsedAction extends ISerializedActionCall {
 export function isSetIsCollapsedAction(action: ISerializedActionCall): action is SetIsCollapsedAction {
   return action.name === "setIsCollapsed"
 }
-
-export const SharedCaseMetaDataPropType = shape({
-  type: any,
-  data: any,
-  collections: object,
-  categories: object,
-  hidden: object,
-  caseTableTileId: string,
-  caseCardTileId: string,
-  lastShownTableOrCardTileId: string // used to restore the last shown tile both have been hidden
-})
