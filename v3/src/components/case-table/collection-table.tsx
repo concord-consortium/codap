@@ -148,6 +148,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute"
     })
+    gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
   }
 
   const rows = collectionTableModel?.rows
