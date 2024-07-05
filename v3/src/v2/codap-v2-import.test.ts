@@ -76,8 +76,8 @@ describe(`V2 "mammals.codap"`, () => {
     expect(data.collections[0].id).toBe(`COLL${collection.guid}`)
     expect(data.attributes.length).toBe(9)
     expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
-    expect(data.cases.length).toBe(27)
-    expect(data.cases[0].__id__).toBe(`CASE${collection.cases[0].guid}`)
+    expect(data.items.length).toBe(27)
+    expect(data.items[0].__id__).toBe(`CASE${collection.cases[0].guid}`)
 
     // mammals has no parent cases
     const firstCase = collection.cases[0]
@@ -121,7 +121,7 @@ describe(`V2 "24cats.codap"`, () => {
     expect(data.collections.length).toBe(2)
     expect(data.collections[0].attributes.length).toBe(1)
     expect(data.attributes.length).toBe(9)
-    expect(data.cases.length).toBe(24)
+    expect(data.items.length).toBe(24)
 
     // sex attribute should be in parent collection
     const v2SexAttr = v2ParentCollection.attrs?.[0]

@@ -46,7 +46,7 @@ describe("semiAggregateFunctions", () => {
     it("implements caching that ensures O(n) complexity", () => {
       const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
       const localDataSet = dataSetsByName.Mammals
-      const caseIds = localDataSet.cases.map(c => c.__id__)
+      const caseIds = localDataSet.items.map(c => c.__id__)
       const scope = new FormulaMathJsScope({
         localDataSet,
         dataSets,
@@ -115,7 +115,7 @@ describe("semiAggregateFunctions", () => {
   it("implements caching that ensures O(n) complexity", () => {
     const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
     const localDataSet = dataSetsByName.Mammals
-    const caseIds = localDataSet.cases.map(c => c.__id__)
+    const caseIds = localDataSet.items.map(c => c.__id__)
     const scope = new FormulaMathJsScope({
       localDataSet,
       dataSets,

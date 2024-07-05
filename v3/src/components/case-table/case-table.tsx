@@ -1,6 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { CSSProperties, useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { kIndexColumnKey } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
@@ -121,26 +121,18 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               )
             })}
             <AttributeDragOverlay activeDragId={overlayDragId} />
+            <NoCasesMessage />
           </div>
         </div>
-        <NoCasesMessage />
       </>
     )
   })
 })
 
 // temporary until we have an input row
-export const NoCasesMessage = () => {
+const NoCasesMessage = observer(function NoCasesMessage() {
   const data = useDataSetContext()
-  const style: CSSProperties = {
-    position: "absolute",
-    top: 54,
-    width: "100%",
-    textAlign: "center",
-    fontSize: 14,
-    fontStyle: "italic"
-  }
-  return !data?.cases.length
-          ? <div className="no-cases-message" style={style}>{t("V3.caseTable.noCases")}</div>
+  return !data?.items.length
+          ? <div className="no-cases-message">{t("V3.caseTable.noCases")}</div>
           : null
-}
+})

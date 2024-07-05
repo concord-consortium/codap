@@ -1,10 +1,15 @@
+
+import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { appState } from "../../models/app-state"
+import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { toV2Id } from "../../utilities/codap-utils"
 import { ICodapV2DataContext } from "../../v2/codap-v2-types"
 import { DIDataContext, DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
 import { setupTestDataset } from "./handler-test-utils"
+import "../../components/web-view/web-view-registration"
 
 describe("DataInteractive DataContextHandler", () => {
   const handler = diDataContextHandler
@@ -70,17 +75,23 @@ describe("DataInteractive DataContextHandler", () => {
 
   it("update works as expected", () => {
     const { dataset } = setupTestDataset()
+    const { content } = appState.document
+    const tile = createDefaultTileOfType(kWebViewTileType)!
+    content?.insertTileInDefaultRow(tile)
 
     const title = "New Title"
     const description = "New Description"
-    const values = { title, metadata: { description } }
+    const managingController = toV2Id(tile.id)
+    const values = { title, managingController, metadata: { description } }
 
     expect(handler.update?.({}, values).success).toBe(false)
 
     expect(dataset.title === title).toBe(false)
     expect(dataset.description === description).toBe(false)
+    expect(dataset.managingControllerId).toBe("")
     expect(handler.update?.({ dataContext: dataset }, values).success).toBe(true)
     expect(dataset.title).toEqual(title)
     expect(dataset.description).toEqual(description)
+    expect(dataset.managingControllerId).toBe(tile.id)
   })
 })

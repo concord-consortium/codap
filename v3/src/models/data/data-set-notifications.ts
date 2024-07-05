@@ -12,11 +12,20 @@ function makeCallback(operation: string, other?: any) {
     debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${other ?? ""}`, JSON.stringify(response))
 }
 
-function notification(operation: string, result: any, dataSet?: IDataSet, _callback?: (result: any) => void) {
-  const resource = `dataContextChangeNotice[${dataSet?.name}]`
-  const values = { operation, result }
+function notification(
+  operation: string, result?: any, dataSet?: IDataSet, _callback?: (result: any) => void,
+  extraValues?: Record<string, any>
+) {
+  const resource = dataSet ? `dataContextChangeNotice[${dataSet.name}]` : `documentChangeNotice`
+  const values = { operation, result, ...extraValues }
   const callback = _callback ?? makeCallback(operation)
   return { message: { action, resource, values }, callback }
+}
+
+export const dataContextCountChangedNotification = notification("dataContextCountChanged")
+
+export function dataContextDeletedNotification(dataSet: IDataSet) {
+  return notification("dataContextDeleted", undefined, undefined, undefined, { deletedContext: dataSet.name })
 }
 
 export function updateDataContextNotification(dataSet: IDataSet) {
@@ -111,7 +120,7 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
 
     const convertCaseIdsToV2FullCases = (caseIds: string[]) => {
       return caseIds.map(caseId => {
-        const c = dataset.getCase(caseId)
+        const c = dataset.getItem(caseId)
         return c && convertCaseToV2FullCase(c, dataset)
       }).filter(c => !!c)
     }

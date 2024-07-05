@@ -139,3 +139,8 @@ export function cachedFnWithArgsFactory<FunDef extends (...args: any[]) => any>(
   }
   return getter
 }
+
+export function getDocumentContentPropertyFromNode(node: IAnyStateTreeNode, propName:string): any {
+  const docContent = getParentWithTypeName(node, "DocumentContent")
+  return docContent ? docContent[propName] : undefined
+}

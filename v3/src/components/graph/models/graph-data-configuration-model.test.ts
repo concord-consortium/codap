@@ -185,7 +185,10 @@ describe("DataConfigurationModel", () => {
 
     // triggers observers when values change
     const trigger = jest.fn()
-    reaction(() => config.caseDataArray, () => trigger())
+    reaction(
+      () => config.caseDataArray,
+      () => trigger(),
+      { name: "GraphDataConfigurationTest.caseDataArray reaction" })
     expect(trigger).not.toHaveBeenCalled()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "" }])
     expect(trigger).toHaveBeenCalledTimes(1)
@@ -215,7 +218,10 @@ describe("DataConfigurationModel", () => {
     expect(config.selection.length).toBe(2)
 
     const selectionReaction = jest.fn()
-    const disposer = reaction(() => config.selection, () => selectionReaction())
+    const disposer = reaction(
+      () => config.selection,
+      () => selectionReaction(),
+      { name: "GraphDataConfigurationTest selectionReaction" })
     expect(selectionReaction).toHaveBeenCalledTimes(0)
     config.setAttribute("y", { attributeID: "yId" })
     expect(config.selection.length).toBe(1)

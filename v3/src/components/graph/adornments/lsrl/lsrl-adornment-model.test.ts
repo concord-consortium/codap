@@ -67,7 +67,7 @@ describe("LSRLAdornmentModel", () => {
   })
   it("can have a line added to its lines property", () => {
     const lSRL = LSRLAdornmentModel.create()
-    lSRL.updateLines(mockLSRLInstanceProps1)
+    lSRL.updateLines(mockLSRLInstanceProps1,"", 0)
     expect(lSRL.lines.size).toEqual(1)
     const modelLines = lSRL.lines.get("")
     const modelLine = modelLines?.[0]
@@ -80,8 +80,8 @@ describe("LSRLAdornmentModel", () => {
     const line1 = mockLSRLInstanceProps1
     const line2 = mockLSRLInstanceProps2
     const lSRL = LSRLAdornmentModel.create()
-    lSRL.updateLines(line1, "cellkey1")
-    lSRL.updateLines(line2, "cellkey2")
+    lSRL.updateLines(line1, "cellkey1", 0)
+    lSRL.updateLines(line2, "cellkey2", 0)
     expect(lSRL.lines.size).toEqual(2)
     const modelLines1 = lSRL.lines.get("cellkey1")
     const modelLines2 = lSRL.lines.get("cellkey2")
@@ -100,8 +100,8 @@ describe("LSRLAdornmentModel", () => {
     const line1 = mockLSRLInstanceProps1
     const line2 = mockLSRLInstanceProps2
     const lSRL = LSRLAdornmentModel.create()
-    lSRL.updateLines(line1, "sameKey")
-    lSRL.updateLines(line2, "sameKey")
+    lSRL.updateLines(line1, "sameKey", 0)
+    lSRL.updateLines(line2, "sameKey", 1)
     expect(lSRL.lines.size).toEqual(1)
     const modelLines = lSRL.lines.get("sameKey")
     const modelLine1 = modelLines?.[0]
@@ -123,7 +123,7 @@ describe("LSRLAdornmentModel", () => {
   })
   it("can get both the intercept and slope values of a line via the line's slopeAndIntercept view", () => {
     const lSRL = LSRLAdornmentModel.create()
-    lSRL.updateLines(mockLSRLInstanceProps1)
+    lSRL.updateLines(mockLSRLInstanceProps1, "", 0)
     expect(lSRL.lines.get("")?.[0]?.slopeAndIntercept).toEqual({intercept: 1, slope: 1})
   })
 })

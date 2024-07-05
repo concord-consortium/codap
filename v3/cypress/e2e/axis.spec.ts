@@ -305,7 +305,8 @@ context("Test graph axes attribute menu", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
 
     // Undo the addition of the categorical attribute
-    toolbar.getUndoTool().click()
+    // Used force:true because Cypress fails locally at this step
+    toolbar.getUndoTool().click({force:true})
     cy.wait(500)
 
     // Verify the x-axis reverts to its default state after undoing the attribute addition

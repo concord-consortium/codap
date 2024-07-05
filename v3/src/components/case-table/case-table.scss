@@ -308,6 +308,15 @@ $table-body-font-size: 8pt;
   }
 }
 
+.no-cases-message {
+  font-size: 14px;
+  font-style: italic;
+  position: absolute;
+  text-align: center;
+  top: 58px;
+  width: 100%;
+}
+
 .codap-menu-list {
   width: 190px;
 

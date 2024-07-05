@@ -50,7 +50,7 @@ export const getFormulaTestEnv = () => {
 export const evaluate = (displayFormula: string, casePointer?: number) => {
   const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
   const localDataSet = dataSetsByName.Mammals
-  const caseIds = localDataSet.cases.map(c => c.__id__)
+  const caseIds = localDataSet.items.map(c => c.__id__)
   const scope = new FormulaMathJsScope({
     localDataSet,
     dataSets,
@@ -73,7 +73,7 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
 export const evaluateForAllCases = (displayFormula: string, formulaAttrName?: string) => {
   const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
   const localDataSet = dataSetsByName.Mammals
-  const caseIds = localDataSet.cases.map(c => c.__id__)
+  const caseIds = localDataSet.items.map(c => c.__id__)
   const formulaAttrId = formulaAttrName ? localDataSet.attrIDFromName(formulaAttrName) : undefined
   const scope = new FormulaMathJsScope({
     localDataSet,

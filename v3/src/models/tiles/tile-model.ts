@@ -65,6 +65,7 @@ export const TileModel = types
     display: DisplayUserTypeEnum,
     // e.g. "TextContentModel", ...
     content: TileContentUnion,
+    cannotClose: types.optional(types.boolean, false),
     transitionComplete: types.maybe(types.boolean)
   })
   .preProcessSnapshot(snapshot => {
@@ -117,6 +118,9 @@ export const TileModel = types
   .actions(self => ({
     setTitle(title: string) {
       self.title = title
+    },
+    setCannotClose(cannotClose: boolean) {
+      self.cannotClose = cannotClose
     },
     setTransitionComplete(complete: boolean) {
       self.transitionComplete = complete

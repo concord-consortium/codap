@@ -623,12 +623,12 @@ interface ISumOfSquares {
 
 export const calculateSumOfSquares = ({ cellKey, dataConfig, intercept, slope }: ISumOfSquares) => {
   const dataset = dataConfig?.dataset
-  const caseData = dataset?.cases
+  const caseData = dataset?.items
   const xAttrID = dataConfig?.attributeID("x") ?? ""
   const yAttrID = dataConfig?.attributeID("y") ?? ""
   let sumOfSquares = 0
   caseData?.forEach((datum: any) => {
-    const fullCaseData = dataConfig?.dataset?.getCase(datum.__id__, { numeric: false })
+    const fullCaseData = dataConfig?.dataset?.getItem(datum.__id__, { numeric: false })
     if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
       const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? NaN
       const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? NaN

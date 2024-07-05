@@ -1,7 +1,11 @@
+import { appState } from "../models/app-state"
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
+import { getTilePrefixes } from "../models/tiles/tile-content-info"
+import { toV3Id, toV3TileId } from "../utilities/codap-utils"
 import { DIParsedQuery, DIQueryFunction } from "./data-interactive-types"
 
-export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParsedQuery {
+export function parseSearchQuery(query: string, dataContextOrCollection?: IDataSet | ICollectionModel): DIParsedQuery {
   if (query === "*") {
     return { valid: true, func: () => true }
   }
@@ -21,7 +25,7 @@ export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParse
       : numberValue
     return {
       value,
-      attr: dataContext?.getAttributeByName(rawValue),
+      attr: dataContextOrCollection?.getAttributeByName(rawValue),
       name: rawValue
     }
   }
@@ -39,4 +43,14 @@ export function parseSearchQuery(query: string, dataContext?: IDataSet): DIParse
     : () => false
   
   return { valid, left, right, func }
+}
+
+export function findTileFromV2Id(v2Id: string) {
+  const { document } = appState
+  // We look for every possible v3 id the component might have (because each tile type has a different prefix).
+  // Is there a better way to do this?
+  const possibleIds =
+    [v2Id, toV3TileId(v2Id), ...getTilePrefixes().map(prefix => toV3Id(prefix, v2Id))]
+  const componentId = possibleIds.find(id => document.content?.getTile(id))
+  if (componentId) return document.content?.getTile(componentId)
 }

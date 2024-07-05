@@ -66,7 +66,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     const xValue = getScreenX(caseID)
     const yValue = getScreenY(caseID)
     if (isFinite(xValue) && isFinite(yValue)) {
-      const caseData = dataset?.getCase(caseID, { numeric: false })
+      const caseData = dataset?.getItem(caseID, { numeric: false })
       if (caseData) {
         const lineCoords: [number, number] = [xValue, yValue]
         return { caseData, lineCoords }
@@ -76,12 +76,12 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
 
   const connectingLinesForCases = useCallback(() => {
     const lineDescriptions: IConnectingLineDescription[] = []
-    dataset?.cases.forEach(c => {
+    dataset?.items.forEach(c => {
         const cLine = connectingLine(c.__id__)
         cLine && lineDescriptions.push(cLine)
     })
     return lineDescriptions
-  }, [connectingLine, dataset?.cases])
+  }, [connectingLine, dataset?.items])
 
   const handleConnectingLinesClick = useCallback(() => {
     // temporarily ignore leaflet clicks to prevent the map click handler

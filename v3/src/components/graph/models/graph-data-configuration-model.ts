@@ -15,6 +15,10 @@ import { CaseData } from "../../data-display/d3-types"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
+interface ILegalAttributeOptions {
+  allowSameAttr?: boolean
+}
+
 /**
  * A note about cases:
  * - For situations in which there is exactly one y-attribute, there exists one set of cases, filtered
@@ -428,7 +432,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         return self.allPlottedCases().filter((caseId) => {
-          const caseData = self.dataset?.getCase(caseId, { numeric: false }) || { __id__: caseId }
+          const caseData = self.dataset?.getItem(caseId, { numeric: false }) || { __id__: caseId }
           return self.isCaseInSubPlot(cellKey, caseData)
         })
       }
@@ -443,7 +447,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const topValue = topAttrID ? cellKey[topAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getCase(caseId)
+          const caseData = self.dataset?.getItem(caseId)
           if (!caseData) return false
           const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
           const isTopMatch = !topAttrID || topAttrType !== "categorical" ||
@@ -465,7 +469,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const topValue = topAttrID ? cellKey[topAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getCase(caseId)
+          const caseData = self.dataset?.getItem(caseId)
           if (!caseData) return false
 
           const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
@@ -489,7 +493,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getCase(caseId)
+          const caseData = self.dataset?.getItem(caseId)
           if (!caseData) return false
 
           const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
@@ -527,23 +531,29 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           primaryRole = self.primaryRole
         return primaryRole === role || !['left', 'bottom'].includes(place)
       },
-      placeCanAcceptAttributeIDDrop(place: GraphPlace, dataSet?: IDataSet, idToDrop?: string) {
+      placeCanAcceptAttributeIDDrop(
+        place: GraphPlace, dataSet?: IDataSet, idToDrop?: string, options?: ILegalAttributeOptions
+      ) {
         const role = graphPlaceToAttrRole[place],
-          typeToDropIsNumeric = !!idToDrop && dataSet?.attrFromID(idToDrop)?.type === 'numeric',
           xIsNumeric = self.attributeType('x') === 'numeric',
-          existingID = self.attributeID(role)
+          existingID = self.attributeID(role),
+          differentAttribute = options?.allowSameAttr || existingID !== idToDrop
         // only drops on left/bottom axes can change data set
         if (dataSet?.id !== self.dataset?.id && !['left', 'bottom'].includes(place)) {
           return false
         }
+
+        if (!idToDrop) return false
+
+        const typeToDropIsNumeric = dataSet?.attrFromID(idToDrop)?.type === "numeric"
         if (place === 'yPlus') {
-          return xIsNumeric && typeToDropIsNumeric && !!idToDrop && !self.yAttributeIDs.includes(idToDrop)
+          return xIsNumeric && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
         } else if (place === 'rightNumeric') {
-          return xIsNumeric && typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
+          return xIsNumeric && typeToDropIsNumeric && differentAttribute
         } else if (['top', 'rightCat'].includes(place)) {
-          return !typeToDropIsNumeric && !!idToDrop && existingID !== idToDrop
+          return !typeToDropIsNumeric && differentAttribute
         } else {
-          return !!idToDrop && existingID !== idToDrop
+          return differentAttribute
         }
       }
     }))

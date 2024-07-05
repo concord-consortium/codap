@@ -6,7 +6,7 @@ import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
-import { V2Component } from "./data-interactive-component-types"
+import { V2SpecificComponent } from "./data-interactive-component-types"
 
 export type DICaseValue = string | number | boolean | undefined
 export type DICaseValues = Record<string, DICaseValue>
@@ -78,6 +78,7 @@ export interface DIGetCaseResult {
   caseIndex?: number
 }
 export interface DIInteractiveFrame {
+  cannotClose?: boolean
   dimensions?: {
     height?: number
     width?: number
@@ -85,8 +86,10 @@ export interface DIInteractiveFrame {
   externalUndoAvailable?: boolean
   id?: string | number
   name?: string
+  preventAttributeDeletion?: boolean
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
+  respectEditableItemAttribute?: boolean
   savedState?: unknown
   standaloneUndoModeAvailable?: boolean
   title?: string
@@ -120,6 +123,7 @@ export interface DIUpdateItemResult {
   deletedCases?: number[]
 }
 export interface DIUpdateDataContext extends DIDataContext {
+  managingController?: string
   sort?: {
     attr?: string
     isDescending?: boolean
@@ -136,7 +140,7 @@ export interface DIResources {
   caseByID?: ICase
   caseByIndex?: ICase
   caseFormulaSearch?: DICase[]
-  caseSearch?: DICase[]
+  caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
@@ -154,7 +158,8 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
-  DIGlobal | DIInteractiveFrame | DICreateCollection | DINewCase | DIUpdateCase | DINotification | V2Component
+  DIGlobal | DIInteractiveFrame | DICreateCollection | DINewCase | DIUpdateCase | DINotification |
+  V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -208,6 +213,7 @@ export interface DIResourceSelector {
   case?: string
   caseByID?: string
   caseByIndex?: string
+  caseSearch?: string
   collection?: string
   component?: string
   dataContext?: string

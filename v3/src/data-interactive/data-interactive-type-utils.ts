@@ -46,9 +46,9 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
 
   const _collection = dataContext.getCollectionForCase(caseId)
   const collectionId = _collection?.id
-  const caseGroup = dataContext.pseudoCaseMap.get(caseId)
+  const caseGroup = dataContext.caseGroupMap.get(caseId)
 
-  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__)
+  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
 
   const collectionIndex = collectionId ? dataContext.getCollectionIndex(collectionId) : -1
   const parentCollection = collectionIndex > 0 ? dataContext.collections[collectionIndex - 1] : undefined
@@ -65,8 +65,8 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
   const values = collectionId ? getCaseValues(caseId, dataContext, collectionId) : undefined
 
   return {
-    id: maybeToV2Id(caseGroup?.pseudoCase.__id__),
-    itemId: maybeToV2Id(dataContext.getCase(caseId)?.__id__),
+    id: maybeToV2Id(caseGroup?.groupedCase.__id__),
+    itemId: maybeToV2Id(dataContext.getItem(caseId)?.__id__),
     parent,
     context,
     collection,
@@ -79,9 +79,10 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const id = toV2Id(caseId)
 
-  const collectionId = dataContext.pseudoCaseMap.get(caseId)?.collectionId ?? dataContext.childCollection.id
+  const caseGroup = dataContext.caseGroupMap.get(caseId)
+  const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
-  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.pseudoCase.__id__)
+  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
 
   const _collection = dataContext.getCollection(collectionId)
   const collection = _collection ? {
@@ -91,9 +92,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const values = getCaseValues(caseId, dataContext, collectionId)
 
-  const pseudoCase = dataContext.pseudoCaseMap.get(caseId)
-  const children = pseudoCase?.childPseudoCaseIds?.map(cId => toV2Id(cId)) ??
-    pseudoCase?.childCaseIds?.map(cId => toV2Id(cId)) ?? []
+  const children = caseGroup?.childCaseIds?.map(cId => toV2Id(cId)) ?? []
 
   const caseIndex = dataContext.getCasesForCollection(collectionId).findIndex(aCase => aCase.__id__ === caseId)
 

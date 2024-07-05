@@ -26,7 +26,7 @@ export const HideShowMenuList = () => {
    const handleSetAsideUnselectedCases = () => {
     if (data) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const casesToHide = data.cases.filter(c => !data.selection.has(c.__id__)).map(c => c.__id__)
+      const casesToHide = data.items.filter(c => !data.selection.has(c.__id__)).map(c => c.__id__)
       toast({
         title: 'Set aside unselected cases',
         status: 'success',
@@ -61,7 +61,7 @@ export const HideShowMenuList = () => {
     )
   }
 
-  const caseCount = data?.cases.length ?? 0
+  const caseCount = data?.items.length ?? 0
   const selectionCount = data?.selection.size ?? 0
   const setAsideCount = 0 // eventually will come from DataSet
   const restoreSetAsideCasesLabel = t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] })

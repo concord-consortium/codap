@@ -50,7 +50,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     const xValue = getXCoord(caseID)
     const yValue = getYCoord(caseID, plotNum)
     if (isFinite(xValue) && isFinite(yValue)) {
-      const caseData = dataset?.getCase(caseID, { numeric: false })
+      const caseData = dataset?.getItem(caseID, { numeric: false })
       if (caseData) {
         const lineCoords: [number, number] = [xValue, yValue]
         return { caseData, lineCoords, plotNum }
@@ -61,7 +61,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
   function connectingLinesForCases() {
     const lineDescriptions: IConnectingLineDescription[] = []
     const dataset = dataConfiguration?.dataset
-    dataset?.cases.forEach(c => {
+    dataset?.items.forEach(c => {
       yAttrIDs.forEach((_yAttrID, plotNum) => {
         const line = connectingLine(c.__id__, plotNum)
         line && lineDescriptions.push(line)
@@ -87,14 +87,14 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     const dataset = dataConfiguration?.dataset
     lineDescriptions.forEach((lineDescription: ILineDescription) => {
       const { category, cellKey, intercept, slope } = lineDescription
-      dataset?.cases.forEach(caseData => {
+      dataset?.items.forEach(caseData => {
         const legendID = dataConfiguration?.attributeID("legend")
         const legendType = dataConfiguration?.attributeType("legend")
         const legendValue = caseData.__id__ && legendID ? dataset?.getStrValue(caseData.__id__, legendID) : null
         // If the line has a category and it does not match the categorical legend value,
         // do not render squares.
         if (category && legendValue !== category && legendType === "categorical") return
-        const fullCaseData = dataset?.getCase(caseData.__id__, { numeric: false })
+        const fullCaseData = dataset?.getItem(caseData.__id__, { numeric: false })
         if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
           const square = residualSquare(slope, intercept, caseData.__id__)
           if (!isFinite(square.x) || !isFinite(square.y)) return

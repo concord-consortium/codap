@@ -10,6 +10,7 @@ import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
+import { isCaseEditable } from "../web-view/collaborator-utils"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
@@ -113,6 +114,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderHeaderCell: ColumnHeader,
                 cellClass: "codap-data-cell",
                 renderCell: RenderCell,
+                editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
                                   // if users haven't assigned a non-color type, then color swatches
                                   // may be displayed and should be edited with swatches.

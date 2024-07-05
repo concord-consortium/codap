@@ -1,6 +1,9 @@
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
+import {
+  dataContextCountChangedNotification, dataContextDeletedNotification
+} from "../../models/data/data-set-notifications"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -9,6 +12,7 @@ import {
 } from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { getAttribute } from "../data-interactive-utils"
+import { findTileFromV2Id } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { dataContextNotFoundResult } from "./di-results"
 
@@ -41,6 +45,8 @@ export const diDataContextHandler: DIHandler = {
         success: true,
         values: basicDataSetInfo(dataSet)
       }
+    }, {
+      notifications: dataContextCountChangedNotification
     })
   },
 
@@ -48,8 +54,10 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    dataContext.applyModelChange(() => {
+    appState.document.applyModelChange(() => {
       gDataBroker.removeDataSet(dataContext.id)
+    }, {
+      notifications: [dataContextCountChangedNotification, dataContextDeletedNotification(dataContext)]
     })
 
     return { success: true }
@@ -74,12 +82,17 @@ export const diDataContextHandler: DIHandler = {
     const values = _values as DIUpdateDataContext
     if (values) {
       dataContext.applyModelChange(() => {
-        const { metadata, title } = values
+        const { managingController, metadata, sort, title } = values
         if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
 
-        if (values.sort?.attr) {
-          const attribute = getAttribute(values.sort.attr, dataContext)
+        if (managingController) {
+          const tile = findTileFromV2Id(managingController)
+          if (tile) dataContext.setManagingControllerId(tile.id)
+        }
+
+        if (sort?.attr) {
+          const attribute = getAttribute(sort.attr, dataContext)
           if (attribute) {
             // TODO Perform the actual sort
           }

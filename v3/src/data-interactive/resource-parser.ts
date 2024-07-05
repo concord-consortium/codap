@@ -3,12 +3,11 @@ import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
 import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
-import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { ITileModel } from "../models/tiles/tile-model"
-import { toV3CaseId, toV3GlobalId, toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
-import { parseSearchQuery } from "./resource-parser-utils"
+import { findTileFromV2Id, parseSearchQuery } from "./resource-parser-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -102,12 +101,7 @@ export function resolveResources(
   if (resourceSelector.component) {
     // TODO Get tile by name?
     const { component } = resourceSelector
-    // We look for every possible v3 id the component might have (because each tile type has a different prefix).
-    // Is there a better way to do this?
-    const possibleIds =
-      [component, toV3TileId(component), ...getTilePrefixes().map(prefix => toV3Id(prefix, component))]
-    const componentId = possibleIds.find(id => document.content?.getTile(id))
-    if (componentId) result.component = document.content?.getTile(componentId)
+    result.component = findTileFromV2Id(component)
   }
 
   if (resourceSelector.global) {
@@ -150,11 +144,12 @@ export function resolveResources(
   }
 
   const getCaseById = (caseId: string) =>
-    dataContext?.pseudoCaseMap.get(caseId)?.pseudoCase ?? dataContext?.getCase(caseId)
+    dataContext?.caseGroupMap.get(caseId)?.groupedCase ?? dataContext?.getItem(caseId)
 
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
-    result.caseByID = getCaseById(caseId)
+    const itemId = toV3ItemId(resourceSelector.caseByID)
+    result.caseByID = getCaseById(caseId) ?? getCaseById(itemId)
   }
 
   if (resourceSelector.caseByIndex && collection) {
@@ -167,9 +162,29 @@ export function resolveResources(
     }
   }
 
-  // if (resourceSelector.caseSearch) {
-  //   result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
-  // }
+  const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
+    if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+
+    return operand?.value
+  }
+
+  if (resourceSelector.caseSearch && collection && dataContext) {
+    const { func, left, right, valid } = parseSearchQuery(resourceSelector.caseSearch, collection)
+    if (valid) {
+      result.caseSearch = []
+      dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
+        const aCase = dataContext.caseGroupMap.get(caseGroup.__id__)
+        const itemId = aCase?.childItemIds[0]
+        const item = dataContext.getItem(itemId ?? caseGroup.__id__)
+        if (item) {
+          const itemIndex = dataContext.caseIndexFromID(item.__id__)
+          if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
+            result.caseSearch?.push(aCase?.groupedCase ?? item)
+          }
+        }
+      })
+    }
+  }
 
   // if (resourceSelector.caseFormulaSearch) {
   //   result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
@@ -178,35 +193,29 @@ export function resolveResources(
   if (resourceSelector.item) {
     const index = Number(resourceSelector.item)
     if (!isNaN(index)) {
-      result.item = dataContext?.getCaseAtIndex(index)
+      result.item = dataContext?.getItemAtIndex(index)
     }
   }
 
   if (resourceSelector.itemByID) {
-    const itemId = toV3CaseId(resourceSelector.itemByID)
-    result.itemByID = dataContext?.getCase(itemId)
+    const itemId = toV3ItemId(resourceSelector.itemByID)
+    result.itemByID = dataContext?.getItem(itemId)
   }
 
   if (resourceSelector.itemSearch && dataContext) {
     const { func, left, right, valid } = parseSearchQuery(resourceSelector.itemSearch, dataContext)
     if (valid) {
-      result.itemSearch = dataContext.cases.filter(aCase => {
+      result.itemSearch = dataContext.items.filter(aCase => {
         const itemIndex = dataContext.caseIndexFromID(aCase.__id__)
-        const getValue = (operand?: DIParsedOperand) => {
-          if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
-
-          return operand?.value
-        }
-
-        return func(getValue(left), getValue(right))
+        return func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))
       })
     }
   }
 
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
-    const itemId = dataContext?.pseudoCaseMap.get(caseId)?.childCaseIds[0]
-    if (itemId) result.itemByCaseID = dataContext?.getCase(itemId)
+    const itemId = dataContext?.caseGroupMap.get(caseId)?.childItemIds[0]
+    if (itemId) result.itemByCaseID = dataContext?.getItem(itemId)
   }
 
   // DG.ObjectMap.forEach(resourceSelector, function (key, value) {

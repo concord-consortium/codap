@@ -3,8 +3,10 @@ import { drag, select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
+import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { measureText } from "../../../../../hooks/use-measure-text"
-import { normal } from "../../../../../utilities/math-utils"
+import { fitGaussianGradientDescent, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
+import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { curveBasis } from "../../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../../adornment-component-info"
 import { UnivariateMeasureAdornmentHelper } from "../univariate-measure-adornment-helper"
@@ -13,11 +15,11 @@ import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
 import { ILabel } from "../univariate-measure-adornment-types"
 import { IMeasureInstance } from "../univariate-measure-adornment-model"
 import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-adornment-base-component"
-import {
-  kNormalCurveClass, kNormalCurveMeanValueTitleKey, kNormalCurveStdDevValueTitleKey
-} from "./normal-curve-adornment-types"
+import { kGaussianFitLabelKey, kNormalCurveClass, kNormalCurveMeanValueTitleKey, kNormalCurveStdDevValueTitleKey }
+  from "./normal-curve-adornment-types"
+import { kStandardErrorType } from "../standard-error/standard-error-adornment-types"
 import { INormalCurveAdornmentModel } from "./normal-curve-adornment-model"
-import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
+import { isStandardErrorAdornment } from "../standard-error/standard-error-adornment-model"
 
 interface INormalCurveSelections {
   normalCurve?: Selection<SVGPathElement, unknown, null, undefined>
@@ -45,6 +47,9 @@ export const NormalCurveAdornmentComponent = observer(
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
     }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
     const isHistogram = graphModel.pointDisplayType === "histogram"
+    const useGaussianFit = isHistogram && getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
+    const stdErrorAdorn = adornmentsStore.findAdornmentOfType(kStandardErrorType)
+    const displayStdErr = stdErrorAdorn?.isVisible
     const numericScale = isVertical.current ? helper.xScale : helper.yScale
     const countScale = isHistogram ? (isVertical.current ? helper.yScale : helper.xScale) : undefined
     const {cellCounts} = useAdornmentCells(model, cellKey)
@@ -52,10 +57,30 @@ export const NormalCurveAdornmentComponent = observer(
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
     const valueObjRef = useRef<INormalCurveSelections>({})
     const caseCount = dataConfig ? model.getCaseCount(numericAttrId, cellKey, dataConfig) : 0
-    const mean = dataConfig ? model.computeMean(numericAttrId, cellKey, dataConfig) : NaN
-    const stdDev = dataConfig ? model.computeStandardDeviation(numericAttrId, cellKey, dataConfig) : NaN
-    // todo: When we have gaussianFit capability we will need to display the standard error on histogram normal curve
-    // const stdError = dataConfig ? model.computeStandardError(numericAttrId, cellKey, dataConfig) : NaN
+
+    const computeMeanAndStdDev: () => ({ mean: number; stdDev: number, numStdErrs:number,
+                                        stdError: number | undefined }) =
+      useCallback(() => {
+        const sampleMean = dataConfig ? model.computeMean(numericAttrId, cellKey, dataConfig) : NaN
+        const sampleStdDev = dataConfig ? model.computeStandardDeviation(numericAttrId, cellKey, dataConfig) : NaN
+        if (!useGaussianFit) {
+          return {mean: sampleMean, stdDev: sampleStdDev, numStdErrs: 1, stdError: undefined}
+        } else {
+          const count = dataConfig ? model.getCaseCount(numericAttrId, cellKey, dataConfig) : 0,
+            binAlignment = graphModel?.binAlignment ?? 0,
+            binWidth = graphModel?.binWidth ?? 1,
+            amp = (1 / (sampleStdDev * sqrtTwoPi)) * count * binWidth,
+            points = dataConfig
+              ? model.computeHistogram(binAlignment, binWidth, numericAttrId, cellKey, dataConfig) : [],
+            {mu, sigma} = fitGaussianGradientDescent(points, amp, sampleMean, sampleStdDev),
+            numStandardErrs = isStandardErrorAdornment(stdErrorAdorn) ? stdErrorAdorn?.numStErrs : 1
+          return {mean: mu, stdDev: sigma, numStdErrs: numStandardErrs,
+            stdError: displayStdErr ? sigma / Math.sqrt(caseCount) : undefined}
+        }
+      }, [caseCount, cellKey, dataConfig, displayStdErr, graphModel?.binAlignment, graphModel?.binWidth,
+                model, numericAttrId, stdErrorAdorn, useGaussianFit])
+
+    const {mean, stdDev, numStdErrs, stdError} = computeMeanAndStdDev()
 
     const highlightCovers = useCallback((highlight: boolean) => {
       const cover = valueObjRef.current.normalCurveHoverCover,
@@ -90,10 +115,8 @@ export const NormalCurveAdornmentComponent = observer(
       if (!numericAttrId || !dataConfig) return
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
-      const adornmentIndex = activeUnivariateMeasures?.indexOf(model) ?? null
-      const labelOffset = 20
-      const topOffset = activeUnivariateMeasures.length > 1 ? adornmentIndex * labelOffset : 0
+      const lineHeight = 20
+      const topOffset = lineHeight * adornmentsStore?.getLabelLinesAboveAdornment(model) ?? 0
       const labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current
@@ -124,8 +147,8 @@ export const NormalCurveAdornmentComponent = observer(
       selectionsObj.normalCurveHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [numericAttrId, dataConfig, labelRef, adornmentsStore?.activeUnivariateMeasures, model,
-      cellCounts.x, isVertical, helper, containerId, highlightCovers, highlightLabel])
+    }, [numericAttrId, dataConfig, labelRef, adornmentsStore, model, cellCounts.x, isVertical, helper,
+      containerId, highlightCovers, highlightLabel])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)
@@ -194,7 +217,6 @@ export const NormalCurveAdornmentComponent = observer(
         }
 
         const countAxisFunc = isHistogram ? countToScreenCoordFromHistogram : countToScreenCoordFromDotPlot,
-          sqrtTwoPi = Math.sqrt(2 * Math.PI),
           pointRadius = graphModel.getPointRadius(),
           numCellsNumeric = isVertical.current ? cellCounts.x : cellCounts.y,
           overlap = graphModel.pointOverlap,
@@ -203,23 +225,21 @@ export const NormalCurveAdornmentComponent = observer(
 
         if (!countAxisFunc || binWidth === undefined) return ""
 
-        let path = ''
-/*
-        let sESegment = '',
-          sESegmentPixelLength: number
-*/
-
         const
           pixelRange = numericScale.range(),
           pixelMin = isVertical.current ? pixelRange[0] : pixelRange[1],
           pixelMax = isVertical.current ? pixelRange[1] : pixelRange[0],
           numeratorForAmplitude = isHistogram ? 1 : numCellsNumeric,
-          // todo: For a gaussian fit amplitude is a fitted parameter
+          // todo: Determine whether for a gaussian fit amplitude is a fitted parameter. (Probably not!)
           amplitude = (numeratorForAmplitude / (stdDev * sqrtTwoPi)) * caseCount * binWidth,
           points = [],
           kPixelGap = 1,
           meanSegmentPixelLength = countAxisFunc(normalF(mean)) - countAxisFunc(0),
-          sDSegmentPixelLength = (numericScale(mean + stdDev) - numericScale(mean - stdDev)) / numCellsNumeric
+          sDSegmentPixelLength = (numericScale(mean + stdDev) - numericScale(mean - stdDev)) / numCellsNumeric,
+          sELowerValue = stdError ? mean - numStdErrs * stdError : 0,
+          sEUpperValue = stdError ? mean + numStdErrs * stdError : 0,
+          sESegmentPixelLength = stdError
+            ? (numericScale(sEUpperValue) - numericScale(sELowerValue)) / numCellsNumeric : 0
         let numericValue, countValue, pixelCount, pixelNumeric, point
         for (pixelNumeric = pixelMin; pixelNumeric <= pixelMax; pixelNumeric += kPixelGap) {
           numericValue = numericScale.invert(pixelNumeric)
@@ -231,10 +251,7 @@ export const NormalCurveAdornmentComponent = observer(
             points.push(point)
           }
         }
-        if (points.length > 0) {
-          // Accomplish spline interpolation
-          path = `M${points[0].x},${points[0].y},${curveBasis(points)}`
-        }
+        const normalCurvePath = points.length > 0 ? `M${points[0].x},${points[0].y},${curveBasis(points)}` : ""
 
         const meanSegment = iIsHorizontal ? t('M%@,%@ v%@', {
             vars: [numericScale(mean) / numCellsNumeric, countAxisFunc(0), meanSegmentPixelLength]
@@ -251,40 +268,35 @@ export const NormalCurveAdornmentComponent = observer(
             vars: [countAxisFunc(normalF(mean - stdDev)), numericScale(mean - stdDev) / numCellsNumeric,
               sDSegmentPixelLength]
           })
-        /*  Todo: bring back when we have gaussianFit histograms
-                if (stdError) {
-                  sESegmentPixelLength = numericScale(mean + stdError) -
-                    numericScale(mean - stdError)
-                  sESegment = iIsHorizontal ? t(' M%@,%@ h%@', {
-                      vars: [numericScale(mean - stdError) / numCellsNumeric,
-                        countAxisFunc(normalF(mean - stdError)), sESegmentPixelLength]
-                    })
-                    : t(' M%@,%@ v%@', {
-                      vars: [countAxisFunc(normalF(mean - stdError)),
-                        numericScale(mean - stdError) / numCellsNumeric, sESegmentPixelLength]
-                    })
-                }
-        */
-        return path + meanSegment + sDSegment/* + sESegment*/
-      }
-      const theSymbolPath = symbolPathF({
-          x: 0, y: layout.plotHeight / cellCounts.y,
-          width: 0, cellHeight: 0
-        },
-        isVertical.current)
+        const sESegment = stdError
+          ? (iIsHorizontal ? t(' M%@,%@ h%@', {
+              vars: [numericScale(sELowerValue) / numCellsNumeric, countAxisFunc(normalF(sELowerValue)),
+                sESegmentPixelLength]
+            })
+            : t(' M%@,%@ v%@', {
+              vars: [countAxisFunc(normalF(sELowerValue)), numericScale(sELowerValue) / numCellsNumeric,
+                sESegmentPixelLength]
+            })) : ''
+      return normalCurvePath + meanSegment + sDSegment + sESegment
+    }
+    const theSymbolPath = symbolPathF({
+        x: 0, y: layout.plotHeight / cellCounts.y,
+        width: 0, cellHeight: 0
+      },
+      isVertical.current)
 
-      selectionsObj.normalCurve = select(valueRef.current).append("path")
-        .attr("class", kNormalCurveClass)
-        .attr("id", `${helper.generateIdString("path")}`)
-        .attr("data-testid", `${helper.measureSlug}-normal-curve`)
-        .attr("d", theSymbolPath)
-      selectionsObj.normalCurveHoverCover = select(valueRef.current).append("path")
-        .attr("class", `${kNormalCurveClass}-hover-cover`)
-        .attr("id", `${helper.generateIdString("path")}`)
-        .attr("data-testid", `${helper.measureSlug}-normal-curve`)
-        .attr("d", theSymbolPath)
-    }, [caseCount, cellCounts.x, cellCounts.y, countScale, graphModel, helper, isHistogram, isVertical,
-              layout.plotHeight, mean, numericScale, stdDev, valueRef])
+    selectionsObj.normalCurve = select(valueRef.current).append("path")
+      .attr("class", kNormalCurveClass)
+      .attr("id", `${helper.generateIdString("path")}`)
+      .attr("data-testid", `${helper.measureSlug}-normal-curve`)
+      .attr("d", theSymbolPath)
+    selectionsObj.normalCurveHoverCover = select(valueRef.current).append("path")
+      .attr("class", `${kNormalCurveClass}-hover-cover`)
+      .attr("id", `${helper.generateIdString("path")}`)
+      .attr("data-testid", `${helper.measureSlug}-normal-curve`)
+      .attr("d", theSymbolPath)
+  }, [caseCount, cellCounts.x, cellCounts.y, countScale, graphModel, helper, isHistogram,
+            isVertical, layout.plotHeight, mean, numStdErrs, numericScale, stdDev, stdError, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance,
                                               selectionsObj: INormalCurveSelections, labelObj: ILabel) => {
@@ -297,6 +309,12 @@ export const NormalCurveAdornmentComponent = observer(
 
       addNormalCurve(selectionsObj)
 
+      const gaussianFitTitle = useGaussianFit
+        ? showLabel
+          ? `<p style="text-decoration-line:underline;color:${kNormalCurveStrokeColor}"> ${t(kGaussianFitLabelKey)}</p>`
+          : `${t(kGaussianFitLabelKey)}: `
+        : ""
+
       const meanValueString = t(kNormalCurveMeanValueTitleKey, {vars: [meanDisplayValue]})
       const sdValueString = t(kNormalCurveStdDevValueTitleKey, {vars: [sdDisplayValue]})
 
@@ -308,7 +326,9 @@ export const NormalCurveAdornmentComponent = observer(
       const sdValueContent = showLabel
         ? `<p style = "color:${kNormalCurveStrokeColor}">${sdValueString}${unitsContent}</p>`
         : sdValueString
-      const textContent = `${meanValueContent}${sdValueContent}`
+      const stdErrValueContent = stdError
+        ? helper.computeTextContentForStdErr(dataConfig, isVertical.current, stdError, numStdErrs, showLabel) : ""
+      const textContent = `${gaussianFitTitle}${meanValueContent}${sdValueContent}${stdErrValueContent}`
 
       // If showLabels is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
       // otherwise we add a text tip that only appears when the user mouses over the value line or the range boundaries.
@@ -318,9 +338,9 @@ export const NormalCurveAdornmentComponent = observer(
         addTextTip(mean, textContent, selectionsObj)
       }
     }, [numericAttrId, dataConfig, mean, stdDev, numericScale.invert, helper, isVertical, addNormalCurve,
-      showLabel, addLabels, addTextTip])
+      useGaussianFit, showLabel, stdError, numStdErrs, addLabels, addTextTip])
 
-    // Add the lines and their associated covers and labels
+// Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {
       if (!model.isVisible) return
       const measure = model?.measures.get(helper.instanceKey)

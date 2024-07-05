@@ -9,23 +9,23 @@ describe("DataInteractive ItemByIDHandler", () => {
 
   it("delete works", () => {
     const { dataset: dataContext } = setupTestDataset()
-    const itemByID = dataContext.getCaseAtIndex(0)!
+    const itemByID = dataContext.getItemAtIndex(0)!
     const itemId = itemByID.__id__
 
     expect(handler.delete?.({ dataContext }).success).toBe(false)
     expect(handler.delete?.({ itemByID }).success).toBe(false)
 
-    expect(dataContext.getCase(itemId)).toBeDefined()
+    expect(dataContext.getItem(itemId)).toBeDefined()
     const result = handler.delete!({ dataContext, itemByID })
     expect(result?.success).toBe(true)
     const values = result.values as number[]
     expect(values[0]).toBe(toV2Id(itemId))
-    expect(dataContext.getCase(itemId)).toBeUndefined()
+    expect(dataContext.getItem(itemId)).toBeUndefined()
   })
 
   it("get works", () => {
     const { dataset: dataContext, a1 } = setupTestDataset()
-    const itemByID = dataContext.getCaseAtIndex(0)!
+    const itemByID = dataContext.getItemAtIndex(0)!
 
     expect(handler.get?.({ dataContext }).success).toBe(false)
     expect(handler.get?.({ itemByID }).success).toBe(false)
@@ -40,7 +40,7 @@ describe("DataInteractive ItemByIDHandler", () => {
 
   it("update works", () => {
     const { dataset: dataContext, a1 } = setupTestDataset()
-    const itemByID = dataContext.getCaseAtIndex(0)!
+    const itemByID = dataContext.getItemAtIndex(0)!
     const itemId = itemByID.__id__
     const values = { a1: "c" } as DIItem
 

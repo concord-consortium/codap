@@ -169,7 +169,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           // the hiddenCases array and make sure their positions are set.
           if (dataConfiguration.displayOnlySelectedCases && dataConfiguration?.hiddenCases.length > 0) {
             const selectedCases = Array.from(dataset.selection)
-            const allCases = dataset.cases.map(c => c.__id__)
+            const allCases = dataset.items.map(c => c.__id__)
             const updatedHiddenCases = allCases.filter(caseID => !selectedCases.includes(caseID))
             dataConfiguration?.setHiddenCases(updatedHiddenCases)
             pixiPoints && matchCirclesToData({

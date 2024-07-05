@@ -100,8 +100,7 @@ export const CaseDots = function CaseDots(props: {
   }, [pixiPoints, graphModel, layout, dataConfiguration, dataset, isAnimating])
 
   useEffect(function initDistribution() {
-    const cases = dataConfiguration?.caseDataArray
-    randomlyDistributePoints(cases)
+    randomlyDistributePoints(dataConfiguration?.caseDataArray)
     const disposer = dataConfiguration?.onAction(action => {
       if (['addCases', 'removeCases'].includes(action.name)) {
         randomlyDistributePoints(dataConfiguration?.caseDataArray)
@@ -120,7 +119,7 @@ export const CaseDots = function CaseDots(props: {
         refreshPointPositions(false)
       },
       { name: "CaseDots.respondToModelChangeCount" }, graphModel)
-  }, [dataConfiguration?.caseDataArray, graphModel,
+  }, [dataConfiguration, graphModel,
       randomlyDistributePoints, refreshPointPositions, startAnimation])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})

@@ -1,6 +1,5 @@
 import { format } from "d3"
 import { reaction } from "mobx"
-import { getSnapshot } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import { symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -13,6 +12,7 @@ import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "..
 import { updateCasesNotification } from "../../models/data/data-set-notifications"
 import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 
@@ -21,11 +21,17 @@ export const useRows = () => {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
+  const casesRef = useRef<readonly ICase[]>([])
 
-  const getCases = useCallback(() => data?.collectionGroups?.length
-                                      ? data.getCasesForCollection(collectionId)
-                                      : data ? getSnapshot(data.cases) as IGroupedCase[] : [],
-                                [collectionId, data])
+  useEffect(() => {
+    return mstReaction(
+      () => data?.getCasesForCollection(collectionId) ?? [],
+      cases => {
+        casesRef.current = cases
+        resetRowCache()
+      },
+      { name: "useRows.cases reaction", fireImmediately: true }, data)
+  })
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
@@ -33,12 +39,12 @@ export const useRows = () => {
     const { rowCache } = collectionTableModel
     rowCache.clear()
     let prevParent: string | undefined
-    getCases().forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
+    casesRef.current.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
       prevParent = parent
     })
-  }, [collectionTableModel, getCases])
+  }, [collectionTableModel])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
     if (!collectionTableModel) return
@@ -54,7 +60,7 @@ export const useRows = () => {
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
       // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
       const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
-        return getCases().map(({ __id__ }) => {
+        return casesRef.current.map(({ __id__ }) => {
           const row = rowCache.get(__id__)
           const parentId = row?.[symParent]
           const isCollapsed = parentId && caseMetadata?.isCollapsed(parentId)
@@ -65,7 +71,7 @@ export const useRows = () => {
         collectionTableModel.resetRows(newRows || [])
       })
     })
-  }, [caseMetadata, collectionTableModel, getCases])
+  }, [caseMetadata, collectionTableModel])
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
@@ -111,14 +117,16 @@ export const useRows = () => {
 
     // rebuild the entire cache after grouping changes
     const reactionDisposer = reaction(
-      () => data?.collectionGroups,
-      () => {
-        resetRowCache()
-        if (appState.appMode === "performance") {
-          syncRowsToDom()
-        }
-        else {
-          syncRowsToRdg()
+      () => data?.isValidCaseGroups,
+      isValid => {
+        if (isValid) {
+          resetRowCache()
+          if (appState.appMode === "performance") {
+            syncRowsToDom()
+          }
+          else {
+            syncRowsToRdg()
+          }
         }
       }, { name: "useRows.useEffect.reaction [collectionGroups]", fireImmediately: true }
     )
@@ -138,7 +146,9 @@ export const useRows = () => {
     const afterAnyActionDisposer = data && onAnyAction(data, action => {
       prf.measure("Table.useRows[onAnyAction]", () => {
         const isHierarchical = !!data?.collections.length
-        const alwaysResetRowCacheActions = ["addAttribute", "removeAttribute", "setFormat"]
+        const alwaysResetRowCacheActions = [
+          "addAttribute", "moveAttribute", "moveAttributeToNewCollection", "removeAttribute", "setFormat"
+        ]
         const hierarchicalResetRowCacheActions = ["addCases", "setCaseValues", "removeCases"]
         let updateRows = false
 
@@ -152,13 +162,13 @@ export const useRows = () => {
         // non-hierarchical data sets can respond more efficiently to some actions
         if (!isHierarchical && hierarchicalResetRowCacheActions.includes(action.name)) {
           const getCasesToUpdate = (_cases: ICase[], index?: number) => {
-            lowestIndex.current = index != null ? index : data.cases.length
+            lowestIndex.current = index != null ? index : data.items.length
             const casesToUpdate = []
             for (let i=0; i<_cases.length; ++i) {
               lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__) ?? Infinity)
             }
-            for (let j=lowestIndex.current; j < data.cases.length; ++j) {
-              casesToUpdate.push(data.cases[j])
+            for (let j=lowestIndex.current; j < data.items.length; ++j) {
+              casesToUpdate.push(data.items[j])
             }
             return casesToUpdate
           }
@@ -199,8 +209,8 @@ export const useRows = () => {
     const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
-        const caseGroup = data?.pseudoCaseMap.get(caseId)
-        const childCaseIds = caseGroup?.childPseudoCaseIds ?? caseGroup?.childCaseIds
+        const caseGroup = data?.caseGroupMap.get(caseId)
+        const childCaseIds = caseGroup?.childCaseIds ?? caseGroup?.childItemIds
         const firstChildCaseId = childCaseIds?.[0]
         if (firstChildCaseId) {
           const row = rowCache.get(firstChildCaseId)
@@ -226,8 +236,8 @@ export const useRows = () => {
     data?.applyModelChange(
       () => data.setCaseValues(caseValues),
       {
-        // TODO notificaitons should be () => updateCasesNotification, but that won't work well
-        // until pseudo case ids are persistent
+        // TODO notifications should be () => updateCasesNotification, but that won't work well
+        // until case ids are persistent
         notifications: updateCasesNotification(data, caseValues),
         undoStringKey: "DG.Undo.caseTable.editCellValue",
         redoStringKey: "DG.Redo.caseTable.editCellValue"

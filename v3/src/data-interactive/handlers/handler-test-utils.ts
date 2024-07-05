@@ -8,9 +8,12 @@ export const testCases = [
   { a1: "a", a2: "x", a3: 5 },
   { a1: "b", a2: "y", a3: 6 },
 ]
-export const setupTestDataset = () => {
+interface ITestDatasetOptions {
+  datasetName?: string
+}
+export const setupTestDataset = (options?: ITestDatasetOptions) => {
   const dataset = DataSet.create({
-    name: "data",
+    name: options?.datasetName ?? "data",
     collections: [
       { name: "collection1" },
       { name: "collection2" },
@@ -22,5 +25,15 @@ export const setupTestDataset = () => {
   const a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })
   const a3 = dataset.addAttribute({ name: "a3" })
   dataset.addCases(testCases, { canonicalize: true })
+  dataset.validateCaseGroups()
   return { dataset, c1, c2, a1, a2, a3 }
+}
+
+export function setupForCaseTest() {
+  const { dataset, a3 } = setupTestDataset()
+  const item = dataset.getItemAtIndex(4)!
+  const itemId = item.__id__
+  const aCase = Array.from(dataset.caseGroupMap.values())[1].groupedCase
+  const caseId = aCase.__id__
+  return { dataContext: dataset, item, itemId, aCase, caseId, a3 }
 }

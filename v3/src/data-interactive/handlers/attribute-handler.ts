@@ -1,18 +1,18 @@
-import { IAttribute, isAttributeType } from "../../models/data/attribute"
+import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
-import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
 import { DIAttribute, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { createAttribute } from "./di-handler-utils"
-import { attributeNotFoundResult, dataContextNotFoundResult } from "./di-results"
+import { createAttribute, updateAttribute } from "./di-handler-utils"
+import { attributeNotFoundResult, collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
 export const diAttributeHandler: DIHandler = {
   create(resources: DIResources, _values?: DIValues) {
     const { dataContext, collection } = resources
     if (!dataContext) return dataContextNotFoundResult
+    if (!collection) return collectionNotFoundResult
     const metadata = getSharedCaseMetadataFromDataset(dataContext)
     const values = _values as DIAttribute | DIAttribute[]
 
@@ -33,10 +33,18 @@ export const diAttributeHandler: DIHandler = {
     const attributes: IAttribute[] = []
     dataContext.applyModelChange(() => {
       attributeValues.forEach(attributeValue => {
-        if (attributeValue) {
-          const attribute = createAttribute(attributeValue, dataContext, collection, metadata)
-          if (attribute) attributes.push(attribute)
+        // Check for existing attribute with same name
+        if (attributeValue.name) {
+          const oldAttribute = collection.getAttributeByName(attributeValue.name)
+          if (oldAttribute) {
+            updateAttribute(oldAttribute, attributeValue, dataContext)
+            attributes.push(oldAttribute)
+            return
+          }
         }
+
+        const attribute = createAttribute(attributeValue, dataContext, collection, metadata)
+        if (attribute) attributes.push(attribute)
       })
     }, {
       notifications: () => createAttributesNotification(attributes, dataContext)
@@ -73,22 +81,7 @@ export const diAttributeHandler: DIHandler = {
 
     const values = _values as DIAttribute
     attribute.applyModelChange(() => {
-      if (values?.description != null) attribute.setDescription(values.description)
-      if (values?.editable != null) attribute.setEditable(!!values.editable)
-      if (values?.formula != null) attribute.setDisplayExpression(values.formula)
-      if (values?.name != null) attribute.setName(values.name)
-      if (hasOwnProperty(values, "precision")) {
-        attribute.setPrecision(values.precision == null || values.precision === "" ? undefined : +values.precision)
-      }
-      if (values?.title != null) attribute.setTitle(values.title)
-      if (isAttributeType(values?.type)) attribute.setUserType(values.type)
-      if (values?.unit != null) attribute.setUnits(values.unit)
-      if (values?.hidden != null) {
-        if (dataContext) {
-          const metadata = getSharedCaseMetadataFromDataset(dataContext)
-          metadata?.setIsHidden(attribute.id, values.hidden)
-        }
-      }
+      updateAttribute(attribute, values, dataContext)
     }, {
       notifications: () => updateAttributesNotification([attribute], dataContext)
     })

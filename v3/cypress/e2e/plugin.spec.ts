@@ -27,7 +27,7 @@ context("codap plugins", () => {
     cy.log("Handle get attribute request")
     const cmd1 = `{
       "action": "get",
-      "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
+      "resource": "dataContext[Mammals].collection[Cases].attribute[Order]"
     }`
     webView.sendAPITesterCommand(cmd1)
     webView.confirmAPITesterResponseContains(/"success":\s*true/)
@@ -36,7 +36,7 @@ context("codap plugins", () => {
     cy.log("Properly handles illegal actions")
     const cmd2 = `{
       "action": "fake",
-      "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]"
+      "resource": "dataContext[Mammals].collection[Cases].attribute[Order]"
     }`
     webView.sendAPITesterCommand(cmd2, cmd1)
     webView.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
@@ -45,7 +45,7 @@ context("codap plugins", () => {
     cy.log("Handle update attribute hidden")
     const cmd3 = `{
       "action": "update",
-      "resource": "dataContext[Mammals].collection[Mammals].attribute[Order]",
+      "resource": "dataContext[Mammals].collection[Cases].attribute[Order]",
       "values": {
         "hidden": true
       }
@@ -58,7 +58,7 @@ context("codap plugins", () => {
     cy.log("Handle create attribute")
     const cmd4 =`{
       "action": "create",
-      "resource": "dataContext[Mammals].collection[Mammals].attribute",
+      "resource": "dataContext[Mammals].collection[Cases].attribute",
       "values": [
         {
           "name": "Heartrate"
@@ -73,7 +73,7 @@ context("codap plugins", () => {
     cy.log("handle delete attribute")
     const cmd5 = `{
       "action": "delete",
-      "resource": "dataContext[Mammals].collection[Mammals].attribute[Heartrate]"
+      "resource": "dataContext[Mammals].collection[Cases].attribute[Heartrate]"
     }`
     table.getAttributeHeader().contains("Heartrate").should("exist")
     webView.sendAPITesterCommand(cmd5, cmd4)
@@ -83,7 +83,7 @@ context("codap plugins", () => {
     cy.log("Finds the default dataset when no dataset is included")
     const cmd6 = `{
       "action": "get",
-      "resource": "collection[Mammals].attribute[Order]"
+      "resource": "collection[Cases].attribute[Order]"
     }`
     webView.sendAPITesterCommand(cmd6, cmd5)
     webView.confirmAPITesterResponseContains(/"success":\s*true/)
@@ -161,6 +161,17 @@ context("codap plugins", () => {
   it('will broadcast notifications', () => {
     openAPITester()
     webView.toggleAPITesterFilter()
+
+    cy.log("Broadcast dataContextCountChanged notifications when dataset is added to document")
+    table.createNewTableFromToolshelf()
+    webView.confirmAPITesterResponseContains(/"operation":\s"dataContextCountChanged/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast dataContextDeleted notifications when dataset is deleted")
+    table.deleteDataSetFromToolshelf(1)
+    webView.confirmAPITesterResponseContains(/"operation":\s"dataContextDeleted/)
+    webView.confirmAPITesterResponseContains(/"deletedContext":\s"New\sDataset/)
+    webView.clearAPITesterResponses()
 
     cy.log("Broadcast select cases notifications")
     table.getCell(2, 2).click()

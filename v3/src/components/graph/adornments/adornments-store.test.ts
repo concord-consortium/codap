@@ -23,7 +23,8 @@ const mockAdornment = {
   cellKey: () => ({}),
   setVisibility: () => true,
   updateCategories: () => ({}),
-  type: kCountType
+  type: kCountType,
+  labelLines: 0
 }
 const mockMovableValueAdornment = {
   cellCount: () => ({x: 1, y: 1}),
@@ -37,7 +38,8 @@ const mockMovableValueAdornment = {
   setVisibility: () => true,
   updateCategories: () => ({}),
   values: { "{}": [10] },
-  type: kMovableValueType
+  type: kMovableValueType,
+  labelLines: 1
 }
 const mockUpdateCategoriesOptions = {
   rightCats: [],
@@ -100,7 +102,7 @@ describe("AdornmentsStore", () => {
   })
   it("returns a list of adornment items for use in menus", () => {
     const adornmentsStore = AdornmentsStore.create()
-    const adornmentsMenuItems = adornmentsStore.getAdornmentsMenuItems("dotPlot")
+    const adornmentsMenuItems = adornmentsStore.getAdornmentsMenuItems("dotPlot", false)
     expect(adornmentsMenuItems).toBeDefined()
     expect(adornmentsMenuItems?.length).toBeGreaterThan(0)
     expect(adornmentsMenuItems?.[0].title).toBe("DG.Inspector.graphCount")

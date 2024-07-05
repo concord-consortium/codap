@@ -5,7 +5,7 @@ import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
 import { DataSet, fromCanonical, toCanonical } from "./data-set"
 import { createDataSet } from "./data-set-conversion"
-import { CaseID, ICaseID } from "./data-set-types"
+import { ICaseID } from "./data-set-types"
 
 let message = () => ""
 
@@ -53,17 +53,6 @@ declare global {
     }
   }
 }
-
-test("CaseID functionality", () => {
-  const caseID = CaseID.create({ __id__: "0" })
-  expect(caseID.__id__).toBeDefined()
-
-  const copy = clone(caseID)
-  expect(copy.__id__).toBe(caseID.__id__)
-
-  const caseID2 = CaseID.create({})
-  expect(caseID2.__id__).toBeDefined()
-})
 
 test("Canonicalization", () => {
   const ds = DataSet.create({ name: "data" })
@@ -149,6 +138,15 @@ test("DataSet temporary flat snapshot conversion", () => {
   } as any)
   expect(data.attributesMap.size).toBe(3)
   expect(data.attributes.length).toBe(3)
+})
+
+test("DataSet volatile caching", () => {
+  const data = DataSet.create({ name: "data" })
+  expect(data.isValidCaseGroups).toBe(false)
+  data.setValidCaseGroups()
+  expect(data.isValidCaseGroups).toBe(true)
+  data.invalidateCaseGroups()
+  expect(data.isValidCaseGroups).toBe(false)
 })
 
 test("DataSet basic functionality", () => {
@@ -272,16 +270,16 @@ test("DataSet basic functionality", () => {
     expect(dataset.attrIndexFromID(attr.id)).toBe(index)
   })
 
-  expect(dataset.getCase("")).toBeUndefined()
+  expect(dataset.getItem("")).toBeUndefined()
   dataset.setCaseValues([{ __id__: "" }])
 
   // adds cases without ids (and removes them)
   dataset.addCases(toCanonical(dataset, [{ str: "c", num: 3 }]))
-  expect(dataset.cases.length).toBe(1)
-  expect(dataset.getCaseAtIndex(0, { canonical: false })).toEqualExcludingIds({ str: "c", num: 3 })
+  expect(dataset.items.length).toBe(1)
+  expect(dataset.getItemAtIndex(0, { canonical: false })).toEqualExcludingIds({ str: "c", num: 3 })
   const mockConsoleWarn1 = jest.fn()
   const mockConsole1 = jest.spyOn(console, "warn").mockImplementation((...args: any[]) => mockConsoleWarn1(...args))
-  expect(dataset.getCaseAtIndex(1)).toBeUndefined()
+  expect(dataset.getItemAtIndex(1)).toBeUndefined()
   // MobX 6.7.0 no longer warns about out-of-range array accesses
   expect(mockConsoleWarn1).toHaveBeenCalledTimes(0)
   mockConsole1.mockRestore()
@@ -293,20 +291,20 @@ test("DataSet basic functionality", () => {
   expect(dataset.getNumericAtIndex(-1, "bogus")).toBeUndefined()
   // adding a case "before" a non-existent case appends the case to the end
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { before: "bogus" })
-  expect(dataset.cases.length).toBe(2)
-  expect(dataset.getCaseAtIndex(1, { canonical: false })).toEqualExcludingIds({ str: "d", num: 4 })
-  dataset.removeCases([dataset.cases[0].__id__, dataset.cases[1].__id__])
+  expect(dataset.items.length).toBe(2)
+  expect(dataset.getItemAtIndex(1, { canonical: false })).toEqualExcludingIds({ str: "d", num: 4 })
+  dataset.removeCases([dataset.items[0].__id__, dataset.items[1].__id__])
 
   // add new case
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]))
-  expect(dataset.getCaseAtIndex(0)).toEqualExcludingIds({ [strAttrID]: "d", [numAttrID]: 4 })
-  const caseD4ID = dataset.cases[0].__id__
+  expect(dataset.getItemAtIndex(0)).toEqualExcludingIds({ [strAttrID]: "d", [numAttrID]: 4 })
+  const caseD4ID = dataset.items[0].__id__
   expect(dataset.caseIDFromIndex(0)).toBe(caseD4ID)
   expect(dataset.caseIDFromIndex(-1)).toBeUndefined()
-  expect(dataset.getCaseAtIndex(-1)).toBeUndefined()
-  expect(dataset.getCaseAtIndex(0, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
-  expect(dataset.getCase(caseD4ID, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
-  expect(dataset.cases.length).toBe(1)
+  expect(dataset.getItemAtIndex(-1)).toBeUndefined()
+  expect(dataset.getItemAtIndex(0, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
+  expect(dataset.getItem(caseD4ID, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
+  expect(dataset.items.length).toBe(1)
   expect(caseD4ID).toBeDefined()
   expect(dataset.attributes[0].value(0)).toBe("d")
   expect(dataset.attributes[1].value(0)).toBe("4")
@@ -318,14 +316,14 @@ test("DataSet basic functionality", () => {
 
   // add new case before first case
   dataset.addCases([{ str: "c", num: 3 }], { before: caseD4ID, canonicalize: true })
-  const caseC3ID = dataset.cases[0].__id__
-  expect(dataset.cases.length).toBe(2)
+  const caseC3ID = dataset.items[0].__id__
+  expect(dataset.items.length).toBe(2)
   expect(caseC3ID).toBeDefined()
   expect(caseC3ID).not.toBe(caseD4ID)
   expect(dataset.caseIDFromIndex(0)).toBe(caseC3ID)
   expect(dataset.nextCaseID("")).toBeUndefined()
   expect(dataset.nextCaseID(caseC3ID)).toBe(caseD4ID)
-  expect(dataset.cases[1].__id__).toBe(caseD4ID)
+  expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
   expect(dataset.attributes[1].value(0)).toBe("3")
   expect(dataset.attributes[1].numeric(0)).toBe(3)
@@ -335,56 +333,56 @@ test("DataSet basic functionality", () => {
 
   // add multiple new cases before specified case
   dataset.addCases([{ str: "a", num: 1 }, { str: "b", num: 2 }], { before: caseC3ID, canonicalize: true })
-  const caseA1ID = dataset.cases[0].__id__,
-        caseB2ID = dataset.cases[1].__id__
-  expect(dataset.cases.length).toBe(4)
+  const caseA1ID = dataset.items[0].__id__,
+        caseB2ID = dataset.items[1].__id__
+  expect(dataset.items.length).toBe(4)
   expect(dataset.attributes[0].value(0)).toBe("a")
   expect(dataset.attributes[1].value(0)).toBe("1")
   expect(dataset.attributes[0].value(1)).toBe("b")
   expect(dataset.attributes[1].value(1)).toBe("2")
   expect(dataset.getValue(caseA1ID, "foo")).toBeUndefined()
   expect(dataset.getValue("foo", "bar")).toBeUndefined()
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "a", num: 1 })
-  expect(dataset.getCase(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "b", num: 2 })
-  expect(dataset.getCase(caseA1ID, { canonical: true }))
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "a", num: 1 })
+  expect(dataset.getItem(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "b", num: 2 })
+  expect(dataset.getItem(caseA1ID, { canonical: true }))
     .toEqual({ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 })
-  expect(dataset.getCase(caseB2ID, { canonical: true }))
+  expect(dataset.getItem(caseB2ID, { canonical: true }))
     .toEqual({ __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 })
-  expect(dataset.getCases([caseA1ID, caseB2ID], { canonical: true }))
+  expect(dataset.getItems([caseA1ID, caseB2ID], { canonical: true }))
     .toEqual([{ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 },
               { __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 }])
   expect(dataset.getCasesAtIndex().length).toBe(4)
   expect(dataset.getCasesAtIndex(2).length).toBe(2)
   // add null/undefined values
   dataset.addCases(toCanonical(dataset, [{ str: undefined }]))
-  const nullCaseID = dataset.cases[dataset.cases.length - 1].__id__
-  expect(dataset.getCase(nullCaseID, { canonical: false }))
+  const nullCaseID = dataset.items[dataset.items.length - 1].__id__
+  expect(dataset.getItem(nullCaseID, { canonical: false }))
     .toEqual({ __id__: nullCaseID, str: "", num: "" })
-  expect(dataset.getCases([""], { canonical: true })).toEqual([])
+  expect(dataset.getItems([""], { canonical: true })).toEqual([])
   // validate that caseIDMap is correct
-  dataset.cases.forEach((aCase: ICaseID) => {
+  dataset.items.forEach((aCase: ICaseID) => {
     const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
-    expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
+    expect((caseIndex >= 0) ? dataset.items[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
 
   // add multiple new cases after specified case
   dataset.addCases([{ str: "j", num: 1 }, { str: "k", num: 2 }], { after: caseC3ID, canonicalize: true })
-  const caseJ1ID = dataset.cases[3].__id__,
-        caseK2ID = dataset.cases[4].__id__
-  expect(dataset.cases.length).toBe(7)
+  const caseJ1ID = dataset.items[3].__id__,
+        caseK2ID = dataset.items[4].__id__
+  expect(dataset.items.length).toBe(7)
   expect(dataset.attributes[0].value(3)).toBe("j")
   expect(dataset.attributes[1].value(3)).toBe("1")
   expect(dataset.attributes[0].value(4)).toBe("k")
   expect(dataset.attributes[1].value(4)).toBe("2")
   expect(dataset.getValue(caseJ1ID, "foo")).toBeUndefined()
   expect(dataset.getValue("foo", "bar")).toBeUndefined()
-  expect(dataset.getCase(caseJ1ID, { canonical: false })).toEqual({ __id__: caseJ1ID, str: "j", num: 1 })
-  expect(dataset.getCase(caseK2ID, { canonical: false })).toEqual({ __id__: caseK2ID, str: "k", num: 2 })
-  expect(dataset.getCase(caseJ1ID, { canonical: true }))
+  expect(dataset.getItem(caseJ1ID, { canonical: false })).toEqual({ __id__: caseJ1ID, str: "j", num: 1 })
+  expect(dataset.getItem(caseK2ID, { canonical: false })).toEqual({ __id__: caseK2ID, str: "k", num: 2 })
+  expect(dataset.getItem(caseJ1ID, { canonical: true }))
     .toEqual({ __id__: caseJ1ID, [strAttrID]: "j", [numAttrID]: 1 })
-  expect(dataset.getCase(caseK2ID, { canonical: true }))
+  expect(dataset.getItem(caseK2ID, { canonical: true }))
     .toEqual({ __id__: caseK2ID, [strAttrID]: "k", [numAttrID]: 2 })
-  expect(dataset.getCases([caseJ1ID, caseK2ID], { canonical: true }))
+  expect(dataset.getItems([caseJ1ID, caseK2ID], { canonical: true }))
     .toEqual([{ __id__: caseJ1ID, [strAttrID]: "j", [numAttrID]: 1 },
               { __id__: caseK2ID, [strAttrID]: "k", [numAttrID]: 2 }])
   expect(dataset.getCasesAtIndex().length).toBe(7)
@@ -392,12 +390,12 @@ test("DataSet basic functionality", () => {
 
   // setCaseValues
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, str: "A", num: 10 }]))
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseB2ID, str: "B", num: 20 },
                                               { __id__: caseC3ID, str: "C", num: 30 }]))
   expect(dataset.getValue(caseB2ID, strAttrID)).toBe("B")
   expect(dataset.getValue(caseB2ID, numAttrID)).toBe("20")
-  expect(dataset.getCase(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
+  expect(dataset.getItem(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(dataset.getValue(caseC3ID, strAttrID)).toBe("C")
   expect(dataset.getValue(caseC3ID, numAttrID)).toBe("30")
   const mockConsoleWarn = jest.fn()
@@ -405,11 +403,11 @@ test("DataSet basic functionality", () => {
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, foo: "bar" }]))
   expect(mockConsoleWarn).toHaveBeenCalledTimes(1)
   consoleSpy.mockRestore()
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, num: undefined }]))
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: "" })
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: "" })
 
-  const cases = dataset.getCases([caseB2ID, caseC3ID, ""], { canonical: false })
+  const cases = dataset.getItems([caseB2ID, caseC3ID, ""], { canonical: false })
   expect(cases.length).toBe(2)
   expect(cases[0]).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(cases[1]).toEqual({ __id__: caseC3ID, str: "C", num: 30 })
@@ -426,19 +424,19 @@ test("DataSet basic functionality", () => {
   copy.setName("copy")
   expect(copy.name).toBe("copy")
   expect(copy.attributes.length).toBe(dataset.attributes.length)
-  expect(copy.cases.length).toBe(dataset.cases.length)
+  expect(copy.items.length).toBe(dataset.items.length)
 
   dataset.removeCases([nullCaseID])
-  expect(dataset.cases.length).toBe(6)
+  expect(dataset.items.length).toBe(6)
   dataset.removeCases([caseA1ID, caseB2ID])
-  expect(dataset.cases.length).toBe(4)
+  expect(dataset.items.length).toBe(4)
   // validate that caseIDMap is correct
-  dataset.cases.forEach((aCase: ICaseID) => {
+  dataset.items.forEach((aCase: ICaseID) => {
     const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
-    expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
+    expect((caseIndex >= 0) ? dataset.items[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.removeCases([""])
-  expect(dataset.cases.length).toBe(4)
+  expect(dataset.items.length).toBe(4)
   destroy(dataset)
 })
 
@@ -464,6 +462,10 @@ test("hierarchical collection support", () => {
   const parentAttr = data.addAttribute({ name: "parentAttr" }, { collection: parentCollectionId })
   expect(parentCollection.getAttribute(childAttr.id)).toBeUndefined()
   expect(parentCollection.getAttribute(parentAttr.id)).toBe(parentAttr)
+  
+  // Names must be unique
+  const parentCollection2 = data.addCollection({ name: "ParentCollection" })
+  expect(parentCollection2.name).toBe("ParentCollection1")
 
   destroy(data)
   jestSpyConsole("warn", spy => {
@@ -491,75 +493,75 @@ test("Canonical case functionality", () => {
 
   // add new case
   dataset.addCases([{ [strAttrID]: "d", [numAttrID]: 4 }])
-  const caseD4ID = dataset.cases[0].__id__
-  expect(dataset.getCaseAtIndex(-1)).toBeUndefined()
-  expect(dataset.getCaseAtIndex(0, { canonical: true }))
+  const caseD4ID = dataset.items[0].__id__
+  expect(dataset.getItemAtIndex(-1)).toBeUndefined()
+  expect(dataset.getItemAtIndex(0, { canonical: true }))
     .toEqual({ __id__: caseD4ID, [strAttrID]: "d", [numAttrID]: 4 })
-  expect(dataset.getCaseAtIndex(0, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
-  expect(dataset.getCase(caseD4ID, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
-  expect(dataset.cases.length).toBe(1)
+  expect(dataset.getItemAtIndex(0, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
+  expect(dataset.getItem(caseD4ID, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
+  expect(dataset.items.length).toBe(1)
   expect(caseD4ID).toBeDefined()
   expect(dataset.attributes[0].value(0)).toBe("d")
   expect(dataset.attributes[1].value(0)).toBe("4")
 
   // add new case before first case
   dataset.addCases([{ [strAttrID]: "c", [numAttrID]: 3 }], { before: caseD4ID })
-  const caseC3ID = dataset.cases[0].__id__
-  expect(dataset.cases.length).toBe(2)
+  const caseC3ID = dataset.items[0].__id__
+  expect(dataset.items.length).toBe(2)
   expect(caseC3ID).toBeDefined()
   expect(caseC3ID).not.toBe(caseD4ID)
   expect(dataset.nextCaseID("")).toBeUndefined()
   expect(dataset.nextCaseID(caseC3ID)).toBe(caseD4ID)
-  expect(dataset.cases[1].__id__).toBe(caseD4ID)
+  expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
   expect(dataset.attributes[1].value(0)).toBe("3")
 
   // add multiple new cases
   dataset.addCases([{ [strAttrID]: "a", [numAttrID]: 1 },
                     { [strAttrID]: "b", [numAttrID]: 2 }], { before: caseC3ID })
-  const caseA1ID = dataset.cases[0].__id__,
-        caseB2ID = dataset.cases[1].__id__
-  expect(dataset.cases.length).toBe(4)
+  const caseA1ID = dataset.items[0].__id__,
+        caseB2ID = dataset.items[1].__id__
+  expect(dataset.items.length).toBe(4)
   expect(dataset.attributes[0].value(0)).toBe("a")
   expect(dataset.attributes[1].numeric(0)).toBe(1)
   expect(dataset.attributes[0].value(1)).toBe("b")
   expect(dataset.attributes[1].numeric(1)).toBe(2)
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "a", num: 1 })
-  expect(dataset.getCase(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "b", num: 2 })
-  expect(dataset.getCase(caseA1ID, { canonical: true }))
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "a", num: 1 })
+  expect(dataset.getItem(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "b", num: 2 })
+  expect(dataset.getItem(caseA1ID, { canonical: true }))
     .toEqual({ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 })
-  expect(dataset.getCase(caseB2ID, { canonical: true }))
+  expect(dataset.getItem(caseB2ID, { canonical: true }))
     .toEqual({ __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 })
-  expect(dataset.getCases([caseA1ID, caseB2ID], { canonical: true }))
+  expect(dataset.getItems([caseA1ID, caseB2ID], { canonical: true }))
     .toEqual([{ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 },
               { __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 }])
   expect(dataset.getCasesAtIndex(0, { count: 2, canonical: true }))
     .toEqual([{ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 },
               { __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 }])
-  expect(dataset.getCaseAtIndex(-1, { canonical: true })).toBeUndefined()
+  expect(dataset.getItemAtIndex(-1, { canonical: true })).toBeUndefined()
   expect(dataset.getCasesAtIndex(undefined, { canonical: true }).length).toBe(4)
   expect(dataset.getCasesAtIndex(2, { canonical: true }).length).toBe(2)
   // add null/undefined values
   dataset.addCases([{ [strAttrID]: undefined }])
   // add invalid cases
-  const nullCaseID = dataset.cases[dataset.cases.length - 1].__id__
-  expect(dataset.getCase(nullCaseID, { canonical: false }))
+  const nullCaseID = dataset.items[dataset.items.length - 1].__id__
+  expect(dataset.getItem(nullCaseID, { canonical: false }))
     .toEqual({ __id__: nullCaseID, str: "", num: "" })
-  expect(dataset.getCases([""], { canonical: true })).toEqual([])
+  expect(dataset.getItems([""], { canonical: true })).toEqual([])
   // validate that caseIDMap is correct
-  dataset.cases.forEach((aCase: ICaseID) => {
+  dataset.items.forEach((aCase: ICaseID) => {
     const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
-    expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
+    expect((caseIndex >= 0) ? dataset.items[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.addCases([{ __id__: "12345", [strAttrID]: "e", [numAttrID]: 5 }])
   dataset.removeCases(["12345"])
 
   // setCanonicalCaseValues
   dataset.setCaseValues([{ __id__: caseA1ID, [strAttrID]: "A", [numAttrID]: 10 }])
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
   dataset.setCaseValues([{ __id__: caseB2ID, [strAttrID]: "B", [numAttrID]: 20 },
                          { __id__: caseC3ID, [strAttrID]: "C", [numAttrID]: 30 }])
-  expect(dataset.getCase(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
+  expect(dataset.getItem(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(dataset.getValue(caseC3ID, strAttrID)).toBe("C")
   expect(dataset.getStrValue(caseC3ID, strAttrID)).toBe("C")
   expect(dataset.getNumeric(caseC3ID, numAttrID)).toBe(30)
@@ -568,46 +570,46 @@ test("Canonical case functionality", () => {
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, foo: "bar" }]))
   expect(mockConsoleWarn).toHaveBeenCalledTimes(1)
   consoleSpy.mockRestore()
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: 10 })
   dataset.setCaseValues([{ __id__: caseA1ID, [numAttrID]: undefined }])
-  expect(dataset.getCase(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: "" })
+  expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: "" })
 
-  const cases = dataset.getCases([caseB2ID, caseC3ID, ""], { canonical: false })
+  const cases = dataset.getItems([caseB2ID, caseC3ID, ""], { canonical: false })
   expect(cases.length).toBe(2)
   expect(cases[0]).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(cases[1]).toEqual({ __id__: caseC3ID, str: "C", num: 30 })
 
   dataset.removeCases([nullCaseID])
-  expect(dataset.cases.length).toBe(4)
+  expect(dataset.items.length).toBe(4)
   dataset.removeCases([caseA1ID, caseB2ID])
-  expect(dataset.cases.length).toBe(2)
+  expect(dataset.items.length).toBe(2)
   // validate that caseIDMap is correct
-  dataset.cases.forEach((aCase: ICaseID) => {
+  dataset.items.forEach((aCase: ICaseID) => {
     const caseIndex = dataset.caseIndexFromID(aCase.__id__) ?? -1
-    expect((caseIndex >= 0) ? dataset.cases[caseIndex].__id__ : "").toBe(aCase.__id__)
+    expect((caseIndex >= 0) ? dataset.items[caseIndex].__id__ : "").toBe(aCase.__id__)
   })
   dataset.removeCases([""])
-  expect(dataset.cases.length).toBe(2)
+  expect(dataset.items.length).toBe(2)
   destroy(dataset)
 })
 
 test("DataSet case selection", () => {
   const ds = DataSet.create({ name: "data" })
   ds.addCases([{__id__: "c1"}, {__id__: "c2"}, {__id__: "c3"}, {__id__: "c4"}, {__id__: "c5"}])
-  expect(ds.cases.length).toBe(5)
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
+  expect(ds.items.length).toBe(5)
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
   ds.selectCases(["c1", "c4"])
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
   ds.selectAll(false)
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, false, false, false, false])
   ds.selectAll(true)
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
   ds.selectCases(["c1", "c4"], false)
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, true, true, false, true])
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([false, true, true, false, true])
   ds.setSelectedCases(["c1", "c4"])
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
   ds.selectAll()
-  expect(ds.cases.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
+  expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
 })
 
 test("Caching mode", () => {
@@ -619,7 +621,7 @@ test("Caching mode", () => {
   // const strAttrID = ds.attributes[0].id
   const numAttrID = ds.attributes[1].id
   ds.addCases(toCanonical(ds, [{ str: "a", num: 1 }, { str: "b", num: 2 }, { str: "c", num: 3 }]))
-  const aId = ds.cases[0].__id__
+  const aId = ds.items[0].__id__
   // const bId = ds.cases[1].__id__
   // const cId = ds.cases[2].__id__
 
