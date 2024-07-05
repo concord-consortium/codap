@@ -52,6 +52,9 @@ function getTileInfo(tileType?: string) {
 export const CaseTableCardTitleBar =
   observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
     const tileInfo = getTileInfo(tile?.content.type)
+    const currentTileType = tile?.content.type
+    const caseCardTileInfo = getTileInfo(kCaseCardTileType)
+    const tableTileInfo = getTileInfo(kCaseTableTileType)
     const data = tile?.content && getTileDataSet(tile?.content)
     // title reflects DataSet title
     const getTitle = () => data?.title ?? ""
@@ -104,8 +107,9 @@ export const CaseTableCardTitleBar =
 
     const caseTableOrCardToggleString =
       t(`DG.DocumentController.toggleToCase${tileInfo.otherSuffix}`)
-    const CardOrTableIcon = tileInfo.Icon
-    const cardOrTableIconClass = tileInfo.iconClass
+    const CardOrTableIcon = currentTileType === kCaseTableTileType ? caseCardTileInfo.Icon : tableTileInfo.Icon
+    const cardOrTableIconClass = currentTileType === kCaseTableTileType
+                                  ? caseCardTileInfo.iconClass : tableTileInfo.iconClass
 
     return (
       <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
