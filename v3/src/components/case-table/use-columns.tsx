@@ -60,8 +60,10 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
 interface IUseColumnsProps {
   data?: IDataSet
   indexColumn?: TColumn
+  attrIdToEdit?: string
+  setAttrIdToEdit: (attrId: string | undefined) => void
 }
-export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
+export const useColumns = ({ data, indexColumn, attrIdToEdit, setAttrIdToEdit }: IUseColumnsProps) => {
   const caseMetadata = useCaseMetadata()
   const parentCollection = useParentCollectionContext()
   const collectionId = useCollectionContext()
@@ -109,8 +111,10 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 // which leads to undesirable browser behavior.
                 width: kDefaultColumnWidth,
                 resizable: true,
-                headerCellClass: "codap-column-header",
-                renderHeaderCell: ColumnHeader,
+                headerCellClass: `codap-column-header ${attrIdToEdit === id ? "selected" : ""}`,
+                renderHeaderCell:
+                  (props) =>
+                    <ColumnHeader {...props} attrIdToEdit={attrIdToEdit} setAttrIdToEdit={setAttrIdToEdit} />,
                 cellClass: "codap-data-cell",
                 renderCell: RenderCell,
                 renderEditCell: isEditable
@@ -125,7 +129,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       },
       { name: "useColumns [rebuild columns]", equals: comparer.structural, fireImmediately: true }, data
     )
-  }, [RenderCell, caseMetadata, collectionId, data, indexColumn, parentCollection])
+  }, [RenderCell, caseMetadata, collectionId, data, indexColumn, parentCollection, attrIdToEdit, setAttrIdToEdit])
 
   return columns
 }

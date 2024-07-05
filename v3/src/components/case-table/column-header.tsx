@@ -12,7 +12,7 @@ import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 
-export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">) {
+export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderHeaderCellProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
   const instanceId = useInstanceIdContext() || "table"
@@ -41,6 +41,16 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
   useEffect(() => {
     onCloseRef.current?.()
   }, [dragging])
+
+  useEffect(() => {
+    if (attrIdToEdit === column.key) {
+      setEditingAttrId(column.key)
+      setEditingAttrName(column.name as string)
+    } else {
+      setEditingAttrId("")
+      setEditingAttrName("")
+    }
+  }, [attrIdToEdit, column.key, column.name])
 
   // focus our content when the cell is focused
   useRdgCellFocus(cellElt, menuButtonRef.current)
@@ -87,6 +97,7 @@ export function ColumnHeader({ column }: Pick<TRenderHeaderCellProps, "column">)
     }
     setEditingAttrId("")
     setEditingAttrName("")
+    setAttrIdToEdit && setAttrIdToEdit(undefined)
   }
   const handleRenameAttribute = () => {
     setEditingAttrId(column.key)
