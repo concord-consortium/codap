@@ -713,7 +713,8 @@ export const DataSet = V2Model.named("DataSet").props({
         self.attrNameMap.set(attribute.name, attribute.id)
 
         // fill out any missing values
-        for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
+        // for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
+        for (let i = attribute.strValues.length; i < self.itemIds.length; ++i) {
           attribute.addValue()
         }
 
