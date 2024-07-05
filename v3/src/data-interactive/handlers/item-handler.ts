@@ -1,3 +1,4 @@
+import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIItem, DIItemValues, DIResources, DIValues } from "../data-interactive-types"
@@ -31,10 +32,45 @@ export const diItemHandler: DIHandler = {
       items.push(newItem)
     })
 
-    const itemIDs = dataContext.addCases(items, { canonicalize: true })
+    const newCaseIds: Record<string, number[]> = {}
+    let itemIDs: string[] = []
+    dataContext.applyModelChange(() => {
+      // Get case ids from before new items are added
+      const oldCaseIds: Record<string, Set<number>> = {}
+      dataContext.collections.forEach(collection => {
+        oldCaseIds[collection.id] = new Set(collection.caseIds.map(caseId => toV2Id(caseId)))
+      })
+      // Add items
+      itemIDs = dataContext.addCases(items, { canonicalize: true })
+      dataContext.validateCaseGroups()
+      // Find newly added cases by comparing current cases to previous cases
+      dataContext.collections.forEach(collection => {
+        newCaseIds[collection.id] = []
+        collection.caseIds.forEach(caseId => {
+          const v2CaseId = toV2Id(caseId)
+          if (!oldCaseIds[collection.id].has(v2CaseId)) newCaseIds[collection.id].push(v2CaseId)
+        })
+      })
+    }, {
+      notifications: () => {
+        const notifications = []
+        for (const collectionId in newCaseIds) {
+          const caseIds = newCaseIds[collectionId]
+          if (caseIds.length > 0) {
+            notifications.push(createCasesNotification(caseIds, dataContext))
+          }
+        }
+        return notifications
+      }
+    })
+
+    const caseIDs: number[] = []
+    for (const collectionId in newCaseIds) {
+      caseIDs.concat(newCaseIds[collectionId])
+    }
     return {
       success: true,
-      // caseIDs, // TODO This should include all cases created, both grouped and ungrouped
+      caseIDs,
       itemIDs: itemIDs.map(itemID => toV2Id(itemID))
     }
   },
