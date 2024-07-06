@@ -13,7 +13,7 @@ export const diItemHandler: DIHandler = {
 
     const _items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
     const items: DIItem[] = []
-    // Some very naughty plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
+    // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
     // like [{ ... }], so we accommodate that extra layer of indirection here.
     _items.forEach(item => {
       let newItem: DIItem
@@ -40,9 +40,11 @@ export const diItemHandler: DIHandler = {
       dataContext.collections.forEach(collection => {
         oldCaseIds[collection.id] = new Set(collection.caseIds.map(caseId => toV2Id(caseId)))
       })
-      // Add items
+
+      // Add items and update cases
       itemIDs = dataContext.addCases(items, { canonicalize: true })
       dataContext.validateCaseGroups()
+
       // Find newly added cases by comparing current cases to previous cases
       dataContext.collections.forEach(collection => {
         newCaseIds[collection.id] = []

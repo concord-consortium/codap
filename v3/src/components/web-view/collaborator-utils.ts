@@ -36,7 +36,6 @@ export function isItemEditable(dataset: IDataSet, itemId: string) {
   if (!getRespectEditableItemAttribute(dataset)) return true
   const editableAttribute = dataset.getAttributeByName("__editable__")
   if (!editableAttribute) return true
-  // TODO Handle editable attribute with formula?
   const strValue = dataset.getStrValue(itemId, editableAttribute.id)
   return !!strValue && strValue.toLowerCase() !== "false"
 }
