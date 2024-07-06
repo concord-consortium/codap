@@ -106,7 +106,7 @@
 .title-text-input {
   display: flex !important;
   justify-content: center !important;
-  height: calc($title-bar-height - 2px) !important;
+  height: calc($title-bar-height) !important;
   width: max-content;
   font-size: 14px !important;
   text-align: center !important;
@@ -115,4 +115,5 @@
   cursor: text;
   outline: none !important;
   border-radius: $border-radius-top-corners !important;
+  border: 2px solid #66afe9;
 }
