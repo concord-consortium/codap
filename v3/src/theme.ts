@@ -30,6 +30,14 @@ export const theme = extendTheme({
       baseStyle: {
         border: "1px solid gray"
       },
+      _hover: {
+        backgroundColor: "tealLight1",
+        color: "white"
+      },
+      _active: {
+        backgroundColor: "tealLight1",
+        color: "white"
+      },
       variants: {
         unstyled: {
           border: "none",
@@ -38,7 +46,24 @@ export const theme = extendTheme({
           height: "auto",
           outline: "none",
           padding: 0
-        }
+        },
+        default: {
+          backgroundColor: "tealLight2",
+          color: "white",
+          _hover: {
+            backgroundColor: "tealLight1",
+            color: "white"
+          },
+          _active: {
+            backgroundColor: "tealLight1",
+            color: "white"
+          },
+        },
+      }
+    },
+    FormLabel: {
+      baseStyle: {
+        marginInlineEnd: "0px"
       }
     },
     Checkbox,
