@@ -84,8 +84,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                       )
                     }}
                     isDisabled={pointDisplayType === "bars"}>
-              <SliderTrack/>
-              <SliderThumb/>
+              <SliderTrack bg="#b8b8b8"/>
+              <SliderThumb border="1px solid #cfcfcf"/>
             </Slider>
           </Flex>
         </FormControl>
