@@ -48,14 +48,14 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (inputRef.current) {
+      if (inputRef.current && editingAttrId === column.key) {
         inputRef.current.focus()
         inputRef.current.select()
       }
     }, 100) // delay to ensure the input is rendered
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [column.key, editingAttrId])
 
   useEffect(() => {
     onCloseRef.current?.()
@@ -161,7 +161,7 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
         const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
         onCloseRef.current = onClose
-        // ensure selected header is styled correctly. 
+        // ensure selected header is styled correctly.
         if (isMenuOpen.current) updateAriaSelectedAttribute("true")
         return (
           <Tooltip label={`${column.name ?? ""} ${description}`} h="20px" fontSize="12px"
