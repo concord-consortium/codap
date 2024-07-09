@@ -1,6 +1,7 @@
+import { createCasesNotification } from "../../models/data/data-set-notifications"
+import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DICaseValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { attrNamesToIds } from "../data-interactive-utils"
+import { DIHandler, DIItem, DIItemValues, DIResources, DIValues } from "../data-interactive-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -10,12 +11,69 @@ export const diItemHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
-    const items = (Array.isArray(values) ? values : [values]) as DICaseValues[]
-    const itemIDs = dataContext.addCases(items.map(item => attrNamesToIds(item, dataContext)))
+    const _items = (Array.isArray(values) ? values : [values]) as DIItemValues[]
+    const items: DIItem[] = []
+    // Some plugins (Collaborative) create items with values like [{ values: { ... } }] instead of
+    // like [{ ... }], so we accommodate that extra layer of indirection here.
+    _items.forEach(item => {
+      let newItem: DIItem
+      if (typeof item.values === "object") {
+        newItem = item.values
+      } else {
+        newItem = item as DIItem
+      }
+
+      // If an id is specified, we need to put it in the right format
+      // The Collaborative plugin makes use of this feature
+      const { id } = item
+      if (!newItem.__id__ && (typeof id === "string" || typeof id === "number")) {
+        newItem.__id__ = toV3ItemId(id)
+      }
+      items.push(newItem)
+    })
+
+    const newCaseIds: Record<string, number[]> = {}
+    let itemIDs: string[] = []
+    dataContext.applyModelChange(() => {
+      // Get case ids from before new items are added
+      const oldCaseIds: Record<string, Set<number>> = {}
+      dataContext.collections.forEach(collection => {
+        oldCaseIds[collection.id] = new Set(collection.caseIds.map(caseId => toV2Id(caseId)))
+      })
+
+      // Add items and update cases
+      itemIDs = dataContext.addCases(items, { canonicalize: true })
+      dataContext.validateCaseGroups()
+
+      // Find newly added cases by comparing current cases to previous cases
+      dataContext.collections.forEach(collection => {
+        newCaseIds[collection.id] = []
+        collection.caseIds.forEach(caseId => {
+          const v2CaseId = toV2Id(caseId)
+          if (!oldCaseIds[collection.id].has(v2CaseId)) newCaseIds[collection.id].push(v2CaseId)
+        })
+      })
+    }, {
+      notifications: () => {
+        const notifications = []
+        for (const collectionId in newCaseIds) {
+          const caseIds = newCaseIds[collectionId]
+          if (caseIds.length > 0) {
+            notifications.push(createCasesNotification(caseIds, dataContext))
+          }
+        }
+        return notifications
+      }
+    })
+
+    const caseIDs: number[] = []
+    for (const collectionId in newCaseIds) {
+      caseIDs.concat(newCaseIds[collectionId])
+    }
     return {
       success: true,
-      // caseIDs, // TODO This should include all cases created, both grouped and ungrouped
-      itemIDs
+      caseIDs,
+      itemIDs: itemIDs.map(itemID => toV2Id(itemID))
     }
   },
 

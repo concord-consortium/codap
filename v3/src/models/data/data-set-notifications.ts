@@ -93,6 +93,16 @@ export function updateAttributesNotification(attrs: IAttribute[], data?: IDataSe
   return attributeNotification("updateAttributes", data, attrs.map(attr => attr.id), attrs)
 }
 
+export function createCasesNotification(caseIDs: number[], data?: IDataSet) {
+  const caseID = caseIDs.length > 0 ? caseIDs[0] : undefined
+  const result = {
+    success: true,
+    caseIDs,
+    caseID
+  }
+  return notification("createCases", result, data)
+}
+
 export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   const caseIDs = cases?.map(c => toV2Id(c.__id__))
   const result = {

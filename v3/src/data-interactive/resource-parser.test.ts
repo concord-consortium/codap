@@ -108,7 +108,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[collection2].caseSearch`).caseSearch).toBeUndefined()
     expect(resolve(`dataContext[data].collection[collection2].caseSearch[]`).caseSearch).toBeUndefined()
     expect(resolve(`dataContext[data].collection[collection2].caseSearch[bad search]`).caseSearch).toBeUndefined()
-    expect(resolve(`dataContext[data].collection[collection2].caseSearch[a2>]`).caseSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseSearch[>a2]`).caseSearch).toBeUndefined()
     expect(resolve(`dataContext[data].collection[collection2].caseSearch[1!=2]`).caseSearch).toBeUndefined()
     expect(resolve(`dataContext[data].collection[collection2].caseSearch[a1==a]`).caseSearch).toBeUndefined()
 
@@ -146,7 +146,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].itemSearch`).itemSearch).toBeUndefined()
     expect(resolve(`dataContext[data].itemSearch[]`).itemSearch).toBeUndefined()
     expect(resolve(`dataContext[data].itemSearch[bad search]`).itemSearch).toBeUndefined()
-    expect(resolve(`dataContext[data].itemSearch[a1>]`).itemSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].itemSearch[>a1]`).itemSearch).toBeUndefined()
     expect(resolve(`dataContext[data].itemSearch[!=2]`).itemSearch).toBeUndefined()
 
     const allResult = resolve(`dataContext[data].itemSearch[*]`)
@@ -157,6 +157,9 @@ describe("DataInteractive ResourceParser", () => {
 
     const a2Result = resolve(`dataContext[data].itemSearch[ x < a2 ]`)
     expect(a2Result.itemSearch?.length).toBe(4)
+
+    const emptyResult = resolve(`dataContext[data].itemSearch[a3==]`)
+    expect(emptyResult.itemSearch?.length).toBe(0)
   })
 
   it("finds itemByCaseID", () => {

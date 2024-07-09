@@ -43,4 +43,26 @@ describe("DataInteractive ItemSearchHandler", () => {
       )
     })
   })
+
+  it("notify works", () => {
+    const { dataset: dataContext } = setupTestDataset()
+    const item = dataContext.items[1]
+    const itemSearch = [item]
+    const last = { itemOrder: "last" }
+    const notify = handler.notify!
+
+    expect(notify({ itemSearch }, last).success).toBe(false)
+    expect(notify({ dataContext }, last).success).toBe(false)
+    expect(notify({ dataContext, itemSearch }).success).toBe(false)
+    expect(notify({ dataContext, itemSearch }, {}).success).toBe(false)
+
+    expect(notify({ dataContext, itemSearch }, last).success).toBe(true)
+    expect(dataContext.itemIds[dataContext.itemIds.length - 1]).toBe(item.__id__)
+
+    expect(notify({ dataContext, itemSearch }, { itemOrder: "first" }).success).toBe(true)
+    expect(dataContext.itemIds[0]).toBe(item.__id__)
+
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [1] }).success).toBe(true)
+    expect(dataContext.itemIds[1]).toBe(item.__id__)
+  })
 })

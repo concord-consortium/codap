@@ -15,6 +15,7 @@ import {useDndContext} from "@dnd-kit/core"
 import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
 import { DisplayConfigPalette } from "./inspector-panel/display-config-palette"
+import { CameraMenuList } from "./camera-menu-list"
 
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
@@ -101,10 +102,10 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
                        testId={"graph-display-styles-button"}>
         <StylesIcon/>
       </InspectorButton>
-      <InspectorButton tooltip={t("DG.Inspector.makeImage.toolTip")} showMoreOptions={true}
-                       testId={"graph-camera-button"}>
-        <CameraIcon/>
-      </InspectorButton>
+      <InspectorMenu tooltip={t("DG.Inspector.makeImage.toolTip")} icon={<CameraIcon/>}
+                     onButtonClick={handleClosePalette} testId={"graph-camera-button"}>
+        <CameraMenuList/>
+      </InspectorMenu>
       {showPalette === "measure" &&
         <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
                              panelRect={panelRect} buttonRect={buttonRect}/>}

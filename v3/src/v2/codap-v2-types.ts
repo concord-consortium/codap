@@ -62,8 +62,9 @@ export interface ICodapV2Collection {
   attrs: ICodapV2Attribute[]
   cases: ICodapV2Case[]
   caseName: string | null
-  childAttrName: string | null,
-  collapseChildren: boolean | null,
+  childAttrName: string | null
+  cid?: string
+  collapseChildren: boolean | null
   defaults?: {
     xAttr: string
     yAttr: string
