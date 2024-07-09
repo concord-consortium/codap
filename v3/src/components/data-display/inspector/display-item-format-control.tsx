@@ -98,9 +98,9 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
 
       { renderSliderControlIfAny() }
 
-      <FormControl isDisabled={displayItemDescription.pointStrokeSameAsFill}>
+      <FormControl isDisabled={displayItemDescription.pointStrokeSameAsFill} className="palette-form-control">
         <Flex className="palette-row">
-          <FormLabel className="form-label">{t("DG.Inspector.stroke")}</FormLabel>
+          <FormLabel className="form-label stroke">{t("DG.Inspector.stroke")}</FormLabel>
           <Input type="color" className="color-picker-thumb" value={displayItemDescription.pointStrokeColor}
                  onChange={(e) => {
                    displayItemDescription.applyModelChange(
@@ -112,8 +112,6 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                    )
                  }}/>
         </Flex>
-      </FormControl>
-      <FormControl>
         <>
           { /*todo: The legend color controls are not in place yet*/ }
           {dataConfiguration.attributeID("legend") &&
@@ -125,7 +123,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                 <Flex className="palette-row">
                   {/* Sets the min and max colors for numeric legend. Currently not implemented so
                                 this sets the same color for all the points*/}
-                  <FormLabel className="form-label">{t("DG.Inspector.legendColor")}</FormLabel>
+                  <FormLabel className="form-label legend">{t("DG.Inspector.legendColor")}</FormLabel>
                   <Input type="color" className="color-picker-thumb" value={missingColor}
                          onChange={e => displayItemDescription.setPointColor(e.target.value)}/>
                   <Input type="color" className="color-picker-thumb" value={missingColor}
@@ -134,7 +132,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
               </FormControl>)
               :(
               <Flex className="palette-row">
-                <FormLabel className="form-label">{t("DG.Inspector.color")}</FormLabel>
+                <FormLabel className="form-label color">{t("DG.Inspector.color")}</FormLabel>
                 <Input type="color" className="color-picker-thumb"
                        value={displayItemDescription.pointColor}
                        onChange={e => {

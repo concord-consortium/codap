@@ -8,6 +8,14 @@
     .palette-form {
       height: fit-content;
 
+      .palette-row {
+        height: 30px;
+
+        .form-label.color {
+          margin-right: 4px;
+        }
+      }
+
       .palette-checkbox {
         height: 20px;
         width: 180px;
