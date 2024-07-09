@@ -1,8 +1,12 @@
 import createReactClass from "create-react-class"
 import PropTypes from 'prop-types'
+import React from 'react'
 import ReactDOMFactories from "react-dom-factories"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
+import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
 
 import "./attribute-name-cell.v2"
 import "./attribute-value-cell.v2"
@@ -229,6 +233,30 @@ iDataContext.doSelectCases({
               this.currEditField = null
               this.setState({ attrIdOfValueToEdit: null })
             }
+          },
+
+          /**
+           *  --------------Show the modal for editing attribute --------
+           */
+          editAttributePropModal(attributeId, isOpen) {
+            if (attributeId) {
+              this.setState({editAttributePropModalIsOpen: isOpen, currentAttributeId: attributeId})
+            }
+          },
+
+          closeEditAttributePropModal() {
+            this.setState({ editAttributePropModalIsOpen: false, currentAttributeId: null })
+          },
+
+          editFormulaModal(attributeId, isOpen) {
+            if (attributeId) {
+              this.setState({editFormulaModalIsOpen: isOpen, currentAttributeId: attributeId})
+            }
+          },
+
+          closeEditFormulaModal() {
+            this.setState({ editFormulaModalIsOpen: false, currentAttributeId: null })
+            this.incrementStateCount()
           },
 
           /**
@@ -501,22 +529,16 @@ iDataContext.doSelectCases({
                   }
                 }.bind(this),
                 editAttribute = function () {
-                  this.updateAttribute = function(iAttrRef, iChangedAttrProps) {
-                    updateAttribute(iChangedAttrProps)
-                  }
-                  var attributePane = DG.AttributeEditorView.create({attrRef: {attribute: iAttr}, attrUpdater: this})
-                  attributePane.append()
+                  this.editAttributePropModal(iAttr.get('id'), true)
                 }.bind(this),
 
                 editFormula = function () {
-                  iContext.invokeLater(function () {
-                    DG.DataContextUtilities.editAttributeFormula(iContext, iCollection,
-                        iAttr.get('name'), iAttr.get('formula'))
-                  }, 30)
+                  this.editFormulaModal(iAttr.get('id'), true)
                 }.bind(this),
 
                 hideAttribute = function () {
                   DG.DataContextUtilities.hideAttribute(iContext, iAttr.get('id'))
+                  this.incrementStateCount() // Force a re-render
                 }.bind(this),
 
                 attributeCanBeHidden = function () {
@@ -553,14 +575,13 @@ iDataContext.doSelectCases({
                 },
 
                 makeNewAttribute = function() {
-                  var collection = iContext.getCollectionByID(iCollection.get('id')),
-                      position = 1, // Just after the first attribute
-                      onComplete = function(attrName) {
-                                    var attrRef = iContext.getAttrRefByName(attrName),
-                                        attrID = attrRef?.attribute.get('id')
-                                    attrID && this.setState({ attrIdOfNameToEdit: attrID })
-                                  }.bind(this)
-                  DG.DataContextUtilities.newAttribute(iContext, collection, position, onComplete)
+                  const position = 1 // Just after the first attribute
+                  const onComplete = function(attrName) {
+                                var attrRef = iContext.getAttrRefByName(attrName),
+                                    attrID = attrRef?.attribute.get('id')
+                                attrID && this.setState({ attrIdOfNameToEdit: attrID })
+                              }.bind(this)
+                  DG.DataContextUtilities.newAttribute(iContext, iCollection, position, onComplete)
                 }.bind(this)
 
             /**
@@ -850,7 +871,8 @@ return tResult
                     return tParents
                   }
 
-                  var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
+                  var tCaseMetadata = getSharedCaseMetadataFromDataset(tContext.data),
+                      tCollClient = tContext.getCollectionByID(iCollection.get('id')),
                       tCollectionName = tCollClient.get('name'),
                       tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
                       tSelLength = tSelectedCases ? tSelectedCases.length : 0,
@@ -867,7 +889,7 @@ return tResult
                       tResizeHandle
 
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                    if (!iAttr.get('hidden')) {
+                    if (!tCaseMetadata?.isHidden(iAttr.get("id"))) {
                       tAttrEntries.push(
                           this.renderAttribute(tContext, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
@@ -906,7 +928,18 @@ return tResult
             return div({
               className: 'react-data-card dg-wants-wheel',
               onMouseDownCapture: DG.Core.setClickHandlingForReact,
-            }, tCollEntries)
+            },
+            tCollEntries,
+            this.state.editAttributePropModalIsOpen && React.createElement(EditAttributePropertiesModal, {
+              attributeId: this.state.currentAttributeId,
+              isOpen: this.state.editAttributePropModalIsOpen,
+              onClose: this.closeEditAttributePropModal
+            }),
+            this.state.editFormulaModalIsOpen && React.createElement(EditFormulaModal, {
+              attributeId: this.state.currentAttributeId,
+              isOpen: this.state.editFormulaModalIsOpen,
+              onClose: this.closeEditFormulaModal
+            }))
           }
         }
       }()), [])
