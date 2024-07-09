@@ -17,12 +17,14 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
   const data = useDataSetContext()
   const instanceId = useInstanceIdContext() || "table"
   const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
   const [contentElt, setContentElt] = useState<HTMLDivElement | null>(null)
   const cellElt: HTMLDivElement | null = contentElt?.closest(".rdg-cell") ?? null
   const isMenuOpen = useRef(false)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
   const [modalIsOpen, setModalIsOpen] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
   const onCloseRef = useRef<() => void>()
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
@@ -37,6 +39,17 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
     setContentElt(elt)
     setDragNodeRef(elt?.closest(".rdg-cell") || null)
   }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus()
+        inputRef.current.select()
+      }
+    }, 100) // delay to ensure the input is rendered
+
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     onCloseRef.current?.()
@@ -108,6 +121,30 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
     setModalIsOpen(open)
   }
 
+  const handleInputBlur = (e: any) => {
+    if (isFocused) {
+      handleClose(true)
+    }
+  }
+
+  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    setIsFocused(false)
+    const input = inputRef.current
+    if (input) {
+      const selectionStart = input.selectionStart
+      const selectionEnd = input.selectionEnd
+      if (selectionStart !== null && selectionEnd !== null) {
+        if (selectionStart === selectionEnd) {
+          input.setSelectionRange(selectionStart, selectionEnd)
+        }
+      }
+    }
+  }
+
+  const handleFocus = () => {
+    setIsFocused(true)
+  }
+
   const units = attribute?.units ? ` (${attribute.units})` : ""
   const description = attribute?.description ? `: ${attribute.description}` : ""
   return (
@@ -124,9 +161,10 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
             <div className="codap-column-header-content" ref={setCellRef} {...attributes} {...listeners}
             data-testid="codap-column-header-content">
             { editingAttrId
-                  ? <Input value={editingAttrName} data-testid="column-name-input" size="xs" autoFocus={true}
-                      variant="unstyled" onChange={event => setEditingAttrName(event.target.value)}
-                      onKeyDown={handleInputKeyDown} onBlur={()=>handleClose(true)} onFocus={(e) => e.target.select()}
+                  ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input" size="xs"
+                            autoFocus={true} variant="unstyled" onClick={handleInputClick}
+                            onChange={event => setEditingAttrName(event.target.value)}
+                            onKeyDown={handleInputKeyDown} onBlur={handleInputBlur} onFocus={handleFocus}
                     />
                   : <>
                       <MenuButton className="codap-attribute-button" ref={menuButtonRef}
