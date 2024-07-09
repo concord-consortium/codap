@@ -1,6 +1,6 @@
 import { Tooltip, Menu, MenuButton, Input, VisuallyHidden } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -40,6 +40,12 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
     setDragNodeRef(elt?.closest(".rdg-cell") || null)
   }
 
+  const updateAriaSelectedAttribute = useCallback((isSelected: "true" | "false") => {
+    if (cellElt) {
+      cellElt.setAttribute("aria-selected", isSelected)
+    }
+  }, [cellElt])
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (inputRef.current) {
@@ -59,11 +65,13 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
     if (attrIdToEdit === column.key) {
       setEditingAttrId(column.key)
       setEditingAttrName(column.name as string)
+      updateAriaSelectedAttribute("true")
     } else {
       setEditingAttrId("")
       setEditingAttrName("")
+      updateAriaSelectedAttribute("false")
     }
-  }, [attrIdToEdit, column.key, column.name])
+  }, [attrIdToEdit, cellElt, column.key, column.name, updateAriaSelectedAttribute])
 
   // focus our content when the cell is focused
   useRdgCellFocus(cellElt, menuButtonRef.current)
@@ -153,6 +161,8 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
         const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
         isMenuOpen.current = isOpen
         onCloseRef.current = onClose
+        // ensure selected header is styled correctly. 
+        if (isMenuOpen.current) updateAriaSelectedAttribute("true")
         return (
           <Tooltip label={`${column.name ?? ""} ${description}`} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
