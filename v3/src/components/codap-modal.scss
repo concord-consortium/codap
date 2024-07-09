@@ -10,6 +10,7 @@ $header-height: 30px;
     flex-direction: row;
     align-items: center;
     box-shadow: none;
+    background-color: #f0f0f0;
 
     .codap-modal-icon-container {
       width: 30px;
@@ -41,7 +42,18 @@ $header-height: 30px;
     }
   }
 
+  .chakra-modal__body {
+    background-color: #f0f0f0;
+  }
+
+  .chakra-modal__footer {
+    background-color: #f0f0f0;
+  }
+
   .chakra-form__label {
     align-items: center !important;
+  }
+  input, textarea, select, .chakra-radio__control {
+    background-color: white;
   }
 }
