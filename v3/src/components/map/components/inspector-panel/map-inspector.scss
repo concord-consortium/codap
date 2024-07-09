@@ -1,7 +1,35 @@
 .inspector-panel.map.data-display {
   .codap-inspector-palette {
-    .map-layers-checkbox {
-      font-weight: bold;
+    font-size: 12px;
+    min-width: 205px;
+    min-height: 100px;
+    font-weight: bold;
+
+    .palette-form {
+      height: fit-content;
+
+      .map-values-controls {
+        display: flex;
+        flex-direction: column;
+        margin: 5px;
+
+        .map-values-layer-label{
+          display: flex;
+          align-items: center;
+        }
+      }
+
+      .palette-checkbox {
+        height: 20px;
+        width: 180px;
+        margin: 2px 0;
+      }
+
+      .map-layers-checkbox {
+        font-weight: bold;
+        height: 20px;
+        width: 180px;
+      }
     }
 
     .map-base-control {
@@ -13,7 +41,6 @@
         border-radius: 10px;
         padding-left: 5px;
         padding-right: 5px;
-        font-size: 12px;
         cursor: pointer;
 
         .map-base-button {
@@ -27,7 +54,6 @@
           padding: 5px;
           background-image: linear-gradient(to bottom, #5DA3EE, #437BD4);
           color: white;
-          font-weight: bold;
           text-shadow: black 1px 1px;
         }
       }
