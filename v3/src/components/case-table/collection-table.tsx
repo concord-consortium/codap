@@ -129,8 +129,17 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }, [columns, caseTableModel])
 
   const rows = useMemo(() => {
-    return collectionTableModel?.rows ? [...collectionTableModel.rows, { __id__: "__input__" }] : undefined
-  }, [collectionTableModel?.rows])
+    if (collectionTableModel?.rows) {
+      const _rows = [...collectionTableModel.rows]
+      const inputRow = { __id__: "__input__" }
+      if (collectionTableModel.inputRowIndex === -1) {
+        _rows.push(inputRow)
+      } else {
+        _rows.splice(collectionTableModel.inputRowIndex, 0, inputRow)
+      }
+      return _rows
+    }
+  }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex])
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (

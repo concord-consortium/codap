@@ -11,6 +11,7 @@ import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { updateCasesNotification } from "../../models/data/data-set-notifications"
 import {
+  IAddCasesOptions,
   ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
@@ -234,6 +235,8 @@ export const useRows = () => {
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
+    console.log(`--- changes`, changes)
+    console.log(` -- rows`, _rows)
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     const casesToUpdate: ICase[] = []
     const newCases: ICaseCreation[] = []
@@ -248,7 +251,15 @@ export const useRows = () => {
     data?.applyModelChange(
       () => {
         data.setCaseValues(casesToUpdate)
-        data.addCases(newCases)
+        if (newCases.length > 0) {
+          const options: IAddCasesOptions = {}
+          if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
+            const collection = data.getCollection(collectionTableModel?.collectionId)
+            options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
+            collectionTableModel.inputRowIndex += 1
+          }
+          data.addCases(newCases, options)
+        }
       },
       {
         // TODO notification for added cases
@@ -260,7 +271,7 @@ export const useRows = () => {
         redoStringKey: "DG.Redo.caseTable.editCellValue"
       }
     )
-  }, [data])
+  }, [collectionTableModel, data])
 
   return { handleRowsChange }
 }
