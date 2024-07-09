@@ -46,7 +46,7 @@ describe("DataInteractive ItemSearchHandler", () => {
 
   it("notify works", () => {
     const { dataset: dataContext } = setupTestDataset()
-    const item = dataContext.items[1]!
+    const item = dataContext.items[1]
     const itemSearch = [item]
     const last = { itemOrder: "last" }
     const notify = handler.notify!

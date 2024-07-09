@@ -23,13 +23,9 @@ export const diCollectionHandler: DIHandler = {
 
     const newCollections: ICollectionModel[] = []
     dataContext.applyModelChange(() => {
-      // Remove the default collection if it exists and is empty
-      // This is a special case and it might make more sense to do this in a more generic way,
-      // like a reaction that removes empty collections whenever attributes change.
-      if (dataContext.collections.length === 1) {
-        const oldCollection = dataContext.collections[0]
-        if (oldCollection.attributes.length === 0) dataContext.removeCollection(oldCollection)
-      }
+      // Find the empty default collection if it exists. It will be removed if any collections are added.
+      const oldCollection = dataContext.collections.length === 1 && dataContext.collections[0]
+      const emptyCollection = oldCollection && oldCollection.attributes.length === 0 ? oldCollection : undefined
 
       collections.forEach(collection => {
         const { name, title, parent, attributes, attrs } = collection as DICreateCollection
@@ -82,6 +78,9 @@ export const diCollectionHandler: DIHandler = {
 
         returnValues.push({ id: toV2Id(newCollection.id), name: newCollection.name })
       })
+      
+      // Remove the empty default collection if any collections were added
+      if (emptyCollection && dataContext.collections.length > 1) dataContext.removeCollection(emptyCollection)
     }, {
       notifications: () => newCollections.map(newCollection => createCollectionNotification(newCollection, dataContext))
     })

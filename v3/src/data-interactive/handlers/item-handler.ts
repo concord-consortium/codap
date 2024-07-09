@@ -26,7 +26,7 @@ export const diItemHandler: DIHandler = {
       // If an id is specified, we need to put it in the right format
       // The Collaborative plugin makes use of this feature
       const { id } = item
-      if (!newItem.__id__ && typeof id === "string" || typeof id === "number") {
+      if (!newItem.__id__ && (typeof id === "string" || typeof id === "number")) {
         newItem.__id__ = toV3ItemId(id)
       }
       items.push(newItem)

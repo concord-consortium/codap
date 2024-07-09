@@ -6,7 +6,7 @@ import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
-import { kAttrIdPrefix, maybeToV2Id, toV2Id } from "../utilities/codap-utils"
+import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
@@ -16,7 +16,7 @@ import { getCaseValues } from "./data-interactive-utils"
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
   if (values.name) {
-    const id = values.cid
+    const id = values.id != null ? toV3AttrId(values.id) : values.cid
     return {
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
       id,
