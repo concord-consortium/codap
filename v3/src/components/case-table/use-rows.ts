@@ -233,12 +233,26 @@ export const useRows = () => {
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
+    const casesToUpdate: ICase[] = []
+    const newCases: ICase[] = []
+    caseValues.forEach(aCase => {
+      if (aCase.__id__ === "__input__") {
+        newCases.push(aCase)
+      } else {
+        casesToUpdate.push(aCase)
+      }
+    })
     data?.applyModelChange(
-      () => data.setCaseValues(caseValues),
+      () => {
+        data.setCaseValues(casesToUpdate)
+        data.addCases(newCases)
+      },
       {
+        // TODO notification for added cases
+        // TODO confirm that caseIds are correct, then remove these comments
         // TODO notifications should be () => updateCasesNotification, but that won't work well
         // until case ids are persistent
-        notifications: updateCasesNotification(data, caseValues),
+        notifications: () => updateCasesNotification(data, casesToUpdate),
         undoStringKey: "DG.Undo.caseTable.editCellValue",
         redoStringKey: "DG.Redo.caseTable.editCellValue"
       }
