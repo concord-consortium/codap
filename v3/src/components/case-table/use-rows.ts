@@ -11,8 +11,7 @@ import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { updateCasesNotification } from "../../models/data/data-set-notifications"
 import {
-  IAddCasesOptions,
-  ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
+  IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { mstReaction } from "../../utilities/mst-reaction"
