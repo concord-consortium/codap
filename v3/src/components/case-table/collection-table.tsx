@@ -1,6 +1,6 @@
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRenderers, TRow } from "./case-table-types"
@@ -128,11 +128,10 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       }
     }, [columns, caseTableModel])
 
-  const rows = collectionTableModel?.rows
+  const rows = useMemo(() => {
+    return collectionTableModel?.rows ? [...collectionTableModel.rows, { __id__: "__input__" }] : undefined
+  }, [collectionTableModel?.rows])
   if (!data || !rows || !visibleAttributes.length) return null
-
-  rows.push({ __id__: "__input__" })
-  console.log(`... rows`, rows)
 
   return (
     <div className={`collection-table collection-${collectionId}`}>

@@ -234,7 +234,6 @@ export const useRows = () => {
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
-    console.log(`--- chnages`, changes)
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     const casesToUpdate: ICase[] = []
     const newCases: ICaseCreation[] = []
