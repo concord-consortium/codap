@@ -131,6 +131,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const rows = collectionTableModel?.rows
   if (!data || !rows || !visibleAttributes.length) return null
 
+  rows.push({ __id__: "__input__" })
+  console.log(`... rows`, rows)
+
   return (
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />

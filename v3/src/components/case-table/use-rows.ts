@@ -10,7 +10,9 @@ import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { updateCasesNotification } from "../../models/data/data-set-notifications"
-import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
+import {
+  ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
+} from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -232,12 +234,14 @@ export const useRows = () => {
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
+    console.log(`--- chnages`, changes)
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     const casesToUpdate: ICase[] = []
-    const newCases: ICase[] = []
+    const newCases: ICaseCreation[] = []
     caseValues.forEach(aCase => {
       if (aCase.__id__ === "__input__") {
-        newCases.push(aCase)
+        const { __id__, ...others } = aCase
+        newCases.push({ ...others })
       } else {
         casesToUpdate.push(aCase)
       }
