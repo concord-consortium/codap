@@ -11,7 +11,7 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
   }
 
   // RegExs here and below taken from CODAP v2
-  const matches = query.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]+)/)
+  const matches = query.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]*)/)
   if (!matches) return { valid: false, func: () => false }
   
   const parseOperand = (_rawValue: string) => {
@@ -19,7 +19,8 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
     const rawValue = _rawValue.replace(/^\s+|\s+$/g, '')
 
     const numberValue = Number(rawValue)
-    const value = rawValue === "true" ? true
+    const value = rawValue === "" ? ""
+      : rawValue === "true" ? true
       : rawValue === "false" ? false
       : isNaN(numberValue) ? rawValue
       : numberValue

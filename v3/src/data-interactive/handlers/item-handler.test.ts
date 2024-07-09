@@ -8,7 +8,7 @@ describe("DataInteractive ItemHandler", () => {
   const handler = diItemHandler
 
   it("create works", () => {
-    const { dataset } = setupTestDataset()
+    const { dataset, a1 } = setupTestDataset()
 
     expect(handler.create?.({}).success).toBe(false)
 
@@ -19,7 +19,7 @@ describe("DataInteractive ItemHandler", () => {
     const result1 = handler.create?.(resources, { a1: "d", a2: "w", a3: 7 } as DIItem) as DISuccessResult
     expect(result1.success).toBe(true)
     expect(result1.itemIDs?.length).toBe(1)
-    expect(result1.itemIDs?.[0]).toBe(dataset.items[6].__id__)
+    expect(result1.itemIDs?.[0]).toBe(toV2Id(dataset.items[6].__id__))
 
     // Create multiple items
     const result2 = handler.create?.(resources, [
@@ -28,8 +28,17 @@ describe("DataInteractive ItemHandler", () => {
     ] as DIItem[]) as DISuccessResult
     expect(result2.success).toBe(true)
     expect(result2.itemIDs?.length).toBe(2)
-    expect(result2.itemIDs?.[0]).toBe(dataset.items[7].__id__)
-    expect(result2.itemIDs?.[1]).toBe(dataset.items[8].__id__)
+    expect(result2.itemIDs?.[0]).toBe(toV2Id(dataset.items[7].__id__))
+    expect(result2.itemIDs?.[1]).toBe(toV2Id(dataset.items[8].__id__))
+
+    // Create item in Collaborative format
+    const id = "testId123"
+    const result3 = handler.create?.(resources, { id, values: { a1: "g", a2: "t", a3: 10 } }) as DISuccessResult
+    expect(result3?.success).toBe(true)
+    expect(result3.itemIDs?.length).toBe(1)
+    expect(dataset.items[9].__id__).toBe(id)
+    expect(result3.itemIDs?.[0]).toBe(toV2Id(id))
+    expect(a1.value(9)).toBe("g")
   })
 
   it("delete works", () => {

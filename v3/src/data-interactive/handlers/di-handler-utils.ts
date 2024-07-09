@@ -24,10 +24,10 @@ export function createCollection(v2collection: DICollection, dataContext: IDataS
   // TODO How should we handle duplicate names?
   // TODO How should we handle missing names?
   // TODO Handle labels
-  const { attrs, name: collectionName, title: collectionTitle } = v2collection
+  const { attrs, cid, name: collectionName, title: collectionTitle } = v2collection
   const _title = v2NameTitleToV3Title(collectionName ?? "", collectionTitle)
   const options: IAddCollectionOptions = { after: dataContext.childCollection?.id }
-  const collection = dataContext.addCollection({ name: collectionName, _title }, options)
+  const collection = dataContext.addCollection({ id: cid, name: collectionName, _title }, options)
 
   attrs?.forEach(attr => {
     createAttribute(attr, dataContext, collection, metadata)
