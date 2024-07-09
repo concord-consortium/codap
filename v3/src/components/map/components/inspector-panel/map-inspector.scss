@@ -8,6 +8,12 @@
     .palette-form {
       height: fit-content;
 
+      .palette-checkbox {
+        height: 20px;
+        width: 180px;
+        margin: 2px 0;
+      }
+
       .map-values-controls {
         display: flex;
         flex-direction: column;
@@ -18,43 +24,53 @@
           align-items: center;
         }
       }
-
-      .palette-checkbox {
-        height: 20px;
-        width: 180px;
-        margin: 2px 0;
-      }
-
-      .map-layers-checkbox {
-        font-weight: bold;
-        height: 20px;
-        width: 180px;
-      }
     }
 
     .map-base-control {
       margin: 1px;
 
+      .palette-checkbox{
+        width: 80px;
+      }
+
       .map-base-segmented {
-        border: 1px solid #cccccc;
+        height: 18px;
+        width: 170px;
         margin: 5px;
-        border-radius: 10px;
-        padding-left: 5px;
-        padding-right: 5px;
+        border-radius: 4px;
+        justify-content: center;
         cursor: pointer;
 
         .map-base-button {
-          border-radius: 5px;
-          padding: 5px;
-          background-image: linear-gradient(to bottom, #f7f7f7, #e7e7e7);
-        }
-
-        .map-base-button-selected {
-          border-radius: 5px;
-          padding: 5px;
-          background-image: linear-gradient(to bottom, #5DA3EE, #437BD4);
-          color: white;
-          text-shadow: black 1px 1px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          &.oceans {
+            border: 1px solid #cccccc;
+            border-radius: 4px 0 0 4px;
+            height: 18px;
+            width: 57.5px;
+          }
+          &.streets {
+            border: 1px solid #cccccc;
+            border-radius: 0 4px 4px 0;
+            width: 54.5px;
+            height: 18px;
+          }
+          &.topo {
+            border-top: 1px solid #cccccc;
+            border-bottom: 1px solid #cccccc;
+            width: 45px;
+            height: 18px;
+            border-radius: 0;
+          }
+          &.selected {
+            background-image: linear-gradient(to bottom, #5DA3EE, #437BD4);
+            color: white;
+            text-shadow: black 1px 1px;
+          }
         }
       }
     }

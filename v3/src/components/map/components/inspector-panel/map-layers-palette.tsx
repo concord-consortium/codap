@@ -40,7 +40,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
         return (
           <div className="map-layer-controls" key={layer.id}>
             <Checkbox
-              className='map-layers-checkbox'
+              className="palette-checkbox"
               data-testid={`map-layers-checkbox-layer`}
               defaultChecked={layer.isVisible}
               onChange={() => {
