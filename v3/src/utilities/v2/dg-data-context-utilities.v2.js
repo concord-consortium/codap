@@ -1,9 +1,10 @@
 import pluralize from "pluralize"
 import { DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
-import { createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
-
-const YES = true
+import {
+  createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification
+} from "../../models/data/data-set-notifications"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
 DG.DataContextUtilities = {
 
@@ -253,9 +254,10 @@ DG.DataContextUtilities = {
    * @param iDataContext {DG.DataContext}
    * @param iAttrID {number}
    */
-  hideAttribute (iContext, iCaseMetadata, iAttrID) {
-    iCaseMetadata?.applyModelChange(
-      () => iCaseMetadata?.setIsHidden(iAttrID, true),
+  hideAttribute (iContext, iAttrID) {
+    const tCaseMetadata = getSharedCaseMetadataFromDataset(iContext.data)
+    tCaseMetadata?.applyModelChange(
+      () => tCaseMetadata?.setIsHidden(iAttrID, true),
       {
         notifications: hideAttributeNotification([iAttrID], iContext.data),
         undoStringKey: "DG.Undo.caseTable.hideAttribute",

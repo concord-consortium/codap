@@ -4,7 +4,6 @@ import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data
 import { DataSet, IDataSet } from "../data/data-set"
 import { ISharedModel, SharedModel } from "./shared-model"
 import { applyModelChange } from "../history/apply-model-change"
-import { any, object, shape, string } from "prop-types"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
 

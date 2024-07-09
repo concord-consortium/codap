@@ -7,7 +7,6 @@ import { createDataSet } from "../../models/data/data-set-conversion"
 import { DGDataContext } from "../../models/v2/dg-data-context"
 import { t } from "../../utilities/translation/translate"
 import "./case-card.v2"
-import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 const { CaseCard } = DG.React as any
 
 describe("CaseCard component", () => {
@@ -28,7 +27,6 @@ describe("CaseCard component", () => {
     })
     data.addCases([{ __id__: "Case1", AttrId: "foo" }, { __id__: "Case2", AttrId: "bar" }])
     const context = new DGDataContext(data)
-    const metadata = SharedCaseMetadata.create()
     const columnWidthMap: Record<string, number> = {}
     const mockIsSelected = jest.fn()
     const mockOnResizeColumn = jest.fn()
@@ -36,7 +34,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -52,7 +49,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -67,7 +63,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -80,7 +75,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -94,7 +88,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -107,7 +100,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -121,7 +113,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -137,7 +128,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -169,7 +159,6 @@ describe("CaseCard component", () => {
         { id: "Attr2Id", name: "Attr2Name" }
       ]
     })
-    const metadata = SharedCaseMetadata.create()
     data.addCases([
       { __id__: "Case1", Attr1Id: "foo", Attr2Id: 1 },
       { __id__: "Case2", Attr1Id: "foo", Attr2Id: 2 },
@@ -184,7 +173,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -200,7 +188,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -214,7 +201,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -228,7 +214,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -241,7 +226,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}
@@ -255,7 +239,6 @@ describe("CaseCard component", () => {
       <CaseCard
         size={{ width: 400, height: 300 }}
         context={context}
-        caseMetaData={metadata}
         columnWidthMap={columnWidthMap}
         onResizeColumn={() => mockOnResizeColumn()}
         isSelectedCallback={() => mockIsSelected()}

@@ -1,9 +1,10 @@
 import createReactClass from "create-react-class"
 import PropTypes from 'prop-types'
+import React from 'react'
 import ReactDOMFactories from "react-dom-factories"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
-import React from 'react'
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
 import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
 
@@ -13,17 +14,6 @@ import "./collection-header.v2"
 import "./column-resize-handle.v2"
 import "../../utilities/v2/dg-case-display-utils.v2"
 import "../../utilities/v2/dg-data-context-utilities.v2"
-
-export const SharedCaseMetaDataPropType = PropTypes.shape({
-  type: PropTypes.any,
-  data: PropTypes.any,
-  collections: PropTypes.object,
-  categories: PropTypes.object,
-  hidden: PropTypes.object,
-  caseTableTileId: PropTypes.string,
-  caseCardTileId: PropTypes.string,
-  lastShownTableOrCardTileId: PropTypes.string // used to restore the last shown tile both have been hidden
-})
 
 DG.React.ready(function () {
   var div = ReactDOMFactories.div,
@@ -302,7 +292,7 @@ iDataContext.doSelectCases({
             })
           },
 
-          renderAttribute (iContext, iCaseMetadata, iCollection, iCases,
+          renderAttribute (iContext, iCollection, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             /**
              * -------------------------Dragging this attribute----------------
@@ -547,7 +537,7 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 hideAttribute = function () {
-                  DG.DataContextUtilities.hideAttribute(iContext, iCaseMetadata, iAttr.get('id'))
+                  DG.DataContextUtilities.hideAttribute(iContext, iAttr.get('id'))
                   this.incrementStateCount() // Force a re-render
                 }.bind(this),
 
@@ -844,7 +834,6 @@ return tSortedSelection.map(function(iEntry) {
 
             var tCollEntries = [],
                 tContext = this.props.context,
-                tCaseMetadata = this.props.caseMetaData,
                 tChildmostSelection = getChildmostSelection(tContext)
             // collection loop
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
@@ -882,7 +871,8 @@ return tResult
                     return tParents
                   }
 
-                  var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
+                  var tCaseMetadata = getSharedCaseMetadataFromDataset(tContext.data),
+                      tCollClient = tContext.getCollectionByID(iCollection.get('id')),
                       tCollectionName = tCollClient.get('name'),
                       tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
                       tSelLength = tSelectedCases ? tSelectedCases.length : 0,
@@ -899,9 +889,9 @@ return tResult
                       tResizeHandle
 
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                    if (!tCaseMetadata.isHidden(iAttr.get("id"))) {
+                    if (!tCaseMetadata?.isHidden(iAttr.get("id"))) {
                       tAttrEntries.push(
-                          this.renderAttribute(tContext, tCaseMetadata, iCollection, tCases,
+                          this.renderAttribute(tContext, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
                               tChildmostSelection))
                     }
@@ -958,7 +948,6 @@ return tResult
     size: PropTypes.shape({ width: PropTypes.number }),
     // the data context
     context: PropTypes.instanceOf(DG.DataContext).isRequired,
-    caseMetaData: SharedCaseMetaDataPropType.isRequired,
     // drag/drop support
     dragStatus: PropTypes.object,
     // map from collection name => column width percentage (0-1)
