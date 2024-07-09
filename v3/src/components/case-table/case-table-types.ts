@@ -21,10 +21,7 @@ export interface TCalculatedColumn extends CalculatedColumn<TRow> {}
 export interface TRenderers extends Renderers<TRow, unknown> {}
 export interface TRenderEditCellProps extends RenderEditCellProps<TRow> {}
 export interface TRenderCellProps extends RenderCellProps<TRow> {}
-export interface TRenderHeaderCellProps extends RenderHeaderCellProps<TRow> {
-  attrIdToEdit?: string
-  setAttrIdToEdit?: (attrId: string | undefined) => void
-}
+export interface TRenderHeaderCellProps extends RenderHeaderCellProps<TRow> {}
 export interface TRenderRowProps extends RenderRowProps<TRow> {}
 export interface TCellClickArgs extends CellClickArgs<TRow> {}
 export type TColSpanArgs = ColSpanArgs<TRow, unknown>

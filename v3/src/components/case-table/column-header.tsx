@@ -11,10 +11,12 @@ import { CaseTablePortal } from "./case-table-portal"
 import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
-export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderHeaderCellProps) {
+export function ColumnHeader({ column }: TRenderHeaderCellProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
+  const collectionTableModel = useCollectionTableModel()
   const instanceId = useInstanceIdContext() || "table"
   const menuButtonRef = useRef<HTMLButtonElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -62,7 +64,7 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
   }, [dragging])
 
   useEffect(() => {
-    if (attrIdToEdit === column.key) {
+    if (collectionTableModel?.attrIdToEdit === column.key) {
       setEditingAttrId(column.key)
       setEditingAttrName(column.name as string)
       updateAriaSelectedAttribute("true")
@@ -71,7 +73,7 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
       setEditingAttrName("")
       updateAriaSelectedAttribute("false")
     }
-  }, [attrIdToEdit, cellElt, column.key, column.name, updateAriaSelectedAttribute])
+  }, [collectionTableModel?.attrIdToEdit, cellElt, column.key, column.name, updateAriaSelectedAttribute])
 
   // focus our content when the cell is focused
   useRdgCellFocus(cellElt, menuButtonRef.current)
@@ -118,7 +120,7 @@ export function ColumnHeader({ column, attrIdToEdit, setAttrIdToEdit }: TRenderH
     }
     setEditingAttrId("")
     setEditingAttrName("")
-    setAttrIdToEdit && setAttrIdToEdit(undefined)
+    collectionTableModel?.setAttrIdToEdit?.(undefined)
   }
   const handleRenameAttribute = () => {
     setEditingAttrId(column.key)

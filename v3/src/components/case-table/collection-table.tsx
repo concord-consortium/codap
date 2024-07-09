@@ -52,7 +52,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { isTileSelected } = useTileModelContext()
   const isFocused = isTileSelected()
   const forceUpdate = useForceUpdate()
-  const [attrIdToEdit, setAttrIdToEdit] = useState<string | undefined>(undefined)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element ?? undefined
@@ -73,7 +72,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // columns
   const indexColumn = useIndexColumn()
-  const columns = useColumns({ data, indexColumn, attrIdToEdit, setAttrIdToEdit})
+  const columns = useColumns({ data, indexColumn })
 
   // rows
   const { handleRowsChange } = useRows()
@@ -141,7 +140,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       )
       attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
       if (attribute) {
-        setAttrIdToEdit(attribute.id)
+        collectionTableModel?.setAttrIdToEdit(attribute.id)
       }
     }, {
       notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
