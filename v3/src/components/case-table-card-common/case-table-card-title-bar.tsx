@@ -24,6 +24,7 @@ interface TableCardInfo {
   iconClass: string
 }
 
+// Icon and iconClass are swapped to show the correct icon for toggling between case card and table
 const tileInfoMap: Record<string, TableCardInfo> = {
   [kCaseCardTileType]: {
     thisType: kCaseCardTileType,
@@ -31,8 +32,8 @@ const tileInfoMap: Record<string, TableCardInfo> = {
     thisSuffix: "Card",
     otherSuffix: "Table",
     toggleSuffix: "CardToTable",
-    Icon: CardIcon,
-    iconClass: "card-icon"
+    Icon: TableIcon,
+    iconClass: "table-icon"
   },
   [kCaseTableTileType]: {
     thisType: kCaseTableTileType,
@@ -40,8 +41,8 @@ const tileInfoMap: Record<string, TableCardInfo> = {
     thisSuffix: "Table",
     otherSuffix: "Card",
     toggleSuffix: "TableToCard",
-    Icon: TableIcon,
-    iconClass: "table-icon"
+    Icon: CardIcon,
+    iconClass: "card-icon"
   }
 }
 
@@ -52,9 +53,6 @@ function getTileInfo(tileType?: string) {
 export const CaseTableCardTitleBar =
   observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
     const tileInfo = getTileInfo(tile?.content.type)
-    const currentTileType = tile?.content.type
-    const caseCardTileInfo = getTileInfo(kCaseCardTileType)
-    const tableTileInfo = getTileInfo(kCaseTableTileType)
     const data = tile?.content && getTileDataSet(tile?.content)
     // title reflects DataSet title
     const getTitle = () => data?.title ?? ""
@@ -107,9 +105,8 @@ export const CaseTableCardTitleBar =
 
     const caseTableOrCardToggleString =
       t(`DG.DocumentController.toggleToCase${tileInfo.otherSuffix}`)
-    const CardOrTableIcon = currentTileType === kCaseTableTileType ? caseCardTileInfo.Icon : tableTileInfo.Icon
-    const cardOrTableIconClass = currentTileType === kCaseTableTileType
-                                  ? caseCardTileInfo.iconClass : tableTileInfo.iconClass
+    const CardOrTableIcon = tileInfo.Icon
+    const cardOrTableIconClass = tileInfo.iconClass
 
     return (
       <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
