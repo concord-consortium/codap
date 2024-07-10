@@ -83,6 +83,9 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
+    if (e.key === "Escape") {
+      closeModal()
+    }
     if (e.key === "Enter") {
       applyChanges()
     }
