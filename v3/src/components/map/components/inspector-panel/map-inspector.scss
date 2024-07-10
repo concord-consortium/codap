@@ -55,23 +55,22 @@
           align-items: center;
           justify-content: center;
           overflow: hidden;
+          height: 18px;
+
           &.oceans {
             border: 1px solid #cccccc;
             border-radius: 4px 0 0 4px;
-            height: 18px;
             width: 57.5px;
           }
           &.streets {
             border: 1px solid #cccccc;
             border-radius: 0 4px 4px 0;
             width: 54.5px;
-            height: 18px;
           }
           &.topo {
             border-top: 1px solid #cccccc;
             border-bottom: 1px solid #cccccc;
             width: 45px;
-            height: 18px;
             border-radius: 0;
           }
           &.selected {

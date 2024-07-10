@@ -1,6 +1,7 @@
 import React from "react"
+import {clsx} from "clsx"
 import {observer} from "mobx-react-lite"
-import {Box, Checkbox, Flex, HStack} from "@chakra-ui/react"
+import {Box, Checkbox, Flex} from "@chakra-ui/react"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {BaseMapKey} from "../../map-types"
@@ -18,8 +19,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
   if (!mapModel) return null
 
   const classNameForSegment = (layerName: string) => {
-    const baseClass = `map-base-button ${layerName}`
-    return mapModel.baseMapLayerName === layerName ?`${baseClass} selected` : baseClass
+    return clsx("map-base-button", layerName, { selected: layerName === mapModel.baseMapLayerName })
   }
 
   const toggleVisibility = (e: React.ChangeEvent<HTMLInputElement>) => {
