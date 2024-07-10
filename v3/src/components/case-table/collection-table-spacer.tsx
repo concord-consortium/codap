@@ -41,7 +41,22 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const msgStyle: React.CSSProperties =
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-  const indexRanges = childTableModel?.parentIndexRanges
+  const indexRanges = useMemo(() => {
+    const _indexRanges = childTableModel?.parentIndexRanges
+
+    // Add curve information for the parent input row
+    if (_indexRanges && parentTableModel?.inputRowIndex != null) {
+      const parentInputRowIndex = parentTableModel.inputRowIndex
+      if (parentInputRowIndex >= 0 && parentInputRowIndex < _indexRanges.length - 1) {
+        const { firstChildIndex } = _indexRanges[parentInputRowIndex]
+        _indexRanges.splice(parentInputRowIndex, 0, {
+          id: "__input__", firstChildIndex, lastChildIndex: firstChildIndex - 1
+        })
+      }
+    }
+
+    return _indexRanges
+  }, [childTableModel?.parentIndexRanges, parentTableModel?.inputRowIndex])
 
   const handleRef = (element: HTMLElement | null) => {
     tableSpacerDivRef.current = element
@@ -110,12 +125,14 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
               })}
             </svg>
             <div className="spacer-mid-layer">
-              {parentCases?.map((value, index) => (
-                <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                  onClick={() => handleExpandCollapseClick(value.__id__)}
-                  styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
-                />
-              ))}
+              {indexRanges?.map(({ id }, index) => {
+                if (id !== "__input__") {
+                  return <ExpandCollapseButton key={id} isCollapsed={!!caseMetadata?.isCollapsed(id)}
+                    onClick={() => handleExpandCollapseClick(id)}
+                    styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
+                  />
+                }
+              })}
             </div>
           </div>
         </>
