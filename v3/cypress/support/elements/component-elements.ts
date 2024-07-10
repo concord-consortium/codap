@@ -46,10 +46,11 @@ export const ComponentElements = {
     this.getComponentTitleBar(component, index).should(check, "focusTile")
   },
   getComponentTitle(component, index = 0) {
-    return this.getComponentTile(component, index).find("[data-testid=editable-component-title]")
+    return this.getComponentTile(component, index).find("[data-testid=title-text]")
   },
   changeComponentTitle(component: string, title: string, index = 0) {
-    this.getComponentTitle(component, index).click().find("[data-testid=title-text-input]").type(`${title}{enter}`)
+    this.getComponentTitle(component, index).click()
+    cy.get("[data-testid=title-text-input]").type(`${title}{enter}`)
   },
   getInspectorPanel() {
     return cy.get("[data-testid=inspector-panel]")
