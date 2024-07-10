@@ -1,8 +1,10 @@
 import pluralize from "pluralize"
 import { DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
-
-const YES = true
+import {
+  createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification
+} from "../../models/data/data-set-notifications"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
 DG.DataContextUtilities = {
 
@@ -252,50 +254,16 @@ DG.DataContextUtilities = {
    * @param iDataContext {DG.DataContext}
    * @param iAttrID {number}
    */
-  hideAttribute (iDataContext, iAttrID) {
-    var tAttrRef = iDataContext?.getAttrRefByID(iAttrID),
-        tAttrName = tAttrRef.attribute.get('name'),
-        tCollectionClient = tAttrRef.collection,
-        tCollection = tCollectionClient.get('collection')
-
-    DG.UndoHistory.execute(DG.Command.create({
-      name: "caseTable.hideAttribute",
-      undoString: 'DG.Undo.caseTable.hideAttribute',
-      redoString: 'DG.Redo.caseTable.hideAttribute',
-      log: 'Hide attribute "%@"'.fmt(tAttrName),
-      _beforeStorage: {
-        changeFlag: iDataContext.get('flexibleGroupingChangeFlag'),
-        fromCollectionID: tCollection.get('id'),
-        fromCollectionName: tCollection.get('name'),
-        fromCollectionParent: tCollection.get('parent'),
-        fromCollectionChild: tCollection.get('children')[0]
-      },
-      _afterStorage: {},
-      execute () {
-        var change
-        change = {
-          operation: 'hideAttributes',
-          collection: tCollectionClient,
-          attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
-        }
-        iDataContext.applyChange(change)
-        iDataContext.set('flexibleGroupingChangeFlag', true)
-      },
-      undo () {
-        var tChange
-        if (iDataContext.getCollectionByID(tCollection.get('id'))) {
-          tChange = {
-            operation: 'unhideAttributes',
-            attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
-          }
-          iDataContext.applyChange(tChange)
-          iDataContext.set('flexibleGroupingChangeFlag',
-              this._beforeStorage.changeFlag)
-          this._afterStorage.collection = tCollectionClient
-        }
+  hideAttribute (iContext, iAttrID) {
+    const tCaseMetadata = getSharedCaseMetadataFromDataset(iContext.data)
+    tCaseMetadata?.applyModelChange(
+      () => tCaseMetadata?.setIsHidden(iAttrID, true),
+      {
+        notifications: hideAttributeNotification([iAttrID], iContext.data),
+        undoStringKey: "DG.Undo.caseTable.hideAttribute",
+        redoStringKey: "DG.Redo.caseTable.hideAttribute"
       }
-    }))
-
+    )
   },
 
   /**
@@ -335,125 +303,22 @@ DG.DataContextUtilities = {
    * Delete an attribute. Confirmation will be requested if Undo is not enabled.
    *
    */
-  deleteAttribute (iDataContext, iAttrID) {
-    var tAttrRef = iDataContext?.getAttrRefByID(iAttrID),
-        tAttrName = tAttrRef.attribute.get('name'),
-        tCollectionClient = tAttrRef.collection,
-        tCollection = tCollectionClient.get('collection')
+  deleteAttribute (iContext, iAttrID) {
+    const data = iContext.data
+    var result = undefined
 
-    var doDeleteAttribute = function () {
-      DG.UndoHistory.execute(DG.Command.create({
-        name: "caseTable.deleteAttribute",
-        undoString: 'DG.Undo.caseTable.deleteAttribute',
-        redoString: 'DG.Redo.caseTable.deleteAttribute',
-        log: 'Delete attribute "%@"'.fmt(tAttrName),
-        _beforeStorage: {
-          changeFlag: iDataContext.get('flexibleGroupingChangeFlag'),
-          fromCollectionID: tCollection.get('id'),
-          fromCollectionName: tCollection.get('name'),
-          fromCollectionParent: tCollection.get('parent'),
-          fromCollectionChild: tCollection.get('children')[0]
-        },
-        _afterStorage: {},
-        execute () {
-          var response
-          if ((tCollectionClient.get('attrsController').get('length') === 1) &&
-              (iDataContext.get('collections').length !== 1) &&
-              (tCollectionClient.getAttributeByID(iAttrID))) {
-            response = iDataContext.applyChange({
-              operation: 'deleteCollection', collection: tCollectionClient
-            })
-            this._afterStorage.deletedItems = response?.deletedItems
-          } else {
-            iDataContext.applyChange({
-              operation: 'deleteAttributes',
-              collection: tCollectionClient,
-              attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
-            })
-          }
-          iDataContext.set('flexibleGroupingChangeFlag', true)
-        },
-        undo () {
-          var tChange
-          var tStatus
-          if (iDataContext.getCollectionByID(tCollection.get('id'))) {
-            tChange = {
-              operation: 'createAttributes',
-              collection: tAttrRef?.collection,
-              attrPropsArray: [tAttrRef.attribute],
-              position: [tAttrRef.position]
-            }
-            iDataContext.applyChange(tChange)
-            iDataContext.set('flexibleGroupingChangeFlag',
-                this._beforeStorage.changeFlag)
-            this._afterStorage.collection = tCollectionClient
-          } else {
-            tAttrRef.attribute.collection = null
-            tChange = {
-              operation: 'createCollection',
-              properties: {
-                id: this._beforeStorage.fromCollectionID,
-                name: this._beforeStorage.fromCollectionName,
-                parent: this._beforeStorage.fromCollectionParent,
-                children: this._beforeStorage.fromCollectionChild ? [this._beforeStorage.fromCollectionChild] : []
-              },
-              attributes: [tAttrRef.attribute]
-            }
-            tStatus = iDataContext.applyChange(tChange)
-            this._afterStorage.collection = tStatus.collection
-            if (this._afterStorage.deletedItems) {
-              this._afterStorage.deletedItems.forEach(function (item) {
-                if (!item.setAside) {
-                  item.deleted = false
-                }
-              })
-            }
-            iDataContext.regenerateCollectionCases()
-            iDataContext.set('flexibleGroupingChangeFlag',
-                this._beforeStorage.changeFlag)
-          }
-        },
-        redo () {
-          var change
-          var tCollectionClient1 = iDataContext.getCollectionByID(this._afterStorage.collection.get('id'))
-          if ((tCollectionClient1.get('attrsController').get('length') === 1) &&
-              (iDataContext.get('collections').length !== 1) &&
-              (tCollectionClient1.getAttributeByID(iAttrID))) {
-            change = {
-              operation: 'deleteCollection',
-              collection: tCollectionClient1
-            }
-          } else {
-            change = {
-              operation: 'deleteAttributes',
-              collection: tCollectionClient1,
-              attrs: [{id: iAttrID, attribute: tAttrRef.attribute}]
-            }
-          }
-          iDataContext.applyChange(change)
-          iDataContext.set('flexibleGroupingChangeFlag', true)
+    const attributeToDelete = iContext.data.attrFromID(iAttrID)
+
+    if (attributeToDelete) {
+      attributeToDelete.prepareSnapshot()
+      data.applyModelChange(() => {
+        result = data.removeAttribute(iAttrID)
+      }, {
+        notifications: () => {
+          const notifications = [removeAttributesNotification([iAttrID], data)]
+          if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
+          return notifications
         }
-      }))
-    }.bind(this)
-
-    if (DG.UndoHistory.get('enabled')) {
-      doDeleteAttribute()
-    } else {
-      DG.AlertPane.warn({
-        message: 'DG.TableController.deleteAttribute.confirmMessage'.loc(tAttrName),
-        description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
-        buttons: [
-          {
-            title: 'DG.TableController.deleteAttribute.okButtonTitle',
-            action: doDeleteAttribute,
-            localize: YES
-          },
-          {
-            title: 'DG.TableController.deleteAttribute.cancelButtonTitle',
-            localize: YES
-          }
-        ],
-        localize: false
       })
     }
   },
@@ -841,16 +706,20 @@ DG.UndoHistory.execute(DG.Command.create({
   },
 
   newAttribute (iDataContext, iCollection, iPosition, iEditorViewOrCallback, iAutoEdit) {
+    const data = iDataContext.data
+    const collection = iCollection.get("id")
+    const before = iCollection.attrs[iPosition]?.get("id")
+    const tAttrName = iDataContext.getNewAttributeName()
+    var attribute
+
     if (iEditorViewOrCallback) {
       DG.globalEditorLock.commitCurrentEdit()
     }
-    var tAttrName = iDataContext.getNewAttributeName()
 
-    iDataContext.data.applyModelChange(() => {
-      const collection = iCollection.get("id")
-      const before = iCollection.attrs[iPosition]?.get("id")
-      iDataContext.data.addAttribute({ name: tAttrName }, { collection, before })
+    data.applyModelChange(() => {
+      attribute = data.addAttribute({ name: tAttrName }, { collection, before })
     }, {
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
     })
@@ -863,54 +732,6 @@ DG.UndoHistory.execute(DG.Command.create({
         iEditorViewOrCallback.beginEditAttributeName(tAttrName)
       })
     }
-
-    // DG.UndoHistory.execute(DG.Command.create({
-    //   name: "caseTable.createAttribute",
-    //   undoString: 'DG.Undo.caseTable.createAttribute',
-    //   redoString: 'DG.Redo.caseTable.createAttribute',
-    //   execute (isRedo) {
-    //     SC.run(function () {
-    //       tAttrRef = iDataContext.getAttrRefByName(tAttrName)
-    //       var change = {
-    //             operation: 'createAttributes',
-    //             collection: iCollection,
-    //             attrPropsArray: [{name: tAttrName}],
-    //             position: iPosition
-    //           },
-    //           result = iDataContext?.applyChange(change)
-    //       if (!isRedo && result.success) {
-    //         this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
-    //             'attributeCreate', tAttrName, iCollection.get('name'))
-    //         // simple callback function
-    //         if (typeof iEditorViewOrCallback === "function") {
-    //           iEditorViewOrCallback(tAttrName)
-    //         } else if (iAutoEdit && iEditorViewOrCallback) {
-    //           iEditorViewOrCallback.invokeLater(function () {
-    //             iEditorViewOrCallback.beginEditAttributeName(tAttrName)
-    //           })
-    //         }
-    //       } else {
-    //         this.set('causedChange', false)
-    //       }
-    //     }.bind(this))
-    //   },
-    //   undo () {
-    //     tAttrRef = iDataContext.getAttrRefByName(tAttrName)
-    //     var attr = tAttrRef.attribute,
-    //         change = {
-    //           operation: 'deleteAttributes',
-    //           collection: iCollection,
-    //           attrs: [{id: attr.get('id'), attribute: attr}]
-    //         },
-    //         result = iDataContext?.applyChange(change)
-    //     if (!result.success) {
-    //       this.set('causedChange', false)
-    //     }
-    //   },
-    //   redo () {
-    //     this.execute(true)
-    //   }
-    // }))
   },
 
   joinSourceToDestCollection (iSourceKeyAttribute, iDestContext, iDestCollection, iDestKeyAttribute) {
