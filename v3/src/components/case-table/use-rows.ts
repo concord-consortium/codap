@@ -236,13 +236,28 @@ export const useRows = () => {
     // when rows change, e.g. after cell edits, update the dataset
     console.log(`--- changes`, changes)
     console.log(` -- rows`, _rows)
+    const collection = data?.getCollection(collectionTableModel?.collectionId)
+    const inputRowIndex = collectionTableModel?.inputRowIndex
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     const casesToUpdate: ICase[] = []
     const newCases: ICaseCreation[] = []
     caseValues.forEach(aCase => {
       if (aCase.__id__ === "__input__") {
         const { __id__, ...others } = aCase
-        newCases.push({ ...others })
+        const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
+          ? inputRowIndex > 0
+            ? inputRowIndex - 1
+            : 1
+          : _rows.length - 2
+        console.log(` -- prevRowIndex`, prevRowIndex)
+        const prevRowId = _rows[prevRowIndex].__id__
+        const prevRow = collectionTableModel?.rowCache.get(prevRowId)
+        const parentId = prevRow?.[symParent]
+        console.log(` -- prevRow`, prevRow)
+        console.log(` -- parentId`, parentId)
+        const parentValues = data?.getParentValues(parentId ?? "") ?? {}
+        console.log(`  - parentValues`, parentValues)
+        newCases.push({ ...others, ...parentValues })
       } else {
         casesToUpdate.push(aCase)
       }
@@ -253,7 +268,6 @@ export const useRows = () => {
         if (newCases.length > 0) {
           const options: IAddCasesOptions = {}
           if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
-            const collection = data.getCollection(collectionTableModel?.collectionId)
             options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
             collectionTableModel.inputRowIndex += 1
           }
