@@ -18,6 +18,9 @@ $header-height: 30px;
       background-color: $teal-dark;
       top: 0;
       left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .codap-header-title {

@@ -7,6 +7,7 @@ import { updateAttributesNotification } from "../../../models/data/data-set-noti
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
+import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
 
 import "./attribute-menu.scss"
 
@@ -95,7 +96,9 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       modalHeight={"300px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container" />
+        <div className="codap-modal-icon-container">
+          <AttributeIcon className="codap-modal-icon" />
+        </div>
         <div className="codap-header-title">{t("DG.TableController.attributeEditor.title")}</div>
         <ModalCloseButton onClick={closeModal} data-testid="modal-close-button"/>
       </ModalHeader>
@@ -160,12 +163,12 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       </ModalBody>
       <ModalFooter mt="-5">
         {buttons.map((b: any, i)=>{
-          const key = `${i}-${b.className}`
+          const key = `${i}-${b.label}`
           return (
             <Tooltip key={key} label={b.tooltip} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
-              <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick} 
+              <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
                       _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
                 {b.label}
               </Button>
