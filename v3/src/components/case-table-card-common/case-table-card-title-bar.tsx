@@ -25,6 +25,7 @@ interface TableCardInfo {
   iconClass: string
 }
 
+// Icon and iconClass are swapped to show the correct icon for toggling between case card and table
 const tileInfoMap: Record<string, TableCardInfo> = {
   [kCaseCardTileType]: {
     thisType: kCaseCardTileType,
@@ -32,8 +33,8 @@ const tileInfoMap: Record<string, TableCardInfo> = {
     thisSuffix: "Card",
     otherSuffix: "Table",
     toggleSuffix: "CardToTable",
-    Icon: CardIcon,
-    iconClass: "card-icon"
+    Icon: TableIcon,
+    iconClass: "table-icon"
   },
   [kCaseTableTileType]: {
     thisType: kCaseTableTileType,
@@ -41,8 +42,8 @@ const tileInfoMap: Record<string, TableCardInfo> = {
     thisSuffix: "Table",
     otherSuffix: "Card",
     toggleSuffix: "TableToCard",
-    Icon: TableIcon,
-    iconClass: "table-icon"
+    Icon: CardIcon,
+    iconClass: "card-icon"
   }
 }
 
