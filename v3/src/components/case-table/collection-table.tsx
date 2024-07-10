@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
-import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRenderers, TRow } from "./case-table-types"
+import { kInputRowKey, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRenderers, TRow } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
 import { customRenderRow } from "./custom-row"
@@ -131,7 +131,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const rows = useMemo(() => {
     if (collectionTableModel?.rows) {
       const _rows = [...collectionTableModel.rows]
-      const inputRow = { __id__: "__input__" }
+      const inputRow = { __id__: kInputRowKey }
       if (collectionTableModel.inputRowIndex === -1) {
         _rows.push(inputRow)
       } else {

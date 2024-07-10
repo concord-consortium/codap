@@ -10,8 +10,9 @@ import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { t } from "../../utilities/translation/translate"
-import { useCollectionTableModel } from "./use-collection-table-model"
+import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface IProps {
   onDrop?: (dataSet: IDataSet, attrId: string) => void
@@ -50,7 +51,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
       if (parentInputRowIndex >= 0 && parentInputRowIndex < _indexRanges.length - 1) {
         const { firstChildIndex } = _indexRanges[parentInputRowIndex]
         _indexRanges.splice(parentInputRowIndex, 0, {
-          id: "__input__", firstChildIndex, lastChildIndex: firstChildIndex - 1
+          id: kInputRowKey, firstChildIndex, lastChildIndex: firstChildIndex - 1
         })
       }
     }
@@ -126,7 +127,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
             </svg>
             <div className="spacer-mid-layer">
               {indexRanges?.map(({ id }, index) => {
-                if (id !== "__input__") {
+                if (id !== kInputRowKey) {
                   return <ExpandCollapseButton key={id} isCollapsed={!!caseMetadata?.isCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
                     styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}

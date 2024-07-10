@@ -1,8 +1,6 @@
 import { format } from "d3"
 import { reaction } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
-import { symDom, TRow, TRowsChangeData } from "./case-table-types"
-import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -17,6 +15,8 @@ import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()
@@ -242,7 +242,7 @@ export const useRows = () => {
     const casesToUpdate: ICase[] = []
     const newCases: ICaseCreation[] = []
     caseValues.forEach(aCase => {
-      if (aCase.__id__ === "__input__") {
+      if (aCase.__id__ === kInputRowKey) {
         const { __id__, ...others } = aCase
         const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
           ? inputRowIndex > 0

@@ -45,4 +45,6 @@ export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: nu
 // used in lieu of attribute id for index column for ReactDataGrid
 export const kIndexColumnKey = "__index__"
 
+export const kInputRowKey = "__input__"
+
 export const kDefaultColumnWidth = 80
