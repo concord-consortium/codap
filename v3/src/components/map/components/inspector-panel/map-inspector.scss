@@ -1,39 +1,16 @@
+.map-values-controls {
+  display: flex;
+  flex-direction: column;
+  margin: 5px;
+
+  .map-values-layer-label{
+    display: flex;
+    align-items: center;
+  }
+}
+
 .inspector-panel.map.data-display {
   .codap-inspector-palette {
-    font-size: 12px;
-    min-width: 205px;
-    min-height: 100px;
-    font-weight: bold;
-
-    .palette-form {
-      height: fit-content;
-
-      .palette-row {
-        height: 30px;
-
-        .form-label.color {
-          margin-right: 4px;
-        }
-      }
-
-      .palette-checkbox {
-        height: 20px;
-        width: 180px;
-        margin: 2px 0;
-      }
-
-      .map-values-controls {
-        display: flex;
-        flex-direction: column;
-        margin: 5px;
-
-        .map-values-layer-label{
-          display: flex;
-          align-items: center;
-        }
-      }
-    }
-
     .map-base-control {
       margin: 1px;
 
