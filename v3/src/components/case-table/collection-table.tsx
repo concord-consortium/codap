@@ -1,6 +1,6 @@
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import DataGrid, { DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import { OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRenderers, TRow } from "./case-table-types"

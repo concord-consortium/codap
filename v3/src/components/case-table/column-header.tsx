@@ -141,9 +141,10 @@ export function ColumnHeader({ column }: TRenderHeaderCellProps) {
     setIsFocused(false)
     const input = inputRef.current
     if (input) {
-      const selectionStart = input.selectionStart
-      const selectionEnd = input.selectionEnd
-      if (selectionStart !== null && selectionEnd !== null) {
+      const { selectionStart, selectionEnd } = input
+      if (selectionStart != null && selectionEnd != null) {
+        // Because the input value is automatically selected when user creates a new attribute,
+        // we deselect current selection and place cursor at the position of the click
         if (selectionStart === selectionEnd) {
           input.setSelectionRange(selectionStart, selectionEnd)
         }
