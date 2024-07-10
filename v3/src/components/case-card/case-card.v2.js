@@ -845,7 +845,6 @@ return tSortedSelection.map(function(iEntry) {
 
             var tCollEntries = [],
                 tContext = this.props.context,
-                tCaseMetadata = this.props.caseMetaData,
                 tChildmostSelection = getChildmostSelection(tContext)
             // collection loop
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
