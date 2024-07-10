@@ -24,5 +24,11 @@ describe("DataInteractive ResourceParser Utilities", () => {
     expect(legalResult2.valid).toBe(true)
     expect(legalResult2.left?.value).toBe(false)
     expect(legalResult2.right?.attr?.id).toBe(a2.id)
+
+    // The right operand can be blank
+    const emptyResult = parseSearchQuery("a1==", dataset)
+    expect(emptyResult.valid).toBe(true)
+    expect(emptyResult.left?.attr?.id).toBe(a1.id)
+    expect(emptyResult.right?.value).toBe("")
   })
 })

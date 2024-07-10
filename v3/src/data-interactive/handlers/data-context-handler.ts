@@ -4,7 +4,7 @@ import { DataSet } from "../../models/data/data-set"
 import {
   dataContextCountChangedNotification, dataContextDeletedNotification
 } from "../../models/data/data-set-notifications"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import {
@@ -30,15 +30,15 @@ export const diDataContextHandler: DIHandler = {
     return document.applyModelChange(() => {
       // Create dataset
       const dataSet = DataSet.create({ description, name, _title: title })
-      gDataBroker.addDataSet(dataSet)
-      const metadata = getSharedCaseMetadataFromDataset(dataSet)
+      const { caseMetadata } = gDataBroker.addDataSet(dataSet)
+      getFormulaManager(document)?.addDataSet(dataSet)
 
       if (collections?.length) {
         // remove the default collection
         dataSet.removeCollection(dataSet.collections[0])
 
         // Create and add collections and attributes
-        collections.forEach(v2collection => createCollection(v2collection, dataSet, metadata))
+        collections.forEach(v2collection => createCollection(v2collection, dataSet, caseMetadata))
       }
 
       return {

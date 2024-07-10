@@ -6,7 +6,7 @@ import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
-import { kAttrIdPrefix, maybeToV2Id, toV2Id } from "../utilities/codap-utils"
+import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
 import {
   ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
@@ -16,8 +16,10 @@ import { getCaseValues } from "./data-interactive-utils"
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
   const values = _values as DIAttribute
   if (values.name) {
+    const id = values.id != null ? toV3AttrId(values.id) : values.cid
     return {
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
+      id,
       userType: v3TypeFromV2TypeString(values.type),
       // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
       // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
@@ -27,7 +29,7 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       editable: values.editable == null || !!values.editable,
       // hidden is part of metadata, not the attribute model
       // renameable: values.renameable, // TODO renameable not part of IAttribute yet
-      // deleteable: values.deleteable, // TODO deleteable not part of IAttribute yet
+      deleteable: values.deleteable,
       formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
@@ -104,7 +106,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { name, type, title, description, editable, id, precision } = attribute
+  const { name, type, title, description, deleteable, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
   return {
     name,
@@ -120,7 +122,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     editable,
     hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
     renameable: true, // TODO What should this be?
-    deleteable: true, // TODO What should this be?
+    deleteable,
     formula: attribute.formula?.display,
     // deletedFormula: self.deletedFormula, // TODO What should this be?
     guid: v2Id,
