@@ -9,12 +9,14 @@ import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
-import { IAttribute } from "../../models/data/attribute"
-import { createAttributesNotification, updateCollectionNotification } from "../../models/data/data-set-notifications"
-import { uniqueName } from "../../utilities/js-utils"
+import { updateCollectionNotification } from "../../models/data/data-set-notifications"
 import { t } from "../../utilities/translation/translate"
 
-export const CollectionTitle = observer(function CollectionTitle() {
+interface IProps {
+  onAddNewAttribute: () => void
+}
+
+export const CollectionTitle = observer(function CollectionTitle({onAddNewAttribute}: IProps) {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
@@ -96,20 +98,6 @@ export const CollectionTitle = observer(function CollectionTitle() {
     setIsEditing(false)
   }
 
-  const handleAddNewAttribute = () => {
-    let attribute: IAttribute | undefined
-    data?.applyModelChange(() => {
-      const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
-        (aName: string) => !data.attributes.find(attr => aName === attr.name)
-      )
-      attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
-    }, {
-      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
-      undoStringKey: "DG.Undo.caseTable.createAttribute",
-      redoStringKey: "DG.Redo.caseTable.createAttribute"
-    })
-  }
-
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
   const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
@@ -125,7 +113,7 @@ export const CollectionTitle = observer(function CollectionTitle() {
       </div>
       <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
           data-testid={"collection-add-attribute-icon-button"} style={addIconStyle} >
-        <AddIcon className={addIconClass} onClick={handleAddNewAttribute} />
+        <AddIcon className={addIconClass} onClick={onAddNewAttribute} />
       </Button>
     </div>
   )
