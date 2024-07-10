@@ -6,7 +6,7 @@
   justify-content: space-between;
 
   input, .chakra-select__wrapper {
-    width: 159px !important;
+    margin-left: 10px;
   }
   input {
     padding: 0 8px;
@@ -15,13 +15,13 @@
 .edit-attribute-form-row.editable {
   justify-content: flex-start;
   .chakra-radio-group {
-    margin-left: 40px;
+    margin-left: 10px;
   }
 }
 
 // Formula Editor Styles
 .formula-form-control {
   input {
-    width: 270px;
+    max-width: 270px;
   }
 }
