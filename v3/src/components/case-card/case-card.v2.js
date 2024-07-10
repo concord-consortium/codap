@@ -1,9 +1,10 @@
 import createReactClass from "create-react-class"
 import PropTypes from 'prop-types'
+import React from 'react'
 import ReactDOMFactories from "react-dom-factories"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
-import React from 'react'
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
 import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
 
@@ -547,7 +548,7 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 hideAttribute = function () {
-                  DG.DataContextUtilities.hideAttribute(iContext, iCaseMetadata, iAttr.get('id'))
+                  DG.DataContextUtilities.hideAttribute(iContext, iAttr.get('id'))
                   this.incrementStateCount() // Force a re-render
                 }.bind(this),
 
@@ -882,7 +883,8 @@ return tResult
                     return tParents
                   }
 
-                  var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
+                  var tCaseMetadata = getSharedCaseMetadataFromDataset(tContext.data),
+                      tCollClient = tContext.getCollectionByID(iCollection.get('id')),
                       tCollectionName = tCollClient.get('name'),
                       tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
                       tSelLength = tSelectedCases ? tSelectedCases.length : 0,
@@ -899,7 +901,7 @@ return tResult
                       tResizeHandle
 
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                    if (!tCaseMetadata.isHidden(iAttr.get("id"))) {
+                    if (!tCaseMetadata?.isHidden(iAttr.get("id"))) {
                       tAttrEntries.push(
                           this.renderAttribute(tContext, tCaseMetadata, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,

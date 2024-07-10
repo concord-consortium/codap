@@ -23,6 +23,10 @@ export const diCollectionHandler: DIHandler = {
 
     const newCollections: ICollectionModel[] = []
     dataContext.applyModelChange(() => {
+      // Find the empty default collection if it exists. It will be removed if any collections are added.
+      const oldCollection = dataContext.collections.length === 1 && dataContext.collections[0]
+      const emptyCollection = oldCollection && oldCollection.attributes.length === 0 ? oldCollection : undefined
+
       collections.forEach(collection => {
         const { name, title, parent, attributes, attrs } = collection as DICreateCollection
         // Collections require a name, so bail if one isn't included
@@ -54,7 +58,11 @@ export const diCollectionHandler: DIHandler = {
           }
         }
 
-        const newCollection = dataContext.addCollection({ name, _title: title }, { before: beforeCollectionId })
+        // If no before collection is specified, we have to explicitly put the new collection after the
+        // child-most collection
+        const options = beforeCollectionId ? { before: beforeCollectionId }
+          : { after: dataContext.collectionIds[dataContext.collectionIds.length - 1] }
+        const newCollection = dataContext.addCollection({ name, _title: title }, options)
         newCollections.push(newCollection)
 
         // Attributes can be specified in both attributes and attrs
@@ -70,6 +78,9 @@ export const diCollectionHandler: DIHandler = {
 
         returnValues.push({ id: toV2Id(newCollection.id), name: newCollection.name })
       })
+      
+      // Remove the empty default collection if any collections were added
+      if (emptyCollection && dataContext.collections.length > 1) dataContext.removeCollection(emptyCollection)
     }, {
       notifications: () => newCollections.map(newCollection => createCollectionNotification(newCollection, dataContext))
     })

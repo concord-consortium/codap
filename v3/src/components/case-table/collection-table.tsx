@@ -21,6 +21,10 @@ import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { mstReaction } from "../../utilities/mst-reaction"
+import { IAttribute } from "../../models/data/attribute"
+import { uniqueName } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
+import { createAttributesNotification } from "../../models/data/data-set-notifications"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -128,6 +132,24 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       }
     }, [columns, caseTableModel])
 
+  const handleAddNewAttribute = () => {
+    let attribute: IAttribute | undefined
+    data?.applyModelChange(() => {
+      const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
+        (aName: string) => !data.attributes.find(attr => aName === attr.name)
+      )
+      attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
+      if (attribute) {
+        collectionTableModel?.setAttrIdToEdit(attribute.id)
+      }
+    }, {
+      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+      undoStringKey: "DG.Undo.caseTable.createAttribute",
+      redoStringKey: "DG.Redo.caseTable.createAttribute"
+    })
+    gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
+  }
+
   const rows = collectionTableModel?.rows
   if (!data || !rows || !visibleAttributes.length) return null
 
@@ -135,7 +157,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef}>
-        <CollectionTitle />
+        <CollectionTitle onAddNewAttribute={handleAddNewAttribute}/>
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}

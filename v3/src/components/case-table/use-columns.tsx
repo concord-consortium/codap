@@ -110,7 +110,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 // which leads to undesirable browser behavior.
                 width: kDefaultColumnWidth,
                 resizable: true,
-                headerCellClass: "codap-column-header",
+                headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
                 cellClass: "codap-data-cell",
                 renderCell: RenderCell,

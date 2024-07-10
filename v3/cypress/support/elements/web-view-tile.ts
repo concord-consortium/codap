@@ -43,8 +43,7 @@ export const WebViewTileElements = {
   sendAPITesterCommand(command: string, oldCommand?: string) {
     // Delete the old command if it's provided
     if (oldCommand) {
-      const deleteCommand = oldCommand.split("").reduce(cmd => `${cmd}{backspace}`, "")
-      WebViewTileElements.getIFrame().find(`.di-message-area`).type(deleteCommand)
+      WebViewTileElements.getIFrame().find(`.di-message-area`).clear()
     }
     WebViewTileElements.getIFrame().find(`.di-message-area`).type(command)
     WebViewTileElements.getIFrame().find(`.di-send-button`).click()

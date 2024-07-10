@@ -52,9 +52,12 @@ describe('Collaborator Utils', () => {
     // item1 and item5 are in case2
     const item1Id = dataSet.itemIds[1]
     const item5Id = dataSet.itemIds[5]
+    // item3 is used to test a blank value in __editable__
+    const item3Id = dataSet.itemIds[3]
     dataSet.setCaseValues([
       { __id__: item0Id, [editableAttribute.id]: "true" },
       { __id__: item1Id, [editableAttribute.id]: "true" },
+      { __id__: item4Id, [editableAttribute.id]: "false" },
       { __id__: item5Id, [editableAttribute.id]: "true" }
     ])
     dataSet.validateCaseGroups()
@@ -72,6 +75,7 @@ describe('Collaborator Utils', () => {
     checkItem(item4Id, true)
     checkItem(item1Id, true)
     checkItem(item5Id, true)
+    checkItem(item3Id, true)
     expect(isCaseEditable(dataSet, case0Id)).toBe(true)
     expect(isCaseEditable(dataSet, case2Id)).toBe(true)
 
@@ -85,6 +89,7 @@ describe('Collaborator Utils', () => {
     checkItem(item4Id, true)
     checkItem(item1Id, true)
     checkItem(item5Id, true)
+    checkItem(item3Id, true)
     expect(isCaseEditable(dataSet, case0Id)).toBe(true)
     expect(isCaseEditable(dataSet, case2Id)).toBe(true)
 
@@ -95,6 +100,7 @@ describe('Collaborator Utils', () => {
     checkItem(item4Id, false)
     checkItem(item1Id, true)
     checkItem(item5Id, true)
+    checkItem(item3Id, false)
     // A case is only editable when all of its items are editable
     expect(isCaseEditable(dataSet, case0Id)).toBe(false)
     expect(isCaseEditable(dataSet, case2Id)).toBe(true)

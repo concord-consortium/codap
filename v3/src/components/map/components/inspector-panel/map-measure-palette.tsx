@@ -26,7 +26,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
             <Box className='map-values-layer-label' data-testid={`map-values-layer-label`}>
               {layer.dataConfiguration.dataset?.name}
             </Box>
-            <Checkbox className='map-values-checkbox' data-testid={`map-values-grid-checkbox`}
+            <Checkbox className="palette-checkbox" data-testid={`map-values-grid-checkbox`}
                       defaultChecked={layer.gridModel.isVisible}
                       onChange={() => {
                         const op = layer.gridModel.isVisible ? 'hide' : 'show'
@@ -40,7 +40,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
             >
               {t("DG.Inspector.mapGrid")}
             </Checkbox>
-            <Checkbox className='map-values-checkbox' data-testid={`map-values-points-checkbox`}
+            <Checkbox className="palette-checkbox" data-testid={`map-values-points-checkbox`}
                       defaultChecked={layer.pointsAreVisible}
                       onChange={() => {
                         const op = layer.pointsAreVisible ? 'hide' : 'show'
@@ -54,7 +54,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
             >
               {t("DG.Inspector.mapPoints")}
             </Checkbox>
-            <Checkbox className='map-values-checkbox' data-testid={`map-values-lines-checkbox`}
+            <Checkbox className="palette-checkbox" data-testid={`map-values-lines-checkbox`}
                       defaultChecked={layer.connectingLinesAreVisible}
                       onChange={() => {
                         const op = layer.connectingLinesAreVisible ? 'hide' : 'show'

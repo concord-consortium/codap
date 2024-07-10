@@ -6,6 +6,7 @@ import "./codap-modal.scss"
 interface IProps {
   children?: ReactNode
   closeOnOverlayClick?: boolean
+  initialRef?: any
   isOpen: boolean
   onClick?: () => void
   onClose: () => void
@@ -14,12 +15,13 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, closeOnOverlayClick=true, isOpen, onClick, onClose, modalWidth, modalHeight
+  children, closeOnOverlayClick=true, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight
 }: IProps, ref: React.LegacyRef<HTMLElement> | undefined) => {
   return (
     <Modal
       closeOnOverlayClick={closeOnOverlayClick}
       data-testid="codap-modal"
+      initialFocusRef={initialRef}
       isOpen={isOpen}
       onClose={onClose}
       size="xs"

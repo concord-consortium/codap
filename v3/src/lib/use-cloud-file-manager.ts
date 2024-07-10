@@ -98,7 +98,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
           "displayName": t("DG.fileMenu.provider.examples.displayName"),
           "urlDisplayName": "examples",
           "src": "https://codap-resources.s3.amazonaws.com/example-documents/index.json",
-          alphabetize: true
+          alphabetize: false
         },
         {
           "name": "lara",
