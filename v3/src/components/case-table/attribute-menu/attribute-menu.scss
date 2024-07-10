@@ -1,0 +1,20 @@
+// Edit Attribute Modal Styles
+.edit-attribute-form-row {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  input, .chakra-select__wrapper {
+    width: 159px !important;
+  }
+  input {
+    padding: 0 8px;
+  }
+}
+.edit-attribute-form-row.editable {
+  justify-content: flex-start;
+  .chakra-radio-group {
+    margin-left: 40px;
+  }
+}

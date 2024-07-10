@@ -8,6 +8,8 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 
+import "./attribute-menu.scss"
+
 // for use in menus of attribute types
 const selectableAttributeTypes = ["none", ...attributeTypes] as const
 type SelectableAttributeType = typeof selectableAttributeTypes[number]
@@ -82,14 +84,15 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     {
       label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: closeModal
     },
-    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges }
+    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true }
   ]
 
   return (
     <CodapModal
       isOpen={isOpen}
       onClose={closeModal}
-      modalWidth={"350px"}
+      modalWidth={"265px"}
+      modalHeight={"300px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
@@ -98,7 +101,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       </ModalHeader>
       <ModalBody>
       <FormControl display="flex" flexDirection="column">
-        <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.name")}
+        <FormLabel className="edit-attribute-form-row">
+          {t("DG.CaseTable.attributeEditor.name")}
           <Input size="xs" ml={5} placeholder="attribute" value={attributeName} onFocus={(e) => e.target.select()}
                 onChange={event => setAttributeName(event.target.value)} data-testid="attr-name-input"
                 onKeyDown={(e) => e.stopPropagation()}
@@ -110,7 +114,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             onChange={event => setDescription(event.target.value)} data-testid="attr-description-input"
           />
         </FormLabel>
-        <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.type")}
+        <FormLabel mr={5} className="edit-attribute-form-row">{t("DG.CaseTable.attributeEditor.type")}
           <Select size="xs" ml={5} value={userType} data-testid="attr-type-select"
               onChange={(e) => setUserType(e.target.value as AttributeType)}>
             {selectableAttributeTypes.map(aType => {
@@ -120,13 +124,13 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             })}
           </Select>
         </FormLabel>
-        <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.unit")}
+        <FormLabel className="edit-attribute-form-row">{t("DG.CaseTable.attributeEditor.unit")}
           <Input size="xs" placeholder="unit" ml={5} value={units} onFocus={(e) => e.target.select()}
             onChange={event => setUnits(event.target.value)} data-testid="attr-unit-input"
             onKeyDown={(e) => e.stopPropagation()}
           />
         </FormLabel>
-        <FormLabel display="flex" flexDirection="row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
+        <FormLabel className="edit-attribute-form-row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
           <Select size="xs" ml={5} value={precision} data-testid="attr-precision-select"
               onChange={(e) => setPrecision(e.target.value)}>
             <option value={""}></option>
@@ -142,7 +146,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             <option value={"9"} data-testid="attr-precision-option">9</option>
           </Select>
         </FormLabel>
-        <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.attributeEditor.editable")}
+        <FormLabel className="edit-attribute-form-row editable">{t("DG.CaseTable.attributeEditor.editable")}
           <RadioGroup value={editable} ml={5} data-testid="attr-editable-radio"
             onChange={(value) => setEditable(value as YesNoValue)}
             onKeyDown={(e) => e.stopPropagation()}>

@@ -44,6 +44,9 @@ $header-height: 30px;
 
   .chakra-modal__body {
     background-color: #f0f0f0;
+    padding: 0 8px;
+    box-sizing: border-box;
+    width: inherit;
   }
 
   .chakra-modal__footer {
@@ -51,7 +54,8 @@ $header-height: 30px;
   }
 
   .chakra-form__label {
-    align-items: center !important;
+    align-items: center;
+    margin-inline-end: 0;
   }
   input, textarea, select, .chakra-radio__control {
     background-color: white;
