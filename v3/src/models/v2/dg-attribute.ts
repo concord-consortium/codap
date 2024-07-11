@@ -29,7 +29,11 @@ export class DGAttribute extends SCObject {
   }
 
   get(prop: string) {
-    return super.get(prop) ?? (this.attribute as any)[prop]
+    let result = super.get(prop) ?? (this.attribute as any)[prop]
+    if (result == null && prop === "unit") {
+      result = super.get("units") ?? this.attribute.units
+    }
+    return result
   }
 
   get collection() {
