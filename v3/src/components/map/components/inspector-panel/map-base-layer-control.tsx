@@ -1,6 +1,7 @@
 import React from "react"
+import {clsx} from "clsx"
 import {observer} from "mobx-react-lite"
-import {Box, Checkbox, Flex, HStack} from "@chakra-ui/react"
+import {Box, Checkbox, Flex} from "@chakra-ui/react"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {BaseMapKey} from "../../map-types"
@@ -18,7 +19,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
   if (!mapModel) return null
 
   const classNameForSegment = (layerName: string) => {
-    return mapModel.baseMapLayerName === layerName ? 'map-base-button-selected' : 'map-base-button'
+    return clsx("map-base-button", layerName, { selected: layerName === mapModel.baseMapLayerName })
   }
 
   const toggleVisibility = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +49,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
   return (
     <Flex className="palette-form map-base-control" direction="row">
       <Checkbox
-        className='map-layers-checkbox'
+        className="palette-checkbox"
         data-testid={`map-layers-checkbox-base`}
         defaultChecked={mapModel.baseMapLayerIsVisible}
         onChange={toggleVisibility}
@@ -56,22 +57,20 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
       >
         {t('V3.map.inspector.base')}
       </Checkbox>
-      <HStack spacing='5px' className='map-base-segmented'>
+      <Flex className='map-base-segmented'>
         <Box data-testid={`map-layers-base-oceans`} className={classNameForSegment('oceans')}
           onClick={()=>{ changeBaseMapLayer('oceans') }}>
           {t('V3.map.inspector.oceans')}
         </Box>
-        <Box> | </Box>
         <Box data-testid={`map-layers-base-topo`} className={classNameForSegment('topo')}
               onClick={()=>{ changeBaseMapLayer('topo') }}>
           {t('V3.map.inspector.topo')}
         </Box>
-        <Box> | </Box>
         <Box data-testid={`map-layers-base-streets`} className={classNameForSegment('streets')}
               onClick={()=>{ changeBaseMapLayer('streets') }}>
           {t('V3.map.inspector.streets')}
         </Box>
-      </HStack>
+      </Flex>
     </Flex>
   )
 })

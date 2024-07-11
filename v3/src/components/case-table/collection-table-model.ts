@@ -12,6 +12,8 @@ export class CollectionTableModel {
   collectionId: string
   // RDG grid element
   @observable element: HTMLDivElement | null = null
+  // attribute id of the cell being edited
+  @observable attrIdToEdit: string | undefined = undefined
   // tracks current scrollTop value for grid
   @observable scrollTop = 0
   // tracks the last user- or programmatically-set scrollTop value
@@ -196,6 +198,10 @@ export class CollectionTableModel {
 
   @action setElement(element: HTMLDivElement) {
     this.element = element
+  }
+
+  @action setAttrIdToEdit(attrId: string | undefined) {
+    this.attrIdToEdit = attrId
   }
 
   @action syncScrollTopFromEvent(event: React.UIEvent<HTMLDivElement, UIEvent>) {

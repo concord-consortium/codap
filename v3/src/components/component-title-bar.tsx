@@ -1,5 +1,4 @@
-import { Button, CloseButton, Editable, EditableInput, EditablePreview, Flex } from "@chakra-ui/react"
-import { useDndContext } from "@dnd-kit/core"
+import { Button, CloseButton, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
@@ -17,8 +16,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
   const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
   const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
-  const { active } = useDndContext()
-  const dragging = !!active
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
@@ -34,10 +31,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
         redoStringKey: "DG.Redo.component.componentTitleChange"
       })
     }
-  }
-
-  const handleChange = (nextValue: string) => {
-    setEditingTitle(nextValue)
   }
 
   const handleSubmit = (nextValue: string) => {
@@ -56,17 +49,38 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
     setIsEditing(false)
   }
 
+  const handleTitleClick = () => {
+    setIsEditing(true)
+    setEditingTitle(title)
+  }
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { key } = e
+    e.stopPropagation()
+    switch (key) {
+      case "Escape":
+        handleCancel(title)
+        break
+      case "Enter":
+      case "Tab":
+        handleSubmit(editingTitle)
+        break
+    }
+  }
+
   return (
     <Flex className={classes}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
-      <Editable value={isEditing ? editingTitle : title} className="title-bar" isPreviewFocusable={!dragging}
-        submitOnBlur={true} onEdit={() => setIsEditing(true)} onSubmit={handleSubmit}
-        onChange={handleChange} onCancel={handleCancel} data-testid="editable-component-title"
-      >
-        <EditablePreview className="title-text"/>
-        <EditableInput value={editingTitle} className="title-text-input" data-testid="title-text-input"/>
-      </Editable>
+      <div className="title-bar" data-testid="component-title-bar">
+        {isEditing
+          ? <Input value={editingTitle} className="title-text-input" data-testid="title-text-input" autoFocus={true}
+              onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
+              onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
+            />
+          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>{title}</div>
+        }
+      </div>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
         <Button className="component-minimize-button" title={t("DG.Component.minimizeComponent.toolTip")}
           data-testid="component-minimize-button">
