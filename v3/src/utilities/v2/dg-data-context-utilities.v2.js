@@ -328,60 +328,64 @@ DG.DataContextUtilities = {
    *
    */
   deleteAttributeFormula (iDataContext, iAttrID, iUpdateFunc) {
-    var tRef = iDataContext?.getAttrRefByID(iAttrID),
-        tAttrName = tRef.attribute.get('name'),
-        tCollection = tRef && iDataContext.getCollectionForAttribute(tRef.attribute),
-        tFormula = '',
-        tPrevFormula = tRef?.attribute.get('formula')
+    // show an alert that this has not been implemented yet
+    console.log("This feature has not been implemented yet.")
+    alert("This feature has not been implemented yet.")
 
-    DG.UndoHistory.execute(DG.Command.create({
-      name: "caseTable.editAttributeFormula",
-      undoString: 'DG.Undo.caseTable.editAttributeFormula',
-      redoString: 'DG.Redo.caseTable.editAttributeFormula',
-      execute () {
-        var tChange = {
-              operation: 'createAttributes',
-              collection: tCollection,
-              attrPropsArray: [{ name: tAttrName, formula: tFormula }]
-            },
-            tResult = iDataContext?.applyChange(tChange)
-        if (tResult.success) {
-          tRef.attribute.set('formula', tFormula)
-          tRef.attribute.set('deletedFormula', tPrevFormula)
-          iUpdateFunc?.()
+    // var tRef = iDataContext?.getAttrRefByID(iAttrID),
+    //     tAttrName = tRef.attribute.get('name'),
+    //     tCollection = tRef && iDataContext.getCollectionForAttribute(tRef.attribute),
+    //     tFormula = '',
+    //     tPrevFormula = tRef?.attribute.get('formula')
 
-          var action = "attributeEditFormula"
-          this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
-              action, tAttrName, tCollection.get('name'), tFormula)
-        } else {
-          this.set('causedChange', false)
-        }
-      },
-      undo () {
-        var tChange, tResult, action
-        tChange = {
-          operation: 'createAttributes',
-          collection: tCollection,
-          attrPropsArray: [{ name: tAttrName, formula: tPrevFormula }]
-        }
+    // DG.UndoHistory.execute(DG.Command.create({
+    //   name: "caseTable.editAttributeFormula",
+    //   undoString: 'DG.Undo.caseTable.editAttributeFormula',
+    //   redoString: 'DG.Redo.caseTable.editAttributeFormula',
+    //   execute () {
+    //     var tChange = {
+    //           operation: 'createAttributes',
+    //           collection: tCollection,
+    //           attrPropsArray: [{ name: tAttrName, formula: tFormula }]
+    //         },
+    //         tResult = iDataContext?.applyChange(tChange)
+    //     if (tResult.success) {
+    //       tRef.attribute.set('formula', tFormula)
+    //       tRef.attribute.set('deletedFormula', tPrevFormula)
+    //       iUpdateFunc?.()
 
-        tResult = iDataContext?.applyChange(tChange)
-        if (tResult.success) {
-          tRef.attribute.set('formula', tPrevFormula)
-          tRef.attribute.set('deletedFormula', tFormula)
-          iUpdateFunc?.()
+    //       var action = "attributeEditFormula"
+    //       this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+    //           action, tAttrName, tCollection.get('name'), tFormula)
+    //     } else {
+    //       this.set('causedChange', false)
+    //     }
+    //   },
+    //   undo () {
+    //     var tChange, tResult, action
+    //     tChange = {
+    //       operation: 'createAttributes',
+    //       collection: tCollection,
+    //       attrPropsArray: [{ name: tAttrName, formula: tPrevFormula }]
+    //     }
 
-          action = "attributeEditFormula"
-          this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
-              action, tAttrName, tCollection.get('name'), tPrevFormula)
-        } else {
-          this.set('causedChange', false)
-        }
-      },
-      redo () {
-        this.execute()
-      }
-    }))
+    //     tResult = iDataContext?.applyChange(tChange)
+    //     if (tResult.success) {
+    //       tRef.attribute.set('formula', tPrevFormula)
+    //       tRef.attribute.set('deletedFormula', tFormula)
+    //       iUpdateFunc?.()
+
+    //       action = "attributeEditFormula"
+    //       this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+    //           action, tAttrName, tCollection.get('name'), tPrevFormula)
+    //     } else {
+    //       this.set('causedChange', false)
+    //     }
+    //   },
+    //   redo () {
+    //     this.execute()
+    //   }
+    // }))
   },
 
   /**
