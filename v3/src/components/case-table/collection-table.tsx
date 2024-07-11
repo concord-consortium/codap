@@ -125,6 +125,12 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       caseTableModel)
   }, [caseTableModel, columns, forceUpdate])
 
+  useEffect(() => {
+    if (collectionTableModel?.attrIdToEdit !== undefined) {
+      gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
+    }
+  }, [collectionTableModel?.attrIdToEdit, columns.length])
+
   // respond to column width changes from RDG
   const handleColumnResize = useCallback(
     function handleColumnResize(idx: number, width: number, isComplete?: boolean) {
@@ -155,7 +161,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute"
     })
-    gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
   }
 
   const rows = useMemo(() => {
