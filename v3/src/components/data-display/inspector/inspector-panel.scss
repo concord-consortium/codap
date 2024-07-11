@@ -1,21 +1,6 @@
 @import "../../vars";
 
 .inspector-panel.data-display {
-  .palette-form {
-    margin: 0 0 10px 20px;
-
-    .palette-row {
-      flex-direction: row;
-      align-items: center;
-      height: 20px;
-      label {
-        margin: 0;
-      }
-      margin: 5px;
-      white-space: nowrap;
-    }
-  }
-
   .sub-options {
     margin-bottom: 5px;
     margin-left: 20px;

@@ -58,6 +58,10 @@ $inspector-panel-width: 50px;
   height: fit-content;
   font-family: "museo-sans", sans-serif;
   z-index: 5;
+  font-size: 12px;
+  min-width: 205px;
+  min-height: 100px;
+  font-weight: bold;
 
   .codap-inspector-palette-header {
     position: relative;
@@ -92,7 +96,21 @@ $inspector-panel-width: 50px;
   .palette-form {
     position: relative;
     left: 0;
+    margin: 5px 0 10px 20px;
     background-color: #EEE;
+    height: fit-content;
+
+    .palette-row {
+      flex-direction: row;
+      align-items: center;
+      height: 20px;
+      margin: 5px;
+      white-space: nowrap;
+
+      &.color-picker-row {
+        height: 30px;
+      }
+    }
 
     .form-title {
       font-family: "museo-sans", sans-serif !important;
@@ -104,7 +122,28 @@ $inspector-panel-width: 50px;
       display: flex;
       flex-direction: row;
       white-space: nowrap;
+      &.color-picker {
+        margin-right: 4px;
+        &.color {
+          margin-right: 8px;
+        }
+      }
     }
+
+    .palette-checkbox {
+      height: 20px;
+      width: 180px;
+      margin: 2px 0;
+    }
+
+    .chakra-radio__control {
+      border-color: #cfcfcf;
+    }
+
+    [data-checked] {
+      border-color: #3182ce;
+    }
+
     .inline-input-group {
       background: rgba(231, 231, 231, 0.7);
       display: flex;
