@@ -23,7 +23,7 @@ export class CollectionTableModel {
   lastScrollStep = 0
   scrollStep = 0
   // The index of the input row. -1 puts the input row at the bottom.
-  @observable inputRowIndex = 0
+  @observable inputRowIndex = -1
 
   // rowCache contains all rows, whether collapsed or not; key is case id
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
