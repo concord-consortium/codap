@@ -48,7 +48,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     // Add curve information for the parent input row
     if (_indexRanges && parentTableModel?.inputRowIndex != null) {
       const parentInputRowIndex = parentTableModel.inputRowIndex
-      if (parentInputRowIndex >= 0 && parentInputRowIndex < _indexRanges.length - 1) {
+      if (parentInputRowIndex >= 0 && parentInputRowIndex < _indexRanges.length) {
         const { firstChildIndex } = _indexRanges[parentInputRowIndex]
         _indexRanges.splice(parentInputRowIndex, 0, {
           id: kInputRowKey, firstChildIndex, lastChildIndex: firstChildIndex - 1
