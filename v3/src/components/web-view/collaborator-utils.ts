@@ -4,6 +4,7 @@
 
 import { appState } from "../../models/app-state"
 import { IDataSet } from "../../models/data/data-set"
+import { kInputRowKey } from "../case-table/case-table-types"
 import {
   isWebViewModel, kDefaultPreventAttributeDeletion, kDefaultRespectEditableItemAttribute
 } from "./web-view-model"
@@ -34,6 +35,8 @@ export function getRespectEditableItemAttribute(dataset: IDataSet) {
 
 export function isItemEditable(dataset: IDataSet, itemId: string) {
   if (!getRespectEditableItemAttribute(dataset)) return true
+  // TODO Only return true here if the input row's parent case is editable
+  if (itemId === kInputRowKey) return true
   const editableAttribute = dataset.getAttributeByName("__editable__")
   if (!editableAttribute) return true
   const strValue = dataset.getStrValue(itemId, editableAttribute.id)
@@ -42,6 +45,7 @@ export function isItemEditable(dataset: IDataSet, itemId: string) {
 
 // caseId can be a case or item id
 export function isCaseEditable(dataset: IDataSet, caseId: string) {
+  if (caseId === kInputRowKey) return true
   const aCase = dataset.caseGroupMap.get(caseId)
   const itemIds = aCase?.childItemIds ?? [caseId]
   return itemIds?.every(itemId => isItemEditable(dataset, itemId))
