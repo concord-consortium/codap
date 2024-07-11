@@ -778,9 +778,24 @@ export const DataSet = V2Model.named("DataSet").props({
       addCases(cases: ICaseCreation[], options?: IAddCasesOptions) {
         const { before, after } = options || {}
 
-        const beforePosition = before ? self.itemIDMap.get(before) : undefined
-        const _afterPosition = after ? self.itemIDMap.get(after) : undefined
-        const afterPosition = _afterPosition != null ? _afterPosition + 1 : undefined
+        const beforePosition = before
+          ? self.itemIDMap.get(before) ?? self.itemIDMap.get(self.caseGroupMap.get(before)?.childItemIds[0] ?? "")
+          : undefined
+        const getAfterPosition = () => {
+          if (!after) return
+
+          // If after is an item id, return one index after that item
+          const afterItemId = self.itemIDMap.get(after)
+          if (afterItemId) return afterItemId + 1
+          
+          // If after is a case id, find its last item and return one index after that
+          const afterCase = self.caseGroupMap.get(after)
+          if (!afterCase?.childItemIds.length) return
+          const afterCaseItemId = afterCase.childItemIds[afterCase.childItemIds.length - 1]
+          const afterCaseItemIndex = self.itemIDMap.get(afterCaseItemId)
+          if (afterCaseItemIndex) return afterCaseItemIndex + 1
+        }
+        const afterPosition = getAfterPosition()
         const insertPosition = beforePosition ?? afterPosition ?? self.items.length
 
         // insert/append cases and empty values

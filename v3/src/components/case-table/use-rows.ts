@@ -244,19 +244,18 @@ export const useRows = () => {
     caseValues.forEach(aCase => {
       if (aCase.__id__ === kInputRowKey) {
         const { __id__, ...others } = aCase
+
+        // Find values inherited from parent case
         const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
           ? inputRowIndex > 0
             ? inputRowIndex - 1
             : 1
           : _rows.length - 2
-        console.log(` -- prevRowIndex`, prevRowIndex)
         const prevRowId = _rows[prevRowIndex].__id__
         const prevRow = collectionTableModel?.rowCache.get(prevRowId)
         const parentId = prevRow?.[symParent]
-        console.log(` -- prevRow`, prevRow)
-        console.log(` -- parentId`, parentId)
         const parentValues = data?.getParentValues(parentId ?? "") ?? {}
-        console.log(`  - parentValues`, parentValues)
+        
         newCases.push({ ...others, ...parentValues })
       } else {
         casesToUpdate.push(aCase)
