@@ -1,9 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { userEvent } from '@testing-library/user-event'
 import React from "react"
-import { DG } from "../../v2/dg-compat.v2"
-import "./text-input.v2"
-const { TextInput } = DG.React.Components as any
+import { DGTextInput } from "./text-input.v2"
 
 describe("Case card TextInput", () => {
   it("works as expected", async () => {
@@ -14,7 +12,8 @@ describe("Case card TextInput", () => {
 
     // renders the value by default
     const { container, rerender } = render(
-      <TextInput value="foo" isEditable={true} onToggleEditing={mockOnToggleEditing}/>
+      <DGTextInput value="foo" isEditable={true} onEditModeCallback={mockOnEditModeCallback}
+                onEscapeEditing={mockOnEscapeEditing} onToggleEditing={mockOnToggleEditing}/>
     )
     const valueSpan = screen.getByText("foo")
     expect(valueSpan).toBeInTheDocument()
@@ -25,12 +24,13 @@ describe("Case card TextInput", () => {
 
     // createInEditMode controls editing
     rerender(
-      <TextInput value="foo" isEditable={true}
+      <DGTextInput value="foo" isEditable={true}
                 createInEditMode={true} onEditModeCallback={mockOnEditModeCallback}
                 onEscapeEditing={mockOnEscapeEditing} onToggleEditing={mockOnToggleEditing}/>
     )
     const inputElt = screen.getByDisplayValue("foo")
     expect(inputElt).toBeInTheDocument()
+    expect(inputElt).toHaveFocus()
     expect(mockOnEditModeCallback).toHaveBeenCalledTimes(1)
 
     // can type into text field
