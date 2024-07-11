@@ -245,6 +245,11 @@ export const useRows = () => {
       if (aCase.__id__ === kInputRowKey) {
         const { __id__, ...others } = aCase
 
+        // Do not add a new item if no actual values are specified.
+        // This can happen when a user starts editing a cell in the input row, but then natigates away with
+        // the cell left blank
+        if (!Object.values(others).some(value => !!value)) return
+
         // Find values inherited from parent case
         const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
           ? inputRowIndex > 0
