@@ -6,6 +6,7 @@ import { ITileEnvironment } from "../tiles/tile-environment"
 import { TileModel } from "../tiles/tile-model"
 
 export interface INewTileOptions {
+  animateCreation?: boolean
   cannotClose?: boolean
   content?: ITileContentSnapshotWithType
   title?: string

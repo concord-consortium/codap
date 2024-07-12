@@ -12,7 +12,6 @@ import { getSharedDataSetFromDataSetId, getTileCaseMetadata } from "../../models
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getSharedModelManager, getTileEnvironment } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
-import { ComponentRect } from "../../utilities/animation-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kTitleBarHeight } from "../constants"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
@@ -53,20 +52,9 @@ export function createTableOrCardForDataset (
   let {x, y} = getPositionOfNewComponent({width, height})
   if (options?.x != null) x = options.x
   if (options?.y != null) y = options.y
-  const from: ComponentRect = { x: 0, y: 0, width: 0, height: kTitleBarHeight },
-    to: ComponentRect = { x, y, width, height: height + kTitleBarHeight}
-  content?.insertTileInRow(tile, row, from)
+  const tileOptions = { x, y, width, height: height + kTitleBarHeight, animateCreation: options?.animateCreation }
+  content?.insertTileInRow(tile, row, tileOptions)
   uiState.setFocusedTile(tile.id)
-  const tileLayout = content.getTileLayoutById(tile.id)
-  if (!isFreeTileLayout(tileLayout)) return
-  // use setTimeout to push the change into a subsequent action
-  setTimeout(() => {
-    // use applyModelChange to wrap into a single non-undoable action without undo string
-    content.applyModelChange(() => {
-      tileLayout.setPosition(to.x, to.y)
-      tileLayout.setSize(to.width, to.height)
-    })
-  })
 
   return tile
 }
