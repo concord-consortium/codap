@@ -1,5 +1,5 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
-import { isAlive } from "mobx-state-tree"
+import { addDisposer, isAlive } from "mobx-state-tree"
 import { ICase } from "../data/data-set-types"
 import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
@@ -83,6 +83,8 @@ export class FormulaManager {
 
   @action addDataSet(dataSet: IDataSet) {
     this.dataSets.set(dataSet.id, dataSet)
+    // remove the DataSet if it is destroyed
+    addDisposer(dataSet, () => this.removeDataSet(dataSet.id))
   }
 
   @action removeDataSet(dataSetId: string) {
