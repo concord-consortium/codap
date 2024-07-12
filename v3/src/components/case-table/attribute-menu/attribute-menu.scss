@@ -1,0 +1,27 @@
+// Edit Attribute Modal Styles
+.edit-attribute-form-row {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  input, .chakra-select__wrapper {
+    margin-left: 10px;
+  }
+  input {
+    padding: 0 8px;
+  }
+}
+.edit-attribute-form-row.editable {
+  justify-content: flex-start;
+  .chakra-radio-group {
+    margin-left: 10px;
+  }
+}
+
+// Formula Editor Styles
+.formula-form-control {
+  input {
+    max-width: 270px;
+  }
+}

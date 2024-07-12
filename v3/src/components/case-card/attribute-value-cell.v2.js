@@ -5,7 +5,7 @@ import { createReactFC, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
 import { tinycolor } from "../../utilities/color-utils"
 import "./attribute-summary.v2"
-import "./text-input.v2"
+import { DGTextInput } from "./text-input.v2"
 
 DG.React.ready(function () {
   var img = ReactDOMFactories.img,
@@ -184,7 +184,7 @@ DG.React.ready(function () {
           attr: tAttr,
           unit: tUnit
         })
-        : DG.React.Components.TextInput({
+        : React.createElement(DGTextInput, {
           attr: tAttr,
           'case': props.editableCase,
           value: tValue,

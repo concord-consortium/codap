@@ -10,6 +10,7 @@ $header-height: 30px;
     flex-direction: row;
     align-items: center;
     box-shadow: none;
+    background-color: #f0f0f0;
 
     .codap-modal-icon-container {
       width: 30px;
@@ -17,6 +18,9 @@ $header-height: 30px;
       background-color: $teal-dark;
       top: 0;
       left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .codap-header-title {
@@ -41,7 +45,22 @@ $header-height: 30px;
     }
   }
 
+  .chakra-modal__body {
+    background-color: #f0f0f0;
+    padding: 0 8px;
+    box-sizing: border-box;
+    width: inherit;
+  }
+
+  .chakra-modal__footer {
+    background-color: #f0f0f0;
+  }
+
   .chakra-form__label {
-    align-items: center !important;
+    align-items: center;
+    margin-inline-end: 0;
+  }
+  input, textarea, select, .chakra-radio__control {
+    background-color: white;
   }
 }

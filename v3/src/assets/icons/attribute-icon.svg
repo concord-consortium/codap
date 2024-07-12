@@ -1,0 +1,10 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="22" height="23" viewBox="0, 0, 108, 83">
+  <g id="Layer_1" transform="translate(-323, -463)">
+    <path d="M333.5,468.5 L421.5,468.5 C424.261,468.5 426.5,470.739 426.5,473.5 L426.5,536.5 C426.5,539.261 424.261,541.5 421.5,541.5 L333.5,541.5 C330.739,541.5 328.5,539.261 328.5,536.5 L328.5,473.5 C328.5,470.739 330.739,468.5 333.5,468.5 z" fill-opacity="0" stroke="#ffffff" stroke-width="5"/>
+    <g>
+      <path d="M426.5,468.5 L426.5,495.167 L398.5,468.5 z" fill="#ffffff"/>
+      <path d="M426.5,468.5 L426.5,495.167 L398.5,468.5 z" fill-opacity="0" stroke="#ffffff" stroke-width="5"/>
+    </g>
+    <path d="M339.167,503.5 C351.389,522.356 363.611,484.644 375.833,503.5 C388.056,522.356 400.278,484.644 412.5,503.5" fill-opacity="0" stroke="#ffffff" stroke-width="5"/>
+  </g>
+</svg>

@@ -348,12 +348,10 @@ context("Graph UI", () => {
 
       // change point size
       cy.get("[data-testid=point-size-slider]")
-        .trigger("change")
         .click({ force: true })
         .type('{downArrow}{downArrow}')
-        .click({ force: true })
         .wait(500) // wait for animation to finish
-        .get('div[role="slider"][aria-valuenow="0.99"]').should('be.visible')
+        .get('div[role="slider"]').should('have.attr', 'aria-valuenow', "0.98")
 
       cy.log("changes the stroke color value and verifies the change")
 
