@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.0.0-pre.1652 - June 14, 2024
+## Version 3.0.0-pre.1696 - June 14, 2024
 
 ### ✨ Features & Improvements:
 - **PT-187459320:** Graph has option to Show Measures for Selection
