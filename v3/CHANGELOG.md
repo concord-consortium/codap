@@ -45,8 +45,8 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  174269 bytes |                            0.37% |
-|  index.js | 5415545 bytes |                            0.13% |
+|  main.css |  174269 bytes |                            0.13% |
+|  index.js | 5415545 bytes |                            0.44% |
 
 ## Version 3.0.0-pre.1696 - June 14, 2024
 
