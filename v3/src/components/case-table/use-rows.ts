@@ -218,7 +218,7 @@ export const useRows = () => {
       afterAnyActionDisposer?.()
       metadataDisposer?.()
     }
-  }, [caseMetadata, collectionId, collectionTableModel, data, resetRowCache, syncRowsToDom, syncRowsToRdg])
+  }, [caseMetadata, collectionTableModel, data, resetRowCache, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
