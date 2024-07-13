@@ -280,10 +280,9 @@ export const useRows = () => {
       },
       {
         // TODO notification for added cases
-        // TODO confirm that caseIds are correct, then remove these comments
-        // TODO notifications should be () => updateCasesNotification, but that won't work well
-        // until case ids are persistent
-        notifications: () => updateCasesNotification(data, casesToUpdate),
+        // TODO notifications should be () => updateCasesNotification, but we need a way to connect the
+        // original cases with updated cases, since ids get reset when values change
+        notifications: updateCasesNotification(data, casesToUpdate),
         undoStringKey: "DG.Undo.caseTable.editCellValue",
         redoStringKey: "DG.Redo.caseTable.editCellValue"
       }

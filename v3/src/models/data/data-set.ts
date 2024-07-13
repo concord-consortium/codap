@@ -313,10 +313,6 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.collections.find(coll => coll.getAttribute(attributeId))
   }
 
-  function getCollectionForCase(caseId: string): ICollectionModel | undefined {
-    return self.collections.find(coll => coll.hasCase(caseId))
-  }
-
   function getUniqueCollectionName(name: string) {
     let suffix = 1
     let collectionName = name
@@ -335,7 +331,6 @@ export const DataSet = V2Model.named("DataSet").props({
       // get collection from attribute
       // undefined => attribute not present in dataset
       getCollectionForAttribute,
-      getCollectionForCase,
       getUniqueCollectionName
     },
     actions: {
@@ -448,6 +443,10 @@ export const DataSet = V2Model.named("DataSet").props({
   childCases() {
     self.validateCaseGroups()
     return self.collections[self.collections.length - 1].cases
+  },
+  getCollectionForCase(caseId: string): ICollectionModel | undefined {
+    self.validateCaseGroups()
+    return self.collections.find(coll => coll.hasCase(caseId))
   }
 }))
 .actions(self => ({
@@ -850,8 +849,8 @@ export const DataSet = V2Model.named("DataSet").props({
         return ids
       },
 
-      // Supports regular cases or pseudo-cases, but not mixing the two.
-      // For pseudo-cases, will set the values of all cases in the group
+      // Supports items or cases, but not mixing the two.
+      // For cases, will set the values of all items in the group
       // regardless of whether the attribute is grouped or not.
       // `affectedAttributes` are not used in the function, but are present as a potential
       // optimization for responders, as all arguments are available to `onAction` listeners.
