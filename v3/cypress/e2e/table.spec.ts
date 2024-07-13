@@ -574,6 +574,13 @@ context("case table ui", () => {
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
     })
+    it("verify insert 1 case at the bottom using input row", () => {
+      table.getCaseTableGrid().scrollTo("bottom")
+      table.getNumOfRows().should("equal", numOfCases)
+      table.getGridCell(lastRowIndex + 1, 2).dblclick()
+      table.getGridCell(lastRowIndex + 1, 2).find("input").type("Sloth{enter}")
+      table.getNumOfRows().should("equal", `${Number(numOfCases) + 1}`)
+    })
     it("verify insert multiple cases below current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")
       table.openIndexMenuForRow(lastRowIndex)
