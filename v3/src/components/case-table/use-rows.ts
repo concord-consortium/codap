@@ -55,7 +55,7 @@ export const useRows = () => {
           const parentId = row?.[symParent]
           const isCollapsed = parentId && caseMetadata?.isCollapsed(parentId)
           return !isCollapsed || row?.[symFirstChild] ? row : undefined
-        }).filter(c => !!c) as TRow[]
+        }).filter(c => !!c)
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
         collectionTableModel.resetRows(newRows || [])

@@ -251,12 +251,12 @@ export const CollectionModel = V2Model
 
         const caseGroups = self.caseIds
                             .map(caseId => self.getCaseGroup(caseId))
-                            .filter(group => !!group) as CaseGroup[]
+                            .filter(group => !!group)
         runInAction(() => _caseGroups.set(caseGroups))
 
         const cases = self.caseIds
                         .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
-                        .filter(groupedCase => !!groupedCase) as IGroupedCase[]
+                        .filter(groupedCase => !!groupedCase)
         runInAction(() => _cases.set(cases))
       }
     }

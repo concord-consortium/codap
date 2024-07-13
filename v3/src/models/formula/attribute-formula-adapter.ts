@@ -242,7 +242,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
       const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
 
       const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
-        formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
+        formulaDependencies.filter(d => d.type === "localAttribute")
       for (const dependency of localDatasetAttributeDependencies) {
         const dependencyAttribute = dataSet.attrFromID(dependency.attrId)
         if (isValidFormulaAttr(dependencyAttribute)) {
@@ -251,7 +251,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
       }
 
       const lookupDependencies: ILookupDependency[] =
-        formulaDependencies.filter(d => d.type === "lookup") as ILookupDependency[]
+        formulaDependencies.filter(d => d.type === "lookup")
       for (const dependency of lookupDependencies) {
         const externalDataSet = dataSets.get(dependency.dataSetId)
         const dependencyAttribute = externalDataSet?.attrFromID(dependency.attrId)
