@@ -67,7 +67,7 @@ describe("LSRLAdornmentModel", () => {
   })
   it("can have a line added to its lines property", () => {
     const lSRL = LSRLAdornmentModel.create()
-    lSRL.updateLines(mockLSRLInstanceProps1,"", 0)
+    lSRL.updateLines(mockLSRLInstanceProps1, "", 0)
     expect(lSRL.lines.size).toEqual(1)
     const modelLines = lSRL.lines.get("")
     const modelLine = modelLines?.[0]

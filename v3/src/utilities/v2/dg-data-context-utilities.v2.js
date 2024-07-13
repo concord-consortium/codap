@@ -329,7 +329,7 @@ DG.DataContextUtilities = {
    */
   deleteAttributeFormula (iDataContext, iAttrID, iUpdateFunc) {
     // show an alert that this has not been implemented yet
-    console.log("This feature has not been implemented yet.")
+    console.warn("This feature has not been implemented yet.")
     alert("This feature has not been implemented yet.")
 
     // var tRef = iDataContext?.getAttrRefByID(iAttrID),
