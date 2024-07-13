@@ -91,11 +91,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
-  function handleInputKeyDown(event: React.KeyboardEvent) {
-    if (event.key === "Enter") acceptValue()
-    if (event.key === "Escape") rejectValue()
-  }
-
   function handleInputBlur() {
     !isPaletteOpen && acceptValue()
   }
@@ -103,7 +98,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt
                     value={inputValue}
-                    onKeyDown={handleInputKeyDown}
                     onChange={handleInputColorChange}
                     onBlur={handleInputBlur}
                   />
