@@ -1,11 +1,4 @@
 export const kDefaultAnimationDuration = 500
-export interface ComponentRect {
-  x: number
-  y: number
-  width: number
-  height: number
-  [key: string]: number
-}
 
 export const interpolateEaseInOut = <T extends Record<string, number>>(duration: number, from: T, to: T) => {
   return (time: number) => {

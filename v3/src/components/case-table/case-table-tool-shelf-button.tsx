@@ -4,6 +4,7 @@ import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
 import { observer } from "mobx-react-lite"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { INewTileOptions } from "../../models/codap/create-tile"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import {
@@ -36,18 +37,19 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   if (!content) return null
 
-  const handleCreateNewDataSet = () => {
+  const handleCreateNewCaseTable = () => {
     document.applyModelChange(() => {
       const newData = [{ AttributeName: "" }]
       const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
       ds.addCases(toCanonical(ds, newData))
-      const tile = createDefaultTileOfType(kCaseTableTileType)
+      const options: INewTileOptions = { animateCreation: true }
+      const tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return
       const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
-      createTableOrCardForDataset(sharedData, caseMetadata)
+      createTableOrCardForDataset(sharedData, caseMetadata, kCaseTableTileType, options)
     }, {
       notifications: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
@@ -78,7 +80,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
         <MenuItem data-testid="tool-shelf-table-new-clipboard">
           {t("DG.AppController.caseTableMenu.clipboardDataset")}
         </MenuItem>
-        <MenuItem onClick={handleCreateNewDataSet} data-testid="tool-shelf-table-new">
+        <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new">
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
       </MenuList>

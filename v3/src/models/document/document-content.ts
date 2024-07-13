@@ -10,7 +10,6 @@ import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
 import { ITileModel } from "../tiles/tile-model"
-import { ComponentRect } from "../../utilities/animation-utils"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { t } from "../../utilities/translation/translate"
 import { createTileSnapshotOfType, INewTileOptions } from "../codap/create-tile"
@@ -112,6 +111,7 @@ export const DocumentContentModel = BaseDocumentContentModel
     createTile(tileType: string, options?: INewTileOptions): ITileModel | undefined {
       const componentInfo = getTileComponentInfo(tileType)
       if (!componentInfo) return
+      const animateCreation = options?.animateCreation ?? false
       const width = options?.width ?? (componentInfo.defaultWidth || 0)
       const height = options?.height ?? (componentInfo.defaultHeight || 0)
       const row = self.getRowByIndex(0)
@@ -124,23 +124,8 @@ export const DocumentContentModel = BaseDocumentContentModel
             const computedPosition = getPositionOfNewComponent(newTileSize)
             const x = options?.x ?? computedPosition.x
             const y = options?.y ?? computedPosition.y
-            const from: ComponentRect = { x: 0, y: 0, width: 0, height: kTitleBarHeight },
-              to: ComponentRect = { x, y, width, height: height + kTitleBarHeight}
-            const newTile = self.insertTileSnapshotInRow(newTileSnapshot, row, from)
-            if (newTile) {
-              const rowTile = row.tiles.get(newTile.id)
-              if (width && height && rowTile) {
-                // use setTimeout to push the change into a subsequent action
-                setTimeout(() => {
-                  // use applyModelChange to wrap into a single non-undoable action without undo string
-                  self.applyModelChange(() => {
-                    rowTile.setPosition(to.x, to.y)
-                    rowTile.setSize(to.width, to.height)
-                  })
-                })
-              }
-              return newTile
-            }
+            const tileOptions = { x, y, width, height: height + kTitleBarHeight, animateCreation }
+            return self.insertTileSnapshotInRow(newTileSnapshot, row, tileOptions)
           }
         }
       }
@@ -174,7 +159,7 @@ export const DocumentContentModel = BaseDocumentContentModel
         if (options?.title != null) {
           tile.setTitle(options.title)
         }
-        
+
         // Change visibility of existing tile
         const tileLayout = self.getTileLayoutById(tile.id)
         if (isFreeTileLayout(tileLayout)) {
