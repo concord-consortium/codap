@@ -7,9 +7,9 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
-import { updateCasesNotification } from "../../models/data/data-set-notifications"
+import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
 import {
-  IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
+  CaseGroup, IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { mstReaction } from "../../utilities/mst-reaction"
@@ -266,9 +266,40 @@ export const useRows = () => {
         casesToUpdate.push(aCase)
       }
     })
+
+    // We track case ids between updates and additions so we can make proper notifications afterwards
+    let oldCaseIds = new Set(collection?.caseIds ?? [])
+    let updatedCaseIds: string[] = []
+    const newCaseIds: string[] = []
     data?.applyModelChange(
       () => {
+        console.log(`*** oldCases`, oldCaseIds)
         data.setCaseValues(casesToUpdate)
+        if (casesToUpdate.length > 0) {
+          // If there are new case ids, those are cases that were modified
+          collection?.caseIds.forEach(caseId => {
+            if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
+          })
+          
+          // If there were no cases added, case ids did not change, so broadcast them
+          if (updatedCaseIds.length <= 0) updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
+        }
+        // if (collection?.id === data.childCollection.id) {
+        //   // The child collection's case ids are persistent, so we can just use the casesToUpdate to
+        //   // determine which case ids to use in the updateCasesNotification
+        //   updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
+        //   console.log(` ** child collection`, updatedCaseIds)
+        // } else {
+        //   console.log(` ** parent collection`, collection?.caseIds)
+        //   // Other collections have cases whose ids change when values change, so we have to check which case ids
+        //   // were not present before updating to determine which case ids to use in the updateCasesNotification
+        //   collection?.caseIds.forEach(caseId => {
+        //     if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
+        //   })
+        // }
+        console.log(`  * updatedCases`, updatedCaseIds)
+
+        oldCaseIds = new Set(collection?.caseIds ?? [])
         if (newCases.length > 0) {
           const options: IAddCasesOptions = {}
           if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
@@ -276,13 +307,25 @@ export const useRows = () => {
             collectionTableModel.inputRowIndex += 1
           }
           data.addCases(newCases, options)
+          // We look for case ids that weren't present before adding the new cases to determine which case ids
+          // should be included in the createCasesNotification
+          collection?.caseIds.forEach(caseId => {
+            if (!oldCaseIds.has(caseId)) newCaseIds.push(caseId)
+          })
         }
       },
       {
-        // TODO notification for added cases
-        // TODO notifications should be () => updateCasesNotification, but we need a way to connect the
-        // original cases with updated cases, since ids get reset when values change
-        notifications: updateCasesNotification(data, casesToUpdate),
+        notifications: () => {
+          const notifications = []
+          if (updatedCaseIds.length > 0) {
+            const updatedCaseGroups = updatedCaseIds.map(caseId => data.caseGroupMap.get(caseId))
+              .filter(caseGroup => !!caseGroup) as CaseGroup[]
+            const updatedCases = updatedCaseGroups.map(caseGroup => caseGroup.groupedCase)
+            notifications.push(updateCasesNotification(data, updatedCases))
+          }
+          if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
+          return notifications
+        },
         undoStringKey: "DG.Undo.caseTable.editCellValue",
         redoStringKey: "DG.Redo.caseTable.editCellValue"
       }
