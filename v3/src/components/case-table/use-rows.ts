@@ -9,7 +9,7 @@ import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
 import {
-  CaseGroup, IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
+  IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -263,32 +263,21 @@ export const useRows = () => {
     const newCaseIds: string[] = []
     data?.applyModelChange(
       () => {
-        console.log(`*** oldCases`, oldCaseIds)
+        // Update existing cases
         data.setCaseValues(casesToUpdate)
-        if (casesToUpdate.length > 0) {
-          // If there are new case ids, those are cases that were modified
+        if (collection?.id === data.childCollection.id) {
+          // The child collection's case ids are persistent, so we can just use the casesToUpdate to
+          // determine which case ids to use in the updateCasesNotification
+          updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
+        } else {
+          // Other collections have cases whose ids change when values change, so we have to check which case ids
+          // were not present before updating to determine which case ids to use in the updateCasesNotification
           collection?.caseIds.forEach(caseId => {
             if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
           })
-          
-          // If there were no cases added, case ids did not change, so broadcast them
-          if (updatedCaseIds.length <= 0) updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
         }
-        // if (collection?.id === data.childCollection.id) {
-        //   // The child collection's case ids are persistent, so we can just use the casesToUpdate to
-        //   // determine which case ids to use in the updateCasesNotification
-        //   updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
-        //   console.log(` ** child collection`, updatedCaseIds)
-        // } else {
-        //   console.log(` ** parent collection`, collection?.caseIds)
-        //   // Other collections have cases whose ids change when values change, so we have to check which case ids
-        //   // were not present before updating to determine which case ids to use in the updateCasesNotification
-        //   collection?.caseIds.forEach(caseId => {
-        //     if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
-        //   })
-        // }
-        console.log(`  * updatedCases`, updatedCaseIds)
 
+        // Create new cases
         oldCaseIds = new Set(collection?.caseIds ?? [])
         if (newCases.length > 0) {
           const options: IAddCasesOptions = {}
@@ -308,9 +297,9 @@ export const useRows = () => {
         notifications: () => {
           const notifications = []
           if (updatedCaseIds.length > 0) {
-            const updatedCaseGroups = updatedCaseIds.map(caseId => data.caseGroupMap.get(caseId))
-              .filter(caseGroup => !!caseGroup) as CaseGroup[]
-            const updatedCases = updatedCaseGroups.map(caseGroup => caseGroup.groupedCase)
+            const updatedCases = updatedCaseIds.map(caseId => data.caseGroupMap.get(caseId))
+              .filter(caseGroup => !!caseGroup)
+              .map(caseGroup => caseGroup.groupedCase)
             notifications.push(updateCasesNotification(data, updatedCases))
           }
           if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
