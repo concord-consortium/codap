@@ -7,6 +7,9 @@ export const TableTileElements = {
   getCaseTableGrid() {
     return cy.get("[data-testid=collection-table-grid]")
   },
+  getCaseTableGridForCollection(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]")
+  },
   getNumOfAttributes() {
     return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-colcount")
   },

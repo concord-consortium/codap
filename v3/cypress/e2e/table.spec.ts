@@ -21,7 +21,7 @@ beforeEach(() => {
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
   table.getNumOfRows().then($cases => {
     numOfCases = $cases
-    lastRowIndex = Number($cases)
+    lastRowIndex = Number($cases) - 1
     middleRowIndex = Math.floor(lastRowIndex / 2)
   })
 })
@@ -176,7 +176,7 @@ context("case table ui", () => {
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
         postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-        expect(postInsertRowCount).to.eq(2)
+        expect(postInsertRowCount).to.eq(3)
         expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
       })
 
@@ -220,7 +220,7 @@ context("case table ui", () => {
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
         postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-        expect(postInsertRowCount).to.eq(1)
+        expect(postInsertRowCount).to.eq(2)
         expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
       })
     })
@@ -573,6 +573,13 @@ context("case table ui", () => {
       // toolbar.getRedoTool().click()
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
+    })
+    it("verify insert 1 case at the bottom using input row", () => {
+      table.getCaseTableGrid().scrollTo("bottom")
+      table.getNumOfRows().should("equal", numOfCases)
+      table.getGridCell(lastRowIndex + 1, 2).dblclick()
+      table.getGridCell(lastRowIndex + 1, 2).find("input").type("Sloth{enter}")
+      table.getNumOfRows().should("equal", `${Number(numOfCases) + 1}`)
     })
     it("verify insert multiple cases below current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")

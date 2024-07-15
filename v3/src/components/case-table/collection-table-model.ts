@@ -22,6 +22,8 @@ export class CollectionTableModel {
   // scroll steps -- used to distinguish user scrolls from browser-generated smooth scrolls
   lastScrollStep = 0
   scrollStep = 0
+  // The index of the input row. -1 puts the input row at the bottom.
+  @observable inputRowIndex = -1
 
   // rowCache contains all rows, whether collapsed or not; key is case id
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
@@ -129,19 +131,48 @@ export class CollectionTableModel {
     let currParentId = ""
     let firstChildIndex = -1
     let lastChildIndex = -1
+
+    // The offsets are used to expand or shift groups based on the location of the input row
+    const getOffsets = () => {
+      if (this.inputRowIndex >= 0) {
+        if (this.inputRowIndex < firstChildIndex) {
+          // The input row is before this group, so the whole thing should be shifted
+          return { firstOffset: 1, lastOffset: 1 }
+        } else if (this.inputRowIndex >= firstChildIndex && this.inputRowIndex <= lastChildIndex) {
+          // The group contains the input row, so the end should be shifted but not the beginning
+          return { firstOffset: 0, lastOffset: 1 }
+        }
+      }
+      return { firstOffset: 0, lastOffset: 0 }
+    }
+
     const indexRanges: { id: string, firstChildIndex: number, lastChildIndex: number }[] = []
     this.rows.forEach((row, i) => {
       if (row[symParent]) {
         if (row[symParent] !== currParentId) {
-          currParentId && indexRanges.push({ id: currParentId, firstChildIndex, lastChildIndex })
+          const { firstOffset, lastOffset } = getOffsets()
+          currParentId && indexRanges.push({
+            id: currParentId,
+            firstChildIndex: firstChildIndex + firstOffset,
+            lastChildIndex: lastChildIndex + lastOffset
+          })
           currParentId = row[symParent]
           firstChildIndex = i
         }
         lastChildIndex = i
       }
     })
+
     if (firstChildIndex >= 0) {
-      indexRanges.push({ id: currParentId, firstChildIndex, lastChildIndex })
+      const { firstOffset, lastOffset } = this.inputRowIndex === -1
+        // If inputRowIndex is -1, the input row is always at the end, so always expands the last group
+        ? { firstOffset: 0, lastOffset: 1 }
+        : getOffsets()
+      indexRanges.push({
+        id: currParentId,
+        firstChildIndex: firstChildIndex + firstOffset,
+        lastChildIndex: lastChildIndex + lastOffset
+      })
     }
     return indexRanges
   }
@@ -171,6 +202,10 @@ export class CollectionTableModel {
 
   @action setAttrIdToEdit(attrId: string | undefined) {
     this.attrIdToEdit = attrId
+  }
+
+  @action setInputRowIndex(inputRowIndex: number) {
+    this.inputRowIndex = inputRowIndex
   }
 
   @action syncScrollTopFromEvent(event: React.UIEvent<HTMLDivElement, UIEvent>) {
