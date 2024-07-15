@@ -1,3 +1,4 @@
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import hierarchical from '../fixtures/hierarchical.json'
 const values = hierarchical.attributes
@@ -38,5 +39,24 @@ context("hierarchical collections", () => {
         table.getNumOfRows(collection.index+1).should("contain", collection.totalChildren+2)
       })
     })
+  })
+
+  it(`Input row works in hierarchical tables`, () => {
+    table.moveAttributeToParent("Order", "newCollection")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+    table.getCaseTableGridForCollection().scrollTo("bottom")
+    table.getGridCell(14, 2).dblclick()
+    table.getGridCell(14, 2).find("input").type("New Order{enter}")
+    table.getNumOfRows(1).should("contain", 15)
+    table.getNumOfRows(2).should("contain", 30)
+
+    // TODO The child row isn't properly scrolling all the way to the bottom, or the bottom is blocked,
+    // which makes it impossible to add a new case to it using the input row
+    // table.getCaseTableGridForCollection(2).scrollTo("bottom")
+    // table.getGridCell(30, 2, 2).dblclick({ force: true })
+    // table.getGridCell(30, 2, 2).find("input").type("New Mammal{enter}")
+    // table.getNumOfRows(1).should("contain", 15)
+    // table.getNumOfRows(2).should("contain", 31)
   })
 })
