@@ -68,7 +68,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
         <MenuButton
           className="tool-shelf-button tiles-list-menu"
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
-          data-testid="tool-shelf-button-options"
+          data-testid="tool-shelf-button-tiles-list"
         >
           <OptionsIcon />
           <ToolShelfButtonTag
