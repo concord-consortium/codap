@@ -234,15 +234,13 @@ export const useRows = () => {
         const { __id__, ...others } = aCase
 
         // Do not add a new item if no actual values are specified.
-        // This can happen when a user starts editing a cell in the input row, but then natigates away with
+        // This can happen when a user starts editing a cell in the input row, but then navigates away with
         // the cell left blank
         if (!Object.values(others).some(value => !!value)) return
 
         // Find values inherited from parent case
         const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
-          ? inputRowIndex > 0
-            ? inputRowIndex - 1
-            : 1
+          ? inputRowIndex > 0 ? inputRowIndex - 1 : 1
           : _rows.length - 2
         const prevRowId = _rows[prevRowIndex].__id__
         const prevRow = collectionTableModel?.rowCache.get(prevRowId)
@@ -273,8 +271,9 @@ export const useRows = () => {
             // determine which case ids to use in the updateCasesNotification
             updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
           } else {
-            // Other collections have cases whose ids change when values change, so we have to check which case ids
-            // were not present before updating to determine which case ids to use in the updateCasesNotification
+            // Other collections have cases whose ids change when values change due to updated case grouping,
+            // so we have to check which case ids were not present before updating to determine which case ids
+            // to use in the updateCasesNotification
             collection?.caseIds.forEach(caseId => {
               if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
             })
@@ -287,7 +286,7 @@ export const useRows = () => {
           const options: IAddCasesOptions = {}
           if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
             options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
-            collectionTableModel.inputRowIndex += 1
+            collectionTableModel.setInputRowIndex(collectionTableModel.inputRowIndex + 1)
           }
           data.addCases(casesToCreate, options)
           // We look for case ids that weren't present before adding the new cases to determine which case ids

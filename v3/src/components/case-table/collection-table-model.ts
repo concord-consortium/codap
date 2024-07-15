@@ -204,6 +204,10 @@ export class CollectionTableModel {
     this.attrIdToEdit = attrId
   }
 
+  @action setInputRowIndex(inputRowIndex: number) {
+    this.inputRowIndex = inputRowIndex
+  }
+
   @action syncScrollTopFromEvent(event: React.UIEvent<HTMLDivElement, UIEvent>) {
     const { scrollTop } = event.currentTarget
     this.lastScrollStep = this.scrollStep
