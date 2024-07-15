@@ -68,7 +68,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
         <MenuButton
           className="tool-shelf-button tiles-list-menu"
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
-          data-testid="tool-shelf-button-tiles-list"
+          data-testid="tool-shelf-button-tiles"
         >
           <OptionsIcon />
           <ToolShelfButtonTag
@@ -77,14 +77,16 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList>
+        <MenuList data-testid="tiles-list-menu">
           {tilesArr?.map((tile) => {
             const Icon = getTileComponentIcon(tile?.content.type)
             const title = getTitle(tile)
             return (
-              <MenuItem key={tile?.id} data-testid={`tiles-list-item ${tile.id}`}
+              <MenuItem key={tile?.id} data-testid="tiles-list-menu-item"
                   onClick={()=>handleSelectTile(tile.id)}>
-                {(Icon && <Icon className="tile-list-icon"/>) || <WebViewIcon className="tile-list-icon" />}
+                {(Icon && <Icon className={`tile-list-menu-icon ${tile.content.type}`}
+                              data-testid="tile-list-menu-icon"/>) ||
+                            <WebViewIcon className="tile-list-icon WebView" data-testid="tile-list-menu-icon"/>}
                 {title}
               </MenuItem>
             )
