@@ -32,13 +32,13 @@ export const diItemHandler: DIHandler = {
       items.push(newItem)
     })
 
-    const newCaseIds: Record<string, number[]> = {}
+    const newCaseIds: Record<string, string[]> = {}
     let itemIDs: string[] = []
     dataContext.applyModelChange(() => {
       // Get case ids from before new items are added
-      const oldCaseIds: Record<string, Set<number>> = {}
+      const oldCaseIds: Record<string, Set<string>> = {}
       dataContext.collections.forEach(collection => {
-        oldCaseIds[collection.id] = new Set(collection.caseIds.map(caseId => toV2Id(caseId)))
+        oldCaseIds[collection.id] = new Set(collection.caseIds)
       })
 
       // Add items and update cases
@@ -49,8 +49,7 @@ export const diItemHandler: DIHandler = {
       dataContext.collections.forEach(collection => {
         newCaseIds[collection.id] = []
         collection.caseIds.forEach(caseId => {
-          const v2CaseId = toV2Id(caseId)
-          if (!oldCaseIds[collection.id].has(v2CaseId)) newCaseIds[collection.id].push(v2CaseId)
+          if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
         })
       })
     }, {
@@ -66,13 +65,13 @@ export const diItemHandler: DIHandler = {
       }
     })
 
-    const caseIDs: number[] = []
+    let caseIDs: string[] = []
     for (const collectionId in newCaseIds) {
-      caseIDs.concat(newCaseIds[collectionId])
+      caseIDs = caseIDs.concat(newCaseIds[collectionId])
     }
     return {
       success: true,
-      caseIDs,
+      caseIDs: caseIDs.map(caseID => toV2Id(caseID)),
       itemIDs: itemIDs.map(itemID => toV2Id(itemID))
     }
   },

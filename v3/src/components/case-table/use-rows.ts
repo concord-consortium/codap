@@ -1,19 +1,21 @@
 import { format } from "d3"
 import { reaction } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
-import { symDom, TRow, TRowsChangeData } from "./case-table-types"
-import { useCollectionTableModel } from "./use-collection-table-model"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
-import { updateCasesNotification } from "../../models/data/data-set-notifications"
-import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
+import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import {
+  IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
+} from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()
@@ -222,18 +224,95 @@ export const useRows = () => {
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
+    const collection = data?.getCollection(collectionTableModel?.collectionId)
+    const inputRowIndex = collectionTableModel?.inputRowIndex
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
+    const casesToUpdate: ICase[] = []
+    const casesToCreate: ICaseCreation[] = []
+    caseValues.forEach(aCase => {
+      if (aCase.__id__ === kInputRowKey) {
+        const { __id__, ...others } = aCase
+
+        // Do not add a new item if no actual values are specified.
+        // This can happen when a user starts editing a cell in the input row, but then navigates away with
+        // the cell left blank
+        if (!Object.values(others).some(value => !!value)) return
+
+        // Find values inherited from parent case
+        const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
+          ? inputRowIndex > 0 ? inputRowIndex - 1 : 1
+          : _rows.length - 2
+        const prevRowId = _rows[prevRowIndex].__id__
+        const prevRow = collectionTableModel?.rowCache.get(prevRowId)
+        const parentId = prevRow?.[symParent]
+        const parentValues = data?.getParentValues(parentId ?? "") ?? {}
+        
+        casesToCreate.push({ ...others, ...parentValues })
+      } else {
+        casesToUpdate.push(aCase)
+      }
+    })
+
+    const creatingCases = casesToCreate.length > 0
+    const undoStringKey = creatingCases ? "DG.Undo.caseTable.createNewCase" : "DG.Undo.caseTable.editCellValue"
+    const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
+
+    // We track case ids between updates and additions so we can make proper notifications afterwards
+    let oldCaseIds = new Set(collection?.caseIds ?? [])
+    let updatedCaseIds: string[] = []
+    const newCaseIds: string[] = []
     data?.applyModelChange(
-      () => data.setCaseValues(caseValues),
+      () => {
+        // Update existing cases
+        if (casesToUpdate.length > 0) {
+          data.setCaseValues(casesToUpdate)
+          if (collection?.id === data.childCollection.id) {
+            // The child collection's case ids are persistent, so we can just use the casesToUpdate to
+            // determine which case ids to use in the updateCasesNotification
+            updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
+          } else {
+            // Other collections have cases whose ids change when values change due to updated case grouping,
+            // so we have to check which case ids were not present before updating to determine which case ids
+            // to use in the updateCasesNotification
+            collection?.caseIds.forEach(caseId => {
+              if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
+            })
+          }
+          oldCaseIds = new Set(collection?.caseIds ?? [])
+        }
+
+        // Create new cases
+        if (creatingCases) {
+          const options: IAddCasesOptions = {}
+          if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
+            options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
+            collectionTableModel.setInputRowIndex(collectionTableModel.inputRowIndex + 1)
+          }
+          data.addCases(casesToCreate, options)
+          // We look for case ids that weren't present before adding the new cases to determine which case ids
+          // should be included in the createCasesNotification
+          collection?.caseIds.forEach(caseId => {
+            if (!oldCaseIds.has(caseId)) newCaseIds.push(caseId)
+          })
+        }
+      },
       {
-        // TODO notifications should be () => updateCasesNotification, but that won't work well
-        // until case ids are persistent
-        notifications: updateCasesNotification(data, caseValues),
-        undoStringKey: "DG.Undo.caseTable.editCellValue",
-        redoStringKey: "DG.Redo.caseTable.editCellValue"
+        notifications: () => {
+          const notifications = []
+          if (updatedCaseIds.length > 0) {
+            const updatedCases = updatedCaseIds.map(caseId => data.caseGroupMap.get(caseId))
+              .filter(caseGroup => !!caseGroup)
+              .map(caseGroup => caseGroup.groupedCase)
+            notifications.push(updateCasesNotification(data, updatedCases))
+          }
+          if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
+          return notifications
+        },
+        undoStringKey,
+        redoStringKey
       }
     )
-  }, [data])
+  }, [collectionTableModel, data])
 
   return { handleRowsChange }
 }

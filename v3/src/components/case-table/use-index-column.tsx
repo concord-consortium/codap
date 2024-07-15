@@ -2,7 +2,7 @@ import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { kIndexColumnKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
+import { kIndexColumnKey, kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
@@ -15,6 +15,8 @@ import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { t } from "../../utilities/translation/translate"
+
+import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
 interface IColSpanProps {
   data?: IDataSet
@@ -114,20 +116,29 @@ export function IndexCell({ caseId, index, collapsedCases, onClick }: ICellProps
     }
   }
 
-  const classes = clsx("codap-index-content", { collapsed: collapsedCases != null })
+  const isInputRow = caseId === kInputRowKey
+  const classes = clsx("codap-index-content", { collapsed: collapsedCases != null, "input-row": isInputRow })
   const casesStr = t(collapsedCases === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
-  return (
-    <Menu isLazy>
-      <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-                  onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-        {collapsedCases != null
-          ? `${collapsedCases} ${casesStr}`
-          : index != null ? `${index + 1}` : ""}
-      </MenuButton>
-      <VisuallyHidden id="sr-index-menu-instructions">
-        Press Enter to open the menu.
-      </VisuallyHidden>
-      {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
-    </Menu>
-  )
+  if (isInputRow) {
+    return (
+      <div className={classes}>
+        <DragIndicator />
+      </div>
+    )
+  } else {
+    return (
+      <Menu isLazy>
+        <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
+                    onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
+          {collapsedCases != null
+            ? `${collapsedCases} ${casesStr}`
+            : index != null ? `${index + 1}` : ""}
+        </MenuButton>
+        <VisuallyHidden id="sr-index-menu-instructions">
+          Press Enter to open the menu.
+        </VisuallyHidden>
+        {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
+      </Menu>
+    )
+  }
 }
