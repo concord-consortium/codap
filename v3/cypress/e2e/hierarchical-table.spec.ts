@@ -1,4 +1,3 @@
-import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import hierarchical from '../fixtures/hierarchical.json'
 const values = hierarchical.attributes

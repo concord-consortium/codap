@@ -65,9 +65,9 @@ export const diItemHandler: DIHandler = {
       }
     })
 
-    const caseIDs: string[] = []
+    let caseIDs: string[] = []
     for (const collectionId in newCaseIds) {
-      caseIDs.concat(newCaseIds[collectionId])
+      caseIDs = caseIDs.concat(newCaseIds[collectionId])
     }
     return {
       success: true,
