@@ -224,13 +224,11 @@ export const useRows = () => {
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
-    console.log(`--- changes`, changes)
-    console.log(` -- rows`, _rows)
     const collection = data?.getCollection(collectionTableModel?.collectionId)
     const inputRowIndex = collectionTableModel?.inputRowIndex
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
     const casesToUpdate: ICase[] = []
-    const newCases: ICaseCreation[] = []
+    const casesToCreate: ICaseCreation[] = []
     caseValues.forEach(aCase => {
       if (aCase.__id__ === kInputRowKey) {
         const { __id__, ...others } = aCase
@@ -251,11 +249,15 @@ export const useRows = () => {
         const parentId = prevRow?.[symParent]
         const parentValues = data?.getParentValues(parentId ?? "") ?? {}
         
-        newCases.push({ ...others, ...parentValues })
+        casesToCreate.push({ ...others, ...parentValues })
       } else {
         casesToUpdate.push(aCase)
       }
     })
+
+    const creatingCases = casesToCreate.length > 0
+    const undoStringKey = creatingCases ? "DG.Undo.caseTable.createNewCase" : "DG.Undo.caseTable.editCellValue"
+    const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
 
     // We track case ids between updates and additions so we can make proper notifications afterwards
     let oldCaseIds = new Set(collection?.caseIds ?? [])
@@ -264,28 +266,30 @@ export const useRows = () => {
     data?.applyModelChange(
       () => {
         // Update existing cases
-        data.setCaseValues(casesToUpdate)
-        if (collection?.id === data.childCollection.id) {
-          // The child collection's case ids are persistent, so we can just use the casesToUpdate to
-          // determine which case ids to use in the updateCasesNotification
-          updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
-        } else {
-          // Other collections have cases whose ids change when values change, so we have to check which case ids
-          // were not present before updating to determine which case ids to use in the updateCasesNotification
-          collection?.caseIds.forEach(caseId => {
-            if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
-          })
+        if (casesToUpdate.length > 0) {
+          data.setCaseValues(casesToUpdate)
+          if (collection?.id === data.childCollection.id) {
+            // The child collection's case ids are persistent, so we can just use the casesToUpdate to
+            // determine which case ids to use in the updateCasesNotification
+            updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
+          } else {
+            // Other collections have cases whose ids change when values change, so we have to check which case ids
+            // were not present before updating to determine which case ids to use in the updateCasesNotification
+            collection?.caseIds.forEach(caseId => {
+              if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
+            })
+          }
+          oldCaseIds = new Set(collection?.caseIds ?? [])
         }
 
         // Create new cases
-        oldCaseIds = new Set(collection?.caseIds ?? [])
-        if (newCases.length > 0) {
+        if (creatingCases) {
           const options: IAddCasesOptions = {}
           if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
             options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
             collectionTableModel.inputRowIndex += 1
           }
-          data.addCases(newCases, options)
+          data.addCases(casesToCreate, options)
           // We look for case ids that weren't present before adding the new cases to determine which case ids
           // should be included in the createCasesNotification
           collection?.caseIds.forEach(caseId => {
@@ -305,8 +309,8 @@ export const useRows = () => {
           if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
           return notifications
         },
-        undoStringKey: "DG.Undo.caseTable.editCellValue",
-        redoStringKey: "DG.Redo.caseTable.editCellValue"
+        undoStringKey,
+        redoStringKey
       }
     )
   }, [collectionTableModel, data])
