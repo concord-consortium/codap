@@ -157,9 +157,13 @@ export const DataSet = V2Model.named("DataSet").props({
   managingControllerId: ""
 }))
 .extend(self => {
+  const _validationCount = observable.box<number>(0)
   const _isValidCaseGroups = observable.box<boolean>(false)
   return {
     views: {
+      get validationCount() {
+        return _validationCount.get()
+      },
       get isValidCaseGroups() {
         return _isValidCaseGroups.get()
       },
@@ -167,7 +171,12 @@ export const DataSet = V2Model.named("DataSet").props({
         runInAction(() => _isValidCaseGroups.set(false))
       },
       setValidCaseGroups() {
-        runInAction(() => _isValidCaseGroups.set(true))
+        if (!_isValidCaseGroups.get()) {
+          runInAction(() => {
+            _validationCount.set(_validationCount.get() + 1)
+            _isValidCaseGroups.set(true)
+          })
+        }
       }
     }
   }

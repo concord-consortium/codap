@@ -1,6 +1,54 @@
 # Changelog
 
-## Version 3.0.0-pre.1652 - June 14, 2024
+## Version 3.0.0-pre.1731 - July 12, 2024
+
+### ✨ Features & Improvements:
+- **PT-186227299:** Automation for Inspector menu options of case table
+- **PT-187425766:** Persistent ids for cases in hierarchical collections
+- **PT-187838529:** User can display a "gaussian fit" normal curve on a histogram
+- **PT-187850012:** When the std err and gaussian fit adornments are both showing the gaussian fit label should show the std err computed from estimate of standard deviation
+- **PT-187881286:** A gaussianFit URL parameter allows user to display a gaussian fit normal curve on a histogram
+- **PT-187737737:** DI Get CaseSearch Requests
+- **PT-187737791:** DI Update DataContext ManagingController and Update InteractiveFrame
+- **PT-187718437:** DI Create Component Requests
+- **PT-185315714:** Pressing the **new attribute** button in the case table moves editor focus to the new attribute name.
+- **PT-187864576:** Fix Collaborative plugin
+- **PT-187263038:** Bring back undo/redo graph legend tests
+- **PT-187323679:** Add checks for undo/redo in axis.spec.ts
+
+### 🐞 Bug Fixes:
+- **PT-187262957:** Scatterplot points compress to single point after Undo in various plots
+- **PT-187401397:** Legend Box Compression on Window Resize with Multiple Axes
+- **PT-187793171:** Can't redo axis change
+- **PT-187638145:** Level not created in hierarchy when using Choosy in mammals dataset
+- **PT-187309840:** No cases text persists on table in Parachutes sample document
+- **PT-187319588:** Categorical label persists on graph after removal in plot with numerical/categorical variables
+- **PT-187841073:** Unable to add second y-attribute to scatterplot
+- **PT-187849639:** Multidata plugin in nested table or card view mode shows a white background
+- **PT-187849648:** Sensor interactive creates new time column when frequency is changed
+- **PT-187849622:** Multidata plugin issues with newly added datasets
+- **PT-187751419:** Restore of bar chart and histogram doesn't show bars
+- **PT-187879648:** Least squares line is not properly split by categorical legend
+- **PT-187811059:** Map **Measure** menu ui tuneup
+- **PT-187849761:** Click and drag on component title bar title misbehaves
+- **PT-187811163:** **Insert Cases** dialog box tuneup
+- **PT-187811193:** The graph's camera menu is not bringing up a menu
+- **PT-187849983:** The list of example documents should have the same order as they do in V2
+- **PT-187809039:** Case table/card icons at left of title bar are wrong
+- **PT-187810830:** **Attribute Properties** dialog box tuneup
+- **PT-187573237:** The attribute menu in case card is crashing for most items
+- **PT-187810451:** Formatting for graph configuration menu is awkward
+- **PT-187937515:** Graph Camera Menu Click Issue
+- **PT-187906401:** Case card doesn't show units
+- **PT-187878126:** Failure to add new category to graph axis
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  174269 bytes |                            0.13% |
+|  index.js | 5415545 bytes |                            0.44% |
+
+## Version 3.0.0-pre.1696 - June 14, 2024
 
 ### ✨ Features & Improvements:
 - **PT-187459320:** Graph has option to Show Measures for Selection

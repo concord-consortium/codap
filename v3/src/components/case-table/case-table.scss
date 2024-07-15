@@ -240,6 +240,13 @@ $table-body-font-size: 8pt;
     }
 
     .rdg-cell {
+      // RDG.beta.17 moved all CSS inside @layers, which decreased their priority
+      // so that some of Chakra's CSS takes precedence, including the gridlines.
+      // These lines assert the RDG gridlines precedence ahead of Chakra's CSS.
+      padding-inline: 4px;
+      border-inline-end: 1px solid var(--rdg-border-color);
+      border-block-end: 1px solid var(--rdg-border-color);
+
       &.codap-index-cell {
         padding-inline: 0;
         text-align: center;
@@ -297,13 +304,6 @@ $table-body-font-size: 8pt;
           }
         }
       }
-
-      // RDG.beta.17 moved all CSS inside @layers, which decreased their priority
-      // so that some of Chakra's CSS takes precedence, including the gridlines.
-      // These lines assert the RDG gridlines precedence ahead of Chakra's CSS.
-      padding-inline: 4px;
-      border-inline-end: 1px solid var(--rdg-border-color);
-      border-block-end: 1px solid var(--rdg-border-color);
     }
   }
 

@@ -11,22 +11,31 @@ import { kTitleBarHeight } from "../constants"
 import { urlParams } from "../../utilities/url-params"
 
 interface IProps {
-  row: IFreeTileRow;
-  tile: ITileModel;
-  onCloseTile: (tileId: string) => void;
+  row: IFreeTileRow
+  tile: ITileModel
+  onCloseTile: (tileId: string) => void
 }
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
+  const { active } = useDndContext()
+  const { id: tileId, content: { type: tileType } } = tile
+  const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width?: number, height?: number, zIndex?: number, transition: string}>()
   const [resizingTileId, setResizingTileId] = useState("")
-  const tileId = tile.id
-  const tileType = tile.content.type
   const rowTile = row.tiles.get(tileId)
   const { x: left, y: top, width, height, zIndex } = rowTile || {}
-  const { active } = useDndContext()
-  const tileStyle: React.CSSProperties = { left, top, width, height, zIndex }
+  // when animating creation, use the default creation style on the first render
+  const tileStyle: React.CSSProperties = useDefaultCreationStyle
+          ? { left: 0, top: 0, width: 0, height: kTitleBarHeight, zIndex }
+          : { left, top, width, height, zIndex }
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
+
+  useEffect(() => {
+    // after the first render, render the actual style; CSS transitions will handle the animation
+    setUseDefaultCreationStyle(false)
+  }, [])
+
   const {setNodeRef, transform} = useDraggableTile(draggableOptions,
     activeDrag => {
     const dragTileId = getDragTileId(activeDrag)

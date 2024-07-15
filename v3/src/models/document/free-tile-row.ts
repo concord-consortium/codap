@@ -66,6 +66,7 @@ export interface IFreeTileInRowOptions extends ITileInRowOptions {
   width?: number
   height?: number
   zIndex?: number
+  animateCreation?: boolean
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
               !!options && ("x" in options && options.x != null) && ("y" in options && options.y != null)
@@ -81,6 +82,10 @@ export const FreeTileRow = TileRowModel
     tiles: types.map(FreeTileLayout), // tile id => layout
     maxZIndex: 0
   })
+  .volatile(self => ({
+    // tile ids of tiles created by user whose creation should be animated
+    animateCreationTiles: new Set<string>()
+  }))
   .views(self => ({
     get acceptDefaultInsert() {
       return true
@@ -131,9 +136,11 @@ export const FreeTileRow = TileRowModel
       self.maxZIndex = zIndex
     },
     insertTile(tileId: string, options?: ITileInRowOptions) {
-      const { x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex() } =
-        isFreeTileInRowOptions(options) ? options : {}
+      const {
+        x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex(), animateCreation = false
+      } = isFreeTileInRowOptions(options) ? options : {}
       self.tiles.set(tileId, { tileId, x, y, width, height, zIndex })
+      animateCreation && self.animateCreationTiles.add(tileId)
     },
     removeTile(tileId: string) {
       self.tiles.delete(tileId)

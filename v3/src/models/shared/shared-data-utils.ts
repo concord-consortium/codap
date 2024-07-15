@@ -42,7 +42,7 @@ export function getTileDataSet(tile: ITileContentModel): IDataSet | undefined {
 }
 
 export function getAllTileDataSets(tile: ITileContentModel): ISharedDataSet[] {
-  return getTileSharedModels(tile).filter(m => isSharedDataSet(m)) as ISharedDataSet[]
+  return getTileSharedModels(tile).filter(m => isSharedDataSet(m))
 }
 
 export function getTileCaseMetadata(tile: ITileContentModel) {
@@ -51,7 +51,7 @@ export function getTileCaseMetadata(tile: ITileContentModel) {
 }
 
 export function getAllTileCaseMetadata(tile: ITileContentModel): ISharedCaseMetadata[] {
-  return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m)) as ISharedCaseMetadata[]
+  return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m))
 }
 
 export function isTileLinkedToDataSet(tile: ITileContentModel, dataSet: IDataSet) {

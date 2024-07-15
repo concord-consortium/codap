@@ -3,7 +3,7 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { IDataSet } from "../data/data-set"
 import { AddCasesAction, SetCaseValuesAction } from "../data/data-set-actions"
 import {
-  CaseList, IFormulaDependency, IGlobalValueDependency, ILocalAttributeDependency, ILookupDependency
+  CaseList, IFormulaDependency, ILocalAttributeDependency, ILookupDependency
 } from "./formula-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { ICase } from "../data/data-set-types"
@@ -23,7 +23,7 @@ export const getLocalAttrCasesToRecalculate = (cases: ICase[], formulaDependenci
 export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[], localDataSet: IDataSet,
   recalculateCallback: (casesToRecalculate: CaseList) => void) => {
   const localAttrDependencies =
-    formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
+    formulaDependencies.filter(d => d.type === "localAttribute")
 
   const anyAggregateDepPresent = localAttrDependencies.some(d => d.aggregate)
 
@@ -60,7 +60,7 @@ export const getLookupCasesToRecalculate = (cases: ICase[], dependency: ILookupD
 export const observeLookupDependencies = (formulaDependencies: IFormulaDependency[], dataSets: Map<string, IDataSet>,
   recalculateCallback: (casesToRecalculate: CaseList) => void) => {
   const lookupDependencies: ILookupDependency[] =
-    formulaDependencies.filter(d => d.type === "lookup") as ILookupDependency[]
+    formulaDependencies.filter(d => d.type === "lookup")
 
   const disposeLookupObserver = lookupDependencies.map(dependency => {
     const externalDataSet = dataSets.get(dependency.dataSetId)
@@ -100,7 +100,7 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
 
 export const observeGlobalValues = (formulaDependencies: IFormulaDependency[],
   globalValueManager: IGlobalValueManager | undefined, recalculateCallback: (casesToRecalculate: CaseList) => void) => {
-  const globalValueDependencies = formulaDependencies.filter(d => d.type === "globalValue") as IGlobalValueDependency[]
+  const globalValueDependencies = formulaDependencies.filter(d => d.type === "globalValue")
   const disposeGlobalValueObserver = globalValueDependencies.map(dependency =>
     // Recalculate formula when global value dependency is updated.
     reaction(

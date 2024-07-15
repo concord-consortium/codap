@@ -30,7 +30,7 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyDefaultAxisLabel("bottom")
     ah.verifyDefaultAxisLabel("left")
   })
-  it("will add categorical attribute to x axis", () => {
+  it("will add categorical attribute to x axis with undo/redo", () => {
     // Adding the attribute
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.wait(2000)
@@ -43,20 +43,20 @@ context("Test graph axes with various attribute types", () => {
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "bottom")
 
     // Undo adding the attribute
-    // This test fails due to PT #187262957
-    // toolbar.getUndoTool().click()
-    // cy.wait(2000)
-    // Verify the attribute was removed
-    // ah.verifyDefaultAxisLabel("bottom")
+    cy.log("test undo/redo of add categorical attribute to x axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    // Verify the attribute was added back
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
 
     // Redo adding the attribute
-    // This test fails due to PT #187262957
-    // toolbar.getRedoTool().click()
-
-    // Verify the attribute was added back
-    // ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+    toolbar.getRedoTool().click()
+    cy.wait(2000)
+    // Verify the attribute was removed
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
   })
-  it("will add numeric attribute to x axis", () => {
+  it("will add numeric attribute to x axis with undo/redo", () => {
     // Adding the attribute
     cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
     cy.wait(2000)
@@ -69,19 +69,20 @@ context("Test graph axes with various attribute types", () => {
     ah.removeAttributeFromAxis(arrayOfAttributes[2], "bottom")
 
     // Undo adding the attribute
-    // This test fails due to PT #187262957
-    // toolbar.getUndoTool().click()
-    // cy.wait(2000)
+    cy.log("test undo/redo of add numeric attribute to x axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
     // Verify the attribute was added back
-    // ah.verifyAxisTickLabels("bottom", arrayOfValues[2].values)
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
 
     // Redo adding the attribute
-    // toolbar.getRedoTool().click()
-    // cy.wait(2000)
+    toolbar.getRedoTool().click()
+    cy.wait(2000)
     // Verify the attribute was removed
-    // ah.verifyDefaultAxisLabel("bottom")
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[2].values)
   })
-  it("will add categorical attribute to y axis", () => {
+  it("will add categorical attribute to y axis with undo/redo", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("bottom")
@@ -92,9 +93,19 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
 
-    // TODO: add undo/redo test (PT #187262957)
+    // Undo the last change (remove attribute from bottom axis)
+    cy.log("test undo/redo of add categorical attribute to y axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
+
+    // Redo the last change (remove attribute from bottom axis)
+    toolbar.getRedoTool().dblclick()
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
   })
-  it("will add numeric attribute to y axis", () => {
+  it("will add numeric attribute to y axis with undo/redo", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "left") // Sleep => y-axis
     cy.wait(2000)
     ah.verifyTickMarksDoNotExist("bottom")
@@ -105,9 +116,19 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[5], "left")
 
-    // TODO: add undo/redo test (PT #187262957)
+    // Undo the last change (remove attribute from bottom axis)
+    cy.log("test undo/redo of add numeric attribute to y axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    ah.verifyTickMarksDoNotExist("bottom")
+    ah.verifyGridLinesDoNotExist("bottom")
+
+    // Redo the last change (remove attribute from bottom axis)
+    toolbar.getRedoTool().dblclick()
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
   })
-  it("will add categorical attribute to x axis and categorical attribute to y axis", () => {
+  it("will add categorical attribute to x axis and categorical attribute to y axis with undo/redo", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
     cy.wait(2000)
@@ -127,10 +148,23 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "left")
 
-    // TODO: Add checks for undo/redo
-    // see PT #187279762 and #187262957
+    // Undo the last change (remove attribute from bottom axis)
+    cy.log("test undo/redo of add categorical attribute to x axis and categorical attribute to y axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    ah.verifyXAxisTickMarksDisplayed(true)
+    ah.verifyXAxisGridLinesDisplayed(true)
+    ah.verifyYAxisTickMarksDisplayed(true)
+    ah.verifyYAxisGridLinesDisplayed(true)
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
+    ah.verifyAxisTickLabels("left", arrayOfValues[8].values, true)
+
+    // Redo the last change (remove attribute from bottom axis)
+    toolbar.getRedoTool().dblclick()
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
   })
-  it("will add categorical attribute to x axis and numeric attribute to y axis", () => {
+  it("will add categorical attribute to x axis and numeric attribute to y axis with undo/redo", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "left") // Sleep => y-axis
     cy.wait(2000)
@@ -150,10 +184,23 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[5], "left")
 
-    // TODO: add checks for undo/redo
-    // see PT #187319588 and #187262957
+    // Undo the last change (remove attribute from bottom axis)
+    cy.log("test undo/redo of add categorical attribute to x axis and numeric attribute to y axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    ah.verifyXAxisTickMarksDisplayed(true)
+    ah.verifyXAxisGridLinesDisplayed(true)
+    ah.verifyYAxisTickMarksDisplayed()
+    ah.verifyYAxisGridLinesNotDisplayed()
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
+    ah.verifyAxisTickLabels("left", arrayOfValues[5].values)
+
+    // Redo the last change (remove attribute from bottom axis)
+    toolbar.getRedoTool().dblclick()
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
   })
-  it("will add numeric attribute to x axis and categorical attribute to y axis", () => {
+  it("will add numeric attribute to x axis and categorical attribute to y axis with undo/redo", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "left") // Habitat => y-axis
     cy.wait(2000)
@@ -173,10 +220,24 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
 
-    // TODO: add checks for undo/redo
-    // see PT #187319588 and #187262957
+    // Undo the last change (remove attribute from bottom axis)
+    cy.log("test undo/redo of add numeric attribute to x axis and categorical attribute to y axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyXAxisGridLinesNotDisplayed()
+    ah.verifyYAxisTickMarksDisplayed(true)
+    ah.verifyYAxisGridLinesDisplayed(true)
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+    ah.verifyAxisTickLabels("left", arrayOfValues[7].values, true)
+    ah.openAxisAttributeMenu("left")
+
+    // Redo the last change (remove attribute from bottom axis)
+    toolbar.getRedoTool().dblclick()
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
   })
-  it("will add numeric attribute to x axis and numeric attribute to y axis", () => {
+  it("will add numeric attribute to x axis and numeric attribute to y axis with undo/redo", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y-axis
     cy.wait(2000)
@@ -194,8 +255,19 @@ context("Test graph axes with various attribute types", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "bottom")
 
-    // TODO: add checks for undo/redo
-    // see PT #187262957
+    // Undo the last change (remove attribute from bottom axis)
+    cy.log("test undo/redo of add numeric attribute to x axis and categorical attribute to y axis")
+    toolbar.getUndoTool().dblclick()
+    cy.wait(2000)
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyYAxisTickMarksDisplayed()
+    ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
+    ah.verifyAxisTickLabels("left", arrayOfValues[4].values)
+
+    // Redo the last change (remove attribute from bottom axis)
+    toolbar.getRedoTool().dblclick()
+    ah.verifyTickMarksDoNotExist("left")
+    ah.verifyGridLinesDoNotExist("left")
   })
   it("will split an axis into identical sub axes when categorical attribute is on opposite split", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[4], "bottom") // Mass => x-axis
@@ -234,7 +306,27 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabel("left", "0", 0)
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
 
-    // TODO: add checks for undo/redo
+    // NOTE: this undo/redo test is commented out for now
+    // See PT #187833677
+    // Undo the last change (Sleep => left split)
+    // cy.log("test for undo/redo graph with numeric x-axis and two numeric y-attributes")
+    // toolbar.getUndoTool().click()
+    // cy.wait(500)
+    // cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight")
+    // ah.verifyYAxisTickMarksDisplayed()
+    // ah.verifyAxisTickLabel("left", "0", 0)
+
+    // // Redo the last change (Sleep => left split)
+    // toolbar.getRedoTool().click()
+    // cy.wait(500)
+    // cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    // ah.verifyYAxisTickMarksDisplayed()
+    // ah.verifyAxisTickLabel("left", "0", 0)
+
+    // // Verify the state after undo/redo
+    // ah.verifyXAxisTickMarksDisplayed()
+    // cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]")
+    // .find(".sub-axis-wrapper").should("have.length", 1)
   })
   it("will adjust axis domain when points are changed to bars with undo/redo", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
@@ -252,6 +344,7 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyAxisTickLabel("bottom", "0", 0)
 
     // Undo the change to bars (expect to revert to points)
+    cy.log("test undo/redo for adjust axis domain when points are changed to bars")
     toolbar.getUndoTool().click()
     cy.wait(500)
 
@@ -337,6 +430,7 @@ context("Test graph axes attribute menu", () => {
     ah.verifyAxisTickLabels("bottom", arrayOfValues[3].values)
 
     // Perform an undo action to revert the addition of the numeric attribute
+    cy.log("test undo/redo for add and remove numeric attribute to axis from attribute menu")
     toolbar.getUndoTool().click()
     cy.wait(500) // Wait for the undo action to process
 
@@ -368,6 +462,7 @@ context("Test graph axes attribute menu", () => {
     ah.verifyAxisTickLabels("left", arrayOfValues[7].values, true)
 
     // Undo the addition of the categorical attribute
+    cy.log("test undo/redo for add/remove categorical attribute to y axis from attribute menu")
     toolbar.getUndoTool().click()
     cy.wait(500) // Wait for the undo action to process
 
@@ -398,6 +493,7 @@ context("Test graph axes attribute menu", () => {
     ah.verifyAxisTickLabels("left", arrayOfValues[4].values)
 
     // Undo the addition of the numeric attribute
+    cy.log("test undo/redo add and remove numeric attribute to y axis from attribute menu")
     toolbar.getUndoTool().click()
     cy.wait(500)
 

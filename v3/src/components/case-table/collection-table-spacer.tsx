@@ -83,7 +83,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   //   }
   // }
 
-  function handleTopClick() {
+  function handleExpandCollapseAllClick() {
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
@@ -110,7 +110,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
       {parentCollectionId && parentTableModel && childTableModel && visibleParentAttributes.length > 0 &&
         <>
           <div className="spacer-top">
-            {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
+            {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleExpandCollapseAllClick}
               title={topButtonTooltip} />}
           </div>
           <div className="spacer-mid">
