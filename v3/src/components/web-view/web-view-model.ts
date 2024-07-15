@@ -19,7 +19,13 @@ export const WebViewModel = TileContentModel
     isPlugin: false,
     // fields used by the Collaborative plugin
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
-    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
+    // fields controlled by plugins via interactiveFrame requests
+    externalUndoAvailable: true,
+    preventBringToFront: false,
+    preventDataContextReorg: false,
+    standaloneUndoModeAvailable: false,
+    version: "0.1",
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
