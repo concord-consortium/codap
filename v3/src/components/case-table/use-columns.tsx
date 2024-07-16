@@ -15,6 +15,8 @@ import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-t
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
+import { parseDate } from "../../utilities/date-parser"
+import { DatePrecision, formatDate } from "../../utilities/date-utils"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -50,6 +52,24 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
     const formatStr = attr?.format ?? kDefaultFormatStr
     const formatter = getNumFormatter(formatStr)
     if (formatter) str = formatter(num)
+  }
+
+  // dates
+  // Note that CODAP v2 formats dates in the case table ONLY if the user explicitly specified type as "date".
+  // Dates are not interpreted as dates and formatted by default.
+  if (userType === "date" && str !== "") {
+    const date = parseDate(str, true)
+    if (date) {
+      // TODO: add precision support for date formatting
+      const formattedDate = formatDate(date, DatePrecision.None)
+      return {
+        value: str,
+        content: <span className="cell-span" key={key}>{formattedDate || str}</span>
+      }
+    } else {
+      // If the date is not valid, wrap it in quotes (CODAP V2 behavior).
+      str = `"${str}"`
+    }
   }
 
   return {

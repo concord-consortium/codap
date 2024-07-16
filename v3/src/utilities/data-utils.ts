@@ -42,3 +42,7 @@ export const numericSortComparator = function ({a, b, order}: ICompareProps): nu
   if (aIsNaN) return order === "asc" ? -1 : 1
   return order === "asc" ? a - b : b - a
 }
+
+export const isNumeric = function (value: any): value is number {
+  return value != null && value !== "" && !isNaN(value)
+}
