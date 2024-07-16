@@ -41,6 +41,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
     const webViewContent = tile.content as IWebViewModel
 
+    const cannotClose = true
     const dimensions = { height: 10, width: 10 }
     const externalUndoAvailable = !kDefaultExternalUndoAvailable
     const name = "New name"
@@ -51,12 +52,13 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const standaloneUndoModeAvailable = !kDefaultStandaloneUndoModeAvailable
     const version = "v2.0"
     const values = {
-      dimensions, externalUndoAvailable, name, preventAttributeDeletion, preventBringToFront,
+      cannotClose, dimensions, externalUndoAvailable, name, preventAttributeDeletion, preventBringToFront,
       preventDataContextReorg, respectEditableItemAttribute, standaloneUndoModeAvailable, version
     }
 
     expect(handler.update?.({}, values).success).toBe(false)
 
+    expect(tile.cannotClose).toBe(false)
     expect(webViewContent.externalUndoAvailable).toBe(kDefaultExternalUndoAvailable)
     expect(webViewContent.preventAttributeDeletion).toBe(kDefaultPreventAttributeDeletion)
     expect(webViewContent.preventBringToFront).toBe(kDefaultPreventBringToFront)
@@ -65,6 +67,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(webViewContent.standaloneUndoModeAvailable).toBe(kDefaultStandaloneUndoModeAvailable)
     expect(webViewContent.version).toBe(kDefaultWebViewVersion)
     expect(handler.update?.({ interactiveFrame: tile }, values).success).toBe(true)
+    expect(tile.cannotClose).toBe(cannotClose)
     const newDimensions =
       appState.document.content?.getTileDimensions(tile.id) as unknown as { height: number, width: number }
     expect(newDimensions.height).toBe(10)

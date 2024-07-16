@@ -48,10 +48,11 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      dimensions, externalUndoAvailable, name, preventAttributeDeletion, preventBringToFront, preventDataContextReorg,
-      respectEditableItemAttribute, standaloneUndoModeAvailable, title, version
+      cannotClose, dimensions, externalUndoAvailable, name, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, respectEditableItemAttribute, standaloneUndoModeAvailable, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
+      if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
