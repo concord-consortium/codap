@@ -1,15 +1,18 @@
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef } from "react"
-import DataGrid, { DataGridHandle } from "react-data-grid"
+import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
-import { kInputRowKey, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TRenderers, TRow } from "./case-table-types"
+import {
+  kInputRowKey, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
+} from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "./collection-title"
 import { customRenderRow } from "./custom-row"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
+import { useSelectedCell } from "./use-selected-cell"
 import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -79,6 +82,23 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const rowKey = (row: TRow) => row.__id__
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
+
+  const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns)
+
+  function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
+    // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
+    // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
+    // next row. To achieve this in RDG, we provide this callback, which is called before RDG
+    // handles the event internally. If we get an enter/return key while in edit mode, we handle
+    // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
+    if (args.mode === "EDIT" && event.key === "Enter") {
+      // complete the cell edit
+      args.onClose(true)
+      // prevent RDG from handling the event
+      event.preventGridDefault()
+      navigateToNextRow()
+    }
+  }
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
     const attr = dataSet.attrFromID(attrId)
@@ -162,7 +182,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       return _rows
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex])
-  
+
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (
@@ -173,8 +193,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          columnWidths={columnWidths.current} onColumnResize={handleColumnResize}
-          onCellClick={handleCellClick} onRowsChange={handleRowsChange} onScroll={handleGridScroll}/>
+          columnWidths={columnWidths.current} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
+          onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
+          onSelectedCellChange={handleSelectedCellChange}/>
       </div>
     </div>
   )
