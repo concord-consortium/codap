@@ -44,7 +44,7 @@
 
 import { comparer, observable, reaction, runInAction } from "mobx"
 import {
-  addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, ReferenceIdentifier, SnapshotIn, types
+  addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, onPatch, ReferenceIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
@@ -379,8 +379,6 @@ export const DataSet = V2Model.named("DataSet").props({
           })
           if (attrId && attrCollection) attrCollection.removeAttribute(`${attrId}`)
         })
-        // recalculate groups
-        self.invalidateCaseGroups()
         return newCollection
       },
       removeCollection(collection: ICollectionModel) {
@@ -852,9 +850,6 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // invalidate the affected attributes
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
-
-        // invalidate collectionGroups (including childCases)
-        self.invalidateCaseGroups()
         return ids
       },
 
@@ -920,8 +915,6 @@ export const DataSet = V2Model.named("DataSet").props({
             }
           }
         })
-        // invalidate case groups (including childCases)
-        self.invalidateCaseGroups()
       },
 
       selectAll(select = true) {
@@ -1043,6 +1036,13 @@ export const DataSet = V2Model.named("DataSet").props({
         },
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
       ))
+
+      // when items are added/removed...
+      addDisposer(self, onPatch(self, ({ op, path, value }) => {
+        if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+          self.invalidateCaseGroups()
+        }
+      }))
     }
   },
   commitCache() {
