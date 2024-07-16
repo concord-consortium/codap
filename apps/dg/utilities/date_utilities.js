@@ -404,7 +404,7 @@ DG.DateUtilities.dateParser = (function () {
         return null;
       }
       var newHr = Number(hr);
-      if (amPm != null && (0<newHr<=12)) {
+      if (amPm != null && (0<newHr && newHr<=12)) {
         newHr = newHr % 12;
         if (amPm && amPm.toLowerCase() === 'pm') {
           newHr += 12;
@@ -446,11 +446,11 @@ DG.DateUtilities.dateParser = (function () {
   function isValidDateSpec(dateSpec) {
     var isValid =
         !isNaN(dateSpec.year) &&
-        (!isNaN(dateSpec.month) && (1<=dateSpec.month<=12)) &&
-        (!isNaN(dateSpec.day) && (1<=dateSpec.day<=31)) &&
-        (!isNaN(dateSpec.hour) && (0<=dateSpec.hour<=23)) &&
-        (!isNaN(dateSpec.min) && (0<=dateSpec.min<=59)) &&
-        (!isNaN(dateSpec.sec) && (0<=dateSpec.sec<=59)) &&
+        (!isNaN(dateSpec.month) && (1<=dateSpec.month && dateSpec.month<=12)) &&
+        (!isNaN(dateSpec.day) && (1<=dateSpec.day && dateSpec.day<=31)) &&
+        (!isNaN(dateSpec.hour) && (0<=dateSpec.hour && dateSpec.hour<=23)) &&
+        (!isNaN(dateSpec.min) && (0<=dateSpec.min && dateSpec.min<=59)) &&
+        (!isNaN(dateSpec.sec) && (0<=dateSpec.sec && dateSpec.sec<=59)) &&
         !isNaN(dateSpec.subsec);
     if (isValid) { return dateSpec; }
   }
