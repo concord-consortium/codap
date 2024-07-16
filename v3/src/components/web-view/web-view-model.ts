@@ -4,8 +4,13 @@ import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
+export const kDefaultExternalUndoAvailable = true
 export const kDefaultPreventAttributeDeletion = false
+export const kDefaultPreventBringToFront = false
+export const kDefaultPreventDataContextReorg = false
 export const kDefaultRespectEditableItemAttribute = false
+export const kDefaultStandaloneUndoModeAvailable = false
+export const kDefaultWebViewVersion = "v0.1"
 
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
@@ -21,11 +26,11 @@ export const WebViewModel = TileContentModel
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
     // fields controlled by plugins via interactiveFrame requests
-    externalUndoAvailable: true,
-    preventBringToFront: false,
-    preventDataContextReorg: false,
-    standaloneUndoModeAvailable: false,
-    version: "0.1",
+    externalUndoAvailable: kDefaultExternalUndoAvailable,
+    preventBringToFront: kDefaultPreventBringToFront,
+    preventDataContextReorg: kDefaultPreventDataContextReorg,
+    standaloneUndoModeAvailable: kDefaultStandaloneUndoModeAvailable,
+    version: kDefaultWebViewVersion,
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
@@ -48,6 +53,21 @@ export const WebViewModel = TileContentModel
     },
     setRespectEditableItemAttribute(value: boolean) {
       self.respectEditableItemAttribute = value
+    },
+    setExternalUndoAvailable(value: boolean) {
+      self.externalUndoAvailable = value
+    },
+    setPreventBringToFront(value: boolean) {
+      self.preventBringToFront = value
+    },
+    setPreventDataContextReorg(value: boolean) {
+      self.preventDataContextReorg = value
+    },
+    setStandaloneUndoModeAvailable(value: boolean) {
+      self.standaloneUndoModeAvailable = value
+    },
+    setVersion(version: string) {
+      self.version = version
     }
   }))
   .actions(self => ({
