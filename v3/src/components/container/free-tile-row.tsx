@@ -28,7 +28,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
           row.moveTileToTop(focusedTileId, preventBringToFront)
         }
       }, { name: "FreeTileRowComponent.useEffect.autorun [uiState.focusedTile => row.last]" }, row)
-  }, [row])
+  }, [getTile, row])
 
   // focused tile should always be on top
   useEffect(() => {
