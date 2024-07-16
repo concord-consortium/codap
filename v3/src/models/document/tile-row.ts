@@ -81,7 +81,7 @@ export const TileRowModel = types
       // "derived" models should override
       return false
     },
-    moveTileToTop(tileId: string) {
+    moveTileToTop(tileId: string, preventBringToFront?: boolean) {
       // "derived" models should override
     },
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {

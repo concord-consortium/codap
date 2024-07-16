@@ -6,7 +6,6 @@ import { kWebViewTileType } from "./web-view-defs"
 
 export const kDefaultExternalUndoAvailable = true
 export const kDefaultPreventAttributeDeletion = false
-export const kDefaultPreventBringToFront = false
 export const kDefaultPreventDataContextReorg = false
 export const kDefaultRespectEditableItemAttribute = false
 export const kDefaultStandaloneUndoModeAvailable = false
@@ -27,7 +26,6 @@ export const WebViewModel = TileContentModel
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
     // fields controlled by plugins via interactiveFrame requests
     externalUndoAvailable: kDefaultExternalUndoAvailable,
-    preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
     standaloneUndoModeAvailable: kDefaultStandaloneUndoModeAvailable,
     version: kDefaultWebViewVersion,
@@ -56,9 +54,6 @@ export const WebViewModel = TileContentModel
     },
     setExternalUndoAvailable(value: boolean) {
       self.externalUndoAvailable = value
-    },
-    setPreventBringToFront(value: boolean) {
-      self.preventBringToFront = value
     },
     setPreventDataContextReorg(value: boolean) {
       self.preventDataContextReorg = value

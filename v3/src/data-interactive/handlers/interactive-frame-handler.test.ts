@@ -1,9 +1,13 @@
-
 import "../../components/web-view/web-view-registration"
 import { kDefaultWebViewWidth } from "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
-import { IWebViewModel, kDefaultExternalUndoAvailable, kDefaultPreventAttributeDeletion, kDefaultPreventBringToFront, kDefaultPreventDataContextReorg, kDefaultRespectEditableItemAttribute, kDefaultStandaloneUndoModeAvailable, kDefaultWebViewVersion } from "../../components/web-view/web-view-model"
+import {
+  IWebViewModel, kDefaultExternalUndoAvailable, kDefaultPreventAttributeDeletion,
+  kDefaultPreventDataContextReorg, kDefaultRespectEditableItemAttribute, kDefaultStandaloneUndoModeAvailable,
+  kDefaultWebViewVersion
+} from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
+import { kDefaultPreventBringToFront } from "../../models/tiles/tile-model"
 import { toV2Id } from "../../utilities/codap-utils"
 import { DIInteractiveFrame } from "../data-interactive-types"
 import { diInteractiveFrameHandler } from "./interactive-frame-handler"
@@ -28,7 +32,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(id).toBe(toV2Id(interactiveFrame.id))
     expect(name).toBe(interactiveFrame.title)
     expect(preventAttributeDeletion).toBe(webView.preventAttributeDeletion)
-    expect(preventBringToFront).toBe(webView.preventBringToFront)
+    expect(preventBringToFront).toBe(interactiveFrame.preventBringToFront)
     expect(preventDataContextReorg).toBe(webView.preventDataContextReorg)
     expect(respectEditableItemAttribute).toBe(webView.respectEditableItemAttribute)
     expect(savedState).toBe(webView.state)
@@ -61,7 +65,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(tile.cannotClose).toBe(false)
     expect(webViewContent.externalUndoAvailable).toBe(kDefaultExternalUndoAvailable)
     expect(webViewContent.preventAttributeDeletion).toBe(kDefaultPreventAttributeDeletion)
-    expect(webViewContent.preventBringToFront).toBe(kDefaultPreventBringToFront)
+    expect(tile.preventBringToFront).toBe(kDefaultPreventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(kDefaultPreventDataContextReorg)
     expect(webViewContent.respectEditableItemAttribute).toBe(kDefaultRespectEditableItemAttribute)
     expect(webViewContent.standaloneUndoModeAvailable).toBe(kDefaultStandaloneUndoModeAvailable)
@@ -74,7 +78,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(newDimensions.width).toBe(10)
     expect(webViewContent.externalUndoAvailable).toBe(externalUndoAvailable)
     expect(webViewContent.preventAttributeDeletion).toBe(preventAttributeDeletion)
-    expect(webViewContent.preventBringToFront).toBe(preventBringToFront)
+    expect(tile.preventBringToFront).toBe(preventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(preventDataContextReorg)
     expect(webViewContent.respectEditableItemAttribute).toBe(respectEditableItemAttribute)
     expect(webViewContent.standaloneUndoModeAvailable).toBe(standaloneUndoModeAvailable)
