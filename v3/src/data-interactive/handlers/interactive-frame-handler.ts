@@ -15,7 +15,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {
-      allowEmptyAttributeDeletion, preventAttributeDeletion, preventDataContextReorg,
+      allowEmptyAttributeDeletion, preventAttributeDeletion, preventBringToFront, preventDataContextReorg,
       respectEditableItemAttribute, state: savedState, version
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
@@ -25,7 +25,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       id: toV2Id(interactiveFrame.id),
       name: interactiveFrame.title,
       preventAttributeDeletion,
-      preventBringToFront: interactiveFrame.preventBringToFront,
+      preventBringToFront,
       preventDataContextReorg,
       respectEditableItemAttribute,
       savedState,
@@ -62,7 +62,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       }
       if (name) interactiveFrame.setTitle(name)
       if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
-      if (preventBringToFront != null) interactiveFrame.setPreventBringToFront(preventBringToFront)
+      if (preventBringToFront != null) webViewContent?.setPreventBringToFront(preventBringToFront)
       if (preventDataContextReorg != null) webViewContent?.setPreventDataContextReorg(preventDataContextReorg)
       if (respectEditableItemAttribute != null) {
         webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)

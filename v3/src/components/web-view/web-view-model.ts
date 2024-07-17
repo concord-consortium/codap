@@ -1,7 +1,7 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
-import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { ITileContentModel, kDefaultPreventBringToFront, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
@@ -21,12 +21,18 @@ export const WebViewModel = TileContentModel
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
     // fields controlled by plugins via interactiveFrame requests
+    preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
     isPlugin: false,
     version: kDefaultWebViewVersion
+  }))
+  .views(self => ({
+    get getPreventBringToFront() {
+      return !self.preventBringToFront
+    }
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
@@ -49,6 +55,9 @@ export const WebViewModel = TileContentModel
     },
     setPreventAttributeDeletion(value: boolean) {
       self.preventAttributeDeletion = value
+    },
+    setPreventBringToFront(value: boolean) {
+      self.preventBringToFront = value
     },
     setRespectEditableItemAttribute(value: boolean) {
       self.respectEditableItemAttribute = value

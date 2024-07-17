@@ -5,7 +5,7 @@ import {
   kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
 } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
-import { kDefaultPreventBringToFront } from "../../models/tiles/tile-model"
+import { kDefaultPreventBringToFront } from "../../models/tiles/tile-content"
 import { toV2Id } from "../../utilities/codap-utils"
 import { DIInteractiveFrame } from "../data-interactive-types"
 import { diInteractiveFrameHandler } from "./interactive-frame-handler"
@@ -29,7 +29,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(id).toBe(toV2Id(interactiveFrame.id))
     expect(name).toBe(interactiveFrame.title)
     expect(preventAttributeDeletion).toBe(webView.preventAttributeDeletion)
-    expect(preventBringToFront).toBe(interactiveFrame.preventBringToFront)
+    expect(preventBringToFront).toBe(webView.preventBringToFront)
     expect(preventDataContextReorg).toBe(webView.preventDataContextReorg)
     expect(respectEditableItemAttribute).toBe(webView.respectEditableItemAttribute)
     expect(savedState).toBe(webView.state)
@@ -51,7 +51,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const respectEditableItemAttribute = !kDefaultRespectEditableItemAttribute
     const version = "v2.0"
     const values = {
-      cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
+      allowEmptyAttributeDeletion, cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
       preventDataContextReorg, respectEditableItemAttribute, version
     }
 
@@ -60,7 +60,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(webViewContent.allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
     expect(tile.cannotClose).toBe(false)
     expect(webViewContent.preventAttributeDeletion).toBe(kDefaultPreventAttributeDeletion)
-    expect(tile.preventBringToFront).toBe(kDefaultPreventBringToFront)
+    expect(webViewContent.preventBringToFront).toBe(kDefaultPreventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(kDefaultPreventDataContextReorg)
     expect(webViewContent.respectEditableItemAttribute).toBe(kDefaultRespectEditableItemAttribute)
     expect(webViewContent.version).toBe(kDefaultWebViewVersion)
@@ -72,7 +72,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(newDimensions.height).toBe(10)
     expect(newDimensions.width).toBe(20)
     expect(webViewContent.preventAttributeDeletion).toBe(preventAttributeDeletion)
-    expect(tile.preventBringToFront).toBe(preventBringToFront)
+    expect(webViewContent.preventBringToFront).toBe(preventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(preventDataContextReorg)
     expect(webViewContent.respectEditableItemAttribute).toBe(respectEditableItemAttribute)
     expect(tile.title).toBe(name)

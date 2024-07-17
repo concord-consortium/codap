@@ -12,8 +12,6 @@ import { v3Id, typeV3Id } from "../../utilities/codap-utils"
 // generally negotiated with app, e.g. single column width for table
 export const kDefaultMinWidth = 60
 
-export const kDefaultPreventBringToFront = false
-
 export interface IDragTileItem {
   rowIndex: number;
   rowHeight?: number;
@@ -70,9 +68,6 @@ export const TileModel = types
     cannotClose: types.optional(types.boolean, false),
     transitionComplete: types.maybe(types.boolean)
   })
-  .volatile(self => ({
-    preventBringToFront: kDefaultPreventBringToFront
-  }))
   .preProcessSnapshot(snapshot => {
     const tileType = snapshot.content.type
     const preProcessor = getTileContentInfo(tileType)?.tileSnapshotPreProcessor
@@ -126,9 +121,6 @@ export const TileModel = types
     },
     setCannotClose(cannotClose: boolean) {
       self.cannotClose = cannotClose
-    },
-    setPreventBringToFront(value: boolean) {
-      self.preventBringToFront = value
     },
     setTransitionComplete(complete: boolean) {
       self.transitionComplete = complete
