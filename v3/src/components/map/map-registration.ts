@@ -9,13 +9,18 @@ import {MapComponent} from "./components/map-component"
 import {MapInspector} from "./components/map-inspector"
 import {registerV2TileImporter} from "../../v2/codap-v2-tile-importers"
 import {v2MapImporter} from "./v2-map-importer"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { t } from "../../utilities/translation/translate"
 
 
 registerTileContentInfo({
   type: kMapTileType,
   prefix: kMapIdPrefix,
   modelClass: MapContentModel,
-  defaultContent: () => createMapContentModel()
+  defaultContent: () => createMapContentModel(),
+  getTitle: (tile: ITileModel) => {
+    return tile.title || t("DG.DocumentController.mapTitle")
+  }
 })
 
 registerTileComponentInfo({
