@@ -64,7 +64,7 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
       const formattedDate = formatDate(date, DatePrecision.None)
       return {
         value: str,
-        content: <span className="cell-span" key={key}>{formattedDate || str}</span>
+        content: <span className="cell-span" key={key}>{formattedDate || `"${str}"`}</span>
       }
     } else {
       // If the date is not valid, wrap it in quotes (CODAP V2 behavior).
