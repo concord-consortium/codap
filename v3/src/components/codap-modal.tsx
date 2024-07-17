@@ -70,7 +70,6 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fowa
 
     const onMouseDown = (e: MouseEvent) => {
       e.stopPropagation()
-      e.preventDefault() // Prevent the default behavior
       isDragging = true
       startX = e.clientX
       startY = e.clientY
