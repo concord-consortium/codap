@@ -504,6 +504,21 @@ export const DataSet = V2Model.named("DataSet").props({
   getCasesForAttributes(attributeIds: string[]) {
     const collection = this.getCollectionForAttributes(attributeIds)
     return collection?.cases ?? []
+  },
+  getItemsForCases(cases: ICase[]) {
+    const items: IItem[] = []
+    cases.forEach(aCase => {
+      // convert each case change to a change to each underlying item
+      const caseGroup = self.caseGroupMap.get(aCase.__id__)
+      if (caseGroup?.childItemIds?.length) {
+        items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
+      }
+      else {
+        // items can be added directly
+        items.push(aCase)
+      }
+    })
+    return items
   }
 }))
 .extend(self => {
@@ -858,30 +873,22 @@ export const DataSet = V2Model.named("DataSet").props({
       // For instance, a scatter plot that is dragging many points but affecting only two
       // attributes can indicate that, which can enable more efficient responses.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
-        const items: IItem[] = []
-        cases.forEach(aCase => {
-          // convert each parent case change to a change to each underlying item
-          const caseGroup = self.caseGroupMap.get(aCase.__id__)
-          if (caseGroup?.childCaseIds?.length) {
-            items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
-          }
-        })
-        const _cases = items.length > 0 ? items : cases
+        const items = self.getItemsForCases(cases)
 
         if (self.isCaching()) {
           // update the cases in the cache
-          _cases.forEach(aCase => {
-            const cached = self.caseCache.get(aCase.__id__)
+          items.forEach(item => {
+            const cached = self.caseCache.get(item.__id__)
             if (!cached) {
-              self.caseCache.set(aCase.__id__, { ...aCase })
+              self.caseCache.set(item.__id__, { ...item })
             }
             else {
-              Object.assign(cached, aCase)
+              Object.assign(cached, item)
             }
           })
         }
         else {
-          _cases.forEach((caseValues) => {
+          items.forEach((caseValues) => {
             setCaseValues(caseValues)
           })
         }

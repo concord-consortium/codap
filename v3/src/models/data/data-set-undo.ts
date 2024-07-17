@@ -34,21 +34,14 @@ const setCaseValuesCustomUndoRedoPatcher: ICustomUndoRedoPatcher = {
 }
 
 export function setCaseValuesWithCustomUndoRedo(data: IDataSet, cases: ICase[], affectedAttributes?: string[]) {
-  const items: IItem[] = []
-  cases.forEach(aCase => {
-    // convert each parent case change to a change to each underlying item
-    const caseGroup = data.caseGroupMap.get(aCase.__id__)
-    if (caseGroup?.childCaseIds?.length) {
-      items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
-    }
-  })
-  const _cases = items.length > 0 ? items : cases
-  const before = data.getItems(_cases.map(({ __id__ }) => __id__))
+  const items = data.getItemsForCases(cases)
+  const itemIds = items.map(({ __id__ }) => __id__)
+  const before = data.getItems(itemIds)
 
   data.setCaseValues(cases, affectedAttributes)
 
   // custom undo/redo since values aren't observed all the way down
-  const after = data.getItems(_cases.map(({ __id__ }) => __id__))
+  const after = data.getItems(itemIds)
   withCustomUndoRedo<ISetCaseValuesCustomPatch>({
     type: "DataSet.setCaseValues",
     data: { dataId: data.id, before, after }

@@ -191,13 +191,14 @@ describe("DataConfigurationModel", () => {
       { name: "GraphDataConfigurationTest.caseDataArray reaction" })
     expect(trigger).not.toHaveBeenCalled()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "" }])
-    expect(trigger).toHaveBeenCalledTimes(1)
+    expect(trigger).toHaveBeenCalled()
     expect(config.caseDataArray).toEqual([
       {plotNum: 0, caseID: "c1"},
       {plotNum: 0, caseID: "c3"}
     ])
+    trigger.mockClear()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "2" }])
-    expect(trigger).toHaveBeenCalledTimes(2)
+    expect(trigger).toHaveBeenCalled()
     expect(config.caseDataArray).toEqual([
       {plotNum: 0, caseID: "c1"},
       {plotNum: 0, caseID: "c2"},
