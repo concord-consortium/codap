@@ -6,7 +6,8 @@ import { appState } from "../../models/app-state"
 import { IDataSet } from "../../models/data/data-set"
 import { kInputRowKey } from "../case-table/case-table-types"
 import {
-  isWebViewModel, kDefaultPreventAttributeDeletion, kDefaultRespectEditableItemAttribute
+  isWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion,
+  kDefaultRespectEditableItemAttribute
 } from "./web-view-model"
 
 // A dataset's managing controller is a plugin that has assigned its id to the dataset's managingControllerId.
@@ -18,6 +19,11 @@ function getManagingController(dataset: IDataSet) {
   if (tile && isWebViewModel(tile.content)) {
     return tile.content
   }
+}
+
+// allowEmptyAttributeDeletion allows empty attributes to be deleted, overriding preventAttributeDeletion.
+export function getAllowEmptyAttributeDeletion(dataset: IDataSet) {
+  return getManagingController(dataset)?.allowEmptyAttributeDeletion ?? kDefaultAllowEmptyAttributeDeletion
 }
 
 // preventAttributeDeletion disables the Delete Attribute item from the attribute menu.

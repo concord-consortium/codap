@@ -3,7 +3,8 @@ import { setupTestDataset, testCases } from "../../data-interactive/handlers/han
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import {
-  getPreventAttributeDeletion, getRespectEditableItemAttribute, isCaseEditable, isItemEditable
+  getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getRespectEditableItemAttribute,
+  isCaseEditable, isItemEditable
 } from "./collaborator-utils"
 import { kWebViewTileType } from "./web-view-defs"
 import { IWebViewModel } from "./web-view-model"
@@ -22,20 +23,25 @@ describe('Collaborator Utils', () => {
 
     // Dataset has values of managing controller
     webView1.setPreventAttributeDeletion(true)
+    expect(getAllowEmptyAttributeDeletion(dataSet)).toBe(true)
     expect(getPreventAttributeDeletion(dataSet)).toBe(false)
     expect(getRespectEditableItemAttribute(dataSet)).toBe(false)
     dataSet.setManagingControllerId(tile1.id)
+    expect(getAllowEmptyAttributeDeletion(dataSet)).toBe(true)
     expect(getPreventAttributeDeletion(dataSet)).toBe(true)
     expect(getRespectEditableItemAttribute(dataSet)).toBe(false)
 
     // Changing the managing controller's values changes the dataset's values
+    webView1.setAllowEmptyAttributeDeletion(false)
     webView1.setRespectEditableItemAttribute(true)
+    expect(getAllowEmptyAttributeDeletion(dataSet)).toBe(false)
     expect(getPreventAttributeDeletion(dataSet)).toBe(true)
     expect(getRespectEditableItemAttribute(dataSet)).toBe(true)
 
     // Changing the managing controller changes the dataset's values
     webView2.setRespectEditableItemAttribute(true)
     dataSet.setManagingControllerId(tile2.id)
+    expect(getAllowEmptyAttributeDeletion(dataSet)).toBe(true)
     expect(getPreventAttributeDeletion(dataSet)).toBe(false)
     expect(getRespectEditableItemAttribute(dataSet)).toBe(true)
   })
