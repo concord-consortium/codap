@@ -133,8 +133,12 @@ export function formatDate(x: Date | number | string, precision: DatePrecision) 
     return null
   }
 
-  if (isFiniteNumber(x)) {
-    x = new Date(x * 1000)
+  if (isFiniteNumber(x) || isDate(x)) {
+    // Note that this differs from the original implementation in V2 date_utilities.js because isFiniteNumber behaves
+    // differently from DG.MathUtilities.isNumeric in V2. The original isNumeric function in V2 returns true for
+    // Date objects, which was probably not planned (as `isNaN(new Date())` actually returns `false`), but is necessary
+    // here. Since isFiniteNumber() is more strict, we need an explicit check for Date objects here.
+    x = new Date(x.valueOf() * 1000)
   } else if (isDateString(x)) {
     x = new Date(x)
   }

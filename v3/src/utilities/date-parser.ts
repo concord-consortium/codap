@@ -240,7 +240,7 @@ export function parseDate(iValue: any, iLoose?: boolean) {
   }
   iValue = String(iValue)
   let match
-  let dateSpec
+  let dateSpec: DateSpec | false
   let groupMap: GroupMap | null = null
   let date
   const spec = formatSpecs.some(function (_spec) {
