@@ -4,7 +4,7 @@ import { createCodapDocument } from "../codap/create-codap-document"
 import { TreeManager } from "../history/tree-manager"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { SharedDataSet } from "../shared/shared-data-set"
-import { removeCasesWithCustomUndoRedo } from "./data-set-undo"
+import { removeCasesWithCustomUndoRedo, setCaseValuesWithCustomUndoRedo } from "./data-set-undo"
 
 describe("DataSet undo/redo", () => {
 
@@ -67,7 +67,7 @@ describe("DataSet undo/redo", () => {
     const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
 
     data.applyModelChange(
-      () => data.setCaseValues([{ __id__: "case0", aId: 2, bId: 3 }]),
+      () => setCaseValuesWithCustomUndoRedo(data, [{ __id__: "case0", aId: 2, bId: 3 }]),
       { undoStringKey: "Undo edit value", redoStringKey: "Redo edit value" })
     expect(data.getItem("case0")).toEqual({ __id__: "case0", aId: 2, bId: 3 })
 
