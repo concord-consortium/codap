@@ -1,5 +1,7 @@
 @import "./vars.scss";
 $header-height: 30px;
+$modal-height: 350px;
+$modal-width: 350px;
 
 .chakra-modal__content {
   font-family: "museo-sans", sans-serif;
@@ -73,4 +75,17 @@ $header-height: 30px;
   input, textarea, select, .chakra-radio__control {
     background-color: white;
   }
+}
+
+.codap-modal-content {
+  position: absolute !important;
+  margin-top: 0 !important;
+}
+
+.chakra-modal__content-container {
+  position: absolute !important;
+}
+
+.chakra-modal__overlay {
+  opacity: 0 !important;
 }
