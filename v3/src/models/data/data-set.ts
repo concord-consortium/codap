@@ -55,12 +55,9 @@ import {
   CaseGroup, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
   ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions
 } from "./data-set-types"
-/* eslint-disable import/no-cycle */
+// eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
-import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
-/* eslint-enable import/no-cycle */
 import { applyModelChange } from "../history/apply-model-change"
-import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -793,7 +790,7 @@ export const DataSet = V2Model.named("DataSet").props({
           // If after is an item id, return one index after that item
           const afterItemId = self.itemIDMap.get(after)
           if (afterItemId) return afterItemId + 1
-          
+
           // If after is a case id, find its last item and return one index after that
           const afterCase = self.caseGroupMap.get(after)
           if (!afterCase?.childItemIds.length) return
@@ -870,7 +867,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         })
         const _cases = items.length > 0 ? items : cases
-        const before = getItems(_cases.map(({ __id__ }) => __id__))
+
         if (self.isCaching()) {
           // update the cases in the cache
           _cases.forEach(aCase => {
@@ -888,12 +885,6 @@ export const DataSet = V2Model.named("DataSet").props({
             setCaseValues(caseValues)
           })
         }
-        // custom undo/redo since values aren't observed all the way down
-        const after = getItems(_cases.map(({ __id__ }) => __id__))
-        withCustomUndoRedo<ISetCaseValuesCustomPatch>({
-          type: "DataSet.setCaseValues",
-          data: { dataId: self.id, before, after }
-        }, setCaseValuesCustomUndoRedo)
 
         // only changes to parent collection attributes invalidate grouping
         items.length && self.invalidateCaseGroups()

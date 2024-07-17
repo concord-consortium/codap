@@ -2,8 +2,7 @@ import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
 import { HistoryEntryType } from "../history/history"
 import { ICustomPatch } from "../history/tree-types"
 import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
-import { IItem } from "./data-set-types"
-// eslint-disable-next-line import/no-cycle
+import { ICase, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 
@@ -19,7 +18,7 @@ function isSetCaseValuesCustomPatch(patch: ICustomPatch): patch is ISetCaseValue
   return patch.type === "DataSet.setCaseValues"
 }
 
-export const setCaseValuesCustomUndoRedo: ICustomUndoRedoPatcher = {
+const setCaseValuesCustomUndoRedoPatcher: ICustomUndoRedoPatcher = {
   undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSetCaseValuesCustomPatch(patch)) {
       const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
@@ -32,6 +31,28 @@ export const setCaseValuesCustomUndoRedo: ICustomUndoRedoPatcher = {
       data?.setCaseValues(patch.data.after)
     }
   }
+}
+
+export function setCaseValuesWithCustomUndoRedo(data: IDataSet, cases: ICase[], affectedAttributes?: string[]) {
+  const items: IItem[] = []
+  cases.forEach(aCase => {
+    // convert each parent case change to a change to each underlying item
+    const caseGroup = data.caseGroupMap.get(aCase.__id__)
+    if (caseGroup?.childCaseIds?.length) {
+      items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
+    }
+  })
+  const _cases = items.length > 0 ? items : cases
+  const before = data.getItems(_cases.map(({ __id__ }) => __id__))
+
+  data.setCaseValues(cases, affectedAttributes)
+
+  // custom undo/redo since values aren't observed all the way down
+  const after = data.getItems(_cases.map(({ __id__ }) => __id__))
+  withCustomUndoRedo<ISetCaseValuesCustomPatch>({
+    type: "DataSet.setCaseValues",
+    data: { dataId: data.id, before, after }
+  }, setCaseValuesCustomUndoRedoPatcher)
 }
 
 interface IItemBatch {

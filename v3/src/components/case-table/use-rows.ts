@@ -13,6 +13,7 @@ import { createCasesNotification, updateCasesNotification } from "../../models/d
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
+import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -277,7 +278,7 @@ export const useRows = () => {
       () => {
         // Update existing cases
         if (casesToUpdate.length > 0) {
-          data.setCaseValues(casesToUpdate)
+          setCaseValuesWithCustomUndoRedo(data, casesToUpdate)
           if (collection?.id === data.childCollection.id) {
             // The child collection's case ids are persistent, so we can just use the casesToUpdate to
             // determine which case ids to use in the updateCasesNotification
