@@ -1,4 +1,4 @@
-import { isDateString, parseDate } from './date-parser'
+import { isDateString, isValidDateSpec, parseDate } from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
   // These tests are ported from V2 and should always pass unchanged as long as we want to maintain compatibility.
@@ -86,3 +86,109 @@ describe('Date Parser tests - V2 compatibility', () => {
     expect(isDateString('2016-1-10T1:07:42.123Z')).toBe(false)
   })
 })
+
+describe('isValidDateSpec', () => {
+  test('returns dateSpec when all values are valid', () => {
+    const validDateSpec = {
+      year: 2023,
+      month: 7,
+      day: 17,
+      hour: 15,
+      min: 30,
+      sec: 45,
+      subsec: 123
+    };
+    expect(isValidDateSpec(validDateSpec)).toEqual(validDateSpec);
+  });
+
+  test('returns null when year is NaN', () => {
+    const invalidDateSpec = {
+      year: NaN,
+      month: 7,
+      day: 17,
+      hour: 15,
+      min: 30,
+      sec: 45,
+      subsec: 123
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+
+  test('returns null when month is out of range', () => {
+    const invalidDateSpec = {
+      year: 2023,
+      month: 13,
+      day: 17,
+      hour: 15,
+      min: 30,
+      sec: 45,
+      subsec: 123
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+
+  test('returns null when day is out of range', () => {
+    const invalidDateSpec = {
+      year: 2023,
+      month: 7,
+      day: 32,
+      hour: 15,
+      min: 30,
+      sec: 45,
+      subsec: 123
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+
+  test('returns null when hour is out of range', () => {
+    const invalidDateSpec = {
+      year: 2023,
+      month: 7,
+      day: 17,
+      hour: 24,
+      min: 30,
+      sec: 45,
+      subsec: 123
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+
+  test('returns null when minute is out of range', () => {
+    const invalidDateSpec = {
+      year: 2023,
+      month: 7,
+      day: 17,
+      hour: 15,
+      min: 60,
+      sec: 45,
+      subsec: 123
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+
+  test('returns null when second is out of range', () => {
+    const invalidDateSpec = {
+      year: 2023,
+      month: 7,
+      day: 17,
+      hour: 15,
+      min: 30,
+      sec: 60,
+      subsec: 123
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+
+  test('returns null when subsecond is NaN', () => {
+    const invalidDateSpec = {
+      year: 2023,
+      month: 7,
+      day: 17,
+      hour: 15,
+      min: 30,
+      sec: 45,
+      subsec: NaN
+    };
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
+  });
+});

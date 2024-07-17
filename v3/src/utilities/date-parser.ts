@@ -218,7 +218,7 @@ function extractDateProps(match: string[], map: GroupMap): DateSpec {
   }
 }
 
-function isValidDateSpec(dateSpec: DateSpec) {
+export function isValidDateSpec(dateSpec: DateSpec) {
   const isValid =
     !isNaN(dateSpec.year) &&
     (!isNaN(dateSpec.month) && (1 <= dateSpec.month && dateSpec.month <= 12)) &&
@@ -227,9 +227,9 @@ function isValidDateSpec(dateSpec: DateSpec) {
     (!isNaN(dateSpec.min) && (0 <= dateSpec.min && dateSpec.min <= 59)) &&
     (!isNaN(dateSpec.sec) && (0 <= dateSpec.sec && dateSpec.sec <= 59)) &&
     !isNaN(dateSpec.subsec)
-  if (isValid) { return dateSpec }
-}
 
+  return isValid ? dateSpec : false
+}
 
 export function parseDate(iValue: any, iLoose?: boolean) {
   if (iValue == null) {
