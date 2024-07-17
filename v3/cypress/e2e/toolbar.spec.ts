@@ -64,7 +64,7 @@ context("codap toolbar", () => {
       cy.wait(1000)
       webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
-  it('will show a list of open tiles when no there is no data context',()=>{
+  it('will show a list of open tiles when no there is no data context', ()=>{
     c.getIconFromToolshelf("table").click()
     toolbar.getNewCaseTable().click()
     c.getIconFromToolshelf("graph").click()
@@ -91,7 +91,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuIcon().eq(5).should("have.class", "WebView")
 
   })
-  it('will show a list of open tiles when no there is a data context',()=>{
+  it('will show a list of open tiles when no there is a data context', ()=>{
     cy.visit("#file=examples:Four%20Seals")
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
