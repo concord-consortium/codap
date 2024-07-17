@@ -8,7 +8,7 @@ import { t } from "./translation/translate"
  * In strict mode recognizes year, month or year, month, day iso calendar date
  * or date/time strings (not just year) and local dates and date/time strings.
  * In loose mode recognizes all iso calendar dates and iso date-time strings and
- * a constiety of date and date/time formats.
+ * a variety of date and date/time formats.
  *
  * Recognized in strict mode or loose mode, en/US locale:
  *   * 2019-05
