@@ -1,8 +1,9 @@
 import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { InsertCasesModal } from "./insert-cases-modal"
+import { removeCasesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { t } from "../../utilities/translation/translate"
+import { InsertCasesModal } from "./insert-cases-modal"
 
 interface IProps {
   caseId: string
@@ -36,7 +37,9 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
   }
 
   const handleDeleteCases = () => {
-    data?.removeCases(Array.from(data.selection))
+    if (data?.selection.size) {
+      removeCasesWithCustomUndoRedo(data, Array.from(data.selection))
+    }
   }
 
   return (
