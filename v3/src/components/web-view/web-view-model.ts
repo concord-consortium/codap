@@ -4,6 +4,7 @@ import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
+export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultPreventAttributeDeletion = false
 export const kDefaultPreventDataContextReorg = false
 export const kDefaultRespectEditableItemAttribute = false
@@ -14,17 +15,18 @@ export const WebViewModel = TileContentModel
   .props({
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
     url: "",
-    state: types.frozen<unknown>()
+    state: types.frozen<unknown>(),
+    // fields used by the Collaborative plugin
+    allowEmptyAttributeDeletion: kDefaultAllowEmptyAttributeDeletion,
+    preventAttributeDeletion: kDefaultPreventAttributeDeletion,
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
+    // fields controlled by plugins via interactiveFrame requests
+    preventDataContextReorg: kDefaultPreventDataContextReorg
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
     isPlugin: false,
-    // fields used by the Collaborative plugin
-    preventAttributeDeletion: kDefaultPreventAttributeDeletion,
-    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
-    // fields controlled by plugins via interactiveFrame requests
-    preventDataContextReorg: kDefaultPreventDataContextReorg,
-    version: kDefaultWebViewVersion,
+    version: kDefaultWebViewVersion
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
@@ -41,6 +43,9 @@ export const WebViewModel = TileContentModel
     },
     broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
       self.dataInteractiveController?.call(message, callback)
+    },
+    setAllowEmptyAttributeDeletion(value: boolean) {
+      self.allowEmptyAttributeDeletion = value
     },
     setPreventAttributeDeletion(value: boolean) {
       self.preventAttributeDeletion = value

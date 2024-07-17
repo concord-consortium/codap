@@ -1,7 +1,7 @@
 import { kDefaultWebViewWidth } from "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import {
-  IWebViewModel, kDefaultPreventAttributeDeletion, kDefaultPreventDataContextReorg,
+  IWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion, kDefaultPreventDataContextReorg,
   kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
 } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
@@ -20,9 +20,10 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const result = handler.get!({ interactiveFrame })
     expect(result.success).toBe(true)
     const {
-      dimensions, id, name, preventAttributeDeletion, preventBringToFront, preventDataContextReorg,
-      respectEditableItemAttribute, savedState, title, version
+      allowEmptyAttributeDeletion, dimensions, id, name, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, respectEditableItemAttribute, savedState, title, version
     } = result.values as DIInteractiveFrame
+    expect(allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
     expect(dimensions?.height).toBe(425) // Seems like this should be kDefaultWebViewHeight, but it's not
     expect(dimensions?.width).toBe(kDefaultWebViewWidth)
     expect(id).toBe(toV2Id(interactiveFrame.id))
@@ -40,6 +41,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
     const webViewContent = tile.content as IWebViewModel
 
+    const allowEmptyAttributeDeletion = !kDefaultAllowEmptyAttributeDeletion
     const cannotClose = true
     const dimensions = { height: 10, width: 20 }
     const name = "New name"
@@ -55,6 +57,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
 
     expect(handler.update?.({}, values).success).toBe(false)
 
+    expect(webViewContent.allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
     expect(tile.cannotClose).toBe(false)
     expect(webViewContent.preventAttributeDeletion).toBe(kDefaultPreventAttributeDeletion)
     expect(tile.preventBringToFront).toBe(kDefaultPreventBringToFront)
@@ -62,6 +65,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(webViewContent.respectEditableItemAttribute).toBe(kDefaultRespectEditableItemAttribute)
     expect(webViewContent.version).toBe(kDefaultWebViewVersion)
     expect(handler.update?.({ interactiveFrame: tile }, values).success).toBe(true)
+    expect(webViewContent.allowEmptyAttributeDeletion).toBe(allowEmptyAttributeDeletion)
     expect(tile.cannotClose).toBe(cannotClose)
     const newDimensions =
       appState.document.content?.getTileDimensions(tile.id) as unknown as { height: number, width: number }

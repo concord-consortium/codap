@@ -15,9 +15,11 @@ export const diInteractiveFrameHandler: DIHandler = {
     const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {
-      preventAttributeDeletion, preventDataContextReorg, respectEditableItemAttribute, state: savedState, version
+      allowEmptyAttributeDeletion, preventAttributeDeletion, preventDataContextReorg,
+      respectEditableItemAttribute, state: savedState, version
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
+      allowEmptyAttributeDeletion,
       dimensions,
       externalUndoAvailable: true,
       id: toV2Id(interactiveFrame.id),
@@ -47,10 +49,13 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
+      allowEmptyAttributeDeletion, cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
       preventDataContextReorg, respectEditableItemAttribute, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
+      if (allowEmptyAttributeDeletion != null) {
+        webViewContent?.setAllowEmptyAttributeDeletion(allowEmptyAttributeDeletion)
+      }
       if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
