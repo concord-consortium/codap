@@ -26,7 +26,8 @@ test('year.month.day dates', () => {
     expect(parseDate('2016.6.6', true)?.toISOString()).toBe(new Date(2016, 5, 6).toISOString())
   })
 test('unix dates', () => {
-    expect(parseDate('Thu Jul 11 09:12:47 PDT 2019', true)?.toISOString()).toBe(new Date(2019, 6, 11, 9, 12, 47).toISOString())
+  expect(parseDate('Thu Jul 11 09:12:47 PDT 2019', true)?.toISOString())
+    .toBe(new Date(2019, 6, 11, 9, 12, 47).toISOString())
   })
 test('UTC dates', () => {
     expect(parseDate('Thu, 11 Jul 2019 16:17:01 GMT', true)?.toISOString()).toBe(new Date(2019, 6, 11, 16, 17, 1).toISOString())
