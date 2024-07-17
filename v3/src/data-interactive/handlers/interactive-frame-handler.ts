@@ -15,12 +15,11 @@ export const diInteractiveFrameHandler: DIHandler = {
     const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {
-      externalUndoAvailable, preventAttributeDeletion, preventDataContextReorg, respectEditableItemAttribute,
-      state: savedState, standaloneUndoModeAvailable, version
+      preventAttributeDeletion, preventDataContextReorg, respectEditableItemAttribute, state: savedState, version
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
       dimensions,
-      externalUndoAvailable,
+      externalUndoAvailable: true,
       id: toV2Id(interactiveFrame.id),
       name: interactiveFrame.title,
       preventAttributeDeletion,
@@ -28,7 +27,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       preventDataContextReorg,
       respectEditableItemAttribute,
       savedState,
-      standaloneUndoModeAvailable,
+      standaloneUndoModeAvailable: false,
       title: interactiveFrame.title,
       version,
     }
@@ -48,24 +47,20 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      cannotClose, dimensions, externalUndoAvailable, name, preventAttributeDeletion, preventBringToFront,
-      preventDataContextReorg, respectEditableItemAttribute, standaloneUndoModeAvailable, title, version
+      cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, respectEditableItemAttribute, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
       if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
-      if (externalUndoAvailable != null) webViewContent?.setExternalUndoAvailable(externalUndoAvailable)
       if (name) interactiveFrame.setTitle(name)
       if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
       if (preventBringToFront != null) interactiveFrame.setPreventBringToFront(preventBringToFront)
       if (preventDataContextReorg != null) webViewContent?.setPreventDataContextReorg(preventDataContextReorg)
       if (respectEditableItemAttribute != null) {
         webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)
-      }
-      if (standaloneUndoModeAvailable != null) {
-        webViewContent?.setStandaloneUndoModeAvailable(standaloneUndoModeAvailable)
       }
       if (title) interactiveFrame.setTitle(title)
       if (version) webViewContent?.setVersion(version)

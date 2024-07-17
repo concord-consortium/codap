@@ -4,11 +4,9 @@ import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
-export const kDefaultExternalUndoAvailable = true
 export const kDefaultPreventAttributeDeletion = false
 export const kDefaultPreventDataContextReorg = false
 export const kDefaultRespectEditableItemAttribute = false
-export const kDefaultStandaloneUndoModeAvailable = false
 export const kDefaultWebViewVersion = "v0.1"
 
 export const WebViewModel = TileContentModel
@@ -25,9 +23,7 @@ export const WebViewModel = TileContentModel
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
     // fields controlled by plugins via interactiveFrame requests
-    externalUndoAvailable: kDefaultExternalUndoAvailable,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
-    standaloneUndoModeAvailable: kDefaultStandaloneUndoModeAvailable,
     version: kDefaultWebViewVersion,
   }))
   .actions(self => ({
@@ -52,14 +48,8 @@ export const WebViewModel = TileContentModel
     setRespectEditableItemAttribute(value: boolean) {
       self.respectEditableItemAttribute = value
     },
-    setExternalUndoAvailable(value: boolean) {
-      self.externalUndoAvailable = value
-    },
     setPreventDataContextReorg(value: boolean) {
       self.preventDataContextReorg = value
-    },
-    setStandaloneUndoModeAvailable(value: boolean) {
-      self.standaloneUndoModeAvailable = value
     },
     setVersion(version: string) {
       self.version = version
