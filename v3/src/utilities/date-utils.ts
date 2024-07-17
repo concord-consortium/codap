@@ -1,6 +1,5 @@
-import { isNumeric } from "./data-utils"
 import { isDateString } from "./date-parser"
-import { goodTickValue } from "./math-utils"
+import { goodTickValue, isFiniteNumber } from "./math-utils"
 import { getDefaultLanguage } from "./translation/translate"
 
 export enum EDateTimeLevel {
@@ -130,11 +129,11 @@ export function formatDate(x: Date | number | string, precision: DatePrecision) 
 
   const precisionFormat = formatPrecisions[precision] || formatPrecisions.minute
 
-  if (!(x && (isDate(x) || isDateString(x) || isNumeric(x)))) {
+  if (!(x && (isDate(x) || isDateString(x) || isFiniteNumber(x)))) {
     return null
   }
 
-  if (isNumeric(x)) {
+  if (isFiniteNumber(x)) {
     x = new Date(x * 1000)
   } else if (isDateString(x)) {
     x = new Date(x)
@@ -201,7 +200,7 @@ createDate = DateUtilities.createDate
  */
 /*
 DateUtilities.monthName = function(x) {
-  if (!(x && (isDate(x) || isDateString(x) || MathUtilities.isNumeric(x)))) return ""
+  if (!(x && (isDate(x) || isDateString(x) || MathUtilities.isFiniteNumber(x)))) return ""
   var date
   if (isDate(x))
     date = x
