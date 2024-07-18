@@ -85,6 +85,9 @@ export const TableTileElements = {
   getAttribute(name, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
+  getAttributeInput(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
+  },
   getCasetableAttribute(name) {
     return this.getTableTile().find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
