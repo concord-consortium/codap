@@ -18,7 +18,6 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 import { useCaseTableModel } from "./use-case-table-model"
@@ -52,8 +51,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const gridRef = useRef<DataGridHandle>(null)
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
-  const { isTileSelected } = useTileModelContext()
-  const isFocused = isTileSelected()
   const forceUpdate = useForceUpdate()
 
   useEffect(function setGridElement() {
@@ -63,15 +60,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       onMount(collectionId)
     }
   }, [collectionId, collectionTableModel, gridRef.current?.element, onMount])
-
-  useEffect(function syncScrollTop() {
-    // There is a bug, seemingly in React, in which the scrollTop property gets reset
-    // to 0 when the order of tiles is changed (which happens on selecting/focusing tiles
-    // in the free tile layout), even though the CollectionTable and the RDG grid component
-    // are not re-rendered or unmounted/mounted. Therefore, we reset the scrollTop property
-    // from our saved cache on focus change.
-    isFocused && collectionTableModel?.syncScrollTopToElement()
-  }, [collectionTableModel, isFocused])
 
   // columns
   const indexColumn = useIndexColumn()
