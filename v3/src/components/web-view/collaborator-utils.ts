@@ -7,7 +7,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { kInputRowKey } from "../case-table/case-table-types"
 import {
   isWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion,
-  kDefaultPreventDataContextReorg, kDefaultRespectEditableItemAttribute
+  kDefaultPreventDataContextReorg, kDefaultPreventTopLevelReorg, kDefaultRespectEditableItemAttribute
 } from "./web-view-model"
 
 // A dataset's managing controller is a plugin that has assigned its id to the dataset's managingControllerId.
@@ -34,6 +34,10 @@ export function getPreventAttributeDeletion(dataset: IDataSet) {
 // preventDataContextReorg prevents attributes from being dragged in a case table or the renaming of a case table
 export function getPreventDataContextReorg(dataset: IDataSet) {
   return getManagingController(dataset)?.preventDataContextReorg ?? kDefaultPreventDataContextReorg
+}
+
+export function getPreventTopLevelReorg(dataset: IDataSet) {
+  return getManagingController(dataset)?.preventTopLevelReorg ?? kDefaultPreventTopLevelReorg
 }
 
 // respectEditableItemAttribute affects a dataset's items in several ways, based on a special attribute named

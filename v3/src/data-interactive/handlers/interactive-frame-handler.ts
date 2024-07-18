@@ -16,7 +16,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {
       allowEmptyAttributeDeletion, preventAttributeDeletion, preventBringToFront, preventDataContextReorg,
-      respectEditableItemAttribute, state: savedState, version
+      preventTopLevelReorg, respectEditableItemAttribute, state: savedState, version
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
       allowEmptyAttributeDeletion,
@@ -27,6 +27,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       preventAttributeDeletion,
       preventBringToFront,
       preventDataContextReorg,
+      preventTopLevelReorg,
       respectEditableItemAttribute,
       savedState,
       standaloneUndoModeAvailable: false,
@@ -50,7 +51,7 @@ export const diInteractiveFrameHandler: DIHandler = {
 
     const {
       allowEmptyAttributeDeletion, cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
-      preventDataContextReorg, respectEditableItemAttribute, title, version
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
       if (allowEmptyAttributeDeletion != null) {
@@ -64,6 +65,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
       if (preventBringToFront != null) webViewContent?.setPreventBringToFront(preventBringToFront)
       if (preventDataContextReorg != null) webViewContent?.setPreventDataContextReorg(preventDataContextReorg)
+      if (preventTopLevelReorg != null) webViewContent?.setPreventTopLevelReorg(preventTopLevelReorg)
       if (respectEditableItemAttribute != null) {
         webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)
       }

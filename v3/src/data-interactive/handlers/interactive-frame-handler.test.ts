@@ -2,7 +2,7 @@ import { kDefaultWebViewWidth } from "../../components/web-view/web-view-registr
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import {
   IWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion, kDefaultPreventDataContextReorg,
-  kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
+  kDefaultPreventTopLevelReorg, kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
 } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { kDefaultPreventBringToFront } from "../../models/tiles/tile-content"
@@ -21,7 +21,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(result.success).toBe(true)
     const {
       allowEmptyAttributeDeletion, dimensions, id, name, preventAttributeDeletion, preventBringToFront,
-      preventDataContextReorg, respectEditableItemAttribute, savedState, title, version
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, savedState, title, version
     } = result.values as DIInteractiveFrame
     expect(allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
     expect(dimensions?.height).toBe(425) // Seems like this should be kDefaultWebViewHeight, but it's not
@@ -31,6 +31,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(preventAttributeDeletion).toBe(webView.preventAttributeDeletion)
     expect(preventBringToFront).toBe(webView.preventBringToFront)
     expect(preventDataContextReorg).toBe(webView.preventDataContextReorg)
+    expect(preventTopLevelReorg).toBe(webView.preventTopLevelReorg)
     expect(respectEditableItemAttribute).toBe(webView.respectEditableItemAttribute)
     expect(savedState).toBe(webView.state)
     expect(title).toBe(interactiveFrame.title)
@@ -48,6 +49,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const preventAttributeDeletion = !kDefaultPreventAttributeDeletion
     const preventBringToFront = !kDefaultPreventBringToFront
     const preventDataContextReorg = !kDefaultPreventDataContextReorg
+    const preventTopLevelReorg = !kDefaultPreventTopLevelReorg
     const respectEditableItemAttribute = !kDefaultRespectEditableItemAttribute
     const version = "v2.0"
     const values = {
@@ -62,6 +64,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(webViewContent.preventAttributeDeletion).toBe(kDefaultPreventAttributeDeletion)
     expect(webViewContent.preventBringToFront).toBe(kDefaultPreventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(kDefaultPreventDataContextReorg)
+    expect(webViewContent.preventTopLevelReorg).toBe(kDefaultPreventTopLevelReorg)
     expect(webViewContent.respectEditableItemAttribute).toBe(kDefaultRespectEditableItemAttribute)
     expect(webViewContent.version).toBe(kDefaultWebViewVersion)
     expect(handler.update?.({ interactiveFrame: tile }, values).success).toBe(true)
@@ -74,6 +77,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(webViewContent.preventAttributeDeletion).toBe(preventAttributeDeletion)
     expect(webViewContent.preventBringToFront).toBe(preventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(preventDataContextReorg)
+    expect(webViewContent.preventTopLevelReorg).toBe(preventTopLevelReorg)
     expect(webViewContent.respectEditableItemAttribute).toBe(respectEditableItemAttribute)
     expect(tile.title).toBe(name)
     expect(webViewContent.version).toBe(version)

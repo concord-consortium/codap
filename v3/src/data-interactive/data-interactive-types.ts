@@ -90,6 +90,7 @@ export interface DIInteractiveFrame {
   preventAttributeDeletion?: boolean
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
+  preventTopLevelReorg?: boolean
   respectEditableItemAttribute?: boolean
   savedState?: unknown
   standaloneUndoModeAvailable?: boolean

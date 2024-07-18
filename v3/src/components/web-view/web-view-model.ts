@@ -7,6 +7,7 @@ import { kWebViewTileType } from "./web-view-defs"
 export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultPreventAttributeDeletion = false
 export const kDefaultPreventDataContextReorg = false
+export const kDefaultPreventTopLevelReorg = false
 export const kDefaultRespectEditableItemAttribute = false
 export const kDefaultWebViewVersion = "v0.1"
 
@@ -22,7 +23,8 @@ export const WebViewModel = TileContentModel
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
     // fields controlled by plugins via interactiveFrame requests
     preventBringToFront: kDefaultPreventBringToFront,
-    preventDataContextReorg: kDefaultPreventDataContextReorg
+    preventDataContextReorg: kDefaultPreventDataContextReorg,
+    preventTopLevelReorg: kDefaultPreventTopLevelReorg
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
@@ -64,6 +66,9 @@ export const WebViewModel = TileContentModel
     },
     setPreventDataContextReorg(value: boolean) {
       self.preventDataContextReorg = value
+    },
+    setPreventTopLevelReorg(value: boolean) {
+      self.preventTopLevelReorg = value
     },
     setVersion(version: string) {
       self.version = version
