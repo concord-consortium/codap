@@ -97,11 +97,10 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 45,
       subsec: 123
-    };
-    expect(isValidDateSpec(validDateSpec)).toEqual(validDateSpec);
-  });
-
-  test('returns null when year is NaN', () => {
+    }
+    expect(isValidDateSpec(validDateSpec)).toEqual(validDateSpec)
+  })
+test('returns null when year is NaN', () => {
     const invalidDateSpec = {
       year: NaN,
       month: 7,
@@ -110,11 +109,10 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 45,
       subsec: 123
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-
-  test('returns null when month is out of range', () => {
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+test('returns null when month is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 13,
@@ -123,11 +121,10 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 45,
       subsec: 123
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-
-  test('returns null when day is out of range', () => {
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+test('returns null when day is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -136,11 +133,10 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 45,
       subsec: 123
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-
-  test('returns null when hour is out of range', () => {
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+test('returns null when hour is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -149,11 +145,10 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 45,
       subsec: 123
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-
-  test('returns null when minute is out of range', () => {
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+test('returns null when minute is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -162,11 +157,10 @@ describe('isValidDateSpec', () => {
       min: 60,
       sec: 45,
       subsec: 123
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-
-  test('returns null when second is out of range', () => {
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+test('returns null when second is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -175,11 +169,10 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 60,
       subsec: 123
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-
-  test('returns null when subsecond is NaN', () => {
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+test('returns null when subsecond is NaN', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -188,7 +181,7 @@ describe('isValidDateSpec', () => {
       min: 30,
       sec: 45,
       subsec: NaN
-    };
-    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy();
-  });
-});
+    }
+    expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+})

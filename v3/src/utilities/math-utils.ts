@@ -105,7 +105,7 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
 }
 
 export function isFiniteNumber(x: any): x is number {
-  return Number.isFinite(Number.parseFloat(x))
+  return x != null && Number.isFinite(x)
 }
 
 export function goodTickValue(iMin: number, iMax: number) {

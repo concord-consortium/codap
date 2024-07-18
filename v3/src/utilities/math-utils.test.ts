@@ -49,14 +49,6 @@ describe("math-utils", () => {
         expect(isFiniteNumber(-Infinity)).toBe(false)
         expect(isFiniteNumber(NaN)).toBe(false)
       })
-      it("should return true for numbers that are strings", () => {
-        expect(isFiniteNumber("1")).toBe(true)
-        expect(isFiniteNumber("1.1")).toBe(true)
-        expect(isFiniteNumber("0")).toBe(true)
-        expect(isFiniteNumber("Infinity")).toBe(false)
-        expect(isFiniteNumber("-Infinity")).toBe(false)
-        expect(isFiniteNumber("NaN")).toBe(false)
-      })
       it("should return false for non-numbers", () => {
         expect(isFiniteNumber("")).toBe(false)
         expect(isFiniteNumber("foo")).toBe(false)
