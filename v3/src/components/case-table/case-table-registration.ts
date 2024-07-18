@@ -4,7 +4,7 @@ import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType } from "./case-table-defs"
-import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
+import { CaseTableModel, ICaseTableSnapshot, isCaseTableModel } from "./case-table-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
 import { toV3Id } from "../../utilities/codap-utils"
@@ -24,7 +24,7 @@ registerTileContentInfo({
   defaultContent: () => ({ type: kCaseTableTileType }),
   getTitle: (tile) => {
     const data = tile?.content && getTileDataSet(tile?.content)
-    return data?.title || t("DG.DocumentController.caseTableTitle")
+    return tile.title || data?.title || t("DG.DocumentController.caseTableTitle")
   },
   hideOnClose: true
 })
