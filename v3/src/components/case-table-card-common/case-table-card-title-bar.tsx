@@ -11,6 +11,7 @@ import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { getPreventDataContextReorg } from "../web-view/collaborator-utils"
 import { toggleCardTable } from "./case-table-card-utils"
 
 import "./case-table-card-title-bar.scss"
@@ -60,6 +61,7 @@ export const CaseTableCardTitleBar =
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
+    const preventTitleChange = data && getPreventDataContextReorg(data)
 
     useOutsideClick({
       ref: cardTableToggleRef,
@@ -111,7 +113,8 @@ export const CaseTableCardTitleBar =
 
     return (
       <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
-                         onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}>
+                         onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
+                         preventTitleChange={preventTitleChange}>
         <div className="header-left"
              title={caseTableOrCardToggleString}
              onClick={handleShowCardTableToggleMessage}
