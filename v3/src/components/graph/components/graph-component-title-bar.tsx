@@ -2,12 +2,14 @@ import React from "react"
 import { ComponentTitleBar } from "../../component-title-bar"
 import { observer } from "mobx-react-lite"
 import { ITileTitleBarProps } from "../../tiles/tile-base-props"
-import {isGraphContentModel} from "../models/graph-content-model"
+import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 
 export const GraphComponentTitleBar = observer(function GraphComponentTitleBar(props: ITileTitleBarProps) {
   const {tile, ...others} = props
-  const data = isGraphContentModel(tile?.content) ? tile?.content.dataset : undefined
-  const getTitle = () => tile?.title || data?.name
+  const tileContentInfo = getTileContentInfo(tile?.content.type)
+  const getTitle = () => {
+    return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+  }
 
   return (
     <ComponentTitleBar tile={tile} getTitle={getTitle} {...others} />

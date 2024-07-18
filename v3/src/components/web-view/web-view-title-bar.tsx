@@ -1,11 +1,15 @@
 import React from "react"
 import { observer } from "mobx-react-lite"
 import { ComponentTitleBar  } from "../component-title-bar"
-import { t } from "../../utilities/translation/translate"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
+import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 
 export const WebViewTitleBar = observer(function WebViewTitleBar({ tile, ...others }: ITileTitleBarProps) {
-  const getTitle = () => tile?.title || t("DG.WebView.defaultTitle")
+  const tileContentInfo = getTileContentInfo(tile?.content.type)
+  const getTitle = () => {
+    return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+  }
+
   return (
     <ComponentTitleBar tile={tile} getTitle={getTitle} {...others} />
   )

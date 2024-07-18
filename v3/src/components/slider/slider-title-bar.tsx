@@ -3,19 +3,16 @@ import React, { useCallback } from "react"
 import { observer } from "mobx-react-lite"
 import { ComponentTitleBar  } from "../component-title-bar"
 import { isAliveSafe } from "../../utilities/mst-utils"
-import { t } from "../../utilities/translation/translate"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { isSliderModel } from "./slider-model"
+import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 
 export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile, ...others }: ITileTitleBarProps) {
   const { content } = tile || {}
-
-  const getTitle = useCallback(() => {
-    const { title } = tile || {}
-    const sliderModel = isAliveSafe(content) && isSliderModel(content) ? content : undefined
-    const { name } = sliderModel || {}
-    return title || name || t("DG.DocumentController.sliderTitle")
-  }, [content, tile])
+  const tileContentInfo = getTileContentInfo(tile?.content.type)
+  const getTitle = () => {
+    return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+  }
 
   const handleCloseTile = useCallback((tileId: string) => {
     const sliderModel = isAliveSafe(content) && isSliderModel(content) ? content : undefined
