@@ -27,7 +27,7 @@ export interface ITileContentInfo {
   modelClass: typeof TileContentModel;
   defaultContent: (options?: IDefaultContentOptions) => ITileContentSnapshotWithType;
   titleBase?: string;
-  getTitle: (tile: ITileModel) => string;
+  getTitle: (tile: ITileModel) => string | undefined;
   metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
   hideOnClose?: boolean;

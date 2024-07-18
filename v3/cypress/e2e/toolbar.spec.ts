@@ -23,7 +23,8 @@ context("codap toolbar", () => {
   it("will open a graph", () => {
     c.getIconFromToolshelf("graph").click()
     graph.getGraphTile().should("be.visible")
-    c.getComponentTitle("graph").should("have.text", "New Dataset")
+    // graphs with no associated data set should not have a title
+    c.getComponentTitle("graph").should("have.text", "")
   })
   it("will open a map", () => {
     c.getIconFromToolshelf("map").click()
@@ -65,8 +66,7 @@ context("codap toolbar", () => {
       webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
   it('will show a list of open tiles when no there is no data context', ()=>{
-    c.getIconFromToolshelf("table").click()
-    toolbar.getNewCaseTable().click()
+    // Don't open a table as this automatically creates a data context
     c.getIconFromToolshelf("graph").click()
     c.getIconFromToolshelf("map").click()
     c.getIconFromToolshelf("slider").click()
@@ -76,27 +76,34 @@ context("codap toolbar", () => {
     //TODO need to add check for Text component
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
-    toolbar.getTilesListMenuItem().should("have.length", 6)
+    toolbar.getTilesListMenuItem().should("have.length", 5)
+
+    toolbar.getTilesListMenuItem().eq(0).should("have.text", "")
+    toolbar.getTilesListMenuIcon().eq(0).should("have.class", "Graph")
+    toolbar.getTilesListMenuItem().eq(1).should("have.text", "Map")
+    toolbar.getTilesListMenuIcon().eq(1).should("have.class", "Map")
+    toolbar.getTilesListMenuItem().eq(2).should("have.text", "v1")
+    toolbar.getTilesListMenuIcon().eq(2).should("have.class", "CodapSlider")
+    toolbar.getTilesListMenuItem().eq(3).should("have.text", "Calculator")
+    toolbar.getTilesListMenuIcon().eq(3).should("have.class", "Calculator")
+    toolbar.getTilesListMenuItem().eq(4).should("have.text", "Sampler")
+    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "WebView")
+  })
+  it('will show correct title for a new table', ()=>{
+    c.getIconFromToolshelf("table").click()
+    toolbar.getNewCaseTable().click()
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    toolbar.getTilesListMenuItem().should("have.length", 1)
     toolbar.getTilesListMenuItem().eq(0).should("have.text", "New Dataset")
     toolbar.getTilesListMenuIcon().eq(0).should("have.class", "CaseTable")
-    toolbar.getTilesListMenuItem().eq(1).should("have.text", "Graph")
-    toolbar.getTilesListMenuIcon().eq(1).should("have.class", "Graph")
-    toolbar.getTilesListMenuItem().eq(2).should("have.text", "Map")
-    toolbar.getTilesListMenuIcon().eq(2).should("have.class", "Map")
-    toolbar.getTilesListMenuItem().eq(3).should("have.text", "v1")
-    toolbar.getTilesListMenuIcon().eq(3).should("have.class", "CodapSlider")
-    toolbar.getTilesListMenuItem().eq(4).should("have.text", "Calculator")
-    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "Calculator")
-    toolbar.getTilesListMenuItem().eq(5).should("have.text", "Sampler")
-    toolbar.getTilesListMenuIcon().eq(5).should("have.class", "WebView")
-
   })
-  it('will show a list of open tiles when no there is a data context', ()=>{
+  it('will show a list of open tiles when there is a data context', ()=>{
     cy.visit("#file=examples:Four%20Seals")
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
     toolbar.getTilesListMenuItem().should("have.length", 3)
-    toolbar.getTilesListMenuItem().eq(0).should("have.text", "Tracks/Measurements")
+    toolbar.getTilesListMenuItem().eq(0).should("have.text", "Data_Set_1")
     toolbar.getTilesListMenuItem().eq(1).should("have.text", "Measurements")
     toolbar.getTilesListMenuItem().eq(2).should("have.text", "Measurements")
   })

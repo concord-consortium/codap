@@ -41,7 +41,7 @@ registerTileContentInfo({
   },
   getTitle: (tile: ITileModel) => {
     const data = isGraphContentModel(tile?.content) ? tile?.content.dataset : undefined
-    return tile.title || data?.name || t("DG.DocumentController.graphTitle")
+    return tile.title || data?.name
   }
 })
 
