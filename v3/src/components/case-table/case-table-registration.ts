@@ -1,10 +1,10 @@
 import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType } from "./case-table-defs"
-import { CaseTableModel, ICaseTableSnapshot, isCaseTableModel } from "./case-table-model"
+import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
 import { toV3Id } from "../../utilities/codap-utils"
