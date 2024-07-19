@@ -4,13 +4,15 @@ import {
   CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc, FValue,
   FValueOrArray
 } from '../formula-types'
-import { equal, evaluateNode } from './function-utils'
+import { evaluateNode } from './function-utils'
 import { arithmeticFunctions } from './arithmetic-functions'
+import { dateFunctions } from './date-functions'
 import { stringFunctions } from './string-functions'
 import { lookupFunctions } from './lookup-functions'
 import { otherFunctions } from './other-functions'
 import { aggregateFunctions } from './aggregate-functions'
 import { semiAggregateFunctions } from './semi-aggregate-functions'
+import { operators } from './operators'
 
 export const math = create(all)
 
@@ -61,22 +63,11 @@ export const evaluateWithAggregateContextSupport = (fn: EvaluateFunc): EvaluateF
 }
 
 export const fnRegistry = {
-  // equal(a, b) or a == b
-  // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
-  // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
-  equal: {
-    isOperator: true,
-    numOfRequiredArguments: 2,
-    evaluateOperator: equal
-  },
-
-  unequal: {
-    isOperator: true,
-    numOfRequiredArguments: 2,
-    evaluateOperator: (a: any, b: any) => !equal(a, b)
-  },
+  ...operators,
 
   ...arithmeticFunctions,
+
+  ...dateFunctions,
 
   ...stringFunctions,
 

@@ -262,7 +262,6 @@ export function parseDate(iValue: any, iLoose?: boolean) {
     if (dateSpec) {
       date = new Date(dateSpec.year, (-1 + dateSpec.month), dateSpec.day,
         dateSpec.hour, dateSpec.min, dateSpec.sec, dateSpec.subsec)
-      if (date) date.valueOf = function () { return Date.prototype.valueOf.apply(this) / 1000 }
       return date
     }
   }
