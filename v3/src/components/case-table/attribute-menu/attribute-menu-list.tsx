@@ -9,7 +9,7 @@ import {
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { t } from "../../../utilities/translation/translate"
 import {
-  getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getPreventReorg
+  getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getPreventCollectionReorg, getPreventTopLevelReorg
 } from "../../web-view/collaborator-utils"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
@@ -89,8 +89,15 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     // Anything goes when there is no dataset (this should probably never happen)
     if (!data) return false
 
-    // Disabled if in the parent collection and preventTopLevelReorg is true
-    if (getPreventReorg(data, collection?.id)) return true
+    // If preventTopLevelReorg is true...
+    if (getPreventTopLevelReorg(data)) {
+      // Disabled if in the parent collection
+      if (getPreventCollectionReorg(data, collection?.id)) return true
+
+      // Disabled if there is only one attribute not in the parent collection
+      if (data.attributes.length - data.collections[0].attributes.length <= 1) return true
+    }
+
 
     // Not disabled if the attribute is empty and allowEmptyAttributeDeletion is true
     const attributeIsEmpty = attribute?.values?.some(value => !!value)
