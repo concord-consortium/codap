@@ -109,6 +109,9 @@ export const CollectionModel = V2Model
   // non-formula attributes of all parent collections
   get allParentDataAttrs() {
     return this.allParentAttrs.filter(attr => !attr.hasFormula)
+  },
+  get isTopLevel(): boolean {
+    return !self.parent
   }
 }))
 .views(self => ({

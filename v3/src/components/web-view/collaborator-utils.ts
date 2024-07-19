@@ -36,8 +36,22 @@ export function getPreventDataContextReorg(dataset: IDataSet) {
   return getManagingController(dataset)?.preventDataContextReorg ?? kDefaultPreventDataContextReorg
 }
 
+// preventTopLevelReorg prevents the user from modifying the parent-most child in many ways:
+// - It prevents the user from dragging attributes from or into the parent collection
+// - It prevents the user from adding attributes to the parent collection
+//   - The add attribute in the collection titlebar is disabled
+//   - The add attribute menu item in the case table ruler menu is disabled
+// - It disables the index column menus in the parent collection
+// - It removes the input row from the parent collection
+// - It disables the add attribute button for the parent collection in the case card
 export function getPreventTopLevelReorg(dataset: IDataSet) {
   return getManagingController(dataset)?.preventTopLevelReorg ?? kDefaultPreventTopLevelReorg
+}
+
+// getPreventReorg returns true when preventTopLevelReorg is true, but only for the parent-most collection
+export function getPreventReorg(dataset: IDataSet, collectionId?: string) {
+  const collection = dataset.getCollection(collectionId)
+  return getPreventTopLevelReorg(dataset) && collection?.isTopLevel
 }
 
 // respectEditableItemAttribute affects a dataset's items in several ways, based on a special attribute named

@@ -17,14 +17,15 @@ import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
+import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
+import { createAttributesNotification } from "../../models/data/data-set-notifications"
+import { uniqueName } from "../../utilities/js-utils"
+import { mstReaction } from "../../utilities/mst-reaction"
+import { t } from "../../utilities/translation/translate"
+import { getPreventReorg } from "../web-view/collaborator-utils"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { mstReaction } from "../../utilities/mst-reaction"
-import { IAttribute } from "../../models/data/attribute"
-import { uniqueName } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
-import { createAttributesNotification } from "../../models/data/data-set-notifications"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -150,18 +151,21 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
   }
 
+  const excludeInputRow = data && getPreventReorg(data, collectionId)
   const rows = useMemo(() => {
     if (collectionTableModel?.rows) {
       const _rows = [...collectionTableModel.rows]
-      const inputRow = { __id__: kInputRowKey }
-      if (collectionTableModel.inputRowIndex === -1) {
-        _rows.push(inputRow)
-      } else {
-        _rows.splice(collectionTableModel.inputRowIndex, 0, inputRow)
+      if (!excludeInputRow) {
+        const inputRow = { __id__: kInputRowKey }
+        if (collectionTableModel.inputRowIndex === -1) {
+          _rows.push(inputRow)
+        } else {
+          _rows.splice(collectionTableModel.inputRowIndex, 0, inputRow)
+        }
       }
       return _rows
     }
-  }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex])
+  }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, excludeInputRow])
   
   if (!data || !rows || !visibleAttributes.length) return null
 

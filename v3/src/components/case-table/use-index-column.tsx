@@ -15,6 +15,7 @@ import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { t } from "../../utilities/translation/translate"
+import { getPreventReorg } from "../web-view/collaborator-utils"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
@@ -40,6 +41,8 @@ export const useIndexColumn = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
+  const collection = data?.getCollection(collectionId)
+  const disableMenu = data && getPreventReorg(data, collectionId)
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row
@@ -49,13 +52,12 @@ export const useIndexColumn = () => {
                               data.caseGroupMap.get(parentId)?.childItemIds.length
                             : undefined
     return (
-      <IndexCell caseId={__id__} index={index} collapsedCases={collapsedCases} />
+      <IndexCell caseId={__id__} disableMenu={disableMenu} index={index} collapsedCases={collapsedCases} />
     )
-  }, [caseMetadata, data])
+  }, [caseMetadata, data, disableMenu])
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
-    const collection = data?.getCollection(collectionId)
     // rebuild index column definition when necessary
     indexColumn.current = {
       key: kIndexColumnKey,
@@ -70,18 +72,19 @@ export const useIndexColumn = () => {
       },
       renderCell: RenderIndexCell
     }
-  }, [caseMetadata, collectionId, data, RenderIndexCell])
+  }, [caseMetadata, collection, data, RenderIndexCell])
 
   return indexColumn.current
 }
 
 interface ICellProps {
   caseId: string
+  disableMenu?: boolean
   index?: number
   collapsedCases?: number
   onClick?: (caseId: string, evt: React.MouseEvent) => void
 }
-export function IndexCell({ caseId, index, collapsedCases, onClick }: ICellProps) {
+export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick }: ICellProps) {
   const [menuButton, setMenuButton] = useState<HTMLButtonElement | null>(null)
   const cellElt: HTMLDivElement | null = menuButton?.closest(".rdg-cell") ?? null
   // Find the parent CODAP component to display the index menu above the grid
@@ -126,19 +129,28 @@ export function IndexCell({ caseId, index, collapsedCases, onClick }: ICellProps
       </div>
     )
   } else {
-    return (
-      <Menu isLazy>
-        <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-                    onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-          {collapsedCases != null
-            ? `${collapsedCases} ${casesStr}`
-            : index != null ? `${index + 1}` : ""}
-        </MenuButton>
-        <VisuallyHidden id="sr-index-menu-instructions">
-          Press Enter to open the menu.
-        </VisuallyHidden>
-        {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
-      </Menu>
-    )
+    const cellContents = collapsedCases != null
+      ? `${collapsedCases} ${casesStr}`
+      : index != null ? `${index + 1}` : ""
+    if (disableMenu) {
+      return (
+        <div className={classes}>
+          {cellContents}
+        </div>
+      )
+    } else {
+      return (
+        <Menu isLazy>
+          <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
+                      onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
+            {cellContents}
+          </MenuButton>
+          <VisuallyHidden id="sr-index-menu-instructions">
+            Press Enter to open the menu.
+          </VisuallyHidden>
+          {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
+        </Menu>
+      )
+    }
   }
 }
