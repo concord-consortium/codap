@@ -90,7 +90,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     if (!data) return false
 
     // Disabled if in the parent collection and preventTopLevelReorg is true
-    const collection = data.getCollectionForAttribute(columnId)
     if (getPreventReorg(data, collection?.id)) return true
 
     // Not disabled if the attribute is empty and allowEmptyAttributeDeletion is true
