@@ -33,6 +33,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
     if (!preventCollectionDrop) {
       const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
+      if (getPreventAttributeReorg(dataSet, dragAttributeID)) return
       dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
     }
   })

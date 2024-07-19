@@ -24,6 +24,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const { active, isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, _active => {
     if (!preventCollectionDrop) {
       const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(_active) || {}
+      if (getPreventAttributeReorg(dataset, dragAttrId)) return
       const targetCollection = dataset?.getCollection(collectionId)
       if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
 
