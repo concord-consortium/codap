@@ -54,7 +54,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const version = "v2.0"
     const values = {
       allowEmptyAttributeDeletion, cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
-      preventDataContextReorg, respectEditableItemAttribute, version
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, version
     }
 
     expect(handler.update?.({}, values).success).toBe(false)
