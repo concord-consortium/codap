@@ -2,7 +2,8 @@ import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
 import { TileContentModel, ITileContentSnapshotWithType } from "./tile-content"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { ITileEnvironment } from "./tile-environment"
-import { ITileModel } from "./tile-model";
+// eslint-disable-next-line import/no-cycle
+import { ITileModel } from "./tile-model"
 
 export interface IDefaultContentOptions {
   // environment in which the tile will be created

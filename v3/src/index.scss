@@ -14,6 +14,8 @@ body {
 
   /* Show outline for keyboard :focus-visible */
   .chakra-button {
+    user-select: none;
+
     &:focus-visible {
       // chakra uses box-shadow for focus highlight rather than outline
       box-shadow: var(--chakra-shadows-outline) !important;
