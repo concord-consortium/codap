@@ -28,7 +28,7 @@ export const CodapModal = forwardRef(({
     >
       <ModalOverlay />
       <DraggableModalContent
-          fowardRef={ref}
+          fRef={ref}
           modalWidth={modalWidth}
           modalHeight={modalHeight}
           onClick={onClick}
@@ -46,15 +46,15 @@ interface IDraggableModalContentProps {
   modalWidth?: string
   modalHeight?: string
   onClick?: () => void
-  fowardRef: React.Ref<HTMLElement> | undefined
+  fRef: React.Ref<HTMLElement> | undefined
   isOpen: boolean
 }
 
-const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fowardRef, isOpen
+const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef, isOpen
     }: IDraggableModalContentProps) => {
   const [modalPos, setModalPos] = useState({left: 350, top: 250})
   const modalRef = useRef<HTMLElement | null>(null)
-  const mergedRef = useMergeRefs(fowardRef, modalRef)
+  const mergedRef = useMergeRefs(fRef, modalRef)
 
   useEffect(() => {
     const modalElement = modalRef.current
