@@ -18,7 +18,15 @@ context("attribute types", () => {
       table.getCell("3", "2").should("contain", "48")
     })
     it("verify date", () => {
-      table.getCell("4", "2").should("contain", "8/7/2017 12:01 PM")
+      table.getCell("4", "2").should("contain", "8/7/2017, 12:01 PM")
+      table.getCell("4", "3").should("contain", "6/15/1966, 12:00 AM")
+      table.getCell("4", "4").should("contain", "12/7/1787, 12:00 AM")
+      table.getCell("4", "5").should("contain", "1/2/2003, 12:00 AM")
+      table.getCell("4", "6").should("contain", "12/3/1818, 12:00 AM")
+      table.getCell("4", "7").should("contain", "6/1/1992, 12:00 AM")
+      table.getCell("4", "8").should("contain", "11/2/1989, 12:00 AM")
+      table.getCell("4", "9").should("contain", "11/16/2007, 12:00 AM")
+      table.getCell("4", "10").should("contain", "11/30/2000, 12:00 AM")
     })
     it.skip("verify boolean", () => {
       table.getCell("5", "2").should("contain", "false")

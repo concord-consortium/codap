@@ -33,6 +33,7 @@ import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { V2Model } from "./v2-model"
+import { isDateString } from "../../utilities/date-parser"
 
 export const kDefaultFormatStr = ".3~f"
 
@@ -129,6 +130,13 @@ export const Attribute = V2Model.named("Attribute").props({
     self.changeCount // eslint-disable-line no-unused-expressions
     return self.strValues.reduce((prev, current) => parseColor(current) ? ++prev : prev, 0)
   }),
+  getDateCount: cachedFnFactory<number>(() => {
+    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
+    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
+    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
+    self.changeCount // eslint-disable-line no-unused-expressions
+    return self.strValues.reduce((prev, current) => isDateString(current) ? ++prev : prev, 0)
+  }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
   },
@@ -214,6 +222,10 @@ export const Attribute = V2Model.named("Attribute").props({
     // only infer numeric if all non-empty values are numeric (CODAP2)
     const numCount = self.getNumericCount()
     if (numCount > 0 && numCount === this.length - self.getEmptyCount()) return "numeric"
+
+    // only infer date if all non-empty values are dates
+    const dateCount = self.getDateCount()
+    if (dateCount > 0 && dateCount === this.length - self.getEmptyCount()) return "date"
 
     return "categorical"
   },
