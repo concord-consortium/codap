@@ -84,7 +84,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       args.onClose(true)
       // prevent RDG from handling the event
       event.preventGridDefault()
-      navigateToNextRow()
+      navigateToNextRow(event.shiftKey)
     }
   }
 
