@@ -87,6 +87,7 @@ export const CaseTableCardTitleBar =
         // case table title reflects DataSet title
         data?.applyModelChange(() => {
           data.setTitle(newTitle)
+          tile?.setTitle(newTitle)
         }, {
           notifications: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
