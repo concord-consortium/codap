@@ -1,5 +1,6 @@
 import { Tooltip, Menu, MenuButton, Input, VisuallyHidden } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
+import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
@@ -13,7 +14,12 @@ import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
-export function ColumnHeader({ column }: TRenderHeaderCellProps) {
+// wrapper component because RDG doesn't like observer components as header cell renderers
+export function ColumnHeader(props: TRenderHeaderCellProps) {
+  return <_ColumnHeader {...props}/>
+}
+
+const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderCellProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
   const collectionTableModel = useCollectionTableModel()
@@ -209,4 +215,4 @@ export function ColumnHeader({ column }: TRenderHeaderCellProps) {
     }}
     </Menu>
   )
-}
+})

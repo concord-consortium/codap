@@ -1,6 +1,8 @@
 import { format } from "d3"
 import { reaction } from "mobx"
+import { onPatch } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
+import { useDebouncedCallback } from "use-debounce"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -11,6 +13,7 @@ import { createCasesNotification, updateCasesNotification } from "../../models/d
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
+import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -90,6 +93,16 @@ export const useRows = () => {
     })
   }, [data, setCachedDomAttr])
 
+  const resetRowCacheAndSyncRows = useDebouncedCallback(() => {
+    resetRowCache()
+    if (appState.appMode === "performance") {
+      syncRowsToDom()
+    }
+    else {
+      syncRowsToRdg()
+    }
+  })
+
   useEffect(() => {
     const disposer = reaction(() => appState.appMode, mode => {
       prf.measure("Table.useRows[appModeReaction]", () => {
@@ -112,16 +125,16 @@ export const useRows = () => {
       () => data?.isValidCaseGroups && data?.validationCount,
       validation => {
         if (typeof validation === "number") {
-          resetRowCache()
-          if (appState.appMode === "performance") {
-            syncRowsToDom()
-          }
-          else {
-            syncRowsToRdg()
-          }
+          resetRowCacheAndSyncRows()
         }
       }, { name: "useRows.useEffect.reaction [collectionGroups]", fireImmediately: true }
     )
+
+    const onPatchDisposer = data && onPatch(data, ({ op, path, value }) => {
+      if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+        resetRowCacheAndSyncRows()
+      }
+    })
 
     // update the affected rows on data changes without grouping changes
     const beforeAnyActionDisposer = data && onAnyAction(data, action => {
@@ -147,8 +160,7 @@ export const useRows = () => {
         // some actions (more with hierarchical data sets) require rebuilding the entire row cache
         if (alwaysResetRowCacheActions.includes(action.name) ||
             (isHierarchical && hierarchicalResetRowCacheActions.includes(action.name))) {
-          resetRowCache()
-          updateRows = true
+          resetRowCacheAndSyncRows()
         }
 
         // non-hierarchical data sets can respond more efficiently to some actions
@@ -216,11 +228,12 @@ export const useRows = () => {
     })
     return () => {
       reactionDisposer?.()
+      onPatchDisposer?.()
       beforeAnyActionDisposer?.()
       afterAnyActionDisposer?.()
       metadataDisposer?.()
     }
-  }, [caseMetadata, collectionTableModel, data, resetRowCache, syncRowsToDom, syncRowsToRdg])
+  }, [caseMetadata, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
@@ -246,7 +259,7 @@ export const useRows = () => {
         const prevRow = collectionTableModel?.rowCache.get(prevRowId)
         const parentId = prevRow?.[symParent]
         const parentValues = data?.getParentValues(parentId ?? "") ?? {}
-        
+
         casesToCreate.push({ ...others, ...parentValues })
       } else {
         casesToUpdate.push(aCase)
@@ -265,7 +278,7 @@ export const useRows = () => {
       () => {
         // Update existing cases
         if (casesToUpdate.length > 0) {
-          data.setCaseValues(casesToUpdate)
+          setCaseValuesWithCustomUndoRedo(data, casesToUpdate)
           if (collection?.id === data.childCollection.id) {
             // The child collection's case ids are persistent, so we can just use the casesToUpdate to
             // determine which case ids to use in the updateCasesNotification

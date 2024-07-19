@@ -143,22 +143,18 @@ context("Graph UI", () => {
       cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
       cy.dragAttributeToTarget("table", "Height", "left")
 
-      // change calues in table so that points need rescale
+      // change values in table so that points need rescale
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
       table.getGridCell(3, 4).dblclick()
-      table.getGridCell(3, 4).find("input").type("700")
-      cy.log("check the editing cell contents")
-      table.getGridCell(3, 4).find("input").should("have.value", "700")
+      table.getGridCell(3, 4).find("input").type("700{enter}")
 
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
       table.getGridCell(3, 5).dblclick()
-      table.getGridCell(3, 5).find("input").type("300")
-      cy.log("check the editing cell contents")
-      table.getGridCell(3, 5).find("input").should("have.value", "300")
+      table.getGridCell(3, 5).find("input").type("300{enter}")
 
       // get the rescale button
       c.getComponentTitle("graph").should("have.text", collectionName).click()

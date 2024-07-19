@@ -5,6 +5,7 @@ import { Button, FormControl, FormLabel, HStack, ModalBody, ModalCloseButton, Mo
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { ICaseCreation } from "../../models/data/data-set-types"
 
 interface IProps {
   caseId: string
@@ -36,13 +37,18 @@ export const InsertCasesModal: React.FC<IProps> =
 
   const insertCases = () => {
     onClose()
-    const casesToAdd = []
+    const casesToAdd: ICaseCreation[] = []
     if (numCasesToInsert) {
       for (let i=0; i < numCasesToInsert; i++) {
         casesToAdd.push({})
       }
     }
-    data?.addCases(casesToAdd, {[insertPosition]: caseId})
+    data?.applyModelChange(() => {
+      data.addCases(casesToAdd, {[insertPosition]: caseId})
+    }, {
+      undoStringKey: "DG.Undo.caseTable.insertCases",
+      redoStringKey: "DG.Redo.caseTable.insertCases"
+    })
   }
 
   const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),

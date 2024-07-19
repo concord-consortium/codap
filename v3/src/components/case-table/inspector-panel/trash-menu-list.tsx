@@ -2,6 +2,7 @@ import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
 import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectAllCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 import { isItemEditable } from "../../web-view/collaborator-utils"
@@ -26,15 +27,15 @@ export const TrashMenuList = observer(function TrashMenuList() {
   }
 
   const handleDeleteSelectedCases = () => {
-    data?.removeCases(deletableSelectedItems)
+    data && removeCasesWithCustomUndoRedo(data, deletableSelectedItems)
   }
 
   const handleDeleteUnselectedCases = () => {
-    data?.removeCases(deletableUnselectedItems)
+    data && removeCasesWithCustomUndoRedo(data, deletableUnselectedItems)
   }
 
   const handleDeleteAllCases = () => {
-    data?.removeCases(deletableItems)
+    data && removeCasesWithCustomUndoRedo(data, deletableItems)
   }
 
   return (

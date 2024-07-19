@@ -44,7 +44,7 @@
 
 import { comparer, observable, reaction, runInAction } from "mobx"
 import {
-  addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, ReferenceIdentifier, SnapshotIn, types
+  addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, onPatch, ReferenceIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
@@ -55,12 +55,9 @@ import {
   CaseGroup, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
   ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions
 } from "./data-set-types"
-/* eslint-disable import/no-cycle */
+// eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
-import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
-/* eslint-enable import/no-cycle */
 import { applyModelChange } from "../history/apply-model-change"
-import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -379,8 +376,6 @@ export const DataSet = V2Model.named("DataSet").props({
           })
           if (attrId && attrCollection) attrCollection.removeAttribute(`${attrId}`)
         })
-        // recalculate groups
-        self.invalidateCaseGroups()
         return newCollection
       },
       removeCollection(collection: ICollectionModel) {
@@ -509,6 +504,21 @@ export const DataSet = V2Model.named("DataSet").props({
   getCasesForAttributes(attributeIds: string[]) {
     const collection = this.getCollectionForAttributes(attributeIds)
     return collection?.cases ?? []
+  },
+  getItemsForCases(cases: ICase[]) {
+    const items: IItem[] = []
+    cases.forEach(aCase => {
+      // convert each case change to a change to each underlying item
+      const caseGroup = self.caseGroupMap.get(aCase.__id__)
+      if (caseGroup?.childItemIds?.length) {
+        items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
+      }
+      else {
+        // items can be added directly
+        items.push(aCase)
+      }
+    })
+    return items
   }
 }))
 .extend(self => {
@@ -795,7 +805,7 @@ export const DataSet = V2Model.named("DataSet").props({
           // If after is an item id, return one index after that item
           const afterItemId = self.itemIDMap.get(after)
           if (afterItemId) return afterItemId + 1
-          
+
           // If after is a case id, find its last item and return one index after that
           const afterCase = self.caseGroupMap.get(after)
           if (!afterCase?.childItemIds.length) return
@@ -852,9 +862,6 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // invalidate the affected attributes
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
-
-        // invalidate collectionGroups (including childCases)
-        self.invalidateCaseGroups()
         return ids
       },
 
@@ -866,39 +873,25 @@ export const DataSet = V2Model.named("DataSet").props({
       // For instance, a scatter plot that is dragging many points but affecting only two
       // attributes can indicate that, which can enable more efficient responses.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
-        const items: IItem[] = []
-        cases.forEach(aCase => {
-          // convert each parent case change to a change to each underlying item
-          const caseGroup = self.caseGroupMap.get(aCase.__id__)
-          if (caseGroup?.childCaseIds?.length) {
-            items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
-          }
-        })
-        const _cases = items.length > 0 ? items : cases
-        const before = getItems(_cases.map(({ __id__ }) => __id__))
+        const items = self.getItemsForCases(cases)
+
         if (self.isCaching()) {
           // update the cases in the cache
-          _cases.forEach(aCase => {
-            const cached = self.caseCache.get(aCase.__id__)
+          items.forEach(item => {
+            const cached = self.caseCache.get(item.__id__)
             if (!cached) {
-              self.caseCache.set(aCase.__id__, { ...aCase })
+              self.caseCache.set(item.__id__, { ...item })
             }
             else {
-              Object.assign(cached, aCase)
+              Object.assign(cached, item)
             }
           })
         }
         else {
-          _cases.forEach((caseValues) => {
+          items.forEach((caseValues) => {
             setCaseValues(caseValues)
           })
         }
-        // custom undo/redo since values aren't observed all the way down
-        const after = getItems(_cases.map(({ __id__ }) => __id__))
-        withCustomUndoRedo<ISetCaseValuesCustomPatch>({
-          type: "DataSet.setCaseValues",
-          data: { dataId: self.id, before, after }
-        }, setCaseValuesCustomUndoRedo)
 
         // only changes to parent collection attributes invalidate grouping
         items.length && self.invalidateCaseGroups()
@@ -920,8 +913,6 @@ export const DataSet = V2Model.named("DataSet").props({
             }
           }
         })
-        // invalidate case groups (including childCases)
-        self.invalidateCaseGroups()
       },
 
       selectAll(select = true) {
@@ -1043,6 +1034,13 @@ export const DataSet = V2Model.named("DataSet").props({
         },
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
       ))
+
+      // when items are added/removed...
+      addDisposer(self, onPatch(self, ({ op, path, value }) => {
+        if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+          self.invalidateCaseGroups()
+        }
+      }))
     }
   },
   commitCache() {

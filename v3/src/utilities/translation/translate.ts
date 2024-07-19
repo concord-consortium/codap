@@ -72,6 +72,10 @@ for (const lang of candidates) {
   }
 }
 
+export function getDefaultLanguage () {
+  return defaultLang
+}
+
 type VarValue = string | number | undefined
 interface ITranslateOptions {
   lang?: string

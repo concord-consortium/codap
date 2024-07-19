@@ -44,6 +44,13 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       isClosable: true,
     })
   }
+
+  // can't hide last attribute of collection
+  const collection = data?.getCollectionForAttribute(columnId)
+  const visibleAttributes = collection?.attributes
+                              .reduce((sum, attr) => attr && !caseMetadata?.isHidden(attr.id) ? sum + 1 : sum, 0) ?? 0
+  const disableHideAttribute = visibleAttributes <= 1
+
   const handleHideAttribute = () => {
     caseMetadata?.applyModelChange(
       () => caseMetadata?.setIsHidden(column.key, true),
@@ -155,7 +162,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
         <MenuItem onClick={() => handleMenuItemClick("Sort Descending")}>
           {t("DG.TableController.headerMenuItems.sortDescending")}
         </MenuItem>
-        <MenuItem onClick={handleHideAttribute}>
+        <MenuItem onClick={handleHideAttribute} isDisabled={disableHideAttribute}>
           {t("DG.TableController.headerMenuItems.hideAttribute")}
         </MenuItem>
         <MenuItem onClick={() => handleDeleteAttribute()} isDisabled={disableDeleteAttribute}>
