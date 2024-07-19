@@ -42,15 +42,15 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
         <MenuList data-testid="tiles-list-menu">
           {tilesArr?.map((tile) => {
             const tileType = tile?.content.type
-            const Icon = getTileComponentIcon(tileType)
+            const _Icon = getTileComponentIcon(tileType)
+            const Icon = _Icon ?? WebViewIcon
+            const iconClass = _Icon ? tile.content.type : "WebView"
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
             return (
               <MenuItem key={tile?.id} data-testid="tiles-list-menu-item"
                   onClick={()=>handleSelectTile(tile.id)}>
-                {(Icon && <Icon className={`tile-list-menu-icon ${tile.content.type}`}
-                              data-testid="tile-list-menu-icon"/>) ||
-                            <WebViewIcon className="tile-list-menu-icon WebView" data-testid="tile-list-menu-icon"/>}
+                {(Icon && <Icon className={`tile-list-menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>)}
                 {title}
               </MenuItem>
             )

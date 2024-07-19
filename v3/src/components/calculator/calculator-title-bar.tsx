@@ -10,7 +10,7 @@ export const CalculatorTitleBar =
   observer(function CalculatorTitleBar({ tile, onCloseTile, ...others }: ITileTitleBarProps) {
     const tileContentInfo = getTileContentInfo(tile?.content.type)
     const getTitle = () => {
-      return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+      return tile ? tileContentInfo?.getTitle?.(tile) : undefined
     }
     const documentContent = useDocumentContent()
     const closeCalculator = useCallback(() => {

@@ -7,7 +7,7 @@ import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 export const WebViewTitleBar = observer(function WebViewTitleBar({ tile, ...others }: ITileTitleBarProps) {
   const tileContentInfo = getTileContentInfo(tile?.content.type)
   const getTitle = () => {
-    return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+    return tile ? tileContentInfo?.getTitle?.(tile) : undefined
   }
 
   return (

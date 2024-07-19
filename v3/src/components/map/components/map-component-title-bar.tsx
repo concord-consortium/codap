@@ -8,7 +8,7 @@ export const MapComponentTitleBar = observer(function MapComponentTitleBar(props
   const {tile, ...others} = props
   const tileContentInfo = getTileContentInfo(tile?.content.type)
   const getTitle = () => {
-    return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+    return tile ? tileContentInfo?.getTitle?.(tile) : undefined
   }
 
   return (

@@ -65,7 +65,7 @@ context("codap toolbar", () => {
       cy.wait(1000)
       webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
-  it('will show a list of open tiles when no there is no data context', ()=>{
+  it('will show a list of open tiles when there is no data context', ()=>{
     // Don't open a table as this automatically creates a data context
     c.getIconFromToolshelf("graph").click()
     c.getIconFromToolshelf("map").click()

@@ -38,8 +38,8 @@ registerTileContentInfo({
     return graphTileSnapshot
   },
   getTitle: (tile: ITileLikeModel) => {
-    const data = isGraphContentModel(tile?.content) ? tile?.content.dataset : undefined
-    return tile.title || data?.name
+    const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
+    return tile.title || data?.name || ""
   }
 })
 

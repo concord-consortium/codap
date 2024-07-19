@@ -11,7 +11,7 @@ export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTi
   const { content } = tile || {}
   const tileContentInfo = getTileContentInfo(tile?.content.type)
   const getTitle = () => {
-    return tile && tileContentInfo?.getTitle ? tileContentInfo.getTitle(tile) : undefined
+    return tile ? tileContentInfo?.getTitle?.(tile) : undefined
   }
 
   const handleCloseTile = useCallback((tileId: string) => {
