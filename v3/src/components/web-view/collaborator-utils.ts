@@ -52,17 +52,19 @@ export function getPreventTopLevelReorg(dataset: IDataSet) {
   return getManagingController(dataset)?.preventTopLevelReorg ?? kDefaultPreventTopLevelReorg
 }
 
-// getPreventReorg returns true when preventTopLevelReorg is true, but only for the parent-most collection
-export function getPreventReorg(dataset: IDataSet, collectionId?: string) {
+// returns true when preventTopLevelReorg is true, but only for the parent-most collection
+export function getPreventParentCollectionReorg(dataset: IDataSet, collectionId?: string) {
   const collection = dataset.getCollection(collectionId)
   return getPreventTopLevelReorg(dataset) && collection?.isTopLevel
 }
 
+// returns true if the collection cannot be reorganized for any reason
 export function getPreventCollectionReorg(dataset?: IDataSet, collectionId?: string) {
   if (!dataset) return false
-  return getPreventDataContextReorg(dataset) || getPreventReorg(dataset, collectionId)
+  return getPreventDataContextReorg(dataset) || getPreventParentCollectionReorg(dataset, collectionId)
 }
 
+// returns true if preventTopLevelReorg is true and the given attribute is in the parent-most collection
 export function getPreventAttributeReorg(dataset?: IDataSet, attributeId?: string) {
   if (!dataset) return false
   const isTopLevel = attributeId && dataset.getCollectionForAttribute(attributeId)?.isTopLevel

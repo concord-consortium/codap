@@ -15,7 +15,7 @@ import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs, selectCases, setSelectedCases } from "../../models/data/data-set-utils"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { t } from "../../utilities/translation/translate"
-import { getPreventReorg } from "../web-view/collaborator-utils"
+import { getPreventParentCollectionReorg } from "../web-view/collaborator-utils"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
@@ -42,7 +42,7 @@ export const useIndexColumn = () => {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
-  const disableMenu = data && getPreventReorg(data, collectionId)
+  const disableMenu = data && getPreventParentCollectionReorg(data, collectionId)
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row

@@ -25,7 +25,7 @@ import { createAttributesNotification } from "../../models/data/data-set-notific
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { t } from "../../utilities/translation/translate"
-import { getPreventReorg } from "../web-view/collaborator-utils"
+import { getPreventParentCollectionReorg } from "../web-view/collaborator-utils"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
@@ -159,7 +159,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
   }
 
-  const excludeInputRow = data && getPreventReorg(data, collectionId)
+  const excludeInputRow = data && getPreventParentCollectionReorg(data, collectionId)
   const rows = useMemo(() => {
     if (collectionTableModel?.rows) {
       const _rows = [...collectionTableModel.rows]

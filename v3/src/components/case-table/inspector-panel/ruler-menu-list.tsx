@@ -6,7 +6,7 @@ import { ICollectionModel } from "../../../models/data/collection"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
-import { getPreventReorg } from "../../web-view/collaborator-utils"
+import { getPreventParentCollectionReorg } from "../../web-view/collaborator-utils"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
@@ -38,7 +38,7 @@ export const RulerMenuList = () => {
   const addAttributeButtons = data
     ? data.collections.map(collection => (
       <MenuItem
-        isDisabled={getPreventReorg(data, collection.id)}
+        isDisabled={getPreventParentCollectionReorg(data, collection.id)}
         key={`menu-add-attribute-button-${collection.id}`}
         onClick={handleAddNewAttribute(collection)}
       >
