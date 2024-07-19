@@ -1,8 +1,8 @@
 import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getGlobalValueManager } from "../../models/tiles/tile-environment"
-import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2SliderComponent } from "../../v2/codap-v2-types"
@@ -34,7 +34,7 @@ registerTileContentInfo({
     }
     return sliderTileSnap
   },
-  getTitle: (tile: ITileModel) => {
+  getTitle: (tile: ITileLikeModel) => {
     const { title, content } = tile || {}
     const sliderModel = isAliveSafe(content) && isSliderModel(content) ? content : undefined
     const { name } = sliderModel || {}

@@ -1,6 +1,6 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { isV2WebViewComponent, isV2GameViewComponent } from "../../v2/codap-v2-types"
@@ -19,7 +19,7 @@ registerTileContentInfo({
   prefix: kWebViewIdPrefix,
   modelClass: WebViewModel,
   defaultContent: () => ({ type: kWebViewTileType }),
-  getTitle: (tile: ITileModel) => tile?.title || t("DG.WebView.defaultTitle")
+  getTitle: (tile: ITileLikeModel) => tile?.title || t("DG.WebView.defaultTitle")
 })
 
 registerTileComponentInfo({

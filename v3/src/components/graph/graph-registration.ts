@@ -1,6 +1,6 @@
 import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { kGraphIdPrefix, kGraphTileClass, kGraphTileType } from "./graph-defs"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
@@ -13,8 +13,6 @@ import { GraphInspector } from "./components/graph-inspector"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { v2GraphImporter } from "./v2-graph-importer"
-import { ITileModel } from "../../models/tiles/tile-model"
-import { t } from "../../utilities/translation/translate"
 
 registerTileContentInfo({
   type: kGraphTileType,
@@ -39,7 +37,7 @@ registerTileContentInfo({
     }
     return graphTileSnapshot
   },
-  getTitle: (tile: ITileModel) => {
+  getTitle: (tile: ITileLikeModel) => {
     const data = isGraphContentModel(tile?.content) ? tile?.content.dataset : undefined
     return tile.title || data?.name
   }

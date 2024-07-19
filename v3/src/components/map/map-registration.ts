@@ -1,5 +1,5 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import {kMapIdPrefix, kMapTileClass, kMapTileType} from "./map-defs"
 import {kDefaultMapHeight, kDefaultMapWidth} from "./map-types"
 import MapIcon from "../../assets/icons/icon-map.svg"
@@ -9,7 +9,6 @@ import {MapComponent} from "./components/map-component"
 import {MapInspector} from "./components/map-inspector"
 import {registerV2TileImporter} from "../../v2/codap-v2-tile-importers"
 import {v2MapImporter} from "./v2-map-importer"
-import { ITileModel } from "../../models/tiles/tile-model"
 import { t } from "../../utilities/translation/translate"
 
 
@@ -18,7 +17,7 @@ registerTileContentInfo({
   prefix: kMapIdPrefix,
   modelClass: MapContentModel,
   defaultContent: () => createMapContentModel(),
-  getTitle: (tile: ITileModel) => {
+  getTitle: (tile: ITileLikeModel) => {
     return tile.title || t("DG.DocumentController.mapTitle")
   }
 })

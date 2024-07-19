@@ -1,6 +1,6 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CalculatorComponent } from "./calculator"
 import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
 import { CalculatorModel, ICalculatorSnapshot } from "./calculator-model"
@@ -19,7 +19,7 @@ registerTileContentInfo({
   modelClass: CalculatorModel,
   defaultContent: () => ({ type: kCalculatorTileType }),
   isSingleton: true,
-  getTitle: (tile: ITileModel) => {
+  getTitle: (tile: ITileLikeModel) => {
     return tile?.title || t("DG.DocumentController.calculatorTitle")
   }
 })

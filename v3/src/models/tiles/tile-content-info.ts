@@ -1,9 +1,13 @@
 import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
-import { TileContentModel, ITileContentSnapshotWithType } from "./tile-content"
+import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { ITileEnvironment } from "./tile-environment"
-// eslint-disable-next-line import/no-cycle
-import { ITileModel } from "./tile-model"
+
+// avoids circular dependency on ITileModel
+export interface ITileLikeModel {
+  title?: string
+  content: ITileContentModel
+}
 
 export interface IDefaultContentOptions {
   // environment in which the tile will be created
@@ -28,7 +32,7 @@ export interface ITileContentInfo {
   modelClass: typeof TileContentModel;
   defaultContent: (options?: IDefaultContentOptions) => ITileContentSnapshotWithType;
   titleBase?: string;
-  getTitle: (tile: ITileModel) => string | undefined;
+  getTitle: (tile: ITileLikeModel) => string | undefined;
   metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
   hideOnClose?: boolean;
