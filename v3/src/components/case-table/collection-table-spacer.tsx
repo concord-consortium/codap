@@ -10,7 +10,7 @@ import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { t } from "../../utilities/translation/translate"
-import { getPreventDataContextReorg } from "../web-view/collaborator-utils"
+import { getPreventAttributeReorg, getPreventCollectionReorg } from "../web-view/collaborator-utils"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -29,17 +29,21 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
-  const preventDrop = data && getPreventDataContextReorg(data)
+  const preventCollectionDrop = getPreventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
-    if (!preventDrop) {
+    if (!preventCollectionDrop) {
       const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
       dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
     }
   })
+
+  const dragAttributeInfo = getDragAttributeInfo(active)
+  const preventAttributeDrag = getPreventAttributeReorg(data, dragAttributeInfo?.attributeId)
+  const preventDrop = preventAttributeDrag || preventCollectionDrop
   const isOverAndCanDrop = isOver && !preventDrop
 
   const classes = clsx("collection-table-spacer",
-    { active: !!getDragAttributeInfo(active) && !preventDrop, over: isOverAndCanDrop, parentMost })
+    { active: !!dragAttributeInfo && !preventDrop, over: isOverAndCanDrop, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
   const tableSpacerDivRef = useRef<HTMLElement | null>(null)

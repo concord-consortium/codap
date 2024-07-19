@@ -5,7 +5,7 @@ import { moveAttribute } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
-import { getPreventDataContextReorg } from "../web-view/collaborator-utils"
+import { getPreventAttributeReorg, getPreventCollectionReorg } from "../web-view/collaborator-utils"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 
 interface IProps {
@@ -19,11 +19,11 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
-  const preventDrop = dataset && getPreventDataContextReorg(dataset)
+  const preventCollectionDrop = getPreventCollectionReorg(dataset, collectionId)
 
-  const { isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, active => {
-    if (!preventDrop) {
-      const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+  const { active, isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, _active => {
+    if (!preventCollectionDrop) {
+      const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(_active) || {}
       const targetCollection = dataset?.getCollection(collectionId)
       if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
 
@@ -39,6 +39,10 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
       })
     }
   })
+
+  const { attributeId: dragAttributeId } = getDragAttributeInfo(active) || {}
+  const preventAttributeDrop = getPreventAttributeReorg(dataset, dragAttributeId)
+  const preventDrop = preventAttributeDrop || preventCollectionDrop
 
   // find the `case-table-content` DOM element; divider must be drawn relative
   // to the `case-table-content` (via React portal) so it isn't clipped by the cell,
