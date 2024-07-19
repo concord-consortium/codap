@@ -103,7 +103,7 @@ context("codap toolbar", () => {
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
     toolbar.getTilesListMenuItem().should("have.length", 3)
-    toolbar.getTilesListMenuItem().eq(0).should("have.text", "Data_Set_1")
+    toolbar.getTilesListMenuItem().eq(0).should("have.text", "Tracks/Measurements")
     toolbar.getTilesListMenuItem().eq(1).should("have.text", "Measurements")
     toolbar.getTilesListMenuItem().eq(2).should("have.text", "Measurements")
   })
