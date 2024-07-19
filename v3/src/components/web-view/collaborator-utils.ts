@@ -41,6 +41,7 @@ export function getPreventDataContextReorg(dataset: IDataSet) {
 // - It prevents the user from adding attributes to the parent collection
 //   - The add attribute in the collection titlebar is disabled
 //   - The add attribute menu item in the case table ruler menu is disabled
+// - It disables the delete attribute menu option for attributes in the parent collection
 // - It disables the index column menus in the parent collection
 // - It removes the input row from the parent collection
 // - It disables the add attribute button for the parent collection in the case card

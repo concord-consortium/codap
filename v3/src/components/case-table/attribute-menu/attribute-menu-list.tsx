@@ -8,7 +8,9 @@ import {
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { t } from "../../../utilities/translation/translate"
-import { getAllowEmptyAttributeDeletion, getPreventAttributeDeletion } from "../../web-view/collaborator-utils"
+import {
+  getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getPreventReorg
+} from "../../web-view/collaborator-utils"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
@@ -76,11 +78,24 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     }
   }
 
-  // If a plugin prevents attribute deletion, disable the delete attribute menu item
-  // UNLESS the plugin allows empty attribute deletion and the attribute is empty.
-  const attributeIsEmpty = attribute?.values?.some(value => !!value)
-  const disableDeleteAttribute = data && getPreventAttributeDeletion(data) &&
-    !(getAllowEmptyAttributeDeletion(data) && attributeIsEmpty)
+  const isDeleteAttributeDisabled = () => {
+    // Anything goes when there is no dataset (this should probably never happen)
+    if (!data) return false
+
+    // Disabled if in the parent collection and preventTopLevelReorg is true
+    const collection = data.getCollectionForAttribute(columnId)
+    if (getPreventReorg(data, collection?.id)) return true
+
+    // Not disabled if the attribute is empty and allowEmptyAttributeDeletion is true
+    const attributeIsEmpty = attribute?.values?.some(value => !!value)
+    if (getAllowEmptyAttributeDeletion(data) && attributeIsEmpty) return false
+
+    // Disabled if preventAttributeDeletion is true
+    if (getPreventAttributeDeletion(data)) return true
+
+    return false
+  }
+  const disableDeleteAttribute = isDeleteAttributeDisabled()
 
   const handleEditAttributePropsOpen = () => {
     attributePropsModal.onOpen()
