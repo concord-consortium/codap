@@ -1,15 +1,16 @@
 import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
-import { ITileContentModel, kDefaultPreventBringToFront, TileContentModel } from "../../models/tiles/tile-content"
+import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kWebViewTileType } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultPreventAttributeDeletion = false
+export const kDefaultPreventBringToFront = false
 export const kDefaultPreventDataContextReorg = false
 export const kDefaultPreventTopLevelReorg = false
 export const kDefaultRespectEditableItemAttribute = false
-export const kDefaultWebViewVersion = "v0.1"
+export const kDefaultWebViewVersion = ""
 
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
@@ -17,7 +18,7 @@ export const WebViewModel = TileContentModel
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
     url: "",
     state: types.frozen<unknown>(),
-    // fields controlled by plugins (like Colaborative) via interactiveFrame requests
+    // fields controlled by plugins (like Collaborative) via interactiveFrame requests
     allowEmptyAttributeDeletion: kDefaultAllowEmptyAttributeDeletion,
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
     preventBringToFront: kDefaultPreventBringToFront,
@@ -31,7 +32,7 @@ export const WebViewModel = TileContentModel
     version: kDefaultWebViewVersion
   }))
   .views(self => ({
-    get getPreventBringToFront() {
+    get allowBringToFront() {
       return !self.preventBringToFront
     }
   }))

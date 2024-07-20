@@ -1,11 +1,11 @@
 import { kDefaultWebViewWidth } from "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import {
-  IWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion, kDefaultPreventDataContextReorg,
-  kDefaultPreventTopLevelReorg, kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
+  IWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion,
+  kDefaultPreventBringToFront, kDefaultPreventDataContextReorg, kDefaultPreventTopLevelReorg,
+  kDefaultRespectEditableItemAttribute, kDefaultWebViewVersion
 } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
-import { kDefaultPreventBringToFront } from "../../models/tiles/tile-content"
 import { toV2Id } from "../../utilities/codap-utils"
 import { DIInteractiveFrame } from "../data-interactive-types"
 import { diInteractiveFrameHandler } from "./interactive-frame-handler"

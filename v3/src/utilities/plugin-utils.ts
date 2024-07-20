@@ -1,6 +1,4 @@
-// Functions used by the Collaborative plugin
-// These functions would fit better in the DataSet model, but they are included in this utility file to avoid
-// import cycles.
+// Functions used by plugins and other code that is affected by plugins.
 
 import { kInputRowKey } from "../components/case-table/case-table-types"
 import {
@@ -8,6 +6,7 @@ import {
   kDefaultPreventDataContextReorg, kDefaultPreventTopLevelReorg, kDefaultRespectEditableItemAttribute
 } from "../components/web-view/web-view-model"
 import { appState } from "../models/app-state"
+import { IAttribute } from "../models/data/attribute"
 import { IDataSet } from "../models/data/data-set"
 
 // A dataset's managing controller is a plugin that has assigned its id to the dataset's managingControllerId.
@@ -21,18 +20,27 @@ function getManagingController(dataset: IDataSet) {
   }
 }
 
+export function allowAttributeDeletion(dataset: IDataSet, attribute?: IAttribute) {
+  if (!preventAttributeDeletion(dataset)) return true
+  const isEmpty = !attribute?.strValues?.some(value => !!value)
+  return (isEmpty && allowEmptyAttributeDeletion(dataset))
+}
+
 // allowEmptyAttributeDeletion allows empty attributes to be deleted, overriding preventAttributeDeletion.
-export function getAllowEmptyAttributeDeletion(dataset: IDataSet) {
+export function allowEmptyAttributeDeletion(dataset: IDataSet) {
+  if (!dataset) return false
   return getManagingController(dataset)?.allowEmptyAttributeDeletion ?? kDefaultAllowEmptyAttributeDeletion
 }
 
 // preventAttributeDeletion disables the Delete Attribute item from the attribute menu.
-export function getPreventAttributeDeletion(dataset: IDataSet) {
+export function preventAttributeDeletion(dataset: IDataSet) {
+  if (!dataset) return true
   return getManagingController(dataset)?.preventAttributeDeletion ?? kDefaultPreventAttributeDeletion
 }
 
 // preventDataContextReorg prevents attributes from being dragged in a case table or the renaming of a case table
-export function getPreventDataContextReorg(dataset: IDataSet) {
+export function preventDataContextReorg(dataset?: IDataSet) {
+  if (!dataset) return true
   return getManagingController(dataset)?.preventDataContextReorg ?? kDefaultPreventDataContextReorg
 }
 
@@ -48,39 +56,35 @@ export function getPreventDataContextReorg(dataset: IDataSet) {
 // - It disables the index column menus in the parent collection
 // - It removes the input row from the parent collection
 // - It disables the add attribute button for the parent collection in the case card
-export function getPreventTopLevelReorg(dataset: IDataSet) {
+export function preventTopLevelReorg(dataset: IDataSet) {
+  if (!dataset) return true
   return getManagingController(dataset)?.preventTopLevelReorg ?? kDefaultPreventTopLevelReorg
 }
 
-// returns true when preventTopLevelReorg is true, but only for the parent-most collection
-export function getPreventParentCollectionReorg(dataset: IDataSet, collectionId?: string) {
-  const collection = dataset.getCollection(collectionId)
-  return getPreventTopLevelReorg(dataset) && collection?.isTopLevel
-}
-
 // returns true if the collection cannot be reorganized for any reason
-export function getPreventCollectionReorg(dataset?: IDataSet, collectionId?: string) {
-  if (!dataset) return false
-  return getPreventDataContextReorg(dataset) || getPreventParentCollectionReorg(dataset, collectionId)
+export function preventCollectionReorg(dataset?: IDataSet, collectionId?: string) {
+  if (!dataset || preventDataContextReorg(dataset)) return true
+  const collection = dataset.getCollection(collectionId)
+  return !collection || (preventTopLevelReorg(dataset) && collection.isTopLevel)
 }
 
 // returns true if preventTopLevelReorg is true and the given attribute is in the parent-most collection
-export function getPreventAttributeReorg(dataset?: IDataSet, attributeId?: string) {
-  if (!dataset) return false
+export function preventAttributeMove(dataset?: IDataSet, attributeId?: string) {
+  if (!dataset) return true
   const isTopLevel = attributeId && dataset.getCollectionForAttribute(attributeId)?.isTopLevel
-  return getPreventTopLevelReorg(dataset) && isTopLevel
+  return preventTopLevelReorg(dataset) && isTopLevel
 }
 
 // respectEditableItemAttribute affects a dataset's items in several ways, based on a special attribute named
 // "__editable__". If an item's value in "__editable__" is falsy or "false", the following hold true:
 // - Its cells cannot be edited.
 // - It cannot be deleted using mass delete options from the trash menu.
-export function getRespectEditableItemAttribute(dataset: IDataSet) {
+export function respectEditableItemAttribute(dataset: IDataSet) {
   return getManagingController(dataset)?.respectEditableItemAttribute ?? kDefaultRespectEditableItemAttribute
 }
 
 export function isItemEditable(dataset: IDataSet, itemId: string) {
-  if (!getRespectEditableItemAttribute(dataset)) return true
+  if (!respectEditableItemAttribute(dataset)) return true
   // TODO Only return true here if the input row's parent case is editable
   if (itemId === kInputRowKey) return true
   const editableAttribute = dataset.getAttributeByName("__editable__")

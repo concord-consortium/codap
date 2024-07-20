@@ -41,8 +41,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     const dragTileId = getDragTileId(activeDrag)
     if (dragTileId) {
       if (isFreeTileRow(row)) {
-        const preventBringToFront = dragTileId === tile.id ? tile.content.getPreventBringToFront : undefined
-        row.moveTileToTop(dragTileId, preventBringToFront)
+        const allowBringToFront = dragTileId === tile.id ? tile.content.allowBringToFront : true
+        row.moveTileToTop(dragTileId, allowBringToFront)
       }
     }
   })

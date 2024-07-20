@@ -24,7 +24,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
-import { getPreventParentCollectionReorg } from "../../utilities/plugin-utils"
+import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -159,11 +159,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
   }
 
-  const excludeInputRow = data && getPreventParentCollectionReorg(data, collectionId)
+  const showInputRow = !preventCollectionReorg(data, collectionId)
   const rows = useMemo(() => {
     if (collectionTableModel?.rows) {
       const _rows = [...collectionTableModel.rows]
-      if (!excludeInputRow) {
+      if (showInputRow) {
         const inputRow = { __id__: kInputRowKey }
         if (collectionTableModel.inputRowIndex === -1) {
           _rows.push(inputRow)
@@ -173,8 +173,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       }
       return _rows
     }
-  }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, excludeInputRow])
-  
+  }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
+
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (

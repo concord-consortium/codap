@@ -9,7 +9,7 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
-import { getPreventAttributeReorg, getPreventCollectionReorg } from "../../utilities/plugin-utils"
+import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
@@ -29,17 +29,17 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
-  const preventCollectionDrop = getPreventCollectionReorg(data, childCollectionId)
+  const preventCollectionDrop = preventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
     if (!preventCollectionDrop) {
       const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
-      if (getPreventAttributeReorg(dataSet, dragAttributeID)) return
+      if (preventAttributeMove(dataSet, dragAttributeID)) return
       dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
     }
   })
 
   const dragAttributeInfo = getDragAttributeInfo(active)
-  const preventAttributeDrag = getPreventAttributeReorg(data, dragAttributeInfo?.attributeId)
+  const preventAttributeDrag = preventAttributeMove(data, dragAttributeInfo?.attributeId)
   const preventDrop = preventAttributeDrag || preventCollectionDrop
   const isOverAndCanDrop = isOver && !preventDrop
 

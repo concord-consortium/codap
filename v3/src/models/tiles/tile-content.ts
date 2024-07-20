@@ -9,8 +9,6 @@ import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
 import { tileModelHooks } from "./tile-model-hooks"
 import { kUnknownTileType } from "./unknown-types"
 
-export const kDefaultPreventBringToFront = false
-
 // Generic "super class" of all tile content models
 export const TileContentModel = types.model("TileContentModel", {
     // The type field has to be optional because the typescript type created from the sub models
@@ -49,8 +47,8 @@ export const TileContentModel = types.model("TileContentModel", {
     },
     // Override in specific tile content model.
     // When false, the tile will not be moved in front of other tiles on focus.
-    get getPreventBringToFront() {
-      return kDefaultPreventBringToFront
+    get allowBringToFront() {
+      return true
     }
   }))
   .actions(self => ({

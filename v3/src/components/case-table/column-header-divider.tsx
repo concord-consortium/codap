@@ -5,7 +5,7 @@ import { moveAttribute } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
-import { getPreventAttributeReorg, getPreventCollectionReorg } from "../../utilities/plugin-utils"
+import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 
 interface IProps {
@@ -19,12 +19,12 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
-  const preventCollectionDrop = getPreventCollectionReorg(dataset, collectionId)
+  const preventCollectionDrop = preventCollectionReorg(dataset, collectionId)
 
   const { active, isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, _active => {
     if (!preventCollectionDrop) {
       const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(_active) || {}
-      if (getPreventAttributeReorg(dataset, dragAttrId)) return
+      if (preventAttributeMove(dataset, dragAttrId)) return
       const targetCollection = dataset?.getCollection(collectionId)
       if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
 
@@ -42,7 +42,7 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   })
 
   const { attributeId: dragAttributeId } = getDragAttributeInfo(active) || {}
-  const preventAttributeDrop = getPreventAttributeReorg(dataset, dragAttributeId)
+  const preventAttributeDrop = preventAttributeMove(dataset, dragAttributeId)
   const preventDrop = preventAttributeDrop || preventCollectionDrop
 
   // find the `case-table-content` DOM element; divider must be drawn relative

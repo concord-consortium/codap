@@ -24,8 +24,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
       () => uiState.focusedTile,
       focusedTileId => {
         if (focusedTileId && (focusedTileId !== row.last)) {
-          const preventBringToFront = getTile(focusedTileId)?.content.getPreventBringToFront
-          row.moveTileToTop(focusedTileId, preventBringToFront)
+          row.moveTileToTop(focusedTileId, getTile(focusedTileId)?.content.allowBringToFront)
         }
       }, { name: "FreeTileRowComponent.useEffect.autorun [uiState.focusedTile => row.last]" }, row)
   }, [getTile, row])

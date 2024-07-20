@@ -5,7 +5,7 @@ import { IAttribute } from "../../../models/data/attribute"
 import { ICollectionModel } from "../../../models/data/collection"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
-import { getPreventParentCollectionReorg } from "../../../utilities/plugin-utils"
+import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 
 export const RulerMenuList = () => {
@@ -38,7 +38,7 @@ export const RulerMenuList = () => {
   const addAttributeButtons = data
     ? data.collections.map(collection => (
       <MenuItem
-        isDisabled={getPreventParentCollectionReorg(data, collection.id)}
+        isDisabled={preventCollectionReorg(data, collection.id)}
         key={`menu-add-attribute-button-${collection.id}`}
         onClick={handleAddNewAttribute(collection)}
       >

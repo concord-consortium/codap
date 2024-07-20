@@ -8,7 +8,7 @@ import {
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import {
-  getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getPreventCollectionReorg, getPreventTopLevelReorg
+  allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { TCalculatedColumn } from "../case-table-types"
@@ -86,27 +86,18 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   }
 
   const isDeleteAttributeDisabled = () => {
-    // Anything goes when there is no dataset (this should probably never happen)
-    if (!data) return false
+    if (!data) return true
 
     // If preventTopLevelReorg is true...
-    if (getPreventTopLevelReorg(data)) {
+    if (preventTopLevelReorg(data)) {
       // Disabled if in the parent collection
-      if (getPreventCollectionReorg(data, collection?.id)) return true
+      if (preventCollectionReorg(data, collection?.id)) return true
 
       // Disabled if there is only one attribute not in the parent collection
       if (data.attributes.length - data.collections[0].attributes.length <= 1) return true
     }
 
-
-    // Not disabled if the attribute is empty and allowEmptyAttributeDeletion is true
-    const attributeIsEmpty = attribute?.values?.some(value => !!value)
-    if (getAllowEmptyAttributeDeletion(data) && attributeIsEmpty) return false
-
-    // Disabled if preventAttributeDeletion is true
-    if (getPreventAttributeDeletion(data)) return true
-
-    return false
+    return !allowAttributeDeletion(data, attribute)
   }
   const disableDeleteAttribute = isDeleteAttributeDisabled()
 
