@@ -5,8 +5,8 @@ import { IAttribute } from "../../../models/data/attribute"
 import { ICollectionModel } from "../../../models/data/collection"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
+import { getPreventParentCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { getPreventParentCollectionReorg } from "../../web-view/collaborator-utils"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()

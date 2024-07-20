@@ -2,12 +2,12 @@ import createReactClass from "create-react-class"
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOMFactories from "react-dom-factories"
+import { getPreventCollectionReorg } from "../../utilities/plugin-utils"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { EditAttributePropertiesModal } from "../case-table/attribute-menu/edit-attribute-properties-modal"
 import { EditFormulaModal } from "../case-table/attribute-menu/edit-formula-modal"
-import { getPreventCollectionReorg } from "../web-view/collaborator-utils"
 
 import "./attribute-name-cell.v2"
 import "./attribute-value-cell.v2"

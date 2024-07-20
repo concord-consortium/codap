@@ -1,14 +1,14 @@
 import { getSnapshot } from "mobx-state-tree"
-import { setupTestDataset, testCases } from "../../data-interactive/handlers/handler-test-utils"
-import { appState } from "../../models/app-state"
-import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { setupTestDataset, testCases } from "../data-interactive/handlers/handler-test-utils"
+import { appState } from "../models/app-state"
+import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import {
   getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getPreventDataContextReorg,
   getRespectEditableItemAttribute, isCaseEditable, isItemEditable
-} from "./collaborator-utils"
-import { kWebViewTileType } from "./web-view-defs"
-import { IWebViewModel } from "./web-view-model"
-import "./web-view-registration"
+} from "./plugin-utils"
+import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { IWebViewModel } from "../components/web-view/web-view-model"
+import "../components/web-view/web-view-registration"
 
 describe('Collaborator Utils', () => {
   it("plugins can control datasets", () => {

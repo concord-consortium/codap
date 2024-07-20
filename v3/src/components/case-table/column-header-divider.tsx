@@ -5,7 +5,7 @@ import { moveAttribute } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
-import { getPreventAttributeReorg, getPreventCollectionReorg } from "../web-view/collaborator-utils"
+import { getPreventAttributeReorg, getPreventCollectionReorg } from "../../utilities/plugin-utils"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 
 interface IProps {

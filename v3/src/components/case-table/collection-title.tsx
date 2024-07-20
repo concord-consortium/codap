@@ -10,8 +10,8 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { updateCollectionNotification } from "../../models/data/data-set-notifications"
+import { getPreventParentCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
-import { getPreventParentCollectionReorg } from "../web-view/collaborator-utils"
 
 interface IProps {
   onAddNewAttribute: () => void

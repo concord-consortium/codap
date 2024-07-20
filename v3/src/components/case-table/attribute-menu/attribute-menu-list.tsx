@@ -7,10 +7,10 @@ import {
   deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
-import { t } from "../../../utilities/translation/translate"
 import {
   getAllowEmptyAttributeDeletion, getPreventAttributeDeletion, getPreventCollectionReorg, getPreventTopLevelReorg
-} from "../../web-view/collaborator-utils"
+} from "../../../utilities/plugin-utils"
+import { t } from "../../../utilities/translation/translate"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"

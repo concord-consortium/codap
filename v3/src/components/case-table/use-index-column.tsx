@@ -14,8 +14,8 @@ import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs, selectCases, setSelectedCases } from "../../models/data/data-set-utils"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { getPreventParentCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
-import { getPreventParentCollectionReorg } from "../web-view/collaborator-utils"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 

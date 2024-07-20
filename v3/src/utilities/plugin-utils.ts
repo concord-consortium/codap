@@ -2,13 +2,13 @@
 // These functions would fit better in the DataSet model, but they are included in this utility file to avoid
 // import cycles.
 
-import { appState } from "../../models/app-state"
-import { IDataSet } from "../../models/data/data-set"
-import { kInputRowKey } from "../case-table/case-table-types"
+import { kInputRowKey } from "../components/case-table/case-table-types"
 import {
   isWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion,
   kDefaultPreventDataContextReorg, kDefaultPreventTopLevelReorg, kDefaultRespectEditableItemAttribute
-} from "./web-view-model"
+} from "../components/web-view/web-view-model"
+import { appState } from "../models/app-state"
+import { IDataSet } from "../models/data/data-set"
 
 // A dataset's managing controller is a plugin that has assigned its id to the dataset's managingControllerId.
 // A dataset will acquire some settings from its managing controller, which generally prevent a user from
