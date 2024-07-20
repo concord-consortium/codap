@@ -11,7 +11,7 @@ context("hierarchical collections", () => {
   })
   hierarchical.tests.forEach((h) => {
     // FIXME: enable skipped tests
-    const itOrSkip = h.skip ? it.skip : it
+    const itOrSkip = h.skip ? it.skip : h.only ? it.only : it
     itOrSkip(`${h.testName}`, () => {
       const collections = h.collections
       collections.forEach((collection, index) => {
@@ -34,6 +34,9 @@ context("hierarchical collections", () => {
         table.collapseAllGroups(collection.index+1)
         table.getNumOfRows(collection.index+1).should("contain", collection.cases+2)
         table.verifyCollapsedRows(collection.childCases, collection.index+1)
+        // clicking on collapsed row should select cases within it along with parent case
+        table.getIndexCellInRow(2, collection.index+1).click()
+        table.getSelectedRow(2, collection.index).should("exist")
         table.expandAllGroups(collection.index+1)
         table.getNumOfRows(collection.index+1).should("contain", collection.totalChildren+2)
       })
