@@ -17,14 +17,13 @@ export const WebViewModel = TileContentModel
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
     url: "",
     state: types.frozen<unknown>(),
-    // fields used by the Collaborative plugin
+    // fields controlled by plugins (like Colaborative) via interactiveFrame requests
     allowEmptyAttributeDeletion: kDefaultAllowEmptyAttributeDeletion,
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
-    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
-    // fields controlled by plugins via interactiveFrame requests
     preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
-    preventTopLevelReorg: kDefaultPreventTopLevelReorg
+    preventTopLevelReorg: kDefaultPreventTopLevelReorg,
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,

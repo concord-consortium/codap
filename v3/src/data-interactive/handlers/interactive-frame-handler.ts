@@ -21,7 +21,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     const values: DIInteractiveFrame = {
       allowEmptyAttributeDeletion,
       dimensions,
-      externalUndoAvailable: true,
+      externalUndoAvailable: true, // TODO Fix hard coded value
       id: toV2Id(interactiveFrame.id),
       name: interactiveFrame.title,
       preventAttributeDeletion,
@@ -30,7 +30,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       preventTopLevelReorg,
       respectEditableItemAttribute,
       savedState,
-      standaloneUndoModeAvailable: false,
+      standaloneUndoModeAvailable: false, // TODO Fix hard coded value
       title: interactiveFrame.title,
       version,
     }
