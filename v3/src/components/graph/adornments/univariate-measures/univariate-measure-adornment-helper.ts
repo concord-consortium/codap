@@ -5,8 +5,8 @@ import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment
 import { ILineCoords, ILineSpecs, IRange, IRangeSpecs, IRectSpecs, IValue } from "./univariate-measure-adornment-types"
 import { clsx } from "clsx"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { GraphLayout } from "../../models/graph-layout"
 import { isBoxPlotAdornment } from "./box-plot/box-plot-adornment-model"
-import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { valueLabelString } from "../../utilities/graph-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
@@ -28,7 +28,7 @@ export class UnivariateMeasureAdornmentHelper {
   classFromKey = ""
   containerId = ""
   instanceKey = ""
-  layout: IAxisLayout
+  layout: GraphLayout
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
   plotHeight = 0
@@ -38,7 +38,7 @@ export class UnivariateMeasureAdornmentHelper {
 
   constructor (
     cellKey: Record<string, string>,
-    layout: IAxisLayout,
+    layout: GraphLayout,
     model: IUnivariateMeasureAdornmentModel,
     plotHeight: number,
     plotWidth: number,

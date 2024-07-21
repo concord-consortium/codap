@@ -3,8 +3,8 @@ import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
-import { useAxisLayoutContext } from "../../../../axis/models/axis-layout-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
+import { useGraphLayoutContext } from "../../../hooks/use-graph-layout-context"
 import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
 import { IAdornmentComponentProps } from "../../adornment-component-info"
@@ -32,9 +32,10 @@ interface IBoxPlotValue extends IValue {
 }
 
 export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
-  const {cellKey={}, containerId, plotHeight, plotWidth, xAxis, yAxis} = props
+  const {cellKey={}, cellCoords, containerId, plotHeight, plotWidth,
+    xAxis, yAxis, spannerRef} = props
   const model = props.model as IBoxPlotAdornmentModel
-  const layout = useAxisLayoutContext()
+  const layout = useGraphLayoutContext()
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
   const { cellCounts } = useAdornmentCells(model, cellKey)
@@ -48,6 +49,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const secondaryAxisY = plotHeight / cellCounts.y / 2 - boxPlotOffset
   const valueRef = useRef<SVGGElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
+  const fullHeightLinesRef = useRef<Selection<SVGPathElement, unknown, null, undefined>>(null)
 
   const toggleBoxPlotLabels = useCallback((labelId: string, visible: boolean, event: MouseEvent) => {
     const label = select(`#${labelId}`)
@@ -194,6 +196,31 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       }
     }
 
+    const fullHeightLinesPath = () => {
+      const graphWidth = layout.plotWidth,
+        graphHeight = layout.plotHeight,
+        cellWidth = graphWidth / cellCounts.x,
+        cellHeight = graphHeight / cellCounts.y,
+        lowerCoord = isVertical.current ? helper.xScale(iciRange.min) / cellCounts.x
+          : helper.yScale(iciRange.min) / cellCounts.y,
+        upperCoord = isVertical.current ? helper.xScale(iciRange.max) / cellCounts.x
+          : helper.yScale(iciRange.max) / cellCounts.y,
+        templatePath = isVertical.current
+          ? `M%@,%@ v%@ M%@,%@ v%@`
+          : `M%@,%@ h%@ M%@,%@ h%@`,
+        replacementVars = isVertical.current
+          ? [
+            lowerCoord + cellCoords.col * cellWidth, 0, graphHeight,
+            upperCoord + cellCoords.col * cellWidth, 0, graphHeight
+          ]
+          : [
+            0, lowerCoord + cellCoords.row * cellHeight, graphWidth,
+            0, upperCoord + cellCoords.row * cellHeight, graphWidth
+          ]
+      // Note that we use translate just as a way to replace %@ with the actual values
+      return t(templatePath, {vars: replacementVars})
+    }
+
     if (!dataConfig || !attrId) return
     const iciClass = clsx("measure-line", "box-plot-line", `${helper.measureSlug}-ici`)
     const iciCoverClass = clsx("measure-cover", "box-plot-cover", `${helper.measureSlug}-ici`)
@@ -214,7 +241,20 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const iciCoverSpecs = {...iciSpecs, lineClass: iciCoverClass, lineId: iciCoverId}
     valueObj.ici = helper.newLine(valueRef.current, iciSpecs)
     valueObj.iciCover = helper.newLine(valueRef.current, iciCoverSpecs)
-  }, [dataConfig, attrId, helper, model, cellKey, plotWidth, cellCounts.x, cellCounts.y, plotHeight])
+    if (spannerRef) {
+      fullHeightLinesRef.current?.remove()
+      select(spannerRef.current).attr("class", "measure-container")  // So the classes applied to the lines
+                                                                                  // will be scoped to the spanner
+      // todo: Figure out why we seem to need this
+      // @ts-expect-error cannot assign to 'current' because it is read-only
+      fullHeightLinesRef.current = spannerRef.current && select(spannerRef.current).append("path")
+        .attr("class", "full-height-lines ici")
+        .attr("id", `${helper.generateIdString("path")}`)
+        .attr("data-testid", `${helper.measureSlug}-error-bar`)
+        .attr("d", fullHeightLinesPath())
+    }
+  }, [dataConfig, attrId, helper, model, cellKey, spannerRef, plotWidth, cellCounts.x, cellCounts.y, plotHeight,
+            layout.plotWidth, layout.plotHeight, cellCoords.col, cellCoords.row])
 
   const addQCovers = useCallback((valueObj: IBoxPlotValue) => {
 
@@ -257,6 +297,12 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   }, [dataConfig, attrId, helper, model, cellKey, plotWidth, cellCounts.x, cellCounts.y, plotHeight])
 
   const addBoxPlotLabels = useCallback((textContent: string, valueObj: IBoxPlotValue, labelsObj: ILabel) => {
+
+    const toggleICILabels = (labelId: string, visible: boolean, event: MouseEvent) => {
+      toggleBoxPlotLabels(labelId, visible, event)
+      fullHeightLinesRef.current?.classed("highlighted", visible)
+    }
+
     const container = select(labelRef.current)
     const textId = helper.generateIdString("label")
     const labels = textContent.split("\n")
@@ -266,7 +312,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       valueObj.cover,
       valueObj.q3Cover,
       valueObj.whiskerUpperCover,
-      // valueObj.iqrCover
+      null, // valueObj.range causes problems when part of this array. Not sure why.
+      valueObj.iciCover
     ]
 
     for (let i = 0; i < labels.length; i++) {
@@ -278,6 +325,10 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       covers[i]?.on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-${i}`, true, e))
         .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-${i}`, false, e))
     }
+    valueObj.range?.on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-${5}`, true, e))
+      .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-${5}`, false, e))
+    valueObj.iciCover?.on("mouseover", (e) => toggleICILabels(`${textId}-${6}`, true, e))
+      .on("mouseout", (e) => toggleICILabels(`${textId}-${6}`, false, e))
 
     if (model.showOutliers) {
       if (!attrId || !dataConfig) return
@@ -341,9 +392,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       model.maxWhiskerValue(attrId, cellKey, dataConfig),
       model.iqr(attrId, cellKey, dataConfig)
     ]
-    const textContent = `${t(model.labelTitle, { vars: translationVars })}`
-
-    addMedian()
+    let textContent = `${t(model.labelTitle, { vars: translationVars })}`
 
     if ((measureRange?.min || measureRange?.min === 0) && (measureRange?.max || measureRange?.max === 0)) {
       const rangeSpecs = {
@@ -360,12 +409,20 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         secondaryAxisX,
         secondaryAxisY
       }
+      // As a result of the addRange call, valueObj.range will be the rectangle that covers the IQR
       helper.addRange(valueRef.current, valueObj, rangeSpecs)
+      valueObj.range?.attr("style", "pointer-events: all")  // So we get mouseover events
+
+      addMedian() // last so it's on top
     }
     addWhiskers(valueObj, measureRange, model.showOutliers)
     addQCovers(valueObj)
     if (model.showICI) {
+      const iciRange = model.computeICIRange(attrId, cellKey, dataConfig)
       addICI(valueObj)
+      textContent += `\n${t('ICI: [%@, %@]', 
+        { vars: [helper.formatValueForScale(isVertical.current, iciRange.min),
+            helper.formatValueForScale(isVertical.current, iciRange.max)] })}`
     }
     addBoxPlotLabels(textContent, valueObj, labelsObj)
   }, [addBoxPlotLabels, addICI, addWhiskers, addQCovers, attrId, cellCounts, cellKey, dataConfig,
