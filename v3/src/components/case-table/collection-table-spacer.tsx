@@ -9,6 +9,7 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
+import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
@@ -28,12 +29,22 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
+  const preventCollectionDrop = preventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
-    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
-    dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
+    if (!preventCollectionDrop) {
+      const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
+      if (preventAttributeMove(dataSet, dragAttributeID)) return
+      dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
+    }
   })
 
-  const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
+  const dragAttributeInfo = getDragAttributeInfo(active)
+  const preventAttributeDrag = preventAttributeMove(data, dragAttributeInfo?.attributeId)
+  const preventDrop = preventAttributeDrag || preventCollectionDrop
+  const isOverAndCanDrop = isOver && !preventDrop
+
+  const classes = clsx("collection-table-spacer",
+    { active: !!dragAttributeInfo && !preventDrop, over: isOverAndCanDrop, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
   const tableSpacerDivRef = useRef<HTMLElement | null>(null)
@@ -139,7 +150,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
         </>
       }
 
-      <div className="drop-message" style={msgStyle}>{isOver ? dropMessage : ""}</div>
+      <div className="drop-message" style={msgStyle}>{isOverAndCanDrop ? dropMessage : ""}</div>
     </div>
   )
 })

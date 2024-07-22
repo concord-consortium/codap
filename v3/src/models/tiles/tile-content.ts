@@ -44,6 +44,11 @@ export const TileContentModel = types.model("TileContentModel", {
     // Override in specific tile content model when external data (like from SharedModels) is needed when copying
     get tileSnapshotForCopy() {
       return getSnapshot(self)
+    },
+    // Override in specific tile content model.
+    // When false, the tile will not be moved in front of other tiles on focus.
+    get allowBringToFront() {
+      return true
     }
   }))
   .actions(self => ({

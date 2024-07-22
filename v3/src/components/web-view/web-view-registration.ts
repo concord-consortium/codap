@@ -13,6 +13,9 @@ import { processPluginUrl } from "./web-view-utils"
 
 export const kWebViewIdPrefix = "WEBV"
 
+export const kDefaultWebViewWidth = 600
+export const kDefaultWebViewHeight = 400
+
 registerTileContentInfo({
   type: kWebViewTileType,
   prefix: kWebViewIdPrefix,
@@ -26,8 +29,8 @@ registerTileComponentInfo({
   Component: WebViewComponent,
   InspectorPanel: WebViewInspector,
   tileEltClass: "codap-web-view",
-  defaultWidth: 600,
-  defaultHeight: 400
+  defaultWidth: kDefaultWebViewWidth,
+  defaultHeight: kDefaultWebViewHeight
 })
 
 function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, state?: unknown) {

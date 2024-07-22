@@ -10,6 +10,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { updateCollectionNotification } from "../../models/data/data-set-notifications"
+import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 
 interface IProps {
@@ -33,6 +34,7 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
   const [isEditing, setIsEditing] = useState(false)
   const [editingName, setEditingName] = useState(collectionName)
   const isTileInFocus = isTileSelected()
+  const disableAddAttribute = preventCollectionReorg(data, collectionId)
 
   // re-render the component when either the tile or the title change size
   useResizeDetector({ targetRef: tileRef })
@@ -112,7 +114,8 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
         </Editable>
       </div>
       <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
-          data-testid={"collection-add-attribute-icon-button"} style={addIconStyle} >
+          data-testid={"collection-add-attribute-icon-button"} style={addIconStyle}
+          isDisabled={disableAddAttribute} >
         <AddIcon className={addIconClass} onClick={onAddNewAttribute} />
       </Button>
     </div>

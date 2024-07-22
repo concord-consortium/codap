@@ -6,6 +6,7 @@ import TableIcon from "../../assets/icons/icon-table.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { updateDataContextNotification } from "../../models/data/data-set-notifications"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { preventDataContextReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
@@ -60,6 +61,7 @@ export const CaseTableCardTitleBar =
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
+    const preventTitleChange = preventDataContextReorg(data)
 
     useOutsideClick({
       ref: cardTableToggleRef,
@@ -111,7 +113,8 @@ export const CaseTableCardTitleBar =
 
     return (
       <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
-                         onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}>
+                         onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
+                         preventTitleChange={preventTitleChange}>
         <div className="header-left"
              title={caseTableOrCardToggleString}
              onClick={handleShowCardTableToggleMessage}
