@@ -67,7 +67,8 @@ export const useIndexColumn = () => {
     }
 
     return (
-      <IndexCell caseId={__id__} disableMenu={disableMenu} index={index} collapsedCases={collapsedCaseCount} onClick={handleClick} />
+      <IndexCell caseId={__id__} disableMenu={disableMenu} index={index}
+        collapsedCases={collapsedCaseCount} onClick={handleClick} />
     )
   }, [caseMetadata, data, disableMenu])
   const indexColumn = useRef<TColumn | undefined>()
@@ -156,7 +157,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick 
   // collapsed row or normal row with no menu
   if (collapsedCases || disableMenu) {
     return (
-      <div className={classes} data-testid="codap-index-content-button" onClick={onClick}>
+      <div className={classes} data-testid="codap-index-content-button" onClick={handleClick}>
         {cellContents}
       </div>
     )
