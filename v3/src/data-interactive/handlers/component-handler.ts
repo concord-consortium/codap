@@ -422,7 +422,11 @@ export const diComponentHandler: DIHandler = {
     if (isCaseTableModel(content)) {
       // TODO Handle isIndexHidden
       const { horizontalScrollOffset } = values as V2CaseTable
-      if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
+      content.applyModelChange(() => {
+        if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
+      })
+
+      return { success: true }
     }
 
     return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))

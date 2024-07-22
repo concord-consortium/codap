@@ -1,6 +1,7 @@
 import { useDndContext } from "@dnd-kit/core"
+import { reaction } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useRef } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { kIndexColumnKey } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
@@ -34,16 +35,26 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     setNodeRef(elt)
   }
 
-  // useEffect(function syncScrollLeft() {
-  //   // There is a bug, seemingly in React, in which the scrollLeft property gets reset
-  //   // to 0 when the order of tiles is changed (which happens on selecting/focusing tiles
-  //   // in the free tile layout), even though the CaseTable component is not re-rendered
-  //   // or unmounted/mounted. Therefore, we reset the scrollLeft property from our saved
-  //   // cache on focus change.
-  //   if (isFocused && contentRef.current) {
-  //     contentRef.current.scrollLeft = tableModel?.scrollLeft ?? 0
-  //   }
-  // }, [isFocused, tableModel])
+  useEffect(() => {
+    const updateScroll = (horizontalScrollOffset?: number) => {
+      if (horizontalScrollOffset != null && contentRef.current &&
+        contentRef.current.scrollLeft !== horizontalScrollOffset
+      ) {
+        contentRef.current.scrollLeft = horizontalScrollOffset
+      }
+    }
+
+    // Initial scoll is delayed a frame to let RDG do its thing
+    setTimeout(() => updateScroll(tableModel?.horizontalScrollOffset))
+
+    // Handle changes to the model, such as via the API
+    return reaction(
+      () => tableModel?.horizontalScrollOffset,
+      horizontalScrollOffset => {
+        updateScroll(horizontalScrollOffset)
+      }
+    )
+  }, [tableModel])
 
   const { handleTableScroll, syncTableScroll } = useSyncScrolling()
 
@@ -97,7 +108,9 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     const collections = data.collections
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
-      tableModel?.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
+      tableModel?.applyModelChange(() => {
+        tableModel.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
+      })
     }
 
     return (
