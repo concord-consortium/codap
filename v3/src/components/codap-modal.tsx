@@ -68,7 +68,7 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
     let initialX = 0
     let initialY = 0
 
-    const onMouseDown = (e: MouseEvent) => {
+    const handleMouseDown = (e: MouseEvent) => {
       e.stopPropagation()
       isDragging = true
       startX = e.clientX
@@ -78,11 +78,11 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
         initialY = modalElement.offsetTop
       }
 
-      document.addEventListener("mousemove", onMouseMove)
-      document.addEventListener("mouseup", onMouseUp)
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
     }
 
-    const onMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const deltaX = e.clientX - startX
         const deltaY = e.clientY - startY
@@ -92,18 +92,18 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
       }
     }
 
-    const onMouseUp = (e: MouseEvent) => {
+    const handleMouseUp = (e: MouseEvent) => {
       isDragging = false
-      document.removeEventListener("mousemove", onMouseMove)
-      document.removeEventListener("mouseup", onMouseUp)
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
     }
 
-    modalElement.addEventListener("mousedown", onMouseDown)
+    modalElement.addEventListener("mousedown", handleMouseDown)
 
     return () => {
-      modalElement.removeEventListener("mousedown", onMouseDown)
-      document.removeEventListener("mousemove", onMouseMove)
-      document.removeEventListener("mouseup", onMouseUp)
+      modalElement.removeEventListener("mousedown", handleMouseDown)
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
     }
   }, [])
 
