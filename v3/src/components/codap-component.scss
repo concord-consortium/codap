@@ -8,6 +8,9 @@ $corner-drag-size: calc($border-drag-width * 2);
   height: 100%;
   border-radius: vars.$border-radius-four-corners;
   // z-index: 20;
+  &.shadowed {
+    box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.4);
+  }
 
   input {
     &:focus {

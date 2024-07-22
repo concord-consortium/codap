@@ -1,7 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
-import OptionsIcon from "../../assets/icons/icon-options.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { uiState } from "../../models/ui-state"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
@@ -10,6 +9,7 @@ import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
+import OptionsIcon from "../../assets/icons/icon-options.svg"
 
 import "./tool-shelf.scss"
 
@@ -24,9 +24,17 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     isFreeTileLayout(tileLayout) && tileLayout.setMinimized(false)
   }
 
+  const handleFocus = (tileId: string) => {
+    uiState.setHoveredTile(tileId)
+  }
+
+  const handleBlur = (tileId: string) => {
+    uiState.setHoveredTile("")
+  }
+
   return (
     <>
-      <Menu isLazy>
+      <Menu isLazy autoSelect={false}>
         <MenuButton
           className="tool-shelf-button tiles-list-menu"
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
@@ -39,7 +47,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList data-testid="tiles-list-menu">
+        <MenuList data-testid="tiles-list-menu" >
           {tilesArr?.map((tile) => {
             const tileType = tile?.content.type
             const _Icon = getTileComponentIcon(tileType)
@@ -49,7 +57,10 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             const title = tileInfo?.getTitle(tile)
             return (
               <MenuItem key={tile?.id} data-testid="tiles-list-menu-item"
-                  onClick={()=>handleSelectTile(tile.id)}>
+                  onClick={()=>handleSelectTile(tile.id) }
+                  onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
+                  onBlur={()=>handleBlur(tile.id)} // Handle blur similar to pointer leave
+              >
                 {(Icon && <Icon className={`tile-list-menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>)}
                 {title}
               </MenuItem>
