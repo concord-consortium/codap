@@ -1,9 +1,7 @@
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
 import { formatDate } from "../../../utilities/date-utils"
-
-// dividing line between 20xx and 19xx years: [0, 50) -> 20xx, [50, 99] -> 19xx
-const CUTOFF_YEAR = 50
+import { fixYear } from "../../../utilities/date-parser"
 
 /**
  Returns true if the specified value should be treated as epoch
@@ -30,10 +28,12 @@ export const dateFunctions = {
       let yearOrSeconds = args[0] != null ? Number(args[0]) : null
 
       if (args.length === 1 && yearOrSeconds != null && defaultToEpochSecs(yearOrSeconds)) {
-        // convert from seconds to milliseconds
+        // Only one argument and it's a number that should be treated as epoch seconds.
+        // Convert from seconds to milliseconds.
         return formatDateWithUndefFallback(new Date(yearOrSeconds * 1000))
       }
 
+      let year = yearOrSeconds // at this point, yearOrSeconds is always interpreted as a year
       const monthIndex = args[1] != null ? Math.max(0, Number(args[1]) - 1) : 0
       const day = args[2] != null ? Number(args[2]) : 1
       const hours = args[3] != null ? Number(args[3]) : 0
@@ -41,20 +41,15 @@ export const dateFunctions = {
       const seconds = args[5] != null ? Number(args[5]) : 0
       const milliseconds = args[6] != null ? Number(args[6]) : 0
 
-      const currentYear = new Date().getFullYear()
-
       // Logic ported from V2 for backwards compatibility
-      if (yearOrSeconds == null) {
-        yearOrSeconds = currentYear
+      if (year == null) {
+        year = new Date().getFullYear() // default to current year
       }
-      else if (yearOrSeconds < CUTOFF_YEAR) {
-        yearOrSeconds += 2000
-      }
-      else if (yearOrSeconds < 100) {
-        yearOrSeconds += 1900
-      }
+      // Apply the same interpretation of the year value  as the date parser
+      // (e.g. numbers below 100 are treated as 20xx or 19xx).
+      year = fixYear(year)
 
-      const date = new Date(yearOrSeconds, monthIndex, day, hours, minutes, seconds, milliseconds)
+      const date = new Date(year, monthIndex, day, hours, minutes, seconds, milliseconds)
       return isNaN(date.valueOf()) ? UNDEF_RESULT : formatDateWithUndefFallback(date)
     }
   }
