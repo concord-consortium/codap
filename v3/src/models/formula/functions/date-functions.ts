@@ -25,7 +25,7 @@ export const dateFunctions = {
         return formatDateWithUndefFallback(new Date())
       }
 
-      let yearOrSeconds = args[0] != null ? Number(args[0]) : null
+      const yearOrSeconds = args[0] != null ? Number(args[0]) : null
 
       if (args.length === 1 && yearOrSeconds != null && defaultToEpochSecs(yearOrSeconds)) {
         // Only one argument and it's a number that should be treated as epoch seconds.
