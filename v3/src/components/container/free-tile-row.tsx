@@ -24,10 +24,10 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
       () => uiState.focusedTile,
       focusedTileId => {
         if (focusedTileId && (focusedTileId !== row.last)) {
-          row.moveTileToTop(focusedTileId)
+          row.moveTileToTop(focusedTileId, getTile(focusedTileId)?.content.allowBringToFront)
         }
       }, { name: "FreeTileRowComponent.useEffect.autorun [uiState.focusedTile => row.last]" }, row)
-  }, [row])
+  }, [getTile, row])
 
   // focused tile should always be on top
   useEffect(() => {

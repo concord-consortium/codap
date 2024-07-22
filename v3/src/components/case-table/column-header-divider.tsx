@@ -1,9 +1,11 @@
+import { clsx } from "clsx"
 import React, { CSSProperties, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { moveAttribute } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
+import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 
 interface IProps {
@@ -17,23 +19,31 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
   const [tableElt, setTableElt] = useState<HTMLElement | null>(null)
   const tableBounds = tableElt?.getBoundingClientRect()
   const cellBounds = cellElt?.getBoundingClientRect()
+  const preventCollectionDrop = preventCollectionReorg(dataset, collectionId)
 
-  const { isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, active => {
-    const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
-    const targetCollection = dataset?.getCollection(collectionId)
-    if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
+  const { active, isOver, setNodeRef: setDropRef } = useTileDroppable(droppableId, _active => {
+    if (!preventCollectionDrop) {
+      const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(_active) || {}
+      if (preventAttributeMove(dataset, dragAttrId)) return
+      const targetCollection = dataset?.getCollection(collectionId)
+      if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
 
-    const sourceCollection = dataSet.getCollectionForAttribute(dragAttrId)
-    moveAttribute({
-      afterAttrId: columnKey,
-      attrId: dragAttrId,
-      dataset,
-      includeNotifications: true,
-      sourceCollection,
-      targetCollection,
-      undoable: true
-    })
+      const sourceCollection = dataSet.getCollectionForAttribute(dragAttrId)
+      moveAttribute({
+        afterAttrId: columnKey,
+        attrId: dragAttrId,
+        dataset,
+        includeNotifications: true,
+        sourceCollection,
+        targetCollection,
+        undoable: true
+      })
+    }
   })
+
+  const { attributeId: dragAttributeId } = getDragAttributeInfo(active) || {}
+  const preventAttributeDrop = preventAttributeMove(dataset, dragAttributeId)
+  const preventDrop = preventAttributeDrop || preventCollectionDrop
 
   // find the `case-table-content` DOM element; divider must be drawn relative
   // to the `case-table-content` (via React portal) so it isn't clipped by the cell,
@@ -62,9 +72,10 @@ export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
                     }
                   : {}
 
+  const className = clsx("codap-column-header-divider", { over: isOver && !preventDrop })
   return tableElt && tableBounds && cellBounds && (cellBounds?.right < tableBounds?.right)
           ? createPortal((
-              <div ref={setDropRef} className={`codap-column-header-divider ${isOver ? "over" : ""}`} style={style}/>
+              <div ref={setDropRef} className={className} style={style}/>
             ), tableElt)
           : null
 }

@@ -145,7 +145,9 @@ export const FreeTileRow = TileRowModel
     removeTile(tileId: string) {
       self.tiles.delete(tileId)
     },
-    moveTileToTop(tileId: string) {
+    moveTileToTop(tileId: string, allowBringToFront = true) {
+      if (!allowBringToFront) return
+
       withoutUndo({ suppressWarning: true })
       self.getNode(tileId)?.setZIndex(this.nextZIndex())
     },
