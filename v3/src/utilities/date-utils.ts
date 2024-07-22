@@ -113,7 +113,7 @@ export function isDate(iValue: any): iValue is Date {
  * @param precision {number}
  * @return {string}
  */
-export function formatDate(x: Date | number | string, precision: DatePrecision) {
+export function formatDate(x: Date | number | string, precision: DatePrecision = DatePrecision.None): string | null {
   const formatPrecisions: Record<DatePrecision, any> = {
     [DatePrecision.None]: null,
     [DatePrecision.Year]: { year: 'numeric' },
@@ -138,7 +138,7 @@ export function formatDate(x: Date | number | string, precision: DatePrecision) 
     // differently from DG.MathUtilities.isNumeric in V2. The original isNumeric function in V2 returns true for
     // Date objects, which was probably not planned (as `isNaN(new Date())` actually returns `false`), but is necessary
     // here. Since isFiniteNumber() is more strict, we need an explicit check for Date objects here.
-    x = new Date(x.valueOf() * 1000)
+    x = new Date(x.valueOf())
   } else if (isDateString(x)) {
     x = new Date(x)
   }
@@ -146,56 +146,6 @@ export function formatDate(x: Date | number | string, precision: DatePrecision) 
   const locale = getDefaultLanguage()
   return new Intl.DateTimeFormat(locale, precisionFormat).format(x as Date)
 }
-
-/**
- Returns true if the specified value should be treated as epoch
- seconds when provided as the only argument to the date() function,
- false if the value should be treated as a year.
- date(2000) should be treated as a year, but date(12345) should not.
- */
- export function defaultToEpochSecs(iValue: number) {
-  return Math.abs(iValue) >= 5000
-}
-
-/**
- Returns a DG date object constructed from its arguments.
- Currently this is a JavaScript Date object, but could be
- replaced with another (e.g. moment.js) object at some point.
- */
-/*
-DateUtilities.createDate = function(/!* iArgs *!/) {
-  var args = [Date].concat(Array.prototype.slice.call(arguments)),
-    date
-
-  if (args.length === 2 && typeof args[1] === 'string' && isNaN(args[1])) {
-    return DateUtilities.dateParser.parseDate(args[1], true)
-  }
-
-  if ((args.length === 2)) {  // We have either seconds since 1970 or a year
-    if (DateUtilities.defaultToEpochSecs(args[1]))
-      args[1] = Number(args[1]) * 1000// convert from seconds to milliseconds
-    else {  // We have a value < 5000.
-      args[2] = 0  // This will force the constructor to treat args[1] as a year
-    }
-  }
-  // Call Date constructor with specified arguments
-  // cf. http://stackoverflow.com/a/8843181
-  /!* jshint -W058 *!/
-  date = new (Function.bind.apply(Date, args))()
-
-  if (isNaN(date)) {
-    date = null
-  }
-
-  // replace default numeric conversion (milliseconds) with our own (seconds)
-  if (date) {
-    date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000 }
-  }
-
-  return date
-}
-createDate = DateUtilities.createDate
-*/
 
 /**
  Default formatting for Date objects.

@@ -1,4 +1,4 @@
-import { isDateString, isValidDateSpec, parseDate } from './date-parser'
+import { fixYear, isDateString, isValidDateSpec, parseDate } from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
   // These tests are ported from V2 and should always pass unchanged as long as we want to maintain compatibility.
@@ -183,5 +183,23 @@ test('returns null when subsecond is NaN', () => {
       subsec: NaN
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+})
+
+describe('fixYear', () => {
+  test('returns year when year is 4 digits', () => {
+    expect(fixYear(2023)).toEqual(2023)
+  })
+  test('returns year when year is 3 digits', () => {
+    expect(fixYear(100)).toEqual(100)
+    expect(fixYear(123)).toEqual(123)
+  })
+  test('returns 20xx year when year is 2 digits and less than 50', () => {
+    expect(fixYear(10)).toEqual(2010)
+    expect(fixYear(49)).toEqual(2049)
+  })
+  test('returns 19xx year when year is 2 digits and greater than or equal to 50', () => {
+    expect(fixYear(50)).toEqual(1950)
+    expect(fixYear(99)).toEqual(1999)
   })
 })

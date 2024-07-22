@@ -169,44 +169,43 @@ const formatSpecs = [
   { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
 ]
 
-function extractDateProps(match: string[], map: GroupMap): DateSpec {
-  function fixHour(hr: string, amPm?: string) {
-    if (isNaN(Number(hr))) {
-      return NaN
-    }
-    let newHr = Number(hr)
-    if (amPm != null && (0 < newHr && newHr <= 12)) {
-      newHr = newHr % 12
-      if (amPm && amPm.toLowerCase() === 'pm') {
-        newHr += 12
-      }
-    }
-    return newHr
-  }
+// dividing line between 20xx and 19xx years: [0, 50) -> 20xx, [50, 99] -> 19xx
+const CUTOFF_YEAR = 50
 
-  function fixMonth(m: string) {
-    if (!isNaN(Number(m))) {
-      return Number(m)
-    }
-    const lcMonth = m.toLowerCase()
-    const monthIx = monthsArray.findIndex(function (monthName) { return monthName === lcMonth })
-    return (monthIx % 12) + 1
+export function fixYear(y: string | number) {
+  const yNumber = typeof y === 'string' ? Number(y) : y
+  if (yNumber < CUTOFF_YEAR) {
+    return 2000 + yNumber
+  } else if (yNumber < 100) {
+    return 1900 + yNumber
   }
+  return yNumber
+}
 
-  function fixYear(y: string) {
-    if (y.length === 2) {
-      const yNumber = Number(y)
-      if (yNumber < 49) {
-        return 2000 + yNumber
-      } else {
-        return 1900 + yNumber
-      }
-    }
-    else {
-      return y
+export function fixHour(hr: string, amPm?: string) {
+  if (isNaN(Number(hr))) {
+    return NaN
+  }
+  let newHr = Number(hr)
+  if (amPm != null && (0 < newHr && newHr <= 12)) {
+    newHr = newHr % 12
+    if (amPm && amPm.toLowerCase() === 'pm') {
+      newHr += 12
     }
   }
+  return newHr
+}
 
+export function fixMonth(m: string) {
+  if (!isNaN(Number(m))) {
+    return Number(m)
+  }
+  const lcMonth = m.toLowerCase()
+  const monthIx = monthsArray.findIndex(function (monthName) { return monthName === lcMonth })
+  return (monthIx % 12) + 1
+}
+
+export function extractDateProps(match: string[], map: GroupMap): DateSpec {
   return {
     year: Number(fixYear(match[map.year])),
     month: fixMonth(match[map.month] || '1'),
@@ -262,7 +261,6 @@ export function parseDate(iValue: any, iLoose?: boolean) {
     if (dateSpec) {
       date = new Date(dateSpec.year, (-1 + dateSpec.month), dateSpec.day,
         dateSpec.hour, dateSpec.min, dateSpec.sec, dateSpec.subsec)
-      if (date) date.valueOf = function () { return Date.prototype.valueOf.apply(this) / 1000 }
       return date
     }
   }
@@ -283,4 +281,3 @@ export function isDateString(iValue: any, iLoose?: boolean) {
     return spec.regex.test(iValue)
   })
 }
-
