@@ -196,7 +196,7 @@ function extractDateProps(match: string[], map: GroupMap): DateSpec {
   function fixYear(y: string) {
     if (y.length === 2) {
       const yNumber = Number(y)
-      if (yNumber < 49) {
+      if (yNumber < 50) {
         return 2000 + yNumber
       } else {
         return 1900 + yNumber

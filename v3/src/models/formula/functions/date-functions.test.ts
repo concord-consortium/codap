@@ -7,15 +7,16 @@ describe("date", () => {
     expect(fn.evaluate()).toEqual(formatDate(new Date()))
   })
 
-  it("interprets a small number as 20xx year if it's smaller than current year + 10", () => {
+  it("interprets [0, 50) as 20xx year", () => {
     const fn = math.compile("date(x)")
     expect(fn.evaluate({ x: 1 })).toEqual(formatDate(new Date(2001, 0, 1)))
     expect(fn.evaluate({ x: 10 })).toEqual(formatDate(new Date(2010, 0, 1)))
     expect(fn.evaluate({ x: 20 })).toEqual(formatDate(new Date(2020, 0, 1)))
     expect(fn.evaluate({ x: 30 })).toEqual(formatDate(new Date(2030, 0, 1)))
+    expect(fn.evaluate({ x: 49 })).toEqual(formatDate(new Date(2049, 0, 1)))
   })
 
-  it("interprets a small number as 19xx year if it's bigger than current year + 10, but smaller than 100", () => {
+  it("interprets [50, 99] as 19xx year", () => {
     const fn = math.compile("date(x)")
     expect(fn.evaluate({ x: 50 })).toEqual(formatDate(new Date(1950, 0, 1)))
     expect(fn.evaluate({ x: 60 })).toEqual(formatDate(new Date(1960, 0, 1)))

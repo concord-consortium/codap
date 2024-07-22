@@ -1,7 +1,9 @@
-
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
 import { formatDate } from "../../../utilities/date-utils"
+
+// dividing line between 20xx and 19xx years: [0, 50) -> 20xx, [50, 99] -> 19xx
+const CUTOFF_YEAR = 50
 
 /**
  Returns true if the specified value should be treated as epoch
@@ -40,14 +42,12 @@ export const dateFunctions = {
       const milliseconds = args[6] != null ? Number(args[6]) : 0
 
       const currentYear = new Date().getFullYear()
-      // dividing line for two-digit years is 10 yrs from now
-      const cutoffYear = (currentYear + 10) % 100
 
       // Logic ported from V2 for backwards compatibility
       if (yearOrSeconds == null) {
         yearOrSeconds = currentYear
       }
-      else if (yearOrSeconds < cutoffYear) {
+      else if (yearOrSeconds < CUTOFF_YEAR) {
         yearOrSeconds += 2000
       }
       else if (yearOrSeconds < 100) {
