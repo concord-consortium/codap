@@ -230,7 +230,7 @@ export function isValidDateSpec(dateSpec: DateSpec) {
   return isValid ? dateSpec : false
 }
 
-export function parseDate(iValue: any, iLoose?: boolean) {
+export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
   if (iValue == null) {
     return null
   }
@@ -267,6 +267,27 @@ export function parseDate(iValue: any, iLoose?: boolean) {
   return null
 }
 
+export function parseDateV3(value: any) {
+  // Built-in date parser might not be the best, but it likely supports more formats than we do currently and
+  // it's only used in the loose mode.
+  const date = new Date(value)
+  return isNaN(date.valueOf()) ? null : date
+}
+
+export function parseDate(value: any, loose?: boolean) {
+  const v2CompatibleParserResult = parseDateV2Compatible(value, loose)
+  // If the v2 compatible parser found a valid date, always return it for backwards compatibility
+  if (v2CompatibleParserResult != null) {
+    return v2CompatibleParserResult
+  }
+  // However, if the v2-compatible parser does not find a valid date and loose mode is enabled, we might try
+  // to parse the date using other parsers that support more formats.
+  if (loose === true) {
+    return parseDateV3(value)
+  }
+  return null
+}
+
 /**
  * Returns true if the specified value is a string that can be converted to a
  * valid date.
@@ -279,5 +300,5 @@ export function isDateString(iValue: any, iLoose?: boolean) {
       return false
     }
     return spec.regex.test(iValue)
-  })
+  }) || (!!iLoose && parseDateV3(iValue) != null)
 }
