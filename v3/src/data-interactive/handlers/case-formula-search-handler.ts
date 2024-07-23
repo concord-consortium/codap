@@ -1,8 +1,21 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, diNotImplementedYet } from "../data-interactive-types"
+import { DIHandler, DIResources } from "../data-interactive-types"
+import { getCaseRequestResultValues } from "../data-interactive-type-utils"
+import { collectionNotFoundResult, couldNotParseQueryResult, dataContextNotFoundResult } from "./di-results"
 
 export const diCaseFormulaSearchHandler: DIHandler = {
-  get: diNotImplementedYet
+  get(resources: DIResources) {
+    const { caseFormulaSearch, collection, dataContext } = resources
+    if (!collection) return collectionNotFoundResult
+    if (!dataContext) return dataContextNotFoundResult
+    if (!caseFormulaSearch) return couldNotParseQueryResult
+
+    return {
+      success: true,
+      values: caseFormulaSearch?.map(aCase => 
+        getCaseRequestResultValues(aCase, dataContext).case)
+    }
+  }
 }
 
 registerDIHandler("caseFormulaSearch", diCaseFormulaSearchHandler)
