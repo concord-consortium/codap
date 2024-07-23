@@ -85,20 +85,25 @@ const removeCasesCustomUndoRedo: ICustomUndoRedoPatcher = {
 }
 
 export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[]) {
-  data.validateCaseGroups()
+  data.validateCases()
 
   // identify the items to remove
   const itemIdsToRemove = new Set<string>()
   caseIds.forEach(caseId => {
-    const caseGroup = data.caseGroupMap.get(caseId)
-    caseGroup?.childItemIds.forEach(itemId => itemIdsToRemove.add(itemId))
+    const caseGroup = data.caseInfoMap.get(caseId)
+    if (caseGroup) {
+      caseGroup?.childItemIds.forEach(itemId => itemIdsToRemove.add(itemId))
+    }
+    else if (data.itemInfoMap.get(caseId) != null) {
+      itemIdsToRemove.add(caseId)
+    }
   })
 
   // identify the indices of the items to remove
   interface IItemToRemove { itemId: string, itemIndex?: number }
   type IFilteredItemToRemove = Required<IItemToRemove>
   const itemsToRemove = (Array.from(itemIdsToRemove)
-                          .map(itemId => ({ itemId, itemIndex: data.itemIDMap.get(itemId) }))
+                          .map(itemId => ({ itemId, itemIndex: data.getItemIndex(itemId) }))
                           .filter(({ itemIndex }) => itemIndex != null) as IFilteredItemToRemove[])
                           .sort((n1, n2) => n1.itemIndex - n2.itemIndex)
 

@@ -90,9 +90,9 @@ export interface IGroupedCase extends ICase {
   [symIndex]?: number
 }
 
-// represents a case in a collection which have a set of common grouped values
+// represents a case in a collection which has a set of common grouped values
 // and potentially a set of child cases.
-export interface CaseGroup {
+export interface CaseInfo {
   // id of collection containing the group
   collectionId: string
   // object that represents the case
@@ -103,4 +103,9 @@ export interface CaseGroup {
   childItemIds: string[]
   // stringified version of grouped case values for easy comparison/categorization
   groupKey: string
+}
+
+export interface ItemInfo {
+  index: number
+  caseIds: string[]
 }

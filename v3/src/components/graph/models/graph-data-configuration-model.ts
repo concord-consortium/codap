@@ -187,9 +187,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      */
     get selection() {
       if (!self.dataset || !self.filteredCases?.[0]) return []
-      const selection = Array.from(self.dataset.selection),
-        allGraphCaseIds = self.graphCaseIDs
-      return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))
+      return Array.from(self.graphCaseIDs).filter(caseId => self.dataset?.isCaseSelected(caseId))
     }
   }))
   .views(self => (
@@ -432,7 +430,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
         return self.allPlottedCases().filter((caseId) => {
-          const caseData = self.dataset?.getItem(caseId, { numeric: false }) || { __id__: caseId }
+          const itemId = self.dataset?.caseInfoMap.get(caseId)?.childItemIds[0]
+          const itemData = itemId && self.dataset?.getItem(itemId, { numeric: false })
+          const caseData = itemData || { __id__: caseId }
           return self.isCaseInSubPlot(cellKey, caseData)
         })
       }
@@ -447,7 +447,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const topValue = topAttrID ? cellKey[topAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getItem(caseId)
+          const itemId = self.dataset?.caseInfoMap.get(caseId)?.childItemIds[0]
+          const caseData = itemId && self.dataset?.getItem(itemId, { numeric: false })
           if (!caseData) return false
           const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
           const isTopMatch = !topAttrID || topAttrType !== "categorical" ||
@@ -469,7 +470,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const topValue = topAttrID ? cellKey[topAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getItem(caseId)
+          const itemId = self.dataset?.caseInfoMap.get(caseId)?.childItemIds[0]
+          const caseData = itemId && self.dataset?.getItem(itemId, { numeric: false })
           if (!caseData) return false
 
           const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
@@ -493,7 +495,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
 
         return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getItem(caseId)
+          const itemId = self.dataset?.caseInfoMap.get(caseId)?.childItemIds[0]
+          const caseData = itemId && self.dataset?.getItem(itemId, { numeric: false })
           if (!caseData) return false
 
           const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||

@@ -74,7 +74,7 @@ export const useRows = () => {
       const domRows = grid?.querySelectorAll(".rdg-row")
       domRows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = data?.caseIDFromIndex(rowIndex)
+        const caseId = data?.itemIDFromIndex(rowIndex)
         const cells = row.querySelectorAll(".rdg-cell")
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
@@ -122,7 +122,7 @@ export const useRows = () => {
 
     // rebuild the entire cache after grouping changes
     const reactionDisposer = reaction(
-      () => data?.isValidCaseGroups && data?.validationCount,
+      () => data?.isValidCases && data?.validationCount,
       validation => {
         if (typeof validation === "number") {
           resetRowCacheAndSyncRows()
@@ -143,7 +143,7 @@ export const useRows = () => {
         // have to determine the lowest index before the cases are actually removed
         lowestIndex.current = Math.min(
           ...caseIds
-            .map(id => data.caseIndexFromID(id) ?? -1)
+            .map(id => data.getItemIndex(id) ?? -1)
             .filter(index => index >= 0)
         )
       }
@@ -169,7 +169,7 @@ export const useRows = () => {
             lowestIndex.current = index != null ? index : data.items.length
             const casesToUpdate = []
             for (let i=0; i<_cases.length; ++i) {
-              lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__) ?? Infinity)
+              lowestIndex.current = Math.min(lowestIndex.current, data.getItemIndex(_cases[i].__id__) ?? Infinity)
             }
             for (let j=lowestIndex.current; j < data.items.length; ++j) {
               casesToUpdate.push(data.items[j])
@@ -213,7 +213,7 @@ export const useRows = () => {
     const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
-        const caseGroup = data?.caseGroupMap.get(caseId)
+        const caseGroup = data?.caseInfoMap.get(caseId)
         const childCaseIds = caseGroup?.childCaseIds ?? caseGroup?.childItemIds
         const firstChildCaseId = childCaseIds?.[0]
         if (firstChildCaseId) {
@@ -313,7 +313,7 @@ export const useRows = () => {
         notifications: () => {
           const notifications = []
           if (updatedCaseIds.length > 0) {
-            const updatedCases = updatedCaseIds.map(caseId => data.caseGroupMap.get(caseId))
+            const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
               .filter(caseGroup => !!caseGroup)
               .map(caseGroup => caseGroup.groupedCase)
             notifications.push(updateCasesNotification(data, updatedCases))

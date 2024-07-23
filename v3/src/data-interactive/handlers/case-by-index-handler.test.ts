@@ -30,11 +30,11 @@ describe("DataInteractive CaseByIndexHandler", () => {
     expect(handler.update?.(caseResources, {}).success).toBe(false)
 
     expect(handler.update?.(caseResources, { values: { a3: 10 } }).success).toBe(true)
-    expect(a3.numValues[dataContext.caseIndexFromID(itemId)!]).toBe(10)
+    expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(10)
 
     expect(handler.update?.({ dataContext, caseByIndex: aCase }, { values: { a3: 100 } }).success).toBe(true)
-    dataContext.caseGroupMap.get(caseId)?.childItemIds.forEach(id => {
-      expect(a3.numValues[dataContext.caseIndexFromID(id)!]).toBe(100)
+    dataContext.caseInfoMap.get(caseId)?.childItemIds.forEach(id => {
+      expect(a3.numValues[dataContext.getItemIndex(id)!]).toBe(100)
     })
   })
 
@@ -48,7 +48,7 @@ describe("DataInteractive CaseByIndexHandler", () => {
     expect(handler.delete?.({ dataContext, caseByIndex: item }).success).toBe(true)
     expect(dataContext.getItem(itemId)).toBeUndefined()
 
-    const childCaseIds = dataContext.caseGroupMap.get(caseId)!.childItemIds
+    const childCaseIds = dataContext.caseInfoMap.get(caseId)!.childItemIds
     childCaseIds.forEach(id => expect(dataContext.getItem(id)).toBeDefined())
     expect(handler.delete?.({ dataContext, caseByIndex: aCase }).success).toBe(true)
     childCaseIds.forEach(id => expect(dataContext.getItem(id)).toBeUndefined())
