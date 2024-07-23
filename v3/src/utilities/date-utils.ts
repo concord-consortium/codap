@@ -1,5 +1,5 @@
-import { isDateString } from "./date-parser"
-import { goodTickValue, isFiniteNumber } from "./math-utils"
+import { fixYear, isDateString, parseDate } from "./date-parser"
+import { goodTickValue, isFiniteNumber, isNumber } from "./math-utils"
 import { getDefaultLanguage } from "./translation/translate"
 
 export enum EDateTimeLevel {
@@ -109,11 +109,12 @@ export function isDate(iValue: any): iValue is Date {
 
 /**
  * Default formatting for Date objects.
- * @param date {Date | number | string }
+ * @param date {Date | number | string | null }
  * @param precision {number}
  * @return {string}
  */
-export function formatDate(x: Date | number | string, precision: DatePrecision = DatePrecision.None): string | null {
+export function formatDate(x: Date | number | string | null, precision: DatePrecision = DatePrecision.None):
+  string | null {
   const formatPrecisions: Record<DatePrecision, any> = {
     [DatePrecision.None]: null,
     [DatePrecision.Year]: { year: 'numeric' },
@@ -148,34 +149,58 @@ export function formatDate(x: Date | number | string, precision: DatePrecision =
 }
 
 /**
- Default formatting for Date objects.
- Uses toLocaleDateString() for default date formatting.
- Optionally uses toLocaleTimeString() for default time formatting.
+ Returns true if the specified value should be treated as epoch
+ seconds when provided as the only argument to the date() function,
+ false if the value should be treated as a year.
+ date(2000) should be treated as a year, but date(12345) should not.
  */
-/*
-DateUtilities.monthName = function(x) {
-  if (!(x && (isDate(x) || isDateString(x) || MathUtilities.isFiniteNumber(x)))) return ""
-  var date
-  if (isDate(x))
-    date = x
-  else
-    date = createDate(x)
-  var monthNames = [
-      'Formula.DateLongMonthJanuary',
-      'Formula.DateLongMonthFebruary',
-      'Formula.DateLongMonthMarch',
-      'Formula.DateLongMonthApril',
-      'Formula.DateLongMonthMay',
-      'Formula.DateLongMonthJune',
-      'Formula.DateLongMonthJuly',
-      'Formula.DateLongMonthAugust',
-      'Formula.DateLongMonthSeptember',
-      'Formula.DateLongMonthOctober',
-      'Formula.DateLongMonthNovember',
-      'Formula.DateLongMonthDecember'
-    ],
-    monthName = monthNames[date.getMonth()]
-  return monthName && monthName.loc()
+ export function defaultToEpochSecs(iValue: number) {
+  return Math.abs(iValue) >= 5000
 }
-monthName = DateUtilities.monthName
-*/
+
+export function createDate(...args: (string | number)[]): Date | null {
+  if (args.length === 0) {
+    return new Date()
+  }
+
+  const yearOrSeconds = args[0] != null ? Number(args[0]) : null
+
+  if (args.length === 1 && yearOrSeconds != null && defaultToEpochSecs(yearOrSeconds)) {
+    // Only one argument and it's a number that should be treated as epoch seconds.
+    // Convert from seconds to milliseconds.
+    const dateFromEpoch = new Date(yearOrSeconds * 1000)
+    return isNaN(dateFromEpoch.valueOf()) ? null : dateFromEpoch
+  }
+
+  let year = yearOrSeconds // at this point, yearOrSeconds is always interpreted as a year
+  const monthIndex = args[1] != null ? Math.max(0, Number(args[1]) - 1) : 0
+  const day = args[2] != null ? Number(args[2]) : 1
+  const hours = args[3] != null ? Number(args[3]) : 0
+  const minutes = args[4] != null ? Number(args[4]) : 0
+  const seconds = args[5] != null ? Number(args[5]) : 0
+  const milliseconds = args[6] != null ? Number(args[6]) : 0
+
+  // Logic ported from V2 for backwards compatibility
+  if (year == null) {
+    year = new Date().getFullYear() // default to current year
+  }
+  // Apply the same interpretation of the year value  as the date parser
+  // (e.g. numbers below 100 are treated as 20xx or 19xx).
+  year = fixYear(year)
+
+  const date = new Date(year, monthIndex, day, hours, minutes, seconds, milliseconds)
+  return isNaN(date.valueOf()) ? null : date
+}
+
+export function convertToDate(date: any): Date | null {
+  if (isDate(date)) {
+    return date
+  }
+  if (typeof date === "string" && !isNumber(date)) {
+    return parseDate(date, true)
+  }
+  if (isNumber(date)) {
+    return createDate(Number(date))
+  }
+  return null
+}

@@ -1,56 +1,116 @@
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
-import { formatDate } from "../../../utilities/date-utils"
-import { fixYear } from "../../../utilities/date-parser"
+import { convertToDate, createDate, formatDate } from "../../../utilities/date-utils"
+import { t } from "../../../utilities/translation/translate"
 
-/**
- Returns true if the specified value should be treated as epoch
- seconds when provided as the only argument to the date() function,
- false if the value should be treated as a year.
- date(2000) should be treated as a year, but date(12345) should not.
- */
-export function defaultToEpochSecs(iValue: number) {
-  return Math.abs(iValue) >= 5000
-}
-
-function formatDateWithUndefFallback(date: Date) {
-  return formatDate(date) || UNDEF_RESULT
+function formatDateWithUndefFallback(date: Date | null) {
+  return formatDate(date) ?? UNDEF_RESULT
 }
 
 export const dateFunctions = {
   date: {
     numOfRequiredArguments: 1,
-    evaluate: (...args: FValue[]) => {
-      if (args.length === 0) {
-        return formatDateWithUndefFallback(new Date())
-      }
+    evaluate: (...args: FValue[]) => formatDateWithUndefFallback(createDate(...args as (string | number)[]))
+  },
 
-      const yearOrSeconds = args[0] != null ? Number(args[0]) : null
-
-      if (args.length === 1 && yearOrSeconds != null && defaultToEpochSecs(yearOrSeconds)) {
-        // Only one argument and it's a number that should be treated as epoch seconds.
-        // Convert from seconds to milliseconds.
-        return formatDateWithUndefFallback(new Date(yearOrSeconds * 1000))
-      }
-
-      let year = yearOrSeconds // at this point, yearOrSeconds is always interpreted as a year
-      const monthIndex = args[1] != null ? Math.max(0, Number(args[1]) - 1) : 0
-      const day = args[2] != null ? Number(args[2]) : 1
-      const hours = args[3] != null ? Number(args[3]) : 0
-      const minutes = args[4] != null ? Number(args[4]) : 0
-      const seconds = args[5] != null ? Number(args[5]) : 0
-      const milliseconds = args[6] != null ? Number(args[6]) : 0
-
-      // Logic ported from V2 for backwards compatibility
-      if (year == null) {
-        year = new Date().getFullYear() // default to current year
-      }
-      // Apply the same interpretation of the year value  as the date parser
-      // (e.g. numbers below 100 are treated as 20xx or 19xx).
-      year = fixYear(year)
-
-      const date = new Date(year, monthIndex, day, hours, minutes, seconds, milliseconds)
-      return isNaN(date.valueOf()) ? UNDEF_RESULT : formatDateWithUndefFallback(date)
+  year: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      const dateObject = convertToDate(date)
+      return dateObject ? dateObject.getFullYear() : UNDEF_RESULT
     }
+  },
+
+  month: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      const dateObject = convertToDate(date)
+      // + 1 to make January 1, February 2, etc. and be backwards compatible with the V2 implementation
+      return dateObject ? dateObject.getMonth() + 1 : UNDEF_RESULT
+    }
+  },
+
+  monthName: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      const dateObject = convertToDate(date)
+      const monthNames = [
+        'DG.Formula.DateLongMonthJanuary',
+        'DG.Formula.DateLongMonthFebruary',
+        'DG.Formula.DateLongMonthMarch',
+        'DG.Formula.DateLongMonthApril',
+        'DG.Formula.DateLongMonthMay',
+        'DG.Formula.DateLongMonthJune',
+        'DG.Formula.DateLongMonthJuly',
+        'DG.Formula.DateLongMonthAugust',
+        'DG.Formula.DateLongMonthSeptember',
+        'DG.Formula.DateLongMonthOctober',
+        'DG.Formula.DateLongMonthNovember',
+        'DG.Formula.DateLongMonthDecember'
+      ]
+      return dateObject ? t(monthNames[dateObject.getMonth()]) : UNDEF_RESULT
+    }
+  },
+
+  dayOfMonth: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => convertToDate(date)?.getDate() ?? UNDEF_RESULT
+  },
+
+  dayOfWeek: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      const dateObject = convertToDate(date)
+      // + 1 to make Sunday 1, Monday 2, etc. and be backwards compatible with the V2 implementation
+      return dateObject ? dateObject.getDay() + 1 : UNDEF_RESULT
+    }
+  },
+
+  dayOfWeekName: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      const dateObject = convertToDate(date)
+      const dayNames = [
+        'DG.Formula.DateLongDaySunday',
+        'DG.Formula.DateLongDayMonday',
+        'DG.Formula.DateLongDayTuesday',
+        'DG.Formula.DateLongDayWednesday',
+        'DG.Formula.DateLongDayThursday',
+        'DG.Formula.DateLongDayFriday',
+        'DG.Formula.DateLongDaySaturday'
+      ]
+      return dateObject ? t(dayNames[dateObject.getDay()]) : UNDEF_RESULT
+    }
+  },
+
+  hours: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => convertToDate(date)?.getHours() ?? UNDEF_RESULT
+  },
+
+  minutes: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => convertToDate(date)?.getMinutes() ?? UNDEF_RESULT
+  },
+
+  // TODO: this revealed an issue in the new implementation (date is converted to string too early), fix it
+  // when the formatting / storage of dates is refactored.
+  // seconds: {
+  //   numOfRequiredArguments: 1,
+  //   evaluate: (date: FValue) => convertToDate(date)?.getSeconds() ?? UNDEF_RESULT
+  // },
+
+  today: {
+    numOfRequiredArguments: 0,
+    evaluate: () => {
+      const now = new Date()
+      // eliminate time within the day
+      return formatDateWithUndefFallback(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+    }
+  },
+
+  now: {
+    numOfRequiredArguments: 0,
+    evaluate: () => formatDateWithUndefFallback(createDate())
   }
 }
