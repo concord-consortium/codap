@@ -93,7 +93,7 @@ export const TableTileElements = {
     return this.getTableTile().find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
   openAttributeMenu(name, collectionIndex = 1) {
-    this.getAttribute(name, collectionIndex).click()
+    this.getAttribute(name, collectionIndex).click({force: true})
   },
   getAttributeMenuItem(item) {
     return cy.get("[data-testid=attribute-menu-list] button").contains(item)
@@ -146,16 +146,16 @@ export const TableTileElements = {
     this.openAttributeMenu(attr)
     this.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
     if (name !== "") {
-      this.enterAttributeName(`{selectAll}{backspace}${name}`)
+      this.enterAttributeName(`{selectAll}{backspace}${name}`, { force: true })
     }
     if (description != null) {
-      this.enterAttributeDescription(`{selectAll}{backspace}${description}`)
+      this.enterAttributeDescription(`{selectAll}{backspace}${description}`, { force: true })
     }
     if (type != null) {
       this.selectAttributeType(type)
     }
     if (unit != null) {
-      this.enterAttributeUnit(`{selectAll}{backspace}${unit}`)
+      this.enterAttributeUnit(`{selectAll}{backspace}${unit}`, { force: true })
     }
     if (precision != null) {
       this.selectAttributePrecision(precision)
@@ -163,7 +163,7 @@ export const TableTileElements = {
     if (editable != null) {
       this.selectAttributeEditableState(editable)
     }
-    this.getApplyButton().click()
+    this.getApplyButton().click({force: true})
   },
   editDatasetInformation(name, source, date, description) {
     this.getDatasetInfoButton().click()
