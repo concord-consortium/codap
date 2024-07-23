@@ -5,14 +5,15 @@ import { UNDEF_RESULT, evaluateNode, isNumber, isValueTruthy } from "./function-
 
 // Almost every aggregate function can be cached in the same way.
 export const cachedAggregateFnFactory =
-(fnName: string, fn: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValueOrArray) => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+(fnName: string, fn: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => FValueOrArray) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    const scope = partitionedMap.a
     const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseAggregateGroupId()}`
     const cachedValue = scope.getCached(cacheKey)
     if (cachedValue !== undefined) {
       return cachedValue
     }
-    const result = fn(args, mathjs, scope)
+    const result = fn(args, mathjs, partitionedMap)
     scope.setCached(cacheKey, result)
     return result
   }
@@ -21,7 +22,8 @@ export const cachedAggregateFnFactory =
 // Note that aggregate functions like mean, max, min, etc., all have exactly the same signature and implementation.
 // The only difference is the final math operation applies to the expression results.
 const aggregateFnWithFilterFactory = (fn: (values: number[]) => FValue) => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    const scope = partitionedMap.a
     const [ expression, filter ] = args
     let expressionValues = evaluateNode(expression, scope)
     if (!Array.isArray(expressionValues)) {
@@ -96,7 +98,8 @@ export const aggregateFunctions = {
     // arguments, the default caching method would calculate incorrect cache key. Hence, caching is implemented directly
     // in the function body.
     cachedEvaluateFactory: undefined,
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+      const scope = partitionedMap.a
       const [expression, filter] = args
       if (!expression) {
         // Special case: count() without arguments returns number of children cases. Note that this cannot be cached

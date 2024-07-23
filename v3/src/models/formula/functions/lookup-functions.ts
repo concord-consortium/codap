@@ -32,7 +32,8 @@ export const lookupFunctions = {
         attrNameArg.value = displayNameMap.dataSet[dataSetName]?.attribute[attrName] || attrName
       }
     },
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+      const scope = partitionedMap.a
       const functionName = "lookupByIndex"
       const numOfReqArgs = lookupFunctions.lookupByIndex.numOfRequiredArguments
       if (args.length !== numOfReqArgs) {
@@ -91,7 +92,8 @@ export const lookupFunctions = {
         keyAttrNameArg.value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName] || keyAttrName
       }
     },
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+      const scope = partitionedMap.a
       const functionName = "lookupByKey"
       const numOfReqArgs = lookupFunctions.lookupByKey.numOfRequiredArguments
       if (args.length !== numOfReqArgs) {

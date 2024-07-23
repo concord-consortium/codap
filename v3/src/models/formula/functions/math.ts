@@ -18,23 +18,26 @@ export const math = create(all)
 
 // Each aggregate function needs to be evaluated with `withAggregateContext` method.
 export const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    const scope = partitionedMap.a
     // withAggregateContext returns result of the callback function
-    return scope.withAggregateContext(() => fn(args, mathjs, scope))
+    return scope.withAggregateContext(() => fn(args, mathjs, partitionedMap))
   }
 }
 
 export const evaluateRawWithDefaultArg = (fn: EvaluateRawFunc, numOfRequiredArguments: number): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    const scope = partitionedMap.a
     if (scope.defaultArgumentNode && args.length < numOfRequiredArguments) {
-      return fn([...args, scope.defaultArgumentNode], mathjs, scope)
+      return fn([...args, scope.defaultArgumentNode], mathjs, partitionedMap)
     }
-    return fn(args, mathjs, scope)
+    return fn(args, mathjs, partitionedMap)
   }
 }
 
 export const evaluateToEvaluateRaw = (fn: EvaluateFuncWithAggregateContextSupport): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    const scope = partitionedMap.a
     return fn(...(args.map(arg => evaluateNode(arg, scope))))
   }
 }

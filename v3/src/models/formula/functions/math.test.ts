@@ -17,10 +17,11 @@ describe("evaluateRawWithAggregateContext", () => {
         scope.aggregateContext = false
       }
     }
+    const partitionedMap = { a: scope } as any as { a: FormulaMathJsScope }
     let result = false
     const mockFn = jest.fn(() => { result = scope.aggregateContext; return "" })
 
-    evaluateRawWithAggregateContext(mockFn)(args, mathjs, scope as any as FormulaMathJsScope)
+    evaluateRawWithAggregateContext(mockFn)(args, mathjs, partitionedMap)
     expect(mockFn).toHaveBeenCalledWith(args, mathjs, scope)
     expect(result).toBeTruthy()
   })
@@ -33,10 +34,11 @@ describe("evaluateRawWithDefaultArg", () => {
     const scope = {
       defaultArgumentNode: { name: "default" }
     }
+    const partitionedMap = { a: scope } as any as { a: FormulaMathJsScope }
     const mockFn = jest.fn((_args: MathNode[]) => (_args[0] as SymbolNode).name)
 
     const numOfReqArgs = 1
-    const res = evaluateRawWithDefaultArg(mockFn, numOfReqArgs)(args, mathjs, scope as any as FormulaMathJsScope)
+    const res = evaluateRawWithDefaultArg(mockFn, numOfReqArgs)(args, mathjs, partitionedMap)
     expect(mockFn).toHaveBeenCalledWith([scope.defaultArgumentNode], mathjs, scope)
     expect(res).toEqual("default")
   })
@@ -47,10 +49,11 @@ describe("evaluateRawWithDefaultArg", () => {
     const scope = {
       defaultArgumentNode: { name: "default" }
     }
+    const partitionedMap = { a: scope } as any as { a: FormulaMathJsScope }
     const mockFn = jest.fn((_args: MathNode[]) => (_args[0] as SymbolNode).name)
 
     const res =
-      evaluateRawWithDefaultArg(mockFn, 1)(args as any as MathNode[], mathjs, scope as any as FormulaMathJsScope)
+      evaluateRawWithDefaultArg(mockFn, 1)(args as any as MathNode[], mathjs, partitionedMap)
     expect(mockFn).toHaveBeenCalledWith(args, mathjs, scope)
     expect(res).toEqual("provided")
   })
@@ -61,9 +64,10 @@ describe("evaluateToEvaluateRaw", () => {
     const args = [ parse("1"), parse("2") ]
     const mathjs = {}
     const scope = {}
+    const partitionedMap = { a: scope } as any as { a: FormulaMathJsScope }
     const mockFn = jest.fn((a: FValueOrArray, b: FValueOrArray) => Number(a) + Number(b))
 
-    const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, scope as any as FormulaMathJsScope)
+    const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, partitionedMap)
     expect(mockFn).toHaveBeenCalledWith(1, 2)
     expect(res).toEqual(3)
   })

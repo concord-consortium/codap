@@ -151,25 +151,26 @@ describe("cachedAggregateFnFactory", () => {
       setCached: (key: string, val: any) => cache.set(key, val),
       getCached: (key: string) => cache.get(key)
     } as any as FormulaMathJsScope
+    const partitionedMap = { a: scope }
 
-    expect(cachedFn([ parse("1"), parse("2") ], null, scope)).toEqual(123)
+    expect(cachedFn([ parse("1"), parse("2") ], null, partitionedMap)).toEqual(123)
     expect(fn).toHaveBeenCalledTimes(1)
 
-    expect(cachedFn([ parse("1"), parse("2") ], null, scope)).toEqual(123)
+    expect(cachedFn([ parse("1"), parse("2") ], null, partitionedMap)).toEqual(123)
     expect(fn).toHaveBeenCalledTimes(1) // Same arguments as in the previous call, cache should be used.
 
-    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, scope)).toEqual(123)
+    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, partitionedMap)).toEqual(123)
     expect(fn).toHaveBeenCalledTimes(2) // Different arguments, so cache should not be used.
 
-    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, scope)).toEqual(123)
+    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, partitionedMap)).toEqual(123)
     expect(fn).toHaveBeenCalledTimes(2) // Same arguments as in the previous call, cache should be used.
 
     // Update scope.getCaseAggregateGroupId
     ;(scope.getCaseAggregateGroupId as jest.Mock).mockImplementation(() => "newTestGroup")
-    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, scope)).toEqual(123)
+    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, partitionedMap)).toEqual(123)
     expect(fn).toHaveBeenCalledTimes(3) // New caseAggregateGroupId, so cache should not be used.
 
-    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, scope)).toEqual(123)
+    expect(cachedFn([ parse("1"), parse("2"), parse("3") ], null, partitionedMap)).toEqual(123)
     expect(fn).toHaveBeenCalledTimes(3) // Same arguments and caseAggregateGroupId, cache should be used.
   })
 })

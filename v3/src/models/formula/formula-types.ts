@@ -41,7 +41,7 @@ export type EvaluateFunc = (...args: FValue[]) => FValue
 
 export type EvaluateFuncWithAggregateContextSupport = (...args: (FValueOrArray)[]) => FValueOrArray
 
-export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValueOrArray
+export type EvaluateRawFunc = (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => FValueOrArray
 
 export type CaseList = ICase[] | "ALL_CASES"
 

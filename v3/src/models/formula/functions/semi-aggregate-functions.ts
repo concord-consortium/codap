@@ -8,12 +8,13 @@ export const semiAggregateFunctions = {
     numOfRequiredArguments: 1,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
       interface ICachedData {
         result?: FValue
         resultCasePointer: number
       }
 
+      const scope = partitionedMap.a
       const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `next(${args.toString()})-${caseGroupId}`
       const [ expression, defaultValue, filter ] = args
@@ -75,7 +76,8 @@ export const semiAggregateFunctions = {
     selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, parentId: { a: FormulaMathJsScope }) => {
+      const scope = parentId.a
       const [ expression, defaultValue, filter ] = args
 
       const caseGroupId = scope.getCaseGroupId()
