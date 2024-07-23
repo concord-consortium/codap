@@ -49,7 +49,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const secondaryAxisY = plotHeight / cellCounts.y / 2 - boxPlotOffset
   const valueRef = useRef<SVGGElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
-  const fullHeightLinesRef = useRef<Selection<SVGPathElement, unknown, null, undefined>>(null)
+  const fullHeightLinesRef = useRef<Selection<SVGPathElement, unknown, null, undefined> | null>(null)
 
   const toggleBoxPlotLabels = useCallback((labelId: string, visible: boolean, event: MouseEvent) => {
     const label = select(`#${labelId}`)
@@ -243,10 +243,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     valueObj.iciCover = helper.newLine(valueRef.current, iciCoverSpecs)
     if (spannerRef) {
       fullHeightLinesRef.current?.remove()
-      select(spannerRef.current).attr("class", "measure-container")  // So the classes applied to the lines
-                                                                                  // will be scoped to the spanner
-      // todo: Figure out why we seem to need this
-      // @ts-expect-error cannot assign to 'current' because it is read-only
+      select(spannerRef.current).attr("class", "measure-container") // So the classes applied to the lines
+                                                                    // will be scoped to the spanner
       fullHeightLinesRef.current = spannerRef.current && select(spannerRef.current).append("path")
         .attr("class", "full-height-lines ici")
         .attr("id", `${helper.generateIdString("path")}`)
@@ -420,7 +418,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     if (model.showICI) {
       const iciRange = model.computeICIRange(attrId, cellKey, dataConfig)
       addICI(valueObj)
-      textContent += `\n${t('ICI: [%@, %@]', 
+      textContent += `\n${t('ICI: [%@, %@]',
         { vars: [helper.formatValueForScale(isVertical.current, iciRange.min),
             helper.formatValueForScale(isVertical.current, iciRange.max)] })}`
     }
