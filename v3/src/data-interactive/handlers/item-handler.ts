@@ -18,7 +18,7 @@ export const diItemHandler: DIHandler = {
     _items.forEach(item => {
       let newItem: DIItem
       if (typeof item.values === "object") {
-        newItem = item.values
+        newItem = item.values as DIItem
       } else {
         newItem = item as DIItem
       }
