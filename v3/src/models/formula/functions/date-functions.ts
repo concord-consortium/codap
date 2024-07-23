@@ -48,9 +48,7 @@ export const dateFunctions = {
         'DG.Formula.DateLongMonthNovember',
         'DG.Formula.DateLongMonthDecember'
       ]
-      // V2 would return the month name in local language, but V3 always returns it in English.
-      // I think that makes more sense, as otherwise it's not possible to use the result in further calculations.
-      return dateObject ? t(monthNames[dateObject.getMonth()], { lang: "en" }) : UNDEF_RESULT
+      return dateObject ? t(monthNames[dateObject.getMonth()]) : UNDEF_RESULT
     }
   },
 
@@ -81,9 +79,7 @@ export const dateFunctions = {
         'DG.Formula.DateLongDayFriday',
         'DG.Formula.DateLongDaySaturday'
       ]
-      // V2 would return the day of the week name in local language, but V3 always returns it in English.
-      // I think that makes more sense, as otherwise it's not possible to use the result in further calculations.
-      return dateObject ? t(dayNames[dateObject.getDay()], { lang: "en" }) : UNDEF_RESULT
+      return dateObject ? t(dayNames[dateObject.getDay()]) : UNDEF_RESULT
     }
   },
 
