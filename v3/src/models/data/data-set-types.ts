@@ -107,5 +107,6 @@ export interface CaseInfo {
 
 export interface ItemInfo {
   index: number
+  // ids of cases associated with this item from parent-most collection (0) to child-most (n-1)
   caseIds: string[]
 }

@@ -92,7 +92,7 @@ export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[])
   caseIds.forEach(caseId => {
     const caseGroup = data.caseInfoMap.get(caseId)
     if (caseGroup) {
-      caseGroup?.childItemIds.forEach(itemId => itemIdsToRemove.add(itemId))
+      caseGroup.childItemIds.forEach(itemId => itemIdsToRemove.add(itemId))
     }
     else if (data.itemInfoMap.get(caseId) != null) {
       itemIdsToRemove.add(caseId)

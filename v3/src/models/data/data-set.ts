@@ -181,10 +181,10 @@ export const DataSet = V2Model.named("DataSet").props({
 })
 .volatile(() => {
   let cachingCount = 0
-  const caseCache = new Map<string, ICase>()
+  const itemCache = new Map<string, IItem>()
   return {
-    get caseCache() {
-      return caseCache
+    get itemCache() {
+      return itemCache
     },
     isCaching() {
       // Do not use getter here, as the result would be cached and not updated when cachingCount changes.
@@ -192,7 +192,7 @@ export const DataSet = V2Model.named("DataSet").props({
       return cachingCount > 0
     },
     clearCache() {
-      caseCache.clear()
+      itemCache.clear()
     },
     beginCaching() {
       return ++cachingCount
@@ -292,8 +292,14 @@ export const DataSet = V2Model.named("DataSet").props({
   hasItem(itemId: string) {
     return !!self.itemInfoMap.get(itemId)
   },
-  getItemIndex(id: string) {
-    return self.itemInfoMap.get(id)?.index
+  getItemIndex(itemId: string) {
+    return self.itemInfoMap.get(itemId)?.index
+  },
+  getItemIndexForCaseOrItem(caseOrItemId: string) {
+    const caseInfo = self.caseInfoMap.get(caseOrItemId)
+    // for cases, returns index of first item
+    const itemId = caseInfo ? caseInfo.childItemIds[0] : caseOrItemId
+    return this.getItemIndex(itemId)
   },
   getItemCaseIds(itemId: string): readonly string[] {
     return self.itemInfoMap.get(itemId)?.caseIds ?? []
@@ -309,9 +315,9 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   nextItemID(id: string) {
     const index = this.getItemIndex(id),
-          nextCase = (index != null) && (index < self.items.length - 1)
+          nextItem = (index != null) && (index < self.items.length - 1)
                       ? self.items[index + 1] : undefined
-    return nextCase?.__id__
+    return nextItem?.__id__
   },
   addItemInfo(itemId: string, index: number, caseId: string) {
     const itemInfo = self.itemInfoMap.get(itemId)
@@ -620,18 +626,13 @@ export const DataSet = V2Model.named("DataSet").props({
         return !!self.caseInfoMap.get(caseId)
       },
       getValue(caseID: string, attributeID: string) {
-        // The values of a case are considered to be the values of the first item.
-        // For grouped attributes, these will be the grouped values. Clients shouldn't be
-        // asking for ungrouped values from parent cases.
-        const caseInfo = self.caseInfoMap.get(caseID)
-        const itemId = caseInfo?.childItemIds[0] ?? caseID
-        const index = self.getItemIndex(itemId)
-        return index != null ? this.getValueAtIndex(index, attributeID) : undefined
+        const index = self.getItemIndexForCaseOrItem(caseID)
+        return index != null ? this.getValueAtItemIndex(index, attributeID) : undefined
       },
-      getValueAtIndex(index: number, attributeID: string) {
+      getValueAtItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
           const caseID = self.items[index]?.__id__
-          const cachedCase = self.caseCache.get(caseID)
+          const cachedCase = self.itemCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
             return cachedCase[attributeID]
           }
@@ -640,18 +641,13 @@ export const DataSet = V2Model.named("DataSet").props({
         return attr?.value(index)
       },
       getStrValue(caseID: string, attributeID: string) {
-        // The values of a case are considered to be the values of the first item.
-        // For grouped attributes, these will be the grouped values. Clients shouldn't be
-        // asking for ungrouped values from parent cases.
-        const caseInfo = self.caseInfoMap.get(caseID)
-        const itemId = caseInfo ? caseInfo.childItemIds[0] : caseID
-        const index = self.getItemIndex(itemId)
+        const index = self.getItemIndexForCaseOrItem(caseID)
         return index != null ? this.getStrValueAtItemIndex(index, attributeID) : ""
       },
       getStrValueAtItemIndex(itemIndex: number, attributeID: string) {
         if (self.isCaching()) {
           const caseID = self.items[itemIndex]?.__id__
-          const cachedCase = self.caseCache.get(caseID)
+          const cachedCase = self.itemCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
             return cachedCase[attributeID]?.toString()
           }
@@ -660,18 +656,13 @@ export const DataSet = V2Model.named("DataSet").props({
         return attr?.value(itemIndex) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
-        // The values of a case are considered to be the values of the first item.
-        // For grouped attributes, these will be the grouped values. Clients shouldn't be
-        // asking for ungrouped values from parent cases.
-        const caseInfo = self.caseInfoMap.get(caseID)
-        const itemId = caseInfo ? caseInfo.childItemIds[0] : caseID
-        const index = self.getItemIndex(itemId)
-        return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
+        const index = self.getItemIndexForCaseOrItem(caseID)
+        return index != null ? this.getNumericAtItemIndex(index, attributeID) : undefined
       },
-      getNumericAtIndex(index: number, attributeID: string) {
+      getNumericAtItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
           const caseID = self.items[index]?.__id__
-          const cachedCase = self.caseCache.get(caseID)
+          const cachedCase = self.itemCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
             return Number(cachedCase[attributeID])
           }
@@ -682,7 +673,7 @@ export const DataSet = V2Model.named("DataSet").props({
       getItem,
       getItems,
       getItemAtIndex,
-      getCasesAtIndex(start = 0, options?: IGetCasesOptions) {
+      getItemsAtIndex(start = 0, options?: IGetCasesOptions) {
         const { count = self.items.length } = options || {}
         const endIndex = Math.min(start + count, self.items.length),
               cases = []
@@ -690,6 +681,10 @@ export const DataSet = V2Model.named("DataSet").props({
           cases.push(getItemAtIndex(i, options))
         }
         return cases
+      },
+      getFirstItemForCase(caseId: string, options: IGetCasesOptions) {
+        const itemId = self.caseInfoMap.get(caseId)?.childItemIds[0]
+        return itemId ? getItem(itemId, { numeric: false }) : undefined
       },
       isCaseSelected(caseId: string) {
         // a pseudo-case is selected if all of its individual cases are selected
@@ -904,9 +899,9 @@ export const DataSet = V2Model.named("DataSet").props({
         if (self.isCaching()) {
           // update the cases in the cache
           items.forEach(item => {
-            const cached = self.caseCache.get(item.__id__)
+            const cached = self.itemCache.get(item.__id__)
             if (!cached) {
-              self.caseCache.set(item.__id__, { ...item })
+              self.itemCache.set(item.__id__, { ...item })
             }
             else {
               Object.assign(cached, item)
@@ -1072,7 +1067,7 @@ export const DataSet = V2Model.named("DataSet").props({
     }
   },
   commitCache() {
-    self.setCaseValues(Array.from(self.caseCache.values()))
+    self.setCaseValues(Array.from(self.itemCache.values()))
   },
   endCaching(commitCache = false) {
     if (self._endCaching() === 0) {

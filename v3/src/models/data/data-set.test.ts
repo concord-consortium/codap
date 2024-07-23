@@ -287,11 +287,11 @@ test("DataSet basic functionality", () => {
   expect(mockConsoleWarn1).toHaveBeenCalledTimes(0)
   mockConsole1.mockRestore()
   expect(dataset.getValue("bogus", "bogus")).toBeUndefined()
-  expect(dataset.getValueAtIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getValueAtItemIndex(-1, "bogus")).toBeUndefined()
   expect(dataset.getStrValue("bogus", "bogus")).toBe("")
   expect(dataset.getStrValueAtItemIndex(-1, "bogus")).toBe("")
   expect(dataset.getNumeric("bogus", "bogus")).toBeUndefined()
-  expect(dataset.getNumericAtIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getNumericAtItemIndex(-1, "bogus")).toBeUndefined()
   // adding a case "before" a non-existent case appends the case to the end
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { before: "bogus" })
   dataset.validateCases()
@@ -315,8 +315,8 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[1].value(0)).toBe("4")
   expect(dataset.attributes[1].numeric(0)).toBe(4)
   expect(dataset.getNumeric(caseD4ID, numAttrID)).toBe(4)
-  expect(dataset.getNumericAtIndex(0, numAttrID)).toBe(4)
-  expect(dataset.getValueAtIndex(0, numAttrID)).toBe("4")
+  expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(4)
+  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe("4")
   expect(dataset.getStrValueAtItemIndex(0, numAttrID)).toBe("4")
 
   // add new case before first case
@@ -333,8 +333,8 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[1].value(0)).toBe("3")
   expect(dataset.attributes[1].numeric(0)).toBe(3)
   expect(dataset.getNumeric(caseC3ID, numAttrID)).toBe(3)
-  expect(dataset.getNumericAtIndex(0, numAttrID)).toBe(3)
-  expect(dataset.getValueAtIndex(0, numAttrID)).toBe("3")
+  expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(3)
+  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe("3")
 
   // add multiple new cases before specified case
   dataset.addCases([{ str: "a", num: 1 }, { str: "b", num: 2 }], { before: caseC3ID, canonicalize: true })
@@ -356,8 +356,8 @@ test("DataSet basic functionality", () => {
   expect(dataset.getItems([caseA1ID, caseB2ID], { canonical: true }))
     .toEqual([{ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 },
               { __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 }])
-  expect(dataset.getCasesAtIndex().length).toBe(4)
-  expect(dataset.getCasesAtIndex(2).length).toBe(2)
+  expect(dataset.getItemsAtIndex().length).toBe(4)
+  expect(dataset.getItemsAtIndex(2).length).toBe(2)
   // add null/undefined values
   dataset.addCases(toCanonical(dataset, [{ str: undefined }]))
   const nullCaseID = dataset.items[dataset.items.length - 1].__id__
@@ -390,8 +390,8 @@ test("DataSet basic functionality", () => {
   expect(dataset.getItems([caseJ1ID, caseK2ID], { canonical: true }))
     .toEqual([{ __id__: caseJ1ID, [strAttrID]: "j", [numAttrID]: 1 },
               { __id__: caseK2ID, [strAttrID]: "k", [numAttrID]: 2 }])
-  expect(dataset.getCasesAtIndex().length).toBe(7)
-  expect(dataset.getCasesAtIndex(4).length).toBe(3)
+  expect(dataset.getItemsAtIndex().length).toBe(7)
+  expect(dataset.getItemsAtIndex(4).length).toBe(3)
 
   // setCaseValues
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, str: "A", num: 10 }]))
@@ -540,12 +540,12 @@ test("Canonical case functionality", () => {
   expect(dataset.getItems([caseA1ID, caseB2ID], { canonical: true }))
     .toEqual([{ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 },
               { __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 }])
-  expect(dataset.getCasesAtIndex(0, { count: 2, canonical: true }))
+  expect(dataset.getItemsAtIndex(0, { count: 2, canonical: true }))
     .toEqual([{ __id__: caseA1ID, [strAttrID]: "a", [numAttrID]: 1 },
               { __id__: caseB2ID, [strAttrID]: "b", [numAttrID]: 2 }])
   expect(dataset.getItemAtIndex(-1, { canonical: true })).toBeUndefined()
-  expect(dataset.getCasesAtIndex(undefined, { canonical: true }).length).toBe(4)
-  expect(dataset.getCasesAtIndex(2, { canonical: true }).length).toBe(2)
+  expect(dataset.getItemsAtIndex(undefined, { canonical: true }).length).toBe(4)
+  expect(dataset.getItemsAtIndex(2, { canonical: true }).length).toBe(2)
   // add null/undefined values
   dataset.addCases([{ [strAttrID]: undefined }])
   // add invalid cases
@@ -641,7 +641,7 @@ test("Caching mode", () => {
   ds.setCaseValues([{ __id__: aId, [numAttrID]: -1 }])
   expect(actionHandler).toHaveBeenCalledTimes(1)
   expect(snapshotHandler).not.toHaveBeenCalled()
-  expect(ds.caseCache.get(aId)?.[numAttrID]).toBe(-1)
+  expect(ds.itemCache.get(aId)?.[numAttrID]).toBe(-1)
   expect(ds.getValue(aId, numAttrID)).toBe(-1)
   expect(ds.getStrValue(aId, numAttrID)).toBe("-1")
   expect(ds.getNumeric(aId, numAttrID)).toBe(-1)
