@@ -1,17 +1,17 @@
 import { getSnapshot } from "mobx-state-tree"
 import { ICaseCardModel, isCaseCardModel } from "../../components/case-card/case-card-model"
 import { kCaseCardIdPrefix } from "../../components/case-card/case-card-registration"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
+import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
 import { appState } from "../../models/app-state"
+import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { toV3Id } from "../../utilities/codap-utils"
 import { V2CaseCard } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
 import { setupTestDataset } from "./handler-test-utils"
-import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
-import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 
 
 describe("DataInteractive ComponentHandler", () => {
