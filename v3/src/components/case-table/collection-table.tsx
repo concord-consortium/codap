@@ -128,9 +128,10 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   useEffect(() => {
     if (collectionTableModel?.attrIdToEdit !== undefined) {
-      gridRef.current?.selectCell({idx: columns.length, rowIdx: -1})
+      const newAttrIdx = columns.findIndex(column => column.key === collectionTableModel?.attrIdToEdit)
+      gridRef.current?.selectCell({idx: columns.length, rowIdx: newAttrIdx})
     }
-  }, [collectionTableModel?.attrIdToEdit, columns.length])
+  }, [collectionTableModel?.attrIdToEdit, columns])
 
   // respond to column width changes from RDG
   const handleColumnResize = useCallback(

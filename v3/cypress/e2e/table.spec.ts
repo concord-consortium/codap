@@ -924,7 +924,7 @@ context("case table ui", () => {
       // verify that cell shows color swatch of appropriate color
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
       // double-click to begin editing cell
-      table.getGridCell(2, 2).dblclick()
+      table.getGridCell(2, 2).click().dblclick()
       // click color swatch to bring up color palette
       table.getGridCell(2, 2).get(".cell-edit-color-swatch").click()
       // click hue bar to change color

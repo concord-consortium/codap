@@ -11,7 +11,6 @@ import { useCaseTableModel } from "../use-case-table-model"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
-  const collections = data?.collections
   const tableModel = useCaseTableModel()
   const toast = useToast()
   const handleMenuItemClick = (menuItem: string) => {
@@ -24,15 +23,16 @@ export const RulerMenuList = () => {
     })
   }
 
-  const handleAddNewAttribute = (collection: ICollectionModel) => () => {
+  const handleAddNewAttribute = (collectionId: string) => () => {
     let attribute: IAttribute | undefined
+    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
     data?.applyModelChange(() => {
       const newAttrName = uniqueName("newAttr",
         (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
-      attribute = data.addAttribute({name: newAttrName}, { collection: collection.id })
+      attribute = data.addAttribute({name: newAttrName}, { collection: collectionId })
       if (attribute) {
-        collection.setAttrIdToEdit(attribute.id)
+        collectionTableModel?.setAttrIdToEdit(attribute.id)
       }
     }, {
       notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
@@ -46,7 +46,7 @@ export const RulerMenuList = () => {
       <MenuItem
         isDisabled={preventCollectionReorg(data, collection.id)}
         key={`menu-add-attribute-button-${collection.id}`}
-        onClick={handleAddNewAttribute(collection)}
+        onClick={handleAddNewAttribute(collection.id)}
       >
         {t("DG.Inspector.newAttribute", { vars: [collection.title] })}
       </MenuItem>
