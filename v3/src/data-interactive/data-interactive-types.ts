@@ -99,7 +99,9 @@ export interface DIInteractiveFrame {
 }
 export type DIItem = DICaseValues
 export type DIItemValues = DIItem | { id?: string | number, values: DIItem }
+type DICollectionLabels = Partial<ICollectionLabels>
 export interface DICreateCollection {
+  labels?: DICollectionLabels
   name?: string
   title?: string
   parent?: string
@@ -118,7 +120,7 @@ export interface DIDeleteCollectionResult {
 }
 export interface DIUpdateCollection {
   title?: string
-  labels?: Partial<ICollectionLabels>
+  labels?: DICollectionLabels
 }
 export interface DIUpdateItemResult {
   changedCases?: number[]
