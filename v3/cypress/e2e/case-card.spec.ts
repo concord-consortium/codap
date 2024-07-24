@@ -1,10 +1,12 @@
 
 beforeEach(() => {
   // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+  cy.log('Starting test setup')
   const queryParams = "?sample=mammals&scrollBehavior=auto"
   const url = `${Cypress.config("index")}${queryParams}`
   cy.visit(url)
   cy.wait(2000)
+  cy.log('Setup complete')
 })
 
 context("case card", () => {

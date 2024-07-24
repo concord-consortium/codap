@@ -14,16 +14,21 @@ const newCollectionName = "New Dataset"
 
 beforeEach(() => {
   // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+  cy.log('Starting test setup')
   const queryParams = "?sample=mammals&dashboard&scrollBehavior=auto"
   const url = `${Cypress.config("index")}${queryParams}`
   cy.visit(url)
-  cy.wait(2000)
+  // increased the wait to fix (uncaught exception)
+  // TypeError: Failed to fetch error
+  // Feel free to increase or decrease wait time as needed
+  cy.wait(2500)
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
   table.getNumOfRows().then($cases => {
     numOfCases = $cases
     lastRowIndex = Number($cases) - 1
     middleRowIndex = Math.floor(lastRowIndex / 2)
   })
+  cy.log('Setup complete')
 })
 
 context("case table ui", () => {
@@ -540,7 +545,7 @@ context("case table ui", () => {
       // Add assertions here to verify the case is deleted again
       // For example, check the number of rows or a specific row's content
     })
-    it.skip("verify index menu insert cases modal close", () => {
+    it("verify index menu insert cases modal close", () => {
       table.openIndexMenuForRow(2)
       table.getIndexMenu().should("be.visible")
       cy.clickMenuItem("Insert Cases...")
