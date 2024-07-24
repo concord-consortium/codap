@@ -41,7 +41,12 @@ export type EvaluateFunc = (...args: FValue[]) => FValue
 
 export type EvaluateFuncWithAggregateContextSupport = (...args: (FValueOrArray)[]) => FValueOrArray
 
-export type EvaluateRawFunc = (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => FValueOrArray
+// MathJS v12.3.2 introduced the concept of PartitionedMap, replacing the previous concepts of scopes and sub-scopes.
+// The parent scope is still available as the `a` property of the PartitionedMap.
+// For more information, see: https://github.com/josdejong/mathjs/pull/3150
+export type MathJSPartitionedMap = { a: FormulaMathJsScope }
+
+export type EvaluateRawFunc = (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => FValueOrArray
 
 export type CaseList = ICase[] | "ALL_CASES"
 

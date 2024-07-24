@@ -1,6 +1,5 @@
 import { ConstantNode, MathNode } from "mathjs"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { DisplayNameMap, FValue, ILookupDependency } from "../formula-types"
+import { DisplayNameMap, FValue, ILookupDependency, MathJSPartitionedMap } from "../formula-types"
 import { rmCanonicalPrefix } from "../utils/name-mapping-utils"
 import { UNDEF_RESULT, equal, evaluateNode } from "./function-utils"
 import { isConstantStringNode } from "../utils/mathjs-utils"
@@ -32,7 +31,7 @@ export const lookupFunctions = {
         attrNameArg.value = displayNameMap.dataSet[dataSetName]?.attribute[attrName] || attrName
       }
     },
-    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
       const scope = partitionedMap.a
       const functionName = "lookupByIndex"
       const numOfReqArgs = lookupFunctions.lookupByIndex.numOfRequiredArguments
@@ -92,7 +91,7 @@ export const lookupFunctions = {
         keyAttrNameArg.value = displayNameMap.dataSet[dataSetName]?.attribute[keyAttrName] || keyAttrName
       }
     },
-    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
       const scope = partitionedMap.a
       const functionName = "lookupByKey"
       const numOfReqArgs = lookupFunctions.lookupByKey.numOfRequiredArguments

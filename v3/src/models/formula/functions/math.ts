@@ -1,8 +1,7 @@
 import { create, all, MathNode } from 'mathjs'
-import { FormulaMathJsScope } from '../formula-mathjs-scope'
 import {
   CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc, FValue,
-  FValueOrArray
+  FValueOrArray, MathJSPartitionedMap
 } from '../formula-types'
 import { evaluateNode } from './function-utils'
 import { arithmeticFunctions } from './arithmetic-functions'
@@ -18,7 +17,7 @@ export const math = create(all)
 
 // Each aggregate function needs to be evaluated with `withAggregateContext` method.
 export const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
     const scope = partitionedMap.a
     // withAggregateContext returns result of the callback function
     return scope.withAggregateContext(() => fn(args, mathjs, partitionedMap))
@@ -26,7 +25,7 @@ export const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRa
 }
 
 export const evaluateRawWithDefaultArg = (fn: EvaluateRawFunc, numOfRequiredArguments: number): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
     const scope = partitionedMap.a
     if (scope.defaultArgumentNode && args.length < numOfRequiredArguments) {
       return fn([...args, scope.defaultArgumentNode], mathjs, partitionedMap)
@@ -36,7 +35,7 @@ export const evaluateRawWithDefaultArg = (fn: EvaluateRawFunc, numOfRequiredArgu
 }
 
 export const evaluateToEvaluateRaw = (fn: EvaluateFuncWithAggregateContextSupport): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
     const scope = partitionedMap.a
     return fn(...(args.map(arg => evaluateNode(arg, scope))))
   }

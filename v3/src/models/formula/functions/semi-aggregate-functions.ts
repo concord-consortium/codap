@@ -1,6 +1,5 @@
 import { MathNode } from "mathjs"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { FValue } from "../formula-types"
+import { FValue, MathJSPartitionedMap } from "../formula-types"
 import { UNDEF_RESULT, evaluateNode, isValueTruthy } from "./function-utils"
 
 export const semiAggregateFunctions = {
@@ -8,7 +7,7 @@ export const semiAggregateFunctions = {
     numOfRequiredArguments: 1,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
       interface ICachedData {
         result?: FValue
         resultCasePointer: number
@@ -76,8 +75,8 @@ export const semiAggregateFunctions = {
     selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, parentId: { a: FormulaMathJsScope }) => {
-      const scope = parentId.a
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
+      const scope = partitionedMap.a
       const [ expression, defaultValue, filter ] = args
 
       const caseGroupId = scope.getCaseGroupId()

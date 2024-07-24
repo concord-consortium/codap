@@ -1,12 +1,11 @@
 import { MathNode, mad, max, mean, median, min, sum } from "mathjs"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { FValue, FValueOrArray } from "../formula-types"
+import { FValue, FValueOrArray, MathJSPartitionedMap } from "../formula-types"
 import { UNDEF_RESULT, evaluateNode, isNumber, isValueTruthy } from "./function-utils"
 
 // Almost every aggregate function can be cached in the same way.
 export const cachedAggregateFnFactory =
-(fnName: string, fn: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => FValueOrArray) => {
-  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+(fnName: string, fn: (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => FValueOrArray) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
     const scope = partitionedMap.a
     const cacheKey = `${fnName}(${args.toString()})-${scope.getCaseAggregateGroupId()}`
     const cachedValue = scope.getCached(cacheKey)
@@ -22,7 +21,7 @@ export const cachedAggregateFnFactory =
 // Note that aggregate functions like mean, max, min, etc., all have exactly the same signature and implementation.
 // The only difference is the final math operation applies to the expression results.
 const aggregateFnWithFilterFactory = (fn: (values: number[]) => FValue) => {
-  return (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+  return (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
     const scope = partitionedMap.a
     const [ expression, filter ] = args
     let expressionValues = evaluateNode(expression, scope)
@@ -98,7 +97,7 @@ export const aggregateFunctions = {
     // arguments, the default caching method would calculate incorrect cache key. Hence, caching is implemented directly
     // in the function body.
     cachedEvaluateFactory: undefined,
-    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: { a: FormulaMathJsScope }) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, partitionedMap: MathJSPartitionedMap) => {
       const scope = partitionedMap.a
       const [expression, filter] = args
       if (!expression) {
