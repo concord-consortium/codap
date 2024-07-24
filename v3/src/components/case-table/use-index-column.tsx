@@ -46,9 +46,9 @@ export const useIndexColumn = () => {
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row
-    const index = _index != null ? _index : data?.caseIndexFromID(__id__)
+    const index = _index != null ? _index : data?.getItemIndex(__id__)
     const collapsedCases = data && parentId && caseMetadata?.isCollapsed(parentId)
-                            ? data.caseGroupMap.get(parentId)?.childCaseIds ?? []
+                            ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
 

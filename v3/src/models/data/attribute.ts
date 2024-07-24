@@ -40,14 +40,26 @@ export const kDefaultFormatStr = ".3~f"
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 const isProduction = () => process.env.NODE_ENV === "production"
 
-export type IValueType = string | number | boolean | undefined
+export type IValueType = string | number | boolean | Date | undefined
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
 }
 
-export function importValueToString(value: IValueType) {
-  return value == null ? "" : typeof value === "string" ? value : value.toString()
+export function importValueToString(value: IValueType): string {
+  if (value == null) {
+    return ""
+  }
+  if (typeof value === "string") {
+    return value
+  }
+  if (value instanceof Date) {
+    // Convert Date to ISO string format. It's a consistent format that can be parsed back into a Date object
+    // without losing any information. Also, it's relatively compact and it can be easily recognized as a date string,
+    // in contrast to storing the date as a number (e.g. milliseconds since epoch).
+    return value.toISOString()
+  }
+  return value.toString()
 }
 
 export const attributeTypes = [

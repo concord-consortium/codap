@@ -97,7 +97,7 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
   const caseID = caseIDs.length > 0 ? toV2Id(caseIDs[0]) : undefined
   let itemIDs: number[] = []
   caseIDs.forEach(caseId => {
-    const aCase = data?.caseGroupMap.get(caseId)
+    const aCase = data?.caseInfoMap.get(caseId)
     if (aCase) {
       itemIDs = itemIDs.concat(aCase.childItemIds.map(itemId => toV2Id(itemId)))
     }

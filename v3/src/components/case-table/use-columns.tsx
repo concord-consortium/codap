@@ -15,7 +15,7 @@ import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-t
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
-import { parseDate } from "../../utilities/date-parser"
+import { isBrowserISOString, parseDate } from "../../utilities/date-parser"
 import { DatePrecision, formatDate } from "../../utilities/date-utils"
 
 // cache d3 number formatters so we don't have to generate them on every render
@@ -54,10 +54,15 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
     if (formatter) str = formatter(num)
   }
 
-  // dates
-  // Note that CODAP v2 formats dates in the case table ONLY if the user explicitly specified type as "date".
-  // Dates are not interpreted as dates and formatted by default.
-  if (userType === "date" && str !== "") {
+  // Dates
+  // Note that CODAP v2 formats dates in the case table ONLY if the user explicitly specifies the type as "date".
+  // Dates are not interpreted as dates and formatted by default. However, V3 adds one exception to this rule:
+  // if the date string is strictly an ISO string produced by the browser's Date.toISOString(), it will be treated as
+  // a Date object that should be formatted. The main reason for this is to format the results of date formulas.
+  // This is because CODAP v3 stores all the case values as strings natively, and we cannot simply check if the value
+  // is an instance of the `Date` class (as it will never be). Date.toISOString() is the native way of serializing dates
+  // in CODAP v3 (check `importValueToString` from attribute.ts).
+  if (isBrowserISOString(str) || userType === "date" && str !== "") {
     const date = parseDate(str, true)
     if (date) {
       // TODO: add precision support for date formatting

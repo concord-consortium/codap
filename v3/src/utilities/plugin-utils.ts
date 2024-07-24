@@ -96,7 +96,7 @@ export function isItemEditable(dataset: IDataSet, itemId: string) {
 // caseId can be a case or item id
 export function isCaseEditable(dataset: IDataSet, caseId: string) {
   if (caseId === kInputRowKey) return true
-  const aCase = dataset.caseGroupMap.get(caseId)
+  const aCase = dataset.caseInfoMap.get(caseId)
   const itemIds = aCase?.childItemIds ?? [caseId]
   return itemIds?.every(itemId => isItemEditable(dataset, itemId))
 }

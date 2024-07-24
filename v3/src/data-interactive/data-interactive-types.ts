@@ -8,7 +8,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 
-export type DICaseValue = string | number | boolean | undefined
+export type DICaseValue = string | number | boolean | Date | undefined
 export type DICaseValues = Record<string, DICaseValue>
 export interface DIFullCase {
   children?: number[]

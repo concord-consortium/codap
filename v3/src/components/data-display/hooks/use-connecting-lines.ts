@@ -1,7 +1,7 @@
 import { curveLinear, line, select } from "d3"
 import { tip as d3tip } from "d3-v6-tip"
 import { useCallback } from "react"
-import { setSelectedCases } from "../../../models/data/data-set-utils"
+import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IConnectingLineDescription, transitionDuration } from "../data-display-types"
 import { PixiBackgroundPassThroughEvent, PixiPoints } from "../pixi/pixi-points"
@@ -62,26 +62,12 @@ export const useConnectingLines = (props: IProps) => {
 
     const linesPath = event.target && select(event.target as HTMLElement)
     if (linesPath) {
-      const alreadySelectedCases = Array.from(dataset?.selection ?? [])
-      const isSelected = linesPath.classed("selected")
-      // If the line is already selected and `caseIDs` contains exactly the same as the set of IDs as
-      // `alreadySelectedCases`, we'll deselect the line. Otherwise, we'll select the line and deselect all others.
-      const caseIDsSet = new Set(caseIDs)
-      const lineCasesAlreadySelected = alreadySelectedCases.length === caseIDs.length &&
-        alreadySelectedCases.every(caseID => caseIDsSet.has(caseID))
-      const shouldDeselect = isSelected && lineCasesAlreadySelected
-      const selected = shouldDeselect ? false : !isSelected
-      const strokeWidth = shouldDeselect ? 2 : 4
-      linesPath.classed("selected", selected).attr("stroke-width", strokeWidth)
-      let newSelection: string[] = []
-      if (!shouldDeselect) {
-        if (event.shiftKey) {
-          newSelection = [...caseIDs, ...alreadySelectedCases]
-        } else {
-          newSelection = caseIDs
-        }
+      const areLineCasesSelected = caseIDs.every(caseID => dataset?.isCaseSelected(caseID))
+      if (areLineCasesSelected || event.shiftKey) {
+        selectCases(caseIDs, dataset, !areLineCasesSelected)
+      } else {
+        setSelectedCases(caseIDs, dataset)
       }
-      setSelectedCases(newSelection, dataset)
     }
   }, [dataset, onConnectingLinesClick])
 
@@ -116,7 +102,7 @@ export const useConnectingLines = (props: IProps) => {
     for (const [linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
       const allLineCoords = cases.map((l: any) => l.lineCoords)
       const lineCaseIds = allLineCaseIds[primaryAttrValue]
-      const allCasesSelected = lineCaseIds?.every((caseID: string) => dataConfig?.selection.includes(caseID))
+      const allCasesSelected = lineCaseIds?.every((caseID: string) => dataset?.isCaseSelected(caseID))
       const legendID = dataConfig?.attributeID("legend")
       const color = parentAttrID && legendID ? pointColorAtIndex(linesIndex) : pointColorAtIndex(0)
 
@@ -135,6 +121,7 @@ export const useConnectingLines = (props: IProps) => {
         .attr("fill", "none")
         .attr("stroke", color)
         .attr("stroke-width", allCasesSelected ? 4 : 2)
+        .attr("stroke-linejoin", "round")
         .style("cursor", "pointer")
         .style("opacity", connectingLinesActivatedRef.current ? 1 : 0)
         .transition()
@@ -145,8 +132,8 @@ export const useConnectingLines = (props: IProps) => {
           !showConnectingLines && connectingLinesArea.selectAll("path").remove()
         })
     }
-  }, [clientType, connectingLinesActivatedRef, connectingLinesArea, dataConfig, dataTip, handleConnectingLinesClick,
-      handleConnectingLinesMouseOut, handleConnectingLinesMouseOver])
+  }, [clientType, connectingLinesActivatedRef, connectingLinesArea, dataConfig, dataTip, dataset,
+      handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver])
 
   const prepareConnectingLines = useCallback((prepareLineProps: IPrepareLineProps) => {
     const { connectingLines, parentAttrID, cellKey, parentAttrName, showConnectingLines } = prepareLineProps

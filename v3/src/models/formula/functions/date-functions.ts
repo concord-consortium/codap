@@ -1,16 +1,12 @@
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
-import { convertToDate, createDate, formatDate } from "../../../utilities/date-utils"
+import { convertToDate, createDate } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
-
-function formatDateWithUndefFallback(date: Date | null) {
-  return formatDate(date) ?? UNDEF_RESULT
-}
 
 export const dateFunctions = {
   date: {
     numOfRequiredArguments: 1,
-    evaluate: (...args: FValue[]) => formatDateWithUndefFallback(createDate(...args as (string | number)[]))
+    evaluate: (...args: FValue[]) => createDate(...args as (string | number)[]) ?? UNDEF_RESULT
   },
 
   year: {
@@ -93,24 +89,24 @@ export const dateFunctions = {
     evaluate: (date: FValue) => convertToDate(date)?.getMinutes() ?? UNDEF_RESULT
   },
 
-  // TODO: this revealed an issue in the new implementation (date is converted to string too early), fix it
-  // when the formatting / storage of dates is refactored.
-  // seconds: {
-  //   numOfRequiredArguments: 1,
-  //   evaluate: (date: FValue) => convertToDate(date)?.getSeconds() ?? UNDEF_RESULT
-  // },
+  seconds: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      return convertToDate(date)?.getSeconds() ?? UNDEF_RESULT
+    }
+  },
 
   today: {
     numOfRequiredArguments: 0,
     evaluate: () => {
       const now = new Date()
       // eliminate time within the day
-      return formatDateWithUndefFallback(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate())
     }
   },
 
   now: {
     numOfRequiredArguments: 0,
-    evaluate: () => formatDateWithUndefFallback(createDate())
+    evaluate: () => new Date()
   }
 }

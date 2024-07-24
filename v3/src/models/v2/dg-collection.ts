@@ -63,7 +63,8 @@ export class DGCollection extends SCObject {
   }
 
   getCaseIndexByID(caseId: string) {
-    return this.data.caseIndexFromID(caseId)
+    // TODO: treat this as a case index rather than an item index
+    return this.data.getItemIndex(caseId)
   }
 
   numberOfVisibleAttributes() {

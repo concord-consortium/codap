@@ -58,9 +58,9 @@ export class DGDataContext extends SCObject implements DGDataContextAPI {
   }
 
   getCollectionForCase(caseId: string) {
-    const pseudoCase = this.data.caseGroupMap.get(caseId)
-    const dsCollection = pseudoCase
-                          ? this.data.getCollection(pseudoCase.collectionId)
+    const caseInfo = this.data.caseInfoMap.get(caseId)
+    const dsCollection = caseInfo
+                          ? this.data.getCollection(caseInfo.collectionId)
                           : this.data.childCollection
     const collectionClient = this.getCollectionByID(dsCollection?.id ?? "")
     return collectionClient?.get("collection")
