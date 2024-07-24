@@ -4,14 +4,10 @@ import { ComponentTitleBar } from "../component-title-bar"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { kCalculatorTileType } from "./calculator-defs"
-import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { getTitle } from "../../models/tiles/tile-content-info"
 
 export const CalculatorTitleBar =
   observer(function CalculatorTitleBar({ tile, onCloseTile, ...others }: ITileTitleBarProps) {
-    const tileContentInfo = getTileContentInfo(tile?.content.type)
-    const getTitle = () => {
-      return tile ? tileContentInfo?.getTitle?.(tile) : undefined
-    }
     const documentContent = useDocumentContent()
     const closeCalculator = useCallback(() => {
       documentContent?.applyModelChange(() => {
@@ -22,6 +18,6 @@ export const CalculatorTitleBar =
       })
     }, [documentContent])
     return (
-      <ComponentTitleBar tile={tile} getTitle={getTitle} onCloseTile={closeCalculator} {...others} />
+      <ComponentTitleBar tile={tile} getTitle={getTitle(tile)} onCloseTile={closeCalculator} {...others} />
     )
   })

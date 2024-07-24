@@ -20,7 +20,7 @@ registerTileContentInfo({
   defaultContent: () => ({ type: kCalculatorTileType }),
   isSingleton: true,
   getTitle: (tile: ITileLikeModel) => {
-    return tile?.title || t("DG.DocumentController.calculatorTitle")
+    return tile.title || t("DG.DocumentController.calculatorTitle")
   }
 })
 

@@ -71,6 +71,11 @@ export function getTilePrefixes() {
   return Object.values(gTileContentInfoMap).map(info => info.prefix)
 }
 
+export function getTitle(tile?: ITileLikeModel) {
+  const tileContentInfo = getTileContentInfo(tile?.content.type)
+  return () => tile ? tileContentInfo?.getTitle?.(tile) : undefined
+}
+
 export interface ITileExportOptions {
   json?: boolean; // default true, but some tiles (e.g. geometry) use their export code to produce other formats
   includeId?: boolean;

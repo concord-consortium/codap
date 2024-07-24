@@ -5,14 +5,10 @@ import { ComponentTitleBar  } from "../component-title-bar"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { isSliderModel } from "./slider-model"
-import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { getTitle } from "../../models/tiles/tile-content-info"
 
 export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTile, ...others }: ITileTitleBarProps) {
   const { content } = tile || {}
-  const tileContentInfo = getTileContentInfo(tile?.content.type)
-  const getTitle = () => {
-    return tile ? tileContentInfo?.getTitle?.(tile) : undefined
-  }
 
   const handleCloseTile = useCallback((tileId: string) => {
     const sliderModel = isAliveSafe(content) && isSliderModel(content) ? content : undefined
@@ -22,6 +18,6 @@ export const SliderTitleBar = observer(function SliderTitleBar({ tile, onCloseTi
   }, [content, onCloseTile])
 
   return (
-    <ComponentTitleBar tile={tile} getTitle={getTitle} onCloseTile={handleCloseTile} {...others} />
+    <ComponentTitleBar tile={tile} getTitle={getTitle(tile)} onCloseTile={handleCloseTile} {...others} />
   )
 })

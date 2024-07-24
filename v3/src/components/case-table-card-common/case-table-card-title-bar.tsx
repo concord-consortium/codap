@@ -12,7 +12,7 @@ import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { toggleCardTable } from "./case-table-card-utils"
-import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { getTitle } from "../../models/tiles/tile-content-info"
 
 import "./case-table-card-title-bar.scss"
 
@@ -56,8 +56,6 @@ export const CaseTableCardTitleBar =
   observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
     const tileInfo = getTileInfo(tile?.content.type)
     const data = tile?.content && getTileDataSet(tile?.content)
-    const tileContentInfo = getTileContentInfo(tile?.content.type)
-    const getTitle = tileContentInfo?.getTitle
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
@@ -111,7 +109,7 @@ export const CaseTableCardTitleBar =
     const cardOrTableIconClass = tileInfo.iconClass
 
     return (
-      <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
+      <ComponentTitleBar tile={tile} getTitle={getTitle(tile)} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}>
         <div className="header-left"
              title={caseTableOrCardToggleString}

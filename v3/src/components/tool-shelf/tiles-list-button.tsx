@@ -49,10 +49,10 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
         </MenuButton>
         <MenuList data-testid="tiles-list-menu" >
           {tilesArr?.map((tile) => {
-            const tileType = tile?.content.type
+            const tileType = tile.content.type
             const _Icon = getTileComponentIcon(tileType)
             const Icon = _Icon ?? WebViewIcon
-            const iconClass = _Icon ? tile.content.type : "WebView"
+            const iconClass = _Icon ? tileType : "WebView"
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
             return (
@@ -61,7 +61,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur(tile.id)} // Handle blur similar to pointer leave
               >
-                {(Icon && <Icon className={`tile-list-menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>)}
+                <Icon className={`tile-list-menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
                 {title}
               </MenuItem>
             )
