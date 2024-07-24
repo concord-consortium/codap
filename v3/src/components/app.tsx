@@ -7,6 +7,7 @@ import { kCodapAppElementId } from "./constants"
 import { importV2Document } from "../v2/import-v2-document"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/use-cloud-file-manager"
+import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
@@ -100,6 +101,7 @@ export const App = observer(function App() {
         }
       }
       appState.enableUndoRedoMonitoring()
+      Logger.initializeLogger(appState.document)
     }
 
     initialize()

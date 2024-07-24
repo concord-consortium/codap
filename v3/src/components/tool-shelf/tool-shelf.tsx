@@ -21,6 +21,8 @@ import { PluginsButton } from "./plugins-button"
 import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 
 import "./tool-shelf.scss"
+import { Logger } from "../../lib/logger"
+import { LogEventName } from "../../lib/logger-types"
 
 // Type for components known to have shelf properties
 type IShelfTileComponentInfo = SetRequired<ITileComponentInfo, "shelf">
@@ -122,6 +124,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     document?.content?.applyModelChange(() => {
       document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
     }, { undoStringKey, redoStringKey })
+    Logger.log(LogEventName.CREATE_OR_SHOW_TILE, { tileType })
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {
