@@ -37,7 +37,7 @@ describe("DataInteractive ItemSearchHandler", () => {
     const values = result.values as DIFullCase[]
     itemSearch.forEach((item, index) => {
       expect(values[index].id).toBe(toV2Id(item.__id__))
-      const itemIndex = dataContext.caseIndexFromID(item.__id__)!
+      const itemIndex = dataContext.getItemIndex(item.__id__)!
       dataContext.attributes.forEach(
         attribute => expect(values[index].values?.[attribute.name]).toBe(attribute.value(itemIndex))
       )

@@ -10,6 +10,8 @@ export class UIState {
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
+  @observable
+  private hoverTileId = ""
   // rulerState is used by graph inspector to manage the visibility univariate measure groups
   @observable
   rulerState: RulerState = {
@@ -27,13 +29,26 @@ export class UIState {
     return this.focusTileId
   }
 
+  get hoveredTile() {
+    return this.hoverTileId
+  }
+
   isFocusedTile(tileId?: string) {
     return this.focusTileId === tileId
+  }
+
+  isHoveredTile(tileId?: string) {
+    return this.hoverTileId === tileId
   }
 
   @action
   setFocusedTile(tileId = "") {
     this.focusTileId = tileId
+  }
+
+  @action
+  setHoveredTile(tileId = "") {
+    this.hoverTileId = tileId
   }
 
   getRulerStateVisibility(key: RulerStateKey) {

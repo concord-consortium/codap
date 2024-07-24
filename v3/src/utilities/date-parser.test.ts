@@ -1,4 +1,4 @@
-import { isDateString, isValidDateSpec, parseDate } from './date-parser'
+import { fixYear, isBrowserISOString, isDateString, isValidDateSpec, parseDate } from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
   // These tests are ported from V2 and should always pass unchanged as long as we want to maintain compatibility.
@@ -9,21 +9,31 @@ describe('Date Parser tests - V2 compatibility', () => {
     expect(parseDate('11/9/16', true)?.toISOString()).toBe(new Date(2016, 10, 9).toISOString())
     expect(parseDate('11/09/16', true)?.toISOString()).toBe(new Date(2016, 10, 9).toISOString())
     expect(parseDate('04/1/28', true)?.toISOString()).toBe(new Date(2028, 3, 1).toISOString())
+    // 3 digit year was not supported in V2
+    expect(parseDate('11/9/153', true)?.toISOString()).toBe(new Date(153, 10, 9).toISOString())
   })
   test('ISO dates', () => {
     expect(parseDate('2016-01', true)?.toISOString()).toBe(new Date(2016, 0, 1).toISOString())
     expect(parseDate('2016-02-02', true)?.toISOString()).toBe(new Date(2016, 1, 2).toISOString())
+    // 3 digit year was not supported in V2
+    expect(parseDate('153-11-9', true)?.toISOString()).toBe(new Date(153, 10, 9).toISOString())
   })
   test('day, month name, year dates', () => {
     expect(parseDate('03 Mar 2016', true)?.toISOString()).toBe(new Date(2016, 2, 3).toISOString())
+    // 3 digit year was not supported in V2
+    expect(parseDate('09 Nov 153', true)?.toISOString()).toBe(new Date(153, 10, 9).toISOString())
   })
   test('traditional US dates', () => {
     expect(parseDate('April 4, 2016', true)?.toISOString()).toBe(new Date(2016, 3, 4).toISOString())
     expect(parseDate('Apr 5, 2016', true)?.toISOString()).toBe(new Date(2016, 3, 5).toISOString())
     expect(parseDate('Monday, May 5, 2016', true)?.toISOString()).toBe(new Date(2016, 4, 5).toISOString())
+    // 3 digit year was not supported in V2
+    expect(parseDate('Monday, Nov 9 153', true)?.toISOString()).toBe(new Date(153, 10, 9).toISOString())
   })
   test('year.month.day dates', () => {
     expect(parseDate('2016.6.6', true)?.toISOString()).toBe(new Date(2016, 5, 6).toISOString())
+    // 3 digit year was not supported in V2
+    expect(parseDate('153.11.9', true)?.toISOString()).toBe(new Date(153, 10, 9).toISOString())
   })
   test('unix dates', () => {
     expect(parseDate('Thu Jul 11 09:12:47 PDT 2019', true)?.toISOString())
@@ -55,6 +65,12 @@ describe('Date Parser tests - V2 compatibility', () => {
       .toBe(new Date(2016, 10, 9, 17, 18, 2).toISOString())
     expect(parseDate('11/9/2016 17:18:02.123', true)?.toISOString())
       .toBe(new Date(2016, 10, 9, 17, 18, 2, 123).toISOString())
+
+    // 3 digit year was not supported in V2
+    expect(parseDate('11/9/153 7:18', true)?.toISOString()).toBe(new Date(153, 10, 9, 7, 18).toISOString())
+    expect(parseDate('11/9/153 7:18:02', true)?.toISOString()).toBe(new Date(153, 10, 9, 7, 18, 2).toISOString())
+    expect(parseDate('11/9/153 7:18:02.123', true)?.toISOString())
+      .toBe(new Date(153, 10, 9, 7, 18, 2, 123).toISOString())
   })
   test('ISO 8601', () => {
     expect(isDateString('2016-11-10')).toBe(true)
@@ -68,6 +84,10 @@ describe('Date Parser tests - V2 compatibility', () => {
     expect(isDateString('2016-11-10T21:27:42.123Z')).toBe(true)
     expect(isDateString('September 1, 2016')).toBe(true)
     expect(isDateString('2016-11-10T21:27:42.12Z')).toBe(true)
+    // 3 digit year was not supported in V2
+    expect(isDateString('153', true)).toBe(true)
+    expect(isDateString('153-11-9', true)).toBe(true)
+    expect(isDateString('September 1, 153', true)).toBe(true)
   })
   test('invalid strings', () => {
     expect(isDateString('')).toBe(false)
@@ -100,7 +120,7 @@ describe('isValidDateSpec', () => {
     }
     expect(isValidDateSpec(validDateSpec)).toEqual(validDateSpec)
   })
-test('returns null when year is NaN', () => {
+  test('returns null when year is NaN', () => {
     const invalidDateSpec = {
       year: NaN,
       month: 7,
@@ -112,7 +132,7 @@ test('returns null when year is NaN', () => {
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
   })
-test('returns null when month is out of range', () => {
+  test('returns null when month is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 13,
@@ -124,7 +144,7 @@ test('returns null when month is out of range', () => {
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
   })
-test('returns null when day is out of range', () => {
+  test('returns null when day is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -136,7 +156,7 @@ test('returns null when day is out of range', () => {
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
   })
-test('returns null when hour is out of range', () => {
+  test('returns null when hour is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -148,7 +168,7 @@ test('returns null when hour is out of range', () => {
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
   })
-test('returns null when minute is out of range', () => {
+  test('returns null when minute is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -160,7 +180,7 @@ test('returns null when minute is out of range', () => {
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
   })
-test('returns null when second is out of range', () => {
+  test('returns null when second is out of range', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -172,7 +192,7 @@ test('returns null when second is out of range', () => {
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
   })
-test('returns null when subsecond is NaN', () => {
+  test('returns null when subsecond is NaN', () => {
     const invalidDateSpec = {
       year: 2023,
       month: 7,
@@ -183,5 +203,41 @@ test('returns null when subsecond is NaN', () => {
       subsec: NaN
     }
     expect(isValidDateSpec(invalidDateSpec)).toBeFalsy()
+  })
+})
+
+describe('fixYear', () => {
+  test('returns year when year is 4 digits', () => {
+    expect(fixYear(2023)).toEqual(2023)
+  })
+  test('returns year when year is 3 digits', () => {
+    expect(fixYear(100)).toEqual(100)
+    expect(fixYear(123)).toEqual(123)
+  })
+  test('returns 20xx year when year is 2 digits and less than 50', () => {
+    expect(fixYear(10)).toEqual(2010)
+    expect(fixYear(49)).toEqual(2049)
+  })
+  test('returns 19xx year when year is 2 digits and greater than or equal to 50', () => {
+    expect(fixYear(50)).toEqual(1950)
+    expect(fixYear(99)).toEqual(1999)
+  })
+})
+
+describe('isBrowserISOString', () => {
+  test('returns true for strings that were produced by native Date.toISOString() method', () => {
+    expect(isBrowserISOString(new Date().toISOString())).toBe(true)
+    expect(isBrowserISOString(new Date(2023, 7, 17, 15, 30, 45, 123).toISOString())).toBe(true)
+    expect(isBrowserISOString(new Date(-2023, 7, 17, 15, 30, 45, 123).toISOString())).toBe(true)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123Z')).toBe(true)
+    expect(isBrowserISOString('-002023-08-17T15:30:45.123Z')).toBe(true)
+  })
+  test('returns false for strings that were not produced by native Date.toISOString() method', () => {
+    // Still valid ISO date strings, but not produced by native Date.toISOString() method
+    expect(isBrowserISOString('2023-08-17T15:30:45.123')).toBe(false)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123Z+07:00')).toBe(false)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123+07:00')).toBe(false)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123-07:00')).toBe(false)
+    expect(isBrowserISOString('002023-08-17T15:30:45.123Z')).toBe(false)
   })
 })

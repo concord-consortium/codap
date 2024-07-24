@@ -42,6 +42,7 @@ describe("Attribute", () => {
     expect(importValueToString(1e-6)).toBe("0.000001")
     expect(importValueToString(true)).toBe("true")
     expect(importValueToString(false)).toBe("false")
+    expect(importValueToString(new Date("2020-06-14T10:13:34.123Z"))).toBe("2020-06-14T10:13:34.123Z")
 
     const attr = Attribute.create({ name: "a" })
     expect(attr.toNumeric(null as any)).toBeNaN()

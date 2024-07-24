@@ -14,7 +14,7 @@ describe("DataInteractive ResourceParser", () => {
   const dataset = content!.getFirstSharedModelByType(SharedDataSet)!.dataSet
   dataset.removeCases(dataset.items.map(c => c.__id__))
   dataset.addCases(testCases, { canonicalize: true })
-  dataset.validateCaseGroups()
+  dataset.validateCases()
   const c1 = dataset.collections[0]
   const c2 = dataset.collections[1]
   const a1 = dataset.getAttributeByName("a1")!
@@ -83,9 +83,10 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].caseByID[unknown]`).caseByID).toBeUndefined()
 
     const itemId = dataset.getItemAtIndex(0)!.__id__
-    expect(resolve(`dataContext[data].caseByID[${toV2Id(itemId)}]`).caseByID?.__id__).toBe(itemId)
+    const _caseId = dataset.getItemChildCaseId(itemId)!
+    expect(resolve(`dataContext[data].caseByID[${toV2Id(_caseId)}]`).caseByID?.__id__).toBe(_caseId)
 
-    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
+    const caseId = Array.from(dataset.caseInfoMap.values())[0].groupedCase.__id__
     expect(resolve(`dataContext[data].caseByID[${toV2Id(caseId)}]`).caseByID?.__id__).toBe(caseId)
   })
 
@@ -96,10 +97,11 @@ describe("DataInteractive ResourceParser", () => {
 
     const itemId = dataset.getItemAtIndex(0)!.__id__
     const childCollectionId = toV2Id(dataset.childCollection.id)
+    const _caseId = dataset.getItemChildCaseId(itemId)
     expect(resolve(`dataContext[data].collection[${childCollectionId}].caseByIndex[0]`).caseByIndex?.__id__)
-      .toBe(itemId)
+      .toBe(_caseId)
 
-    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
+    const caseId = Array.from(dataset.caseInfoMap.values())[0].groupedCase.__id__
     expect(resolve(`dataContext[data].collection[${collectionId}].caseByIndex[0]`).caseByIndex?.__id__).toBe(caseId)
   })
 
@@ -165,7 +167,7 @@ describe("DataInteractive ResourceParser", () => {
   it("finds itemByCaseID", () => {
     expect(resolve(`dataContext[data].itemByCaseID[unknown]`).itemByCaseID).toBeUndefined()
 
-    const caseId = Array.from(dataset.caseGroupMap.values())[0].groupedCase.__id__
+    const caseId = Array.from(dataset.caseInfoMap.values())[0].groupedCase.__id__
     const itemId = dataset.getItemAtIndex(0)!.__id__
     expect(resolve(`dataContext[data].itemByCaseID[${toV2Id(caseId)}]`).itemByCaseID?.__id__).toBe(itemId)
   })

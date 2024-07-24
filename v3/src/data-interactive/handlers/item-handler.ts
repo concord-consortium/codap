@@ -18,7 +18,7 @@ export const diItemHandler: DIHandler = {
     _items.forEach(item => {
       let newItem: DIItem
       if (typeof item.values === "object") {
-        newItem = item.values
+        newItem = item.values as DIItem
       } else {
         newItem = item as DIItem
       }
@@ -43,7 +43,7 @@ export const diItemHandler: DIHandler = {
 
       // Add items and update cases
       itemIDs = dataContext.addCases(items, { canonicalize: true })
-      dataContext.validateCaseGroups()
+      dataContext.validateCases()
 
       // Find newly added cases by comparing current cases to previous cases
       dataContext.collections.forEach(collection => {

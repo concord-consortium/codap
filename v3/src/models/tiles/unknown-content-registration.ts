@@ -13,7 +13,8 @@ registerTileContentInfo({
   type: kUnknownTileType,
   prefix: "UNKN",
   modelClass: UnknownContentModel,
-  defaultContent
+  defaultContent,
+  getTitle: () => "Unknown"
 })
 
 registerTileComponentInfo({

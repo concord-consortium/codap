@@ -108,6 +108,12 @@ export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }
 
+export const isValueNonEmpty = (value: any) => value !== "" && value != null
+
+// Similar to isFiniteNumber, but looser.
+// It allows for strings that can be converted to numbers and treats Infinity and -Infinity as valid numbers.
+export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
+
 export function goodTickValue(iMin: number, iMax: number) {
   const range = (iMin >= iMax) ? Math.abs(iMin) : iMax - iMin,
     gap = range / 5

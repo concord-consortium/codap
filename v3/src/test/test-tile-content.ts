@@ -19,7 +19,8 @@ registerTileContentInfo({
   type: "Test",
   prefix: "TEST",
   modelClass: TestTileContent,
-  defaultContent: () => ({ type: "Test" })
+  defaultContent: () => ({ type: "Test" }),
+  getTitle: () => "Test"
 })
 
 registerTileComponentInfo({

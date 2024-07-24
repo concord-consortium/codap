@@ -42,7 +42,8 @@ export const CodapComponent = observer(function CodapComponent({
   if (!info) return null
 
   const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
-  const classes = clsx("codap-component", tileEltClass, { minimized: isMinimized })
+  const classes = clsx("codap-component", tileEltClass, { minimized: isMinimized },
+                    { shadowed: uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id) })
   return (
     <TileModelContext.Provider value={tile}>
       <div className={classes} key={tile.id} data-testid={tileEltClass}

@@ -2,8 +2,10 @@ import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { IAttribute } from "../../../models/data/attribute"
+import { ICollectionModel } from "../../../models/data/collection"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
+import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { useCaseTableModel } from "../use-case-table-model"
 
@@ -22,16 +24,15 @@ export const RulerMenuList = () => {
     })
   }
 
-  const handleAddNewAttribute = (collectionId: string) => {
-    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+  const handleAddNewAttribute = (collection: ICollectionModel) => () => {
     let attribute: IAttribute | undefined
     data?.applyModelChange(() => {
       const newAttrName = uniqueName("newAttr",
         (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
-      attribute = data.addAttribute({name: newAttrName}, { collection: collectionId })
+      attribute = data.addAttribute({name: newAttrName}, { collection: collection.id })
       if (attribute) {
-        collectionTableModel?.setAttrIdToEdit(attribute.id)
+        collection.setAttrIdToEdit(attribute.id)
       }
     }, {
       notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
@@ -40,24 +41,32 @@ export const RulerMenuList = () => {
     })
   }
 
+  const addAttributeButtons = data
+    ? data.collections.map(collection => (
+      <MenuItem
+        isDisabled={preventCollectionReorg(data, collection.id)}
+        key={`menu-add-attribute-button-${collection.id}`}
+        onClick={handleAddNewAttribute(collection)}
+      >
+        {t("DG.Inspector.newAttribute", { vars: [collection.title] })}
+      </MenuItem>
+    ))
+    : []
+
   return (
     <MenuList data-testid="ruler-menu-list">
-      {collections?.map(collection => {
-        return (
-          <MenuItem key={`${collection.id}`}
-            onClick={()=>handleAddNewAttribute(collection?.id)}>
-            {t("DG.Inspector.newAttribute", { vars: [collection?.name || ""] })}
-          </MenuItem>
-        )
-      })}
-      <MenuItem onClick={()=>handleMenuItemClick("Rerandomize All")}>{t("DG.Inspector.randomizeAllAttributes")}
+      {...addAttributeButtons}
+      <MenuItem onClick={()=>handleMenuItemClick("Rerandomize All")}>
+        {t("DG.Inspector.randomizeAllAttributes")}
       </MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Export Case Data")}>{t("DG.Inspector.exportCaseData")}</MenuItem>
-      <MenuItem
-        onClick={()=>handleMenuItemClick("Copy Case Data To Clipboard")}>{t("DG.Inspector.copyCaseDataToClipboard")}
+      <MenuItem onClick={()=>handleMenuItemClick("Export Case Data")}>
+        {t("DG.Inspector.exportCaseData")}
       </MenuItem>
-      <MenuItem
-        onClick={()=>handleMenuItemClick("Get Case Data From Clipboard")}>{t("DG.Inspector.getCaseDataFromClipboard")}
+      <MenuItem onClick={()=>handleMenuItemClick("Copy Case Data To Clipboard")}>
+        {t("DG.Inspector.copyCaseDataToClipboard")}
+      </MenuItem>
+      <MenuItem onClick={()=>handleMenuItemClick("Get Case Data From Clipboard")}>
+        {t("DG.Inspector.getCaseDataFromClipboard")}
       </MenuItem>
     </MenuList>
   )

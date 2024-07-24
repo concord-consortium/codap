@@ -7,8 +7,10 @@ import {
   deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
+import {
+  allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
+} from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { getPreventAttributeDeletion } from "../../web-view/collaborator-utils"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
@@ -83,7 +85,21 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     }
   }
 
-  const disableDeleteAttribute = data && getPreventAttributeDeletion(data)
+  const isDeleteAttributeDisabled = () => {
+    if (!data) return true
+
+    // If preventTopLevelReorg is true...
+    if (preventTopLevelReorg(data)) {
+      // Disabled if in the parent collection
+      if (preventCollectionReorg(data, collection?.id)) return true
+
+      // Disabled if there is only one attribute not in the parent collection
+      if (data.attributes.length - data.collections[0].attributes.length <= 1) return true
+    }
+
+    return !allowAttributeDeletion(data, attribute)
+  }
+  const disableDeleteAttribute = isDeleteAttributeDisabled()
 
   const handleEditAttributePropsOpen = () => {
     attributePropsModal.onOpen()

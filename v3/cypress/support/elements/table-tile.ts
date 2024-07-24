@@ -42,13 +42,17 @@ export const TableTileElements = {
   // getColumnHeaderTooltip() {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
-  getIndexRow(rowNum: number, collectionIndex = 1) {
+  getSelectedRow(rowNum: number, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid]
+      [role=row][aria-rowindex="${rowNum}"][aria-selected="true"]`)
+  },
+  getIndexCellInRow(rowNum: number, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid]
       [role=row][aria-rowindex="${rowNum}"]
       [data-testid=codap-index-content-button]`)
   },
   openIndexMenuForRow(rowNum: number, collectionIndex = 1) {
-    this.getIndexRow(rowNum, collectionIndex).click("top")
+    this.getIndexCellInRow(rowNum, collectionIndex).click("top")
   },
   getIndexMenu() {
     return cy.get("[data-testid=index-menu-list]")
@@ -314,7 +318,7 @@ export const TableTileElements = {
     this.getCollapseAllGroupsButton(collectionIndex).click()
   },
   getCollapsedIndex(rowIndex, collectionIndex = 1) {
-    return this.getIndexRow(rowIndex, collectionIndex)
+    return this.getIndexCellInRow(rowIndex, collectionIndex)
   },
   getRowExpandCollapseButton(rowIndex, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(".spacer-mid-layer .expand-collapse-button img")
@@ -328,7 +332,7 @@ export const TableTileElements = {
   },
   verifyCollapsedRows(childCases, collectionIndex = 1) {
     for (let childCaseIndex = 0; childCaseIndex < childCases.length; childCaseIndex++) {
-      this.getIndexRow(childCaseIndex+2, collectionIndex).then(indexCell => {
+      this.getIndexCellInRow(childCaseIndex+2, collectionIndex).then(indexCell => {
         expect(childCases).to.include(indexCell.text())
       })
     }

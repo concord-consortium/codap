@@ -23,6 +23,18 @@ export const ToolbarElements = {
   getConfirmDeleteDatasetModal() {
     return cy.get(`[data-testid=delete-data-set-button-delete]`)
   },
+  getTilesButton() {
+    return cy.get(`[data-testid=tool-shelf-button-tiles]`)
+  },
+  getTilesListMenu() {
+    return cy.get(`[data-testid=tiles-list-menu]`)
+  },
+  getTilesListMenuItem() {
+    return cy.get(`[data-testid=tiles-list-menu-item]`)
+  },
+  getTilesListMenuIcon() {
+    return cy.get(`[data-testid=tile-list-menu-icon]`)
+  },
   getOptionsButton() {
     return cy.get(`[data-testid=tool-shelf-button-options]`)
   },

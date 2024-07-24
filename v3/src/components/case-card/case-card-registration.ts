@@ -5,6 +5,8 @@ import { kCaseCardTileType } from "./case-card-defs"
 import { CaseCardModel } from "./case-card-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import CardIcon from '../../assets/icons/icon-case-card.svg'
+import { t } from "../../utilities/translation/translate"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
 /*
 import { CaseCardInspector } from "./case-card-inspector"
 */
@@ -16,6 +18,10 @@ registerTileContentInfo({
   prefix: kCaseCardIdPrefix,
   modelClass: CaseCardModel,
   defaultContent: () => ({ type: kCaseCardTileType }),
+  getTitle: (tile) => {
+    const data = tile.content && getTileDataSet(tile.content)
+    return data?.title || t("DG.DocumentController.caseTableTitle")
+  },
   hideOnClose: true
 })
 

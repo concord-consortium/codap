@@ -15,7 +15,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
   const { dataset: _dataset } = setupTestDataset()
   const dataset = documentContent.createDataSet(getSnapshot(_dataset)).sharedDataSet.dataSet
   dataset.addCases(testCases, { canonicalize: true })
-  dataset.validateCaseGroups()
+  dataset.validateCases()
   const a1 = dataset.getAttributeByName("a1")!
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!

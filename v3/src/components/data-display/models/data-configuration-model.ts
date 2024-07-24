@@ -19,6 +19,7 @@ import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { numericSortComparator } from "../../../utilities/data-utils"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -188,7 +189,7 @@ export const DataConfigurationModel = types
         if (["caption", "legend"].includes(role)) return true
         switch (self.attributeType(role as AttrRole)) {
           case "numeric":
-            return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
+            return isFiniteNumber(data.getNumeric(caseID, attributeID))
           default:
             // for now, all other types must just be non-empty
             return !!data.getValue(caseID, attributeID)

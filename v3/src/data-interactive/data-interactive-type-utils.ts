@@ -48,7 +48,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
 
   const _collection = dataContext.getCollectionForCase(caseId)
   const collectionId = _collection?.id
-  const caseGroup = dataContext.caseGroupMap.get(caseId)
+  const caseGroup = dataContext.caseInfoMap.get(caseId)
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
 
@@ -81,7 +81,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const id = toV2Id(caseId)
 
-  const caseGroup = dataContext.caseGroupMap.get(caseId)
+  const caseGroup = dataContext.caseInfoMap.get(caseId)
   const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)

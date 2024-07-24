@@ -30,6 +30,9 @@ registerTileContentInfo({
   modelClass: TestTileContent,
   defaultContent(options) {
     return TestTileContent.create()
+  },
+  getTitle() {
+    return "Test"
   }
 })
 
