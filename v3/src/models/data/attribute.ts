@@ -40,7 +40,7 @@ export const kDefaultFormatStr = ".3~f"
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 const isProduction = () => process.env.NODE_ENV === "production"
 
-export type IValueType = string | number | boolean | undefined | Date
+export type IValueType = string | number | boolean | Date | undefined
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
