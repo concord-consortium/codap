@@ -127,7 +127,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(a3Result.caseSearch?.length).toBe(5)
   })
 
-  it.only("finds caseFormulaSearch", () => {
+  it("finds caseFormulaSearch", () => {
     expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch`).caseFormulaSearch).toBeUndefined()
     expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch[]`).caseFormulaSearch).toBeUndefined()
     expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch[bad formula]`).error).toBeDefined()
