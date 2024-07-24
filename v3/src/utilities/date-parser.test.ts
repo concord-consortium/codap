@@ -1,4 +1,4 @@
-import { fixYear, isDateString, isValidDateSpec, parseDate } from './date-parser'
+import { fixYear, isBrowserISOString, isDateString, isValidDateSpec, parseDate } from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
   // These tests are ported from V2 and should always pass unchanged as long as we want to maintain compatibility.
@@ -221,5 +221,23 @@ describe('fixYear', () => {
   test('returns 19xx year when year is 2 digits and greater than or equal to 50', () => {
     expect(fixYear(50)).toEqual(1950)
     expect(fixYear(99)).toEqual(1999)
+  })
+})
+
+describe('isBrowserISOString', () => {
+  test('returns true for strings that were produced by native Date.toISOString() method', () => {
+    expect(isBrowserISOString(new Date().toISOString())).toBe(true)
+    expect(isBrowserISOString(new Date(2023, 7, 17, 15, 30, 45, 123).toISOString())).toBe(true)
+    expect(isBrowserISOString(new Date(-2023, 7, 17, 15, 30, 45, 123).toISOString())).toBe(true)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123Z')).toBe(true)
+    expect(isBrowserISOString('-002023-08-17T15:30:45.123Z')).toBe(true)
+  })
+  test('returns false for strings that were not produced by native Date.toISOString() method', () => {
+    // Still valid ISO date strings, but not produced by native Date.toISOString() method
+    expect(isBrowserISOString('2023-08-17T15:30:45.123')).toBe(false)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123Z+07:00')).toBe(false)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123+07:00')).toBe(false)
+    expect(isBrowserISOString('2023-08-17T15:30:45.123-07:00')).toBe(false)
+    expect(isBrowserISOString('002023-08-17T15:30:45.123Z')).toBe(false)
   })
 })

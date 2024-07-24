@@ -33,7 +33,7 @@ export interface ILookupDependency {
 
 export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
 
-export type FValue = string | number | boolean
+export type FValue = string | number | boolean | Date
 
 export type FValueOrArray = FValue | FValue[]
 
