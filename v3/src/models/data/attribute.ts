@@ -55,7 +55,7 @@ export function importValueToString(value: IValueType): string {
   }
   if (value instanceof Date) {
     // Convert Date to ISO string format. It's a consistent format that can be parsed back into a Date object
-    // without loosing any information. Also, it's relatively compact and it can be easily recognized as a date string,
+    // without losing any information. Also, it's relatively compact and it can be easily recognized as a date string,
     // in contrast to storing the date as a number (e.g. milliseconds since epoch).
     return value.toISOString()
   }
