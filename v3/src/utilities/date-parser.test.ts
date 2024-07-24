@@ -228,7 +228,9 @@ describe('isBrowserISOString', () => {
   test('returns true for strings that were produced by native Date.toISOString() method', () => {
     expect(isBrowserISOString(new Date().toISOString())).toBe(true)
     expect(isBrowserISOString(new Date(2023, 7, 17, 15, 30, 45, 123).toISOString())).toBe(true)
+    expect(isBrowserISOString(new Date(-2023, 7, 17, 15, 30, 45, 123).toISOString())).toBe(true)
     expect(isBrowserISOString('2023-08-17T15:30:45.123Z')).toBe(true)
+    expect(isBrowserISOString('-002023-08-17T15:30:45.123Z')).toBe(true)
   })
   test('returns false for strings that were not produced by native Date.toISOString() method', () => {
     // Still valid ISO date strings, but not produced by native Date.toISOString() method
@@ -236,5 +238,6 @@ describe('isBrowserISOString', () => {
     expect(isBrowserISOString('2023-08-17T15:30:45.123Z+07:00')).toBe(false)
     expect(isBrowserISOString('2023-08-17T15:30:45.123+07:00')).toBe(false)
     expect(isBrowserISOString('2023-08-17T15:30:45.123-07:00')).toBe(false)
+    expect(isBrowserISOString('002023-08-17T15:30:45.123Z')).toBe(false)
   })
 })
