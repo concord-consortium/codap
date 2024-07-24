@@ -84,8 +84,8 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.update?.({}, { horizontalScrollOffset: 100 }).success).toBe(false)
     expect(handler.update?.({ component }).success).toBe(false)
 
-    expect(tableContent.horizontalScrollOffset).toBe(0)
+    expect(tableContent._horizontalScrollOffset).toBe(0)
     expect(handler.update?.({ component }, { horizontalScrollOffset: 100 }).success).toBe(true)
-    expect(tableContent.horizontalScrollOffset).toBe(100)
+    expect(tableContent._horizontalScrollOffset).toBe(100)
   })
 })

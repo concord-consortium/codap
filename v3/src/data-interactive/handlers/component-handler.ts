@@ -422,9 +422,7 @@ export const diComponentHandler: DIHandler = {
     if (isCaseTableModel(content)) {
       // TODO Handle isIndexHidden
       const { horizontalScrollOffset } = values as V2CaseTable
-      content.applyModelChange(() => {
-        if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
-      })
+      if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
 
       return { success: true }
     }

@@ -45,13 +45,13 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     }
 
     // Initial scroll is delayed a frame to let RDG do its thing
-    setTimeout(() => updateScroll(tableModel?.horizontalScrollOffset))
+    setTimeout(() => updateScroll(tableModel?._horizontalScrollOffset))
 
     // Reaction handles changes to the model, such as via the API
     return tableModel && mstReaction(
-      () => tableModel?.horizontalScrollOffset,
-      horizontalScrollOffset => {
-        updateScroll(horizontalScrollOffset)
+      () => tableModel?._horizontalScrollOffset,
+      _horizontalScrollOffset => {
+        updateScroll(_horizontalScrollOffset)
       },
       { name: "CaseTable.updateHorizontalScroll" },
       tableModel
@@ -110,9 +110,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     const collections = data.collections
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
-      tableModel?.applyModelChange(() => {
-        tableModel.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
-      })
+      tableModel.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
     }
 
     return (
