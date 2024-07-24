@@ -1,5 +1,4 @@
 import { useDndContext } from "@dnd-kit/core"
-import { reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
@@ -14,6 +13,7 @@ import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
 import { INotification } from "../../models/history/apply-model-change"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
 
@@ -44,15 +44,17 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
       }
     }
 
-    // Initial scoll is delayed a frame to let RDG do its thing
+    // Initial scroll is delayed a frame to let RDG do its thing
     setTimeout(() => updateScroll(tableModel?.horizontalScrollOffset))
 
-    // Handle changes to the model, such as via the API
-    return reaction(
+    // Reaction handles changes to the model, such as via the API
+    return tableModel && mstReaction(
       () => tableModel?.horizontalScrollOffset,
       horizontalScrollOffset => {
         updateScroll(horizontalScrollOffset)
-      }
+      },
+      { name: "CaseTable.updateHorizontalScroll" },
+      tableModel
     )
   }, [tableModel])
 
