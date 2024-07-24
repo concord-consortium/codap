@@ -38,7 +38,6 @@
     },
     {
       "testName": "Move multiple categorical attributes to a parent collection",
-      "skip": true,
       "collections": [
         {
           "name": "Diets (5 cases)",
@@ -61,7 +60,6 @@
     },
     {
       "testName": "Move numeric and categorical attributes to a parent collection",
-      "skip": true,
       "collections": [
         {
           "name": "Habitats (20 cases)",
@@ -84,7 +82,6 @@
     },
     {
       "testName": "Move categorical attributes to multilevel hierarchical collections",
-      "skip": true,
       "collections": [
         {
           "name": "Diets (3 cases)",

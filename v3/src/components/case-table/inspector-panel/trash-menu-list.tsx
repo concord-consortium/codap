@@ -4,8 +4,8 @@ import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectAllCases } from "../../../models/data/data-set-utils"
+import { isItemEditable } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { isItemEditable } from "../../web-view/collaborator-utils"
 
 export const TrashMenuList = observer(function TrashMenuList() {
   const data = useDataSetContext()

@@ -1,5 +1,5 @@
-import { isDateString } from "./date-parser"
-import { goodTickValue, isFiniteNumber } from "./math-utils"
+import { fixYear, isDateString, parseDate } from "./date-parser"
+import { goodTickValue, isFiniteNumber, isNumber } from "./math-utils"
 import { getDefaultLanguage } from "./translation/translate"
 
 export enum EDateTimeLevel {
@@ -109,11 +109,12 @@ export function isDate(iValue: any): iValue is Date {
 
 /**
  * Default formatting for Date objects.
- * @param date {Date | number | string }
+ * @param date {Date | number | string | null }
  * @param precision {number}
  * @return {string}
  */
-export function formatDate(x: Date | number | string, precision: DatePrecision) {
+export function formatDate(x: Date | number | string | null, precision: DatePrecision = DatePrecision.None):
+  string | null {
   const formatPrecisions: Record<DatePrecision, any> = {
     [DatePrecision.None]: null,
     [DatePrecision.Year]: { year: 'numeric' },
@@ -138,7 +139,7 @@ export function formatDate(x: Date | number | string, precision: DatePrecision) 
     // differently from DG.MathUtilities.isNumeric in V2. The original isNumeric function in V2 returns true for
     // Date objects, which was probably not planned (as `isNaN(new Date())` actually returns `false`), but is necessary
     // here. Since isFiniteNumber() is more strict, we need an explicit check for Date objects here.
-    x = new Date(x.valueOf() * 1000)
+    x = new Date(x.valueOf())
   } else if (isDateString(x)) {
     x = new Date(x)
   }
@@ -157,75 +158,49 @@ export function formatDate(x: Date | number | string, precision: DatePrecision) 
   return Math.abs(iValue) >= 5000
 }
 
-/**
- Returns a DG date object constructed from its arguments.
- Currently this is a JavaScript Date object, but could be
- replaced with another (e.g. moment.js) object at some point.
- */
-/*
-DateUtilities.createDate = function(/!* iArgs *!/) {
-  var args = [Date].concat(Array.prototype.slice.call(arguments)),
-    date
-
-  if (args.length === 2 && typeof args[1] === 'string' && isNaN(args[1])) {
-    return DateUtilities.dateParser.parseDate(args[1], true)
+export function createDate(...args: (string | number)[]): Date | null {
+  if (args.length === 0) {
+    return new Date()
   }
 
-  if ((args.length === 2)) {  // We have either seconds since 1970 or a year
-    if (DateUtilities.defaultToEpochSecs(args[1]))
-      args[1] = Number(args[1]) * 1000// convert from seconds to milliseconds
-    else {  // We have a value < 5000.
-      args[2] = 0  // This will force the constructor to treat args[1] as a year
-    }
-  }
-  // Call Date constructor with specified arguments
-  // cf. http://stackoverflow.com/a/8843181
-  /!* jshint -W058 *!/
-  date = new (Function.bind.apply(Date, args))()
+  const yearOrSeconds = args[0] != null ? Number(args[0]) : null
 
-  if (isNaN(date)) {
-    date = null
+  if (args.length === 1 && yearOrSeconds != null && defaultToEpochSecs(yearOrSeconds)) {
+    // Only one argument and it's a number that should be treated as epoch seconds.
+    // Convert from seconds to milliseconds.
+    const dateFromEpoch = new Date(yearOrSeconds * 1000)
+    return isNaN(dateFromEpoch.valueOf()) ? null : dateFromEpoch
   }
 
-  // replace default numeric conversion (milliseconds) with our own (seconds)
-  if (date) {
-    date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000 }
-  }
+  let year = yearOrSeconds // at this point, yearOrSeconds is always interpreted as a year
+  const monthIndex = args[1] != null ? Math.max(0, Number(args[1]) - 1) : 0
+  const day = args[2] != null ? Number(args[2]) : 1
+  const hours = args[3] != null ? Number(args[3]) : 0
+  const minutes = args[4] != null ? Number(args[4]) : 0
+  const seconds = args[5] != null ? Number(args[5]) : 0
+  const milliseconds = args[6] != null ? Number(args[6]) : 0
 
-  return date
+  // Logic ported from V2 for backwards compatibility
+  if (year == null) {
+    year = new Date().getFullYear() // default to current year
+  }
+  // Apply the same interpretation of the year value  as the date parser
+  // (e.g. numbers below 100 are treated as 20xx or 19xx).
+  year = fixYear(year)
+
+  const date = new Date(year, monthIndex, day, hours, minutes, seconds, milliseconds)
+  return isNaN(date.valueOf()) ? null : date
 }
-createDate = DateUtilities.createDate
-*/
 
-/**
- Default formatting for Date objects.
- Uses toLocaleDateString() for default date formatting.
- Optionally uses toLocaleTimeString() for default time formatting.
- */
-/*
-DateUtilities.monthName = function(x) {
-  if (!(x && (isDate(x) || isDateString(x) || MathUtilities.isFiniteNumber(x)))) return ""
-  var date
-  if (isDate(x))
-    date = x
-  else
-    date = createDate(x)
-  var monthNames = [
-      'Formula.DateLongMonthJanuary',
-      'Formula.DateLongMonthFebruary',
-      'Formula.DateLongMonthMarch',
-      'Formula.DateLongMonthApril',
-      'Formula.DateLongMonthMay',
-      'Formula.DateLongMonthJune',
-      'Formula.DateLongMonthJuly',
-      'Formula.DateLongMonthAugust',
-      'Formula.DateLongMonthSeptember',
-      'Formula.DateLongMonthOctober',
-      'Formula.DateLongMonthNovember',
-      'Formula.DateLongMonthDecember'
-    ],
-    monthName = monthNames[date.getMonth()]
-  return monthName && monthName.loc()
+export function convertToDate(date: any): Date | null {
+  if (isDate(date)) {
+    return date
+  }
+  if (typeof date === "string" && !isNumber(date)) {
+    return parseDate(date, true)
+  }
+  if (isNumber(date)) {
+    return createDate(Number(date))
+  }
+  return null
 }
-monthName = DateUtilities.monthName
-*/

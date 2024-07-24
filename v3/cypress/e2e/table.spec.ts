@@ -292,7 +292,7 @@ context("case table ui", () => {
     it("check New Attribute from inspector menu with undo/redo", () => {
       c.selectTile("table", 0)
       table.getRulerButton().click()
-      table.getRulerMenuItem("New Attribute in Mammals...").click()
+      table.getRulerMenuItem("New Attribute in Cases...").click()
 
       // verify new attribute exists
       table.getColumnHeaders().should("have.length.be.within", 10, 11)

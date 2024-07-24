@@ -21,13 +21,16 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
                             : undefined
   }, [])
 
-  const navigateToNextRow = useCallback(() => {
+  const navigateToNextRow = useCallback((back = false) => {
     if (selectedCell.current?.columnId) {
       const idx = columns.findIndex(column => column.key === selectedCell.current?.columnId)
-      const rowIdx = selectedCell.current.rowIdx + 1
+      const rowIdx = Math.max(0, selectedCell.current.rowIdx + (back ? -1 : 1))
       const position = { idx, rowIdx }
-      gridRef.current?.selectCell(position, true)
-      collectionTableModel?.scrollRowIntoView(rowIdx)
+      // setTimeout so it occurs after handling of current event completes
+      setTimeout(() => {
+        collectionTableModel?.scrollRowIntoView(rowIdx)
+        gridRef.current?.selectCell(position, true)
+      })
     }
   }, [collectionTableModel, columns, gridRef])
 

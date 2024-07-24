@@ -55,7 +55,7 @@ export const lookupFunctions = {
       // lookupByIndex can be executed in aggregate context, so we need to handle array arguments.
       const fn = (index: number) => {
         const zeroBasedIndex = index - 1
-        return dataSet.getValueAtIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
+        return dataSet.getValueAtItemIndex(zeroBasedIndex, attrId) || UNDEF_RESULT
       }
       if (Array.isArray(indexArg)) {
         return indexArg.map(fn)

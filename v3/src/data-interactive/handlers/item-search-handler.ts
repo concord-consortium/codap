@@ -50,7 +50,7 @@ export const diItemSearchHandler: DIHandler = {
             dataContext.removeCases([id])
             const before = dataContext.itemIds[itemIndex]
             dataContext.addCases([item], { before })
-            dataContext.validateCaseGroups()
+            dataContext.validateCases()
           }
         })
       } else {
@@ -62,7 +62,7 @@ export const diItemSearchHandler: DIHandler = {
           : undefined
         dataContext.addCases(items, options)
       }
-      dataContext.validateCaseGroups()
+      dataContext.validateCases()
     })
 
     return { success: true }

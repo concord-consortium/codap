@@ -78,6 +78,7 @@ export interface DIGetCaseResult {
   caseIndex?: number
 }
 export interface DIInteractiveFrame {
+  allowEmptyAttributeDeletion?: boolean
   cannotClose?: boolean
   dimensions?: {
     height?: number
@@ -89,6 +90,7 @@ export interface DIInteractiveFrame {
   preventAttributeDeletion?: boolean
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
+  preventTopLevelReorg?: boolean
   respectEditableItemAttribute?: boolean
   savedState?: unknown
   standaloneUndoModeAvailable?: boolean
