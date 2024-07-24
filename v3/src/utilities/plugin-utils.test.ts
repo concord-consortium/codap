@@ -71,7 +71,7 @@ describe('Collaborator Utils', () => {
       { __id__: item4Id, [editableAttribute.id]: "false" },
       { __id__: item5Id, [editableAttribute.id]: "true" }
     ])
-    dataSet.validateCaseGroups()
+    dataSet.validateCases()
     const collection2 = dataSet.getCollectionByName("collection2")!
     const case0Id = collection2.caseIds[0]
     const case2Id = collection2.caseIds[2]
