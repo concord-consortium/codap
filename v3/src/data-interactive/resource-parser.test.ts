@@ -115,7 +115,7 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`dataContext[data].collection[collection2].caseSearch[a1==a]`).caseSearch).toBeUndefined()
 
     const allResult = resolve(`dataContext[data].collection[collection2].caseSearch[*]`)
-    expect(allResult.caseSearch?.length).toBe(dataset.getCasesForCollection(c2.id).length)
+    expect(allResult.caseSearch?.length).toBe(c2.cases.length)
 
     const a1Result = resolve(`dataContext[data].collection[collection1].caseSearch[a1==a]`)
     expect(a1Result.caseSearch?.length).toBe(1)
@@ -125,6 +125,34 @@ describe("DataInteractive ResourceParser", () => {
 
     const a3Result = resolve(`dataContext[data].collection[${dataset.childCollection.name}].caseSearch[a3>=2]`)
     expect(a3Result.caseSearch?.length).toBe(5)
+  })
+
+  it.only("finds caseFormulaSearch", () => {
+    expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch`).caseFormulaSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch[]`).caseFormulaSearch).toBeUndefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch[bad formula]`).error).toBeDefined()
+    expect(resolve(`dataContext[data].collection[collection2].caseFormulaSearch[>a2]`).error).toBeDefined()
+
+    const allResult = resolve(`dataContext[data].collection[collection2].caseFormulaSearch[true]`)
+    expect(allResult.caseFormulaSearch?.length).toBe(c2.cases.length)
+
+    const a11Result = resolve(`dataContext[data].collection[collection1].caseFormulaSearch[a1="a"]`)
+    expect(a11Result.caseFormulaSearch?.length).toBe(1)
+    const a21Result = resolve(`dataContext[data].collection[collection2].caseFormulaSearch[a1="a"]`)
+    expect(a21Result.caseFormulaSearch?.length).toBe(2)
+    const a31Result = resolve(`dataContext[data].collection[collection3].caseFormulaSearch[a1="a"]`)
+    expect(a31Result.caseFormulaSearch?.length).toBe(3)
+
+    const a12Result = resolve(`dataContext[data].collection[collection1].caseFormulaSearch[ a2 = "z" ]`)
+    // Can only check attributes in the collection or a parent collection
+    expect(a12Result.caseFormulaSearch?.length).toBe(0)
+    const a22Result = resolve(`dataContext[data].collection[collection2].caseFormulaSearch[ a2 = "z" ]`)
+    expect(a22Result.caseFormulaSearch?.length).toBe(2)
+    const a32Result = resolve(`dataContext[data].collection[collection3].caseFormulaSearch[ a2 = "z" ]`)
+    expect(a32Result.caseFormulaSearch?.length).toBe(2)
+
+    const a33Result = resolve(`dataContext[data].collection[collection3].caseFormulaSearch[a3>2]`)
+    expect(a33Result.caseFormulaSearch?.length).toBe(4)
   })
 
   it("finds item", () => {

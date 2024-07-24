@@ -9,6 +9,7 @@ import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
 import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/tile-environment"
 import { toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { t } from "../utilities/translation/translate"
 import { DIParsedQuery, DIQueryFunction } from "./data-interactive-types"
 
 export function parseSearchQuery(query: string, dataContextOrCollection?: IDataSet | ICollectionModel): DIParsedQuery {
@@ -53,6 +54,7 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
 }
 
 export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, collection: ICollectionModel) {
+  // Build displayNameMap
   const { document } = appState
   const localDataSet = dataset
   const dataSets: Map<string, IDataSet> = new Map()
@@ -61,14 +63,23 @@ export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, c
     dataSets.set(dataSet.id, dataSet)
   })
   const globalValueManager = getGlobalValueManager(getSharedModelManager(document))
-  const childMostCollectionCaseIds = dataset.childCollection.caseIds
   const displayNameMap = getDisplayNameMap({
     localDataSet,
     dataSets,
     globalValueManager,
   })
-  const formula = displayToCanonical(displayFormula, displayNameMap)
+
+  // Canonicalize formula
+  let formula = ""
+  try {
+    formula = displayToCanonical(displayFormula, displayNameMap)
+  } catch (e: any) {
+    return { valid: false, error: t("V3.DI.Error.couldNotParseQuery") }
+  }
+
+  // Evaluate formula for each case in collection
   const caseIds: string[] = []
+  const childMostCollectionCaseIds = dataset.childCollection.caseIds
   const errors = collection.caseIds.map(caseId => {
     const scope = new FormulaMathJsScope({
       localDataSet,
@@ -85,11 +96,13 @@ export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, c
     }
   })
 
+  // Fail if any errors were encountered
   const error = errors.find(e => !!e)
   if (error) {
     return { valid: false, error }
   }
 
+  // Return case ids for cases that satisfied the formula
   return { valid: true, caseIds }
 }
 
