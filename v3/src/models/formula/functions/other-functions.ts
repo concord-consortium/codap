@@ -1,6 +1,10 @@
 import { pickRandom } from "mathjs"
 import { Random } from "random"
 import { FValue } from "../formula-types"
+import { isDate } from "../../../utilities/date-utils"
+import { isDateString, parseDate } from "../../../utilities/date-parser"
+import { UNDEF_RESULT } from "./function-utils"
+import { extractNumeric } from "../../../utilities/math-utils"
 
 const randomGen = new Random()
 
@@ -51,6 +55,17 @@ export const otherFunctions = {
     }
   },
 
-
-
+  number: {
+    numOfRequiredArguments: 1,
+    evaluate: (arg: FValue) => {
+      if (isDate(arg)) {
+        return arg.getTime() / 1000 // Convert to seconds
+      }
+      if (isDateString(arg)) {
+        const time = parseDate(arg)?.getTime()
+        return time != null ? time / 1000 : UNDEF_RESULT // Convert to seconds
+      }
+      return extractNumeric(arg) ?? UNDEF_RESULT
+    }
+  },
 }
