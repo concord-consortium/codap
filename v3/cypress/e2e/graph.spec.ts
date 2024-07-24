@@ -15,11 +15,13 @@ const plots = graphRules.plots
 // (In local, this works fine and the tests can be run successfully)
 context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
+    cy.log('Starting test setup')
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cfm.openLocalDoc("cypress/fixtures/3TableGroups.codap")
     cy.wait(2500)
+    cy.log('Setup complete')
   })
 
   plots.forEach(test => {
