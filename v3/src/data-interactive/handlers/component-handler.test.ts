@@ -1,9 +1,12 @@
 import { getSnapshot } from "mobx-state-tree"
 import { ICaseCardModel, isCaseCardModel } from "../../components/case-card/case-card-model"
 import { kCaseCardIdPrefix } from "../../components/case-card/case-card-registration"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
+import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
 import { appState } from "../../models/app-state"
+import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { toV3Id } from "../../utilities/codap-utils"
 import { V2CaseCard } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
@@ -69,5 +72,20 @@ describe("DataInteractive ComponentHandler", () => {
     expect(card2Tile).toBeDefined()
     expect(isCaseCardModel(card2Tile.content)).toBe(true)
     expect((card2Tile.content as ICaseCardModel).data?.id).toBe(dataset2.id)
+  })
+
+  it("update caseTable works", () => {
+    const { dataset } = setupTestDataset()
+    documentContent.createDataSet(getSnapshot(dataset))
+    const sharedDataSet = getSharedDataSets(documentContent)[0]
+    const component = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
+    const tableContent = component.content as ICaseTableModel
+
+    expect(handler.update?.({}, { horizontalScrollOffset: 100 }).success).toBe(false)
+    expect(handler.update?.({ component }).success).toBe(false)
+
+    expect(tableContent._horizontalScrollOffset).toBe(0)
+    expect(handler.update?.({ component }, { horizontalScrollOffset: 100 }).success).toBe(true)
+    expect(tableContent._horizontalScrollOffset).toBe(100)
   })
 })

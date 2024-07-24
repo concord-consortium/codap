@@ -11,10 +11,20 @@ export const CaseTableModel = TileContentModel
     type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType),
     // key is attribute id; value is width
     columnWidths: types.map(types.number),
+    // Only used for serialization; volatile property used during run time
+    horizontalScrollOffset: 0
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
-    scrollLeft: 0
+    _horizontalScrollOffset: 0
+  }))
+  .actions(self => ({
+    afterCreate() {
+      self._horizontalScrollOffset = self.horizontalScrollOffset
+    },
+    prepareSnapshot() {
+      self.horizontalScrollOffset = self._horizontalScrollOffset
+    }
   }))
   .views(self => ({
     get data() {
@@ -53,8 +63,8 @@ export const CaseTableModel = TileContentModel
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
-    setScrollLeft(scrollLeft: number) {
-      self.scrollLeft = scrollLeft
+    setHorizontalScrollOffset(horizontalScrollOffset: number) {
+      self._horizontalScrollOffset = horizontalScrollOffset
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}

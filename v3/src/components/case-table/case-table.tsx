@@ -9,11 +9,11 @@ import { useSyncScrolling } from "./use-sync-scrolling"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
 import { INotification } from "../../models/history/apply-model-change"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
 
@@ -27,8 +27,6 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
   const tableModel = useCaseTableModel()
-  const { isTileSelected } = useTileModelContext()
-  const isFocused = isTileSelected()
   const contentRef = useRef<HTMLDivElement | null>(null)
   const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
@@ -37,16 +35,28 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     setNodeRef(elt)
   }
 
-  useEffect(function syncScrollLeft() {
-    // There is a bug, seemingly in React, in which the scrollLeft property gets reset
-    // to 0 when the order of tiles is changed (which happens on selecting/focusing tiles
-    // in the free tile layout), even though the CaseTable component is not re-rendered
-    // or unmounted/mounted. Therefore, we reset the scrollLeft property from our saved
-    // cache on focus change.
-    if (isFocused && contentRef.current) {
-      contentRef.current.scrollLeft = tableModel?.scrollLeft ?? 0
+  useEffect(() => {
+    const updateScroll = (horizontalScrollOffset?: number) => {
+      if (horizontalScrollOffset != null && contentRef.current &&
+        contentRef.current.scrollLeft !== horizontalScrollOffset
+      ) {
+        contentRef.current.scrollLeft = horizontalScrollOffset
+      }
     }
-  }, [isFocused, tableModel])
+
+    // Initial scroll is delayed a frame to let RDG do its thing
+    setTimeout(() => updateScroll(tableModel?._horizontalScrollOffset))
+
+    // Reaction handles changes to the model, such as via the API
+    return tableModel && mstReaction(
+      () => tableModel?._horizontalScrollOffset,
+      _horizontalScrollOffset => {
+        updateScroll(_horizontalScrollOffset)
+      },
+      { name: "CaseTable.updateHorizontalScroll" },
+      tableModel
+    )
+  }, [tableModel])
 
   const { handleTableScroll, syncTableScroll } = useSyncScrolling()
 
@@ -100,7 +110,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     const collections = data.collections
     const handleHorizontalScroll: React.UIEventHandler<HTMLDivElement> = () => {
-      tableModel?.setScrollLeft(contentRef.current?.scrollLeft ?? 0)
+      tableModel.setHorizontalScrollOffset(contentRef.current?.scrollLeft ?? 0)
     }
 
     return (
