@@ -1,7 +1,13 @@
 import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
-import { TileContentModel, ITileContentSnapshotWithType } from "./tile-content"
+import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { ITileEnvironment } from "./tile-environment"
+
+// avoids circular dependency on ITileModel
+export interface ITileLikeModel {
+  title?: string
+  content: ITileContentModel
+}
 
 export interface IDefaultContentOptions {
   // environment in which the tile will be created
@@ -26,6 +32,7 @@ export interface ITileContentInfo {
   modelClass: typeof TileContentModel;
   defaultContent: (options?: IDefaultContentOptions) => ITileContentSnapshotWithType;
   titleBase?: string;
+  getTitle: (tile: ITileLikeModel) => string | undefined;
   metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
   hideOnClose?: boolean;
@@ -62,6 +69,11 @@ export function getTileTypes() {
 
 export function getTilePrefixes() {
   return Object.values(gTileContentInfoMap).map(info => info.prefix)
+}
+
+export function getTitle(tile?: ITileLikeModel) {
+  const tileContentInfo = getTileContentInfo(tile?.content.type)
+  return () => tile ? tileContentInfo?.getTitle?.(tile) : undefined
 }
 
 export interface ITileExportOptions {

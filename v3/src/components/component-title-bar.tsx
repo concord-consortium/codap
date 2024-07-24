@@ -14,7 +14,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   tile, getTitle, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
 }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
-  const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
+  const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
   const tileId = tile?.id || ""

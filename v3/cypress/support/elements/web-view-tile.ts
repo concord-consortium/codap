@@ -3,6 +3,7 @@ export const WebViewTileElements = {
     return cy.get(`.chakra-modal__content`)
   },
   enterUrl(url: string) {
+    cy.get(`[data-testid=web-view-url-input]`).clear()
     cy.get(`[data-testid=web-view-url-input]`).type(url)
     cy.get(`[data-testid=OK-button]`).click()
   },

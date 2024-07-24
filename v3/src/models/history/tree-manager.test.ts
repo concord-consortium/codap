@@ -80,6 +80,9 @@ registerTileContentInfo({
   modelClass: TestTile,
   defaultContent(options) {
     return TestTile.create()
+  },
+  getTitle() {
+    return "Test"
   }
 })
 registerTileComponentInfo({

@@ -12,6 +12,8 @@ import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isCodapV2Attribute, isV2TableComponent } from "../../v2/codap-v2-types"
 import { CaseTableInspector } from "./case-table-inspector"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { t } from "../../utilities/translation/translate"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -20,6 +22,10 @@ registerTileContentInfo({
   prefix: kCaseTableIdPrefix,
   modelClass: CaseTableModel,
   defaultContent: () => ({ type: kCaseTableTileType }),
+  getTitle: (tile) => {
+    const data = tile.content && getTileDataSet(tile.content)
+    return data?.title || t("DG.DocumentController.caseTableTitle")
+  },
   hideOnClose: true
 })
 

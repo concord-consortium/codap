@@ -1,5 +1,5 @@
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CalculatorComponent } from "./calculator"
 import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
@@ -9,6 +9,7 @@ import CalcIcon from '../../assets/icons/icon-calc.svg'
 import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
+import { t } from "../../utilities/translation/translate"
 
 export const kCalculatorIdPrefix = "CALC"
 
@@ -17,7 +18,10 @@ registerTileContentInfo({
   prefix: kCalculatorIdPrefix,
   modelClass: CalculatorModel,
   defaultContent: () => ({ type: kCalculatorTileType }),
-  isSingleton: true
+  isSingleton: true,
+  getTitle: (tile: ITileLikeModel) => {
+    return tile.title || t("DG.DocumentController.calculatorTitle")
+  }
 })
 
 registerTileComponentInfo({

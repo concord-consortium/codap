@@ -16,6 +16,7 @@ import { DEBUG_UNDO } from "../../lib/debug"
 import { IDocumentModel } from "../../models/document/document"
 import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
+import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 
@@ -75,7 +76,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       icon: <TileListIcon className="icon-tile-list"/>,
       label: t("DG.ToolButtonData.tileListMenu.title"),
-      hint: t("DG.ToolButtonData.tileListMenu.toolTip")
+      hint: t("DG.ToolButtonData.tileListMenu.toolTip"),
+      button: <TilesListShelfButton key={t("DG.ToolButtonData.tileListMenu.title")} />
     },
     {
       icon: <OptionsIcon className="icon-options"/>,

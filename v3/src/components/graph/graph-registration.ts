@@ -1,10 +1,10 @@
 import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { kGraphIdPrefix, kGraphTileClass, kGraphTileType } from "./graph-defs"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
-import { GraphContentModel, IGraphContentModelSnapshot } from "./models/graph-content-model"
+import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { GraphComponentTitleBar } from "./components/graph-component-title-bar"
@@ -36,6 +36,10 @@ registerTileContentInfo({
       }]
     }
     return graphTileSnapshot
+  },
+  getTitle: (tile: ITileLikeModel) => {
+    const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
+    return tile.title || data?.title || ""
   }
 })
 

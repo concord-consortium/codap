@@ -23,7 +23,8 @@ context("codap toolbar", () => {
   it("will open a graph", () => {
     c.getIconFromToolshelf("graph").click()
     graph.getGraphTile().should("be.visible")
-    c.getComponentTitle("graph").should("have.text", "New Dataset")
+    // graphs with no associated data set should not have a title
+    c.getComponentTitle("graph").should("have.text", "")
   })
   it("will open a map", () => {
     c.getIconFromToolshelf("map").click()
@@ -50,9 +51,7 @@ context("codap toolbar", () => {
   })
   it('will display a webpage', ()=>{
       const url='https://www.wikipedia.org'
-      let deleteUrl = ""
-      for (let i = 0; i < url.length; i++) deleteUrl += "{backspace}"
-      const url2=`${deleteUrl}https://en.wikipedia.org/wiki/Concord_Consortium`
+      const url2='https://en.wikipedia.org/wiki/Concord_Consortium'
       toolbar.getOptionsButton().click()
       toolbar.getWebViewButton().click()
       webView.getUrlModal().should("exist")
@@ -65,5 +64,47 @@ context("codap toolbar", () => {
       webView.enterUrl(url2)
       cy.wait(1000)
       webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
+  })
+  it('will show a list of open tiles when there is no data context', ()=>{
+    // Don't open a table as this automatically creates a data context
+    c.getIconFromToolshelf("graph").click()
+    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolshelf("calc").click()
+    c.getIconFromToolshelf("plugins").click()
+    toolbar.getPluginSelection().eq(0).click()
+    //TODO need to add check for Text component
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    toolbar.getTilesListMenuItem().should("have.length", 5)
+
+    toolbar.getTilesListMenuItem().eq(0).should("have.text", "")
+    toolbar.getTilesListMenuIcon().eq(0).should("have.class", "Graph")
+    toolbar.getTilesListMenuItem().eq(1).should("have.text", "Map")
+    toolbar.getTilesListMenuIcon().eq(1).should("have.class", "Map")
+    toolbar.getTilesListMenuItem().eq(2).should("have.text", "v1")
+    toolbar.getTilesListMenuIcon().eq(2).should("have.class", "CodapSlider")
+    toolbar.getTilesListMenuItem().eq(3).should("have.text", "Calculator")
+    toolbar.getTilesListMenuIcon().eq(3).should("have.class", "Calculator")
+    toolbar.getTilesListMenuItem().eq(4).should("have.text", "Sampler")
+    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "WebView")
+  })
+  it('will show correct title for a new table', ()=>{
+    c.getIconFromToolshelf("table").click()
+    toolbar.getNewCaseTable().click()
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    toolbar.getTilesListMenuItem().should("have.length", 1)
+    toolbar.getTilesListMenuItem().eq(0).should("have.text", "New Dataset")
+    toolbar.getTilesListMenuIcon().eq(0).should("have.class", "CaseTable")
+  })
+  it('will show a list of open tiles when there is a data context', ()=>{
+    cy.visit("#file=examples:Four%20Seals")
+    toolbar.getTilesButton().click()
+    toolbar.getTilesListMenu().should("be.visible")
+    toolbar.getTilesListMenuItem().should("have.length", 3)
+    toolbar.getTilesListMenuItem().eq(0).should("have.text", "Tracks/Measurements")
+    toolbar.getTilesListMenuItem().eq(1).should("have.text", "Measurements")
+    toolbar.getTilesListMenuItem().eq(2).should("have.text", "Measurements")
   })
 })
