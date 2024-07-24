@@ -1,6 +1,7 @@
 import { MathNode } from "mathjs"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { isValueNonEmpty } from "../../../utilities/math-utils"
+import { CurrentScope, MathJSPartitionedMap } from "../formula-types"
 export { isNumber, isValueNonEmpty } from "../../../utilities/math-utils"
 
 export const UNDEF_RESULT = ""
@@ -32,4 +33,24 @@ equal = (a: any, b: any): boolean => {
 
 export const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
   return node.compile().evaluate(scope)
+}
+
+// This function is used to get the root scope (an instance of our FormulaMathJSScope) within custom MathJS functions.
+// When the formula expression is executed, the initially passed scope can be wrapped in MathJS's PartitionedMap, which
+// is used to store temporary values. This function retrieves the root scope from the PartitionedMap.
+// This approach has been recommended by a MathJS maintainer. For more details, see:
+// https://github.com/josdejong/mathjs/pull/3150#issuecomment-2248101774
+export const getRootScope = (currentScope: CurrentScope): FormulaMathJsScope => {
+  return isPartitionedMap(currentScope) ? getRootScope(currentScope.a) : currentScope
+}
+
+export const isPartitionedMap = (map: any): map is MathJSPartitionedMap => {
+  // We could also check isMap(map.a), but that makes tests and mocking more difficult.
+  // The current check is probably specific enough to be safe.
+  return map && typeof map.a === "object" && isMap(map.b)
+}
+
+export const isMap = (map: any) => {
+  const requiredMapMethods = ['get', 'set', 'has', 'delete', 'entries']
+  return map && typeof map === 'object' && requiredMapMethods.every(method => typeof map[method] === 'function')
 }
