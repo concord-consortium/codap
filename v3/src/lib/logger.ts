@@ -15,6 +15,7 @@ export interface LogMessage {
   application: string
   activity?: string
   event: string
+  event_value: string
   run_remote_endpoint?: string
   session: string
   time: number
