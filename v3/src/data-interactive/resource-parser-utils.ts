@@ -1,7 +1,6 @@
 import { appState } from "../models/app-state"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
-import { CaseGroup } from "../models/data/data-set-types"
 import { FormulaMathJsScope } from "../models/formula/formula-mathjs-scope"
 import { math } from "../models/formula/functions/math"
 import { displayToCanonical } from "../models/formula/utils/canonicalization-utils"
@@ -69,19 +68,29 @@ export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, c
     globalValueManager,
   })
   const formula = displayToCanonical(displayFormula, displayNameMap)
-  const cases: string[] = []
-  collection.caseIds.forEach(caseId => {
-    const caseIds = [caseId]
+  const caseIds: string[] = []
+  const errors = collection.caseIds.map(caseId => {
     const scope = new FormulaMathJsScope({
       localDataSet,
       dataSets,
       globalValueManager,
-      caseIds,
+      caseIds: [caseId],
       childMostCollectionCaseIds
     })
-    if (math.evaluate(formula, scope)) cases.push(caseId)
+
+    try {
+      if (math.evaluate(formula, scope)) caseIds.push(caseId)
+    } catch (e: any) {
+      return e.message
+    }
   })
-  return cases
+
+  const error = errors.find(e => !!e)
+  if (error) {
+    return { valid: false, error }
+  }
+
+  return { valid: true, caseIds }
 }
 
 export function findTileFromV2Id(v2Id: string) {

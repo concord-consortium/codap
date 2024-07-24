@@ -186,15 +186,16 @@ export function resolveResources(
   }
 
   if (resourceSelector.caseFormulaSearch && collection && dataContext) {
-    try {
-      result.caseFormulaSearch = []
-      const caseIds = evaluateCaseFormula(resourceSelector.caseFormulaSearch, dataContext, collection)
+    result.caseFormulaSearch = []
+    const { valid, caseIds, error } =
+      evaluateCaseFormula(resourceSelector.caseFormulaSearch, dataContext, collection)
+    if (valid && caseIds) {
       caseIds.forEach(caseId => {
         const caseGroup = collection.getCaseGroup(caseId)
         if (caseGroup) result.caseFormulaSearch?.push(caseGroup.groupedCase)
       })
-    } catch (e) {
-      result.caseFormulaSearch = undefined
+    } else {
+      result.error = error
     }
   }
 

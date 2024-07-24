@@ -1,14 +1,15 @@
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { getCaseRequestResultValues } from "../data-interactive-type-utils"
-import { collectionNotFoundResult, couldNotParseQueryResult, dataContextNotFoundResult } from "./di-results"
+import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
 export const diCaseFormulaSearchHandler: DIHandler = {
   get(resources: DIResources) {
-    const { caseFormulaSearch, collection, dataContext } = resources
+    const { caseFormulaSearch, collection, dataContext, error } = resources
     if (!collection) return collectionNotFoundResult
     if (!dataContext) return dataContextNotFoundResult
-    if (!caseFormulaSearch) return couldNotParseQueryResult
+
+    if (error) return { success: false, error }
 
     return {
       success: true,

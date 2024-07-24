@@ -152,6 +152,7 @@ export interface DIResources {
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
+  error?: string
   global?: IGlobalValue
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
