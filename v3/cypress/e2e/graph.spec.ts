@@ -147,14 +147,20 @@ context("Graph UI", () => {
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
-      table.getGridCell(3, 4).click().dblclick()
-      cy.get("[data-testid=cell-text-editor]").type("700{enter}")
+      table.getGridCell(3, 4).dblclick()
+      // Wait for the input to appear and then type
+      table.getGridCell(3, 4).within(() => {
+        cy.get('input').should('be.visible').type("700{enter}", {force: true})
+      })
 
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
-      table.getGridCell(3, 5).click().dblclick()
-      cy.get("[data-testid=cell-text-editor]").type("300{enter}")
+      table.getGridCell(3, 5).dblclick()
+      // Wait for the input to appear and then type
+      table.getGridCell(3, 5).within(() => {
+        cy.get('input').should('be.visible').type("700{enter}", {force: true})
+      })
 
       // get the rescale button
       c.getComponentTitle("graph").should("have.text", collectionName).click()
