@@ -91,7 +91,6 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
           <DGCaseCard
             size={{ width, height }}
             context={context}
-            caseMetaData={metadata}
             columnWidthMap={columnWidths}
             isSelectedCallback={() => false}
             onResizeColumn={handleResizeColumn}

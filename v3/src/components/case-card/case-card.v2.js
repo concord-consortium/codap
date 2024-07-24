@@ -304,7 +304,7 @@ iDataContext.doSelectCases({
             })
           },
 
-          renderAttribute (iContext, iCaseMetadata, iCollection, iCases,
+          renderAttribute (iContext, iCollection, iCases,
                                      iAttr, iAttrIndex, iShouldSummarize, iChildmostSelected) {
             /**
              * -------------------------Dragging this attribute----------------
@@ -902,7 +902,7 @@ return tResult
                   iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
                     if (!tCaseMetadata?.isHidden(iAttr.get("id"))) {
                       tAttrEntries.push(
-                          this.renderAttribute(tContext, tCaseMetadata, iCollection, tCases,
+                          this.renderAttribute(tContext, iCollection, tCases,
                               iAttr, iAttrIndex, tShouldSummarize,
                               tChildmostSelection))
                     }
@@ -959,7 +959,6 @@ return tResult
     size: PropTypes.shape({ width: PropTypes.number }),
     // the data context
     context: PropTypes.instanceOf(DG.DataContext).isRequired,
-    caseMetaData: SharedCaseMetaDataPropType.isRequired,
     // drag/drop support
     dragStatus: PropTypes.object,
     // map from collection name => column width percentage (0-1)
