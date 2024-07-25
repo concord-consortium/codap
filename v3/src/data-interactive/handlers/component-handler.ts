@@ -35,6 +35,7 @@ import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { IDataSet } from "../../models/data/data-set"
+import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import {
   ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
@@ -47,11 +48,11 @@ import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import {
-  kComponentTypeV2ToV3Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType, kV2GraphType,
-  kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
+  kComponentTypeV2ToV3Map, kComponentTypeV3ToV2Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType,
+  kV2GraphType, kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
 } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DINotification, diNotImplementedYet, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DINotification, DIResources, DIValues } from "../data-interactive-types"
 import { componentNotFoundResult, dataContextNotFoundResult, errorResult, valuesRequiredResult } from "./di-results"
 
 export const diComponentHandler: DIHandler = {
@@ -395,7 +396,37 @@ export const diComponentHandler: DIHandler = {
     return { success: true }
   },
 
-  get: diNotImplementedYet,
+  get(resources: DIResources) {
+    const { component } = resources
+    if (!component) return componentNotFoundResult
+
+    const { cannotClose, content, id, title } = component
+    const v2Id = toV2Id(id)
+    const row = appState.document.content?.findRowContainingTile(id)
+    const freeTileRow = row && isFreeTileRow(row) ? row : undefined
+    const dimensions = freeTileRow?.getTileDimensions(id)
+    const position = freeTileRow?.getTilePosition(id)
+    const generalValues = {
+      cannotClose,
+      dimensions,
+      id: v2Id,
+      name: `${v2Id}`,
+      position,
+      title,
+      type: kComponentTypeV3ToV2Map[content.type]
+    }
+
+    if (isCaseTableModel(content)) {
+      const dataContext = content.data?.name
+      const horizontalScrollOffset = content._horizontalScrollOffset
+
+      // TODO Include isIndexHidden
+      const values = { ...generalValues, dataContext, horizontalScrollOffset }
+      return { success: true, values }
+    }
+
+    return { success: false, values: { error: "Unsupported component type"} }
+  },
 
   notify(resources: DIResources, values?: DIValues) {
     const { component } = resources
