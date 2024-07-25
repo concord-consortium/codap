@@ -1,6 +1,8 @@
 import { getSnapshot } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
+import { isCalculatorModel } from "../../components/calculator/calculator-model"
 import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
+import { isCaseCardModel } from "../../components/case-card/case-card-model"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
@@ -9,7 +11,9 @@ import {
   AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
 } from "../../components/data-display/models/data-configuration-model"
 import { kGraphTileType } from "../../components/graph/graph-defs"
-import { GraphContentModel, IGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
+import {
+  GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel
+} from "../../components/graph/models/graph-content-model"
 import {
   IGraphDataConfigurationModel, kGraphDataConfigurationType
 } from "../../components/graph/models/graph-data-configuration-model"
@@ -416,12 +420,28 @@ export const diComponentHandler: DIHandler = {
       type: kComponentTypeV3ToV2Map[content.type]
     }
 
-    if (isCaseTableModel(content)) {
+    if (isCalculatorModel(content)) {
+      return { success: true, values: generalValues }
+
+    } else if (isCaseCardModel(content)) {
+      const dataContext = content.data?.name
+
+      const values = { ...generalValues, dataContext }
+      return { success: true, values }
+
+    } else if (isCaseTableModel(content)) {
       const dataContext = content.data?.name
       const horizontalScrollOffset = content._horizontalScrollOffset
 
       // TODO Include isIndexHidden
       const values = { ...generalValues, dataContext, horizontalScrollOffset }
+      return { success: true, values }
+
+    } else if (isGraphContentModel(content)) {
+      const dataContext = content.dataset?.name
+      // TODO Flesh out
+
+      const values = { ...generalValues, dataContext }
       return { success: true, values }
     }
 
