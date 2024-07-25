@@ -49,13 +49,15 @@ describe("DataInteractive CollectionHandler", () => {
     // Won't create an attribute with a duplicate name
     // Add attributes with both attrs and attributes
     const twoResult = handler.create?.({ dataContext}, [
-      { name: "c3", parent: c2.id, attrs: [{ name: "a5" }] },
+      { name: "c3", parent: c2.id, attrs: [{ name: "a5" }], labels: { singleCase: "single", pluralCase: "plural" } },
       { name: "c4", parent: "c3", attrs: [{ name: "a7" }], attributes: [{ name: "a6" }] }
     ])
     expect(twoResult?.success).toBe(true)
     expect(dataset.collections.length).toBe(7)
     expect(dataset.collections[3].name).toBe("c3")
     expect(dataset.collections[3].attributes.length).toBe(0)
+    expect(dataset.collections[3].labels?.singleCase).toBe("single")
+    expect(dataset.collections[3].labels?.pluralCase).toBe("plural")
     expect(dataset.collections[4].name).toBe("c4")
     expect(dataset.collections[4].attributes.length).toBe(2)
     expect(dataset.collections[4].attributes[0]?.name).toBe("a6")

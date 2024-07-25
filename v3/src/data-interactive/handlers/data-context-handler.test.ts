@@ -39,11 +39,14 @@ describe("DataInteractive DataContextHandler", () => {
     expect(gDataBroker.length).toBe(0)
 
     // Can create a more complex dataset
+    const singleCase = "case"
+    const pluralCase = "cases"
     const result3 = handler.create?.({}, {
       collections: [
         {
           name: "collection1",
-          attrs: [{ name: "attr1" }, { name: "attr2" }]
+          attrs: [{ name: "attr1" }, { name: "attr2" }],
+          labels: { singleCase, pluralCase }
         },
         {
           name: "collection2",
@@ -55,9 +58,12 @@ describe("DataInteractive DataContextHandler", () => {
     expect(gDataBroker.length).toBe(1)
     const defaultName = "Data_Set_1"
     expect((result3?.values as DIDataContext)?.name).toBe(defaultName)
-    const dataset = gDataBroker.getDataSetByName(defaultName)
-    expect(dataset?.collections.length).toBe(2)
-    expect(dataset?.attributes.length).toBe(4)
+    const dataset = gDataBroker.getDataSetByName(defaultName)!
+    expect(dataset.collections.length).toBe(2)
+    const collection1 = dataset.getCollectionByName("collection1")
+    expect(collection1?.labels?.singleCase).toBe(singleCase)
+    expect(collection1?.labels?.pluralCase).toBe(pluralCase)
+    expect(dataset.attributes.length).toBe(4)
   })
 
   it("get works as expected", () => {
