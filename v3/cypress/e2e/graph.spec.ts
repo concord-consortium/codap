@@ -161,7 +161,7 @@ context("Graph UI", () => {
       table.getGridCell(3, 5).dblclick()
       // Wait for the input to appear and then type
       table.getGridCell(3, 5).within(() => {
-        cy.get('input').should('be.visible').type("700{enter}", {force: true})
+        cy.get('input').should('be.visible').type("300{enter}", {force: true})
       })
 
       // get the rescale button
