@@ -296,8 +296,7 @@ context("case table ui", () => {
 
       // verify new attribute exists
       table.getColumnHeaders().should("have.length.be.within", 10, 11)
-      table.getAttribute("newAttr").should("exist")
-      table.getAttribute("newAttr").click()
+      table.getAttributeInput().last().should("exist").and("have.value", "newAttr").type("{enter}")
       table.getAttribute("newAttr").should("have.text", "newAttr")
 
       cy.log("check undo/redo after add new attribute")
@@ -925,7 +924,7 @@ context("case table ui", () => {
       // verify that cell shows color swatch of appropriate color
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
       // double-click to begin editing cell
-      table.getGridCell(2, 2).dblclick()
+      table.getGridCell(2, 2).click().dblclick()
       // click color swatch to bring up color palette
       table.getGridCell(2, 2).get(".cell-edit-color-swatch").click()
       // click hue bar to change color
