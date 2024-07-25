@@ -73,13 +73,13 @@ export class CodapV2Document {
 
   registerContexts(contexts?: ICodapV2DataContext[]) {
     contexts?.forEach(context => {
-      const { guid, type = "DG.DataContext", document, name = "", collections = [] } = context
+      const { guid, type = "DG.DataContext", document, name = "", title, collections = [] } = context
       if (document && this.guidMap.get(document)?.type !== "DG.Document") {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
       }
       this.guidMap.set(guid, { type, object: context })
       const dataSetId = toV3DataSetId(guid)
-      const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name } })
+      const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title } })
       this.dataMap.set(guid, sharedDataSet)
       const metadata = SharedCaseMetadata.create({ data: dataSetId })
       this.metadataMap.set(guid, metadata)

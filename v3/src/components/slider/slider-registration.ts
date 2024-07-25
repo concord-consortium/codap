@@ -1,6 +1,6 @@
 import { SetRequired } from "type-fest"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
@@ -9,11 +9,13 @@ import { isV2SliderComponent } from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
 import { SliderInspector } from "./slider-inspector"
 import { kSliderTileType, kSliderTileClass } from "./slider-defs"
-import { ISliderSnapshot, SliderModel } from "./slider-model"
+import { ISliderSnapshot, SliderModel, isSliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
 import SliderIcon from '../../assets/icons/icon-slider.svg'
 import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
+import { t } from "../../utilities/translation/translate"
+import { isAliveSafe } from "../../utilities/mst-utils"
 
 export const kSliderIdPrefix = "SLID"
 
@@ -31,6 +33,12 @@ registerTileContentInfo({
       type: kSliderTileType, globalValue: globalValue?.id ?? ""
     }
     return sliderTileSnap
+  },
+  getTitle: (tile: ITileLikeModel) => {
+    const { title, content } = tile || {}
+    const sliderModel = isAliveSafe(content) && isSliderModel(content) ? content : undefined
+    const { name } = sliderModel || {}
+    return title || name || t("DG.DocumentController.sliderTitle")
   }
 })
 

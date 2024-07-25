@@ -1,5 +1,5 @@
 import { setupTestDataset } from "./handlers/handler-test-utils"
-import { parseSearchQuery } from "./resource-parser-utils"
+import { evaluateCaseFormula, parseSearchQuery } from "./resource-parser-utils"
 
 describe("DataInteractive ResourceParser Utilities", () => {
   it("parses search queries", () => {
@@ -30,5 +30,26 @@ describe("DataInteractive ResourceParser Utilities", () => {
     expect(emptyResult.valid).toBe(true)
     expect(emptyResult.left?.attr?.id).toBe(a1.id)
     expect(emptyResult.right?.value).toBe("")
+  })
+
+  it("evaluates case formulas", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const c3 = dataset.collections[2]
+
+    expect(evaluateCaseFormula("bad formula", dataset, c1).valid).toBe(false)
+
+    const allResult = evaluateCaseFormula("true", dataset, c1)
+    expect(allResult.valid).toBe(true)
+    expect(allResult.caseIds?.length).toBe(2)
+    expect(evaluateCaseFormula("true", dataset, c2).caseIds?.length).toBe(4)
+    expect(evaluateCaseFormula("true", dataset, c3).caseIds?.length).toBe(6)
+
+    expect(evaluateCaseFormula("a3 < 4", dataset, c3).caseIds?.length).toBe(3)
+    expect(evaluateCaseFormula("a3 < 4", dataset, c2).caseIds?.length).toBe(3)
+    expect(evaluateCaseFormula("a3 < 4", dataset, c1).caseIds?.length).toBe(2)
+
+    expect(evaluateCaseFormula(`a3 < 4 and a1 != "b"`, dataset, c3).caseIds?.length).toBe(2)
+    expect(evaluateCaseFormula(`a3 < 4 and a1 != "b"`, dataset, c2).caseIds?.length).toBe(2)
+    expect(evaluateCaseFormula(`a3 < 4 and a1 != "b"`, dataset, c1).caseIds?.length).toBe(1)
   })
 })

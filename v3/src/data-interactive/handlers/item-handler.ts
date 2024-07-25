@@ -43,7 +43,7 @@ export const diItemHandler: DIHandler = {
 
       // Add items and update cases
       itemIDs = dataContext.addCases(items, { canonicalize: true })
-      dataContext.validateCaseGroups()
+      dataContext.validateCases()
 
       // Find newly added cases by comparing current cases to previous cases
       dataContext.collections.forEach(collection => {

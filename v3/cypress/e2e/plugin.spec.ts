@@ -318,7 +318,7 @@ context("codap plugins", () => {
     cy.log("Broadcast deleteCollection notifications when deleting the final attribute")
     cfm.openExampleDocument("Four Seals")
     cy.wait(2000)
-    table.getTableTile().should("contain.text", "Data_Set_1")
+    table.getTableTile().should("contain.text", "Tracks/Measurements")
     table.deleteAttrbute("species")
     openAPITester()
     webView.toggleAPITesterFilter()

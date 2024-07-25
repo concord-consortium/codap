@@ -67,5 +67,5 @@ export const otherFunctions = {
       }
       return extractNumeric(arg) ?? UNDEF_RESULT
     }
-  },
+  }
 }

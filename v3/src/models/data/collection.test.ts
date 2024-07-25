@@ -233,14 +233,22 @@ describe("CollectionModel", () => {
     c1.addAttribute(a1)
     c2.addAttribute(a2)
 
+    const itemIdToCaseIdMap = new Map<string, string>()
+
+    function caseIdsForItems(itemIds: string[]) {
+      return itemIds.map(itemId => itemIdToCaseIdMap.get(itemId))
+    }
+
     const itemData: IItemData = {
-      itemIds: () => ["0", "1", "2", "3", "4", "5"],
+      itemIds: () => ["0", "1", "2", "3", "4", "5"].map(id => `i${id}`),
       getValue: (itemId: string, attrId: string) => {
-        const index = +itemId
+        const baseId = itemId.substring(1)
+        const index = +baseId
         return attrId === "a1"
                 ? ["a", "b"][index % 2]
-                : itemId
+                : baseId
       },
+      addItemInfo: (itemId, index, caseId) => itemIdToCaseIdMap.set(itemId, caseId),
       invalidate: jest.fn()
     }
     syncCollectionLinks(root.collections, itemData)
@@ -260,18 +268,20 @@ describe("CollectionModel", () => {
 
     expect(c1.caseIds.length).toBe(2)
     expect(c1.cases.length).toBe(2)
-    expect(c2.caseIds).toEqual(["0", "2", "4", "1", "3", "5"])
+    expect(c2.caseIds).toEqual(caseIdsForItems(["i0", "i2", "i4", "i1", "i3", "i5"]))
     expect(c2.findParentCaseGroup("foo")).toBeUndefined()
-    expect(c1.caseGroups[0].childCaseIds).toEqual(["0", "2", "4"])
-    expect(c1.caseGroups[0].childItemIds).toEqual(["0", "2", "4"])
-    expect(c1.caseGroups[1].childCaseIds).toEqual(["1", "3", "5"])
-    expect(c1.caseGroups[1].childItemIds).toEqual(["1", "3", "5"])
+    expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i0", "i2", "i4"]))
+    expect(c1.caseGroups[0].childItemIds).toEqual(["i0", "i2", "i4"])
+    expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"]))
+    expect(c1.caseGroups[1].childItemIds).toEqual(["i1", "i3", "i5"])
 
     itemData.itemIds().forEach((itemId, index) => {
-      expect(c2.hasCase(itemId)).toBe(true)
-      expect(c2.getCaseIndex(itemId)).toBe(index)
-      expect(c2.getCaseGroup(itemId)!.childItemIds).toEqual([itemId])
-      expect(c1.findParentCaseGroup(itemId)).toBe(c1.caseGroups[+itemId % 2])
+      const itemBaseId = itemId.substring(1)
+      const caseId = itemIdToCaseIdMap.get(itemId)!
+      expect(c2.hasCase(caseId)).toBe(true)
+      expect(c2.getCaseIndex(caseId)).toBe(index)
+      expect(c2.getCaseGroup(caseId)!.childItemIds).toEqual([itemId])
+      expect(c1.findParentCaseGroup(caseId)).toBe(c1.caseGroups[+itemBaseId % 2])
     })
 
     // serializes group key => case id map appropriately
@@ -287,9 +297,9 @@ describe("CollectionModel", () => {
     expect(c1New.groupKeyCaseIds.get(aGroupKey)).toBe(aCaseId)
     expect(c1New.groupKeyCaseIds.get(bGroupKey)).toBe(bCaseId)
 
-    // childmost collection doesn't serialize its mapping since case id === item id
+    // childmost collection has 1:1 case ids with items
     c2.prepareSnapshot()
-    expect(c2._groupKeyCaseIds).toEqual([])
+    expect(c2._groupKeyCaseIds!.length).toEqual(itemData.itemIds().length)
 
     // adding an attribute to the child collection doesn't invalidate grouping
     c2.addAttribute(a4)

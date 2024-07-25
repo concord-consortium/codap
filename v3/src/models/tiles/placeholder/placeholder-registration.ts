@@ -12,7 +12,8 @@ registerTileContentInfo({
   type: kPlaceholderTileType,
   prefix: "PLAC",
   modelClass: PlaceholderContentModel,
-  defaultContent: defaultPlaceholderContent
+  defaultContent: defaultPlaceholderContent,
+  getTitle: () => "Placeholder"
 })
 
 registerTileComponentInfo({

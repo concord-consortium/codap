@@ -38,7 +38,7 @@ export const evaluateNode = (node: MathNode, scope?: FormulaMathJsScope) => {
 // This function is used to get the root scope (an instance of our FormulaMathJSScope) within custom MathJS functions.
 // When the formula expression is executed, the initially passed scope can be wrapped in MathJS's PartitionedMap, which
 // is used to store temporary values. This function retrieves the root scope from the PartitionedMap.
-// This approach has been recommended by a MathJS maintainer. For more details, see:
+// This approach has been recommended by the MathJS maintainer. For more details, see:
 // https://github.com/josdejong/mathjs/pull/3150#issuecomment-2248101774
 export const getRootScope = (currentScope: CurrentScope): FormulaMathJsScope => {
   return isPartitionedMap(currentScope) ? getRootScope(currentScope.a) : currentScope
