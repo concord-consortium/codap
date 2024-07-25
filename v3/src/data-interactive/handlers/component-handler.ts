@@ -1,5 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
+import { isNumericAxisModel } from "../../components/axis/models/axis-model"
 import { isCalculatorModel } from "../../components/calculator/calculator-model"
 import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { isCaseCardModel } from "../../components/case-card/case-card-model"
@@ -435,9 +436,53 @@ export const diComponentHandler: DIHandler = {
       values = { ...generalValues, dataContext, horizontalScrollOffset } as V2CaseTable
 
     } else if (isGraphContentModel(content)) {
-      const dataContext = content.dataset?.name
-      // TODO Flesh out
-      values = { ...generalValues, dataContext } as V2Graph
+      const dataset = content.dataset
+      const dataContext = dataset?.name
+      const { dataConfiguration } = content.graphPointLayerModel
+      const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
+      
+      const captionAttributeId = dataConfiguration.attributeDescriptions.caption?.attributeID
+      const captionAttributeName = captionAttributeId ? dataset?.getAttribute(captionAttributeId)?.name : undefined
+
+      const legendAttributeId = dataConfiguration.attributeDescriptions.legend?.attributeID
+      const legendAttributeName = legendAttributeId ? dataset?.getAttribute(legendAttributeId)?.name : undefined
+
+      const rightSplitId = dataConfiguration.attributeDescriptions.rightSplit?.attributeID
+      const rightSplitAttributeName = rightSplitId ? dataset?.getAttribute(rightSplitId)?.name : undefined
+
+      const topSplitId = dataConfiguration.attributeDescriptions.topSplit?.attributeID
+      const topSplitAttributeName = topSplitId ? dataset?.getAttribute(topSplitId)?.name : undefined
+
+      const xAttributeId = dataConfiguration.attributeDescriptions.x?.attributeID
+      const xAttributeName = xAttributeId ? dataset?.getAttribute(xAttributeId)?.name : undefined
+      const xAxis = content.getAxis("bottom")
+      const xNumericAxis = isNumericAxisModel(xAxis) ? xAxis : undefined
+      const xLowerBound = xNumericAxis?.min
+      const xUpperBound = xNumericAxis?.max
+
+      const yAttributeId = dataConfiguration.attributeDescriptions.y?.attributeID
+      const yAttributeName = yAttributeId ? dataset?.getAttribute(yAttributeId)?.name : undefined
+      const yAxis = content.getAxis("left")
+      const yNumericAxis = isNumericAxisModel(yAxis) ? yAxis : undefined
+      const yLowerBound = yNumericAxis?.min
+      const yUpperBound = yNumericAxis?.max
+
+      const y2AttributeId = dataConfiguration.attributeDescriptions.rightNumeric?.attributeID
+      const y2AttributeName = y2AttributeId ? dataset?.getAttribute(y2AttributeId)?.name : undefined
+      const y2Axis = content.getAxis("rightNumeric")
+      const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined
+      const y2LowerBound = y2NumericAxis?.min
+      const y2UpperBound = y2NumericAxis?.max
+
+      values = {
+        ...generalValues,
+        dataContext, enableNumberToggle, numberToggleLastMode,
+        captionAttributeName, legendAttributeName,
+        rightSplitAttributeName, topSplitAttributeName,
+        xAttributeName, xLowerBound, xUpperBound,
+        yAttributeName, yLowerBound, yUpperBound,
+        y2AttributeName, y2LowerBound, y2UpperBound
+      } as V2Graph
 
     } else if (isMapContentModel(content)) {
       values = { ...generalValues, dataContext: content.dataConfiguration?.dataset?.name } as V2Map
