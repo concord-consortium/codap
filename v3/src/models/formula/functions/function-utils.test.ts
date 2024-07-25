@@ -1,5 +1,7 @@
-import { isValueTruthy, equal, evaluateNode } from "./function-utils"
+import { isValueTruthy, equal, evaluateNode, isPartitionedMap, isMap, getRootScope } from "./function-utils"
 import { parse } from "mathjs"
+import { CurrentScope } from "../formula-types"
+import { FormulaMathJsScope } from "../formula-mathjs-scope"
 
 describe("isValueTruthy", () => {
   it("should return true for truthy values", () => {
@@ -40,5 +42,41 @@ describe("evaluateNode", () => {
   it("should evaluate math nodes correctly", () => {
     const node = parse("1 + 2")
     expect(evaluateNode(node)).toBe(3)
+  })
+})
+
+describe("isPartitionedMap", () => {
+  it("should return true for partitioned map", () => {
+    const map = { a: {}, b: new Map() }
+    expect(isPartitionedMap(map)).toBe(true)
+  })
+
+  it("should return false for non-partitioned map", () => {
+    const map = new Map()
+    expect(isPartitionedMap(map)).toBe(false)
+  })
+})
+
+describe("isMap", () => {
+  it("should return true for map", () => {
+    const map = new Map()
+    expect(isMap(map)).toBe(true)
+  })
+
+  it("should return false for non-map", () => {
+    const map = {}
+    expect(isMap(map)).toBe(false)
+  })
+})
+
+describe("getRootScope", () => {
+  it("should return root scope for partitioned map", () => {
+    const scope = { a: {}, b: new Map() }
+    expect(getRootScope(scope as any as CurrentScope)).toBe(scope.a)
+  })
+
+  it("should return scope for non-partitioned map", () => {
+    const scope = {} as any as FormulaMathJsScope
+    expect(getRootScope(scope)).toBe(scope)
   })
 })
