@@ -23,7 +23,7 @@ import {
   IGraphPointLayerModelSnapshot, kGraphPointLayerType
 } from "../../components/graph/models/graph-point-layer-model"
 import { IMapBaseLayerModelSnapshot } from "../../components/map/models/map-base-layer-model"
-import { IMapModelContentSnapshot } from "../../components/map/models/map-content-model"
+import { IMapModelContentSnapshot, isMapContentModel } from "../../components/map/models/map-content-model"
 import { kMapTileType } from "../../components/map/map-defs"
 import { kMapPointLayerType, kMapPolygonLayerType } from "../../components/map/map-types"
 import { IMapPointLayerModelSnapshot } from "../../components/map/models/map-point-layer-model"
@@ -424,9 +424,7 @@ export const diComponentHandler: DIHandler = {
       return { success: true, values: generalValues }
 
     } else if (isCaseCardModel(content)) {
-      const dataContext = content.data?.name
-
-      const values = { ...generalValues, dataContext }
+      const values = { ...generalValues, dataContext: content.data?.name }
       return { success: true, values }
 
     } else if (isCaseTableModel(content)) {
@@ -442,6 +440,25 @@ export const diComponentHandler: DIHandler = {
       // TODO Flesh out
 
       const values = { ...generalValues, dataContext }
+      return { success: true, values }
+
+    } else if (isMapContentModel(content)) {
+      const values = { ...generalValues, dataContext: content.dataConfiguration?.dataset?.name }
+      return { success: true, values }
+
+    } else if (isSliderModel(content)) {
+      const animationDirection = AnimationDirections.findIndex(value => value === content.animationDirection)
+      const animationMode = AnimationModes.findIndex(value => value === content.animationMode)
+
+      const values = {
+        ...generalValues,
+        animationDirection,
+        animationMode,
+        globalValueName: content.globalValue.name,
+        lowerBound: content.axis.min,
+        upperBound: content.axis.max,
+        value: content.globalValue.value
+      }
       return { success: true, values }
     }
 
