@@ -35,7 +35,7 @@ import { kSliderTileType } from "../../components/slider/slider-defs"
 import { ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
 import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
-import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
+import { isWebViewModel, IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { IDataSet } from "../../models/data/data-set"
@@ -53,7 +53,8 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import {
   kComponentTypeV2ToV3Map, kComponentTypeV3ToV2Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType,
-  kV2GraphType, kV2MapType, kV2SliderType, kV2WebViewType, V2CaseTable, V2Component, V2Graph, V2Map, V2Slider, V2WebView
+  kV2GraphType, kV2MapType, kV2SliderType, kV2WebViewType, V2Calculator, V2CaseCard, V2CaseTable, V2Component, V2Game,
+  V2Graph, V2Map, V2Slider, V2SpecificComponent, V2WebView
 } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DINotification, DIResources, DIValues } from "../data-interactive-types"
@@ -420,37 +421,31 @@ export const diComponentHandler: DIHandler = {
       type: kComponentTypeV3ToV2Map[content.type]
     }
 
+    let values: V2SpecificComponent | undefined
     if (isCalculatorModel(content)) {
-      return { success: true, values: generalValues }
+      values = generalValues as V2Calculator
 
     } else if (isCaseCardModel(content)) {
-      const values = { ...generalValues, dataContext: content.data?.name }
-      return { success: true, values }
+      values = { ...generalValues, dataContext: content.data?.name } as V2CaseCard
 
     } else if (isCaseTableModel(content)) {
       const dataContext = content.data?.name
       const horizontalScrollOffset = content._horizontalScrollOffset
-
       // TODO Include isIndexHidden
-      const values = { ...generalValues, dataContext, horizontalScrollOffset }
-      return { success: true, values }
+      values = { ...generalValues, dataContext, horizontalScrollOffset } as V2CaseTable
 
     } else if (isGraphContentModel(content)) {
       const dataContext = content.dataset?.name
       // TODO Flesh out
-
-      const values = { ...generalValues, dataContext }
-      return { success: true, values }
+      values = { ...generalValues, dataContext } as V2Graph
 
     } else if (isMapContentModel(content)) {
-      const values = { ...generalValues, dataContext: content.dataConfiguration?.dataset?.name }
-      return { success: true, values }
+      values = { ...generalValues, dataContext: content.dataConfiguration?.dataset?.name } as V2Map
 
     } else if (isSliderModel(content)) {
       const animationDirection = AnimationDirections.findIndex(value => value === content.animationDirection)
       const animationMode = AnimationModes.findIndex(value => value === content.animationMode)
-
-      const values = {
+      values = {
         ...generalValues,
         animationDirection,
         animationMode,
@@ -458,10 +453,14 @@ export const diComponentHandler: DIHandler = {
         lowerBound: content.axis.min,
         upperBound: content.axis.max,
         value: content.globalValue.value
-      }
-      return { success: true, values }
+      } as V2Slider
+
+    } else if (isWebViewModel(content)) {
+      const type = content.isPlugin ? kV2GameType : kV2WebViewType
+      values = { ...generalValues, type, URL: content.url } as V2Game | V2WebView
     }
 
+    if (values) return { success: true, values }
     return { success: false, values: { error: "Unsupported component type"} }
   },
 
