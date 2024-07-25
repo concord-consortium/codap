@@ -22,7 +22,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-card"
 */
-  const {data, metadata} = useDataSet()
+  const {data} = useDataSet()
   const cardModel = useCaseCardModel()
   const containerRef = useRef<HTMLDivElement>(null)
   const mergeRefs = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)

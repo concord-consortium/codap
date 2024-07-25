@@ -128,7 +128,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   useEffect(() => {
     if (collectionTableModel?.attrIdToEdit !== undefined) {
-      const newAttrIdx = columns.findIndex(column => column.key === collectionTableModel?.attrIdToEdit)
+      const newAttrIdx = columns.findIndex(column => column.key === collectionTableModel.attrIdToEdit)
       gridRef.current?.selectCell({idx: columns.length, rowIdx: newAttrIdx})
     }
   }, [collectionTableModel?.attrIdToEdit, columns])

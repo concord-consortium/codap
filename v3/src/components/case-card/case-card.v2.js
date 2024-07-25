@@ -16,17 +16,6 @@ import "./column-resize-handle.v2"
 import "../../utilities/v2/dg-case-display-utils.v2"
 import "../../utilities/v2/dg-data-context-utilities.v2"
 
-export const SharedCaseMetaDataPropType = PropTypes.shape({
-  type: PropTypes.any,
-  data: PropTypes.any,
-  collections: PropTypes.object,
-  categories: PropTypes.object,
-  hidden: PropTypes.object,
-  caseTableTileId: PropTypes.string,
-  caseCardTileId: PropTypes.string,
-  lastShownTableOrCardTileId: PropTypes.string // used to restore the last shown tile both have been hidden
-})
-
 DG.React.ready(function () {
   var div = ReactDOMFactories.div,
       table = ReactDOMFactories.table,
