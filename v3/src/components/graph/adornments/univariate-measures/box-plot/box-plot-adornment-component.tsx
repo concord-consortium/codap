@@ -3,8 +3,8 @@ import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
-import { useAxisLayoutContext } from "../../../../axis/models/axis-layout-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
+import { useGraphLayoutContext } from "../../../hooks/use-graph-layout-context"
 import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../../hooks/use-adornment-cells"
 import { IAdornmentComponentProps } from "../../adornment-component-info"
@@ -16,20 +16,26 @@ import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-a
 import "./box-plot-adornment-component.scss"
 
 interface IBoxPlotValue extends IValue {
+  iqrCover?: Selection<SVGRectElement, unknown, null, undefined>
   whiskerLower?: Selection<SVGLineElement, unknown, null, undefined>
   whiskerLowerCover?: Selection<SVGLineElement, unknown, null, undefined>
   lowerOutliers?: Selection<SVGPathElement, number, SVGGElement | null, unknown>
   lowerOutliersCovers?: Selection<SVGRectElement, number, SVGGElement | null, unknown>
+  q1Cover?: Selection<SVGLineElement, unknown, null, undefined>
+  q3Cover?: Selection<SVGLineElement, unknown, null, undefined>
   whiskerUpper?: Selection<SVGLineElement, unknown, null, undefined>
   whiskerUpperCover?: Selection<SVGLineElement, unknown, null, undefined>
   upperOutliers?: Selection<SVGPathElement, number, SVGGElement | null, unknown>
   upperOutliersCovers?: Selection<SVGRectElement, number, SVGGElement | null, unknown>
+  ici?: Selection<SVGLineElement, unknown, null, undefined>
+  iciCover?: Selection<SVGLineElement, unknown, null, undefined>
 }
 
 export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
-  const {cellKey={}, containerId, plotHeight, plotWidth, xAxis, yAxis} = props
+  const {cellKey={}, cellCoords, containerId, plotHeight, plotWidth,
+    xAxis, yAxis, spannerRef} = props
   const model = props.model as IBoxPlotAdornmentModel
-  const layout = useAxisLayoutContext()
+  const layout = useGraphLayoutContext()
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
   const { cellCounts } = useAdornmentCells(model, cellKey)
@@ -43,6 +49,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const secondaryAxisY = plotHeight / cellCounts.y / 2 - boxPlotOffset
   const valueRef = useRef<SVGGElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
+  const fullHeightLinesRef = useRef<Selection<SVGPathElement, unknown, null, undefined> | null>(null)
 
   const toggleBoxPlotLabels = useCallback((labelId: string, visible: boolean, event: MouseEvent) => {
     const label = select(`#${labelId}`)
@@ -176,16 +183,135 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     valueObj.upperOutliersCovers = showOutliers ? newOutlierCovers(upperOutliers, "upper") : undefined
   }, [dataConfig, attrId, model, cellKey, helper, calculateWhiskerCoords, newOutliers, newOutlierCovers])
 
+  const addICI = useCallback((valueObj: IBoxPlotValue) => {
+
+    const calculateIciCoords = () => {
+      const subplotWidth = plotWidth / cellCounts.x
+      const subplotHeight = plotHeight / cellCounts.y
+      return {
+        x1: !isVertical.current ? subplotWidth / 2 : helper.xScale(iciRange.min) / cellCounts.x,
+        x2: !isVertical.current ? subplotWidth / 2 : helper.xScale(iciRange.max) / cellCounts.x,
+        y1: isVertical.current ? subplotHeight / 2 : helper.yScale(iciRange.min) / cellCounts.y,
+        y2: isVertical.current ? subplotHeight / 2 : helper.yScale(iciRange.max) / cellCounts.y
+      }
+    }
+
+    const fullHeightLinesPath = () => {
+      const graphWidth = layout.plotWidth,
+        graphHeight = layout.plotHeight,
+        cellWidth = graphWidth / cellCounts.x,
+        cellHeight = graphHeight / cellCounts.y,
+        lowerCoord = isVertical.current ? helper.xScale(iciRange.min) / cellCounts.x
+          : helper.yScale(iciRange.min) / cellCounts.y,
+        upperCoord = isVertical.current ? helper.xScale(iciRange.max) / cellCounts.x
+          : helper.yScale(iciRange.max) / cellCounts.y,
+        templatePath = isVertical.current
+          ? `M%@,%@ v%@ M%@,%@ v%@`
+          : `M%@,%@ h%@ M%@,%@ h%@`,
+        replacementVars = isVertical.current
+          ? [
+            lowerCoord + cellCoords.col * cellWidth, 0, graphHeight,
+            upperCoord + cellCoords.col * cellWidth, 0, graphHeight
+          ]
+          : [
+            0, lowerCoord + cellCoords.row * cellHeight, graphWidth,
+            0, upperCoord + cellCoords.row * cellHeight, graphWidth
+          ]
+      // Note that we use translate just as a way to replace %@ with the actual values
+      return t(templatePath, {vars: replacementVars})
+    }
+
+    if (!dataConfig || !attrId) return
+    const iciClass = clsx("measure-line", "box-plot-line", `${helper.measureSlug}-ici`)
+    const iciCoverClass = clsx("measure-cover", "box-plot-cover", `${helper.measureSlug}-ici`)
+    const iciRange = model.computeICIRange(attrId, cellKey, dataConfig)
+    const iciId = helper.generateIdString("ici")
+    const iciCoverId = helper.generateIdString("ici-cover")
+    const iciCoords = calculateIciCoords()
+    const iciSpecs = {
+      isVertical: isVertical.current,
+      lineClass: iciClass,
+      lineId: iciId,
+      offset: -5,
+      x1: iciCoords.x1,
+      x2: iciCoords.x2,
+      y1: iciCoords.y1,
+      y2: iciCoords.y2
+    }
+    const iciCoverSpecs = {...iciSpecs, lineClass: iciCoverClass, lineId: iciCoverId}
+    valueObj.ici = helper.newLine(valueRef.current, iciSpecs)
+    valueObj.iciCover = helper.newLine(valueRef.current, iciCoverSpecs)
+    if (spannerRef) {
+      fullHeightLinesRef.current?.remove()
+      select(spannerRef.current).attr("class", "measure-container") // So the classes applied to the lines
+                                                                    // will be scoped to the spanner
+      fullHeightLinesRef.current = spannerRef.current && select(spannerRef.current).append("path")
+        .attr("class", "full-height-lines ici")
+        .attr("id", `${helper.generateIdString("path")}`)
+        .attr("data-testid", `${helper.measureSlug}-error-bar`)
+        .attr("d", fullHeightLinesPath())
+    }
+  }, [dataConfig, attrId, helper, model, cellKey, spannerRef, plotWidth, cellCounts.x, cellCounts.y, plotHeight,
+            layout.plotWidth, layout.plotHeight, cellCoords.col, cellCoords.row])
+
+  const addQCovers = useCallback((valueObj: IBoxPlotValue) => {
+
+    const calculateQCoverSpecs = (qValue: number) => {
+      const calculateQCoords = (value:number) => {
+        // The coordinates are those of the bottom and top edges of the box portion of the box plot
+        // They are the same as for the median (aka line)
+        const subplotWidth = plotWidth / cellCounts.x
+        const subplotHeight = plotHeight / cellCounts.y
+        const offset = 2 * boxPlotOffset
+        return {
+          x1: !isVertical.current ? subplotWidth / 2 - offset : helper.xScale(value) / cellCounts.x,
+          x2: !isVertical.current ? subplotWidth / 2 + offset : helper.xScale(value) / cellCounts.x,
+          y1: isVertical.current ? subplotHeight / 2 - offset : helper.yScale(value) / cellCounts.y,
+          y2: isVertical.current ? subplotHeight / 2 + offset : helper.yScale(value) / cellCounts.y
+        }
+      }
+
+      const qCoords = calculateQCoords(qValue)
+      return {
+        isVertical: isVertical.current,
+        lineClass: qCoverClass,
+        lineId: qCoverId,
+        offset: -5,
+        x1: qCoords.x1,
+        x2: qCoords.x2,
+        y1: qCoords.y1,
+        y2: qCoords.y2
+      }
+    }
+
+    if (!dataConfig || !attrId) return
+    const qCoverClass = clsx("measure-cover", "box-plot-cover", `${helper.measureSlug}-q`)
+    const caseValues = model.getCaseValues(attrId, cellKey, dataConfig)
+    const qCoverId = helper.generateIdString("q-cover")
+    const q1CoverSpecs = calculateQCoverSpecs(model.lowerQuartile(caseValues))
+    const q3CoverSpecs = calculateQCoverSpecs(model.upperQuartile(caseValues))
+    valueObj.q1Cover = helper.newLine(valueRef.current, q1CoverSpecs)
+    valueObj.q3Cover = helper.newLine(valueRef.current, q3CoverSpecs)
+  }, [dataConfig, attrId, helper, model, cellKey, plotWidth, cellCounts.x, cellCounts.y, plotHeight])
+
   const addBoxPlotLabels = useCallback((textContent: string, valueObj: IBoxPlotValue, labelsObj: ILabel) => {
+
+    const toggleICILabels = (labelId: string, visible: boolean, event: MouseEvent) => {
+      toggleBoxPlotLabels(labelId, visible, event)
+      fullHeightLinesRef.current?.classed("highlighted", visible)
+    }
+
     const container = select(labelRef.current)
     const textId = helper.generateIdString("label")
     const labels = textContent.split("\n")
     const covers = [
       valueObj.whiskerLowerCover,
-      valueObj.rangeMinCover,
+      valueObj.q1Cover,
       valueObj.cover,
-      valueObj.rangeMaxCover,
-      valueObj.whiskerUpperCover
+      valueObj.q3Cover,
+      valueObj.whiskerUpperCover,
+      null, // valueObj.range causes problems when part of this array. Not sure why.
+      valueObj.iciCover
     ]
 
     for (let i = 0; i < labels.length; i++) {
@@ -197,6 +323,10 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       covers[i]?.on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-${i}`, true, e))
         .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-${i}`, false, e))
     }
+    valueObj.range?.on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-${5}`, true, e))
+      .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-${5}`, false, e))
+    valueObj.iciCover?.on("mouseover", (e) => toggleICILabels(`${textId}-${6}`, true, e))
+      .on("mouseout", (e) => toggleICILabels(`${textId}-${6}`, false, e))
 
     if (model.showOutliers) {
       if (!attrId || !dataConfig) return
@@ -229,6 +359,23 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   }, [attrId, cellKey, dataConfig, helper, labelRef, model, toggleBoxPlotLabels])
 
   const addAdornmentElements = useCallback((valueObj: IBoxPlotValue, labelsObj: ILabel) => {
+
+    const addMedian = () => {
+      const lineSpecs = {
+        isVertical: isVertical.current,
+        lineClass,
+        lineId,
+        offset: boxPlotOffset * -1,
+        x1: !isVertical.current ? coords.x1 - boxPlotOffset : coords.x1,
+        x2: !isVertical.current ? coords.x2 + boxPlotOffset * 3 : coords.x1,
+        y1: isVertical.current ? coords.y1 - boxPlotOffset : coords.y1,
+        y2: isVertical.current ? coords.y2 + boxPlotOffset * 3 : coords.y1
+      }
+      const coverSpecs = {...lineSpecs, lineClass: coverClass, lineId: coverId}
+      valueObj.line = helper.newLine(valueRef.current, lineSpecs)
+      valueObj.cover = helper.newLine(valueRef.current, coverSpecs)
+    }
+
     if (!attrId || !dataConfig) return
     const value = model.measureValue(attrId, cellKey, dataConfig)
     if (value === undefined || isNaN(value)) return
@@ -237,25 +384,13 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       helper.adornmentSpecs(attrId, dataConfig, value, isVertical.current, cellCounts, secondaryAxisX, secondaryAxisY)
     const translationVars = [
       model.minWhiskerValue(attrId, cellKey, dataConfig),
-      measureRange.min,
-      displayValue,
-      measureRange.max,
-      model.maxWhiskerValue(attrId, cellKey, dataConfig)
+      measureRange.min, // Q1
+      displayValue, // median
+      measureRange.max, // Q3
+      model.maxWhiskerValue(attrId, cellKey, dataConfig),
+      model.iqr(attrId, cellKey, dataConfig)
     ]
-    const textContent = `${t(model.labelTitle, { vars: translationVars })}`
-    const lineSpecs = {
-      isVertical: isVertical.current,
-      lineClass,
-      lineId,
-      offset: boxPlotOffset * -1,
-      x1: !isVertical.current ? coords.x1 - boxPlotOffset : coords.x1,
-      x2: !isVertical.current ? coords.x2 + boxPlotOffset * 3 : coords.x1,
-      y1: isVertical.current ? coords.y1 - boxPlotOffset : coords.y1,
-      y2: isVertical.current ? coords.y2 + boxPlotOffset * 3 : coords.y1
-    }
-    const coverSpecs = {...lineSpecs, lineClass: coverClass, lineId: coverId}
-    valueObj.line = helper.newLine(valueRef.current, lineSpecs)
-    valueObj.cover = helper.newLine(valueRef.current, coverSpecs)
+    let textContent = `${t(model.labelTitle, { vars: translationVars })}`
 
     if ((measureRange?.min || measureRange?.min === 0) && (measureRange?.max || measureRange?.max === 0)) {
       const rangeSpecs = {
@@ -272,12 +407,24 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         secondaryAxisX,
         secondaryAxisY
       }
+      // As a result of the addRange call, valueObj.range will be the rectangle that covers the IQR
       helper.addRange(valueRef.current, valueObj, rangeSpecs)
+      valueObj.range?.attr("style", "pointer-events: all")  // So we get mouseover events
+
+      addMedian() // last so it's on top
     }
     addWhiskers(valueObj, measureRange, model.showOutliers)
+    addQCovers(valueObj)
+    if (model.showICI) {
+      const iciRange = model.computeICIRange(attrId, cellKey, dataConfig)
+      addICI(valueObj)
+      textContent += `\n${t('ICI: [%@, %@]',
+        { vars: [helper.formatValueForScale(isVertical.current, iciRange.min),
+            helper.formatValueForScale(isVertical.current, iciRange.max)] })}`
+    }
     addBoxPlotLabels(textContent, valueObj, labelsObj)
-  }, [addBoxPlotLabels, addWhiskers, attrId, cellCounts, cellKey, dataConfig, helper, model,
-      secondaryAxisX, secondaryAxisY])
+  }, [addBoxPlotLabels, addICI, addWhiskers, addQCovers, attrId, cellCounts, cellKey, dataConfig,
+            helper, model, secondaryAxisX, secondaryAxisY])
 
   const refreshValues = useCallback(() => {
     if (!model.isVisible) return

@@ -1,6 +1,7 @@
 import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { t } from "../../../../../utilities/translation/translate"
+import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./box-plot-adornment-model"
@@ -14,6 +15,7 @@ const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<IBoxPlotAdornmentModel>(kBoxPlotType)
+  const showICIOption = getDocumentContentPropertyFromNode(graphModel, "iciEnabled") || existingAdornment?.showICI
 
   const handleBoxPlotSetting = (checked: boolean) => {
     const existingBoxPlotAdornment = adornmentsStore.findAdornmentOfType<IBoxPlotAdornmentModel>(kBoxPlotType)
@@ -49,6 +51,40 @@ const Controls = observer(function Controls() {
     existingAdornment?.setShowOutliers(checked)
   }
 
+  const handleShowIciSetting = (checked: boolean) => {
+    existingAdornment?.setShowICI(checked)
+  }
+
+  const renderShowOutliers = () => {
+    return (
+      <FormControl isDisabled={!existingAdornment?.isVisible}>
+        <Checkbox
+          data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
+          defaultChecked={existingAdornment?.showOutliers}
+          onChange={e => handleShowOutliersSetting(e.target.checked)}
+        >
+          {t("DG.Inspector.graphBoxPlotShowOutliers")}
+        </Checkbox>
+      </FormControl>
+    )
+  }
+
+  const renderShowICI = () => {
+    if (showICIOption) {
+      return (
+        <FormControl isDisabled={!existingAdornment?.isVisible}>
+          <Checkbox
+            data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
+            defaultChecked={existingAdornment?.showICI}
+            onChange={e => handleShowIciSetting(e.target.checked)}
+          >
+            {t("DG.Inspector.graphBoxPlotShowICI")}
+          </Checkbox>
+        </FormControl>
+      )
+    }
+  }
+
   return (
     <>
       <FormControl>
@@ -64,15 +100,8 @@ const Controls = observer(function Controls() {
         className="sub-options show-outliers"
         data-testid="adornment-show-outliers-options"
       >
-        <FormControl isDisabled={!existingAdornment?.isVisible}>
-          <Checkbox
-            data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
-            defaultChecked={existingAdornment?.showOutliers}
-            onChange={e => handleShowOutliersSetting(e.target.checked)}
-          >
-            {t("DG.Inspector.graphBoxPlotShowOutliers")}
-          </Checkbox>
-        </FormControl>
+        {renderShowOutliers()}
+        {renderShowICI()}
       </div>
     </>
   )
