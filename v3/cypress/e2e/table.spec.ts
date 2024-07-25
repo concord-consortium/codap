@@ -917,7 +917,7 @@ context("case table ui", () => {
   })
 
   describe("table cell editing", () => {
-    it("edits cells", () => {
+    it("edits cells with color swatch", () => {
       cy.log("checking cell contents")
       table.getGridCell(2, 2).should("contain", "African Elephant")
 
@@ -934,50 +934,55 @@ context("case table ui", () => {
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
       //this test has become flaky. commenting
       //out for now
-      // cy.log("double-click to begin editing cell")
-      // table.getGridCell(2, 2).dblclick()
-      // cy.wait(1000) // Wait for the editing input to appear
+      cy.log("double-click to begin editing cell")
+      table.getGridCell(2, 2).dblclick({force: true})
+      cy.wait(1000) // Wait for the editing input to appear
 
-      // cy.log("click color swatch to bring up color palette")
-      // table.getGridCell(2, 2)
-      //   .find("[data-testid='cell-edit-color-swatch']")
-      //   .should('exist').should('be.visible')
-      //   .click({ force: true })
-      // cy.wait(1000) // Wait for the color palette to appear
+      cy.log("click color swatch to bring up color palette")
+      table.getGridCell(2, 2)
+        .find("button.cell-edit-color-swatch") // Simplified selector
+        .should('exist')
+        .should('be.visible')
+        .dblclick({ force: true }) // Double-click the button
+      cy.wait(1000) // Wait for the color palette to appear
 
-      // cy.log("click hue bar to change color")
-      // cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
-      // cy.wait(1000) // Wait for the color change to be reflected
+      cy.log("click hue bar to change color")
+      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cy.wait(1000) // Wait for the color change to be reflected
 
-      // cy.log("verify that the color actually changed")
-      // table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      cy.log("verify that the color actually changed")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
 
-      // cy.log("type escape key to dismiss color palette")
-      // cy.get(".react-colorful").type("{esc}")
+      cy.log("type escape key to dismiss color palette")
+      cy.get(".react-colorful").type("{esc}")
 
-      // cy.log("verify that cell displays original color")
-      // table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
+      cy.log("verify that cell displays original color")
+      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
 
-      // cy.log("double-click to begin editing cell again")
-      // table.getGridCell(2, 2).dblclick()
-      // cy.wait(1000) // Wait for the editing input to appear
+      cy.log("double-click to begin editing cell again")
+      table.getGridCell(2, 2).dblclick()
+      cy.wait(1000) // Wait for the editing input to appear
 
-      // cy.log("click color swatch to bring up color palette again")
-      // table.getGridCell(2, 2).find("[data-testid='cell-edit-color-swatch']").should('exist').should('be.visible').click()
-      // cy.wait(1000) // Wait for the color palette to appear
+      cy.log("click color swatch to bring up color palette again")
+      table.getGridCell(2, 2)
+        .find("button.cell-edit-color-swatch") // Simplified selector
+        .should('exist')
+        .should('be.visible')
+        .dblclick({ force: true }) // Double-click the button
+      cy.wait(1000) // Wait for the color palette to appear
 
-      // cy.log("click hue bar to change color again")
-      // cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
-      // cy.wait(1000) // Wait for the color change to be reflected
+      cy.log("click hue bar to change color again")
+      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cy.wait(1000) // Wait for the color change to be reflected
 
-      // cy.log("verify that the color actually changed again")
-      // table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      cy.log("verify that the color actually changed again")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
 
-      // cy.log("click Set Color button to dismiss color palette and change color")
-      // cy.get(".text-editor-color-picker .set-color-button").should('be.visible').click()
+      cy.log("click Set Color button to dismiss color palette and change color")
+      cy.get(".text-editor-color-picker .set-color-button").should('be.visible').click()
 
-      // cy.log("verify that the color actually changed finally")
-      // table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
+      cy.log("verify that the color actually changed finally")
+      table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
     })
 })
 })
