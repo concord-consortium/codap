@@ -1,8 +1,15 @@
 import { appState } from "../models/app-state"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
+import { FormulaMathJsScope } from "../models/formula/formula-mathjs-scope"
+import { math } from "../models/formula/functions/math"
+import { displayToCanonical } from "../models/formula/utils/canonicalization-utils"
+import { getDisplayNameMap } from "../models/formula/utils/name-mapping-utils"
+import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTilePrefixes } from "../models/tiles/tile-content-info"
+import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/tile-environment"
 import { toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { t } from "../utilities/translation/translate"
 import { DIParsedQuery, DIQueryFunction } from "./data-interactive-types"
 
 export function parseSearchQuery(query: string, dataContextOrCollection?: IDataSet | ICollectionModel): DIParsedQuery {
@@ -44,6 +51,59 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
     : () => false
   
   return { valid, left, right, func }
+}
+
+export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, collection: ICollectionModel) {
+  // Build displayNameMap
+  const { document } = appState
+  const localDataSet = dataset
+  const dataSets: Map<string, IDataSet> = new Map()
+  getSharedDataSets(document).forEach(sharedDataSet => {
+    const { dataSet } = sharedDataSet
+    dataSets.set(dataSet.id, dataSet)
+  })
+  const globalValueManager = getGlobalValueManager(getSharedModelManager(document))
+  const displayNameMap = getDisplayNameMap({
+    localDataSet,
+    dataSets,
+    globalValueManager,
+  })
+
+  // Canonicalize formula
+  let formula = ""
+  try {
+    formula = displayToCanonical(displayFormula, displayNameMap)
+  } catch (e: any) {
+    return { valid: false, error: t("V3.DI.Error.couldNotParseQuery") }
+  }
+
+  // Evaluate formula for each case in collection
+  const caseIds: string[] = []
+  const childMostCollectionCaseIds = dataset.childCollection.caseIds
+  const errors = collection.caseIds.map(caseId => {
+    const scope = new FormulaMathJsScope({
+      localDataSet,
+      dataSets,
+      globalValueManager,
+      caseIds: [caseId],
+      childMostCollectionCaseIds
+    })
+
+    try {
+      if (math.evaluate(formula, scope)) caseIds.push(caseId)
+    } catch (e: any) {
+      return e.message
+    }
+  })
+
+  // Fail if any errors were encountered
+  const error = errors.find(e => !!e)
+  if (error) {
+    return { valid: false, error }
+  }
+
+  // Return case ids for cases that satisfied the formula
+  return { valid: true, caseIds }
 }
 
 export function findTileFromV2Id(v2Id: string) {

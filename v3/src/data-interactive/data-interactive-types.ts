@@ -145,13 +145,14 @@ export interface DIResources {
   attributeLocation?: IAttribute
   caseByID?: ICase
   caseByIndex?: ICase
-  caseFormulaSearch?: DICase[]
+  caseFormulaSearch?: ICase[]
   caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
+  error?: string
   global?: IGlobalValue
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
@@ -219,6 +220,7 @@ export interface DIResourceSelector {
   case?: string
   caseByID?: string
   caseByIndex?: string
+  caseFormulaSearch?: string
   caseSearch?: string
   collection?: string
   component?: string
