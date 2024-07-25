@@ -114,6 +114,27 @@ export const isValueNonEmpty = (value: any) => value !== "" && value != null
 // It allows for strings that can be converted to numbers and treats Infinity and -Infinity as valid numbers.
 export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 
+export const extractNumeric = (v: any) => {
+  if (!isValueNonEmpty(v)) {
+    return null
+  }
+
+  const num = Number(v)
+  if (!isNaN(num)) {
+    return num
+  }
+
+  // Based on the V2 implementation for the backward compatibility.
+  if (typeof v === 'string') {
+    const noNumberPatt = /[^.\d-]+/gm
+    const firstNumericPatt = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
+    const firstPass = v.replace(noNumberPatt, '')
+    const matches = firstPass.match(firstNumericPatt)
+    v = matches ? matches[0] : null
+  }
+  return isValueNonEmpty(v) ? Number(v) : null
+}
+
 export function goodTickValue(iMin: number, iMax: number) {
   const range = (iMin >= iMax) ? Math.abs(iMin) : iMax - iMin,
     gap = range / 5
