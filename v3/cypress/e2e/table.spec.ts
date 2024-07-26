@@ -301,8 +301,7 @@ context("case table ui", () => {
 
       // verify new attribute exists
       table.getColumnHeaders().should("have.length.be.within", 10, 11)
-      table.getAttribute("newAttr").should("exist")
-      table.getAttribute("newAttr").click()
+      table.getAttributeInput().last().should("exist").and("have.value", "newAttr").type("{enter}")
       table.getAttribute("newAttr").should("have.text", "newAttr")
 
       cy.log("check undo/redo after add new attribute")
