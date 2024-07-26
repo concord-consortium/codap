@@ -9,7 +9,7 @@ import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
-import OptionsIcon from "../../assets/icons/icon-options.svg"
+import TileListIcon from "../../assets/icons/icon-tile-list.svg"
 
 import "./tool-shelf.scss"
 
@@ -40,7 +40,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           data-testid="tool-shelf-button-tiles"
         >
-          <OptionsIcon />
+          <TileListIcon />
           <ToolShelfButtonTag
             bg={kRightButtonBackground}
             className="tiles-list"

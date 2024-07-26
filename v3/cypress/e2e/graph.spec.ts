@@ -139,7 +139,7 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    //TODO: fix (PT: #188015800)
+    // work on this later PT #188015800
     it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
