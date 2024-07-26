@@ -9,8 +9,10 @@ import { WebViewTileElements as webView } from "../support/elements/web-view-til
 
 context("codap toolbar", () => {
   beforeEach(function () {
+    cy.log('Starting test setup')
     const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
+    cy.log('Setup complete')
   })
   it("will open a new table", () => {
     c.getIconFromToolshelf("table").click()
