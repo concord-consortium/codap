@@ -127,7 +127,7 @@ context("case table ui", () => {
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
@@ -136,7 +136,7 @@ context("case table ui", () => {
 
       // Row count after delete one case
       table.getNumOfRows().then(rowCount => {
-        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postDeleteRowCount = Number(rowCount)
         expect(postDeleteRowCount).to.eq(initialRowCount - 1)
       })
 
@@ -149,7 +149,7 @@ context("case table ui", () => {
       // Verify undo (check if row count is back to post-insert count)
       // TODO: add the check once bug is fixed (PT ##187597588)
       table.getNumOfRows().then(rowCount => {
-       const rowCountAfterUndo = parseInt(rowCount)
+       const rowCountAfterUndo = Number(rowCount)
        expect(rowCountAfterUndo).to.eq(initialRowCount)
       })
 
@@ -159,7 +159,7 @@ context("case table ui", () => {
       // Verify redo (check if row count is back to initial count)
       // TODO: add the check once bug is fixed (PT ##187597588)
        table.getNumOfRows().then(rowCount => {
-       const rowCountAfterRedo = parseInt(rowCount)
+       const rowCountAfterRedo = Number(rowCount)
        expect(rowCountAfterRedo).to.eq(postDeleteRowCount)
       })
     })
@@ -169,7 +169,7 @@ context("case table ui", () => {
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       // Delete one case in table
@@ -180,7 +180,7 @@ context("case table ui", () => {
 
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
-        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postDeleteRowCount = Number(rowCount)
         expect(postDeleteRowCount).to.eq(3)
         expect(initialRowCount).to.be.greaterThan(postDeleteRowCount) // add a check to make sure rows were deleted
       })
@@ -194,7 +194,7 @@ context("case table ui", () => {
       // Verify undo (check if row count is back to post-insert count)
       // TODO: add the check once bug is fixed (PT ##187597588)
       table.getNumOfRows().then(rowCount => {
-       const rowCountAfterUndo = parseInt(rowCount)
+       const rowCountAfterUndo = Number(rowCount)
        expect(rowCountAfterUndo).to.eq(initialRowCount)
       })
 
@@ -204,7 +204,7 @@ context("case table ui", () => {
       // Verify redo (check if row count is back to initial count)
       // TODO: add the check once bug is fixed (PT ##187597588)
        table.getNumOfRows().then(rowCount => {
-       const rowCountAfterRedo = parseInt(rowCount)
+       const rowCountAfterRedo = Number(rowCount)
        expect(rowCountAfterRedo).to.eq(postDeleteRowCount)
       })
     })
@@ -214,7 +214,7 @@ context("case table ui", () => {
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       // Delete all cases in table
@@ -224,7 +224,7 @@ context("case table ui", () => {
 
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postInsertRowCount = Number(rowCount)
         expect(postInsertRowCount).to.eq(2)
         expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
       })
@@ -256,7 +256,7 @@ context("case table ui", () => {
 
     //   // Get initial row count
     //   table.getNumOfRows().then(rowCount => {
-    //    initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+    //    initialRowCount = Number(rowCount)
     //   })
 
     //   table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
@@ -265,7 +265,7 @@ context("case table ui", () => {
 
     //   // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
     //   table.getNumOfRows().then(rowCount => {
-    //     postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+    //     postInsertRowCount = Number(rowCount)
     //     expect(postInsertRowCount).to.eq(initialRowCount - 1 )
     //   })
 
@@ -278,7 +278,7 @@ context("case table ui", () => {
     //    // // Verify undo (check if row count is back to post-insert count)
     //    // // TODO: add the check once bug is fixed (PT ##187597588)
     //    // table.getNumOfRows().then(rowCount => {
-    //    //  const rowCountAfterUndo = parseInt(rowCount)
+    //    //  const rowCountAfterUndo = Number(rowCount)
     //    //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
     //    // })
 
@@ -288,7 +288,7 @@ context("case table ui", () => {
     //    // // Verify redo (check if row count is back to initial count)
     //    // // TODO: add the check once bug is fixed (PT ##187597588)
     //    //  table.getNumOfRows().then(rowCount => {
-    //    //  const rowCountAfterRedo = parseInt(rowCount)
+    //    //  const rowCountAfterRedo = Number(rowCount)
     //    //  expect(rowCountAfterRedo).to.eq(initialRowCount)
     //    // })
 
@@ -456,7 +456,7 @@ context("case table ui", () => {
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       // Insert a new case
@@ -465,7 +465,7 @@ context("case table ui", () => {
 
       // Get row count after insert
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postInsertRowCount = Number(rowCount)
         expect(postInsertRowCount).to.eq(initialRowCount + 1)
       })
 
@@ -475,7 +475,7 @@ context("case table ui", () => {
 
       // Get row count after delete
       table.getNumOfRows().then(rowCount => {
-        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postDeleteRowCount = Number(rowCount)
         expect(postDeleteRowCount).to.eq(initialRowCount)
       })
 
@@ -486,7 +486,7 @@ context("case table ui", () => {
       // Verify undo (check if row count is back to post-insert count)
       // TODO: add the check once bug is fixed (PT #187083170)
       // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = parseInt(rowCount)
+      //  const rowCountAfterUndo = Number(rowCount)
       //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
       //})
 
@@ -496,7 +496,7 @@ context("case table ui", () => {
       // Verify redo (check if row count is back to initial count)
       // TODO: add the check once bug is fixed (PT #187083170)
       //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = parseInt(rowCount)
+      //  const rowCountAfterRedo = Number(rowCount)
       //  expect(rowCountAfterRedo).to.eq(initialRowCount)
       // })
     })
