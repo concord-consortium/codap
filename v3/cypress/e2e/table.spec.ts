@@ -15,18 +15,18 @@ const newCollectionName = "New Dataset"
 beforeEach(() => {
   // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
   cy.log('Starting test setup')
-  const queryParams = "?sample=mammals&dashboard&scrollBehavior=auto"
+  const queryParams = "?sample=mammals&scrollBehavior=auto"
   const url = `${Cypress.config("index")}${queryParams}`
+  cy.intercept("GET", "https://codap-resources.s3.amazonaws.com/plugins/published-plugins.json", {
+    fixture: "mockPublishedPlugins.json"
+  })
   cy.visit(url)
-  // increased the wait to fix (uncaught exception)
-  // TypeError: Failed to fetch error
-  // Feel free to increase or decrease wait time as needed
-  cy.wait(2500)
+  cy.wait(1000)
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
   table.getNumOfRows().then($cases => {
     numOfCases = $cases
     lastRowIndex = Number($cases) - 1
-    middleRowIndex = Math.floor(lastRowIndex / 2)
+    middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
   })
   cy.log('Setup complete')
 })
@@ -931,9 +931,10 @@ context("case table ui", () => {
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("#ff00ff{enter}")
       // verify that cell shows color swatch of appropriate color
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
-      
+
       cy.log("double-click to begin editing cell")
-      table.getGridCell(2, 2).dblclick({force: true})
+      table.getGridCell(2, 2).click()
+      table.getGridCell(2, 2).dblclick()
       cy.wait(1000) // Wait for the editing input to appear
 
       cy.log("click color swatch to bring up color palette")
