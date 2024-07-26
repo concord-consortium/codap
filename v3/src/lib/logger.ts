@@ -37,7 +37,7 @@ interface PendingMessage {
 type ILogListener = (logMessage: LogMessage) => void
 
 export class Logger {
-  public static isLoggingEnabled = false
+  public static isLoggingEnabled = true //Change this to false before merging to main
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
   private static document: IDocumentModel
@@ -108,7 +108,7 @@ export class Logger {
     const logMessage = this.createLogMessage(time, eventString, documentTitle,  parameters)
     console.log("logMessage", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
-    // sendToLoggingService(logMessage)
+    sendToLoggingService(logMessage)
     // for (const listener of this.logListeners) {
     //   listener(logMessage)
     // }
@@ -121,7 +121,7 @@ export class Logger {
     parameters?: {section?: string},
   ): LogMessage {
     const logMessage: LogMessage = {
-      application: "CODAP",
+      application: "CODAPV3",
       activity: documentTitle,
       session: this.session,
       time,
@@ -151,6 +151,6 @@ function sendToLoggingService(data: LogMessage) {
   // request.upload.addEventListener("abort", () => user.setIsLoggingConnected(false))
 
   request.open("POST", url, true)
-  request.setRequestHeader("Content-Type", "application/json charset=UTF-8")
+  request.setRequestHeader("Content-Type", "application/json; charset=UTF-8")
   request.send(JSON.stringify(data))
 }
