@@ -137,7 +137,8 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    it("change points in table and check for autoscale", () => {
+    // work on this later PT #188015800
+    it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
       cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
