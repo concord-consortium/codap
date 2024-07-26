@@ -406,7 +406,7 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
-    const { cannotClose, content, id, title } = component
+    const { cannotClose, content, id, name, _title } = component
     const v2Id = toV2Id(id)
     const row = appState.document.content?.findRowContainingTile(id)
     const freeTileRow = row && isFreeTileRow(row) ? row : undefined
@@ -416,9 +416,9 @@ export const diComponentHandler: DIHandler = {
       cannotClose,
       dimensions,
       id: v2Id,
-      name: `${v2Id}`,
+      name,
       position,
-      title,
+      title: _title,
       type: kComponentTypeV3ToV2Map[content.type]
     }
 

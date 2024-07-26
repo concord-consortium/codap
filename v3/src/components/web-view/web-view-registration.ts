@@ -37,7 +37,7 @@ registerTileComponentInfo({
 
 function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, state?: unknown) {
   const { v2Component, insertTile } = args
-  const { title, userSetTitle } = v2Component.componentStorage
+  const { name, title, userSetTitle } = v2Component.componentStorage
 
   const content: IWebViewSnapshot = {
     type: kWebViewTileType,
@@ -46,7 +46,8 @@ function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, 
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kWebViewIdPrefix, guid),
-    title: (userSetTitle && title) || undefined,
+    name,
+    _title: (userSetTitle && title) || undefined,
     content
   }
   const webViewTile = insertTile(webViewTileSnap)

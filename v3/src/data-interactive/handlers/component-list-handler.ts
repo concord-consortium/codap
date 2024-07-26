@@ -11,9 +11,9 @@ export const diComponentListHandler: DIHandler = {
     const { document } = appState
     const values: DIComponentInfo[] = []
     document.content?.tileMap.forEach(tile => {
-      // TODO Should we add names to tiles?
       // TODO Tiles sometimes show titles different than tile.title. Should we return those?
-      const { content, id, title } = tile
+      const { content, id, name: _name, _title: title } = tile
+      const name = _name || undefined
       const type = isWebViewModel(content)
         ? content.isPlugin
           ? kV2GameType
@@ -21,7 +21,7 @@ export const diComponentListHandler: DIHandler = {
         : kComponentTypeV3ToV2Map[content.type]
       const tileLayout = document.content?.getTileLayoutById(id)
       const hidden = isFreeTileLayout(tileLayout) ? !!tileLayout.isHidden : false
-      values.push({ hidden, id: toV2Id(id), title, type })
+      values.push({ hidden, id: toV2Id(id), name, title, type })
     })
 
     return { success: true, values }

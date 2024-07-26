@@ -51,7 +51,9 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
     type: kCalculatorTileType,
     name
   }
-  const calculatorTileSnap: ITileModelSnapshotIn = { id: toV3Id(kCalculatorIdPrefix, guid), title, content }
+  const calculatorTileSnap: ITileModelSnapshotIn = {
+    id: toV3Id(kCalculatorIdPrefix, guid), name, _title: title, content
+  }
   const calculatorTile = insertTile(calculatorTileSnap)
 
   return calculatorTile

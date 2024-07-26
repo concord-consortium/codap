@@ -49,7 +49,7 @@ registerTileComponentInfo({
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
-  const { guid, componentStorage: { title = "", _links_, attributeWidths } } = v2Component
+  const { guid, componentStorage: { name, title = "", _links_, attributeWidths } } = v2Component
 
   const content: SetRequired<ICaseTableSnapshot, "columnWidths"> = {
     type: kCaseTableTileType,
@@ -69,7 +69,9 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
     }
   })
 
-  const tableTileSnap: ITileModelSnapshotIn = { id: toV3Id(kCaseTableIdPrefix, guid), title, content }
+  const tableTileSnap: ITileModelSnapshotIn = {
+    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content
+  }
   const tableTile = insertTile(tableTileSnap)
 
   // Make sure metadata knows this is the table tile and it is the last shown

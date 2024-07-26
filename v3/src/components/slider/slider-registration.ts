@@ -71,7 +71,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
   const {
     guid: componentGuid,
     componentStorage: {
-      title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
+      name, title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
       restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle
     }
   } = v2Component
@@ -94,7 +94,9 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
     axis: { type: "numeric", place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 }
   }
   const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
-  const sliderTileSnap: ITileModelSnapshotIn = { id: toV3Id(kSliderIdPrefix, componentGuid), title, content }
+  const sliderTileSnap: ITileModelSnapshotIn = {
+    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, content
+  }
   const sliderTile = insertTile(sliderTileSnap)
 
   // link tile to global value manager
