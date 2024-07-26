@@ -5,14 +5,14 @@ import {drag, ScaleContinuousNumeric, select} from "d3"
 import { t } from "../../../utilities/translation/translate"
 import {RectIndices, selectDragRects} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {INumericAxisModel} from "../models/axis-model"
+import {IAbstractNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
 
 import "./axis.scss"
 
 interface IProps {
-  axisModel: INumericAxisModel
+  axisModel: IAbstractNumericAxisModel
   axisWrapperElt: SVGGElement | null
   numSubAxes?: number
   subAxisIndex?: number

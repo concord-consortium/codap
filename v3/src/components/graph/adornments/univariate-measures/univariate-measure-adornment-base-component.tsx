@@ -4,7 +4,7 @@ import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment
 import { getAxisDomains } from "../adornment-utils"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
-import { INumericAxisModel } from "../../../axis/models/axis-model"
+import { IAbstractNumericAxisModel } from "../../../axis/models/axis-model"
 
 import "./univariate-measure-adornment-base-component.scss"
 
@@ -16,8 +16,8 @@ interface IProps {
   model: IUnivariateMeasureAdornmentModel
   showLabel?: boolean
   valueRef: React.RefObject<SVGGElement>
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
+  xAxis?: IAbstractNumericAxisModel
+  yAxis?: IAbstractNumericAxisModel
   refreshValues: () => void
   setIsVertical: (isVertical: boolean) => void
 }

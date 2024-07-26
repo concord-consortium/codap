@@ -6,10 +6,12 @@ import {
 } from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
+import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -19,7 +21,6 @@ import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { numericSortComparator } from "../../../utilities/data-utils"
-import { isFiniteNumber } from "../../../utilities/math-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -286,10 +287,18 @@ export const DataConfigurationModel = types
     })
   }))
   .views(self => ({
-    numericValuesForAttrRole(role: AttrRole): number[] {
-      return self.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
-        .filter((aValue: number) => isFinite(aValue))
-    },
+    numericValuesForAttrRole: cachedFnWithArgsFactory({
+      key: (role: AttrRole) => role,
+      calculate: (role: AttrRole) => {
+        const attrID = self.attributeID(role)
+        const dataset = self.dataset
+        const allCaseIDs = Array.from(self.allCaseIDs)
+        const allValues = attrID
+          ? allCaseIDs.map((anID: string) => dataDisplayGetNumericValue(dataset, anID, attrID)) : []
+          // ? allCaseIDs.map((anID: string) => dataset?.getNumeric(anID, attrID, true)) : []
+        return allValues.filter(aValue => aValue) as number[]
+      }
+    }),
     categorySetForAttrRole(role: AttrRole) {
       if (self.metadata) {
         const attributeID = self.attributeID(role) || ''
@@ -523,6 +532,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearCasesCache() {
       self.valuesForAttrRole.invalidateAll()
+      self.numericValuesForAttrRole.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       // increment observable change count

@@ -1,22 +1,23 @@
-import {BaseType, drag, format, ScaleLinear, select, Selection} from "d3"
-import {reaction} from "mobx"
-import {useCallback, useEffect, useMemo, useRef} from "react"
-import {axisPlaceToAttrRole, transitionDuration} from "../../data-display/data-display-types"
-import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {AxisBounds, AxisPlace, axisPlaceToAxisFn, AxisScaleType, otherPlace} from "../axis-types"
-import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
-import {isVertical} from "../../axis-graph-shared"
-import {between} from "../../../utilities/math-utils"
-import {mstAutorun} from "../../../utilities/mst-autorun"
-import {isAliveSafe} from "../../../utilities/mst-utils"
-import {kAxisTickLength} from "../../graph/graphing-types"
-import {DragInfo, collisionExists, computeBestNumberOfTicks, getCategoricalLabelPlacement,
-        getCoordFunctions, IGetCoordFunctionsProps} from "../axis-utils"
+import { BaseType, drag, select, Selection } from "d3"
+import { reaction } from "mobx"
+import { mstAutorun } from "../../../utilities/mst-autorun"
+import { mstReaction } from "../../../utilities/mst-reaction"
+import { useCallback, useEffect, useMemo, useRef } from "react"
+import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
+import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
+import { AxisPlace } from "../axis-types"
+import { useAxisLayoutContext } from "../models/axis-layout-context"
+import {isAbstractNumericAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
+import { isVertical } from "../../axis-graph-shared"
+import { isAliveSafe } from "../../../utilities/mst-utils"
+import { setNiceDomain } from "../../graph/utilities/graph-utils"
+import { DragInfo } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
-import { mstReaction } from "../../../utilities/mst-reaction"
-import { setNiceDomain } from "../../graph/utilities/graph-utils"
+import { EmptyAxisHelper } from "../helper-models/axis-helper"
+import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
+import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
+import { DateAxisHelper } from "../helper-models/date-axis-helper"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -24,11 +25,6 @@ export interface IUseSubAxis {
   subAxisElt: SVGGElement | null
   showScatterPlotGridLines: boolean
   centerCategoryLabels: boolean
-}
-
-interface CatObject {
-  cat: string
-  index: number
 }
 
 export const useSubAxis = ({
@@ -58,6 +54,38 @@ export const useSubAxis = ({
     swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
+    axisHelper = useMemo(() => {
+      let helper: EmptyAxisHelper | NumericAxisHelper | CategoricalAxisHelper | undefined = undefined
+      // todo: See if there is a way to avoid the repetition of the same 7 arguments in each of the following cases
+      switch (axisModel?.type) {
+        case 'empty':
+          helper = new EmptyAxisHelper(
+            displayModel, subAxisIndex, axisPlace, subAxisElt,
+            axisModel, layout, isAnimating
+          )
+          break
+        case 'numeric':
+          helper = new NumericAxisHelper(
+            displayModel, subAxisIndex, axisPlace, subAxisElt,
+            axisModel, layout, isAnimating, {showScatterPlotGridLines})
+          break
+        case 'categorical':
+          helper = new CategoricalAxisHelper(
+            displayModel, subAxisIndex, axisPlace, subAxisElt,
+            axisModel, layout, isAnimating, {
+              centerCategoryLabels, dragInfo,
+              subAxisSelectionRef, categoriesSelectionRef, swapInProgress
+            })
+          break
+        case 'date':
+          subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
+          helper = new DateAxisHelper(
+            displayModel, subAxisIndex, axisPlace, subAxisElt,
+            axisModel, layout, isAnimating, {subAxisSelectionRef})
+      }
+      return helper
+    }, [axisModel, axisPlace, displayModel, layout, subAxisElt, subAxisIndex,
+      showScatterPlotGridLines, isAnimating, centerCategoryLabels]),
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
@@ -68,169 +96,8 @@ export const useSubAxis = ({
       const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
-      const subAxisLength = multiScale?.cellLength ?? 0,
-        rangeMin = subAxisIndex * subAxisLength,
-        rangeMax = rangeMin + subAxisLength,
-        axisIsVertical = isVertical(axisPlace),
-        axis = axisPlaceToAxisFn(axisPlace),
-        type = _axisModel?.type,
-        axisBounds = layout.getComputedBounds(axisPlace) as AxisBounds,
-        newRange = axisIsVertical ? [rangeMax, rangeMin] : [rangeMin, rangeMax],
-        d3Scale: AxisScaleType = multiScale.scale.copy().range(newRange) as AxisScaleType,
-        initialTransform = (axisPlace === 'left')
-          ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
-          : (axisPlace === 'top')
-            ? `translate(${axisBounds.left}, ${axisBounds.top + axisBounds.height})`
-            : `translate(${axisBounds.left}, ${axisBounds.top})`
-
-      const renderEmptyAxis = () => {
-          select(subAxisElt).selectAll('*').remove()
-          select(subAxisElt)
-            .attr("transform", initialTransform)
-            .append('line')
-            .attr('x1', 0)
-            .attr('x2', axisIsVertical ? 0 : subAxisLength)
-            .attr('y1', 0)
-            .attr('y2', axisIsVertical ? subAxisLength : 0)
-            .style("stroke", "lightgrey")
-            .style("stroke-opacity", "0.7")
-        },
-        renderNumericAxis = () => {
-          const numericScale = multiScale.scaleType === "linear"
-                                 ? multiScale.numericScale?.copy().range(newRange) as ScaleLinear<number, number>
-                                 : undefined
-          if (!isNumericAxisModel(axisModel) || !numericScale) return
-          select(subAxisElt).selectAll('*').remove()
-          const axisScale = axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
-          const duration = isAnimating() ? transitionDuration : 0
-          if (!axisIsVertical && displayModel.hasDraggableNumericAxis(axisModel)) {
-            axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
-          } else if (!displayModel.hasDraggableNumericAxis(axisModel)) {
-            const formatter = (value: number) => multiScale.formatValueForScale(value)
-            const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
-            axisScale.tickValues(tickValues)
-            axisScale.tickFormat((d, i) => tickLabels[i])
-          }
-          select(subAxisElt)
-            .attr("transform", initialTransform)
-            .transition().duration(duration)
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore types are incompatible
-            .call(axisScale).selectAll("line,path")
-            .style("stroke", "lightgrey")
-            .style("stroke-opacity", "0.7")
-        },
-
-        renderScatterPlotGridLines = () => {
-          if (axis) {
-            const numericScale = d3Scale as unknown as ScaleLinear<number, number>
-            select(subAxisElt).selectAll('.zero, .grid').remove()
-            const tickLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0
-            select(subAxisElt).append('g')
-              .attr('class', 'grid')
-              .call(axis(numericScale).tickSizeInner(-tickLength))
-            select(subAxisElt).select('.grid').selectAll('text').remove()
-            if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
-              select(subAxisElt).append('g')
-                .attr('class', 'zero')
-                .call(axis(numericScale).tickSizeInner(-tickLength).tickValues([0]))
-              select(subAxisElt).select('.zero').selectAll('text').remove()
-            }
-          }
-        },
-
-        renderCategoricalSubAxis = () => {
-          if (!(subAxisSelectionRef.current && categoriesSelectionRef.current)) return
-
-          const categorySet = multiScale?.categorySet,
-            dividerLength = layout.getAxisLength(otherPlace(axisPlace)) ?? 0,
-            isRightCat = axisPlace === 'rightCat',
-            isTop = axisPlace === 'top',
-            role = axisPlaceToAttrRole[axisPlace],
-            categories: string[] = dataConfig?.categoryArrayForAttrRole(role) ?? [],
-            numCategories = categories.length,
-            hasCategories = !(categories.length === 1 && categories[0] === "__main__"),
-            bandWidth = subAxisLength / numCategories,
-            collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
-            {rotation, textAnchor} = getCategoricalLabelPlacement(axisPlace, centerCategoryLabels,
-              collision),
-            duration = (isAnimating() && !swapInProgress.current &&
-              dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
-
-          // Fill out dragInfo for use in drag callbacks
-          const dI = dragInfo.current
-          dI.categorySet = categorySet
-          dI.categories = categories
-          dI.bandwidth = bandWidth
-          dI.axisOrientation = axisIsVertical ? 'vertical' : 'horizontal'
-          dI.labelOrientation = axisIsVertical ? (collision ? 'horizontal' : 'vertical')
-            : (collision ? 'vertical' : 'horizontal')
-
-          const sAS = subAxisSelectionRef.current
-
-          sAS.attr("transform", initialTransform)
-            .select('line')
-            .attr('x1', axisIsVertical ? 0 : rangeMin)
-            .attr('x2', axisIsVertical ? 0 : rangeMax)
-            .attr('y1', axisIsVertical ? rangeMin : 0)
-            .attr('y2', axisIsVertical ? rangeMax : 0)
-
-          const props: IGetCoordFunctionsProps = {
-              numCategories, centerCategoryLabels, collision, axisIsVertical, rangeMin, rangeMax,
-              subAxisLength, isRightCat, isTop, dragInfo
-            },
-            fns = getCoordFunctions(props)
-
-          hasCategories && categoriesSelectionRef.current
-            .join(
-              enter => enter,
-              update => {
-                update.select('.tick')
-                  .attr('x1', (d, i) => fns.getTickX(i))
-                  .attr('x2', (d, i) => axisIsVertical
-                    ? (isRightCat ? 1 : -1) * kAxisTickLength : fns.getTickX(i))
-                  .attr('y1', (d, i) => fns.getTickY(i))
-                  .attr('y2', (d, i) => axisIsVertical
-                    ? fns.getTickY(i) : (isTop ? -1 : 1) * kAxisTickLength)
-                // divider between groups
-                update.select('.divider')
-                  .attr('x1', (d, i) => fns.getDividerX(i))
-                  .attr('x2', (d, i) => axisIsVertical
-                    ? (isRightCat ? -1 : 1) * dividerLength : fns.getDividerX(i))
-                  .attr('y1', (d, i) => fns.getDividerY(i))
-                  .attr('y2', (d, i) => axisIsVertical
-                    ? fns.getDividerY(i) : (isTop ? 1 : -1) * dividerLength)
-                // labels
-                update.select('.category-label')
-                  .attr('transform', `${rotation}`)
-                  .attr('text-anchor', textAnchor)
-                  .attr('transform-origin', (d, i) => {
-                    return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
-                  })
-                  .transition().duration(duration)
-                  .attr('class', 'category-label')
-                  .attr('x', (d, i) => fns.getLabelX(i))
-                  .attr('y', (d, i) => fns.getLabelY(i))
-                  .text((catObject: CatObject) => String(catObject.cat))
-                return update
-              }
-            )
-        }
-
-      switch (type) {
-        case 'empty':
-          renderEmptyAxis()
-          break
-        case 'numeric':
-          renderNumericAxis()
-          showScatterPlotGridLines && renderScatterPlotGridLines()
-          break
-        case 'categorical':
-          renderCategoricalSubAxis()
-          break
-      }
-    }, [axisProvider, axisPlace, layout, subAxisIndex, subAxisElt, axisModel, isAnimating, displayModel,
-        dataConfig, centerCategoryLabels, showScatterPlotGridLines]),
+      axisHelper?.render()
+    }, [axisProvider, axisPlace, layout, axisHelper]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
@@ -365,16 +232,15 @@ export const useSubAxis = ({
     return mstAutorun(() => {
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
-        if (isNumericAxisModel(_axisModel)) {
-          const { domain } = _axisModel || {}
+        if (isAbstractNumericAxisModel(_axisModel)) {
+          const {domain} = _axisModel || {}
           layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
           renderSubAxis()
         }
-      }
-      else if (_axisModel) {
+      } else if (_axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
       }
-    }, { name: "useSubAxis.installDomainSync" }, axisProvider)
+    }, {name: "useSubAxis.installDomainSync"}, axisProvider)
   }, [axisPlace, axisProvider, layout, renderSubAxis])
 
   // Refresh when category set, if any, changes
@@ -404,10 +270,10 @@ export const useSubAxis = ({
       const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
       layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
       setupCategories()
-    } else if (isNumericAxisModel(axisModel)) {
+    } else if (isAbstractNumericAxisModel(axisModel)) {
       const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []
       layout.getAxisMultiScale(axisPlace)?.setNumericDomain(numericValues)
-      axisModel && setNiceDomain(numericValues, axisModel)
+      isAbstractNumericAxisModel(axisModel) && setNiceDomain(numericValues, axisModel)
     }
     renderSubAxis()
   }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])

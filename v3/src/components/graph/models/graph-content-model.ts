@@ -16,7 +16,8 @@ import {IDataSet} from "../../../models/data/data-set"
 import {
   getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
 } from "../../../models/shared/shared-data-utils"
-import {computePointRadius} from "../../data-display/data-display-utils"
+import { computePointRadius } from "../../data-display/data-display-utils"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
@@ -29,8 +30,10 @@ import { CatMapType, CellType, IDomainOptions, PlotType, PlotTypes } from "../gr
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
-import {AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isNumericAxisModel,
-  NumericAxisModel} from "../../axis/models/axis-model"
+import {
+  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isAbstractNumericAxisModel, isNumericAxisModel,
+  NumericAxisModel
+} from "../../axis/models/axis-model"
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
@@ -149,7 +152,8 @@ export const GraphContentModel = DataDisplayContentModel
     },
     getNumericAxis(place: AxisPlace) {
       const axis = self.axes.get(place)
-      return isNumericAxisModel(axis) ? axis : undefined
+      // Include DataAxisModels
+      return isAbstractNumericAxisModel(axis) ? axis : undefined
     },
     getAttributeID(place: GraphAttrRole) {
       return self.dataConfiguration.attributeID(place) ?? ''
@@ -203,10 +207,10 @@ export const GraphContentModel = DataDisplayContentModel
       const { initialize = false } = options ?? {}
       const { caseDataArray, dataset, primaryAttributeID } = self.dataConfiguration
       const minValue = caseDataArray.reduce((min, aCaseData) => {
-        return Math.min(min, dataset?.getNumeric(aCaseData.caseID, primaryAttributeID) ?? min)
+        return Math.min(min, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? min)
       }, Infinity)
       const maxValue = caseDataArray.reduce((max, aCaseData) => {
-        return Math.max(max, dataset?.getNumeric(aCaseData.caseID, primaryAttributeID) ?? max)
+        return Math.max(max, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? max)
       }, -Infinity)
 
       if (minValue === Infinity || maxValue === -Infinity) {
@@ -354,7 +358,7 @@ export const GraphContentModel = DataDisplayContentModel
         const { binWidth, minBinEdge } = self.binDetails()
         const binIndex = Math.floor((Number(value) - minBinEdge) / binWidth)
         matchingCases = allCases?.filter(aCase => {
-          const caseValue = dataset?.getNumeric(aCase.__id__, attrID) ?? 0
+          const caseValue = dataDisplayGetNumericValue(dataset, aCase.__id__, attrID) ?? 0
           const bin = Math.floor((caseValue - minBinEdge) / binWidth)
           return bin === binIndex
         }) as ICase[] ?? []
@@ -552,7 +556,7 @@ export const GraphContentModel = DataDisplayContentModel
         AxisPlaces.forEach((axisPlace: AxisPlace) => {
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
-          if (isNumericAxisModel(axis)) {
+          if (isAbstractNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
             setNiceDomain(numericValues, axis, self.axisDomainOptions)
           }
@@ -664,7 +668,7 @@ export const GraphContentModel = DataDisplayContentModel
     get noPossibleRescales() {
       return self.plotType !== 'casePlot' &&
         !AxisPlaces.find((axisPlace: AxisPlace) => {
-          return isNumericAxisModel(self.getAxis(axisPlace))
+          return isAbstractNumericAxisModel(self.getAxis(axisPlace))
         })
     },
     getTipText(props: IGetTipTextProps) {

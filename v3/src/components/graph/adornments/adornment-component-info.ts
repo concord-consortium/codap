@@ -1,6 +1,6 @@
 import React from "react"
 import { AdornmentModel, IAdornmentModel } from "./adornment-models"
-import { INumericAxisModel } from "../../axis/models/axis-model"
+import { IAbstractNumericAxisModel } from "../../axis/models/axis-model"
 
 export interface IAdornmentComponentProps {
   cellKey: Record<string, string>
@@ -9,8 +9,8 @@ export interface IAdornmentComponentProps {
   model: IAdornmentModel
   plotHeight: number
   plotWidth: number
-  xAxis?: INumericAxisModel
-  yAxis?: INumericAxisModel
+  xAxis?: IAbstractNumericAxisModel
+  yAxis?: IAbstractNumericAxisModel
   spannerRef?: React.RefObject<SVGSVGElement>
 }
 
