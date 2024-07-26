@@ -5,8 +5,8 @@ import { IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment
 import { ILineCoords, ILineSpecs, IRange, IRangeSpecs, IRectSpecs, IValue } from "./univariate-measure-adornment-types"
 import { clsx } from "clsx"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { GraphLayout } from "../../models/graph-layout"
 import { isBoxPlotAdornment } from "./box-plot/box-plot-adornment-model"
-import { IAxisLayout } from "../../../axis/models/axis-layout-context"
 import { valueLabelString } from "../../utilities/graph-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
@@ -28,7 +28,7 @@ export class UnivariateMeasureAdornmentHelper {
   classFromKey = ""
   containerId = ""
   instanceKey = ""
-  layout: IAxisLayout
+  layout: GraphLayout
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
   plotHeight = 0
@@ -38,7 +38,7 @@ export class UnivariateMeasureAdornmentHelper {
 
   constructor (
     cellKey: Record<string, string>,
-    layout: IAxisLayout,
+    layout: GraphLayout,
     model: IUnivariateMeasureAdornmentModel,
     plotHeight: number,
     plotWidth: number,
@@ -72,6 +72,13 @@ export class UnivariateMeasureAdornmentHelper {
       : ""
   }
 
+  // Calculate the coordinates for the line endpoints
+  // index = 1 for the left/bottom endpoint, 2 for the right/top endpoint
+  // isVertical = true for vertical lines, false for horizontal lines
+  // cellCounts = {x: number of columns, y: number of rows}
+  // secondaryAxisX = x-coordinate of the secondary axis
+  // secondaryAxisY = y-coordinate of the secondary axis
+  // Returns an object with x and y coordinates
   calculateLineCoords = (
     value: number, index: number, isVertical: boolean, cellCounts: Record<string, number>,
     secondaryAxisX=0, secondaryAxisY=0
@@ -137,7 +144,17 @@ export class UnivariateMeasureAdornmentHelper {
       .attr("transform", `translate(${leftOffset}, ${topOffset})`)
   }
 
-  addRange = (valueElement: SVGGElement | null, valueObj: IValue, rangeSpecs: IRangeSpecs) => {
+ /**
+ * This function adds a range to the given value element. It creates a new rectangle and lines for the range.
+ * It calculates the coordinates for the range based on the given parameters and appends the new elements to
+ * the value element.
+ *
+ * @param valueElement - The SVG element to which the range is to be added.
+ * @param valueObj - The object representing the value for which the range is being added.
+ * @param rangeSpecs - The specifications for the range, including cell counts, coordinates, classes, offsets,
+ * and secondary axis positions.
+ */
+ addRange = (valueElement: SVGGElement | null, valueObj: IValue, rangeSpecs: IRangeSpecs) => {
     if (!valueElement) return
     const { cellCounts, coords, coverClass, extentForSecondaryAxis="100%", isVertical, lineClass,
             lineOffset=0, rangeMin, rangeMax, rectOffset=0, secondaryAxisX=0, secondaryAxisY=0 } = rangeSpecs

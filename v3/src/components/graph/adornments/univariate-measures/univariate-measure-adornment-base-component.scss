@@ -58,12 +58,21 @@
     }
   }
 
+  .box-plot-ici {
+    stroke: #3300ff !important;
+    stroke-width: 2px !important;
+  }
+
   .full-height-lines {
     stroke: #f6768e;
     opacity: 0;
 
     &.highlighted {
       opacity: 1;
+    }
+
+    &.ici {
+      stroke: #3300ff;
     }
   }
 
@@ -137,7 +146,6 @@
 
   .measure-range {
     fill-opacity: .5;
-    pointer-events: none;
     stroke: none;
     stroke-width: 0;
 

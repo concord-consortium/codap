@@ -3,6 +3,7 @@ import { SetRequired } from "type-fest"
 import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
 import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { isCaseTableModel } from "../../components/case-table/case-table-model"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../../components/data-display/data-display-types"
 import {
   AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
@@ -79,7 +80,7 @@ export const diComponentHandler: DIHandler = {
     return document.applyModelChange(() => {
       // Special case for caseCard and caseTable, which require a dataset
       if ([kV2CaseCardType, kV2CaseTableType].includes(type)) {
-        const { dataContext } = values as V2CaseTable
+        const { dataContext, horizontalScrollOffset } = values as V2CaseTable
         if (!dataContext) return dataContextRequiredResult
         const sharedDataSet = getSharedDataSet(dataContext)
         if (!sharedDataSet) return dataContextNotFoundResult
@@ -92,13 +93,15 @@ export const diComponentHandler: DIHandler = {
         }
 
         const title = _title ?? name
-        const options = { cannotClose, ...dimensions, title }
+        const content = type === kV2CaseTableType && horizontalScrollOffset != null
+          ? { horizontalScrollOffset, type: kCaseTableTileType } : undefined
+        const options = { cannotClose, content, ...dimensions, title }
 
         const tileType = type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType
         const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType, options)
         if (!tile) return componentNotCreatedResult
 
-        // TODO Handle horizontalScrollOffset and isIndexHidden 
+        // TODO Handle isIndexHidden 
         return {
           success: true,
           values: {
@@ -409,7 +412,23 @@ export const diComponentHandler: DIHandler = {
     return { success: true }
   },
 
-  update: diNotImplementedYet
+  update(resources: DIResources, values?: DIValues) {
+    const { component } = resources
+    if (!component) return componentNotFoundResult
+    const { content } = component
+
+    if (!values) return valuesRequiredResult
+
+    if (isCaseTableModel(content)) {
+      // TODO Handle isIndexHidden
+      const { horizontalScrollOffset } = values as V2CaseTable
+      if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
+
+      return { success: true }
+    }
+
+    return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))
+  }
 }
 
 registerDIHandler("component", diComponentHandler)

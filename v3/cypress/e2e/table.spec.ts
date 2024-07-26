@@ -301,8 +301,7 @@ context("case table ui", () => {
 
       // verify new attribute exists
       table.getColumnHeaders().should("have.length.be.within", 10, 11)
-      table.getAttribute("newAttr").should("exist")
-      table.getAttribute("newAttr").click()
+      table.getAttributeInput().last().should("exist").and("have.value", "newAttr").type("{enter}")
       table.getAttribute("newAttr").should("have.text", "newAttr")
 
       cy.log("check undo/redo after add new attribute")
@@ -932,8 +931,7 @@ context("case table ui", () => {
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("#ff00ff{enter}")
       // verify that cell shows color swatch of appropriate color
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
-      //this test has become flaky. commenting
-      //out for now
+      
       cy.log("double-click to begin editing cell")
       table.getGridCell(2, 2).dblclick({force: true})
       cy.wait(1000) // Wait for the editing input to appear
@@ -951,6 +949,7 @@ context("case table ui", () => {
       cy.wait(1000) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed")
+      // verify that the color actually changed
       table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
 
       cy.log("type escape key to dismiss color palette")

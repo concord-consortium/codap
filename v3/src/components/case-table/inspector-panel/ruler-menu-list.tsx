@@ -2,14 +2,15 @@ import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { IAttribute } from "../../../models/data/attribute"
-import { ICollectionModel } from "../../../models/data/collection"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { useCaseTableModel } from "../use-case-table-model"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
+  const tableModel = useCaseTableModel()
   const toast = useToast()
   const handleMenuItemClick = (menuItem: string) => {
     toast({
@@ -21,13 +22,17 @@ export const RulerMenuList = () => {
     })
   }
 
-  const handleAddNewAttribute = (collection: ICollectionModel) => () => {
+  const handleAddNewAttribute = (collectionId: string) => () => {
     let attribute: IAttribute | undefined
+    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
     data?.applyModelChange(() => {
       const newAttrName = uniqueName("newAttr",
         (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
-      attribute = data.addAttribute({name: newAttrName}, { collection: collection.id })
+      attribute = data.addAttribute({name: newAttrName}, { collection: collectionId })
+      if (attribute) {
+        collectionTableModel?.setAttrIdToEdit(attribute.id)
+      }
     }, {
       notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
@@ -40,7 +45,7 @@ export const RulerMenuList = () => {
       <MenuItem
         isDisabled={preventCollectionReorg(data, collection.id)}
         key={`menu-add-attribute-button-${collection.id}`}
-        onClick={handleAddNewAttribute(collection)}
+        onClick={handleAddNewAttribute(collection.id)}
       >
         {t("DG.Inspector.newAttribute", { vars: [collection.title] })}
       </MenuItem>

@@ -1,5 +1,5 @@
 import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
-import {between, isFiniteNumber, isValueNonEmpty, isNumber} from "./math-utils"
+import {between, isFiniteNumber, isValueNonEmpty, isNumber, extractNumeric} from "./math-utils"
 
 // default formatting except uses ASCII minus sign
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
@@ -90,6 +90,29 @@ describe("math-utils", () => {
       expect(isNumber("abc")).toBe(false)
       expect(isNumber(null)).toBe(false)
       expect(isNumber(undefined)).toBe(false)
+    })
+  })
+
+  describe("extractNumeric", () => {
+    it("should return null for empty values", () => {
+      expect(extractNumeric("")).toBe(null)
+      expect(extractNumeric(null)).toBe(null)
+      expect(extractNumeric(undefined)).toBe(null)
+    })
+
+    it("should return the number for non-empty values", () => {
+      expect(extractNumeric("0")).toBe(0)
+      expect(extractNumeric("1.23")).toBe(1.23)
+      expect(extractNumeric(0)).toBe(0)
+      expect(extractNumeric(1.23)).toBe(1.23)
+      expect(extractNumeric(false)).toBe(0)
+      expect(extractNumeric(true)).toBe(1)
+      expect(extractNumeric("1e3")).toBe(1000)
+      expect(extractNumeric("1e-3")).toBe(0.001)
+      expect(extractNumeric("Infinity")).toBe(Infinity)
+      expect(extractNumeric("-Infinity")).toBe(-Infinity)
+      expect(extractNumeric("aa123bbb")).toBe(123)
+      expect(extractNumeric("123aa456")).toBe(123456)
     })
   })
 })
