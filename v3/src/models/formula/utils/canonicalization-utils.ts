@@ -31,7 +31,9 @@ export const makeDisplayNamesSafe = (formula: string) => {
 export const customizeDisplayFormula = (formula: string) => {
   // Over time, this function might grow significantly and require more advanced parsing of the formula.
   // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
-  return formula.replace(/(?<!!)=(?!=)/g, "==")
+  // Regular expression developed with the help of ChatGPT.
+  // Matches `=` when not preceded by '<', '>', '!', or '=` and not followed by `=`, preserving white space.
+  return formula.replace(/(?<!<|>|!|=)(\s*)=(\s*)(?!=)/g, "$1==$2")
 }
 
 export const preprocessDisplayFormula = (formula: string) => customizeDisplayFormula(makeDisplayNamesSafe(formula))
