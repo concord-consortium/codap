@@ -6,6 +6,7 @@ import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-u
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
 } from "../../models/tiles/tile-component-info"
+import { Logger } from "../../lib/logger"
 import UndoIcon from "../../assets/icons/icon-undo.svg"
 import RedoIcon from "../../assets/icons/icon-redo.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
@@ -122,6 +123,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     document?.content?.applyModelChange(() => {
       document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
     }, { undoStringKey, redoStringKey })
+    Logger.log(`Create ${tileType} tile`)
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

@@ -14,6 +14,7 @@ import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
 import { serializeDocument } from "./document/serialize-document"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
+import { Logger } from "../lib/logger"
 
 type AppMode = "normal" | "performance"
 
@@ -44,7 +45,7 @@ class AppState {
   }
 
   @action
-  setDocument(snap: IDocumentModelSnapshot) {
+  setDocument(snap: IDocumentModelSnapshot, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
     this.disableUndoRedoMonitoring()
 
@@ -52,6 +53,16 @@ class AppState {
       const document = createCodapDocument(snap)
       if (document) {
         this.currentDocument = document
+        if (metadata) {
+          const metadataEntries = Object.entries(metadata)
+          metadataEntries.forEach(([key, value]) => {
+            if (value !== undefined) {
+              this.currentDocument.setProperty(key, value)
+            }
+          })
+        }
+        const docTitle = this.currentDocument.getDocumentTitle()
+        this.currentDocument.setTitle(docTitle || "Untitled Document")
         // monitor document changes for undo/redo
         this.enableUndoRedoMonitoring()
 
@@ -61,6 +72,7 @@ class AppState {
         manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
           gDataBroker.addSharedDataSet(model)
         })
+        Logger.updateDocument(document)
       }
     }
     catch (e) {

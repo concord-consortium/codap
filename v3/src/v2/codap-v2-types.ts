@@ -496,6 +496,7 @@ export interface ICodapV2DocumentJson {
   appName: string       // "DG"
   appVersion: string
   appBuildNum: string
+  metadata: Record<string, any>
   // these three are maintained as maps internally but serialized as arrays
   components: CodapV2Component[]
   contexts: ICodapV2DataContext[]
