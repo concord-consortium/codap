@@ -28,7 +28,7 @@ export const diCollectionHandler: DIHandler = {
       const emptyCollection = oldCollection && oldCollection.attributes.length === 0 ? oldCollection : undefined
 
       collections.forEach(collection => {
-        const { name, title, parent, attributes, attrs } = collection as DICreateCollection
+        const { labels, name, title, parent, attributes, attrs } = collection as DICreateCollection
         // Collections require a name, so bail if one isn't included
         if (!name) return
 
@@ -62,7 +62,7 @@ export const diCollectionHandler: DIHandler = {
         // child-most collection
         const options = beforeCollectionId ? { before: beforeCollectionId }
           : { after: dataContext.collectionIds[dataContext.collectionIds.length - 1] }
-        const newCollection = dataContext.addCollection({ name, _title: title }, options)
+        const newCollection = dataContext.addCollection({ labels, name, _title: title }, options)
         newCollections.push(newCollection)
 
         // Attributes can be specified in both attributes and attrs

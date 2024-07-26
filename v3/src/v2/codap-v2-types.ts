@@ -72,11 +72,11 @@ export interface ICodapV2Collection {
   guid: number
   id?: number
   labels?: {
-    singleCase: string
-    pluralCase: string
-    singleCaseWithArticle: string
-    setOfCases: string
-    setOfCasesWithArticle: string
+    singleCase?: string
+    pluralCase?: string
+    singleCaseWithArticle?: string
+    setOfCases?: string
+    setOfCasesWithArticle?: string
   }
   name: string
   parent?: number
