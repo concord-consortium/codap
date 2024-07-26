@@ -7,6 +7,7 @@ import {
   TreePatchRecord, HistoryEntry, TreePatchRecordSnapshot, HistoryOperation, ICreateHistoryEntry
 } from "./history"
 import { DEBUG_HISTORY } from "../../lib/debug"
+import { IDocumentMetadata } from "../document/document-metadata"
 
 /**
  * Helper method to print objects in template strings
@@ -236,7 +237,6 @@ export const TreeManager = types
 }))
 .actions((self) => ({
   setMainDocument(document: IMainDocument) {
-    // console.log("setMainDocument", document.metadata)
     self.mainDocument = document
     self.putTree(document.key, document)
   },
