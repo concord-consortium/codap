@@ -1,5 +1,6 @@
 import { Button, Flex, Text } from "@chakra-ui/react"
 import React, { useState } from "react"
+import { Logger } from "../../lib/logger"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
 import { evaluate } from "mathjs"
@@ -16,6 +17,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const clearValue = () => {
     setCalcValue("")
     setJustEvaled(false)
+    Logger.log("Calculator value cleared")
   }
 
   const insert = (strToInsert: string) => {
@@ -39,6 +41,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       try {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
+        Logger.log(`Calculation done: ${calcValue} = ${solution}`)
       } catch  (error) {
         setCalcValue(`Error`)
       }
@@ -84,7 +87,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         <Text className="calc-input" data-testid="calc-input">{calcValue}</Text>
         <Flex className="calc-buttons">
             {calcButtons}
-            <Button className="calc-button wide" onClick={handleEvaluateButtonPress} 
+            <Button className="calc-button wide" onClick={handleEvaluateButtonPress}
             data-testid="calc-button">
               =
             </Button>
