@@ -40,7 +40,6 @@ export class Logger {
   public static isLoggingEnabled = true //Change this to false before merging to main
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
-  private static document: IDocumentModel
 
   public static initializeLogger(document: IDocumentModel) {
   //Logging is enabled when origin server within this domain.
@@ -53,7 +52,6 @@ export class Logger {
   }
 
   public static updateDocument(document: IDocumentModel) {
-    console.log("in updateDocument document", document)
     if (this._instance) {
       this._instance.document = document
     } else {
@@ -62,6 +60,8 @@ export class Logger {
   }
 
   public static log(event: string, parameters?: Record<string, unknown>) {
+    if (!this._instance) return
+
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
