@@ -39,6 +39,7 @@ export class Logger {
   public static isLoggingEnabled = true //Change this to false before merging to main
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
+  private static document: IDocumentModel
 
   public static initializeLogger(document: IDocumentModel) {
   //Logging is enabled when origin server within this domain.
