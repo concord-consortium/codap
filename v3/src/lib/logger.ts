@@ -1,6 +1,5 @@
 import { v4 as uuid } from "uuid"
-import { LogEventMethod, LogEventName } from "./logger-types"
-// import { IStores } from "../models/stores/stores"
+import { LogEventMethod } from "./logger-types"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
 
@@ -122,12 +121,9 @@ export class Logger {
     parameters?: {section?: string},
   ): LogMessage {
     const logMessage: LogMessage = {
-      // application: appName,
       application: "CODAP",
-      // activity: activityUrl,
       activity: documentTitle,
       session: this.session,
-      // ...this.document,
       time,
       event,
       parameters,
@@ -144,7 +140,7 @@ export class Logger {
 function sendToLoggingService(data: LogMessage) {
   // const isProduction = user.portal === productionPortal || data.parameters?.portal === productionPortal
   // const url = logManagerUrl[isProduction ? "production" : "dev"]
-  const url = logManagerUrl.production
+  const url = logManagerUrl.dev
   debugLog(DEBUG_LOGGER, "Logger#sendToLoggingService sending", data, "to", url)
   if (!Logger.isLoggingEnabled) return
 
