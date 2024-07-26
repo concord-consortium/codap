@@ -11,12 +11,12 @@ import {registerV2TileImporter} from "../../v2/codap-v2-tile-importers"
 import {v2MapImporter} from "./v2-map-importer"
 import { t } from "../../utilities/translation/translate"
 
-
 registerTileContentInfo({
   type: kMapTileType,
   prefix: kMapIdPrefix,
   modelClass: MapContentModel,
   defaultContent: () => createMapContentModel(),
+  defaultName: () => t("DG.DocumentController.mapTitle"),
   getTitle: (tile: ITileLikeModel) => {
     return tile.title || t("DG.DocumentController.mapTitle")
   }

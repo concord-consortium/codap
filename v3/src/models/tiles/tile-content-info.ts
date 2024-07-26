@@ -31,6 +31,7 @@ export interface ITileContentInfo {
   prefix: string; // conventionally four uppercase chars
   modelClass: typeof TileContentModel;
   defaultContent: (options?: IDefaultContentOptions) => ITileContentSnapshotWithType;
+  defaultName?: (options?: IDefaultContentOptions) => string | undefined
   titleBase?: string;
   getTitle: (tile: ITileLikeModel) => string | undefined;
   metadataClass?: typeof TileMetadataModel;

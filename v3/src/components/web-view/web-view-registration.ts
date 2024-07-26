@@ -22,6 +22,7 @@ registerTileContentInfo({
   prefix: kWebViewIdPrefix,
   modelClass: WebViewModel,
   defaultContent: () => ({ type: kWebViewTileType }),
+  defaultName: () => t("DG.WebView.defaultTitle"),
   getTitle: (tile: ITileLikeModel) => tile.title || t("DG.WebView.defaultTitle")
 })
 
