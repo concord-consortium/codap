@@ -1,10 +1,6 @@
 import mockXhr from "xhr-mock"
-import { getSnapshot } from "mobx-state-tree"
 import { Logger } from "./logger"
-import { DocumentContentModel } from "../models/document/document-content"
-import { uniqueId } from "../utilities/js-utils"
 import { createCodapDocument } from "../models/codap/create-codap-document"
-import { appState } from "../models/app-state"
 const fs = require("fs")
 const path = require("path")
 
