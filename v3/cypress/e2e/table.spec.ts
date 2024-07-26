@@ -52,12 +52,12 @@ context("case table ui", () => {
     })
     it("verify edit attribute properties with undo and redo", () => {
       const name = "Tallness",
-      description = "The average height of the mammal.",
-      unit = "meters",
-      newName = "Tallness (meters)",
-      type = "color",
-      precision = null,
-      editable = "No"
+        description = "The average height of the mammal.",
+        unit = "meters",
+        newName = "Tallness (meters)",
+        type = "color",
+        precision = null,
+        editable = "No"
 
       // Edit the attribute property
       table.editAttributeProperties("Height", name, description, type, unit, precision, editable)
@@ -73,27 +73,27 @@ context("case table ui", () => {
       cy.get("[data-testid='attr-editable-radio'] input[value='no']").should("be.checked")
       table.getCancelButton().click({force: true})
 
-      // cy.log("check undo/redo after verify attribute properties")
-      // // Perform Undo operation
-      // toolbar.getUndoTool().click()
+      cy.log("check undo/redo after verify attribute properties")
+      // Perform Undo operation
+      toolbar.getUndoTool().click()
 
-      // // Verify the undo reverts the edit to the original name "Height"
-      // table.getAttribute("Height").should("have.text", "Height")
+      // Verify the undo reverts the edit to the original name "Height"
+      table.getAttribute("Height").should("have.text", "Height")
 
-      // // opening the dialog again should show the original values
-      // table.openAttributeMenu("Height")
-      // table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
-      // cy.get("[data-testid='attr-name-input']").should("have.value", "Height")
-      // cy.get("[data-testid='attr-description-input']").should("have.text", "")
-      // cy.get("[data-testid='attr-type-select']").should("have.value", "none")
-      // cy.get("[data-testid='attr-editable-radio'] input[value='yes']").should("be.checked")
-      // table.getCancelButton().click()
+      // opening the dialog again should show the original values
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+      cy.get("[data-testid='attr-name-input']").should("have.value", "Height")
+      cy.get("[data-testid='attr-description-input']").should("have.text", "")
+      cy.get("[data-testid='attr-type-select']").should("have.value", "none")
+      cy.get("[data-testid='attr-editable-radio'] input[value='yes']").should("be.checked")
+      table.getCancelButton().click()
 
-      // // Perform Redo operation
-      // toolbar.getRedoTool().click()
+      // Perform Redo operation
+      toolbar.getRedoTool().click()
 
-      // // Verify the redo reapplies the edit
-      // table.getAttribute(name).should("have.text", newName)
+      // Verify the redo reapplies the edit
+      table.getAttribute(name).should("have.text", newName)
 
       // table.getColumnHeaderTooltip().should("contain", `${name} : ${description}`)
     })
@@ -107,9 +107,9 @@ context("case table ui", () => {
   describe("case table Inspector menu options", () => {
     it("should open dataset information button and make changes", () => {
       const newInfoName = "Animals",
-      newSource = "The Internet",
-      importDate = "May 4",
-      newDescription = "All about mammals"
+        newSource = "The Internet",
+        importDate = "May 4",
+        newDescription = "All about mammals"
 
       // Enter new dataset information
       c.selectTile("table", 0)
@@ -123,7 +123,7 @@ context("case table ui", () => {
       cy.get("[data-testid=dataset-description-input]").should("have.value", newDescription)
     })
     it("select a case and delete the case from inspector menu", () => {
-      let initialRowCount, postInsertRowCount
+      let initialRowCount, postDeleteRowCount
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -134,38 +134,38 @@ context("case table ui", () => {
       table.getDeleteCasesButton().click({force: true})
       table.getDeleteMenuItem("Delete Selected Cases").click({force: true})
 
-      // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+      // Row count after delete one case
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-        expect(postInsertRowCount).to.eq(initialRowCount - 1)
+        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postDeleteRowCount).to.eq(initialRowCount - 1)
       })
 
-      // // checks for undo/redo
-      // cy.log("check for undo/redo after delete")
+      // checks for undo/redo
+      cy.log("check for undo/redo after delete")
 
-      // // Undo delete
-      // toolbar.getUndoTool().click()
+      // Undo delete
+      toolbar.getUndoTool().click()
 
-      // // Verify undo (check if row count is back to post-insert count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = parseInt(rowCount)
-      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-      // })
+      // Verify undo (check if row count is back to post-insert count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+      table.getNumOfRows().then(rowCount => {
+       const rowCountAfterUndo = parseInt(rowCount)
+       expect(rowCountAfterUndo).to.eq(initialRowCount)
+      })
 
-      // // Redo delete
-      // toolbar.getRedoTool().click()
+      // Redo delete
+      toolbar.getRedoTool().click()
 
-      // // Verify redo (check if row count is back to initial count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = parseInt(rowCount)
-      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-      // })
+      // Verify redo (check if row count is back to initial count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+       table.getNumOfRows().then(rowCount => {
+       const rowCountAfterRedo = parseInt(rowCount)
+       expect(rowCountAfterRedo).to.eq(postDeleteRowCount)
+      })
     })
     it("select a case and delete unselected cases from inspector menu", () => {
       let initialRowCount // Declare variable to hold initial row count
-      let postInsertRowCount // Declare variable to hold row count after delete
+      let postDeleteRowCount // Declare variable to hold row count after delete
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -180,33 +180,33 @@ context("case table ui", () => {
 
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-        expect(postInsertRowCount).to.eq(3)
-        expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
+        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        expect(postDeleteRowCount).to.eq(3)
+        expect(initialRowCount).to.be.greaterThan(postDeleteRowCount) // add a check to make sure rows were deleted
       })
 
-      // // checks for undo/redo
-      // cy.log("check for undo/redo after delete")
+      // checks for undo/redo
+      cy.log("check for undo/redo after delete")
 
-      // // Undo delete
-      // toolbar.getUndoTool().click()
+      // Undo delete
+      toolbar.getUndoTool().click()
 
-      // // Verify undo (check if row count is back to post-insert count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = parseInt(rowCount)
-      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-      // })
+      // Verify undo (check if row count is back to post-insert count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+      table.getNumOfRows().then(rowCount => {
+       const rowCountAfterUndo = parseInt(rowCount)
+       expect(rowCountAfterUndo).to.eq(initialRowCount)
+      })
 
-      // // Redo delete
-      // toolbar.getRedoTool().click()
+      // Redo delete
+      toolbar.getRedoTool().click()
 
-      // // Verify redo (check if row count is back to initial count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = parseInt(rowCount)
-      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-      // })
+      // Verify redo (check if row count is back to initial count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+       table.getNumOfRows().then(rowCount => {
+       const rowCountAfterRedo = parseInt(rowCount)
+       expect(rowCountAfterRedo).to.eq(postDeleteRowCount)
+      })
     })
     it("check delete all cases from inspector menu", () => {
       let initialRowCount // Declare variable to hold initial row count
