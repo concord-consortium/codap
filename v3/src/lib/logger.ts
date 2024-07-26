@@ -139,6 +139,7 @@ export class Logger {
 function sendToLoggingService(data: LogMessage) {
   // const isProduction = user.portal === productionPortal || data.parameters?.portal === productionPortal
   // const url = logManagerUrl[isProduction ? "production" : "dev"]
+  console.log("sent to log server:", data)
   const url = logManagerUrl.dev
   debugLog(DEBUG_LOGGER, "Logger#sendToLoggingService sending", data, "to", url)
   if (!Logger.isLoggingEnabled) return
