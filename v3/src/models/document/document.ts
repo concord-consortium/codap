@@ -44,6 +44,9 @@ export const DocumentModel = Tree.named("Document")
     copyProperties(): IDocumentProperties {
       return self.properties.toJSON()
     },
+    getDocumentTitle() {
+      return self.properties.get("filename")?.split(".")[0]
+    },
     get canUndo() {
       return !!self.treeManagerAPI?.undoManager.canUndo
     },

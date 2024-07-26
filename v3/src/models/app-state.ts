@@ -45,7 +45,7 @@ class AppState {
   }
 
   @action
-  setDocument(snap: IDocumentModelSnapshot) {
+  setDocument(snap: IDocumentModelSnapshot, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
     this.disableUndoRedoMonitoring()
 
@@ -53,6 +53,16 @@ class AppState {
       const document = createCodapDocument(snap)
       if (document) {
         this.currentDocument = document
+        if (metadata) {
+          const metadataEntries = Object.entries(metadata)
+          metadataEntries.forEach(([key, value]) => {
+            if (value !== undefined) {
+              this.currentDocument.setProperty(key, value)
+            }
+          })
+        }
+        const docTitle = this.currentDocument.getDocumentTitle()
+        this.currentDocument.setTitle(docTitle || "Untitled Document")
         // monitor document changes for undo/redo
         this.enableUndoRedoMonitoring()
 

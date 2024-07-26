@@ -47,7 +47,7 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
         importV2Document(v2Document)
       }
       else {
-        appState.setDocument(content)
+        appState.setDocument(content, metadata)
       }
       break
     }
