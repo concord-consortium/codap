@@ -7,6 +7,7 @@ import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
+import { Logger } from "../lib/logger"
 
 import "./component-title-bar.scss"
 
@@ -27,6 +28,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     if (tile != null && nextValue) {
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
+        Logger.log(`Title changed to ${nextValue}`)
       }, {
         undoStringKey: "DG.Undo.component.componentTitleChange",
         redoStringKey: "DG.Redo.component.componentTitleChange"

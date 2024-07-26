@@ -17,7 +17,6 @@ export interface LogMessage {
   application: string
   activity?: string
   event: string
-  event_value: string
   run_remote_endpoint?: string
   session: string
   time: number
@@ -30,7 +29,8 @@ export interface LogMessage {
 // will be sent when possible.
 interface PendingMessage {
   time: number
-  event: LogEventName
+  event: string
+  documentTitle: string
   parameters?: Record<string, unknown>
   method?: LogEventMethod
 }
@@ -41,6 +41,7 @@ export class Logger {
   public static isLoggingEnabled = false
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
+  private static document: IDocumentModel
 
   public static initializeLogger(document: IDocumentModel) {
   //Logging is enabled when origin server within this domain.
@@ -48,30 +49,35 @@ export class Logger {
     // this.isLoggingEnabled = window.location.hostname.toLowerCase().endsWith(logFromServer) || DEBUG_LOGGER
 
     debugLog(DEBUG_LOGGER, "Logger#initializeLogger called.")
-    console.log("in initializeLogger")
     this._instance = new Logger(document)
     this.sendPendingMessages()
   }
 
-  // public static updateAppContext(appContext: Record<string, any>) {
-  //   Object.assign(this._instance.appContext, appContext)
-  // }
-
-  public static log(event: LogEventName, parameters?: Record<string, unknown>) {
-    console.log("in log event", event, parameters, this._instance)
-    const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
+  public static updateDocument(document: IDocumentModel) {
+    console.log("in updateDocument document", document)
     if (this._instance) {
-      this._instance.formatAndSend(time, event, parameters)
+      this._instance.document = document
     } else {
-      debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", LogEventName[event])
-      this.pendingMessages.push({ time, event, parameters })
+      console.error("Logger instance is not initialized.")
+    }
+  }
+
+  public static log(event: string, parameters?: Record<string, unknown>) {
+    const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
+    const documentTitle = this._instance.document.title || "Untitled Document"
+    if (this._instance) {
+      this._instance.formatAndSend(time, event, documentTitle, parameters)
+    } else {
+      debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
+      this.pendingMessages.push({ time, event, documentTitle, parameters })
     }
   }
 
   private static sendPendingMessages() {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
-      this._instance.formatAndSend(message.time, message.event, message.parameters, message.method)
+      this._instance.formatAndSend(message.time, message.event, message.documentTitle, message.parameters,
+         message.method)
     }
     this.pendingMessages = []
   }
@@ -83,12 +89,6 @@ export class Logger {
     throw new Error("Logger not initialized yet.")
   }
 
-  // public static get stores() {
-  //   return this._instance?.stores
-  // }
-
-  // private stores: IStores
-  // private appContext: Record<string, any> = {}
   private document: IDocumentModel
   private session: string
   private logListeners: ILogListener[] = []
@@ -105,10 +105,9 @@ export class Logger {
   }
 
   private formatAndSend(time: number,
-      event: LogEventName, parameters?: Record<string, unknown>, method?: LogEventMethod) {
-    const eventString = LogEventName[event]
-    console.log("eventString", eventString)
-    const logMessage = this.createLogMessage(time, eventString, parameters, method)
+      event: string, documentTitle: string, parameters?: Record<string, unknown>, method?: LogEventMethod) {
+    const eventString = event
+    const logMessage = this.createLogMessage(time, eventString, documentTitle,  parameters)
     console.log("logMessage", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     // sendToLoggingService(logMessage)
@@ -120,27 +119,18 @@ export class Logger {
   private createLogMessage(
     time: number,
     event: string,
+    documentTitle: string,
     parameters?: {section?: string},
-    method: LogEventMethod = LogEventMethod.DO
   ): LogMessage {
-    // const {
-    //   appConfig: { appName },
-    //   studentWorkTabSelectedGroupId,
-    //   persistentUI: { activeNavTab, navTabContentShown, problemWorkspace, teacherPanelKey },
-    //   user: { activityUrl, classHash, id, isStudent, isTeacher, portal, type, currentGroupId,
-    //           loggingRemoteEndpoint, firebaseDisconnects, loggingDisconnects, networkStatusAlerts
-    // }} = this.stores
-console.log("in createLogMessage document", this.document)
     const logMessage: LogMessage = {
       // application: appName,
       application: "CODAP",
       // activity: activityUrl,
-      activity: this.document.title,
+      activity: documentTitle,
       session: this.session,
       // ...this.document,
       time,
       event,
-      event_value: method,
       parameters,
     }
 

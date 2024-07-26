@@ -14,6 +14,7 @@ import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
 import { serializeDocument } from "./document/serialize-document"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
+import { Logger } from "../lib/logger"
 
 type AppMode = "normal" | "performance"
 
@@ -61,6 +62,7 @@ class AppState {
         manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
           gDataBroker.addSharedDataSet(model)
         })
+        Logger.updateDocument(document)
       }
     }
     catch (e) {

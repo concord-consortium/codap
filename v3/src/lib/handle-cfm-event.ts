@@ -41,8 +41,9 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     //   break
     case "openedFile": {
       const content = event.data.content
+      const metadata = event.data.metadata
       if (isCodapV2Document(content)) {
-        const v2Document = new CodapV2Document(content)
+        const v2Document = new CodapV2Document(content, metadata)
         importV2Document(v2Document)
       }
       else {

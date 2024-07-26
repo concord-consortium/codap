@@ -6,6 +6,7 @@ import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { urlParams } from "../../utilities/url-params"
+import { Logger } from "../../lib/logger"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
 
@@ -27,6 +28,7 @@ export const Container: React.FC = () => {
         manager?.removeTileSharedModel(tile?.content, model)
       })
       tileId && documentContent?.deleteTile(tileId)
+      Logger.log(`${tile?.content.type} is closed`)
     }, {
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close"

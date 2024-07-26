@@ -14,6 +14,19 @@ export async function importV2Document(v2Document: CodapV2Document) {
   const v3Document = createCodapDocument(undefined, { layout: "free" })
   const sharedModelManager = getSharedModelManager(v3Document)
   sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
+
+  const documentMetadata = v2Document.getDocumentMetadata()
+  if (documentMetadata) {
+    const metadataEntries = Object.entries(documentMetadata)
+    metadataEntries.forEach(([key, value]) => {
+      if (value !== undefined) {
+        v3Document.setProperty(key, value)
+      }
+    })
+  }
+
+  v3Document.setTitle(v2Document.getDocumentTitle())
+
   // add shared models (data sets and case metadata)
   v2Document.dataSets.forEach((data, key) => {
     const metadata = v2Document.metadata[key]

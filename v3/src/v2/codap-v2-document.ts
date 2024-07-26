@@ -3,6 +3,7 @@ import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
+import { IDocumentMetadata } from "../models/document/document-metadata"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
 import { toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId } from "../utilities/codap-utils"
@@ -12,19 +13,24 @@ import {
 
 export class CodapV2Document {
   private document: ICodapV2DocumentJson
+  private documentMetadata: IDocumentMetadata
   private guidMap = new Map<number, { type: string, object: any }>()
   private dataMap = new Map<number, ISharedDataSet>()
   private v3AttrMap = new Map<number, IAttribute>()
   private metadataMap = new Map<number, ISharedCaseMetadata>()
 
-  constructor(document: ICodapV2DocumentJson) {
+  constructor(document: ICodapV2DocumentJson, metadata?: IDocumentMetadata) {
     this.document = document
-
+    this.documentMetadata = metadata ?? {}
     // register the document
     this.guidMap.set(document.guid, { type: "DG.Document", object: document })
 
     this.registerContexts(document.contexts)
     this.registerComponents(document.components)
+  }
+
+  get name() {
+    return this.document.name
   }
 
   get contexts() {
@@ -45,6 +51,14 @@ export class CodapV2Document {
 
   get metadata() {
     return Array.from(this.metadataMap.values())
+  }
+
+  getDocumentMetadata() {
+    return this.documentMetadata
+  }
+
+  getDocumentTitle() {
+    return this.documentMetadata.filename?.split(".")[0] ?? this.document.name
   }
 
   getDataAndMetadata(v2Id?: number) {
