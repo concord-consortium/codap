@@ -102,7 +102,7 @@ export const diComponentHandler: DIHandler = {
         const title = _title ?? name
         const content = type === kV2CaseTableType && horizontalScrollOffset != null
           ? { horizontalScrollOffset, type: kCaseTableTileType } : undefined
-        const options = { cannotClose, content, ...dimensions, title }
+        const options = { cannotClose, content, ...dimensions, name, title }
 
         const tileType = type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType
         const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType, options)
@@ -370,7 +370,7 @@ export const diComponentHandler: DIHandler = {
 
         // Create the tile
         const title = _title ?? name
-        const options = { cannotClose, content, ...dimensions, title, ...extraOptions }
+        const options = { cannotClose, content, ...dimensions, name, title, ...extraOptions }
         const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
         if (!tile) return componentNotCreatedResult
 
