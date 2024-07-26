@@ -61,6 +61,14 @@ export class CodapV2Document {
     return this.documentMetadata.filename?.split(".")[0] ?? this.document.name
   }
 
+  getDocumentMetadata() {
+    return this.documentMetadata
+  }
+
+  getDocumentTitle() {
+    return this.documentMetadata.filename?.split(".")[0] ?? this.document.name
+  }
+
   getDataAndMetadata(v2Id?: number) {
     return { data: this.dataMap.get(v2Id ?? -1), metadata: this.caseMetadataMap.get(v2Id ?? -1) }
   }

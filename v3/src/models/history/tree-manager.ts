@@ -236,6 +236,7 @@ export const TreeManager = types
 }))
 .actions((self) => ({
   setMainDocument(document: IMainDocument) {
+    // console.log("setMainDocument", document.metadata)
     self.mainDocument = document
     self.putTree(document.key, document)
   },

@@ -29,8 +29,10 @@ interface IOptions {
 }
 export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, options?: IOptions): IDocumentModel {
   const { layout = "free", noGlobals = false } = options || {}
-  const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`, ...snapshot })
+  const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`,
+                        properties: {name: snapshot?.title ?? "Untitled Document"}, ...snapshot })
   // create the content if there isn't any
+  document.setTitle(snapshot?.title ?? "Untitled Document")
   if (!document.content) {
     document.setContent(getSnapshot(DocumentContentModel.create()))
   }
