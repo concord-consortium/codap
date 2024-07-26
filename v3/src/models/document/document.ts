@@ -34,10 +34,6 @@ export const DocumentModel = Tree.named("Document")
     get hasContent() {
       return !!self.content
     },
-    // get metadata(): IDocumentMetadata {
-    //   const { key, type, createdAt, title, properties } = self
-    //   return { key, type, createdAt, title, properties: properties.toJSON() }
-    // },
     getProperty(key: string) {
       return self.properties.get(key)
     },

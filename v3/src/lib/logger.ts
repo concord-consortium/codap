@@ -76,8 +76,7 @@ export class Logger {
   private static sendPendingMessages() {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
-      this._instance.formatAndSend(message.time, message.event, message.documentTitle, message.parameters,
-         message.method)
+      this._instance.formatAndSend(message.time, message.event, message.documentTitle, message.parameters)
     }
     this.pendingMessages = []
   }
@@ -105,7 +104,7 @@ export class Logger {
   }
 
   private formatAndSend(time: number,
-      event: string, documentTitle: string, parameters?: Record<string, unknown>, method?: LogEventMethod) {
+      event: string, documentTitle: string, parameters?: Record<string, unknown>) {
     const eventString = event
     const logMessage = this.createLogMessage(time, eventString, documentTitle,  parameters)
     console.log("logMessage", logMessage)
