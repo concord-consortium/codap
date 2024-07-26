@@ -1,19 +1,19 @@
 import { MathNode } from "mathjs"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { FValue } from "../formula-types"
-import { UNDEF_RESULT, evaluateNode, isValueTruthy } from "./function-utils"
+import { CurrentScope, FValue } from "../formula-types"
+import { UNDEF_RESULT, evaluateNode, getRootScope, isValueTruthy } from "./function-utils"
 
 export const semiAggregateFunctions = {
   next: {
     numOfRequiredArguments: 1,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
       interface ICachedData {
         result?: FValue
         resultCasePointer: number
       }
 
+      const scope = getRootScope(currentScope)
       const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `next(${args.toString()})-${caseGroupId}`
       const [ expression, defaultValue, filter ] = args
@@ -75,7 +75,8 @@ export const semiAggregateFunctions = {
     selfReferenceAllowed: true,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
     isSemiAggregate: [true, false, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+    evaluateRaw: (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
+      const scope = getRootScope(currentScope)
       const [ expression, defaultValue, filter ] = args
 
       const caseGroupId = scope.getCaseGroupId()

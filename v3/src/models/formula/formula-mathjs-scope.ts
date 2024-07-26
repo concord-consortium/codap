@@ -129,14 +129,6 @@ export class FormulaMathJsScope {
     throw new Error("It's not allowed to clear values in the formula scope.")
   }
 
-  // MathJS requests a separate subscope for every parsed and evaluated function call.
-  createSubScope () {
-    // In regular MathJS use case, a subscope is used to create a new scope for a function call. It needs to ensure
-    // that variables from subscope cannot overwrite variables from the parent scope. However, since we don't allow
-    // any variables to be set in the formula scope, we can reuse the same scope instance.
-    return this
-  }
-
   // --- Custom functions used by our formulas or formula manager --
 
   setExtraScope(extraScope?: Map<string, FValue>) {

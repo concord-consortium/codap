@@ -1,3 +1,4 @@
+import { UNDEF_RESULT } from "./function-utils"
 import { math } from "./math"
 
 describe("if", () => {
@@ -57,5 +58,22 @@ describe("randomBinomial", () => {
     const fn = math.compile("randomBinomial(5, 0.5)")
     const integers = Array.from({ length: 100 }, () => fn.evaluate())
     expect(integers.every((n) => Math.round(n) === n && n >= 0 && n <= 5)).toBeTruthy()
+  })
+})
+
+describe("number", () => {
+  it("converts a date to epoch time in seconds", () => {
+    const fn = math.compile("number(date(100500))")
+    expect(fn.evaluate()).toEqual(100500)
+  })
+
+  it("converts a date string to epoch time in seconds", () => {
+    const fn = math.compile("number('01/01/2020')")
+    expect(fn.evaluate()).toEqual(new Date('01/01/2020').getTime() / 1000) // Convert to seconds
+  })
+
+  it("returns UNDEF_RESULT for non-date values", () => {
+    const fn = math.compile("number('foo')")
+    expect(fn.evaluate()).toEqual(UNDEF_RESULT)
   })
 })
