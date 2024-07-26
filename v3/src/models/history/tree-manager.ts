@@ -7,7 +7,6 @@ import {
   TreePatchRecord, HistoryEntry, TreePatchRecordSnapshot, HistoryOperation, ICreateHistoryEntry
 } from "./history"
 import { DEBUG_HISTORY } from "../../lib/debug"
-import { IDocumentMetadata } from "../document/document-metadata"
 
 /**
  * Helper method to print objects in template strings
@@ -34,7 +33,6 @@ export interface CDocumentType extends Instance<typeof CDocument> {}
 interface IMainDocument extends TreeAPI {
   key: string;
   // uid: string;
-  metadata: IDocumentMetadata;
 }
 
 export enum HistoryStatus {
