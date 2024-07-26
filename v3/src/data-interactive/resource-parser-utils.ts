@@ -106,6 +106,13 @@ export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, c
   return { valid: true, caseIds }
 }
 
+export function findTileFromName(name: string) {
+  const { content } = appState.document
+  if (content) {
+    return Array.from(content.tileMap.values()).find(tile => tile.name === name)
+  }
+}
+
 export function findTileFromV2Id(v2Id: string) {
   const { document } = appState
   // We look for every possible v3 id the component might have (because each tile type has a different prefix).
