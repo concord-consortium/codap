@@ -931,8 +931,7 @@ context("case table ui", () => {
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("#ff00ff{enter}")
       // verify that cell shows color swatch of appropriate color
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
-      //this test has become flaky. commenting
-      //out for now
+      
       cy.log("double-click to begin editing cell")
       table.getGridCell(2, 2).dblclick({force: true})
       cy.wait(1000) // Wait for the editing input to appear
