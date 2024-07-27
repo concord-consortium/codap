@@ -1,9 +1,9 @@
-import { appState } from "../../models/app-state";
-import { IFreeTileRow } from "../../models/document/free-tile-row";
-import { ITileModel } from "../../models/tiles/tile-model";
-import { toV2Id } from "../../utilities/codap-utils";
-import { kComponentTypeV3ToV2Map, V2Component } from "../data-interactive-component-types";
-import { DIHandler } from "../data-interactive-types";
+import { appState } from "../../models/app-state"
+import { IFreeTileRow } from "../../models/document/free-tile-row"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { toV2Id } from "../../utilities/codap-utils"
+import { kComponentTypeV3ToV2Map, V2Component } from "../data-interactive-component-types"
+import { DIHandler } from "../data-interactive-types"
 
 type specificTileTest = (tile: ITileModel, values: V2Component) => void
 interface IOptions {
@@ -25,7 +25,7 @@ export function testGetComponent(
   const { height, width } = row.getTileDimensions(tile.id)!
   expect(dimensions?.height).toBe(height)
   expect(dimensions?.width).toBe(width)
-  const { left, top } = row.getTilePosition(tile.id)!
+  const { left, top } = row.getTilePosition(tile.id)
   expect((position as any).left).toBe(left)
   expect((position as any).top).toBe(top)
 

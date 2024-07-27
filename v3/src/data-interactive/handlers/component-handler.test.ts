@@ -83,9 +83,9 @@ describe("DataInteractive ComponentHandler", () => {
     expect((card2Tile.content as ICaseCardModel).data?.id).toBe(dataset2.id)
 
     // Get a case card
-    testGetComponent(cardTile, handler, (tile, values) => {
+    testGetComponent(cardTile, handler, (testTile, values) => {
       const { dataContext } = values as V2CaseCard
-      expect(dataContext).toBe((tile.content as ICaseCardModel).data?.name)
+      expect(dataContext).toBe((testTile.content as ICaseCardModel).data?.name)
     })
   })
 

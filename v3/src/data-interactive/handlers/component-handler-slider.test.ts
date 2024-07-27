@@ -52,7 +52,9 @@ describe("DataInteractive ComponentHandler Slider", () => {
 
     // Get slider
     testGetComponent(oldValueTile, handler, (sliderTile, values) => {
-      const { animationDirection, animationMode, globalValueName, lowerBound, upperBound, value } = values as V2GetSlider
+      const {
+        animationDirection, animationMode, globalValueName, lowerBound, upperBound, value
+      } = values as V2GetSlider
       const sliderContent = sliderTile.content as ISliderModel
       expect(animationDirection).toBe(AnimationDirections.findIndex(v => v === sliderContent.animationDirection))
       expect(animationMode).toBe(AnimationModes.findIndex(v => v === sliderContent.animationMode))
