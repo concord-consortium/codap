@@ -441,33 +441,33 @@ export const diComponentHandler: DIHandler = {
       const { dataConfiguration } = content.graphPointLayerModel
       const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
       
-      const captionAttributeId = dataConfiguration.attributeDescriptions.caption?.attributeID
+      const captionAttributeId = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
       const captionAttributeName = captionAttributeId ? dataset?.getAttribute(captionAttributeId)?.name : undefined
 
-      const legendAttributeId = dataConfiguration.attributeDescriptions.legend?.attributeID
+      const legendAttributeId = dataConfiguration.attributeDescriptionForRole("legend")?.attributeID
       const legendAttributeName = legendAttributeId ? dataset?.getAttribute(legendAttributeId)?.name : undefined
 
-      const rightSplitId = dataConfiguration.attributeDescriptions.rightSplit?.attributeID
+      const rightSplitId = dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID
       const rightSplitAttributeName = rightSplitId ? dataset?.getAttribute(rightSplitId)?.name : undefined
 
-      const topSplitId = dataConfiguration.attributeDescriptions.topSplit?.attributeID
+      const topSplitId = dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID
       const topSplitAttributeName = topSplitId ? dataset?.getAttribute(topSplitId)?.name : undefined
 
-      const xAttributeId = dataConfiguration.attributeDescriptions.x?.attributeID
+      const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
       const xAttributeName = xAttributeId ? dataset?.getAttribute(xAttributeId)?.name : undefined
       const xAxis = content.getAxis("bottom")
       const xNumericAxis = isNumericAxisModel(xAxis) ? xAxis : undefined
       const xLowerBound = xNumericAxis?.min
       const xUpperBound = xNumericAxis?.max
 
-      const yAttributeId = dataConfiguration.attributeDescriptions.y?.attributeID
+      const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
       const yAttributeName = yAttributeId ? dataset?.getAttribute(yAttributeId)?.name : undefined
       const yAxis = content.getAxis("left")
       const yNumericAxis = isNumericAxisModel(yAxis) ? yAxis : undefined
       const yLowerBound = yNumericAxis?.min
       const yUpperBound = yNumericAxis?.max
 
-      const y2AttributeId = dataConfiguration.attributeDescriptions.rightNumeric?.attributeID
+      const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
       const y2AttributeName = y2AttributeId ? dataset?.getAttribute(y2AttributeId)?.name : undefined
       const y2Axis = content.getAxis("rightNumeric")
       const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined

@@ -1,12 +1,15 @@
 import { getSnapshot } from "mobx-state-tree"
+import { INumericAxisModel } from "../../components/axis/models/axis-model"
 import { kGraphIdPrefix } from "../../components/graph/graph-defs"
 import "../../components/graph/graph-registration"
 import { IGraphContentModel, isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
+import { V2GetGraph } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
 import { setupTestDataset, testCases } from "./handler-test-utils"
+import { testGetComponent } from "./component-handler-test-utils"
 
 
 describe("DataInteractive ComponentHandler Graph", () => {
@@ -20,7 +23,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!
 
-  it("create graph works", async () => {
+  it("create and get graph work", async () => {
     // Create a graph tile with no options
     expect(documentContent.tileMap.size).toBe(0)
     const vanillaResult = handler.create!({}, { type: "graph" })
@@ -72,6 +75,51 @@ describe("DataInteractive ComponentHandler Graph", () => {
       dataset.itemIds.forEach(itemId => {
         expect(layer.dataConfiguration.hiddenCases.includes(itemId)).toBe(itemId !== lastCaseId)
       })
+    })
+
+    // Get graph
+    testGetComponent(tile, handler, (graphTile, values) => {
+      const {
+        dataContext, enableNumberToggle, numberToggleLastMode, captionAttributeName, legendAttributeName,
+        rightSplitAttributeName, topSplitAttributeName, xAttributeName, xLowerBound, xUpperBound,
+        yAttributeName, yLowerBound, yUpperBound, y2AttributeName, y2LowerBound, y2UpperBound
+      } = values as V2GetGraph
+      const content = graphTile.content as IGraphContentModel
+      const graphDataset = content.dataset!
+      expect(dataContext).toBe(graphDataset.name)
+      const { dataConfiguration } = content.graphPointLayerModel
+      expect(enableNumberToggle).toBe(content.showParentToggles)
+      expect(numberToggleLastMode).toBe(content.showOnlyLastCase)
+      
+      const captionAttributeId = dataConfiguration.attributeDescriptionForRole("caption")!.attributeID
+      expect(captionAttributeName).toBe(graphDataset.getAttribute(captionAttributeId)?.name)
+
+      const legendAttributeId = dataConfiguration.attributeDescriptionForRole("legend")!.attributeID
+      expect(legendAttributeName).toBe(graphDataset.getAttribute(legendAttributeId)?.name)
+
+      const rightSplitId = dataConfiguration.attributeDescriptionForRole("rightSplit")!.attributeID
+      expect(rightSplitAttributeName).toBe(graphDataset.getAttribute(rightSplitId)?.name)
+
+      const topSplitId = dataConfiguration.attributeDescriptionForRole("topSplit")!.attributeID
+      expect(topSplitAttributeName).toBe(graphDataset.getAttribute(topSplitId)?.name)
+
+      const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")!.attributeID
+      expect(xAttributeName).toBe(graphDataset.getAttribute(xAttributeId)?.name)
+      const xAxis = content.getAxis("bottom") as INumericAxisModel
+      expect(xLowerBound).toBe(xAxis.min)
+      expect(xUpperBound).toBe(xAxis.max)
+
+      const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")!.attributeID
+      expect(yAttributeName).toBe(graphDataset.getAttribute(yAttributeId)?.name)
+      const yAxis = content.getAxis("left") as INumericAxisModel
+      expect(yLowerBound).toBe(yAxis.min)
+      expect(yUpperBound).toBe(yAxis.max)
+
+      const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")!.attributeID
+      expect(y2AttributeName).toBe(graphDataset.getAttribute(y2AttributeId)?.name)
+      const y2Axis = content.getAxis("rightNumeric") as INumericAxisModel
+      expect(y2LowerBound).toBe(y2Axis.min)
+      expect(y2UpperBound).toBe(y2Axis.max)
     })
 
     // Create multiple graphs for the same dataset

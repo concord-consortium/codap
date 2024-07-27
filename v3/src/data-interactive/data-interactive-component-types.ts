@@ -44,8 +44,12 @@ export interface V2Component {
     width: number
     height: number
   }
+  id?: number
   name?: string
-  position?: string
+  position?: string | {
+    left: number
+    top: number
+  }
   title?: string
   type: string
 }
@@ -80,6 +84,14 @@ export interface V2Graph extends V2Component {
   yAttributeName?: string
   y2AttributeName?: string
 }
+export interface V2GetGraph extends V2Graph {
+  xLowerBound?: number
+  xUpperBound?: number
+  yLowerBound?: number
+  yUpperBound?: number
+  y2LowerBound?: number
+  y2UpperBound?: number
+}
 export interface V2GuidePage {
   itemTitle: string
   url: string
@@ -104,6 +116,9 @@ export interface V2Slider extends V2Component {
   lowerBound?: number
   type: "slider"
   upperBound?: number
+}
+export interface V2GetSlider extends V2Slider {
+  value?: number
 }
 export interface V2Text extends V2Component {
   text?: string
