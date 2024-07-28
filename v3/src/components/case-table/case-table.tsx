@@ -9,6 +9,7 @@ import { useSyncScrolling } from "./use-sync-scrolling"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
@@ -27,13 +28,15 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   const instanceId = useInstanceIdContext() || "case-table"
   const data = useDataSetContext()
   const tableModel = useCaseTableModel()
-  const contentRef = useRef<HTMLDivElement | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
-  function setTableRef(elt: HTMLDivElement | null) {
-    contentRef.current = elt?.querySelector((".case-table-content")) ?? null
-    setNodeRef(elt)
-  }
+  useEffect(() => {
+    // disable vertical auto-scroll of table (column headers can't scroll out of view)
+    return registerCanAutoScrollCallback((element, direction) => {
+      return element !== contentRef.current || direction.y === 0
+    })
+  }, [])
 
   useEffect(() => {
     const updateScroll = (horizontalScrollOffset?: number) => {
@@ -114,27 +117,25 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     }
 
     return (
-      <>
-        <div ref={setTableRef} className="case-table" data-testid="case-table">
-          <div className="case-table-content" onScroll={handleHorizontalScroll}>
-            {collections.map((collection, i) => {
-              const key = collection.id
-              const parent = i > 0 ? collections[i - 1] : undefined
-              return (
-                <ParentCollectionContext.Provider key={key} value={parent?.id}>
-                  <CollectionContext.Provider value={collection.id}>
-                    <CollectionTable onMount={handleCollectionTableMount}
-                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
-                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
-                  </CollectionContext.Provider>
-                </ParentCollectionContext.Provider>
-              )
-            })}
-            <AttributeDragOverlay activeDragId={overlayDragId} />
-            <NoCasesMessage />
-          </div>
+      <div ref={setNodeRef} className="case-table" data-testid="case-table">
+        <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
+          {collections.map((collection, i) => {
+            const key = collection.id
+            const parent = i > 0 ? collections[i - 1] : undefined
+            return (
+              <ParentCollectionContext.Provider key={key} value={parent?.id}>
+                <CollectionContext.Provider value={collection.id}>
+                  <CollectionTable onMount={handleCollectionTableMount}
+                    onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
+                    onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
+                </CollectionContext.Provider>
+              </ParentCollectionContext.Provider>
+            )
+          })}
+          <AttributeDragOverlay activeDragId={overlayDragId} />
+          <NoCasesMessage />
         </div>
-      </>
+      </div>
     )
   })
 })

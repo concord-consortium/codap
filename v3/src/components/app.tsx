@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect } from "react"
-import { CodapDndContext } from "./codap-dnd-context"
+import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kCodapAppElementId } from "./constants"
