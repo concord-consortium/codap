@@ -30,6 +30,7 @@ interface PendingMessage {
   time: number
   event: string
   documentTitle: string
+  event_value?: Record<string, unknown>
   parameters?: Record<string, unknown>
 }
 
@@ -58,13 +59,13 @@ export class Logger {
     }
   }
 
-  public static log(event: string, parameters?: Record<string, unknown>) {
+  public static log(event: string, event_value?: Record<string, unknown>, parameters?: Record<string, unknown>) {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
-      this._instance.formatAndSend(time, event, documentTitle, parameters)
+      this._instance.formatAndSend(time, event, documentTitle, event_value, parameters)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       this.pendingMessages.push({ time, event, documentTitle, parameters })
@@ -101,10 +102,10 @@ export class Logger {
     this.logListeners.push(listener)
   }
 
-  private formatAndSend(time: number,
-      event: string, documentTitle: string, parameters?: Record<string, unknown>) {
+  private formatAndSend(time: number, event: string, documentTitle: string,
+    event_value?: Record<string, unknown>, parameters?: Record<string, unknown>) {
     const eventString = event
-    const logMessage = this.createLogMessage(time, eventString, documentTitle,  parameters)
+    const logMessage = this.createLogMessage(time, eventString, documentTitle, event_value, parameters)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
@@ -117,6 +118,7 @@ export class Logger {
     time: number,
     event: string,
     documentTitle: string,
+    event_value?: Record<string, unknown>,
     parameters?: {section?: string},
   ): LogMessage {
     const logMessage: LogMessage = {
@@ -125,6 +127,7 @@ export class Logger {
       session: this.session,
       time,
       event,
+      event_value,
       parameters,
     }
 

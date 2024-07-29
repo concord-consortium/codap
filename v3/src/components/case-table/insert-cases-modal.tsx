@@ -6,6 +6,7 @@ import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { ICaseCreation } from "../../models/data/data-set-types"
+import { Logger } from "../../lib/logger"
 
 interface IProps {
   caseId: string
@@ -45,6 +46,7 @@ export const InsertCasesModal: React.FC<IProps> =
     }
     data?.applyModelChange(() => {
       data.addCases(casesToAdd, {[insertPosition]: caseId})
+      Logger.log(`insert ${numCasesToInsert} cases in table`)
     }, {
       undoStringKey: "DG.Undo.caseTable.insertCases",
       redoStringKey: "DG.Redo.caseTable.insertCases"

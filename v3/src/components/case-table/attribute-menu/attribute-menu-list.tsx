@@ -14,6 +14,7 @@ import { t } from "../../../utilities/translation/translate"
 import { TCalculatedColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
+import { Logger } from "../../../lib/logger"
 
 interface IProps {
   column: TCalculatedColumn
@@ -43,6 +44,16 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       duration: 5000,
       isClosable: true,
     })
+    //TODO: move to respective logs when handlers are implemented
+    switch (menuItem) {
+      case "Fit width":
+        Logger.log(`Fit column width:`, {collection: data?.name, attribute: columnName})
+        break
+      case "Sort Ascending":
+      case "Sort Descending":
+        Logger.log(`Sort cases by attribute:`, {attributeId: attribute?.id, attribute: columnName})
+        break
+    }
   }
 
   // can't hide last attribute of collection
