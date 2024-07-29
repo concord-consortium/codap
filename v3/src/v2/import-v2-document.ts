@@ -19,7 +19,7 @@ export async function importV2Document(v2Document: CodapV2Document) {
   if (documentMetadata) {
     const metadataEntries = Object.entries(documentMetadata)
     metadataEntries.forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value != null) {
         v3Document.setProperty(key, value)
       }
     })
@@ -29,7 +29,7 @@ export async function importV2Document(v2Document: CodapV2Document) {
 
   // add shared models (data sets and case metadata)
   v2Document.dataSets.forEach((data, key) => {
-    const metadata = v2Document.metadata[key]
+    const metadata = v2Document.caseMetadata[key]
     gDataBroker.addDataAndMetadata(data, metadata)
   })
 

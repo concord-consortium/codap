@@ -15,6 +15,7 @@ import { serializeDocument } from "./document/serialize-document"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
 import { Logger } from "../lib/logger"
+import { t } from "../utilities/translation/translate"
 
 type AppMode = "normal" | "performance"
 
@@ -56,13 +57,13 @@ class AppState {
         if (metadata) {
           const metadataEntries = Object.entries(metadata)
           metadataEntries.forEach(([key, value]) => {
-            if (value !== undefined) {
+            if (value != null) {
               this.currentDocument.setProperty(key, value)
             }
           })
         }
         const docTitle = this.currentDocument.getDocumentTitle()
-        this.currentDocument.setTitle(docTitle || "Untitled Document")
+        this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
         // monitor document changes for undo/redo
         this.enableUndoRedoMonitoring()
 

@@ -17,7 +17,7 @@ export class CodapV2Document {
   private guidMap = new Map<number, { type: string, object: any }>()
   private dataMap = new Map<number, ISharedDataSet>()
   private v3AttrMap = new Map<number, IAttribute>()
-  private metadataMap = new Map<number, ISharedCaseMetadata>()
+  private caseMetadataMap = new Map<number, ISharedCaseMetadata>()
 
   constructor(document: ICodapV2DocumentJson, metadata?: IDocumentMetadata) {
     this.document = document
@@ -49,8 +49,8 @@ export class CodapV2Document {
     return Array.from(this.dataMap.values())
   }
 
-  get metadata() {
-    return Array.from(this.metadataMap.values())
+  get caseMetadata() {
+    return Array.from(this.caseMetadataMap.values())
   }
 
   getDocumentMetadata() {
@@ -62,7 +62,7 @@ export class CodapV2Document {
   }
 
   getDataAndMetadata(v2Id?: number) {
-    return { data: this.dataMap.get(v2Id ?? -1), metadata: this.metadataMap.get(v2Id ?? -1) }
+    return { data: this.dataMap.get(v2Id ?? -1), metadata: this.caseMetadataMap.get(v2Id ?? -1) }
   }
 
   getParentCase(aCase: ICodapV2Case) {
@@ -95,14 +95,14 @@ export class CodapV2Document {
       const dataSetId = toV3DataSetId(guid)
       const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title } })
       this.dataMap.set(guid, sharedDataSet)
-      const metadata = SharedCaseMetadata.create({ data: dataSetId })
-      this.metadataMap.set(guid, metadata)
+      const caseMetadata = SharedCaseMetadata.create({ data: dataSetId })
+      this.caseMetadataMap.set(guid, caseMetadata)
 
-      this.registerCollections(sharedDataSet.dataSet, metadata, collections)
+      this.registerCollections(sharedDataSet.dataSet, caseMetadata, collections)
     })
   }
 
-  registerCollections(data: IDataSet, metadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
+  registerCollections(data: IDataSet, caseMetadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
     let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
       const { attrs = [], cases = [], guid, name = "", title, type = "DG.Collection" } = collection
@@ -111,7 +111,7 @@ export class CodapV2Document {
 
       // assumes hierarchical collections are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
-      this.registerAttributes(data, metadata, attrs, level)
+      this.registerAttributes(data, caseMetadata, attrs)
       this.registerCases(data, cases, level)
 
       const attributes = attrs.map(attr => {
@@ -134,7 +134,7 @@ export class CodapV2Document {
     })
   }
 
-  registerAttributes(data: IDataSet, metadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[], level: number) {
+  registerAttributes(data: IDataSet, caseMetadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[]) {
     attributes.forEach(v2Attr => {
       const {
         guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
@@ -154,7 +154,7 @@ export class CodapV2Document {
       if (attribute) {
         this.v3AttrMap.set(guid, attribute)
         if (v2Attr.hidden) {
-          metadata.setIsHidden(attribute.id, true)
+          caseMetadata.setIsHidden(attribute.id, true)
         }
       }
     })

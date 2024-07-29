@@ -1,5 +1,4 @@
-import { v4 as uuid } from "uuid"
-import { LogEventMethod } from "./logger-types"
+import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
 
@@ -31,7 +30,6 @@ interface PendingMessage {
   event: string
   documentTitle: string
   parameters?: Record<string, unknown>
-  method?: LogEventMethod
 }
 
 type ILogListener = (logMessage: LogMessage) => void
@@ -95,7 +93,7 @@ export class Logger {
   private constructor(document: IDocumentModel) {
     // this.stores = stores
     this.document = document
-    this.session = uuid()
+    this.session = nanoid()
   }
 
   public registerLogListener(listener: ILogListener) {
@@ -106,7 +104,7 @@ export class Logger {
       event: string, documentTitle: string, parameters?: Record<string, unknown>) {
     const eventString = event
     const logMessage = this.createLogMessage(time, eventString, documentTitle,  parameters)
-    console.log("logMessage", logMessage)
+    debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
     // for (const listener of this.logListeners) {

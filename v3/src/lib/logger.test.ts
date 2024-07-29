@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-commented-out-tests */
 import mockXhr from "xhr-mock"
 import { Logger } from "./logger"
 import { createCodapDocument } from "../models/codap/create-codap-document"
@@ -28,7 +29,6 @@ describe("uninitialized logger", () => {
     const documentJson = fs.readFileSync(file, "utf8")
     const documentDoc = JSON.parse(documentJson)
     const testDoc = createCodapDocument(documentDoc)
-    console.log("testDoc", testDoc)
 
     const TEST_LOG_MESSAGE = "999"
     const mockPostHandler = jest.fn((req, res) => {
@@ -294,3 +294,4 @@ describe.skip("authed logger", () => {
   // })
 
 })
+/* eslint-enable jest/no-commented-out-tests */
