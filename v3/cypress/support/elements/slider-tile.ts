@@ -2,7 +2,7 @@ import { ComponentElements as c } from "./component-elements"
 
 export const SliderTileElements = {
   getSliderTile(index = 0) {
-    return c.getComponentTile("slider", index)
+    return cy.get(`[data-testid="codap-slider"]`).eq(index)
   },
   getVariableName(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-variable-name-text]")
