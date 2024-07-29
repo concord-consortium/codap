@@ -15,7 +15,7 @@ export interface INotification {
 }
 export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
-  notifications?: INotification | INotification[] | (() => Maybe<INotification | INotification[]>)
+  notify?: INotification | INotification[] | (() => Maybe<INotification | INotification[]>)
   undoStringKey?: string
   redoStringKey?: string
 }
@@ -25,7 +25,7 @@ export function applyModelChange(self: IAnyStateTreeNode) {
   return ({
     // performs the specified action so that response actions are included and undo/redo strings assigned
     applyModelChange<TResult = unknown>(actionFn: () => TResult, options?: IApplyModelChangeOptions) {
-      const { log, notifications, undoStringKey, redoStringKey } = options || {}
+      const { log, notify, undoStringKey, redoStringKey } = options || {}
       const result = actionFn()
 
       // Add strings to undoable action or keep out of the undo stack
@@ -48,9 +48,9 @@ export function applyModelChange(self: IAnyStateTreeNode) {
         }
 
         // Broadcast notifications to plugins
-        if (notifications && tileEnv.notify) {
+        if (notify && tileEnv.notify) {
           // Convert notifications to INotification[]
-          const actualNotifications = notifications instanceof Function ? notifications() : notifications
+          const actualNotifications = notify instanceof Function ? notify() : notify
           if (actualNotifications) {
             const notificationArray = Array.isArray(actualNotifications) ? actualNotifications : [actualNotifications]
 

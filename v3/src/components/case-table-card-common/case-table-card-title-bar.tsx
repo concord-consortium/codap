@@ -88,7 +88,7 @@ export const CaseTableCardTitleBar =
         data?.applyModelChange(() => {
           data.setTitle(newTitle)
         }, {
-          notifications: () => updateDataContextNotification(data),
+          notify: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
           redoStringKey: "DG.Redo.component.componentTitleChange"
         })

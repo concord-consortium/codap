@@ -69,7 +69,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           attribute.setEditable(editable === "yes")
         }
       }, {
-        notifications: updateAttributesNotification([attribute], data),
+        notify: updateAttributesNotification([attribute], data),
         undoStringKey: "DG.Undo.caseTable.editAttribute",
         redoStringKey: "DG.Redo.caseTable.editAttribute"
       })

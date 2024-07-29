@@ -260,7 +260,7 @@ DG.DataContextUtilities = {
     tCaseMetadata?.applyModelChange(
       () => tCaseMetadata?.setIsHidden(iAttrID, true),
       {
-        notifications: hideAttributeNotification([iAttrID], iContext.data),
+        notify: hideAttributeNotification([iAttrID], iContext.data),
         undoStringKey: "DG.Undo.caseTable.hideAttribute",
         redoStringKey: "DG.Redo.caseTable.hideAttribute"
       }

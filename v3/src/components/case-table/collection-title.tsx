@@ -85,7 +85,7 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
       data?.applyModelChange(() => {
         collection?.setName(newName)
       }, {
-        notifications: collection?.name !== newName ? () => updateCollectionNotification(collection, data) : undefined,
+        notify: collection?.name !== newName ? () => updateCollectionNotification(collection, data) : undefined,
         undoStringKey: "DG.Undo.caseTable.collectionNameChange",
         redoStringKey: "DG.Redo.caseTable.collectionNameChange"
       })

@@ -55,7 +55,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     caseMetadata?.applyModelChange(
       () => caseMetadata?.setIsHidden(column.key, true),
       {
-        notifications: hideAttributeNotification([column.key], data),
+        notify: hideAttributeNotification([column.key], data),
         undoStringKey: "DG.Undo.caseTable.hideAttribute",
         redoStringKey: "DG.Redo.caseTable.hideAttribute"
       }
@@ -73,7 +73,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       data.applyModelChange(() => {
         result = data.removeAttribute(attrId)
       }, {
-        notifications: () => {
+        notify: () => {
           const notifications = [removeAttributesNotification([attrId], data)]
           if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
           return notifications

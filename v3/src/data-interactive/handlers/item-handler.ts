@@ -53,7 +53,7 @@ export const diItemHandler: DIHandler = {
         })
       })
     }, {
-      notifications: () => {
+      notify: () => {
         const notifications = []
         for (const collectionId in newCaseIds) {
           const caseIds = newCaseIds[collectionId]

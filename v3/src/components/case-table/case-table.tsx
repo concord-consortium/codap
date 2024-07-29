@@ -89,7 +89,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
         }
         removedOldCollection = !!(oldCollectionId && !dataSet.getCollection(oldCollectionId))
       }, {
-        notifications: () => {
+        notify: () => {
           const notifications: INotification[] = []
           if (removedOldCollection) notifications.push(deleteCollectionNotification(dataSet))
           if (collection) notifications.push(createCollectionNotification(collection, dataSet))

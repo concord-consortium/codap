@@ -46,7 +46,7 @@ export const App = observer(function App() {
       appState.document.content?.applyModelChange(() => {
         sharedData = appState.document.content?.importDataSet(data, options)
       }, {
-        notifications: dataContextCountChangedNotification,
+        notify: dataContextCountChangedNotification,
         undoStringKey: "V3.Undo.import.data",
         redoStringKey: "V3.Redo.import.data"
       })
