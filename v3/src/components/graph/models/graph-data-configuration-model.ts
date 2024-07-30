@@ -161,13 +161,17 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
         return self._filterCase(data, caseID)
       }
+      // Note that this excludes `rightNumeric` (see `attributeDescriptions` above)
       const descriptions = {...self.attributeDescriptions}
       // If a 'rightNumeric' attribute exists and caseArrayNumber is >= the length of _yAttributeDescriptions, then
       // we are looking at the rightNumeric attribute. Delete the y attribute description and add the rightNumeric one.
       // Otherwise, replace the y attribute description with the one at the given index.
       if (caseArrayNumber >= self._yAttributeDescriptions.length) {
         delete descriptions.y
-        descriptions.rightNumeric = self.attributeDescriptionForRole('rightNumeric')
+        const rightNumeric = self.attributeDescriptionForRole('rightNumeric')
+        if (rightNumeric) {
+          descriptions.rightNumeric = rightNumeric
+        }
       } else {
         descriptions.y = self._yAttributeDescriptions[caseArrayNumber]
       }
@@ -568,24 +572,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     }
   })
-  .actions(self => {
-    const baseHandleDataSetChange = self.handleDataSetChange
-    return {
-      handleDataSetChange(data?: IDataSet) {
-        baseHandleDataSetChange(data)
-        if (data) {
-          // make sure there are enough filteredCases to hold all the y attributes
-          while (self.filteredCases.length < self._yAttributeDescriptions.length) {
-            self._addNewFilteredCases()
-          }
-          // A y2 attribute is optional, so only add a new filteredCases if there is one.
-          if (self.hasY2Attribute) {
-            self._addNewFilteredCases()
-          }
-        }
-      }
-    }
-  })
   .actions(self => ({
     setPrimaryRole(role: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
@@ -618,16 +604,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot) {
       self._yAttributeDescriptions.push(desc)
-      self._addNewFilteredCases()
     },
     setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
-      const isNewAttribute = !self._attributeDescriptions.get('rightNumeric'),
-        isEmpty = !desc?.attributeID
       self._setAttributeDescription('rightNumeric', desc)
-      if (isNewAttribute) {
-        self._addNewFilteredCases()
-      } else if (isEmpty) {
-        self.filteredCases?.pop()?.destroy() // remove and destroy the one for the y2 plot
+      if (!desc?.attributeID) {
         self.setPointsNeedUpdating(true)
       } else {
         const existingFilteredCases = self.filteredCases?.[self.numberOfPlots - 1]
@@ -679,13 +659,33 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
+        // synchronize filteredCases with attribute configuration
+        addDisposer(self, reaction(
+          () => {
+            const yAttributeDescriptions = getSnapshot(self._yAttributeDescriptions)
+            const _y2AttributeDescription = self._attributeDescriptions.get("rightNumeric")
+            const y2AttributeDescription = _y2AttributeDescription
+                                              ? { y2AttributeDescription: getSnapshot(_y2AttributeDescription) }
+                                              : undefined
+            return { yAttributeDescriptions, ...y2AttributeDescription }
+          },
+          ({ yAttributeDescriptions, y2AttributeDescription }) => {
+            const yAttrCount = yAttributeDescriptions.length + (y2AttributeDescription ? 1 : 0)
+            const filteredCasesRequired = Math.max(1, yAttrCount)
+            // remove any extraneous filteredCases
+            while (self.filteredCases.length > filteredCasesRequired) {
+              self.filteredCases.pop()?.destroy()
+            }
+            // add any required filteredCases
+            while (self.filteredCases.length < filteredCasesRequired) {
+              self._addNewFilteredCases()
+            }
+          }, { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
+        ))
         addDisposer(self, reaction(
           () => self.getAllCellKeys(),
           () => self.clearGraphSpecificCasesCache(),
-          {
-            name: "GraphDataConfigurationModel.afterCreate.reaction [getAllCellKeys]",
-            equals: comparer.structural
-          }
+          { name: "GraphDataConfigurationModel getCellKeys reaction", equals: comparer.structural }
         ))
         baseAfterCreate()
       },
