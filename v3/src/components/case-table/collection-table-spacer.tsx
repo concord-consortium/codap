@@ -14,7 +14,6 @@ import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { Logger } from "../../lib/logger"
 
 interface IProps {
   onDrop?: (dataSet: IDataSet, attrId: string) => void
@@ -98,8 +97,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   function handleExpandCollapseAllClick() {
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
-      Logger.log("Expand/Collapse all")
     }, {
+      log: "Expand/Collapse all",
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
@@ -113,7 +112,9 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     const firstChildId = parentCase?.childCaseIds?.[0] || parentCase?.childItemIds?.[0]
     const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
-    Logger.log(`${caseMetadata?.isCollapsed(parentCaseId) ? "Collapse" : "Expand"} case ${parentCaseId}`)
+    caseMetadata?.applyModelChange(() => {}, {
+      log: `${caseMetadata?.isCollapsed(parentCaseId) ? "Collapse" : "Expand"} case ${parentCaseId}`
+    })
   }
 
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`

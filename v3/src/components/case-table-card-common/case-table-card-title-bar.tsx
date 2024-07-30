@@ -1,7 +1,6 @@
 import { Box, useOutsideClick } from "@chakra-ui/react"
 import React, { SVGProps, useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { Logger } from "../../lib/logger"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
@@ -77,10 +76,10 @@ export const CaseTableCardTitleBar =
       documentContent?.applyModelChange(() => {
         tile && documentContent && toggleCardTable(documentContent, tile.id)
       }, {
+        log: `Toggle component: ${suffix}`,
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
       })
-      Logger.log(`Toggle component: ${suffix}`)
     }
 
     const handleChangeTitle = (newTitle?: string) => {

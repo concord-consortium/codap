@@ -15,7 +15,7 @@ export interface LogMessage {
   application: string
   activity?: string
   event: string
-  event_value: string
+  event_value?: Record<string, unknown>
   run_remote_endpoint?: string
   session: string
   time: number
@@ -31,7 +31,7 @@ interface PendingMessage {
   event: string
   documentTitle: string
   event_value?: Record<string, unknown>
-  parameters?: Record<string, unknown>
+  parameters?: any
 }
 
 type ILogListener = (logMessage: LogMessage) => void

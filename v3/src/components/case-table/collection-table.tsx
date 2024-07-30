@@ -32,7 +32,6 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
-import { Logger } from "../../lib/logger"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 
@@ -130,7 +129,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       newColumnWidths => {
         columnWidths.current = newColumnWidths
         forceUpdate()
-        Logger.log("Resize one case table column")
       },
       { name: "CollectionTable.updateColumnWidths", fireImmediately: true, equals: comparer.structural },
       caseTableModel)
@@ -152,6 +150,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         caseTableModel?.applyModelChange(() => {
           caseTableModel?.columnWidths.set(attrId, width)
         }, {
+          log: "Resize one case table column",
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
         })
