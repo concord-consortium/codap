@@ -115,7 +115,7 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
           (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
         ))
       }, {
-        notifications: () => {
+        notify: () => {
           if (editingAttribute && editingAttribute?.name !== oldName) {
             return updateAttributesNotification([editingAttribute], data)
           }

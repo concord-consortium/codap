@@ -1,10 +1,6 @@
 import { cloneDeep, each, isObject, isUndefined, unset } from "lodash"
 import { IDocumentContentSnapshotIn } from "../models/document/document-content"
 
-export const isUuid = (id: string) => {
-  return /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/.test(id)
-}
-
 // Recursively removes properties whose values are undefined.
 // The specified object is modified in place and returned.
 // cf. https://stackoverflow.com/a/37250225

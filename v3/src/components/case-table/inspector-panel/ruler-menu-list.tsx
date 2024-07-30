@@ -34,7 +34,7 @@ export const RulerMenuList = () => {
         collectionTableModel?.setAttrIdToEdit(attribute.id)
       }
     }, {
-      notifications: () => createAttributesNotification(attribute ? [attribute] : [], data),
+      notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute"
     })

@@ -32,7 +32,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
         attribute.setDisplayExpression(formula)
       }, {
         // TODO Should also broadcast notify component edit formula notification
-        notifications: [
+        notify: [
           updateCasesNotification(dataSet),
           updateAttributesNotification([attribute], dataSet)
         ],

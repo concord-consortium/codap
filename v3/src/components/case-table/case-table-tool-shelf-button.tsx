@@ -51,7 +51,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       getFormulaManager(document)?.addDataSet(ds)
       createTableOrCardForDataset(sharedData, caseMetadata, kCaseTableTileType, options)
     }, {
-      notifications: dataContextCountChangedNotification,
+      notify: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create"
     })
@@ -129,7 +129,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         manager?.removeSharedModel(dataSetId)
         getFormulaManager(document)?.removeDataSet(dataSetId)
       }, {
-        notifications: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
+        notify: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete"
       })

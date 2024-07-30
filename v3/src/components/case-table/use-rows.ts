@@ -310,7 +310,7 @@ export const useRows = () => {
         }
       },
       {
-        notifications: () => {
+        notify: () => {
           const notifications = []
           if (updatedCaseIds.length > 0) {
             const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
