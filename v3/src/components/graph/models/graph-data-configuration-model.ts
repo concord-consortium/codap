@@ -161,6 +161,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
         return self._filterCase(data, caseID)
       }
+      // Note that this excludes `rightNumeric` (see `attributeDescriptions` above)
       const descriptions = {...self.attributeDescriptions}
       // If a 'rightNumeric' attribute exists and caseArrayNumber is >= the length of _yAttributeDescriptions, then
       // we are looking at the rightNumeric attribute. Delete the y attribute description and add the rightNumeric one.
