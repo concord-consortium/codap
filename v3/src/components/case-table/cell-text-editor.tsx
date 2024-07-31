@@ -38,8 +38,11 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   }
 
   const handleBlur = () => {
-    Logger.log(`editValue:`, {collection: data?.getCollectionForAttribute(column.key), caseId: row.__id__,
-                  attribute: column.key, old: initialValueRef.current, new: valueRef.current})
+    data?.applyModelChange(() => {}, {
+      log: {message:"editValue:",
+            event_value: {collection: data?.getCollectionForAttribute(column.key), caseId: row.__id__,
+                            attribute: column.key, old: initialValueRef.current, new: valueRef.current}}
+    })
     onClose(true)
   }
 

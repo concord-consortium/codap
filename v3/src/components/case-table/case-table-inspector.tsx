@@ -9,13 +9,13 @@ import { DatasetInfoModal } from "./inspector-panel/dataset-info-modal"
 import { TrashMenuList } from "./inspector-panel/trash-menu-list"
 import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import { t } from "../../utilities/translation/translate"
-import { Logger } from "../../lib/logger"
 import { RulerMenuList } from "./inspector-panel/ruler-menu-list"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { ICaseTableModel, isCaseTableModel } from "./case-table-model"
 import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../hooks/use-case-metadata"
+import { useDocumentContent } from "../../hooks/use-document-content"
 import { CaseTableModelContext } from "./use-case-table-model"
 import "./case-table-inspector.scss"
 
@@ -23,6 +23,7 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
   const [showInfoModal, setShowInfoModal] = useState(false)
   const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
   const { data, metadata } = useDataSet(tableModel?.data, tableModel?.metadata)
+  const documentContent = useDocumentContent()
 
   if (!tableModel) return null
 
@@ -33,7 +34,9 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
         break
       case "resizeColumns":
         //TODO move log to respective handler
-        Logger.log(`resizeColumns`, {dataContext: data?.name})
+        documentContent?.applyModelChange(() => {}, {
+          log: {message:`resizeColumns`, event_value: {dataContext: data?.name}}
+        })
         break
     }
   }
