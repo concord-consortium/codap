@@ -18,7 +18,7 @@ export function testGetComponent(
   const { cannotClose, dimensions, id, name, position, title, type } = values
   expect(cannotClose).toBe(tile.cannotClose)
   expect(id).toBe(toV2Id(tile.id))
-  expect(name).toBe(tile.name)
+  expect(name).toBe(tile.name || undefined)
   expect(title).toBe(tile._title)
   expect(type).toBe(options?.type ?? kComponentTypeV3ToV2Map[tile.content.type])
   const row = appState.document.content!.findRowContainingTile(tile.id) as IFreeTileRow
