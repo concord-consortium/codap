@@ -116,7 +116,7 @@ export const NormalCurveAdornmentComponent = observer(
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
       const lineHeight = 20
-      const topOffset = lineHeight * adornmentsStore?.getLabelLinesAboveAdornment(model) ?? 0
+      const topOffset = lineHeight * (adornmentsStore?.getLabelLinesAboveAdornment(model) ?? 0)
       const labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current
