@@ -1,6 +1,5 @@
 import { Button, Flex, Text } from "@chakra-ui/react"
 import React, { useState } from "react"
-import { useDocumentContent } from "../../hooks/use-document-content"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
 import { evaluate } from "mathjs"
@@ -10,7 +9,6 @@ import "./calculator.scss"
 export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const [calcValue, setCalcValue] = useState("")
   const [justEvaled, setJustEvaled] = useState(false)
-  const documentContent = useDocumentContent()
 
   const calculatorModel = tile?.content
   if (!isCalculatorModel(calculatorModel)) return null
@@ -18,7 +16,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const clearValue = () => {
     setCalcValue("")
     setJustEvaled(false)
-    documentContent?.applyModelChange(() => {}, {
+    calculatorModel?.applyModelChange(() => {}, {
       log: "Calculator value cleared"
     })
   }
@@ -44,7 +42,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       try {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
-        documentContent?.applyModelChange(() => {}, {
+        calculatorModel?.applyModelChange(() => {}, {
           log: `Calculation done: ${calcValue} = ${solution}`
         })
       } catch  (error) {
