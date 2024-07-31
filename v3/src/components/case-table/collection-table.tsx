@@ -19,6 +19,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
+import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
@@ -55,12 +56,19 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const forceUpdate = useForceUpdate()
 
   useEffect(function setGridElement() {
-    const element = gridRef.current?.element ?? undefined
+    const element = gridRef.current?.element
     if (element && collectionTableModel) {
       collectionTableModel.setElement(element)
       onMount(collectionId)
     }
   }, [collectionId, collectionTableModel, gridRef.current?.element, onMount])
+
+  useEffect(() => {
+    return registerCanAutoScrollCallback((element) => {
+      // prevent auto-scroll on grid since there's nothing droppable in the grid
+      return element !== gridRef.current?.element
+    })
+  }, [])
 
   // columns
   const indexColumn = useIndexColumn()

@@ -3,8 +3,9 @@ import {
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
-import { containerSnapToGridModifier } from "../hooks/use-drag-drop"
-import { urlParams } from "../utilities/url-params"
+import { containerSnapToGridModifier } from "../../hooks/use-drag-drop"
+import { urlParams } from "../../utilities/url-params"
+import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
 
 interface IProps {
@@ -15,6 +16,10 @@ export const CodapDndContext = ({ children }: IProps) => {
   // Note that as of this writing, the auto-scroll options are not documented in the official docs,
   // but they are described in this PR: https://github.com/clauderic/dnd-kit/pull/140.
   const autoScrollOptions: AutoScrollOptions = {
+    canScroll: (element, direction) => {
+      // allow clients to intercede in auto-scroll determination via client-provided callbacks
+      return canAutoScroll(element, direction)
+    },
     // scroll components before scrolling the document
     order: TraversalOrder.ReversedTreeOrder,
     // reduce the auto-scroll area to 5% (default is 20%)
