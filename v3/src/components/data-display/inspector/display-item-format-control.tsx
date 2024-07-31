@@ -30,6 +30,27 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
 
+  const handleBackgroundColorChange = (color: string) => {
+    setPlotBackgroundColor && setPlotBackgroundColor(color)
+    displayItemDescription.applyModelChange(() => {},  {
+      log: "Changed background color"
+    })
+  }
+  const handleBackgroundTransparency = (checked: boolean) => {
+    setIsTransparent && setIsTransparent(checked)
+    displayItemDescription.applyModelChange(() => {},  {
+      log: `Made plot background ${checked ? "transparent" : "opaque"}`
+    })
+  }
+
+
+  const handlePointColorChange = (color: string) => {
+    displayItemDescription.setPointColor(color)
+    displayItemDescription.applyModelChange(() => {},  {
+      log: "Changed point color"
+    })
+  }
+
   const catPointColorSettingArr: ReactElement[] = []
   categoriesRef.current?.forEach(cat => {
     catPointColorSettingArr.push(
@@ -37,7 +58,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
         <FormLabel className="form-label color-picker">{cat}</FormLabel>
         <Input type="color" className="color-picker-thumb categorical"
                value={dataConfiguration?.getLegendColorForCategory(cat) || missingColor}
-               onChange={e => displayItemDescription.setPointColor(e.target.value)}/>
+               onChange={e => handlePointColorChange(e.target.value)}/>
       </Flex>
     )
   })
@@ -50,13 +71,13 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
             <Flex className="palette-row color-picker-row">
               <FormLabel className="form-label color-picker">{t("DG.Inspector.backgroundColor")}</FormLabel>
               <Input type="color" className="color-picker-thumb" value={plotBackgroundColor}
-                     onChange={e => setPlotBackgroundColor(e.target.value)}/>
+                     onChange={e => handleBackgroundColorChange(e.target.value)}/>
             </Flex>
           </FormControl>
           <FormControl>
             <Checkbox
               mt="6px" isChecked={isTransparent}
-              onChange={e => setIsTransparent(e.target.checked)}>
+              onChange={e => handleBackgroundTransparency(e.target.checked)}>
               {t("DG.Inspector.graphTransparency")}
             </Checkbox>
           </FormControl>
