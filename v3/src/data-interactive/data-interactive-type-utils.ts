@@ -106,13 +106,13 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { name, type, title, description, deleteable, editable, id, precision } = attribute
+  const { cid, name, type, title, description, deleteable, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
   return {
     name,
     type,
     title,
-    cid: id,
+    cid,
     // colorMap
     // defaultMin: self.defaultMin, // TODO Where should this come from?
     // defaultMax: self.defaultMax, // TODO Where should this come from?

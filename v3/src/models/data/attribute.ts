@@ -72,6 +72,7 @@ export function isAttributeType(type?: string | null): type is AttributeType {
 
 export const Attribute = V2Model.named("Attribute").props({
   id: typeV3Id(kAttrIdPrefix),
+  _cid: types.maybe(types.string), // cid was a v2 property that is used by some plugins (Collaborative)
   clientKey: "",
   sourceID: types.maybe(types.string),
   description: types.maybe(types.string),
@@ -157,6 +158,9 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   get shouldSerializeValues() {
     return !this.hasFormula
+  },
+  get cid() {
+    return self._cid ?? self.id
   }
 }))
 .actions(self => ({
@@ -165,6 +169,9 @@ export const Attribute = V2Model.named("Attribute").props({
     self.getEmptyCount.invalidate()
     self.getNumericCount.invalidate()
     self.getStrictColorCount.invalidate()
+  },
+  setCid(cid?: string) {
+    self._cid = cid
   }
 }))
 .actions(self => ({

@@ -36,6 +36,7 @@ export function createCollection(v2collection: DICollection, dataContext: IDataS
 }
 
 export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataContext?: IDataSet) {
+  if (value?.cid != null) attribute.setCid(value.cid)
   if (value?.description != null) attribute.setDescription(value.description)
   if (value?.editable != null) attribute.setEditable(!!value.editable)
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)

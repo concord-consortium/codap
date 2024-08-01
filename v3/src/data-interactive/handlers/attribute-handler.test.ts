@@ -54,6 +54,7 @@ describe("DataInteractive AttributeHandler", () => {
 
   it("update works as expected", () => {
     const attribute = Attribute.create({ name: "test" })
+    const cid = "new cid"
     const name = "new name"
     const title = "new title"
     const description = "new description"
@@ -63,18 +64,28 @@ describe("DataInteractive AttributeHandler", () => {
     const type = "qualitative"
     const precision = 10
     const result = handler.update?.({ attribute },
-      { name, title, description, unit, formula, editable, type, precision })
+      { cid, name, title, description, unit, formula, editable, type, precision })
     expect(result?.success).toBe(true)
     const values = result?.values as DIResultAttributes
     const resultAttr = values.attrs?.[0]
+    expect(resultAttr?.cid).toBe(cid)
+    expect(attribute.cid).toBe(cid)
     expect(resultAttr?.name).toBe(name)
+    expect(attribute.name).toBe(name)
     expect(resultAttr?.title).toBe(title)
+    expect(attribute.title).toBe(title)
     expect(resultAttr?.description).toBe(description)
+    expect(attribute.description).toBe(description)
     expect(resultAttr?.unit).toBe(unit)
+    expect(attribute.units).toBe(unit)
     expect(resultAttr?.formula).toBe(formula)
+    expect(attribute.formula?.display).toBe(formula)
     expect(resultAttr?.editable).toBe(editable)
+    expect(attribute.editable).toBe(editable)
     expect(resultAttr?.type).toBe(type)
+    expect(attribute.type).toBe(type)
     expect(resultAttr?.precision).toBe(precision)
+    expect(attribute.precision).toBe(precision)
 
     const result2 = handler.update?.({ attribute }, { type: "fake type" })
     const values2 = result2?.values as DIResultAttributes
