@@ -881,6 +881,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         })
 
+        self.validateCases()
         // invalidate the affected attributes
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
         return ids
