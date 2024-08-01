@@ -71,6 +71,7 @@ module.exports = {
     "keyword-spacing": ["warn"],
     "max-len": ["warn", { code: 120, ignoreUrls: true }],
     "no-bitwise": "error",
+    "no-constant-binary-expression": "error",
     "no-debugger": "off",
     "no-duplicate-imports": "error",
     "no-sequences": "error",

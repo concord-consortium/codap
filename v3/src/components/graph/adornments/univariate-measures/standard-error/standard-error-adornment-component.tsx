@@ -84,7 +84,7 @@ export const StandardErrorAdornmentComponent = observer(
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
       const lineHeight = 20
-      const topOffset = lineHeight * adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0
+      const topOffset = lineHeight * (adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0)
       const labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current
