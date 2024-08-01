@@ -302,7 +302,7 @@ export const useRows = () => {
             collectionTableModel.setInputRowIndex(collectionTableModel.inputRowIndex + 1)
           }
           data.addCases(casesToCreate, options)
-          // Make sure things are updated since adding cases
+          // Make sure things are updated since adding cases invalidates grouping
           // TODO Would it be better to make collection.caseIds a getter that automatically validates the cases?
           data.validateCases()
           // We look for case ids that weren't present before adding the new cases to determine which case ids
