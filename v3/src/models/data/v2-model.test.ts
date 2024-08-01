@@ -67,7 +67,6 @@ describe("V2Model", () => {
     expect(isV2ModelSnapshot(m)).toBe(true)
     m = {
       id: 1,
-      cid: "cid",
       name: "name",
       title: "title"
     } as V2ModelStorage
@@ -92,7 +91,6 @@ describe("V2Model", () => {
     v2m = {
       id: 1,
       guid: 1,
-      cid: "cid",
       name: "name",
       title: "title"
     }
