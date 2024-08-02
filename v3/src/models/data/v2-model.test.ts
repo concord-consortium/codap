@@ -65,13 +65,6 @@ describe("V2Model", () => {
       title: "title"
     }
     expect(isV2ModelSnapshot(m)).toBe(true)
-    m = {
-      id: 1,
-      cid: "cid",
-      name: "name",
-      title: "title"
-    } as V2ModelStorage
-    expect(isV2ModelSnapshot(m)).toBe(true)
   })
 
   it("can convert v2 name/title to v3 title", () => {
@@ -92,7 +85,6 @@ describe("V2Model", () => {
     v2m = {
       id: 1,
       guid: 1,
-      cid: "cid",
       name: "name",
       title: "title"
     }
