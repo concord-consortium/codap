@@ -2,6 +2,7 @@ import { getSnapshot } from "mobx-state-tree"
 import { V2Graph } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
+import { appState } from "../../models/app-state"
 import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
@@ -43,7 +44,7 @@ export const graphComponentHandler: DIComponentHandler = {
     const layers: Array<IGraphPointLayerModelSnapshot> = []
     let provisionalDataSet: IDataSet | undefined
     let provisionalMetadata: ISharedCaseMetadata | undefined
-    getSharedDataSets(document).forEach(sharedDataSet => {
+    getSharedDataSets(appState.document).forEach(sharedDataSet => {
       const dataset = sharedDataSet.dataSet
       const metadata = getSharedCaseMetadataFromDataset(dataset)
       if (metadata) {

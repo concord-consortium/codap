@@ -22,8 +22,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!
 
-  // FIXME: unskip test
-  it.skip("create and get graph work", async () => {
+  it("create and get graph work", async () => {
     // Create a graph tile with no options
     expect(documentContent.tileMap.size).toBe(0)
     const vanillaResult = handler.create!({}, { type: "graph" })
