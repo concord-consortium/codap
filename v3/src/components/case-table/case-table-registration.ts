@@ -1,9 +1,11 @@
 import { SetRequired } from "type-fest"
+import { caseTableCardComponentHandler } from "../case-table-card-common/case-table-card-handler"
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseTableComponent } from "./case-table-component"
-import { kCaseTableTileType } from "./case-table-defs"
+import { kCaseTableTileType, kV2CaseTableType } from "./case-table-defs"
 import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
@@ -86,3 +88,5 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
 
   return tableTile
 })
+
+registerComponentHandler(kV2CaseTableType, caseTableCardComponentHandler)

@@ -197,6 +197,10 @@ export interface DIErrorResult {
 
 export type DIHandlerFnResult = DISuccessResult | DIErrorResult
 
+export function isErrorResult(result: unknown): result is DIErrorResult {
+  return result != null && typeof result === "object" && "success" in result && !result.success
+}
+
 export type DIHandlerFn = (resources: DIResources, values?: DIValues, metadata?: DIMetadata) => DIHandlerFnResult
 
 export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}} as const

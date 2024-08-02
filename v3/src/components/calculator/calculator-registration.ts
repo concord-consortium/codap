@@ -1,8 +1,9 @@
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CalculatorComponent } from "./calculator"
-import { kCalculatorTileClass, kCalculatorTileType } from "./calculator-defs"
+import { kCalculatorTileClass, kCalculatorTileType, kV2CalculatorType } from "./calculator-defs"
 import { CalculatorModel, ICalculatorSnapshot } from "./calculator-model"
 import { CalculatorTitleBar } from "./calculator-title-bar"
 import CalcIcon from '../../assets/icons/icon-calc.svg'
@@ -58,4 +59,13 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
   const calculatorTile = insertTile(calculatorTileSnap)
 
   return calculatorTile
+})
+
+registerComponentHandler(kV2CalculatorType, {
+  create() {
+    return { type: kCalculatorTileType }
+  },
+  get(content) {
+    return {}
+  }
 })

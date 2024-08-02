@@ -1,7 +1,9 @@
 import { SetRequired } from "type-fest"
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { kGraphIdPrefix, kGraphTileClass, kGraphTileType } from "./graph-defs"
+import { graphComponentHandler } from "./graph-component-handler"
+import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from "./graph-defs"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
@@ -60,3 +62,5 @@ registerTileComponentInfo({
 })
 
 registerV2TileImporter("DG.GraphView", v2GraphImporter)
+
+registerComponentHandler(kV2GraphType, graphComponentHandler)

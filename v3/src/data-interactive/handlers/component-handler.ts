@@ -1,65 +1,44 @@
-import { getSnapshot } from "mobx-state-tree"
-import { SetRequired } from "type-fest"
-import { isNumericAxisModel } from "../../components/axis/models/axis-model"
-import { isCalculatorModel } from "../../components/calculator/calculator-model"
-import { kCaseCardTileType } from "../../components/case-card/case-card-defs"
-import { isCaseCardModel } from "../../components/case-card/case-card-model"
-import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
-import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { isCaseTableModel } from "../../components/case-table/case-table-model"
-import { attrRoleToGraphPlace, GraphAttrRole } from "../../components/data-display/data-display-types"
-import {
-  AttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot, kDataConfigurationType
-} from "../../components/data-display/models/data-configuration-model"
-import { kGraphTileType } from "../../components/graph/graph-defs"
-import {
-  GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel
-} from "../../components/graph/models/graph-content-model"
-import {
-  IGraphDataConfigurationModel, kGraphDataConfigurationType
-} from "../../components/graph/models/graph-data-configuration-model"
-import { GraphLayout } from "../../components/graph/models/graph-layout"
-import { syncModelWithAttributeConfiguration } from "../../components/graph/models/graph-model-utils"
-import {
-  IGraphPointLayerModelSnapshot, kGraphPointLayerType
-} from "../../components/graph/models/graph-point-layer-model"
-import { IMapBaseLayerModelSnapshot } from "../../components/map/models/map-base-layer-model"
-import { IMapModelContentSnapshot, isMapContentModel } from "../../components/map/models/map-content-model"
-import { kMapTileType } from "../../components/map/map-defs"
-import { kMapPointLayerType, kMapPolygonLayerType } from "../../components/map/map-types"
-import { IMapPointLayerModelSnapshot } from "../../components/map/models/map-point-layer-model"
-import { IMapPolygonLayerModelSnapshot } from "../../components/map/models/map-polygon-layer-model"
-import {
-  boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
-} from "../../components/map/utilities/map-utils"
-import { kSliderTileType } from "../../components/slider/slider-defs"
-import { ISliderSnapshot, isSliderModel } from "../../components/slider/slider-model"
-import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
-import { kWebViewTileType } from "../../components/web-view/web-view-defs"
-import { isWebViewModel, IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
-import { IDataSet } from "../../models/data/data-set"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
-import { GlobalValueManager } from "../../models/global/global-value-manager"
-import {
-  ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
-} from "../../models/shared/shared-case-metadata"
-import { ISharedDataSet } from "../../models/shared/shared-data-set"
-import { getSharedDataSets } from "../../models/shared/shared-data-utils"
-import { ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import {
-  kComponentTypeV2ToV3Map, kComponentTypeV3ToV2Map, kV2CalculatorType, kV2CaseCardType, kV2CaseTableType, kV2GameType,
-  kV2GraphType, kV2MapType, kV2SliderType, kV2WebViewType, V2Calculator, V2CaseCard, V2CaseTable, V2Component, V2Game,
-  V2Graph, V2Map, V2Slider, V2SpecificComponent, V2WebView
+  kComponentTypeV2ToV3Map, kComponentTypeV3ToV2Map, V2Component, V2SpecificComponent
 } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DINotification, DIResources, DIValues } from "../data-interactive-types"
-import { componentNotFoundResult, dataContextNotFoundResult, errorResult, valuesRequiredResult } from "./di-results"
+import {
+  DIErrorResult, DIHandler, DIHandlerFnResult, DINotification, DIResources, DIValues, isErrorResult
+} from "../data-interactive-types"
+import {
+  componentNotFoundResult, errorResult, valuesRequiredResult
+} from "./di-results"
+import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModel } from "../../models/tiles/tile-model"
+
+type CreateOrShowTileFn = (type: string, options?: INewTileOptions) => Maybe<ITileModel>
+
+interface ICreateArgs {
+  type: string  // v2 type
+  values?: DIValues
+  setCreateOrShow: (createOrShow: CreateOrShowTileFn) => void
+  setOptions: (options: INewTileOptions) => void
+}
+
+export interface DIComponentHandler {
+  create: (args: ICreateArgs) => ITileContentSnapshotWithType | DIErrorResult,
+  get: (content: ITileContentModel) => Maybe<Record<string, any>>
+  update?: (content: ITileContentModel, values: DIValues) => DIHandlerFnResult
+}
+
+// registry of tile component handlers -- key is v2 tile type
+const diComponentHandlers = new Map<string, DIComponentHandler>()
+
+export function registerComponentHandler(type: string, handler: DIComponentHandler) {
+  diComponentHandlers.set(type, handler)
+}
 
 export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
@@ -68,47 +47,24 @@ export const diComponentHandler: DIHandler = {
     const { type, cannotClose, dimensions, name, title: _title } = values as V2Component
     const { document } = appState
 
-    function getSharedDataSet(dataContext: string) {
-      return getSharedDataSets(document).find(sds => sds.dataSet.name === dataContext)
-    }
-    function getDataSet(dataContext: string, _sharedDataSet?: ISharedDataSet) {
-      const sharedDataSet = _sharedDataSet ?? getSharedDataSet(dataContext)
-      return sharedDataSet?.dataSet
-    }
-    function getCaseMetadata(dataSetId: string) {
-      const manager = getSharedModelManager(document)
-      const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
-      return caseMetadatas?.find(cm => cm.data?.id === dataSetId)
-    }
+    // check if there's a registered handler for this type
+    const handler = diComponentHandlers.get(type)
+    if (handler) {
+      let createOrShow: CreateOrShowTileFn = (_type, _options) => document.content?.createOrShowTile(_type, _options)
+      const newTileOptions: INewTileOptions = {}
+      const setCreateOrShow = (_createOrShow: CreateOrShowTileFn) => createOrShow = _createOrShow
+      const setOptions = (_options: INewTileOptions) => Object.assign(newTileOptions, _options)
+      const content = handler?.create({ type, values, setCreateOrShow, setOptions })
+      if (isErrorResult(content)) return content
 
-    const dataContextRequiredResult =
-      errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }))
-    const componentNotCreatedResult = errorResult(t("V3.DI.Error.componentNotCreated"))
-    return document.applyModelChange(() => {
-      // Special case for caseCard and caseTable, which require a dataset
-      if ([kV2CaseCardType, kV2CaseTableType].includes(type)) {
-        const { dataContext, horizontalScrollOffset } = values as V2CaseTable
-        if (!dataContext) return dataContextRequiredResult
-        const sharedDataSet = getSharedDataSet(dataContext)
-        if (!sharedDataSet) return dataContextNotFoundResult
-        const dataSet = getDataSet(dataContext, sharedDataSet)
-        if (!dataSet) return dataContextNotFoundResult
-
-        const caseMetadata = getCaseMetadata(dataSet.id)
-        if (!caseMetadata) {
-          return errorResult(t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }))
-        }
-
+      // Create the tile
+      return document.applyModelChange(() => {
         const title = _title ?? name
-        const content = type === kV2CaseTableType && horizontalScrollOffset != null
-          ? { horizontalScrollOffset, type: kCaseTableTileType } : undefined
-        const options = { cannotClose, content, ...dimensions, name, title }
+        const options = { cannotClose, content, ...dimensions, name, title, ...newTileOptions }
+        const tile = createOrShow(kComponentTypeV2ToV3Map[type], options)
+        if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
-        const tileType = type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType
-        const tile = createOrShowTableOrCardForDataset(sharedDataSet, tileType, options)
-        if (!tile) return componentNotCreatedResult
-
-        // TODO Handle isIndexHidden 
+        // TODO Handle isIndexHidden
         return {
           success: true,
           values: {
@@ -117,279 +73,47 @@ export const diComponentHandler: DIHandler = {
             type
           }
         }
+      })
+    }
 
-      // General case
-      } else if (kComponentTypeV2ToV3Map[type]) {
-        let content: ITileContentSnapshotWithType | undefined
-        const extraOptions: INewTileOptions = {}
+    return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [type] }))
 
-        // Calculator
-        if (type === kV2CalculatorType) {
-          // No special options for calculator
+    // const v3Type: Maybe<string> = kComponentTypeV2ToV3Map[type]
 
-        // Graph
-        } else if (type === kV2GraphType) {
-          const {
-            captionAttributeName, dataContext: _dataContext, enableNumberToggle: showParentToggles, legendAttributeName,
-            numberToggleLastMode: showOnlyLastCase, rightNumericAttributeName, rightSplitAttributeName,
-            topSplitAttributeName, xAttributeName, yAttributeName, y2AttributeName
-          } = values as V2Graph
-          const attributeNames: Record<string, string | undefined> = {
-            captionAttributeName, legendAttributeName, rightNumericAttributeName, rightSplitAttributeName,
-            topSplitAttributeName, xAttributeName, y2AttributeName
-          }
-          const roleFromAttrKey: Record<string, GraphAttrRole> = {
-            xAttributeName: "x",
-            yAttributeName: "y",
-            y2AttributeName: "rightNumeric",
-            rightNumericAttributeName: "rightNumeric",
-            captionAttributeName: "caption",
-            legendAttributeName: "legend",
-            topSplitAttributeName: "topSplit",
-            rightSplitAttributeName: "rightSplit"
-          }
+    // const componentNotCreatedResult = errorResult(t("V3.DI.Error.componentNotCreated"))
+    // return document.applyModelChange(() => {
+    //   // General case
+    //   if (kComponentTypeV2ToV3Map[type]) {
+    //     let content: ITileContentSnapshotWithType | undefined
+    //     const extraOptions: INewTileOptions = {}
 
-          let layerIndex = 0
-          const layers: Array<IGraphPointLayerModelSnapshot> = []
-          let provisionalDataSet: IDataSet | undefined
-          let provisionalMetadata: ISharedCaseMetadata | undefined
-          getSharedDataSets(document).forEach(sharedDataSet => {
-            const dataset = sharedDataSet.dataSet
-            const metadata = getCaseMetadata(dataset.id)
-            if (metadata) {
-              const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
-              const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
-              let hiddenCases: string[] = []
-              if (dataset.name === _dataContext) {
-                provisionalDataSet = dataset
-                provisionalMetadata = metadata
-                for (const attributeType in attributeNames) {
-                  const attributeName = attributeNames[attributeType]
-                  if (attributeName) {
-                    const attribute = dataset.getAttributeByName(attributeName)
-                    if (attribute) {
-                      const attributeRole = roleFromAttrKey[attributeType]
-                      if (attributeRole) {
-                        _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: attribute.type }
-                      }
-                    }
-                  }
-                }
+    //     // TODO Handle other types:
+    //     // text
+    //     // guide
+    //     // image view
 
-                if (yAttributeName) {
-                  const yAttribute = dataset.getAttributeByName(yAttributeName)
-                  if (yAttribute) {
-                    _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
-                  }
-                }
+    //     // Create the tile
+    //     const title = _title ?? name
+    //     const options = { cannotClose, content, ...dimensions, name, title, ...extraOptions }
+    //     const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
+    //     if (!tile) return componentNotCreatedResult
 
-                if (showOnlyLastCase) {
-                  hiddenCases = dataset.itemIds.slice(0, dataset.itemIds.length - 1)
-                }
-              }
+    //     // TODO Handle position
 
-              layers.push({
-                dataConfiguration: {
-                  type: kGraphDataConfigurationType,
-                  dataset: dataset.id,
-                  hiddenCases,
-                  metadata: metadata.id,
-                  _attributeDescriptions,
-                  _yAttributeDescriptions
-                },
-                layerIndex: layerIndex++,
-                type: kGraphPointLayerType
-              })
-            }
-          })
+    //     return {
+    //       success: true,
+    //       values: {
+    //         id: toV2Id(tile.id),
+    //         title: tile.title,
+    //         type
+    //       }
+    //     }
+    //   }
 
-          // Create a GraphContentModel, call syncModelWithAttributeConfiguration to set up its primary role,
-          // plot type, and axes properly, then use its snapshot
-          const graphContent: IGraphContentModelSnapshot = {
-            type: kGraphTileType,
-            layers,
-            showOnlyLastCase,
-            showParentToggles
-          }
-          // We use an environment with a provisionalDataSet and Metadata so the dummy model can be set up with
-          // them, even though they are not part of the same MST tree.
-          const graphModel = GraphContentModel.create(graphContent, { provisionalDataSet, provisionalMetadata })
-          syncModelWithAttributeConfiguration(graphModel, new GraphLayout())
-
-          // Layers will get mangled in the model because it's not in the same tree as the dataset,
-          // so we mostly use the constructed layers. However, the primaryRole is determined in the model,
-          // so we have to copy that over into the constructed layers. We also make sure all attribute assignments
-          // are legal here.
-          const finalLayers: Array<IGraphPointLayerModelSnapshot> = []
-          for (let i = 0; i < layers.length; i++) {
-            const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
-            const { dataset } = dataConfiguration
-            if (dataset && dataset.name === _dataContext) {
-              // Make sure all attributes can legally fulfill their specified roles
-              for (const attributeType in attributeNames) {
-                const attributeName = attributeNames[attributeType]
-                if (attributeName) {
-                  const attribute = dataset.getAttributeByName(attributeName)
-                  if (attribute) {
-                    const attributeRole = roleFromAttrKey[attributeType]
-                    const attributePlace = attrRoleToGraphPlace[attributeRole]
-                    if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
-                      attributePlace, dataset, attribute.id, { allowSameAttr: true }
-                    )) {
-                      return errorResult(
-                        t("V3.DI.Error.illegalAttributeAssignment", { vars: [attributeName, attributeRole] })
-                      )
-                    }
-                  }
-                }
-              }
-            }
-
-            // Use the primaryRole found by syncModelWithAttributeConfiguration
-            const primaryRole = dataConfiguration.primaryRole
-            const currentLayer = layers[i]
-            const currentDataConfiguration = currentLayer.dataConfiguration
-            finalLayers.push({
-              ...currentLayer,
-              dataConfiguration: {
-                ...currentDataConfiguration,
-                primaryRole
-              }
-            })
-          }
-          content = { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType
-
-        // Map
-        } else if (type === kV2MapType) {
-          const { center: _center, dataContext: _dataContext, legendAttributeName, zoom } = values as V2Map
-          const dataContext = _dataContext ? getDataSet(_dataContext) : undefined
-          const legendAttributeId = legendAttributeName
-            ? dataContext?.getAttributeByName(legendAttributeName)?.id : undefined
-          const layers:
-            Array<IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot> = []
-          let layerIndex = 0
-          getSharedDataSets(document).forEach(sharedDataSet => {
-            const dataset = sharedDataSet.dataSet
-            const metadata = getCaseMetadata(dataset.id)
-            if (metadata) {
-              const LayerTypes = [kMapPointLayerType, kMapPolygonLayerType] as const
-              type LayerType = typeof LayerTypes[number]
-              const addLayer = (_type: LayerType, _attributeDescriptions: AttributeDescriptionsMapSnapshot) => {
-                layers.push({
-                  dataConfiguration: {
-                    _attributeDescriptions,
-                    dataset: dataset.id,
-                    metadata: metadata.id,
-                    type: kDataConfigurationType
-                  },
-                  layerIndex: layerIndex++,
-                  type: _type
-                })
-              }
-
-              // Point Layer
-              if (datasetHasLatLongData(dataset)) {
-                const { latId, longId } = latLongAttributesFromDataSet(dataset)
-                const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
-                  lat: { attributeID: latId },
-                  long: { attributeID: longId }
-                }
-                if (dataset.id === dataContext?.id && legendAttributeId) {
-                  _attributeDescriptions.legend = { attributeID: legendAttributeId }
-                }
-                addLayer(kMapPointLayerType, _attributeDescriptions)
-
-              // Polygon Layer
-              } else if (datasetHasBoundaryData(dataset)) {
-                const _attributeDescriptions: AttributeDescriptionsMapSnapshot = {
-                  polygon: { attributeID: boundaryAttributeFromDataSet(dataset) }
-                }
-                addLayer(kMapPolygonLayerType, _attributeDescriptions)
-              }
-            }
-          })
-
-          const center = _center ? { lat: _center[0], lng: _center[1] } : undefined
-          const mapContent: IMapModelContentSnapshot = {
-            type: kMapTileType,
-            center,
-            layers,
-            zoom
-          }
-          content = mapContent as ITileContentSnapshotWithType
-          // If the center or zoom are specified, we need to prevent CODAP from automatically focusing the map
-          if (center || zoom != null) extraOptions.transitionComplete = true
-
-        // Slider
-        } else if (type === kV2SliderType) {
-          const {
-            animationDirection: _animationDirection, animationMode: _animationMode, globalValueName,
-            lowerBound, upperBound
-          } = values as V2Slider
-
-          if (globalValueName) {
-            const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
-            const global = globalManager?.getValueByName(globalValueName)
-            if (!global) {
-              return errorResult(t("V3.DI.Error.globalNotFound", { vars: [globalValueName] }))
-            }
-
-            // Multiple sliders for one global value are not allowed
-            let existingTile = false
-            document.content?.tileMap.forEach(sliderTile => {
-              if (isSliderModel(sliderTile.content) && sliderTile.content.globalValue.id === global.id) {
-                existingTile = true
-              }
-            })
-            if (existingTile) {
-              return errorResult(t("V3.DI.Error.noMultipleSliders", { vars: [globalValueName] }))
-            }
-
-            const animationDirection = _animationDirection != null
-              ? AnimationDirections[Number(_animationDirection)] : undefined
-            const animationMode = _animationMode != null ? AnimationModes[_animationMode] : undefined
-            content = {
-              type: kSliderTileType,
-              animationDirection,
-              animationMode,
-              axis: { min: lowerBound, max: upperBound, place: "bottom" },
-              globalValue: global.id
-            } as SetRequired<ISliderSnapshot, "type">
-          }
-
-        // WebView/Plugin
-        } else if ([kV2GameType, kV2WebViewType].includes(type)) {
-          const { URL } = values as V2WebView
-          content = { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type">
-        }
-
-        // TODO Handle other types:
-        // text
-        // guide
-        // image view
-
-        // Create the tile
-        const title = _title ?? name
-        const options = { cannotClose, content, ...dimensions, name, title, ...extraOptions }
-        const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
-        if (!tile) return componentNotCreatedResult
-
-        // TODO Handle position
-
-        return {
-          success: true,
-          values: {
-            id: toV2Id(tile.id),
-            title: tile.title,
-            type
-          }
-        }
-      }
-
-      return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [type] }))
-    })
+    //   return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [type] }))
+    // })
   },
-  
+
   delete(resources: DIResources) {
     const { component } = resources
     if (!component) return componentNotFoundResult
@@ -423,87 +147,13 @@ export const diComponentHandler: DIHandler = {
       type: kComponentTypeV3ToV2Map[content.type]
     }
 
-    let values: V2SpecificComponent | undefined
-    if (isCalculatorModel(content)) {
-      values = generalValues as V2Calculator
+    let values: Maybe<V2SpecificComponent>
 
-    } else if (isCaseCardModel(content)) {
-      values = { ...generalValues, dataContext: content.data?.name } as V2CaseCard
-
-    } else if (isCaseTableModel(content)) {
-      const dataContext = content.data?.name
-      const horizontalScrollOffset = content._horizontalScrollOffset
-      // TODO Include isIndexHidden
-      values = { ...generalValues, dataContext, horizontalScrollOffset } as V2CaseTable
-
-    } else if (isGraphContentModel(content)) {
-      const dataset = content.dataset
-      const dataContext = dataset?.name
-      const { dataConfiguration } = content.graphPointLayerModel
-      const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
-      
-      const captionAttributeId = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
-      const captionAttributeName = captionAttributeId ? dataset?.getAttribute(captionAttributeId)?.name : undefined
-
-      const legendAttributeId = dataConfiguration.attributeDescriptionForRole("legend")?.attributeID
-      const legendAttributeName = legendAttributeId ? dataset?.getAttribute(legendAttributeId)?.name : undefined
-
-      const rightSplitId = dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID
-      const rightSplitAttributeName = rightSplitId ? dataset?.getAttribute(rightSplitId)?.name : undefined
-
-      const topSplitId = dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID
-      const topSplitAttributeName = topSplitId ? dataset?.getAttribute(topSplitId)?.name : undefined
-
-      const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
-      const xAttributeName = xAttributeId ? dataset?.getAttribute(xAttributeId)?.name : undefined
-      const xAxis = content.getAxis("bottom")
-      const xNumericAxis = isNumericAxisModel(xAxis) ? xAxis : undefined
-      const xLowerBound = xNumericAxis?.min
-      const xUpperBound = xNumericAxis?.max
-
-      const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
-      const yAttributeName = yAttributeId ? dataset?.getAttribute(yAttributeId)?.name : undefined
-      const yAxis = content.getAxis("left")
-      const yNumericAxis = isNumericAxisModel(yAxis) ? yAxis : undefined
-      const yLowerBound = yNumericAxis?.min
-      const yUpperBound = yNumericAxis?.max
-
-      const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
-      const y2AttributeName = y2AttributeId ? dataset?.getAttribute(y2AttributeId)?.name : undefined
-      const y2Axis = content.getAxis("rightNumeric")
-      const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined
-      const y2LowerBound = y2NumericAxis?.min
-      const y2UpperBound = y2NumericAxis?.max
-
-      values = {
-        ...generalValues,
-        dataContext, enableNumberToggle, numberToggleLastMode,
-        captionAttributeName, legendAttributeName,
-        rightSplitAttributeName, topSplitAttributeName,
-        xAttributeName, xLowerBound, xUpperBound,
-        yAttributeName, yLowerBound, yUpperBound,
-        y2AttributeName, y2LowerBound, y2UpperBound
-      } as V2Graph
-
-    } else if (isMapContentModel(content)) {
-      values = { ...generalValues, dataContext: content.dataConfiguration?.dataset?.name } as V2Map
-
-    } else if (isSliderModel(content)) {
-      const animationDirection = AnimationDirections.findIndex(value => value === content.animationDirection)
-      const animationMode = AnimationModes.findIndex(value => value === content.animationMode)
-      values = {
-        ...generalValues,
-        animationDirection,
-        animationMode,
-        globalValueName: content.globalValue.name,
-        lowerBound: content.axis.min,
-        upperBound: content.axis.max,
-        value: content.globalValue.value
-      } as V2Slider
-
-    } else if (isWebViewModel(content)) {
-      const type = content.isPlugin ? kV2GameType : kV2WebViewType
-      values = { ...generalValues, type, URL: content.url } as V2Game | V2WebView
+    // check if there's a registered handler for this type
+    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+    const handler = diComponentHandlers.get(v2Type)
+    if (handler) {
+      values = { ...generalValues, ...handler?.get(content) } as V2SpecificComponent
     }
 
     if (values) return { success: true, values }
@@ -532,12 +182,11 @@ export const diComponentHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
 
-    if (isCaseTableModel(content)) {
-      // TODO Handle isIndexHidden
-      const { horizontalScrollOffset } = values as V2CaseTable
-      if (horizontalScrollOffset != null) content.setHorizontalScrollOffset(horizontalScrollOffset)
-
-      return { success: true }
+    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+    const handler = diComponentHandlers.get(v2Type)
+    if (handler) {
+      // TODO: better error message?
+      return handler.update?.(content, values) ?? errorResult(t("V3.DI.Error.notFound"))
     }
 
     return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))
