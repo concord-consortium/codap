@@ -28,7 +28,7 @@ interface ICreateArgs {
 }
 
 export interface DIComponentHandler {
-  create: (args: ICreateArgs) => ITileContentSnapshotWithType | DIErrorResult,
+  create: (args: ICreateArgs) => ITileContentSnapshotWithType | DIErrorResult | undefined,
   get: (content: ITileContentModel) => Maybe<Record<string, any>>
   update?: (content: ITileContentModel, values: DIValues) => DIHandlerFnResult
 }

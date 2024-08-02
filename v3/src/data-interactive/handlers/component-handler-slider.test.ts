@@ -16,8 +16,7 @@ describe("DataInteractive ComponentHandler Slider", () => {
   globalManager?.addValueSnapshot({ name: "global", value: 10 })
   const handler = diComponentHandler
 
-  // FIXME: unskip test
-  it.skip("create and get slider work", async () => {
+  it("create and get slider work", async () => {
     // Create slider with no value specified
     expect(documentContent.tileMap.size).toBe(0)
     const newValueResult = handler.create!({}, { type: "slider" })

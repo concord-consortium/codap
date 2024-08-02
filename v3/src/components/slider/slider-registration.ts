@@ -149,8 +149,6 @@ registerComponentHandler(kV2SliderType, {
         globalValue: global.id
       } as SetRequired<ISliderSnapshot, "type">
     }
-    // fallback to creating a default slider
-    return { type: kSliderTileType }
   },
   get(content) {
     if (isSliderModel(content)) {
