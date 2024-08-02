@@ -6,9 +6,9 @@ import { math } from "../models/formula/functions/math"
 import { displayToCanonical } from "../models/formula/utils/canonicalization-utils"
 import { getDisplayNameMap } from "../models/formula/utils/name-mapping-utils"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
-import { getTilePrefixes } from "../models/tiles/tile-content-info"
+import { getTileContentInfo } from "../models/tiles/tile-content-info"
 import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/tile-environment"
-import { toV3Id, toV3TileId } from "../utilities/codap-utils"
+import { toV3Id } from "../utilities/codap-utils"
 import { t } from "../utilities/translation/translate"
 import { DIParsedQuery, DIQueryFunction } from "./data-interactive-types"
 
@@ -20,7 +20,7 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
   // RegExs here and below taken from CODAP v2
   const matches = query.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]*)/)
   if (!matches) return { valid: false, func: () => false }
-  
+
   const parseOperand = (_rawValue: string) => {
     // Trim whitespace
     const rawValue = _rawValue.replace(/^\s+|\s+$/g, '')
@@ -49,7 +49,7 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
     : op === ">=" ? (a, b) => a != null && b != null && a >= b
     : op === ">" ? (a, b) => a != null && b != null && a > b
     : () => false
-  
+
   return { valid, left, right, func }
 }
 
@@ -106,19 +106,15 @@ export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, c
   return { valid: true, caseIds }
 }
 
-export function findTileFromName(name: string) {
+export function findTileFromNameOrId(nameOrId: string) {
   const { content } = appState.document
   if (content) {
-    return Array.from(content.tileMap.values()).find(tile => tile.name === name)
+    return Array.from(content.tileMap.values()).find(tile => {
+      if (tile.name === nameOrId || tile.id === nameOrId) return true
+      const { content: { type } } = tile
+      const tileInfo = getTileContentInfo(type)
+      if (tileInfo?.prefix && tile.id === toV3Id(tileInfo.prefix, nameOrId)) return true
+      return false
+    })
   }
-}
-
-export function findTileFromV2Id(v2Id: string) {
-  const { document } = appState
-  // We look for every possible v3 id the component might have (because each tile type has a different prefix).
-  // Is there a better way to do this?
-  const possibleIds =
-    [v2Id, toV3TileId(v2Id), ...getTilePrefixes().map(prefix => toV3Id(prefix, v2Id))]
-  const componentId = possibleIds.find(id => document.content?.getTile(id))
-  if (componentId) return document.content?.getTile(componentId)
 }

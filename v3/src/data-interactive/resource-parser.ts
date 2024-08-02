@@ -7,7 +7,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
-import { evaluateCaseFormula, findTileFromName, findTileFromV2Id, parseSearchQuery } from "./resource-parser-utils"
+import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -100,7 +100,7 @@ export function resolveResources(
 
   if (resourceSelector.component) {
     const { component } = resourceSelector
-    result.component = findTileFromName(component) ?? findTileFromV2Id(component)
+    result.component = findTileFromNameOrId(component)
   }
 
   if (resourceSelector.global) {
