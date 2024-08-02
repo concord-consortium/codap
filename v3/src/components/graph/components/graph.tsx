@@ -1,3 +1,4 @@
+import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
 import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
@@ -84,7 +85,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         } else {
           graphController.callMatchCirclesToData()
         }
-      }, {name: "Graph.handleFilteredCasesChange"}, graphModel
+      }, {name: "Graph.handleFilteredCasesChange", equals: comparer.structural}, graphModel
     )
   }, [graphController, graphModel])
 

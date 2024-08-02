@@ -78,11 +78,11 @@ export const diCollectionHandler: DIHandler = {
 
         returnValues.push({ id: toV2Id(newCollection.id), name: newCollection.name })
       })
-      
+
       // Remove the empty default collection if any collections were added
       if (emptyCollection && dataContext.collections.length > 1) dataContext.removeCollection(emptyCollection)
     }, {
-      notifications: () => newCollections.map(newCollection => createCollectionNotification(newCollection, dataContext))
+      notify: () => newCollections.map(newCollection => createCollectionNotification(newCollection, dataContext))
     })
 
     return { success: true, values: returnValues }

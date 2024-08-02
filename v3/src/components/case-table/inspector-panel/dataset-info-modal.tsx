@@ -28,7 +28,7 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
       data.setDescription(description)
       setShowInfoModal(false)
     }, {
-      notifications: () => updateDataContextNotification(data)
+      notify: () => updateDataContextNotification(data)
     })
   }
 

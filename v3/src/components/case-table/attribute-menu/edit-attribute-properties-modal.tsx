@@ -53,13 +53,13 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           )
           attribute.setName(newName)
         }
-        if (description !== attribute.description ?? "") {
+        if (description !== (attribute.description ?? "")) {
           attribute.setDescription(description || undefined)
         }
-        if (units !== attribute.units ?? "") {
+        if (units !== (attribute.units ?? "")) {
           attribute.setUnits(units || undefined)
         }
-        if (userType !== attribute.userType ?? "none") {
+        if (userType !== (attribute.userType ?? "none")) {
           attribute.setUserType(userType === "none" ? undefined : userType)
         }
         if (precision !== `${attribute?.precision ?? ""}`) {
@@ -69,7 +69,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
           attribute.setEditable(editable === "yes")
         }
       }, {
-        notifications: updateAttributesNotification([attribute], data),
+        notify: updateAttributesNotification([attribute], data),
         undoStringKey: "DG.Undo.caseTable.editAttribute",
         redoStringKey: "DG.Redo.caseTable.editAttribute"
       })

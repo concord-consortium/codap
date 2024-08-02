@@ -4,10 +4,12 @@ const values = hierarchical.attributes
 
 context("hierarchical collections", () => {
   beforeEach(function () {
+    cy.log('Starting test setup')
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
+    cy.log('Setup complete')
   })
   hierarchical.tests.forEach((h) => {
     // FIXME: enable skipped tests

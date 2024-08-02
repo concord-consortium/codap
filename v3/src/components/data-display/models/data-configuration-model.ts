@@ -1,5 +1,5 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {comparer, reaction} from "mobx"
+import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
@@ -89,7 +89,7 @@ export const DataConfigurationModel = types
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
-    filteredCases: [] as FilteredCases[],
+    filteredCases: observable.array<FilteredCases>([], { deep: false }),
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
     pointsNeedUpdating: false,
     casesChangeCount: 0
@@ -163,7 +163,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearFilteredCases() {
       self.filteredCases.forEach(aFilteredCases => aFilteredCases.destroy())
-      self.filteredCases = []
+      self.filteredCases.clear()
     },
     beforeDestroy() {
       this.clearFilteredCases()

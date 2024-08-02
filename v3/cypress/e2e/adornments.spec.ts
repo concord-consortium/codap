@@ -5,10 +5,12 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 
 context("Graph adornments", () => {
   beforeEach(function () {
+    cy.log('Starting test setup')
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
+    cy.log('Setup complete')
   })
 
   it("shows inspector palette when Display Values button is clicked", () => {

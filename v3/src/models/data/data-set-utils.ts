@@ -93,7 +93,7 @@ export function moveAttribute({
       () => {
         result = dataset.moveAttribute(attrId, { collection: targetCollection?.id, ...options })
       },
-      { notifications: _notifications, undoStringKey, redoStringKey }
+      { notify: _notifications, undoStringKey, redoStringKey }
     )
   }
 }
@@ -102,7 +102,7 @@ function selectWithNotification(func: () => void, data?: IDataSet, extend?: bool
   data?.applyModelChange(() => {
     func()
   }, {
-    notifications: selectCasesNotification(data, extend)
+    notify: selectCasesNotification(data, extend)
   })
 }
 

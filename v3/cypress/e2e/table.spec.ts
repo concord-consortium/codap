@@ -14,16 +14,21 @@ const newCollectionName = "New Dataset"
 
 beforeEach(() => {
   // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-  const queryParams = "?sample=mammals&dashboard&scrollBehavior=auto"
+  cy.log('Starting test setup')
+  const queryParams = "?sample=mammals&scrollBehavior=auto"
   const url = `${Cypress.config("index")}${queryParams}`
+  cy.intercept("GET", "https://codap-resources.s3.amazonaws.com/plugins/published-plugins.json", {
+    fixture: "mockPublishedPlugins.json"
+  })
   cy.visit(url)
-  cy.wait(2000)
+  cy.wait(1000)
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
   table.getNumOfRows().then($cases => {
     numOfCases = $cases
     lastRowIndex = Number($cases) - 1
-    middleRowIndex = Math.floor(lastRowIndex / 2)
+    middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
   })
+  cy.log('Setup complete')
 })
 
 context("case table ui", () => {
@@ -66,7 +71,7 @@ context("case table ui", () => {
       cy.get("[data-testid='attr-description-input']").should("have.text", description)
       cy.get("[data-testid='attr-type-select']").should("have.value", type)
       cy.get("[data-testid='attr-editable-radio'] input[value='no']").should("be.checked")
-      table.getCancelButton().click()
+      table.getCancelButton().click({force: true})
 
       cy.log("check undo/redo after verify attribute properties")
       // Perform Undo operation
@@ -102,9 +107,9 @@ context("case table ui", () => {
   describe("case table Inspector menu options", () => {
     it("should open dataset information button and make changes", () => {
       const newInfoName = "Animals",
-      newSource = "The Internet",
-      importDate = "May 4",
-      newDescription = "All about mammals"
+        newSource = "The Internet",
+        importDate = "May 4",
+        newDescription = "All about mammals"
 
       // Enter new dataset information
       c.selectTile("table", 0)
@@ -118,53 +123,53 @@ context("case table ui", () => {
       cy.get("[data-testid=dataset-description-input]").should("have.value", newDescription)
     })
     it("select a case and delete the case from inspector menu", () => {
-      let initialRowCount, postInsertRowCount
+      let initialRowCount, postDeleteRowCount
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-      table.getDeleteCasesButton().click()
-      table.getDeleteMenuItem("Delete Selected Cases").click()
+      table.getDeleteCasesButton().click({force: true})
+      table.getDeleteMenuItem("Delete Selected Cases").click({force: true})
 
-      // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+      // Row count after delete one case
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-        expect(postInsertRowCount).to.eq(initialRowCount - 1)
+        postDeleteRowCount = Number(rowCount)
+        expect(postDeleteRowCount).to.eq(initialRowCount - 1)
       })
 
-      // // checks for undo/redo
-      // cy.log("check for undo/redo after delete")
+      // checks for undo/redo
+      cy.log("check for undo/redo after delete")
 
-      // // Undo delete
-      // toolbar.getUndoTool().click()
+      // Undo delete
+      toolbar.getUndoTool().click()
 
-      // // Verify undo (check if row count is back to post-insert count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = parseInt(rowCount)
-      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-      // })
+      // Verify undo (check if row count is back to post-insert count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+      table.getNumOfRows().then(rowCount => {
+       const rowCountAfterUndo = Number(rowCount)
+       expect(rowCountAfterUndo).to.eq(initialRowCount)
+      })
 
-      // // Redo delete
-      // toolbar.getRedoTool().click()
+      // Redo delete
+      toolbar.getRedoTool().click()
 
-      // // Verify redo (check if row count is back to initial count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = parseInt(rowCount)
-      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-      // })
+      // Verify redo (check if row count is back to initial count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+       table.getNumOfRows().then(rowCount => {
+       const rowCountAfterRedo = Number(rowCount)
+       expect(rowCountAfterRedo).to.eq(postDeleteRowCount)
+      })
     })
     it("select a case and delete unselected cases from inspector menu", () => {
       let initialRowCount // Declare variable to hold initial row count
-      let postInsertRowCount // Declare variable to hold row count after delete
+      let postDeleteRowCount // Declare variable to hold row count after delete
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       // Delete one case in table
@@ -175,33 +180,33 @@ context("case table ui", () => {
 
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
-        expect(postInsertRowCount).to.eq(3)
-        expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
+        postDeleteRowCount = Number(rowCount)
+        expect(postDeleteRowCount).to.eq(3)
+        expect(initialRowCount).to.be.greaterThan(postDeleteRowCount) // add a check to make sure rows were deleted
       })
 
-      // // checks for undo/redo
-      // cy.log("check for undo/redo after delete")
+      // checks for undo/redo
+      cy.log("check for undo/redo after delete")
 
-      // // Undo delete
-      // toolbar.getUndoTool().click()
+      // Undo delete
+      toolbar.getUndoTool().click()
 
-      // // Verify undo (check if row count is back to post-insert count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = parseInt(rowCount)
-      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-      // })
+      // Verify undo (check if row count is back to post-insert count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+      table.getNumOfRows().then(rowCount => {
+       const rowCountAfterUndo = Number(rowCount)
+       expect(rowCountAfterUndo).to.eq(initialRowCount)
+      })
 
-      // // Redo delete
-      // toolbar.getRedoTool().click()
+      // Redo delete
+      toolbar.getRedoTool().click()
 
-      // // Verify redo (check if row count is back to initial count)
-      // // TODO: add the check once bug is fixed (PT ##187597588)
-      //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = parseInt(rowCount)
-      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-      // })
+      // Verify redo (check if row count is back to initial count)
+      // TODO: add the check once bug is fixed (PT ##187597588)
+       table.getNumOfRows().then(rowCount => {
+       const rowCountAfterRedo = Number(rowCount)
+       expect(rowCountAfterRedo).to.eq(postDeleteRowCount)
+      })
     })
     it("check delete all cases from inspector menu", () => {
       let initialRowCount // Declare variable to hold initial row count
@@ -209,7 +214,7 @@ context("case table ui", () => {
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       // Delete all cases in table
@@ -219,7 +224,7 @@ context("case table ui", () => {
 
       // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postInsertRowCount = Number(rowCount)
         expect(postInsertRowCount).to.eq(2)
         expect(initialRowCount).to.be.greaterThan(postInsertRowCount) // add a check to make sure rows were deleted
       })
@@ -251,7 +256,7 @@ context("case table ui", () => {
 
     //   // Get initial row count
     //   table.getNumOfRows().then(rowCount => {
-    //    initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+    //    initialRowCount = Number(rowCount)
     //   })
 
     //   table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
@@ -260,7 +265,7 @@ context("case table ui", () => {
 
     //   // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
     //   table.getNumOfRows().then(rowCount => {
-    //     postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+    //     postInsertRowCount = Number(rowCount)
     //     expect(postInsertRowCount).to.eq(initialRowCount - 1 )
     //   })
 
@@ -273,7 +278,7 @@ context("case table ui", () => {
     //    // // Verify undo (check if row count is back to post-insert count)
     //    // // TODO: add the check once bug is fixed (PT ##187597588)
     //    // table.getNumOfRows().then(rowCount => {
-    //    //  const rowCountAfterUndo = parseInt(rowCount)
+    //    //  const rowCountAfterUndo = Number(rowCount)
     //    //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
     //    // })
 
@@ -283,7 +288,7 @@ context("case table ui", () => {
     //    // // Verify redo (check if row count is back to initial count)
     //    // // TODO: add the check once bug is fixed (PT ##187597588)
     //    //  table.getNumOfRows().then(rowCount => {
-    //    //  const rowCountAfterRedo = parseInt(rowCount)
+    //    //  const rowCountAfterRedo = Number(rowCount)
     //    //  expect(rowCountAfterRedo).to.eq(initialRowCount)
     //    // })
 
@@ -451,7 +456,7 @@ context("case table ui", () => {
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
-        initialRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        initialRowCount = Number(rowCount)
       })
 
       // Insert a new case
@@ -460,7 +465,7 @@ context("case table ui", () => {
 
       // Get row count after insert
       table.getNumOfRows().then(rowCount => {
-        postInsertRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postInsertRowCount = Number(rowCount)
         expect(postInsertRowCount).to.eq(initialRowCount + 1)
       })
 
@@ -470,7 +475,7 @@ context("case table ui", () => {
 
       // Get row count after delete
       table.getNumOfRows().then(rowCount => {
-        postDeleteRowCount = parseInt(rowCount, 10) // Added radix parameter 10 for decimal
+        postDeleteRowCount = Number(rowCount)
         expect(postDeleteRowCount).to.eq(initialRowCount)
       })
 
@@ -481,7 +486,7 @@ context("case table ui", () => {
       // Verify undo (check if row count is back to post-insert count)
       // TODO: add the check once bug is fixed (PT #187083170)
       // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = parseInt(rowCount)
+      //  const rowCountAfterUndo = Number(rowCount)
       //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
       //})
 
@@ -491,7 +496,7 @@ context("case table ui", () => {
       // Verify redo (check if row count is back to initial count)
       // TODO: add the check once bug is fixed (PT #187083170)
       //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = parseInt(rowCount)
+      //  const rowCountAfterRedo = Number(rowCount)
       //  expect(rowCountAfterRedo).to.eq(initialRowCount)
       // })
     })
@@ -911,42 +916,72 @@ context("case table ui", () => {
   })
 
   describe("table cell editing", () => {
-    it("edits cells", () => {
+    it("edits cells with color swatch", () => {
       cy.log("checking cell contents")
       table.getGridCell(2, 2).should("contain", "African Elephant")
+
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
       table.getGridCell(2, 2).dblclick()
+      cy.wait(1000) // Wait for the editing input to appear
+
       cy.log("check the editing cell contents")
-      table.getGridCell(2, 2).find("input").should("have.value", "African Elephant")
+      table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").should("have.value", "African Elephant")
       // type a color string
-      table.getGridCell(2, 2).find("input").type("#ff00ff{enter}")
+      table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("#ff00ff{enter}")
       // verify that cell shows color swatch of appropriate color
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
-      // double-click to begin editing cell
-      table.getGridCell(2, 2).click().dblclick()
-      // click color swatch to bring up color palette
-      table.getGridCell(2, 2).get(".cell-edit-color-swatch").click()
-      // click hue bar to change color
-      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).click()
-      // verify that the color actually changed
-      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
-      // type escape key to dismiss color palette
-      cy.get(".react-colorful").type("{esc}")
-      // verify that cell displays original color
-      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
-      // double-click to begin editing cell
+
+      cy.log("double-click to begin editing cell")
+      table.getGridCell(2, 2).click()
       table.getGridCell(2, 2).dblclick()
-      // click color swatch to bring up color palette
-      table.getGridCell(2, 2).get(".cell-edit-color-swatch").click()
-      // click hue bar to change color
-      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).click()
-      // verify that the color actually changed
+      cy.wait(1000) // Wait for the editing input to appear
+
+      cy.log("click color swatch to bring up color palette")
+      table.getGridCell(2, 2)
+        .find("button.cell-edit-color-swatch") // Simplified selector
+        .should('exist')
+        .should('be.visible')
+        .dblclick({ force: true }) // Double-click the button
+      cy.wait(1000) // Wait for the color palette to appear
+
+      cy.log("click hue bar to change color")
+      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cy.wait(1000) // Wait for the color change to be reflected
+
+      cy.log("verify that the color actually changed")
       table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
-      // click Set Color button to dismiss color palette and change color
-      cy.get(".text-editor-color-picker .set-color-button").click()
-      // verify that the color actually changed
+
+      cy.log("type escape key to dismiss color palette")
+      cy.get(".react-colorful").type("{esc}")
+
+      cy.log("verify that cell displays original color")
+      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
+
+      cy.log("double-click to begin editing cell again")
+      table.getGridCell(2, 2).dblclick()
+      cy.wait(1000) // Wait for the editing input to appear
+
+      cy.log("click color swatch to bring up color palette again")
+      table.getGridCell(2, 2)
+        .find("button.cell-edit-color-swatch") // Simplified selector
+        .should('exist')
+        .should('be.visible')
+        .dblclick({ force: true }) // Double-click the button
+      cy.wait(1000) // Wait for the color palette to appear
+
+      cy.log("click hue bar to change color again")
+      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cy.wait(1000) // Wait for the color change to be reflected
+
+      cy.log("verify that the color actually changed again")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+
+      cy.log("click Set Color button to dismiss color palette and change color")
+      cy.get(".text-editor-color-picker .set-color-button").should('be.visible').click()
+
+      cy.log("verify that the color actually changed finally")
       table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
     })
-  })
+})
 })

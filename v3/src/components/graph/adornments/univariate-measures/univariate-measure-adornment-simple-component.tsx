@@ -64,7 +64,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const lineHeight = 20
       // We have to pass isGaussianFit to getLabelLinesAboveAdornment because the Gaussian fit is a special case where
       // if there is a gaussianFit (not just a normal curve), we need to add an extra line for the adornment title.
-      const topOffset = lineHeight * adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0
+      const topOffset = lineHeight * (adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0)
       let labelLeft = labelCoords
         ? labelCoords.x / cellCounts.x
         : isVertical.current

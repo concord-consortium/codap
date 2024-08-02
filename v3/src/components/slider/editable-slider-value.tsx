@@ -47,7 +47,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
           sliderModel.setValue(inputValue)
         },
         {
-          notifications: () => valueChangeNotification(sliderModel.value, sliderModel.name),
+          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name),
           undoStringKey: "DG.Undo.slider.change",
           redoStringKey: "DG.Redo.slider.change"
         }

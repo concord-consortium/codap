@@ -17,9 +17,11 @@ const arrayOfAttributes = ["Category", "Educ_Tertiary_Perc", "Inversions"]
 
 context("Map UI", () => {
   beforeEach(function () {
+    cy.log('Starting test setup')
     const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation`
     cy.visit(url)
     cy.wait(3000)
+    cy.log('Setup complete')
   })
 
   it("verify map title", () => {

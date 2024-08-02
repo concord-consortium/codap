@@ -46,7 +46,7 @@ export const diDataContextHandler: DIHandler = {
         values: basicDataSetInfo(dataSet)
       }
     }, {
-      notifications: dataContextCountChangedNotification
+      notify: dataContextCountChangedNotification
     })
   },
 
@@ -57,7 +57,7 @@ export const diDataContextHandler: DIHandler = {
     appState.document.applyModelChange(() => {
       gDataBroker.removeDataSet(dataContext.id)
     }, {
-      notifications: [dataContextCountChangedNotification, dataContextDeletedNotification(dataContext)]
+      notify: [dataContextCountChangedNotification, dataContextDeletedNotification(dataContext)]
     })
 
     return { success: true }

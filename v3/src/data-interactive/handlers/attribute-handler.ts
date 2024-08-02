@@ -47,7 +47,7 @@ export const diAttributeHandler: DIHandler = {
         if (attribute) attributes.push(attribute)
       })
     }, {
-      notifications: () => createAttributesNotification(attributes, dataContext)
+      notify: () => createAttributesNotification(attributes, dataContext)
     })
     return { success: true, values: {
       attrs: attributes.map(attribute => convertAttributeToV2(attribute, dataContext))
@@ -83,7 +83,7 @@ export const diAttributeHandler: DIHandler = {
     attribute.applyModelChange(() => {
       updateAttribute(attribute, values, dataContext)
     }, {
-      notifications: () => updateAttributesNotification([attribute], dataContext)
+      notify: () => updateAttributesNotification([attribute], dataContext)
     })
 
     const attributeV2 = convertAttributeToV2FromResources(resources)

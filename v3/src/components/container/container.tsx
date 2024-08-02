@@ -19,15 +19,16 @@ export const Container: React.FC = () => {
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
 
   const handleCloseTile = useCallback((tileId: string) => {
+    const tile = getTile(tileId)
     documentContent?.applyModelChange(() => {
       const manager = getSharedModelManager(documentContent)
-      const tile = getTile(tileId)
       const sharedModels = manager?.getTileSharedModels(tile?.content)
       sharedModels?.forEach(model => {
         manager?.removeTileSharedModel(tile?.content, model)
       })
       tileId && documentContent?.deleteTile(tileId)
     }, {
+      log: `${tile?.content.type} is closed`,
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close"
     })

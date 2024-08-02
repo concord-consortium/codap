@@ -10,10 +10,12 @@ const newSliderValue = "0.6"
 
 context("Slider UI", () => {
   beforeEach(function () {
+    cy.log('Starting test setup')
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
+    cy.log('Setup complete')
   })
   it("populates default title, variable name and value", () => {
     c.getComponentTitle("slider").should("contain", sliderName)

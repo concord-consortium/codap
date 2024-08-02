@@ -76,6 +76,7 @@ describe(`V2 "mammals.codap"`, () => {
     expect(data.collections[0].id).toBe(`COLL${collection.guid}`)
     expect(data.attributes.length).toBe(9)
     expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
+    expect(data.attributes[0].cid).toBe(collection.attrs[0].cid)
     expect(data.items.length).toBe(27)
     expect(data.items[0].__id__).toBe(`CASE${collection.cases[0].guid}`)
 
