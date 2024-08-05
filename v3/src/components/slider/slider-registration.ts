@@ -119,6 +119,7 @@ registerComponentHandler(kV2SliderType, {
       lowerBound, upperBound
     } = values as V2Slider
 
+    let content: SetRequired<ISliderSnapshot, "type"> | undefined
     if (globalValueName) {
       const { document } = appState
       const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
@@ -141,7 +142,7 @@ registerComponentHandler(kV2SliderType, {
       const animationDirection = _animationDirection != null
         ? AnimationDirections[Number(_animationDirection)] : undefined
       const animationMode = _animationMode != null ? AnimationModes[_animationMode] : undefined
-      return {
+      content = {
         type: kSliderTileType,
         animationDirection,
         animationMode,
@@ -149,6 +150,8 @@ registerComponentHandler(kV2SliderType, {
         globalValue: global.id
       } as SetRequired<ISliderSnapshot, "type">
     }
+    
+    return { content }
   },
   get(content) {
     if (isSliderModel(content)) {

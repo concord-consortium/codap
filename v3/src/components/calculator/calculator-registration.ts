@@ -63,7 +63,7 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
 
 registerComponentHandler(kV2CalculatorType, {
   create() {
-    return { type: kCalculatorTileType }
+    return { content: { type: kCalculatorTileType } }
   },
   get(content) {
     return {}

@@ -18,17 +18,20 @@ import {
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 
-type CreateOrShowTileFn = (type: string, options?: INewTileOptions) => Maybe<ITileModel>
+export type CreateOrShowTileFn = (type: string, options?: INewTileOptions) => Maybe<ITileModel>
 
 interface ICreateArgs {
   type: string  // v2 type
   values?: DIValues
-  setCreateOrShow: (createOrShow: CreateOrShowTileFn) => void
-  setOptions: (options: INewTileOptions) => void
 }
 
+interface ICreateResult {
+  content?: ITileContentSnapshotWithType
+  createOrShow?: CreateOrShowTileFn
+  options?: INewTileOptions
+}
 export interface DIComponentHandler {
-  create: (args: ICreateArgs) => ITileContentSnapshotWithType | DIErrorResult | undefined,
+  create: (args: ICreateArgs) => ICreateResult | DIErrorResult,
   get: (content: ITileContentModel) => Maybe<Record<string, any>>
   update?: (content: ITileContentModel, values: DIValues) => DIHandlerFnResult
 }
@@ -50,21 +53,21 @@ export const diComponentHandler: DIHandler = {
     // check if there's a registered handler for this type
     const handler = diComponentHandlers.get(type)
     if (handler) {
-      let createOrShow: CreateOrShowTileFn = (_type, _options) => document.content?.createOrShowTile(_type, _options)
-      const newTileOptions: INewTileOptions = {}
-      const setCreateOrShow = (_createOrShow: CreateOrShowTileFn) => createOrShow = _createOrShow
-      const setOptions = (_options: INewTileOptions) => Object.assign(newTileOptions, _options)
-      const content = handler?.create({ type, values, setCreateOrShow, setOptions })
-      if (isErrorResult(content)) return content
+      const result = handler?.create({ type, values })
+      if (isErrorResult(result)) return result
 
       // Create the tile
+      const { content, createOrShow, options } = result
+      const defaultCreateOrShow: CreateOrShowTileFn =
+        (_type, createOrShowOptions) => document.content?.createOrShowTile(_type, createOrShowOptions)
+      const _createOrShow = createOrShow ?? defaultCreateOrShow
+      const _options = options ?? {}
       return document.applyModelChange(() => {
         const title = _title ?? name
-        const options = { cannotClose, content, ...dimensions, name, title, ...newTileOptions }
-        const tile = createOrShow(kComponentTypeV2ToV3Map[type], options)
+        const newTileOptions = { cannotClose, content, ...dimensions, name, title, ..._options }
+        const tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
-        // TODO Handle isIndexHidden
         return {
           success: true,
           values: {
@@ -77,41 +80,6 @@ export const diComponentHandler: DIHandler = {
     }
 
     return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [type] }))
-
-    // const v3Type: Maybe<string> = kComponentTypeV2ToV3Map[type]
-
-    // const componentNotCreatedResult = errorResult(t("V3.DI.Error.componentNotCreated"))
-    // return document.applyModelChange(() => {
-    //   // General case
-    //   if (kComponentTypeV2ToV3Map[type]) {
-    //     let content: ITileContentSnapshotWithType | undefined
-    //     const extraOptions: INewTileOptions = {}
-
-    //     // TODO Handle other types:
-    //     // text
-    //     // guide
-    //     // image view
-
-    //     // Create the tile
-    //     const title = _title ?? name
-    //     const options = { cannotClose, content, ...dimensions, name, title, ...extraOptions }
-    //     const tile = document.content?.createOrShowTile(kComponentTypeV2ToV3Map[type], options)
-    //     if (!tile) return componentNotCreatedResult
-
-    //     // TODO Handle position
-
-    //     return {
-    //       success: true,
-    //       values: {
-    //         id: toV2Id(tile.id),
-    //         title: tile.title,
-    //         type
-    //       }
-    //     }
-    //   }
-
-    //   return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [type] }))
-    // })
   },
 
   delete(resources: DIResources) {

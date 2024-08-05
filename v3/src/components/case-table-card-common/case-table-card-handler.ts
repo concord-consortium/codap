@@ -1,5 +1,5 @@
 import { V2CaseTable } from "../../data-interactive/data-interactive-component-types"
-import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { CreateOrShowTileFn, DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
 import {
@@ -13,7 +13,7 @@ import { isCaseTableModel } from "../case-table/case-table-model"
 import { createOrShowTableOrCardForDataset } from "./case-table-card-utils"
 
 export const caseTableCardComponentHandler: DIComponentHandler = {
-  create({ type, values, setCreateOrShow }) {
+  create({ type, values }) {
     const { document } = appState
     const { dataContext, horizontalScrollOffset } = values as V2CaseTable
     const dataContextNotFound = errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }))
@@ -27,13 +27,17 @@ export const caseTableCardComponentHandler: DIComponentHandler = {
       return errorResult(t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }))
     }
 
-    setCreateOrShow((tileType, options) => {
+    const createOrShow: CreateOrShowTileFn = (tileType, options) => {
       if (tileType !== kCaseCardTileType && tileType !== kCaseTableTileType) return undefined
       return createOrShowTableOrCardForDataset(sharedDataSet, tileType, options)
-    })
+    }
 
+    // TODO Handle isIndexHidden
     const scrollOffset = horizontalScrollOffset != null ? { horizontalScrollOffset } : undefined
-    return { type: type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType, ...scrollOffset }
+    return {
+      content: { type: type === kV2CaseCardType ? kCaseCardTileType : kCaseTableTileType, ...scrollOffset },
+      createOrShow
+    }
   },
   get(content) {
     if (isCaseCardModel(content) || isCaseTableModel(content)) {

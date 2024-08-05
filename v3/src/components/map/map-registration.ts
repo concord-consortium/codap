@@ -59,7 +59,7 @@ registerTileComponentInfo({
 registerV2TileImporter("DG.MapView", v2MapImporter)
 
 registerComponentHandler(kV2MapType, {
-  create({ values, setOptions }) {
+  create({ values }) {
     const { document } = appState
     const { center: _center, dataContext: _dataContext, legendAttributeName, zoom } = values as V2Map
     const dataContext = getDataSetByNameOrId(document, _dataContext)
@@ -110,16 +110,16 @@ registerComponentHandler(kV2MapType, {
     })
 
     const center = _center ? { lat: _center[0], lng: _center[1] } : undefined
-    const mapContent: SetRequired<IMapModelContentSnapshot, "type"> = {
+    const content: SetRequired<IMapModelContentSnapshot, "type"> = {
       type: kMapTileType,
       center,
       layers,
       zoom
     }
     // If the center or zoom are specified, we need to prevent CODAP from automatically focusing the map
-    if (center || zoom != null) setOptions({ transitionComplete: true })
+    const options = center || zoom != null ? { transitionComplete: true } : undefined
 
-    return mapContent
+    return { content, options }
   },
   get(content) {
     if (isMapContentModel(content)) {

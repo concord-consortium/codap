@@ -86,7 +86,7 @@ registerV2TileImporter("DG.GameView", importGameView)
 const webViewComponentHandler: DIComponentHandler = {
   create({ values }) {
     const { URL } = values as V2WebView
-    return { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type">
+    return { content: { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type"> }
   },
   get(content) {
     if (isWebViewModel(content)) {

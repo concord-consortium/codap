@@ -148,7 +148,7 @@ export const graphComponentHandler: DIComponentHandler = {
         }
       })
     }
-    return { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType
+    return { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
   },
   get(content: ITileContentModel) {
     if (isGraphContentModel(content)) {
