@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
+import { PluginData, useStandardPlugins } from "../../hooks/use-standard-plugins"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
@@ -10,27 +11,10 @@ import { ToolShelfButtonTag } from "./tool-shelf-button"
 
 import "./plugins-button.scss"
 
-const pluginDataUrl = `${kRootPluginUrl}/published-plugins.json`
-
-interface PluginData {
-  aegis?: string,
-  categories: string[],
-  description: string,
-  "description-string"?: string,
-  height: number,
-  icon: string,
-  isStandard: "true" | "false", // All have "true" for some reason
-  path: string,
-  title: string,
-  "title-string"?: string,
-  visible: boolean | "true" | "false", // Most have "true" or "false" for some reason, but a couple have true
-  width: number
-}
-
-interface IPluginSelectionProps {
+interface IPluginItemProps {
   pluginData: PluginData
 }
-function PluginSelection({ pluginData }: IPluginSelectionProps) {
+function PluginItem({ pluginData }: IPluginItemProps) {
   const documentContent = useDocumentContent()
 
   function handleClick() {
@@ -62,17 +46,7 @@ function PluginSelection({ pluginData }: IPluginSelectionProps) {
 }
 
 export function PluginsButton() {
-  const [pluginData, setPluginData] = useState<PluginData[]>([])
-
-  useEffect(() => {
-    try {
-      fetch(pluginDataUrl)
-        .then(response => response.json())
-        .then(json => setPluginData(json))
-    } catch (error) {
-      console.warn("Unable to load plugin data.", error)
-    }
-  }, [])
+  const { plugins } = useStandardPlugins()
 
   return (
     <Menu isLazy>
@@ -85,7 +59,11 @@ export function PluginsButton() {
         <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
       </MenuButton>
       <MenuList>
-        {pluginData.map(pd => <PluginSelection key={pd.title} pluginData={pd} />)}
+        {
+          plugins.length
+            ? plugins.map(pd => <PluginItem key={pd.title} pluginData={pd} />)
+            : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
+        }
       </MenuList>
     </Menu>
   )

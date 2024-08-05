@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom"
 import "jest-canvas-mock"
+import { enableFetchMocks } from "jest-fetch-mock"
 import "jest-webgl-canvas-mock"
 import { isEqual, isEqualWith } from "lodash"
 import ResizeObserverPolyfill from "resize-observer-polyfill"
@@ -11,6 +12,9 @@ global.ResizeObserver = ResizeObserverPolyfill
 
 // mock DOM APIs not supported by JSDOM
 Element.prototype.scrollIntoView = jest.fn()
+
+// enable fetch mocking
+enableFetchMocks()
 
 declare global {
   function assertIsDefined<T>(value: T): asserts value is NonNullable<T>
