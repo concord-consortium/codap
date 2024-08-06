@@ -50,7 +50,9 @@ registerTileComponentInfo({
   shelf: {
     position: 3,
     labelKey: "DG.ToolButtonData.mapButton.title",
-    hintKey: "DG.ToolButtonData.mapButton.toolTip"
+    hintKey: "DG.ToolButtonData.mapButton.toolTip",
+    undoStringKey: "DG.Undo.map.create",
+    redoStringKey: "DG.Redo.map.create"
   },
   defaultWidth: kDefaultMapWidth,
   defaultHeight: kDefaultMapHeight

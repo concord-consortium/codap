@@ -42,7 +42,9 @@ registerTileComponentInfo({
     ButtonComponent: CaseTableToolShelfButton,
     position: 1,
     labelKey: "DG.ToolButtonData.tableButton.title",
-    hintKey: "DG.ToolButtonData.tableButton.toolTip"
+    hintKey: "DG.ToolButtonData.tableButton.toolTip",
+    undoStringKey: "V3.Undo.caseTable.create",
+    redoStringKey: "V3.Redo.caseTable.create"
   },
   defaultWidth: 580,
   defaultHeight: 200

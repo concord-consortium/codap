@@ -55,7 +55,9 @@ registerTileComponentInfo({
   shelf: {
     position: 2,
     labelKey: "DG.ToolButtonData.graphButton.title",
-    hintKey: "DG.ToolButtonData.graphButton.toolTip"
+    hintKey: "DG.ToolButtonData.graphButton.toolTip",
+    undoStringKey: "DG.Undo.graphComponent.create",
+    redoStringKey: "DG.Redo.graphComponent.create"
   },
   defaultWidth: 300,
   defaultHeight: 300
