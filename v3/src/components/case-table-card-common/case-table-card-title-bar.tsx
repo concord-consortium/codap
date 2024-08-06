@@ -13,7 +13,6 @@ import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { toggleCardTable } from "./case-table-card-utils"
-import { getTitle } from "../../models/tiles/tile-content-info"
 
 import "./case-table-card-title-bar.scss"
 
@@ -111,7 +110,7 @@ export const CaseTableCardTitleBar =
     const cardOrTableIconClass = tileInfo.iconClass
 
     return (
-      <ComponentTitleBar tile={tile} getTitle={getTitle(tile)} {...others}
+      <ComponentTitleBar tile={tile} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
                          preventTitleChange={preventTitleChange}>
         <div className="header-left"

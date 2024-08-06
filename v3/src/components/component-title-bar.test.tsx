@@ -2,13 +2,23 @@ import { DndContext } from "@dnd-kit/core"
 import React from "react"
 import { act, render, screen } from "@testing-library/react"
 import { ComponentTitleBar } from "./component-title-bar"
+import { ITileLikeModel } from "../models/tiles/tile-content-info"
 import { ITileModel, TileModel } from "../models/tiles/tile-model"
+
+const mockGetTitle = jest.fn()
+jest.mock("../models/tiles/tile-content-info", () => ({
+  ...jest.requireActual("../models/tiles/tile-content-info"),
+  getTitle: (tile: ITileLikeModel) => mockGetTitle(tile)
+}))
 
 describe("ComponentTitleBar", () => {
 
   const parentRenderCounter = jest.fn()
   const titleRenderCounter = jest.fn()
   const childRenderCounter = jest.fn()
+
+  // getTitle() is called on every render, so we use it to trigger our counter
+  mockGetTitle.mockImplementation(() => titleRenderCounter())
 
   interface ICounter {
     label: string
@@ -23,11 +33,9 @@ describe("ComponentTitleBar", () => {
     tile: ITileModel
   }
   function Parent({ tile }: IParent) {
-    // getTitle() is called on every render, so we use it to trigger our counter
-    const getTitle = () => titleRenderCounter()
     return (
       <DndContext>
-        <ComponentTitleBar tile={tile} getTitle={getTitle}>
+        <ComponentTitleBar tile={tile}>
           <RenderCounter label="Child" fn={childRenderCounter} />
         </ComponentTitleBar>
         <RenderCounter label="Parent" fn={parentRenderCounter} />

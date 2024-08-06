@@ -75,7 +75,7 @@ export function getTilePrefixes() {
 
 export function getTitle(tile?: ITileLikeModel) {
   const tileContentInfo = getTileContentInfo(tile?.content.type)
-  return () => tile ? tileContentInfo?.getTitle?.(tile) : undefined
+  return (tile && tileContentInfo?.getTitle?.(tile)) ?? ""
 }
 
 export interface ITileExportOptions {

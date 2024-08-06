@@ -9,6 +9,7 @@ import { appState } from "../../models/app-state"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { t } from "../../utilities/translation/translate"
 import {registerV2TileImporter} from "../../v2/codap-v2-tile-importers"
+import { ComponentTitleBar } from "../component-title-bar"
 import {
   AttributeDescriptionsMapSnapshot, kDataConfigurationType
 } from "../data-display/models/data-configuration-model"
@@ -21,7 +22,6 @@ import { IMapPolygonLayerModelSnapshot } from "./models/map-polygon-layer-model"
 import {
   createMapContentModel, IMapModelContentSnapshot, isMapContentModel, MapContentModel
 } from "./models/map-content-model"
-import {MapComponentTitleBar} from "./components/map-component-title-bar"
 import {MapComponent} from "./components/map-component"
 import {MapInspector} from "./components/map-inspector"
 import {
@@ -42,7 +42,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kMapTileType,
-  TitleBar: MapComponentTitleBar,
+  TitleBar: ComponentTitleBar,
   Component: MapComponent,
   InspectorPanel: MapInspector,
   tileEltClass: kMapTileClass,
