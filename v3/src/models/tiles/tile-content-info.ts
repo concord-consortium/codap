@@ -31,8 +31,10 @@ export interface ITileContentInfo {
   prefix: string; // conventionally four uppercase chars
   modelClass: typeof TileContentModel;
   defaultContent: (options?: IDefaultContentOptions) => ITileContentSnapshotWithType;
+  defaultName?: (options?: IDefaultContentOptions) => string | undefined
   titleBase?: string;
   getTitle: (tile: ITileLikeModel) => string | undefined;
+  getV2Type?: (content: ITileContentModel) => string;
   metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
   hideOnClose?: boolean;

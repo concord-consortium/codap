@@ -1,16 +1,19 @@
+import { kV2GameType } from "../../components/web-view/web-view-defs"
+import { IWebViewModel, isWebViewModel } from "../../components/web-view/web-view-model"
+import { kWebViewIdPrefix } from "../../components/web-view/web-view-registration"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
+import { V2Game, V2WebView } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
-import { kWebViewIdPrefix } from "../../components/web-view/web-view-registration"
-import { IWebViewModel, isWebViewModel } from "../../components/web-view/web-view-model"
+import { testGetComponent } from "./component-handler-test-utils"
 
 
 describe("DataInteractive ComponentHandler WebView and Game", () => {
   const handler = diComponentHandler
   const documentContent = appState.document.content!
 
-  it("create webView and game work", () => {
+  it("create and get webView and game work", () => {
     // Create a blank webView
     expect(documentContent.tileMap.size).toBe(0)
     const result = handler.create!({}, { type: "webView" })
@@ -37,6 +40,12 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     expect(isWebViewModel(tile2.content)).toBe(true)
     expect((tile2.content as IWebViewModel).url).toBe(wikipediaUrl)
 
+    // Get webView
+    testGetComponent(tile2, handler, (webViewTile, values) => {
+      const { URL } = values as V2WebView
+      expect(URL).toBe((webViewTile.content as IWebViewModel).url)
+    })
+
     // Create game with url
     const multidataUrl = "https://codap.concord.org/multidata-plugin/"
     const result3 = handler.create!({}, { type: "game", URL: multidataUrl })
@@ -46,6 +55,14 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     const tile3 = documentContent.tileMap.get(toV3Id(kWebViewIdPrefix, result3Values.id!))!
     expect(tile3).toBeDefined()
     expect(isWebViewModel(tile3.content)).toBe(true)
-    expect((tile3.content as IWebViewModel).url).toBe(multidataUrl)
+    const gameModel = tile3.content as IWebViewModel
+    expect(gameModel.url).toBe(multidataUrl)
+
+    // Get game
+    gameModel.setIsPlugin(true) // This would normally be set automatically when the plugin connects to codap
+    testGetComponent(tile3, handler, (gameTile, values) => {
+      const { URL } = values as V2Game
+      expect(URL).toBe((gameTile.content as IWebViewModel).url)
+    }, { type: kV2GameType })
   })
 })

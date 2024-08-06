@@ -9,6 +9,7 @@ export interface INewTileOptions {
   animateCreation?: boolean
   cannotClose?: boolean
   content?: ITileContentSnapshotWithType
+  name?: string
   title?: string
   setSingletonHidden?: boolean // If undefined, singleton visibility will be toggled
   x?: number
@@ -21,11 +22,12 @@ export interface INewTileOptions {
 export function createTileSnapshotOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {
   const info = getTileContentInfo(tileType)
   const id = v3Id(info?.prefix || "TILE")
+  const name = options?.name ?? info?.defaultName?.({ env })
   const content = options?.content ?? info?.defaultContent({ env })
   const cannotClose = options?.cannotClose
   const title = options?.title
   const transitionComplete = options?.transitionComplete
-  return content ? { cannotClose, content, id, title, transitionComplete } : undefined
+  return content ? { cannotClose, content, id, name, title, transitionComplete } : undefined
 }
 
 export function createTileOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {

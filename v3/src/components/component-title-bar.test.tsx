@@ -37,7 +37,7 @@ describe("ComponentTitleBar", () => {
 
   it("renders successfully and efficiently", () => {
     // will create UnknownContentModel
-    const tile = TileModel.create({ title: "title", content: {} as any })
+    const tile = TileModel.create({ _title: "title", content: {} as any })
     render(<Parent tile={tile}/>)
     expect(screen.getByText("title")).toBeInTheDocument()
     expect(parentRenderCounter).toHaveBeenCalledTimes(1)

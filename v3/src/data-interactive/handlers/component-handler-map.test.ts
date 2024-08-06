@@ -4,8 +4,10 @@ import "../../components/map/map-registration"
 import { IMapContentModel, isMapContentModel } from "../../components/map/models/map-content-model"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
+import { V2Map } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
+import { testGetComponent } from "./component-handler-test-utils"
 import { setupTestDataset } from "./handler-test-utils"
 
 
@@ -15,7 +17,7 @@ describe("DataInteractive ComponentHandler Map", () => {
   const { dataset } = setupTestDataset()
   documentContent.createDataSet(getSnapshot(dataset))
 
-  it("create map works", async () => {
+  it("create and get map work", async () => {
     // Create a map tile with no options
     expect(documentContent.tileMap.size).toBe(0)
     const vanillaResult = handler.create!({}, { type: "map" })
@@ -51,5 +53,10 @@ describe("DataInteractive ComponentHandler Map", () => {
     // the legend attribute gets properly assigned. Probably only one of the following two checks will be necessary.
     // expect(tileContent.dataConfiguration?.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
     // expect(tileContent.layers.find(layer => layer.dataConfiguration.attributeID("legend") === a1.id)).toBeDefined()
+
+    testGetComponent(tile, handler, (mapTile, values) => {
+      const { dataContext } = values as V2Map
+      expect(dataContext).toBe((mapTile.content as IMapContentModel).dataConfiguration?.dataset?.name)
+    })
   })
 })

@@ -1,22 +1,13 @@
-import { kCalculatorTileType } from "../components/calculator/calculator-defs"
-import { kCaseCardTileType } from "../components/case-card/case-card-defs"
-import { kCaseTableTileType } from "../components/case-table/case-table-defs"
-import { kGraphTileType } from "../components/graph/graph-defs"
-import { kMapTileType } from "../components/map/map-defs"
-import { kSliderTileType } from "../components/slider/slider-defs"
-import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { kCalculatorTileType, kV2CalculatorType } from "../components/calculator/calculator-defs"
+import { kCaseCardTileType, kV2CaseCardType } from "../components/case-card/case-card-defs"
+import { kCaseTableTileType, kV2CaseTableType } from "../components/case-table/case-table-defs"
+import { kGraphTileType, kV2GraphType } from "../components/graph/graph-defs"
+import { kMapTileType, kV2MapType } from "../components/map/map-defs"
+import { kSliderTileType, kV2SliderType } from "../components/slider/slider-defs"
+import { kV2GameType, kV2WebViewType, kWebViewTileType } from "../components/web-view/web-view-defs"
 
-export const kV2CalculatorType = "calculator"
-export const kV2CaseTableType = "caseTable"
-export const kV2CaseCardType = "caseCard"
-export const kV2GameType = "game"
-export const kV2GraphType = "graph"
-export const kV2GuideViewType = "guideView"
-export const kV2ImageType = "image"
-export const kV2MapType = "map"
-export const kV2SliderType = "slider"
-export const kV2TextType = "text"
-export const kV2WebViewType = "webView"
+// export const kV2ImageType = "image"
+// export const kV2TextType = "text"
 
 export const kComponentTypeV3ToV2Map: Record<string, string> = {
   [kCalculatorTileType]: kV2CalculatorType,
@@ -44,8 +35,12 @@ export interface V2Component {
     width: number
     height: number
   }
+  id?: number
   name?: string
-  position?: string
+  position?: string | {
+    left: number
+    top: number
+  }
   title?: string
   type: string
 }
@@ -80,6 +75,14 @@ export interface V2Graph extends V2Component {
   yAttributeName?: string
   y2AttributeName?: string
 }
+export interface V2GetGraph extends V2Graph {
+  xLowerBound?: number
+  xUpperBound?: number
+  yLowerBound?: number
+  yUpperBound?: number
+  y2LowerBound?: number
+  y2UpperBound?: number
+}
 export interface V2GuidePage {
   itemTitle: string
   url: string
@@ -104,6 +107,9 @@ export interface V2Slider extends V2Component {
   lowerBound?: number
   type: "slider"
   upperBound?: number
+}
+export interface V2GetSlider extends V2Slider {
+  value?: number
 }
 export interface V2Text extends V2Component {
   text?: string

@@ -21,7 +21,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     guid,
 
     componentStorage: {
-      title = "", _links_: links, plotModels,
+      name, title = "", _links_: links, plotModels,
 
       pointColor, strokeColor, pointSizeMultiplier,
       strokeSameAsFill, isTransparent,
@@ -171,7 +171,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     }]
   }
 
-  const graphTileSnap: ITileModelSnapshotIn = { id: toV3Id(kGraphIdPrefix, guid), title, content }
+  const graphTileSnap: ITileModelSnapshotIn = { id: toV3Id(kGraphIdPrefix, guid), name, _title: title, content }
   const graphTile = insertTile(graphTileSnap)
 
   // link shared model

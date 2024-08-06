@@ -1,16 +1,19 @@
+import { SetRequired } from "type-fest"
+import { V2Game, V2WebView } from "../../data-interactive/data-interactive-component-types"
+import { DIComponentHandler, registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3Id } from "../../utilities/codap-utils"
+import { t } from "../../utilities/translation/translate"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { isV2WebViewComponent, isV2GameViewComponent } from "../../v2/codap-v2-types"
-import { kWebViewTileType } from "./web-view-defs"
-import { IWebViewSnapshot, WebViewModel } from "./web-view-model"
+import { kV2GameType, kV2WebViewType, kWebViewTileType } from "./web-view-defs"
+import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
 import { WebViewTitleBar } from "./web-view-title-bar"
 import { processPluginUrl } from "./web-view-utils"
-import { t } from "../../utilities/translation/translate"
 
 export const kWebViewIdPrefix = "WEBV"
 
@@ -22,7 +25,9 @@ registerTileContentInfo({
   prefix: kWebViewIdPrefix,
   modelClass: WebViewModel,
   defaultContent: () => ({ type: kWebViewTileType }),
-  getTitle: (tile: ITileLikeModel) => tile.title || t("DG.WebView.defaultTitle")
+  defaultName: () => t("DG.WebView.defaultTitle"),
+  getTitle: (tile) => tile.title || t("DG.WebView.defaultTitle"),
+  getV2Type: (content) => isWebViewModel(content) && content.isPlugin ? kV2GameType : kV2WebViewType
 })
 
 registerTileComponentInfo({
@@ -37,7 +42,7 @@ registerTileComponentInfo({
 
 function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, state?: unknown) {
   const { v2Component, insertTile } = args
-  const { title, userSetTitle } = v2Component.componentStorage
+  const { name, title, userSetTitle } = v2Component.componentStorage
 
   const content: IWebViewSnapshot = {
     type: kWebViewTileType,
@@ -46,7 +51,8 @@ function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, 
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kWebViewIdPrefix, guid),
-    title: (userSetTitle && title) || undefined,
+    name,
+    _title: (userSetTitle && title) || undefined,
     content
   }
   const webViewTile = insertTile(webViewTileSnap)
@@ -76,3 +82,18 @@ function importGameView(args: V2TileImportArgs) {
   return addWebViewSnapshot(args, guid, processPluginUrl(currentGameUrl), savedGameState)
 }
 registerV2TileImporter("DG.GameView", importGameView)
+
+const webViewComponentHandler: DIComponentHandler = {
+  create({ values }) {
+    const { URL } = values as V2WebView
+    return { content: { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type"> }
+  },
+  get(content) {
+    if (isWebViewModel(content)) {
+      const type = content.isPlugin ? kV2GameType : kV2WebViewType
+      return { type, URL: content.url } as V2Game | V2WebView
+    }
+  }
+}
+registerComponentHandler(kV2GameType, webViewComponentHandler)
+registerComponentHandler(kV2WebViewType, webViewComponentHandler)

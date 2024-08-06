@@ -126,6 +126,10 @@ export const FreeTileRow = TileRowModel
     getTileDimensions(tileId: string) {
       const freeTileLayout = self.getNode(tileId)
       return { width: freeTileLayout?.width, height: freeTileLayout?.height }
+    },
+    getTilePosition(tileId: string) {
+      const freeTileLayout = self.getNode(tileId)
+      return { left: freeTileLayout?.x, top: freeTileLayout?.y }
     }
   }))
   .actions(self => ({

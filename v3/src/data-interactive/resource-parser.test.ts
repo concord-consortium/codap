@@ -31,6 +31,7 @@ describe("DataInteractive ResourceParser", () => {
   })
 
   it("finds components", () => {
+    expect(resolve(`component[Web Page]`).component?.id).toBe(tile.id)
     expect(resolve(`component[${toV2Id(tile.id)}]`).component?.id).toBe(tile.id)
     expect(resolve("component[unknown]").component).toBeUndefined()
   })
