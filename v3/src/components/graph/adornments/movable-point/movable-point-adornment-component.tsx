@@ -32,6 +32,7 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const pointRef = useRef<SVGGElement | null>(null)
   const [pointObject, setPointObject] = useState<IPointObject>({})
+  const dragStartPoint = useRef({x: 0, y: 0})
 
   // Set up refs for determining when attributes have changed and the point needs to be reset
   // to the initial position
@@ -62,6 +63,12 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
       .attr('cy', yPoint + 1)
   }, [pointObject.point, pointObject.shadow])
 
+  const handleDragStart = useCallback((event: MouseEvent) => {
+    const { x: xPoint, y: yPoint } = event
+    dragStartPoint.current = {x: Math.round(xScale.invert(xPoint * xSubAxesCount)*10)/10,
+                              y: Math.round(yScale.invert(yPoint * ySubAxesCount)*10)/10}
+  }, [xScale, xSubAxesCount, yScale, ySubAxesCount])
+
   const handleDrag = useCallback((event: MouseEvent) => {
     const { x: xPoint, y: yPoint } = event
     // don't allow point to be dragged outside plot area
@@ -87,7 +94,8 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
       () => model.setPoint({x: xValue, y: yValue}, instanceKey),
       {
         undoStringKey: "DG.Undo.graph.moveMovablePoint",
-        redoStringKey: "DG.Redo.graph.moveMovablePoint"
+        redoStringKey: "DG.Redo.graph.moveMovablePoint",
+        log: `Move point from (${dragStartPoint.current.x}, ${dragStartPoint.current.y} to (${xValue}, ${yValue})`
       }
     )
 
@@ -120,10 +128,11 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
       .call(dataTip)
       .call(
         drag<SVGCircleElement, unknown>()
+          .on("start", handleDragStart)
           .on("drag", handleDrag)
           .on("end", handleDragEnd)
       )
-  }, [pointObject, handleDrag, handleDragEnd, showCoordinates, hideCoordinates])
+  }, [pointObject, handleDrag, handleDragEnd, showCoordinates, hideCoordinates, handleDragStart])
 
   // Set up the point and shadow
   useEffect(function createElements() {
