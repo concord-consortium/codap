@@ -33,9 +33,16 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   const binBoundariesRef = useRef<SVGGElement>(null)
   const primaryAxisScaleCopy = useRef<ScaleLinear<number, number>>(primaryAxisScale.copy())
   const lowerBoundaryRef = useRef<number>(0)
+  const binAlignmentValueRef = useRef<number>(0)
+  const binWidthValueRef = useRef<number>(0)
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
   usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
+
+  useEffect(() => {
+    binAlignmentValueRef.current = graphModel.binAlignment ?? 0
+    binWidthValueRef.current = graphModel.binWidth ?? 0
+  },[])
 
   const drawBinBoundaries = useCallback(() => {
     if (!dataConfig || !isFiniteNumber(graphModel.binAlignment) || !isFiniteNumber(graphModel.binWidth)) return
@@ -99,9 +106,18 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
         lowerBoundaryRef.current = 0
       }, {
         undoStringKey: "DG.Undo.graph.dragBinBoundary",
-        redoStringKey: "DG.Redo.graph.dragBinBoundary"
+        redoStringKey: "DG.Redo.graph.dragBinBoundary",
+        log: { message: `dragBinBoundary from { alignment: ${binAlignmentValueRef.current}, width: ${
+                          binWidthValueRef.current} } to { alignment: ${graphModel.binAlignment}, width: ${
+                          graphModel.binWidth} }`,
+               event_value: { from: `{ alignment: ${binAlignmentValueRef.current}, width: ${
+                                        binWidthValueRef.current} }`,
+                               to: `{ alignment: ${graphModel.binAlignment}, width: ${graphModel.binWidth }` }
+              }
       }
     )
+    binAlignmentValueRef.current = graphModel.binAlignment ?? 0
+    binWidthValueRef.current = graphModel.binWidth ?? 0
   }, [graphModel])
 
   const addBinBoundaryDragHandlers = useCallback(() => {

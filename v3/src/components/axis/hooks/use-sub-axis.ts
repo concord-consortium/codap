@@ -50,6 +50,7 @@ export const useSubAxis = ({
       initialOffset: 0,
       currentOffset: 0,
       currentDragPosition: 0,
+      currentDragPositionCatName: '',
       categories: [],
       bandwidth: 0,
       axisOrientation: 'horizontal',
@@ -270,6 +271,7 @@ export const useSubAxis = ({
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
+          dI.currentDragPositionCatName = catToMoveBefore
         } else {
           renderSubAxis()
         }
@@ -282,7 +284,10 @@ export const useSubAxis = ({
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
       stopAnimation() // disable animation for final placement
       renderSubAxis()
-    }, [stopAnimation, renderSubAxis]),
+      displayModel.applyModelChange(() => {},
+        { log: `Moved category ${dI.catName} into position of ${dI.currentDragPositionCatName}` }
+      )
+    }, [stopAnimation, renderSubAxis, displayModel]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)

@@ -33,7 +33,10 @@ const Controls = observer(function Controls() {
         () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
         {
           undoStringKey: undoRedoKeys.undoAdd || "",
-          redoStringKey: undoRedoKeys.redoAdd || ""
+          redoStringKey: undoRedoKeys.redoAdd || "",
+          log: { message: `toggleLSRL ${kLSRLType}`, event_value: {value: "show"},
+          parameters: {value: "show"}
+                }
         }
       )
     } else {
@@ -41,7 +44,10 @@ const Controls = observer(function Controls() {
         () => adornmentsStore.hideAdornment(adornment.type),
         {
           undoStringKey: undoRedoKeys.undoRemove || "",
-          redoStringKey: undoRedoKeys.redoRemove || ""
+          redoStringKey: undoRedoKeys.redoRemove || "",
+          log: { message: `toggleLSRL ${kLSRLType}`, event_value: {value: "hide"},
+                  parameters: {value: "hide"}
+          }
         }
       )
     }

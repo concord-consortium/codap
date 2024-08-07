@@ -117,7 +117,8 @@ export const NumericAxisDragRects = observer(
           axisModel.applyModelChange(
             () => axisModel.setDomain(...axisModel.domain), {
               undoStringKey: dilating ? "DG.Undo.axisDilate" : "DG.Undo.axisDrag",
-              redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag"
+              redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag",
+              log: { message: `dragEnd:`, event_value: { lower: axisModel.domain[0], upper: axisModel.domain[1] }}
             })
           dragging = false
           dilating = false

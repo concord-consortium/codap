@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef } from "react"
 import {observer} from "mobx-react-lite"
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import { t } from "../../../../utilities/translation/translate"
@@ -30,6 +30,11 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showFuseIntoBars = (plotType === "dotChart" && plotHasExactlyOneCategoricalAxis) ||
                            (plotType === "dotPlot" && pointDisplayType === "bins") ||
                            pointDisplayType === "histogram"
+  const binWidthValueRef = useRef<number>(0)
+
+  useEffect(() => {
+    binWidthValueRef.current = graphModel?.binWidth ?? 0
+  }, [graphModel?.binWidth])
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -55,12 +60,16 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       e.preventDefault()
       const value = Number((e.target as HTMLInputElement).value)
       setBinOption(option, value)
+      graphModel?.applyModelChange(() => {}, { log: `Changed ${option} from ${binWidthValueRef.current} to ${value}` })
+      binWidthValueRef.current = value
     }
   }
 
   const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
     const value = Number((e.target as HTMLInputElement).value)
     setBinOption(option, value)
+    graphModel?.applyModelChange(() => {}, { log: `Changed ${option} from ${binWidthValueRef.current} to ${value}` })
+    binWidthValueRef.current = value
   }
 
   const handleSetFuseIntoBars = (fuseIntoBars: boolean) => {
@@ -72,7 +81,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         graphModel?.setPointsFusedIntoBars(fuseIntoBars)
         graphModel?.pointDescription.setPointStrokeSameAsFill(fuseIntoBars)
       },
-      { undoStringKey, redoStringKey }
+      { undoStringKey, redoStringKey,
+        log: { message: "toggleShowAs",
+               event_value: {type: fuseIntoBars ? "BarChart" : "DotChart"},
+               parameters: {value : fuseIntoBars ? "BarChart" : "DotChart"}
+              }
+      }
     )
   }
 
@@ -145,7 +159,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
               />
             </Box>
-          </Stack>       
+          </Stack>
         )}
       {showFuseIntoBars &&
           <Checkbox
