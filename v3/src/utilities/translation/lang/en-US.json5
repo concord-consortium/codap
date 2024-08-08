@@ -1,12 +1,8 @@
 {
     // CODAP V3 temporary strings (not for translation, at least not yet)
     "V3.caseTable.noCases": "no cases",
-    "V3.summary.parseResults": "Parsed \"%@1\" with %@2 %@3 (%@4 selected) and...",
-    "V3.summary.noData": "No data",
-    "V3.summary.attributes": "Attributes",
-    "V3.summary.attributeInspector": "Attribute Inspector",
-    "V3.summary.startProfiling": "Start Profiling",
-    "V3.summary.stopProfiling": "Stop Profiling",
+
+    "V3.ToolButtonData.pluginMenu.fetchError": "No plugin configuration available",
 
     // V3 general strings that are not present in V2 and will require translation
     "V3.general.yes": "Yes",
