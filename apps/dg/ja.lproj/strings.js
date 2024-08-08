@@ -1044,7 +1044,7 @@ SC.stringsFor("ja", {
               "DG.plugin.Sampler.dataset.attr-description": "description",
               "DG.plugin.Sampler.dataset.attr-sample_size": "sample_size",
               "DG.plugin.Sampler.dataset.attr-sample": "sample",
-              "DG.plugin.Sampler.dataset.attr-value": "value",
+              "DG.plugin.Sampler.dataset.attr-value": "output",
               "DG.plugin.Sampler.dataset.col-experiments": "experiments",
               "DG.plugin.Sampler.dataset.col-samples": "samples",
               "DG.plugin.Sampler.dataset.col-items": "items",
