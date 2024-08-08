@@ -6,10 +6,10 @@ import { graphComponentHandler } from "./graph-component-handler"
 import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from "./graph-defs"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { ComponentTitleBar } from "../component-title-bar"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
-import { GraphComponentTitleBar } from "./components/graph-component-title-bar"
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
@@ -47,7 +47,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kGraphTileType,
-  TitleBar: GraphComponentTitleBar,
+  TitleBar: ComponentTitleBar,
   Component: GraphComponent,
   InspectorPanel: GraphInspector,
   tileEltClass: kGraphTileClass,

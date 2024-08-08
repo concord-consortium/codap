@@ -3,6 +3,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
+import { getTitle } from "../models/tiles/tile-content-info"
 import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
@@ -11,7 +12,7 @@ import { t } from "../utilities/translation/translate"
 import "./component-title-bar.scss"
 
 export const ComponentTitleBar = observer(function ComponentTitleBar({
-  tile, getTitle, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
+  tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
 }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
   const title = (tile && getTitle?.(tile)) || tile?.title || ""
