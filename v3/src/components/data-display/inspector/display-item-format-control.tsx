@@ -15,38 +15,29 @@ interface IProps {
   displayItemDescription: IDisplayItemDescriptionModel
   pointDisplayType?: string
   isTransparent?: boolean
-  setIsTransparent?: (isTransparent: boolean) => void
+  onBackgroundTransparencyChange?: (isTransparent: boolean) => void
   plotBackgroundColor?: string
-  setPlotBackgroundColor?: (color: string) => void
+  onBackgroundColorChange?: (color: string) => void
 }
 
 export const DisplayItemFormatControl = observer(function PointFormatControl(props: IProps) {
   const {
     dataConfiguration, displayItemDescription, pointDisplayType,
-    isTransparent, setIsTransparent, plotBackgroundColor, setPlotBackgroundColor
+    isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange
   } = props
   const legendAttrID = dataConfiguration.attributeID("legend")
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
 
-  const handleBackgroundColorChange = (color: string) => {
-    setPlotBackgroundColor && setPlotBackgroundColor(color)
-    displayItemDescription.applyModelChange(() => {},  {
-      log: "Changed background color"
-    })
-  }
-  const handleBackgroundTransparency = (checked: boolean) => {
-    setIsTransparent && setIsTransparent(checked)
-    displayItemDescription.applyModelChange(() => {},  {
-      log: `Made plot background ${checked ? "transparent" : "opaque"}`
-    })
-  }
 
 
   const handlePointColorChange = (color: string) => {
-    displayItemDescription.setPointColor(color)
-    displayItemDescription.applyModelChange(() => {},  {
+    displayItemDescription.applyModelChange(() => {
+      displayItemDescription.setPointColor(color)
+    },  {
+      undoStringKey: "DG.Undo.graph.changePointColor",
+      redoStringKey: "DG.Redo.graph.changePointColor",
       log: "Changed point color"
     })
   }
@@ -64,20 +55,20 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   })
 
   const renderPlotControlsIfAny = () => {
-    if (setIsTransparent && setPlotBackgroundColor) {
+    if (onBackgroundTransparencyChange && onBackgroundColorChange) {
       return (
         <div>
           <FormControl isDisabled={isTransparent}>
             <Flex className="palette-row color-picker-row">
               <FormLabel className="form-label color-picker">{t("DG.Inspector.backgroundColor")}</FormLabel>
               <Input type="color" className="color-picker-thumb" value={plotBackgroundColor}
-                     onChange={e => handleBackgroundColorChange(e.target.value)}/>
+                     onChange={e => onBackgroundColorChange(e.target.value)}/>
             </Flex>
           </FormControl>
           <FormControl>
             <Checkbox
               mt="6px" isChecked={isTransparent}
-              onChange={e => handleBackgroundTransparency(e.target.checked)}>
+              onChange={e => onBackgroundTransparencyChange(e.target.checked)}>
               {t("DG.Inspector.graphTransparency")}
             </Checkbox>
           </FormControl>

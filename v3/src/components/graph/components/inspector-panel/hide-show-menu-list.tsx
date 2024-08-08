@@ -76,7 +76,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     dataConfig?.applyModelChange(
       () => graphModel?.setShowParentToggles(!graphModel?.showParentToggles),
       { undoStringKey, redoStringKey,
-        log: graphModel?.showParentToggles ? "Enable NumberToggle" : "Disable NumberToggle"
+        log: graphModel?.showParentToggles ? "Disable NumberToggle" : "Enable NumberToggle"
       }
     )
   }
@@ -88,7 +88,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     dataConfig?.applyModelChange(
       () => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection),
       { undoStringKey, redoStringKey,
-        log: graphModel?.showMeasuresForSelection ? "Enable MeasuresForSelection" : "Disable MeasuresForSelection"
+        log: graphModel?.showMeasuresForSelection ? "Disable MeasuresForSelection" : "Enable MeasuresForSelection"
       }
     )
   }
