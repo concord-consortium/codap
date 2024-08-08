@@ -7,13 +7,13 @@ import { CodapV2Document } from "../../v2/codap-v2-document"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import { kTextTileType } from "./text-defs"
-import { isTextModel } from "./text-model"
+import { isTextModel, ITextModel } from "./text-model"
 import "./text-registration"
 
 const fs = require("fs")
 const path = require("path")
 
-describe("Calculator registration", () => {
+describe("Text registration", () => {
   it("registers content and component info", () => {
     const textContentInfo = getTileContentInfo(kTextTileType)
     expect(textContentInfo).toBeDefined()
@@ -41,10 +41,7 @@ describe("Calculator registration", () => {
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     expect(isTextModel(tile!.content)).toBe(true)
-    if (tile && isTextModel(tile.content)) {
-      // eslint-disable-next-line jest/no-conditional-expect
-      expect(tile.content.textContent).toBe("This is some simple text.")
-    }
+    expect((tile!.content as ITextModel).textContent).toBe("This is some simple text.")
   })
   it("imports v2 text components with rich text (newer v2 format)", () => {
     const file = path.join(__dirname, "../../test/v2", "rich-text.codap")
@@ -66,10 +63,7 @@ describe("Calculator registration", () => {
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     expect(isTextModel(tile!.content)).toBe(true)
-    if (tile && isTextModel(tile.content)) {
-      // eslint-disable-next-line jest/no-conditional-expect
-      expect(tile.content.textContent).toBe("This is some bold italic underlined deleted red rich text.")
-    }
+    expect((tile!.content as ITextModel).textContent).toBe("This is some bold italic underlined deleted red rich text.")
   })
   it("doesn't import invalid v2 text components", () => {
     const file = path.join(__dirname, "../../test/v2", "simple-text.codap")
