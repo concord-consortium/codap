@@ -57,7 +57,9 @@ registerTileComponentInfo({
   shelf: {
     position: 4,
     labelKey: "DG.ToolButtonData.sliderButton.title",
-    hintKey: "DG.ToolButtonData.sliderButton.toolTip"
+    hintKey: "DG.ToolButtonData.sliderButton.toolTip",
+    undoStringKey: "DG.Undo.sliderComponent.create",
+    redoStringKey: "DG.Redo.sliderComponent.create"
   },
   defaultWidth: 300,
   isFixedHeight: true,

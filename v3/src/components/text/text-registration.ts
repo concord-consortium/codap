@@ -22,7 +22,9 @@ registerTileComponentInfo({
   shelf: {
     position: 6,
     labelKey: "DG.ToolButtonData.textButton.title",
-    hintKey: "DG.ToolButtonData.textButton.toolTip"
+    hintKey: "DG.ToolButtonData.textButton.toolTip",
+    undoStringKey: "DG.Undo.textComponent.create",
+    redoStringKey: "DG.Redo.textComponent.create"
   },
   defaultWidth: 300,
   defaultHeight: 300
