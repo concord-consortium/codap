@@ -7,8 +7,7 @@ import { withoutUndo } from "./without-undo"
 
 export interface ILogMessage {
   message: string
-  event_value?: Record<string, unknown>
-  parameters?: Record<string, unknown>
+  arg: Array<number | string | boolean>
 }
 export interface INotification {
   message: DIMessage
