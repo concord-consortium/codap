@@ -43,6 +43,20 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       duration: 5000,
       isClosable: true,
     })
+    //TODO: move to respective logs when handlers are implemented
+    switch (menuItem) {
+      case "Fit width":
+        data?.applyModelChange(() => {}, {
+          log: {message:`Fit column width:`, event_value: {collection: data?.name, attribute: columnName}}
+        })
+        break
+      case "Sort Ascending":
+      case "Sort Descending":
+        data?.applyModelChange(() => {}, {
+          log: {message:`Sort cases by attribute:`, event_value: {attributeId: attribute?.id, attribute: columnName}}
+        })
+        break
+    }
   }
 
   // can't hide last attribute of collection

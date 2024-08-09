@@ -76,6 +76,7 @@ export const CaseTableCardTitleBar =
       documentContent?.applyModelChange(() => {
         tile && documentContent && toggleCardTable(documentContent, tile.id)
       }, {
+        log: `Toggle component: ${suffix}`,
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
       })

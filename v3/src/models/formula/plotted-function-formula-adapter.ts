@@ -15,6 +15,7 @@ import {
 } from "./base-graph-formula-adapter"
 import type { IFormulaContext } from "./formula-manager"
 import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { useRef } from "react"
 
 const PLOTTED_FUNCTION_FORMULA_ADAPTER = "PlottedFunctionFormulaAdapter"
 
@@ -29,6 +30,7 @@ export const getPlottedFunctionFormulaAdapter = (node?: IAnyStateTreeNode): Plot
 
 export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
   type = PLOTTED_FUNCTION_FORMULA_ADAPTER
+  formulaValue = ""
 
   getAdornment(graphContentModel: IGraphContentModel) {
     const adornment = graphContentModel.adornments.find(a => a.type === kPlottedFunctionType)
@@ -57,6 +59,11 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       } else {
         adornment.updatePlottedFunctionValue(formulaFunction, instanceKey)
       }
+      graphContentModel.applyModelChange(() => {},
+        { log: { message: "Change plotted function",
+                event_value: {from: this.formulaValue, to:formulaContext.formula.display}}}
+      )
+      this.formulaValue = formulaContext.formula.display
     })
   }
 
@@ -66,6 +73,7 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
     const { formula } = formulaContext
     debugLog(DEBUG_FORMULAS, `[plotted function formula] recalculate "${formula.canonical}"`)
     const formulaScope = this.getMathJSScope(formulaContext, extraMetadata, childMostCases)
+
     try {
       const compiledFormula = math.compile(formula.canonical)
       const extraScope = new Map()

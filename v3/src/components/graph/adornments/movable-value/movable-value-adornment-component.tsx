@@ -138,7 +138,12 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
         () => model.endDrag(dragValue, instanceKey, dragIndex),
         {
           undoStringKey: "DG.Undo.graph.moveMovableValue",
-          redoStringKey: "DG.Redo.graph.moveMovableValue"
+          redoStringKey: "DG.Redo.graph.moveMovableValue",
+          log: `Moved value from ${
+                  model.values.get(instanceKey)?.[dragIndex] !== undefined
+                        ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
+                        : 'undefined'
+                } to ${Math.round(dragValue *10)/10}`
         }
       )
     }
