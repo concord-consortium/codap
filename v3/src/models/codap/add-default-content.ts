@@ -3,6 +3,7 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kGraphTileType } from "../../components/graph/graph-defs"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { kSliderTileType } from "../../components/slider/slider-defs"
+import { kTextTileType } from "../../components/text/text-defs"
 import { urlParams } from "../../utilities/url-params"
 import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
@@ -34,6 +35,7 @@ export function addDefaultComponents() {
   const kWidth25 = kFullWidth / 4
   const kWidth75 = kFullWidth * 3 / 4
   const kFullHeight = 300
+  const kHalfHeight = kFullHeight / 2
   const kGap = 10
 
   const sharedData = manager?.findFirstSharedModelByType<typeof SharedDataSet>(SharedDataSet)
@@ -75,6 +77,14 @@ export function addDefaultComponents() {
               ? { splitTileId: calculatorTile.id, direction: "row" }
               : { x: kFullWidth + kWidth25 + kGap, y: 2, width: kWidth75 }
       content.insertTileInRow(sliderTile, row, sliderOptions)
+    }
+
+    const textTile = createDefaultTileOfType(kTextTileType)
+    if (textTile) {
+      const textOptions = isMosaicTileRow(row)
+              ? { splitTileId: sliderTile!.id, direction: "row" }
+              : { x: kFullWidth + kWidth25 + kGap, y: 110, width: kWidth75, height: kHalfHeight }
+      content.insertTileInRow(textTile, row, textOptions)
     }
 
     const graphTile = createDefaultTileOfType(kGraphTileType)

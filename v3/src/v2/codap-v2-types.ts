@@ -417,6 +417,13 @@ export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   items: Array<{ itemTitle: string, url: string }>
 }
 
+export interface ICodapV2TextStorage extends ICodapV2BaseComponentStorage {
+  text: string
+  // v2's TextController.restoreComponentStorage references an `apiText` property,
+  // but TextController.createComponentStorage doesn't write one out. ¯\_(ツ)_/¯
+  // apiText: string
+}
+
 export interface ICodapV2BaseComponent {
   type: string  // e.g. "DG.TableView", "DG.GraphView", "DG.GuideView", etc.
   guid: number
@@ -486,7 +493,16 @@ export interface ICodapV2GuideComponent extends ICodapV2BaseComponent {
 export const isV2GuideComponent = (component: ICodapV2BaseComponent): component is ICodapV2GuideComponent =>
               component.type === "DG.GuideView"
 
-export type CodapV2Component = ICodapV2GraphComponent | ICodapV2GuideComponent | ICodapV2TableComponent
+export interface ICodapV2TextComponent extends ICodapV2BaseComponent {
+  type: "DG.TextView"
+  componentStorage: ICodapV2TextStorage
+}
+export const isV2TextComponent = (component: ICodapV2BaseComponent): component is ICodapV2TextComponent =>
+              component.type === "DG.TextView"
+
+export type CodapV2Component = ICodapV2CalculatorComponent | ICodapGameViewComponent | ICodapV2GraphComponent |
+                                ICodapV2GuideComponent | ICodapV2MapComponent | ICodapV2SliderComponent |
+                                ICodapV2TableComponent | ICodapV2TextComponent | ICodapV2WebViewComponent
 
 export interface ICodapV2DocumentJson {
   type?: string         // "DG.Document"
