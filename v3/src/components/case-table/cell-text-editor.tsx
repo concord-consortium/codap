@@ -3,7 +3,7 @@ import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { TRenderEditCellProps } from "./case-table-types"
-import { Logger } from "../../lib/logger"
+import { useLoggingContext } from "../../hooks/use-log-context"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -27,6 +27,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const data = useDataSetContext()
   const initialValueRef = useRef(data?.getStrValue(row.__id__, column.key))
   const valueRef = useRef(initialValueRef.current)
+  const { setPendingLogMessage } = useLoggingContext()
 
   useEffect(()=>{
     selectAllCases(data, false)
@@ -37,12 +38,40 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     onRowChange({ ...row, [column.key]: value })
   }
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    event.stopPropagation()
+    console.log("in handleKeyDown")
+    switch (event.key) {
+      case "Enter":
+      case "Tab":
+        setPendingLogMessage("editCellValue", { message:"editValue:",
+          keys: ["collection", "caseId", "attribute", "old", "new"],
+          values: [JSON.stringify(data?.getCollectionForAttribute(column.key)), row.__id__,
+                          column.key, initialValueRef.current, valueRef.current]
+        })
+        handleBlur()
+        break
+      case "Escape":
+        onClose(false)
+        break
+    }
+    if (event.key === "Escape") {
+      onClose(false)
+    }
+  }
   const handleBlur = () => {
-    data?.applyModelChange(() => {}, {
-      log: {message:"editValue:",
-            event_value: {collection: data?.getCollectionForAttribute(column.key), caseId: row.__id__,
-                            attribute: column.key, old: initialValueRef.current, new: valueRef.current}}
+    console.log("in handleBlur")
+    setPendingLogMessage("editCellValue", { message:"editValue:",
+              keys: ["collection", "caseId", "attribute", "old", "new"],
+              values: [JSON.stringify(data?.getCollectionForAttribute(column.key)), row.__id__,
+                              column.key, initialValueRef.current, valueRef.current]
     })
+    // data?.applyModelChange(() => {}, {
+    //   log: {message:"editValue:",
+    //         keys: ["collection", "caseId", "attribute", "old", "new"],
+    //         values: [JSON.stringify(data?.getCollectionForAttribute(column.key)), row.__id__, column.key,
+    //                   initialValueRef.current, valueRef.current]}
+    // })
     onClose(true)
   }
 
@@ -54,6 +83,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
       onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
     />
   )
 }

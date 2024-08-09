@@ -42,8 +42,10 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       try {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
-        calculatorModel?.applyModelChange(() => {}, {
-          log: `Calculation done: ${calcValue} = ${solution}`
+        calculatorModel?.applyModelChange(() => {
+          //TODO save value to the model
+        }, {
+          log: {message: `Calculation done: ${calcValue} = ${solution}`, keys:[], values: [calcValue, solution]}
         })
       } catch  (error) {
         setCalcValue(`Error`)

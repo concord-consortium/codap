@@ -29,7 +29,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
-        log: `Title changed to ${nextValue}`,
+        log: {message: `Title changed to ${nextValue}`, keys:[], values: [nextValue]},
         undoStringKey: "DG.Undo.component.componentTitleChange",
         redoStringKey: "DG.Redo.component.componentTitleChange"
       })

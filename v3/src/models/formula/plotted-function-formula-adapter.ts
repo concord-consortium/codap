@@ -15,7 +15,7 @@ import {
 } from "./base-graph-formula-adapter"
 import type { IFormulaContext } from "./formula-manager"
 import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
-import { useRef } from "react"
+import { useLoggingContext } from "../../hooks/use-log-context"
 
 const PLOTTED_FUNCTION_FORMULA_ADAPTER = "PlottedFunctionFormulaAdapter"
 
@@ -54,15 +54,16 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       const caseIds = dataConfig.subPlotCases(cellKey)
       const cases = caseIds.map(id => dataConfig.dataset?.getItem(id, { numeric: true }) || { __id__: id })
       const formulaFunction = this.computeFormula(formulaContext, extraMetadata, cases)
+      const {setPendingLogMessage} = useLoggingContext()
+      setPendingLogMessage("change plotted function", { message: "Change plotted function",
+        keys: ["from", "to"], values: [this.formulaValue, formulaContext.formula.display]
+      })
+
       if (!adornment.plottedFunctions.get(instanceKey)) {
         adornment.addPlottedFunction(formulaFunction, instanceKey)
       } else {
         adornment.updatePlottedFunctionValue(formulaFunction, instanceKey)
       }
-      graphContentModel.applyModelChange(() => {},
-        { log: { message: "Change plotted function",
-                event_value: {from: this.formulaValue, to:formulaContext.formula.display}}}
-      )
       this.formulaValue = formulaContext.formula.display
     })
   }

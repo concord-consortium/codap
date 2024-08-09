@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
 import { t } from "../../../../utilities/translation/translate"
+import { useLoggingContext } from "../../../../hooks/use-log-context"
 import { EditFormulaModal } from "./edit-formula-modal"
 import { IAdornmentBannerComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
@@ -20,6 +21,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
   const { expression, error } = model
   const formulaModal = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
+  const { getPendingLogMessage } = useLoggingContext()
 
   const handleModalOpen = (open: boolean) => {
     setModalIsOpen(open)
@@ -37,7 +39,11 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
       () => model.setExpression(newExpression),
       {
         undoStringKey: "DG.Undo.graph.changePlotFunction",
-        redoStringKey: "DG.Redo.graph.changePlotFunction"
+        redoStringKey: "DG.Redo.graph.changePlotFunction",
+        log: getPendingLogMessage("change plotted function")
+        // log: { message: "Change plotted function",
+        //         keys: ["from", "to"], values: [formulaValue, formulaContext.formula.display]
+        //       }
       }
     )
   }

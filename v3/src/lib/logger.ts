@@ -15,13 +15,13 @@ export interface LogMessage {
   application: string
   activity?: string
   event: string
-  event_value?: Record<string, unknown>
+  event_value?: string
   run_remote_endpoint?: string
   session: string
   time: number
 
   // the rest of the properties are packaged into `extras` by the log-ingester
-  parameters: any
+  parameters?: Record<string, string | number | boolean>
 }
 
 // List of log messages that were generated before a Logger is initialized
@@ -30,8 +30,8 @@ interface PendingMessage {
   time: number
   event: string
   documentTitle: string
-  event_value?: Record<string, unknown>
-  parameters?: any
+  keys?: string[]
+  values?: Array<string | number | boolean | undefined>
 }
 
 type ILogListener = (logMessage: LogMessage) => void
@@ -59,23 +59,23 @@ export class Logger {
     }
   }
 
-  public static log(event: string, event_value?: Record<string, unknown>, parameters?: Record<string, unknown>) {
+  public static log(event: string, keys?: string[], values?: Array<string | number | boolean | undefined>) {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
-      this._instance.formatAndSend(time, event, documentTitle, event_value, parameters)
+      this._instance.formatAndSend(time, event, documentTitle, keys, values)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
-      this.pendingMessages.push({ time, event, documentTitle, parameters })
+      this.pendingMessages.push({ time, event, documentTitle, keys, values })
     }
   }
 
   private static sendPendingMessages() {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
-      this._instance.formatAndSend(message.time, message.event, message.documentTitle, message.parameters)
+      this._instance.formatAndSend(message.time, message.event, message.documentTitle, message.keys, message.values)
     }
     this.pendingMessages = []
   }
@@ -103,9 +103,13 @@ export class Logger {
   }
 
   private formatAndSend(time: number, event: string, documentTitle: string,
-    event_value?: Record<string, unknown>, parameters?: Record<string, unknown>) {
-    const eventString = event
-    const logMessage = this.createLogMessage(time, eventString, documentTitle, event_value, parameters)
+                         keys?: string[], values?: Array<string | number | boolean | undefined>) {
+    //event_value is a string of keys and values
+    const event_value = keys && values ? keys.map((key, i) => `${key}:${values[i]}`).join(",") : undefined
+    //parameters is a dictionary of keys and values
+    const parameters = keys && values ? keys.reduce((acc, key, i) => ({ ...acc, [key]: values[i] }), {}) : undefined
+    const logMessage = this.createLogMessage(time, event, documentTitle, event_value, parameters)
+    console.log("logMessage:", logMessage)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
@@ -118,8 +122,8 @@ export class Logger {
     time: number,
     event: string,
     documentTitle: string,
-    event_value?: Record<string, unknown>,
-    parameters?: {section?: string},
+    event_value?: string,
+    parameters?: Record<string, string | number | boolean>
   ): LogMessage {
     const logMessage: LogMessage = {
       application: "CODAPV3",

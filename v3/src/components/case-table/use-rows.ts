@@ -19,12 +19,14 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { useLoggingContext } from "../../hooks/use-log-context"
 
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
+  const { getPendingLogMessage } = useLoggingContext()
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
@@ -325,10 +327,11 @@ export const useRows = () => {
           return notifications
         },
         undoStringKey,
-        redoStringKey
+        redoStringKey,
+        log: getPendingLogMessage("editCellValue")
       }
     )
-  }, [collectionTableModel, data])
+  }, [collectionTableModel, data, getPendingLogMessage])
 
   return { handleRowsChange }
 }
