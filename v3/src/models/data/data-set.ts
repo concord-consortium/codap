@@ -149,6 +149,8 @@ export const DataSet = V2Model.named("DataSet").props({
   selectionChanges: 0,
   // map from case ID to the CaseGroup it represents
   caseInfoMap: new Map<string, CaseInfo>(),
+  // map from item ID to the child case containing it
+  itemIdChildCaseMap: new Map<string, CaseInfo>(),
   transactionCount: 0,
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
@@ -474,6 +476,10 @@ export const DataSet = V2Model.named("DataSet").props({
         collection.completeCaseGroups(parentCaseGroups)
         // update the caseGroupMap
         collection.caseGroups.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
+      })
+      self.itemIdChildCaseMap.clear()
+      self.childCollection.caseGroups.forEach(caseGroup => {
+        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
       })
       self.setValidCases()
     }

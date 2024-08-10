@@ -1,10 +1,11 @@
 import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
+import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
 import { HistoryEntryType } from "../history/history"
 import { ICustomPatch } from "../history/tree-types"
-import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
+import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { ICase, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
-import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
+import { deleteCasesNotification, } from "./data-set-notifications"
 
 export interface ISetCaseValuesCustomPatch extends ICustomPatch {
   type: "DataSet.setCaseValues"
@@ -87,15 +88,19 @@ const removeCasesCustomUndoRedo: ICustomUndoRedoPatcher = {
 export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[]) {
   data.validateCases()
 
-  // identify the items to remove
+  // identify the items to remove and build up removed cases for notification
   const itemIdsToRemove = new Set<string>()
+  const cases: ICase[] = []
   caseIds.forEach(caseId => {
     const caseGroup = data.caseInfoMap.get(caseId)
     if (caseGroup) {
       caseGroup.childItemIds.forEach(itemId => itemIdsToRemove.add(itemId))
+      cases.push(caseGroup.groupedCase)
     }
     else if (data.itemInfoMap.get(caseId) != null) {
       itemIdsToRemove.add(caseId)
+      const childCase = data.itemIdChildCaseMap.get(caseId)
+      if (childCase) cases.push(childCase.groupedCase)
     }
   })
 
@@ -155,6 +160,7 @@ export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[])
 
     data.removeCases(caseIds)
   }, {
+    notify: deleteCasesNotification(data, cases),
     undoStringKey: "DG.Undo.data.deleteCases",
     redoStringKey: "DG.Redo.data.deleteCases"
   })
