@@ -42,10 +42,10 @@ context("Text tile", () => {
     // focus the text tile
     t.getTextTileContent().click()
     const textToType = "This is some text."
-    t.getTextTileContent().type(textToType)
+    t.typeText(textToType)
     t.getTextTileContent().should("have.text", textToType)
     // blur the text tile
-    cy.get(".codap-container").click()
+    t.blurEditor()
     t.getTextTileContent().should("have.text", textToType)
     // Undo typing
     toolbar.getUndoTool().click()
