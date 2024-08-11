@@ -919,8 +919,12 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       removeCases(caseIDs: string[]) {
-        caseIDs.forEach((caseID) => {
-          const index = self.getItemIndex(caseID)
+        // Remove the items last -> first, so we only have to update itemInfo once
+        const items = caseIDs.map(id => ({ id, index: self.getItemIndex(id) }))
+          .filter(info => info.index != null) as { id: string, index: number }[]
+        items.sort((a, b) => b.index - a.index)
+        const firstIndex = items[items.length - 1].index
+        items.forEach(({ id: caseID, index }) => {
           if (index != null) {
             self.itemIds.splice(index, 1)
             self.attributes.forEach((attr) => {
@@ -928,14 +932,23 @@ export const DataSet = V2Model.named("DataSet").props({
             })
             self.selection.delete(caseID)
             self.itemInfoMap.delete(caseID)
-            for (let i = index; i < self.items.length; ++i) {
-              const itemId = self.items[i].__id__
-              const itemInfo = self.itemInfoMap.get(itemId)
-              if (itemInfo) itemInfo.index = i
-            }
           }
         })
+        if (firstIndex >= 0) {
+          for (let i = firstIndex; i < self.items.length; ++i) {
+            const itemId = self.items[i].__id__
+            const itemInfo = self.itemInfoMap.get(itemId)
+            if (itemInfo) itemInfo.index = i
+          }
+        }
       },
+
+      // // If order is "first", items will be moved to the front. Otherwise, they are moved to the end.
+      // moveItems(itemIds: string[], order?: string) {
+      //   const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
+      //     .sort((a: number, b: number) => b - a) // Reverse order
+      //   const items = indices.map(index => self.items[index])
+      // },
 
       selectAll(select = true) {
         if (select) {
