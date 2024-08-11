@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
 import { TextToolbar } from "./text-toolbar"
 
@@ -13,7 +14,7 @@ import "./text-tile.scss"
 
 export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   const textModel = isTextModel(tile?.content) ? tile.content : undefined
-  const { selectTile } = useTileModelContext()
+  const { isTileSelected } = useTileModelContext()
   const textOnFocus = useRef("")
 
   const [initialValue, setInitialValue] = useState(() => modelValueToEditorValue(textModel?.value))
@@ -25,6 +26,17 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   }, [initialValue])
   // changes to this value trigger a remount of the slate editor
   const mountKey = useRef(0)
+
+  useEffect(() => {
+    return tile && mstReaction(
+      () => isTileSelected() && tile?.transitionComplete,
+      isSelected => {
+        // RAF to delay focus request until after model processing completes
+        isSelected && requestAnimationFrame(() => ReactEditor.focus(editor))
+      },
+      { name: "FocusEditorOnTileSelect" }, tile
+    )
+  }, [editor, isTileSelected, tile])
 
   const textTileRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
@@ -67,19 +79,8 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
     }
   }
 
-  function handlePointerDownInTile(e: React.MouseEvent<HTMLDivElement>) {
-    const isWrapperClick = e.target === textTileRef.current
-    selectTile()
-    if (e.target === textTileRef.current) {
-      // clicks in the background of the tile focus the editor
-      isWrapperClick && ReactEditor.focus(editor)
-      e.preventDefault()
-    }
-  }
-
   return (
-    <div className="codap-text-content" ref={textTileRef} data-testid="codap-text-content"
-        onPointerDown={handlePointerDownInTile}>
+    <div className="codap-text-content" ref={textTileRef} data-testid="codap-text-content">
       <Slate editor={editor} initialValue={initialValue}
         // updating key triggers remount of editor component
         key={mountKey.current}
