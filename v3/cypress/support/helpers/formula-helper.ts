@@ -20,7 +20,7 @@ export const FormulaHelper = {
     table.renameAttribute(currentAttributeName, newAttributeName, collectionIndex)
   },
   deleteAttribute(attributeName: string, collectionIndex = 1) {
-    table.deleteAttrbute(attributeName, collectionIndex)
+    table.deleteAttribute(attributeName, collectionIndex)
   },
   addFormula(attributeName: string, formula: string, collectionIndex = 1) {
     table.addFormula(attributeName, formula, collectionIndex)

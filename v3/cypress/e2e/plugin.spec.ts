@@ -228,7 +228,7 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast deleteAttributes notifications")
-    table.deleteAttrbute("newAttr2")
+    table.deleteAttribute("newAttr2")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteAttributes/)
     webView.clearAPITesterResponses()
 
@@ -321,10 +321,10 @@ context("codap plugins", () => {
     cfm.openExampleDocument("Four Seals")
     cy.wait(2000)
     table.getTableTile().should("contain.text", "Tracks/Measurements")
-    table.deleteAttrbute("species")
+    table.deleteAttribute("species")
     openAPITester()
     webView.toggleAPITesterFilter()
-    table.deleteAttrbute("animal_id")
+    table.deleteAttribute("animal_id")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
 
     // TODO Check for deleteCollection notifications when deleting the last attribute
