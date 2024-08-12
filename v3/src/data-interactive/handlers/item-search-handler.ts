@@ -55,12 +55,7 @@ export const diItemSearchHandler: DIHandler = {
         })
       } else {
         // Otherwise, move all the items to the beginning or end
-        const items = itemIds.map(id => dataContext.getItem(id)) as ICase[]
-        dataContext.removeCases(itemIds)
-        const options = itemOrder === "first" && dataContext.itemIds.length > 0
-          ? { before: dataContext.itemIds[0] }
-          : undefined
-        dataContext.addCases(items, options)
+        dataContext.moveItems(itemIds, itemOrder)
       }
       dataContext.validateCases()
     })

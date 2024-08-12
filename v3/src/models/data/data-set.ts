@@ -935,20 +935,59 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         })
         if (firstIndex >= 0) {
-          for (let i = firstIndex; i < self.items.length; ++i) {
-            const itemId = self.items[i].__id__
+          for (let i = firstIndex; i < self.itemIds.length; ++i) {
+            const itemId = self.itemIds[i]
             const itemInfo = self.itemInfoMap.get(itemId)
             if (itemInfo) itemInfo.index = i
           }
         }
       },
 
-      // // If order is "first", items will be moved to the front. Otherwise, they are moved to the end.
-      // moveItems(itemIds: string[], order?: string) {
-      //   const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
-      //     .sort((a: number, b: number) => b - a) // Reverse order
-      //   const items = indices.map(index => self.items[index])
-      // },
+      // If order is "first", items will be moved to the front. Otherwise, they are moved to the end.
+      moveItems(itemIds: string[], order?: string) {
+        const first = order === "first"
+        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
+          .sort((a: number, b: number) => b - a) // Reverse order
+        const items = indices.map(index => {
+          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
+          self.attributes.forEach(attr => item.values.push({
+            strValue: attr.strValues[index],
+            numValue: attr.numValues[index]
+          }))
+          return item
+        })
+
+        // Remove from ordered arrays
+        items.forEach(({ index }) => {
+          self.itemIds.splice(index, 1)
+          self.attributes.forEach(attr => attr.removeValues(index))
+        })
+
+        // Add back to ordered arrays
+        if (!first) items.reverse()
+        items.forEach(({ item, values }) => {
+          if (first) {
+            self.itemIds.unshift(item.__id__)
+            self.attributes.forEach((attr, index) => {
+              attr.strValues.unshift(values[index].strValue)
+              attr.numValues.unshift(values[index].numValue)
+            })
+          } else {
+            self.itemIds.push(item.__id__)
+            self.attributes.forEach((attr, index) => {
+              attr.strValues.push(values[index].strValue)
+              attr.numValues.push(values[index].numValue)
+            })
+          }
+        })
+
+        // Fix indecies
+        for (let i = 0; i < self.itemIds.length; ++i) {
+          const itemId = self.itemIds[i]
+          const itemInfo = self.itemInfoMap.get(itemId)
+          if (itemInfo) itemInfo.index = i
+        }
+      },
 
       selectAll(select = true) {
         if (select) {
