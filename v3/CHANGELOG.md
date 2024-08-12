@@ -11,6 +11,7 @@
 - **PT-188009741:** DI Collection Labels
 - **PT-187738952:** DI Get Component Requests
 - **PT-182089941:** CODAP logs user actions to the CC log server
+- **PT-188095695:** Formulas are not getting evaluated on restore
 
 ### 🐞 Bug Fixes:
 - **PT-187833677:** Crash on undo of adding multiple-y attribute to graph
@@ -23,8 +24,8 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  175606 bytes |                            0.77% |
-|  index.js | 5460271 bytes |                            1.69% |
+|  main.css |  179710 bytes |                            2.33% |
+|  index.js | 5879153 bytes |                            7.67% |
 
 ## Version 3.0.0-pre.1762 - July 24, 2024
 
