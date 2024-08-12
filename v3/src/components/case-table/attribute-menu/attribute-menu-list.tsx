@@ -1,4 +1,4 @@
-import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
+import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { forwardRef } from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
@@ -32,7 +32,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const columnId = column.key
   const attribute = data?.attrFromID(columnId)
   const collection = data?.getCollectionForAttribute(columnId)
-  const rerandomizeDisabled = !attribute?.formula?.isRandomFunctionPresent
+
+  const toast = useToast()
 
   const handleMenuItemClick = (menuItem: string) => {
     // TODO Don't forget to broadcast notifications as these menu items are implemented!
@@ -57,56 +58,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
                 values: [attribute?.id, columnName] }
         })
         break
-    }
-  }
-
-  // can't hide last attribute of collection
-  const collection = data?.getCollectionForAttribute(columnId)
-  const visibleAttributes = collection?.attributes
-                              .reduce((sum, attr) => attr && !caseMetadata?.isHidden(attr.id) ? sum + 1 : sum, 0) ?? 0
-  const disableHideAttribute = visibleAttributes <= 1
-
-  const handleHideAttribute = () => {
-    caseMetadata?.applyModelChange(
-      () => caseMetadata?.setIsHidden(column.key, true),
-      {
-        notify: hideAttributeNotification([column.key], data),
-        undoStringKey: "DG.Undo.caseTable.hideAttribute",
-        redoStringKey: "DG.Redo.caseTable.hideAttribute"
-      }
-    )
-  }
-
-  const handleDeleteAttribute = () => {
-    const attrId = column.key
-    const attributeToDelete = data?.attrFromID(attrId)
-    if (data && attributeToDelete) {
-      let result: IAttributeChangeResult | undefined
-      // instantiate values so they're captured by undo/redo patches
-      attributeToDelete.prepareSnapshot()
-      // delete the attribute
-      data.applyModelChange(() => {
-        result = data.removeAttribute(attrId)
-      }, {
-        notify: () => {
-          const notifications = [removeAttributesNotification([attrId], data)]
-          if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
-          return notifications
-        },
-        undoStringKey: "DG.Undo.caseTable.deleteAttribute",
-        redoStringKey: "DG.Redo.caseTable.deleteAttribute"
-      })
-      attributeToDelete.completeSnapshot()
-    }
-  }
-
-  const isDeleteAttributeDisabled = () => {
-    if (!data) return true
-
-    // If preventTopLevelReorg is true...
-    if (preventTopLevelReorg(data)) {
-      // Disabled if in the parent collection
-      if (preventCollectionReorg(data, collection?.id)) return true
     }
   }
 
@@ -147,7 +98,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       handleClick: onRenameAttribute
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.resizeColumn")
+      itemString: t("DG.TableController.headerMenuItems.resizeColumn"),
+      handleClick: () => handleMenuItemClick("Fit width")
     },
     {
       itemString: t("DG.TableController.headerMenuItems.editAttribute"),
@@ -183,10 +135,12 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       }
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.sortAscending")
+      itemString: t("DG.TableController.headerMenuItems.sortAscending"),
+      handleClick: () => handleMenuItemClick("Sort Ascending")
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.sortDescending")
+      itemString: t("DG.TableController.headerMenuItems.sortDescending"),
+      handleClick: () => handleMenuItemClick("Sort Descending")
     },
     {
       itemString: t("DG.TableController.headerMenuItems.hideAttribute"),
@@ -200,9 +154,9 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       },
       handleClick: () => {
         caseMetadata?.applyModelChange(
-          () => caseMetadata?.setIsHidden(attributeId, true),
+          () => caseMetadata?.setIsHidden(columnId, true),
           {
-            notify: hideAttributeNotification([attributeId], data),
+            notify: hideAttributeNotification([columnId], data),
             undoStringKey: "DG.Undo.caseTable.hideAttribute",
             redoStringKey: "DG.Redo.caseTable.hideAttribute"
           }
@@ -232,10 +186,10 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           attribute.prepareSnapshot()
           // delete the attribute
           data.applyModelChange(() => {
-            result = data.removeAttribute(attributeId)
+            result = data.removeAttribute(columnId)
           }, {
             notify: () => {
-              const notifications = [removeAttributesNotification([attributeId], data)]
+              const notifications = [removeAttributesNotification([columnId], data)]
               if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
               return notifications
             },
@@ -263,9 +217,9 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           </MenuItem>
         ))}
       </MenuList>
-      <EditAttributePropertiesModal attributeId={attributeId} isOpen={propertiesModal.isOpen}
+      <EditAttributePropertiesModal attributeId={columnId} isOpen={propertiesModal.isOpen}
         onClose={handleEditPropertiesClose} />
-      <EditFormulaModal attributeId={attributeId} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      <EditFormulaModal attributeId={columnId} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
     </>
   )
 })
