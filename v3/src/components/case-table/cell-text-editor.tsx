@@ -3,7 +3,6 @@ import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { TRenderEditCellProps } from "./case-table-types"
-import { Logger } from "../../lib/logger"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -37,15 +36,6 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     onRowChange({ ...row, [column.key]: value })
   }
 
-  const handleBlur = () => {
-    data?.applyModelChange(() => {}, {
-      log: {message:"editValue:",
-            event_value: {collection: data?.getCollectionForAttribute(column.key), caseId: row.__id__,
-                            attribute: column.key, old: initialValueRef.current, new: valueRef.current}}
-    })
-    onClose(true)
-  }
-
   return (
     <input
       data-testid="cell-text-editor"
@@ -53,7 +43,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
-      onBlur={handleBlur}
+      onBlur={() => onClose(true)}
     />
   )
 }
