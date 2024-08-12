@@ -923,7 +923,7 @@ export const DataSet = V2Model.named("DataSet").props({
         const items = caseIDs.map(id => ({ id, index: self.getItemIndex(id) }))
           .filter(info => info.index != null) as { id: string, index: number }[]
         items.sort((a, b) => b.index - a.index)
-        const firstIndex = items[items.length - 1].index
+        const firstIndex = items[items.length - 1]?.index ?? -1
         items.forEach(({ id: caseID, index }) => {
           if (index != null) {
             self.itemIds.splice(index, 1)
