@@ -110,10 +110,10 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
         log: { message: `dragBinBoundary from { alignment: ${binAlignmentValueRef.current}, width: ${
                           binWidthValueRef.current} } to { alignment: ${graphModel.binAlignment}, width: ${
                           graphModel.binWidth} }`,
-               keys: ["from", "to"],
-               values: [`{ alignment: ${binAlignmentValueRef.current}, width: ${
+               args: {from: `{ alignment: ${binAlignmentValueRef.current}, width: ${
                                         binWidthValueRef.current} }`,
-                        `{ alignment: ${graphModel.binAlignment}, width: ${graphModel.binWidth }` ]
+                      to:  `{ alignment: ${graphModel.binAlignment}, width: ${graphModel.binWidth }`
+                    }
               }
       }
     )

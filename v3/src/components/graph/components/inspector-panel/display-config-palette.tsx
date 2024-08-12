@@ -94,8 +94,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       },
       { undoStringKey, redoStringKey,
         log: { message: "toggleShowAs",
-               keys: ["type"],
-               values: [fuseIntoBars ? "BarChart" : "DotChart"]
+               args: {type: fuseIntoBars ? "BarChart" : "DotChart"}
               }
       }
     )

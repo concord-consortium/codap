@@ -98,7 +98,9 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
         log: {
           message: `Move point from (${dragStartPoint.current.x}, ${dragStartPoint.current.y}) to (${xValue
             }, ${yValue})`,
-          keys: [], values: [dragStartPoint.current.x, dragStartPoint.current.y, xValue, yValue] }
+          args: {startPointLeft: dragStartPoint.current.x, startPointTop: dragStartPoint.current.y,
+                  endPointLeft: xValue, endPointTop: yValue}
+        }
       }
     )
 

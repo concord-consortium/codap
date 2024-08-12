@@ -288,7 +288,7 @@ export const useSubAxis = ({
         { undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
           log: { message:`Moved category ${dI.catName} into position of ${dI.currentDragPositionCatName}`,
-                  keys: [], values:[dI.catName, dI.currentDragPositionCatName]
+                  args:{categoryName: dI.catName, dragPosition: dI.currentDragPositionCatName}
                 }
         }
       )

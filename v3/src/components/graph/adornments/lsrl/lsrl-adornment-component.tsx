@@ -118,7 +118,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
             undoStringKey: "DG.Undo.graph.repositionEquation",
             redoStringKey: "DG.Redo.graph.repositionEquation",
             log: { message: `Moved equation from (${initEquationLeft}, ${initEquationTop}) to (${left}, ${top})`,
-                    keys: [], values: [initEquationLeft, initEquationTop, left, top]}
+                    args: {initialPosLeft: initEquationLeft, initialPosTop: initEquationTop, newPosLeft: left,
+                            newPosTop: top}}
           }
         )
       }

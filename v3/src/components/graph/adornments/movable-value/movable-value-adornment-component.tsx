@@ -143,7 +143,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
         { undoStringKey: "DG.Undo.graph.moveMovableValue",
           redoStringKey: "DG.Redo.graph.moveMovableValue",
           log: {  message: `Moved value from ${logFromValue} to ${logToValue}`,
-                  keys:[], values: [logFromValue, logToValue]
+                  args: {from: logFromValue, to: logToValue}
                 }
         }
       )
