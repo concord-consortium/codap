@@ -47,13 +47,14 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     switch (menuItem) {
       case "Fit width":
         data?.applyModelChange(() => {}, {
-          log: {message:`Fit column width:`, event_value: {collection: data?.name, attribute: columnName}}
+          log: {message:`Fit column width:`, keys: ["collection", "attribute"], values: [data?.name, columnName]}
         })
         break
       case "Sort Ascending":
       case "Sort Descending":
         data?.applyModelChange(() => {}, {
-          log: {message:`Sort cases by attribute:`, event_value: {attributeId: attribute?.id, attribute: columnName}}
+          log: { message:`Sort cases by attribute:`, keys: ["attributeId", "attribute"],
+                values: [attribute?.id, columnName] }
         })
         break
     }

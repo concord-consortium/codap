@@ -33,7 +33,7 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
       case "resizeColumns":
         //TODO move log to respective handler
         tableModel?.applyModelChange(() => {}, {
-          log: {message:`resizeColumns`, event_value: {dataContext: data?.name}}
+          log: {message:`resizeColumns`, keys: ["dataContext"], values: [data?.name]}
         })
         break
     }

@@ -15,7 +15,6 @@ import {
 } from "./base-graph-formula-adapter"
 import type { IFormulaContext } from "./formula-manager"
 import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
-import { useRef } from "react"
 
 const PLOTTED_FUNCTION_FORMULA_ADAPTER = "PlottedFunctionFormulaAdapter"
 
@@ -59,10 +58,6 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       } else {
         adornment.updatePlottedFunctionValue(formulaFunction, instanceKey)
       }
-      graphContentModel.applyModelChange(() => {},
-        { log: { message: "Change plotted function",
-                event_value: {from: this.formulaValue, to:formulaContext.formula.display}}}
-      )
       this.formulaValue = formulaContext.formula.display
     })
   }

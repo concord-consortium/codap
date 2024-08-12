@@ -15,13 +15,13 @@ export interface LogMessage {
   application: string
   activity?: string
   event: string
-  event_value?: Record<string, unknown>
+  event_value?: string
   run_remote_endpoint?: string
   session: string
   time: number
 
   // the rest of the properties are packaged into `extras` by the log-ingester
-  parameters: any
+  parameters?: Record<string, unknown>
 }
 
 // List of log messages that were generated before a Logger is initialized
@@ -59,7 +59,7 @@ export class Logger {
     }
   }
 
-  public static log(event: string, event_value?: Record<string, unknown>, parameters?: Record<string, unknown>) {
+  public static log(event: string, event_value?: string, parameters?: Record<string, unknown>) {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
@@ -103,7 +103,7 @@ export class Logger {
   }
 
   private formatAndSend(time: number, event: string, documentTitle: string,
-    event_value?: Record<string, unknown>, parameters?: Record<string, unknown>) {
+    event_value?: string, parameters?: Record<string, unknown>) {
     const eventString = event
     const logMessage = this.createLogMessage(time, eventString, documentTitle, event_value, parameters)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
@@ -118,8 +118,8 @@ export class Logger {
     time: number,
     event: string,
     documentTitle: string,
-    event_value?: Record<string, unknown>,
-    parameters?: {section?: string},
+    event_value?: string,
+    parameters?: Record<string, unknown>,
   ): LogMessage {
     const logMessage: LogMessage = {
       application: "CODAPV3",
