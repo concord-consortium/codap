@@ -91,7 +91,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                         () => displayItemDescription.setPointSizeMultiplier(val),
                         {
                           undoStringKey: "DG.Undo.graph.changePointSize",
-                          redoStringKey: "DG.Redo.graph.changePointSize"
+                          redoStringKey: "DG.Redo.graph.changePointSize",
+                          log: "Changed point size"
                         }
                       )
                     }}
@@ -119,7 +120,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                      () => displayItemDescription.setPointStrokeColor(e.target.value),
                      {
                        undoStringKey: "DG.Undo.graph.changeStrokeColor",
-                       redoStringKey: "DG.Redo.graph.changeStrokeColor"
+                       redoStringKey: "DG.Redo.graph.changeStrokeColor",
+                       log: "Changed stroke color"
                      }
                    )
                  }}/>
@@ -152,7 +154,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                            () => displayItemDescription.setPointColor(e.target.value),
                            {
                              undoStringKey: "DG.Undo.graph.changePointColor",
-                             redoStringKey: "DG.Redo.graph.changePointColor"
+                             redoStringKey: "DG.Redo.graph.changePointColor",
+                             log: "Changed point color"
                            }
                          )
                        }}/>

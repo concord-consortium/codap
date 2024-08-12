@@ -97,6 +97,11 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     event: { x: number, y: number, dx: number, dy: number },
     isFinished=false, lineIndex: number
   ) => {
+    const lines = getLines()
+    // TODO need to get original coordinates on initial show
+    const initEquationLeft = lines?.[lineIndex]?.equationCoords?.x ?? 0
+    const initEquationTop = lines?.[lineIndex]?.equationCoords?.y ?? 0
+
     if (event.dx !== 0 || event.dy !== 0 || isFinished) {
       const equation = select(`${equationContainerSelector}`).selectAll("p").filter(`:nth-child(${lineIndex + 1})`)
       const equationLeft = equation.style("left") ? parseFloat(equation.style("left")) : 0
@@ -107,12 +112,13 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
         .style("top", `${top}px`)
 
       if (isFinished) {
-        const lines = getLines()
         graphModel.applyModelChange(
           () => lines?.[lineIndex]?.setEquationCoords({x: left, y: top}),
           {
             undoStringKey: "DG.Undo.graph.repositionEquation",
-            redoStringKey: "DG.Redo.graph.repositionEquation"
+            redoStringKey: "DG.Redo.graph.repositionEquation",
+            log: { message: `Moved equation from (${initEquationLeft}, ${initEquationTop}) to (${left}, ${top})`,
+                    keys: [], values: [initEquationLeft, initEquationTop, left, top]}
           }
         )
       }

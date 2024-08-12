@@ -60,15 +60,26 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       e.preventDefault()
       const value = Number((e.target as HTMLInputElement).value)
       setBinOption(option, value)
-      graphModel?.applyModelChange(() => {}, { log: `Changed ${option} from ${binWidthValueRef.current} to ${value}` })
+      graphModel?.applyModelChange(() => {
+        setBinOption(option, value)
+      }, {
+        log: `Changed ${option} from ${binWidthValueRef.current} to ${value}`,
+        undoStringKey: "DG.Undo.graph.changeBinWidth",
+        redoStringKey: "DG.Redo.graph.changeBinWidth"
+     })
       binWidthValueRef.current = value
     }
   }
 
   const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
     const value = Number((e.target as HTMLInputElement).value)
-    setBinOption(option, value)
-    graphModel?.applyModelChange(() => {}, { log: `Changed ${option} from ${binWidthValueRef.current} to ${value}` })
+    graphModel?.applyModelChange(() => {
+      setBinOption(option, value)
+    }, {
+      log: `Changed ${option} from ${binWidthValueRef.current} to ${value}`,
+      undoStringKey: "DG.Undo.graph.changeBinWidth",
+      redoStringKey: "DG.Redo.graph.changeBinWidth"
+    })
     binWidthValueRef.current = value
   }
 
@@ -83,8 +94,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       },
       { undoStringKey, redoStringKey,
         log: { message: "toggleShowAs",
-               event_value: {type: fuseIntoBars ? "BarChart" : "DotChart"},
-               parameters: {value : fuseIntoBars ? "BarChart" : "DotChart"}
+               keys: ["type"],
+               values: [fuseIntoBars ? "BarChart" : "DotChart"]
               }
       }
     )

@@ -95,7 +95,10 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
       {
         undoStringKey: "DG.Undo.graph.moveMovablePoint",
         redoStringKey: "DG.Redo.graph.moveMovablePoint",
-        log: `Move point from (${dragStartPoint.current.x}, ${dragStartPoint.current.y} to (${xValue}, ${yValue})`
+        log: {
+          message: `Move point from (${dragStartPoint.current.x}, ${dragStartPoint.current.y}) to (${xValue
+            }, ${yValue})`,
+          keys: [], values: [dragStartPoint.current.x, dragStartPoint.current.y, xValue, yValue] }
       }
     )
 

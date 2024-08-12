@@ -42,7 +42,7 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
   useEffect(() => {
     binAlignmentValueRef.current = graphModel.binAlignment ?? 0
     binWidthValueRef.current = graphModel.binWidth ?? 0
-  },[])
+  }, [])
 
   const drawBinBoundaries = useCallback(() => {
     if (!dataConfig || !isFiniteNumber(graphModel.binAlignment) || !isFiniteNumber(graphModel.binWidth)) return
@@ -110,9 +110,10 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
         log: { message: `dragBinBoundary from { alignment: ${binAlignmentValueRef.current}, width: ${
                           binWidthValueRef.current} } to { alignment: ${graphModel.binAlignment}, width: ${
                           graphModel.binWidth} }`,
-               event_value: { from: `{ alignment: ${binAlignmentValueRef.current}, width: ${
+               keys: ["from", "to"],
+               values: [`{ alignment: ${binAlignmentValueRef.current}, width: ${
                                         binWidthValueRef.current} }`,
-                               to: `{ alignment: ${graphModel.binAlignment}, width: ${graphModel.binWidth }` }
+                        `{ alignment: ${graphModel.binAlignment}, width: ${graphModel.binWidth }` ]
               }
       }
     )

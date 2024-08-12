@@ -34,9 +34,7 @@ const Controls = observer(function Controls() {
         {
           undoStringKey: undoRedoKeys.undoAdd || "",
           redoStringKey: undoRedoKeys.redoAdd || "",
-          log: { message: `toggleLSRL ${kLSRLType}`, event_value: {value: "show"},
-          parameters: {value: "show"}
-                }
+          log: { message: `toggleLSRL ${kLSRLType}`, keys: ["value"], values: ["show"]}
         }
       )
     } else {
@@ -45,9 +43,7 @@ const Controls = observer(function Controls() {
         {
           undoStringKey: undoRedoKeys.undoRemove || "",
           redoStringKey: undoRedoKeys.redoRemove || "",
-          log: { message: `toggleLSRL ${kLSRLType}`, event_value: {value: "hide"},
-                  parameters: {value: "hide"}
-          }
+          log: { message: `toggleLSRL ${kLSRLType}`, keys: ["value"], values: ["hide"]}
         }
       )
     }
