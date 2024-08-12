@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
@@ -253,6 +254,12 @@ context("codap plugins", () => {
     table.getGridCell(2, 2).dblclick()
     table.getGridCell(2, 2).find("input").type("test{enter}")
     webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
+    webView.clearAPITesterResponses()
+
+    cy.log("Broadcast deleteCases notifications")
+    table.openIndexMenuForRow(2)
+    table.deleteCase()
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCases/)
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast updateCollection notifications")
