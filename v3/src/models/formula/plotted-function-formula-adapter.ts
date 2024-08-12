@@ -29,7 +29,6 @@ export const getPlottedFunctionFormulaAdapter = (node?: IAnyStateTreeNode): Plot
 
 export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
   type = PLOTTED_FUNCTION_FORMULA_ADAPTER
-  formulaValue = ""
 
   getAdornment(graphContentModel: IGraphContentModel) {
     const adornment = graphContentModel.adornments.find(a => a.type === kPlottedFunctionType)
@@ -58,7 +57,6 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
       } else {
         adornment.updatePlottedFunctionValue(formulaFunction, instanceKey)
       }
-      this.formulaValue = formulaContext.formula.display
     })
   }
 

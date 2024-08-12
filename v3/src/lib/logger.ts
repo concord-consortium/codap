@@ -30,8 +30,8 @@ interface PendingMessage {
   time: number
   event: string
   documentTitle: string
-  event_value?: Record<string, unknown>
-  parameters?: any
+  event_value?: string
+  parameters?: Record<string, any>
 }
 
 type ILogListener = (logMessage: LogMessage) => void
@@ -59,23 +59,26 @@ export class Logger {
     }
   }
 
-  public static log(event: string, event_value?: string, parameters?: Record<string, unknown>) {
+  public static log(event: string, args?: Record<string, unknown>) {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
-      this._instance.formatAndSend(time, event, documentTitle, event_value, parameters)
+      this._instance.formatAndSend(time, event, documentTitle, args)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
-      this.pendingMessages.push({ time, event, documentTitle, parameters })
+      const event_value = args ? JSON.stringify(args) : undefined
+      const parameters = args ? args : undefined
+      this.pendingMessages.push({ time, event, documentTitle, event_value, parameters })
     }
   }
 
   private static sendPendingMessages() {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
-      this._instance.formatAndSend(message.time, message.event, message.documentTitle, message.parameters)
+      this._instance.formatAndSend(message.time, message.event, message.documentTitle,
+                                    message.parameters)
     }
     this.pendingMessages = []
   }
@@ -102,10 +105,9 @@ export class Logger {
     this.logListeners.push(listener)
   }
 
-  private formatAndSend(time: number, event: string, documentTitle: string,
-    event_value?: string, parameters?: Record<string, unknown>) {
-    const eventString = event
-    const logMessage = this.createLogMessage(time, eventString, documentTitle, event_value, parameters)
+  private formatAndSend(time: number, event: string, documentTitle: string, args?: Record<string, unknown>) {
+    const event_value = JSON.stringify(args)
+    const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)

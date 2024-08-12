@@ -10,7 +10,7 @@ import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-v
 export interface ITileEnvironment {
   sharedModelManager?: ISharedModelManager
   formulaManager?: FormulaManager
-  log?: (event: string, event_value?: string, parameters?: Record<string, unknown>) => void
+  log?: (event: string, args?: Record<string, unknown>) => void
   notify?: (message: DIMessage, callback: iframePhone.ListenerCallback) => void
 }
 
