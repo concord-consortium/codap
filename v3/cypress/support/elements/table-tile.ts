@@ -92,7 +92,7 @@ export const TableTileElements = {
   getAttributeInput(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
   },
-  getCasetableAttribute(name) {
+  getCaseTableAttribute(name) {
     return this.getTableTile().find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
   openAttributeMenu(name, collectionIndex = 1) {
@@ -342,7 +342,7 @@ export const TableTileElements = {
       .click({force:true})
     cy.get("[data-testid=column-name-input]").type("{enter}")
   },
-  deleteAttrbute(attributeName, collectionIndex = 1) {
+  deleteAttribute(attributeName, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Delete Attribute")
     this.getAttribute(attributeName, collectionIndex).should("not.exist")

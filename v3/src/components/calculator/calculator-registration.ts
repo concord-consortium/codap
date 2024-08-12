@@ -35,7 +35,9 @@ registerTileComponentInfo({
   shelf: {
     position: 5,
     labelKey: "DG.ToolButtonData.calcButton.title",
-    hintKey: "DG.ToolButtonData.calcButton.toolTip"
+    hintKey: "DG.ToolButtonData.calcButton.toolTip",
+    undoStringKey: "DG.Undo.toggleComponent.add.calcView",
+    redoStringKey: "DG.Redo.toggleComponent.add.calcView"
   },
   isFixedWidth: true,
   isFixedHeight: true,

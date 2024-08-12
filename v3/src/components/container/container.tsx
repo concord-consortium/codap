@@ -1,5 +1,7 @@
+import { useMergeRefs } from "@chakra-ui/react"
 import { clsx } from "clsx"
-import React, { useCallback } from "react"
+import React, { useCallback, useRef } from "react"
+import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
@@ -17,6 +19,7 @@ export const Container: React.FC = () => {
   // TODO: handle the possibility of multiple rows
   const row = documentContent?.getRowByIndex(0)
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const handleCloseTile = useCallback((tileId: string) => {
     const tile = getTile(tileId)
@@ -50,14 +53,17 @@ export const Container: React.FC = () => {
       }
     }
   })
+  const mergedContainerRef = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
 
   const classes = clsx("codap-container", { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
-    <div className={classes} ref={setNodeRef}>
-      {isMosaicTileRow(row) &&
-        <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
-      {isFreeTileRow(row) &&
-        <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
-    </div>
+    <DocumentContainerContext.Provider value={containerRef}>
+      <div className={classes} ref={mergedContainerRef}>
+        {isMosaicTileRow(row) &&
+          <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
+        {isFreeTileRow(row) &&
+          <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
+      </div>
+    </DocumentContainerContext.Provider>
   )
 }

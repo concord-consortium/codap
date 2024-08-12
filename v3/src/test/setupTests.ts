@@ -4,11 +4,14 @@ import { enableFetchMocks } from "jest-fetch-mock"
 import "jest-webgl-canvas-mock"
 import { isEqual, isEqualWith } from "lodash"
 import ResizeObserverPolyfill from "resize-observer-polyfill"
-
+global.ResizeObserver = ResizeObserverPolyfill
+// polyfill `TextEncoder` since it's not provided by JSDOM
+// https://github.com/jsdom/jsdom/issues/2524
+// https://github.com/inrupt/solid-client-authn-js/issues/1676#issuecomment-917016646
+import { TextEncoder } from "util"
+global.TextEncoder = TextEncoder
 import { assertIsDefined } from "./assert-is-defined"
 import { ConsoleMethod, IJestSpyConsoleOptions, jestSpyConsole, JestSpyConsoleFn } from "./jest-spy-console"
-
-global.ResizeObserver = ResizeObserverPolyfill
 
 // mock DOM APIs not supported by JSDOM
 Element.prototype.scrollIntoView = jest.fn()

@@ -380,6 +380,51 @@ context("case table ui", () => {
       table.getColumnHeader(1).should("contain", "Animal")
       table.getAttribute("Animal").should("exist")
     })
+    it("edits, re-randomizes, and deletes formulas", () => {
+      // add a random() formula
+      table.addFormula("Height", "random()")
+      let random1 = 0
+      table.getGridCell(2, 5).then(cell => {
+        random1 = +cell.text()
+        expect(random1 >= 0).to.eq(true)
+        expect(random1 < 1).to.eq(true)
+      })
+      // Rerandomize
+      let random2 = 0
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Rerandomize")
+      table.getGridCell(2, 5).then(cell => {
+        random2 = +cell.text()
+        expect(random2 >= 0).to.eq(true)
+        expect(random2 < 1).to.eq(true)
+        expect(random2).not.to.eq(random1)
+      })
+      // Delete formula, verify values remain
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
+      table.getGridCell(2, 5).then(cell => {
+        const value = +cell.text()
+        expect(value >= 0).to.eq(true)
+        expect(value < 1).to.eq(true)
+        expect(value).to.eq(random2)
+      })
+      // verify that formula was deleted
+      table.openAttributeMenu("Height")
+      table.getAttributeMenuItem("Rerandomize").should("be.disabled")
+      table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.disabled")
+      // Undo formula deletion
+      toolbar.getUndoTool().click()
+      table.openAttributeMenu("Height")
+      table.getAttributeMenuItem("Rerandomize").should("be.enabled")
+      table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.enabled")
+      table.getGridCell(2, 5).then(cell => {
+        const value = +cell.text()
+        expect(value >= 0).to.eq(true)
+        expect(value < 1).to.eq(true)
+        // restored formula is re-evaluated resulting in a different value
+        expect(value).not.to.eq(random2)
+      })
+    })
     it("verify hide and showAll attribute with undo and redo", () => {
 
       // Hide the attribute

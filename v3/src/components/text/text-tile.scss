@@ -1,0 +1,43 @@
+@use "../vars.scss";
+
+$text-toolbar-width: 52px;
+
+.codap-text-content {
+  width: 100%;
+  height: calc(100% - vars.$title-bar-height);
+  background: white;
+  border-radius: 0 0 6px 6px;
+  overflow: auto;
+
+  .ccrte-editor {
+    font-size: 12px;
+    font-family: 'Helvetica', sans-serif;
+    outline: transparent;
+  }
+}
+
+.codap-toolbar-wrapper {
+  position: absolute;
+  top: 0;
+  // position toolbar to right of component
+  right: -$text-toolbar-width;
+
+  .editor-toolbar-container {
+    border-radius: 6px;
+  }
+}
+
+.ccrte-modal-dialog {
+  .ccrte-form-field {
+    // reinstate borders clobbered by Chakra/emotion
+    input {
+      border: 1px solid black;
+    }
+
+    // center check in checkbox
+    .ccrte-checkbox-field > input:checked + span::before {
+      left: 0.5rem;
+      top: 0.2rem;
+    }
+  }
+}

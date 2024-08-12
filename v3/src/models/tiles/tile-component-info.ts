@@ -7,6 +7,8 @@ export interface IToolShelfOptions {
   ButtonComponent?: React.FC<IToolShelfTileButtonProps>
   labelKey: string
   hintKey: string
+  undoStringKey: string
+  redoStringKey: string
 }
 
 export interface ITileComponentInfo {
