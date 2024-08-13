@@ -84,7 +84,7 @@ export const CategoricalLegend = observer(
         currentDragPosition: {x: 0, y: 0}
       }),
       duration = useRef(0)
-    const prevCategoryAtIndex = useRef("")
+    const prevCategoryIndex = useRef(0)
     const
       keysElt = useRef(null)
 
@@ -217,7 +217,7 @@ export const CategoricalLegend = observer(
           dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
           categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
           setCategoryData()
-          prevCategoryAtIndex.current = categoriesRef.current?.[dI.indexOfCategory] ?? ""
+          prevCategoryIndex.current = dI.indexOfCategory
           dI.indexOfCategory = newCatIndex
         } else {
           refreshKeys()
@@ -233,7 +233,7 @@ export const CategoricalLegend = observer(
         undoStringKey: 'DG.Undo.graph.swapCategories',
         redoStringKey: 'DG.Redo.graph.swapCategories',
         log: `Swapped categories ${categoriesRef.current?.[dragInfo.current.indexOfCategory]} and ${
-                prevCategoryAtIndex.current}`
+          categoriesRef.current?.[prevCategoryIndex.current]}`
       })
       duration.current = transitionDuration
       dragInfo.current.indexOfCategory = -1
