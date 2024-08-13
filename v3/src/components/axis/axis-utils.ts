@@ -102,6 +102,7 @@ export interface DragInfo {
   initialOffset: number
   currentOffset: number
   currentDragPosition: number
+  currentDragPositionCatName: string
   categorySet?: ICategorySet
   categories: string[]
   bandwidth: number
