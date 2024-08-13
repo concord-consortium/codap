@@ -1,5 +1,7 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import hierarchical from '../fixtures/hierarchical.json'
+type HierarchicalTest = typeof hierarchical.tests[number] & { only?: boolean }
+
 const values = hierarchical.attributes
 
 context("hierarchical collections", () => {
@@ -11,7 +13,7 @@ context("hierarchical collections", () => {
     cy.wait(2500)
     cy.log('Setup complete')
   })
-  hierarchical.tests.forEach((h) => {
+  hierarchical.tests.forEach((h: HierarchicalTest) => {
     // FIXME: enable skipped tests
     const itOrSkip = h.skip ? it.skip : h.only ? it.only : it
     itOrSkip(`${h.testName}`, () => {

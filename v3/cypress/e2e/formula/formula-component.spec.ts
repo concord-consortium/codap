@@ -12,7 +12,7 @@ context("Formula Engine", () => {
       fh.editFormula("Formula", "a+2")
       fh.verifyValues("Formula", [3, 4, 5, 5, 2])
     })
-    it("Add and edit formula for an existng attribute", () => {
+    it("Add and edit formula for an existing attribute", () => {
       fh.visitURL("?sample=four&dashboard")
       fh.addFormula("b", "count(a)")
       fh.verifyValues("b", [4, 4, 4, 4, 4])

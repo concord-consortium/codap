@@ -165,12 +165,12 @@ context("codap plugins", () => {
     webView.toggleAPITesterFilter()
 
     cy.log("Broadcast dataContextCountChanged notifications when dataset is added to document")
-    table.createNewTableFromToolshelf()
+    table.createNewTableFromToolShelf()
     webView.confirmAPITesterResponseContains(/"operation":\s"dataContextCountChanged/)
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast dataContextDeleted notifications when dataset is deleted")
-    table.deleteDataSetFromToolshelf(1)
+    table.deleteDataSetFromToolShelf(1)
     webView.confirmAPITesterResponseContains(/"operation":\s"dataContextDeleted/)
     webView.confirmAPITesterResponseContains(/"deletedContext":\s"New\sDataset/)
     webView.clearAPITesterResponses()
@@ -273,7 +273,7 @@ context("codap plugins", () => {
     cy.log("Broadcast notifications involving dragging")
     const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
-    table.createNewTableFromToolshelf()
+    table.createNewTableFromToolShelf()
     table.addNewAttribute()
     table.addNewAttribute()
     openAPITester()

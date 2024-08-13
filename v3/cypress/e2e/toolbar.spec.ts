@@ -15,36 +15,36 @@ context("codap toolbar", () => {
     cy.log('Setup complete')
   })
   it("will open a new table", () => {
-    c.getIconFromToolshelf("table").click()
+    c.getIconFromToolShelf("table").click()
     toolbar.getNewCaseTable().click()
     table.getCollection().should("be.visible")
     c.getComponentTitle("table").should("have.text", "New Dataset")
-    c.getIconFromToolshelf("table").click()
-    toolbar.getDatasetListedInToolshelf("New Dataset").should("be.visible")
+    c.getIconFromToolShelf("table").click()
+    toolbar.getDatasetListedInToolShelf("New Dataset").should("be.visible")
   })
   it("will open a graph", () => {
-    c.getIconFromToolshelf("graph").click()
+    c.getIconFromToolShelf("graph").click()
     graph.getGraphTile().should("be.visible")
     // graphs with no associated data set should not have a title
     c.getComponentTitle("graph").should("have.text", "")
   })
   it("will open a map", () => {
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     map.getMapTile().should("be.visible")
     c.getComponentTitle("map").should("have.text", "Map")
   })
   it("will open a slider", () => {
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
   })
   it("will open a calculator", () => {
-    c.getIconFromToolshelf("calc").click()
+    c.getIconFromToolShelf("calc").click()
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
   it("plugin menu works", () => {
-    c.getIconFromToolshelf("plugins").should("exist").click()
+    c.getIconFromToolShelf("plugins").should("exist").click()
     toolbar.getPluginSelection().should("have.length", 9)
     webView.getTitle().should("not.exist")
     toolbar.getPluginSelection().eq(0).click()
@@ -69,11 +69,11 @@ context("codap toolbar", () => {
   })
   it('will show a list of open tiles when there is no data context', ()=>{
     // Don't open a table as this automatically creates a data context
-    c.getIconFromToolshelf("graph").click()
-    c.getIconFromToolshelf("map").click()
-    c.getIconFromToolshelf("slider").click()
-    c.getIconFromToolshelf("calc").click()
-    c.getIconFromToolshelf("plugins").click()
+    c.getIconFromToolShelf("graph").click()
+    c.getIconFromToolShelf("map").click()
+    c.getIconFromToolShelf("slider").click()
+    c.getIconFromToolShelf("calc").click()
+    c.getIconFromToolShelf("plugins").click()
     toolbar.getPluginSelection().eq(0).click()
     //TODO need to add check for Text component
     toolbar.getTilesButton().click()
@@ -92,7 +92,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuIcon().eq(4).should("have.class", "WebView")
   })
   it('will show correct title for a new table', ()=>{
-    c.getIconFromToolshelf("table").click()
+    c.getIconFromToolShelf("table").click()
     toolbar.getNewCaseTable().click()
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
