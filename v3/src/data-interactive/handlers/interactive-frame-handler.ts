@@ -20,6 +20,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
       allowEmptyAttributeDeletion,
+      codapVersion: "v3", // TODO Correct version
       dimensions,
       externalUndoAvailable: true, // TODO Fix hard coded value
       id: toV2Id(interactiveFrame.id),

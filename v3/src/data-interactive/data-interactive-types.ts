@@ -80,6 +80,7 @@ export interface DIGetCaseResult {
 export interface DIInteractiveFrame {
   allowEmptyAttributeDeletion?: boolean
   cannotClose?: boolean
+  codapVersion?: string
   dimensions?: {
     height?: number
     width?: number
