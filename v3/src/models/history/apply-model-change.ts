@@ -51,7 +51,7 @@ export function applyModelChange(self: IAnyStateTreeNode) {
           }
 
           if (message) {
-            tileEnv.log(message, JSON.stringify(args), args)
+            tileEnv.log(message, args)
           }
         }
 
