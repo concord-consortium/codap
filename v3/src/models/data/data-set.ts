@@ -54,7 +54,7 @@ import {
 import {
   CaseInfo, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
   ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions,
-  ItemInfo
+  IMoveItemsOptions, ItemInfo
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
@@ -925,14 +925,12 @@ export const DataSet = V2Model.named("DataSet").props({
         items.sort((a, b) => b.index - a.index)
         const firstIndex = items[items.length - 1]?.index ?? -1
         items.forEach(({ id: caseID, index }) => {
-          if (index != null) {
-            self.itemIds.splice(index, 1)
-            self.attributes.forEach((attr) => {
-              attr.removeValues(index)
-            })
-            self.selection.delete(caseID)
-            self.itemInfoMap.delete(caseID)
-          }
+          self.itemIds.splice(index, 1)
+          self.attributes.forEach((attr) => {
+            attr.removeValues(index)
+          })
+          self.selection.delete(caseID)
+          self.itemInfoMap.delete(caseID)
         })
         if (firstIndex >= 0) {
           for (let i = firstIndex; i < self.itemIds.length; ++i) {
@@ -944,8 +942,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       // If order is "first", items will be moved to the front. Otherwise, they are moved to the end.
-      moveItems(itemIds: string[], order?: string) {
-        const first = order === "first"
+      moveItems(itemIds: string[], options?: IMoveItemsOptions) {
         const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
           .sort((a: number, b: number) => b - a) // Reverse order
         const items = indices.map(index => {
@@ -955,33 +952,27 @@ export const DataSet = V2Model.named("DataSet").props({
             numValue: attr.numValues[index]
           }))
           return item
-        })
+        }).reverse() // Normal order
 
         // Remove from ordered arrays
-        items.forEach(({ index }) => {
+        indices.forEach(index => {
           self.itemIds.splice(index, 1)
           self.attributes.forEach(attr => attr.removeValues(index))
         })
 
+        // Determine position to re-insert items
+        const beforeIndex = options?.before ? self.itemIds.indexOf(options.before) : undefined
+        const afterIndex = options?.after ? self.itemIds.indexOf(options.after) + 1 : undefined
+        const insertIndex = afterIndex ?? beforeIndex ?? self.itemIds.length
+
         // Add back to ordered arrays
-        if (!first) items.reverse()
-        items.forEach(({ item, values }) => {
-          if (first) {
-            self.itemIds.unshift(item.__id__)
-            self.attributes.forEach((attr, index) => {
-              attr.strValues.unshift(values[index].strValue)
-              attr.numValues.unshift(values[index].numValue)
-            })
-          } else {
-            self.itemIds.push(item.__id__)
-            self.attributes.forEach((attr, index) => {
-              attr.strValues.push(values[index].strValue)
-              attr.numValues.push(values[index].numValue)
-            })
-          }
+        self.itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
+        self.attributes.forEach((attr, index) => {
+          attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
+          attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
         })
 
-        // Fix indecies
+        // Fix indices
         for (let i = 0; i < self.itemIds.length; ++i) {
           const itemId = self.itemIds[i]
           const itemInfo = self.itemInfoMap.get(itemId)
