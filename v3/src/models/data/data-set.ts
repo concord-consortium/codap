@@ -941,7 +941,6 @@ export const DataSet = V2Model.named("DataSet").props({
         }
       },
 
-      // If order is "first", items will be moved to the front. Otherwise, they are moved to the end.
       moveItems(itemIds: string[], options?: IMoveItemsOptions) {
         const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
           .sort((a: number, b: number) => b - a) // Reverse order
