@@ -151,7 +151,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused()
   })
   it("creates another slider from toolshelf", () => {
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", sliderName)
     slider.getVariableName().should("have.text", sliderName)
@@ -165,7 +165,7 @@ context("Slider UI", () => {
   })
   it("checks editing variable name in one slider only affects that slider", () => {
     const newSliderName = "xyz"
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
 
     slider.changeVariableName(newSliderName, 1)
     c.getComponentTitle("slider", 0).should("contain", sliderName)
@@ -175,14 +175,14 @@ context("Slider UI", () => {
   })
   it("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "100"
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
 
     slider.changeVariableValue(newVariableValue, 1)
     slider.getVariableValue(0).should("contain", initialSliderValue)
     slider.getVariableValue(1).should("contain", newVariableValue)
   })
   it("checks playing in one slider only plays that slider", () => {
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
     slider.setAnimationRate(3, 1)
 
     slider.checkPlayButtonIsPaused(0)
@@ -205,7 +205,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused(1)
   })
   it("creates sliders with incrementing names", () => {
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", sliderName)
     slider.getVariableName().should("have.text", sliderName)
@@ -217,7 +217,7 @@ context("Slider UI", () => {
     slider.getVariableValue(1).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(1)
 
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
     c.getComponentTitle("slider", 2).should("contain", "v3")
     slider.getVariableName(2).should("have.text", "v3")
     slider.getVariableValue(2).should("contain", initialSliderValue)
@@ -226,7 +226,7 @@ context("Slider UI", () => {
   it("reuses slider names after existing ones are closed", () => {
     c.closeComponent("slider")
     c.checkComponentDoesNotExist("slider")
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", "v1")
     slider.getVariableName().should("have.text", "v1")
@@ -235,7 +235,7 @@ context("Slider UI", () => {
 
     c.closeComponent("slider")
     c.checkComponentDoesNotExist("slider")
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", "v1")
     slider.getVariableName().should("have.text", "v1")
