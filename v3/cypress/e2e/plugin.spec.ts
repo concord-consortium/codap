@@ -1,4 +1,3 @@
-/// <reference types="cypress" />
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
