@@ -80,7 +80,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
-  const { handleSelectedCellChange, navigateToNextCell, navigateToNextRow } = useSelectedCell(gridRef, columns)
+  const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns)
 
   function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
@@ -94,10 +94,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       // prevent RDG from handling the event
       event.preventGridDefault()
       navigateToNextRow(event.shiftKey)
-    } else if (event.key === "Tab") {
-      event.preventGridDefault()
-      if (args.mode === "EDIT") args.onClose(true)
-      navigateToNextCell(event.shiftKey)
     }
   }
 

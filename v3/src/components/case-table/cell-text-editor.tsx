@@ -43,7 +43,6 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
-      onBlur={() => onClose(true)}
     />
   )
 }

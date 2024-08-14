@@ -34,25 +34,5 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
-  const navigateToNextCell = useCallback((back = false) => {
-    if (selectedCell.current?.columnId) {
-      const currentIdx = columns.findIndex(column => column.key === selectedCell.current?.columnId)
-      const moveToNextRow = back ? currentIdx <= 1 : currentIdx >= columns.length - 1
-      const idx = moveToNextRow
-        ? back ? columns.length - 1 : 1
-        : currentIdx + (back ? -1 : 1)
-      const rowCount = collectionTableModel?.rows.length ?? 1
-      // FIXME This traps tabbing inside a collectionTable
-      const rowIdx = Math.min(rowCount, Math.max(0,
-        selectedCell.current.rowIdx + (moveToNextRow ? back ? -1 : 1 : 0)))
-      const position = { idx, rowIdx }
-      // setTimeout so it occurs after handling of current event completes
-      setTimeout(() => {
-        collectionTableModel?.scrollRowIntoView(rowIdx)
-        gridRef.current?.selectCell(position, true)
-      })
-    }
-  }, [collectionTableModel, columns, gridRef])
-
-  return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextCell, navigateToNextRow }
+  return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow }
 }
