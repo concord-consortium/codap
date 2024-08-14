@@ -31,13 +31,13 @@ interface PendingMessage {
   event: string
   documentTitle: string
   event_value?: string
-  parameters?: Record<string, any>
+  parameters?: Record<string, unknown>
 }
 
 type ILogListener = (logMessage: LogMessage) => void
 
 export class Logger {
-  public static isLoggingEnabled = true //Change this to false before merging to main
+  public static isLoggingEnabled = DEBUG_LOGGER
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
 
@@ -69,8 +69,7 @@ export class Logger {
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
-      const parameters = args ? args : undefined
-      this.pendingMessages.push({ time, event, documentTitle, event_value, parameters })
+      this.pendingMessages.push({ time, event, documentTitle, event_value, parameters: args })
     }
   }
 
@@ -144,7 +143,6 @@ export class Logger {
 function sendToLoggingService(data: LogMessage) {
   // const isProduction = user.portal === productionPortal || data.parameters?.portal === productionPortal
   // const url = logManagerUrl[isProduction ? "production" : "dev"]
-  console.log("sent to log server:", data)
   const url = logManagerUrl.dev
   debugLog(DEBUG_LOGGER, "Logger#sendToLoggingService sending", data, "to", url)
   if (!Logger.isLoggingEnabled) return

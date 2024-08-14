@@ -30,8 +30,6 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
 
-
-
   const handlePointColorChange = (color: string) => {
     displayItemDescription.applyModelChange(() => {
       displayItemDescription.setPointColor(color)
