@@ -23,7 +23,8 @@ const Controls = () => {
       () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
       {
         undoStringKey: kMovableValueUndoAddKey,
-        redoStringKey: kMovableValueRedoAddKey
+        redoStringKey: kMovableValueRedoAddKey,
+        log: `Added movable value`
       }
     )
   }
@@ -38,7 +39,8 @@ const Controls = () => {
       },
       {
         undoStringKey: kMovableValueUndoRemoveKey,
-        redoStringKey: kMovableValueRedoRemoveKey
+        redoStringKey: kMovableValueRedoRemoveKey,
+        log: `Removed movable value`
       }
     )
   }

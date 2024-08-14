@@ -22,6 +22,24 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
 
   if (!graphModel) return null
 
+  const handleBackgroundTransparencyChange = (isTransparent: boolean) => {
+    graphModel.applyModelChange(() => graphModel.setIsTransparent(isTransparent),
+    {
+      undoStringKey: "DG.Undo.graph.toggleTransparent",
+      redoStringKey: "DG.Redo.graph.toggleTransparent",
+      log: `Made plot background ${isTransparent ? "transparent" : "opaque"}`
+    })
+  }
+
+  const handleBackgroundColorChange = (color: string) => {
+    graphModel.applyModelChange(() => graphModel.setPlotBackgroundColor(color),
+    {
+      undoStringKey: "DG.Undo.graph.changeBackgroundColor",
+      redoStringKey: "DG.Redo.graph.changeBackgroundColor",
+      log: "Changed background color"
+    })
+  }
+
   return (
     <InspectorPalette
       title={t("DG.Inspector.styles")}
@@ -36,8 +54,8 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
         pointDisplayType={graphModel.pointDisplayType}
         isTransparent={graphModel.isTransparent}
         plotBackgroundColor={graphModel.plotBackgroundColor}
-        setIsTransparent={graphModel.setIsTransparent}
-        setPlotBackgroundColor={graphModel.setPlotBackgroundColor}
+        onBackgroundTransparencyChange={handleBackgroundTransparencyChange}
+        onBackgroundColorChange={handleBackgroundColorChange}
       />
     </InspectorPalette>
   )

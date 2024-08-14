@@ -1,12 +1,23 @@
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
-import { handleCFMEvent } from "./handle-cfm-event"
-import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { appState } from "../models/app-state"
+import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
 import * as ImportV2Document from "../v2/import-v2-document"
+import { handleCFMEvent } from "./handle-cfm-event"
+import { Logger } from "./logger"
 
 describe("handleCFMEvent", () => {
+
+  let updateDocumentSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    updateDocumentSpy = jest.spyOn(Logger, "updateDocument").mockImplementation(() => null)
+  })
+
+  afterEach(() => {
+    updateDocumentSpy.mockRestore()
+  })
 
   it("handles the `connected` message", () => {
     const mockCfmClient = {

@@ -54,8 +54,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
       .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
 
     // configure logging
-    fullEnvironment.log = function(event: string, parameters?: Record<string, unknown>) {
-      Logger.log(event, parameters)
+    fullEnvironment.log = function(event: string, args?: Record<string, unknown>) {
+      Logger.log(event, args)
     }
 
     // configure notifications
