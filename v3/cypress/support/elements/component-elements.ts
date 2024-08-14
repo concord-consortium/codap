@@ -70,6 +70,12 @@ export const ComponentElements = {
   getIconFromToolShelf(component: string) {
     return toolbar.getToolShelfIcon(component)
   },
+  clickIconFromToolShelf(component: string) {
+    this.getIconFromToolShelf(component).click()
+    // Without this wait(), visibility tests intermittently fail because the tile
+    // has zero width and/or height initially before animating to its final size.
+    cy.wait(100)
+  },
   selectTile(component: string, index = 0) {
     cy.get(".codap-container").click("bottom")
     this.getComponentTile(component, index).click()
