@@ -93,6 +93,8 @@ export const diDataContextHandler: DIHandler = {
           } else {
             dataContext.setManagingControllerId("")
           }
+          dataContext.invalidateCases()
+          dataContext.validateCases()
         }
 
         if (sort?.attr) {

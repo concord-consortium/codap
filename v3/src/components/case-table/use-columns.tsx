@@ -10,7 +10,7 @@ import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
-import { isCaseEditable } from "../../utilities/plugin-utils"
+import { isCaseEditable, respectEditableItemAttribute } from "../../utilities/plugin-utils"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
@@ -67,6 +67,7 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
     if (date) {
       // TODO: add precision support for date formatting
       const formattedDate = formatDate(date, DatePrecision.None)
+      console.log(`ooo date`, date)
       return {
         value: str,
         content: <span className="cell-span" key={key}>{formattedDate || `"${str}"`}</span>
@@ -77,6 +78,7 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
     }
   }
 
+  console.log(`ooo str`, str)
   return {
     value: str,
     content: <span className="cell-span" key={key}>{str}</span>
@@ -120,9 +122,14 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, type, userType, isEditable }) => ({ id, name, type, userType, isEditable }))
+        console.log(`~~~ managingControllerId`, data?.managingControllerId)
+        return {
+          entries: visible.map(({ id, name, type, userType, isEditable }) => ({ id, name, type, userType, isEditable })),
+          managingController: data?.managingControllerId
+        }
       },
-      entries => {
+      ({ entries }) => {
+        console.log(`--- reaction`)
         // column definitions
         const _columns: TColumn[] = data
           ? [
@@ -139,7 +146,12 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderHeaderCell: ColumnHeader,
                 cellClass: "codap-data-cell",
                 renderCell: RenderCell,
-                editable: row => isCaseEditable(data, row.__id__),
+                editable: row => {
+                  console.log(`--- row`, row)
+                  console.log(` -- isCaseEditable`, isCaseEditable(data, row.__id__))
+                  console.log(` -- isEditable`, isEditable)
+                  return isCaseEditable(data, row.__id__)
+                },
                 renderEditCell: isEditable
                                   // if users haven't assigned a non-color type, then color swatches
                                   // may be displayed and should be edited with swatches.
