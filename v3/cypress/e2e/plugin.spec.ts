@@ -255,6 +255,12 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
     webView.clearAPITesterResponses()
 
+    cy.log("Broadcast deleteCases notifications")
+    table.openIndexMenuForRow(2)
+    table.deleteCase()
+    webView.confirmAPITesterResponseContains(/"operation":\s"deleteCases/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast updateCollection notifications")
     table.renameCollection("c1", "Mammals")
     webView.confirmAPITesterResponseContains(/"operation":\s"updateCollection/)

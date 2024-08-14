@@ -123,6 +123,14 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   return notification("updateCases", result, data)
 }
 
+export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
+  const result = {
+    success: true,
+    cases: cases?.map(c => convertCaseToV2FullCase(c, data))
+  }
+  return notification("deleteCases", result, data)
+}
+
 // selectCasesNotification returns a function that will later be called to determine if the selection
 // actually changed and a notification is necessary to broadcast
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
