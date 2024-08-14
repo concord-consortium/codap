@@ -1,17 +1,17 @@
 import { AxisElements as ae } from "../elements/axis-elements"
 
 export const AxisHelper = {
-  verifyDefaultAxisLabel(axis) {
+  verifyDefaultAxisLabel(axis: string) {
     ae.getDefaultAxisLabel(axis).should("have.text", "Click here, or drag an attribute here.")
   },
-  verifyAxisLabel(axis, name) {
+  verifyAxisLabel(axis: string, name: string) {
     ae.getAxisLabel(axis).should("have.text", name)
   },
-  verifyTickMarksDoNotExist(axis, categorical = false) {
+  verifyTickMarksDoNotExist(axis: string, categorical = false) {
     cy.log(`Check no tick marks for axis ${axis}`)
     ae.getTickMarks(axis, categorical).should("not.exist")
   },
-  verifyGridLinesDoNotExist(axis, categorical = false) {
+  verifyGridLinesDoNotExist(axis: string, categorical = false) {
     cy.log(`Check no grid lines for axis ${axis}`)
     ae.getGridLines(axis, categorical).should("not.exist")
   },
@@ -63,38 +63,39 @@ export const AxisHelper = {
       expect($length).to.be.greaterThan(0)
     })
   },
-  verifyAxisTickLabels(axis, attributeValues, categorical = false) {
+  verifyAxisTickLabels(axis: string, attributeValues: string[], categorical = false) {
     ae.getAxisTickLabels(axis, categorical).should('have.length', attributeValues.length)
-    for (let index = 0; index < attributeValues; index++) {
+    for (let index = 0; index < attributeValues.length; index++) {
       this.verifyAxisTickLabel(axis, attributeValues[index], index, categorical)
     }
   },
-  verifyAxisTickLabel(axis, attributeValue, index, categorical = false) {
+  verifyAxisTickLabel(axis: string, attributeValue: string, index: number, categorical = false) {
+    attributeValue = attributeValue.replace("-", "\u2212")  // hyphen => unicode minus sign
     ae.getAxisTickLabel(axis, index, categorical).invoke("text").should("eq", attributeValue)
   },
-  verifyRemoveAttributeDoesNotExist(axis) {
+  verifyRemoveAttributeDoesNotExist(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(`Remove`).should("not.exist")
   },
-  verifyTreatAsOptionDoesNotExist(axis) {
+  verifyTreatAsOptionDoesNotExist(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(`Treat as`).should("not.exist")
   },
-  verifyAxisMenuIsClosed(axis) {
+  verifyAxisMenuIsClosed(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).find("div>div").should("not.be.visible")
   },
-  openAxisAttributeMenu(axis) {
+  openAxisAttributeMenu(axis: string) {
     ae.getAxisAttributeMenu(axis).click()
   },
-  addAttributeToAxis(name, axis) {
+  addAttributeToAxis(name: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(name).click()
     cy.wait(2000)
   },
-  removeAttributeFromAxis(name, axis) {
+  removeAttributeFromAxis(name: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(`Remove`).click()
   },
-  treatAttributeAsCategorical(axis) {
+  treatAttributeAsCategorical(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains("Treat as Categorical").click()
   },
-  treatAttributeAsNumeric(axis) {
+  treatAttributeAsNumeric(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains("Treat as Numeric").click()
   }
 }

@@ -5,9 +5,9 @@ import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
 const numOfAttributes = 10
 const firstRowIndex = 2
-let lastRowIndex = undefined
-let middleRowIndex = undefined
-let numOfCases = undefined
+let lastRowIndex = -1
+let middleRowIndex = -1
+let numOfCases = "0"
 const collectionName = "Mammals"
 const renamedCollectionName = "Animals"
 const newCollectionName = "New Dataset"
@@ -24,7 +24,7 @@ beforeEach(() => {
   cy.wait(1000)
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
   table.getNumOfRows().then($cases => {
-    numOfCases = $cases
+    numOfCases = $cases ?? "0"
     lastRowIndex = Number($cases) - 1
     middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
   })
@@ -123,7 +123,8 @@ context("case table ui", () => {
       cy.get("[data-testid=dataset-description-input]").should("have.value", newDescription)
     })
     it("select a case and delete the case from inspector menu", () => {
-      let initialRowCount, postDeleteRowCount
+      let initialRowCount = 0
+      let postDeleteRowCount: number | undefined
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -164,8 +165,8 @@ context("case table ui", () => {
       })
     })
     it("select a case and delete unselected cases from inspector menu", () => {
-      let initialRowCount // Declare variable to hold initial row count
-      let postDeleteRowCount // Declare variable to hold row count after delete
+      let initialRowCount: number | undefined
+      let postDeleteRowCount: number | undefined
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -209,8 +210,8 @@ context("case table ui", () => {
       })
     })
     it("check delete all cases from inspector menu", () => {
-      let initialRowCount // Declare variable to hold initial row count
-      let postInsertRowCount // Declare variable to hold row count after delete
+      let initialRowCount: number | undefined
+      let postInsertRowCount: number | undefined
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -380,6 +381,51 @@ context("case table ui", () => {
       table.getColumnHeader(1).should("contain", "Animal")
       table.getAttribute("Animal").should("exist")
     })
+    it("edits, re-randomizes, and deletes formulas", () => {
+      // add a random() formula
+      table.addFormula("Height", "random()")
+      let random1 = 0
+      table.getGridCell(2, 5).then(cell => {
+        random1 = +cell.text()
+        expect(random1 >= 0).to.eq(true)
+        expect(random1 < 1).to.eq(true)
+      })
+      // Rerandomize
+      let random2 = 0
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Rerandomize")
+      table.getGridCell(2, 5).then(cell => {
+        random2 = +cell.text()
+        expect(random2 >= 0).to.eq(true)
+        expect(random2 < 1).to.eq(true)
+        expect(random2).not.to.eq(random1)
+      })
+      // Delete formula, verify values remain
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
+      table.getGridCell(2, 5).then(cell => {
+        const value = +cell.text()
+        expect(value >= 0).to.eq(true)
+        expect(value < 1).to.eq(true)
+        expect(value).to.eq(random2)
+      })
+      // verify that formula was deleted
+      table.openAttributeMenu("Height")
+      table.getAttributeMenuItem("Rerandomize").should("be.disabled")
+      table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.disabled")
+      // Undo formula deletion
+      toolbar.getUndoTool().click()
+      table.openAttributeMenu("Height")
+      table.getAttributeMenuItem("Rerandomize").should("be.enabled")
+      table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.enabled")
+      table.getGridCell(2, 5).then(cell => {
+        const value = +cell.text()
+        expect(value >= 0).to.eq(true)
+        expect(value < 1).to.eq(true)
+        // restored formula is re-evaluated resulting in a different value
+        expect(value).not.to.eq(random2)
+      })
+    })
     it("verify hide and showAll attribute with undo and redo", () => {
 
       // Hide the attribute
@@ -452,7 +498,7 @@ context("case table ui", () => {
   describe("index menu", () => {
     it("verify index menu insert case and delete case work", () => {
 
-      let initialRowCount, postInsertRowCount, postDeleteRowCount
+      let initialRowCount = 0, postInsertRowCount, postDeleteRowCount
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -637,7 +683,7 @@ context("case table ui", () => {
       table.getCaseTableGrid().scrollTo("bottom")
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
-      numOfCases = (Number(numOfCases) - 1).toString()
+      numOfCases = `${Number(numOfCases) - 1}`
 
       // TODO: Add assertions here to verify the case is restored (PT ##187127871)
       // For example, check the number of rows or a specific row's content
@@ -725,7 +771,7 @@ context("case table ui", () => {
       table.getCaseTableGrid().scrollTo("top")
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
-      numOfCases = (Number(numOfCases) - 1).toString()
+      numOfCases = `${Number(numOfCases) - 1}`
 
       // Use the toolbar to undo the last action
       cy.log("check for undo/redo after deletion of first case")
@@ -817,7 +863,7 @@ context("case table ui", () => {
       table.getCaseTableGrid().scrollTo("top")
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
-      numOfCases = (Number(numOfCases) - 1).toString()
+      numOfCases = `${Number(numOfCases) - 1}`
 
       // Use the toolbar to undo the last action
       cy.log("check for undo/redo after deletion of case in the middle row")
@@ -844,23 +890,23 @@ context("case table ui", () => {
       // See PT #187033159
     })
     it("creates tables with new collection name", () => {
-      table.createNewTableFromToolshelf()
+      table.createNewTableFromToolShelf()
 
       c.getComponentTitle("table").should("contain", collectionName)
       c.getComponentTitle("table", 1).should("contain", newCollectionName)
 
-      table.createNewTableFromToolshelf()
+      table.createNewTableFromToolShelf()
       c.getComponentTitle("table", 2).should("contain", newCollectionName)
     })
     it("creates tables with new collection names when existing ones are closed", () => {
       c.closeComponent("table")
       c.checkComponentDoesNotExist("table")
-      table.createNewTableFromToolshelf()
+      table.createNewTableFromToolShelf()
       c.getComponentTitle("table").should("contain", newCollectionName)
 
       c.closeComponent("table")
       c.checkComponentDoesNotExist("table")
-      table.createNewTableFromToolshelf()
+      table.createNewTableFromToolShelf()
       c.getComponentTitle("table").should("contain", newCollectionName)
     })
     it("closes and reopens existing case tables with undo and redo", () => {
@@ -880,7 +926,7 @@ context("case table ui", () => {
       // Asserts table is closed again
       c.checkComponentDoesNotExist("table")
 
-      table.openExistingTableFromToolshelf(collectionName)
+      table.openExistingTableFromToolShelf(collectionName)
       c.getComponentTitle("table").should("contain", collectionName)
     })
     it("checks all table tooltips", () => {

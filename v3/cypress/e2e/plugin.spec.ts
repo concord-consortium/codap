@@ -166,12 +166,12 @@ context("codap plugins", () => {
     webView.toggleAPITesterFilter()
 
     cy.log("Broadcast dataContextCountChanged notifications when dataset is added to document")
-    table.createNewTableFromToolshelf()
+    table.createNewTableFromToolShelf()
     webView.confirmAPITesterResponseContains(/"operation":\s"dataContextCountChanged/)
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast dataContextDeleted notifications when dataset is deleted")
-    table.deleteDataSetFromToolshelf(1)
+    table.deleteDataSetFromToolShelf(1)
     webView.confirmAPITesterResponseContains(/"operation":\s"dataContextDeleted/)
     webView.confirmAPITesterResponseContains(/"deletedContext":\s"New\sDataset/)
     webView.clearAPITesterResponses()
@@ -229,7 +229,7 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast deleteAttributes notifications")
-    table.deleteAttrbute("newAttr2")
+    table.deleteAttribute("newAttr2")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteAttributes/)
     webView.clearAPITesterResponses()
 
@@ -280,7 +280,7 @@ context("codap plugins", () => {
     cy.log("Broadcast notifications involving dragging")
     const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
-    table.createNewTableFromToolshelf()
+    table.createNewTableFromToolShelf()
     table.addNewAttribute()
     table.addNewAttribute()
     openAPITester()
@@ -328,10 +328,10 @@ context("codap plugins", () => {
     cfm.openExampleDocument("Four Seals")
     cy.wait(2000)
     table.getTableTile().should("contain.text", "Tracks/Measurements")
-    table.deleteAttrbute("species")
+    table.deleteAttribute("species")
     openAPITester()
     webView.toggleAPITesterFilter()
-    table.deleteAttrbute("animal_id")
+    table.deleteAttribute("animal_id")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
 
     // TODO Check for deleteCollection notifications when deleting the last attribute

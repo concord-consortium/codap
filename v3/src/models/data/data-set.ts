@@ -54,7 +54,7 @@ import {
 import {
   CaseInfo, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
   ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions,
-  ItemInfo
+  IMoveItemsOptions, ItemInfo
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
@@ -925,22 +925,64 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       removeCases(caseIDs: string[]) {
-        caseIDs.forEach((caseID) => {
-          const index = self.getItemIndex(caseID)
-          if (index != null) {
-            self.itemIds.splice(index, 1)
-            self.attributes.forEach((attr) => {
-              attr.removeValues(index)
-            })
-            self.selection.delete(caseID)
-            self.itemInfoMap.delete(caseID)
-            for (let i = index; i < self.items.length; ++i) {
-              const itemId = self.items[i].__id__
-              const itemInfo = self.itemInfoMap.get(itemId)
-              if (itemInfo) itemInfo.index = i
-            }
-          }
+        // Remove the items last -> first, so we only have to update itemInfo once
+        const items = caseIDs.map(id => ({ id, index: self.getItemIndex(id) }))
+          .filter(info => info.index != null) as { id: string, index: number }[]
+        items.sort((a, b) => b.index - a.index)
+        const firstIndex = items[items.length - 1]?.index ?? -1
+        items.forEach(({ id: caseID, index }) => {
+          self.itemIds.splice(index, 1)
+          self.attributes.forEach((attr) => {
+            attr.removeValues(index)
+          })
+          self.selection.delete(caseID)
+          self.itemInfoMap.delete(caseID)
         })
+        if (firstIndex >= 0) {
+          for (let i = firstIndex; i < self.itemIds.length; ++i) {
+            const itemId = self.itemIds[i]
+            const itemInfo = self.itemInfoMap.get(itemId)
+            if (itemInfo) itemInfo.index = i
+          }
+        }
+      },
+
+      moveItems(itemIds: string[], options?: IMoveItemsOptions) {
+        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
+          .sort((a: number, b: number) => b - a) // Reverse order
+        const items = indices.map(index => {
+          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
+          self.attributes.forEach(attr => item.values.push({
+            strValue: attr.strValues[index],
+            numValue: attr.numValues[index]
+          }))
+          return item
+        }).reverse() // Normal order
+
+        // Remove from ordered arrays
+        indices.forEach(index => {
+          self.itemIds.splice(index, 1)
+          self.attributes.forEach(attr => attr.removeValues(index))
+        })
+
+        // Determine position to re-insert items
+        const beforeIndex = options?.before ? self.itemIds.indexOf(options.before) : undefined
+        const afterIndex = options?.after ? self.itemIds.indexOf(options.after) + 1 : undefined
+        const insertIndex = afterIndex ?? beforeIndex ?? self.itemIds.length
+
+        // Add back to ordered arrays
+        self.itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
+        self.attributes.forEach((attr, index) => {
+          attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
+          attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
+        })
+
+        // Fix indices
+        for (let i = 0; i < self.itemIds.length; ++i) {
+          const itemId = self.itemIds[i]
+          const itemInfo = self.itemInfoMap.get(itemId)
+          if (itemInfo) itemInfo.index = i
+        }
       },
 
       selectAll(select = true) {

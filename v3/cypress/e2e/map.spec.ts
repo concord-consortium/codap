@@ -28,20 +28,20 @@ context("Map UI", () => {
     cy.log("updates map title")
 
     cfm.openLocalDoc(filename1)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     c.getComponentTitle("map").should("have.text", componentName)
     c.changeComponentTitle("map", newComponentName)
     c.getComponentTitle("map").should("have.text", newComponentName)
 
     cy.log("creates maps with new component name")
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
 
     c.getComponentTitle("map").should("contain", componentName)
     c.getComponentTitle("map", 1).should("contain", componentName)
   })
   it("checks all map tooltips", () => {
     cfm.openLocalDoc(filename1)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     c.selectTile("map", 0)
 
     toolbar.getToolShelfIcon("map").then($element => {
@@ -78,7 +78,7 @@ context("Map UI", () => {
   // flaky test skipped in PR #1239, see PT #187534790
   it.skip("checks numerical and categorical attributes for map legend", () => {
     cfm.openLocalDoc(filename2)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
 
     mlh.verifyLegendLabel(arrayOfAttributes[0])
@@ -117,7 +117,7 @@ context("Map UI", () => {
   })
   it("checks show/hide selected/unselected/all map boundaries", () => {
     cfm.openLocalDoc(filename2)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     c.selectTile("map", 0)
 
     map.selectHideShowButton()
@@ -142,7 +142,7 @@ context("Map UI", () => {
   })
   it("checks show/hide selected/unselected/all map points", () => {
     cfm.openLocalDoc(filename1)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     c.selectTile("map", 0)
 
     map.selectHideShowButton()
@@ -168,7 +168,7 @@ context("Map UI", () => {
   // flaky test skipped in PR #1239, see PT #187534790
   it.skip("checks show/hide map boundaries with legend selections", () => {
     cfm.openLocalDoc(filename2)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
 
     mlh.verifyCategoricalLegend(arrayOfValues[0].values.length)
@@ -209,7 +209,7 @@ context("Map UI", () => {
   // flaky test skipped in PR #1239, see PT #187534790
   it.skip("checks show/hide map points with legend selections", () => {
     cfm.openLocalDoc(filename1)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     cy.wait(1000)
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[2], "map")
 
@@ -251,7 +251,7 @@ context("Map UI", () => {
   // flaky test skipped in PR #1239, see PT #187534790
   it.skip("checks legend attribute menu", () => {
     cfm.openLocalDoc(filename2)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     cy.dragAttributeToTarget("attribute", arrayOfAttributes[0], "map")
 
     mlh.verifyLegendLabel(arrayOfAttributes[0])
@@ -280,7 +280,7 @@ context("Map UI", () => {
 
   it("shows connecting lines when Connecting Lines option is checked", () => {
     cfm.openLocalDoc(filename1)
-    c.getIconFromToolshelf("map").click()
+    c.getIconFromToolShelf("map").click()
     c.selectTile("map", 0)
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)

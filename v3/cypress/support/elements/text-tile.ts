@@ -9,5 +9,17 @@ export const TextTileElements = {
   },
   getTextTileContent() {
     return cy.get(kTextContentClass)
+  },
+  getTextTileEditor() {
+    return cy.get(".slate-editor")
+  },
+  focusEditor() {
+    return this.getTextTileEditor().focus()
+  },
+  blurEditor() {
+    return this.getTextTileEditor().blur()
+  },
+  typeText(text: string) {
+    this.getTextTileEditor().type(text)
   }
 }
