@@ -66,6 +66,7 @@ export class PlottedFunctionFormulaAdapter extends BaseGraphFormulaAdapter {
     const { formula } = formulaContext
     debugLog(DEBUG_FORMULAS, `[plotted function formula] recalculate "${formula.canonical}"`)
     const formulaScope = this.getMathJSScope(formulaContext, extraMetadata, childMostCases)
+
     try {
       const compiledFormula = math.compile(formula.canonical)
       const extraScope = new Map()

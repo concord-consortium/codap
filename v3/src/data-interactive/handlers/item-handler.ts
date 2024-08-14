@@ -1,7 +1,7 @@
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIItem, DIItemValues, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIItem, DIItemValues, DINewCase, DIResources, DIValues } from "../data-interactive-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -76,10 +76,16 @@ export const diItemHandler: DIHandler = {
     }
   },
 
-  delete(resources: DIResources) {
+  delete(resources: DIResources, values?: DIValues) {
     const { item } = resources
 
-    return deleteItem(resources, item)
+    let itemIds: string[] | undefined
+    if (!item && values && Array.isArray(values)) {
+      itemIds = (values as DINewCase[]).map(aCase => aCase.id != null && toV3ItemId(aCase.id))
+        .filter(id => !!id) as string[]
+    }
+
+    return deleteItem(resources, item ?? itemIds)
   },
 
   get(resources: DIResources) {

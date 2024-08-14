@@ -46,6 +46,7 @@ export const InsertCasesModal: React.FC<IProps> =
     data?.applyModelChange(() => {
       data.addCases(casesToAdd, {[insertPosition]: caseId})
     }, {
+      log: `insert ${numCasesToInsert} cases in table`,
       undoStringKey: "DG.Undo.caseTable.insertCases",
       redoStringKey: "DG.Redo.caseTable.insertCases"
     })

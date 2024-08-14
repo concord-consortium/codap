@@ -392,6 +392,7 @@ context("Graph adornments", () => {
       // The exact value of left may vary slightly depending on browser, screen resolution, etc.
       // The below checks that the value is within an expected range to accommodate these variations.
       // Modeled after https://github.com/cypress-io/cypress/issues/14722#issuecomment-767367519
+      // @ts-expect-error -- type definition is incorrect: return value is property value not chained element
       .should("have.css", "left").should((left: string) => {
         expect(left).to.include("px")
         expect(parseInt(left, 10)).to.be.within(271, 273)

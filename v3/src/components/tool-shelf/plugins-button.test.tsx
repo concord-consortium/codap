@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import React from "react"
 import { PluginsButton } from "./plugins-button"
@@ -12,14 +12,10 @@ describe("PluginsButtons", () => {
     // fetch returns empty plugins array
     fetchMock.mockResponseOnce("[]")
     render(<PluginsButton/>)
-    await waitFor(() => {
-      expect(screen.getByTestId("tool-shelf-button-plugins")).toBeInTheDocument()
-    })
+    expect(await screen.findByTestId("tool-shelf-button-plugins")).toBeInTheDocument()
     // click the button
     user.click(screen.getByTestId("tool-shelf-button-plugins"))
-    await waitFor(() => {
-      expect(screen.getByText(t("V3.ToolButtonData.pluginMenu.fetchError"))).toBeInTheDocument()
-    })
+    expect(await screen.findByText(t("V3.ToolButtonData.pluginMenu.fetchError"))).toBeInTheDocument()
   })
 
   it("renders with a plugin", async () => {
@@ -36,14 +32,19 @@ describe("PluginsButtons", () => {
       width: 100
     }]
     fetchMock.mockResponseOnce(JSON.stringify(plugins))
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => null)
     render(<PluginsButton/>)
-    await waitFor(() => {
-      expect(screen.getByTestId("tool-shelf-button-plugins")).toBeInTheDocument()
-    })
+    expect(await screen.findByTestId("tool-shelf-button-plugins")).toBeInTheDocument()
     // click the button
     user.click(screen.getByTestId("tool-shelf-button-plugins"))
-    await waitFor(() => {
-      expect(screen.getByText("Test Plugin")).toBeInTheDocument()
-    })
+    expect(await screen.findByText("Test Plugin")).toBeInTheDocument()
+    // I spent a while trying to find a better solution to this problem without success.
+    // The problem is complicated by the fact that the setState call at issue comes from
+    // Chakra's menu component rather than our own components. In the end, we just
+    // suppress the error and assert that it's the only error that occurred.
+    expect(errorSpy).toHaveBeenCalledTimes(1)
+    const expectedErrorStr = "Warning: An update to %s inside a test was not wrapped in act(...)"
+    expect(errorSpy.mock.calls[0][0].startsWith(expectedErrorStr)).toBe(true)
+    errorSpy.mockRestore()
   })
 })

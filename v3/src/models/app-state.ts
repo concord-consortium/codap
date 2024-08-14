@@ -30,6 +30,8 @@ class AppState {
   @observable
   private isPerformanceEnabled = true
 
+  private version = ""
+
   constructor() {
     this.currentDocument = createCodapDocument()
 
@@ -77,7 +79,7 @@ class AppState {
       }
     }
     catch (e) {
-      console.error("Error loading document!")
+      console.error("Error loading document!", e)
     }
   }
 
@@ -99,6 +101,14 @@ class AppState {
   @action
   disablePerformance() {
     this.isPerformanceEnabled = false
+  }
+
+  setVersion(version: string) {
+    this.version = version
+  }
+
+  getVersion() {
+    return this.version
   }
 
   @computed

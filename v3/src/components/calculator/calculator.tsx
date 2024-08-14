@@ -16,6 +16,9 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
   const clearValue = () => {
     setCalcValue("")
     setJustEvaled(false)
+    calculatorModel?.applyModelChange(() => {}, {
+      log: "Calculator value cleared"
+    })
   }
 
   const insert = (strToInsert: string) => {
@@ -39,6 +42,9 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
       try {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
+        calculatorModel?.applyModelChange(() => {}, {
+          log: `Calculation done: ${calcValue} = ${solution}`
+        })
       } catch  (error) {
         setCalcValue(`Error`)
       }
@@ -84,7 +90,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         <Text className="calc-input" data-testid="calc-input">{calcValue}</Text>
         <Flex className="calc-buttons">
             {calcButtons}
-            <Button className="calc-button wide" onClick={handleEvaluateButtonPress} 
+            <Button className="calc-button wide" onClick={handleEvaluateButtonPress}
             data-testid="calc-button">
               =
             </Button>

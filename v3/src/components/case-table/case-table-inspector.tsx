@@ -29,6 +29,13 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
     switch (tool) {
       case "datasetInfo":
         setShowInfoModal(true)
+        break
+      case "resizeColumns":
+        //TODO move log to respective handler
+        tableModel?.applyModelChange(() => {}, {
+          log: { message:`resizeColumns`, args: {dataContext: data?.name} }
+        })
+        break
     }
   }
 
@@ -42,7 +49,7 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
               <InformationIcon />
             </InspectorButton>
             <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-              testId="resize-table-button">
+              testId="resize-table-button" onButtonClick={()=>handleButtonClick("resizeColumns")}>
               <ScaleDataIcon />
             </InspectorButton>
             <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")}

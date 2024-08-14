@@ -154,6 +154,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         caseTableModel?.applyModelChange(() => {
           caseTableModel?.columnWidths.set(attrId, width)
         }, {
+          log: "Resize one case table column",
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
         })
