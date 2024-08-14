@@ -1,5 +1,32 @@
 # Changelog
 
+## Version 3.0.0-pre.1782 - August 12, 2024
+
+### ✨ Features & Improvements:
+- **PT-181846581:** Case table rows of multiple children can be collapsed
+- **PT-181846596:** Each collection in a case table has its own header where its name and number of cases are shown
+- **PT-181840926:** The **Text** icon causes a new text component to appear.
+- **PT-188095789:** Auto-focus newly created text component
+- **PT-181889964:** Attribute menu **Delete Formula (Keeping Values)**
+- **PT-188009741:** DI Collection Labels
+- **PT-187738952:** DI Get Component Requests
+- **PT-182089941:** CODAP logs user actions to the CC log server
+- **PT-188095695:** Formulas are not getting evaluated on restore
+
+### 🐞 Bug Fixes:
+- **PT-187833677:** Crash on undo of adding multiple-y attribute to graph
+- **PT-187452500:** Drop target highlights show on top of other tiles during attribute drags
+- **PT-187949371:** Bug: Case table can auto-scroll vertically on attribute drag
+- **PT-188045173:** Input Row doesn't work in Collaborative plugin
+- **PT-188050066:** Collaborative: Sharing Existing Tables
+- **PT-188066180:** "Failure to fetch" plugin info with network issues
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  179710 bytes |                            2.33% |
+|  index.js | 5879153 bytes |                            7.67% |
+
 ## Version 3.0.0-pre.1762 - July 24, 2024
 
 ### ✨ Features & Improvements:

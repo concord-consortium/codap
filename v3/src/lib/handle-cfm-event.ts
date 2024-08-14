@@ -21,6 +21,7 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
         appBuildNum: build.buildNumber
       })
       wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${pkg.version} (${build.buildNumber})`))
+      appState.setVersion(pkg.version)
       break
     // case "requiresUserInteraction":
     //   break

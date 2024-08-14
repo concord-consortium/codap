@@ -23,16 +23,17 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true as const, values: [toV2Id(aCase.__id__)] }
 }
 
-export function deleteItem(resources: DIResources, item?: ICase) {
+export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
   if (!item) return itemNotFoundResult
 
+  const itemIds = Array.isArray(item) ? item : [item.__id__]
   dataContext.applyModelChange(() => {
-    dataContext.removeCases([item.__id__])
+    dataContext.removeCases(itemIds)
   })
 
-  return { success: true as const, values: [toV2Id(item.__id__)] }
+  return { success: true as const, values: itemIds.map(itemId => toV2Id(itemId)) }
 }
 
 export function getCaseBy(resources: DIResources, aCase?: ICase) {

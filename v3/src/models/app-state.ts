@@ -30,6 +30,8 @@ class AppState {
   @observable
   private isPerformanceEnabled = true
 
+  private version = ""
+
   constructor() {
     this.currentDocument = createCodapDocument()
 
@@ -99,6 +101,14 @@ class AppState {
   @action
   disablePerformance() {
     this.isPerformanceEnabled = false
+  }
+
+  setVersion(version: string) {
+    this.version = version
+  }
+
+  getVersion() {
+    return this.version
   }
 
   @computed

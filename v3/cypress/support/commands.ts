@@ -130,7 +130,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
         })
       })
     })
-  cy.wait(2500)
+  cy.wait(1000)
 })
 
 Cypress.Commands.add("clickToUnselect", (subject, options?: { delay: number }) => {

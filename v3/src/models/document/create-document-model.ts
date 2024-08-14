@@ -22,11 +22,6 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   const sharedModelManager = new SharedModelDocumentManager()
   const formulaManager = new FormulaManager()
   const adapterApi = formulaManager.getAdapterApi()
-  formulaManager.addAdapters([
-    new AttributeFormulaAdapter(adapterApi),
-    new PlottedValueFormulaAdapter(adapterApi),
-    new PlottedFunctionFormulaAdapter(adapterApi)
-  ])
   const fullEnvironment: ITileEnvironment & {documentEnv: IDocumentEnvironment} = {
     sharedModelManager,
     formulaManager,
@@ -34,6 +29,14 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   }
   try {
     const document = DocumentModel.create(snapshot, fullEnvironment)
+
+    // initialize formula adapters after the document has been created
+    formulaManager.addAdapters([
+      new AttributeFormulaAdapter(adapterApi),
+      new PlottedValueFormulaAdapter(adapterApi),
+      new PlottedFunctionFormulaAdapter(adapterApi)
+    ])
+
     addDisposer(document, onAction(document, (call) => {
       if (!document.content || !call.path?.match(/\/content\/tileMap\//)) {
         return

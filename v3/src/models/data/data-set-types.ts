@@ -42,6 +42,13 @@ export interface IAddCasesOptions {
   canonicalize?: boolean;
 }
 
+export interface IMoveItemsOptions {
+  // id of item before/after which to move items
+  // if not specified, items are moved to end
+  before?: string;
+  after?: string;
+}
+
 export interface IAddAttributeOptions {
   // id of attribute before which to insert new cases
   // if not specified, new attribute is appended

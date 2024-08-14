@@ -4,29 +4,29 @@ export const MapLegendHelper = {
   verifyLegendDoesNotExist() {
     mle.getLegend().should("not.exist")
   },
-  verifyLegendLabel(name) {
+  verifyLegendLabel(name: string) {
     mle.getLegendName().should("have.text", name)
   },
-  verifyCategoricalLegend(num) {
+  verifyCategoricalLegend(num: number) {
     mle.getCategoricalLegendCategories().should("exist")
     mle.getCategoricalLegendCategories().should("have.length", num)
   },
   verifyNumericLegend() {
     mle.getNumericLegendCategories().should("exist")
   },
-  selectCategoryNameForCategoricalLegend(name) {
+  selectCategoryNameForCategoricalLegend(name: string) {
     mle.getCategoricalLegendCategory(name).click()
   },
-  selectCategoryColorForCategoricalLegend(name) {
+  selectCategoryColorForCategoricalLegend(name: string) {
     mle.getCategoricalLegendCategory(name).parent().find("rect").click()
   },
   unselectLegendCategory() {
     mle.getMapTile().find(".map-dot-area").eq(0).click({force:true})
   },
-  verifyCategoricalLegendKeySelected(name, num) {
+  verifyCategoricalLegendKeySelected(name: string, num: number) {
     mle.getCategoricalLegendCategory(name).parent().find("rect").should("have.class", "legend-rect-selected")
   },
-  verifyNumericLegendKeySelected(num) {
+  verifyNumericLegendKeySelected(num: number) {
     mle.getNumericLegendCategories().should("have.class", "legend-rect-selected")
   },
   verifyNoLegendCategorySelectedForCategoricalLegend() {
@@ -39,22 +39,22 @@ export const MapLegendHelper = {
       cy.wrap($category).should("not.have.class", "legend-rect-selected")
     })
   },
-  selectNumericLegendCategory(index) {
+  selectNumericLegendCategory(index: number) {
     mle.getNumericLegendCategories().eq(index).click()
   },
-  verifyLegendQuintileSelected(index) {
+  verifyLegendQuintileSelected(index: number) {
     mle.getNumericLegendCategories().eq(index).should("have.class", "legend-rect-selected")
   },
-  dragAttributeToLegend(name) {
+  dragAttributeToLegend(name: string) {
     cy.dragAttributeToTarget("table", name, "map-legend")
   },
   openLegendMenu() {
     mle.getLegendAttributeMenu().click()
   },
-  addAttributeToLegend(name) {
+  addAttributeToLegend(name: string) {
     mle.getAttributeFromLegendMenu().contains(name).click()
   },
-  removeAttributeFromLegend(name) {
+  removeAttributeFromLegend(name: string) {
     mle.getAttributeFromLegendMenu().contains(`Remove Legend: ${name}`).click()
   },
   treatLegendAttributeAsCategorical() {

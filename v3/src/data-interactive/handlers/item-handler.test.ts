@@ -55,6 +55,13 @@ describe("DataInteractive ItemHandler", () => {
     const values = result.values as number[]
     expect(values[0]).toBe(toV2Id(itemId))
     expect(dataContext.getItem(itemId)).toBeUndefined()
+
+    const item2Id = dataContext.getItemAtIndex(2)!.__id__
+    const item3Id = dataContext.getItemAtIndex(3)!.__id__
+    const resultMultiple = handler.delete!({ dataContext }, [{ id: toV2Id(item2Id) }, { id: toV2Id(item3Id) }])
+    expect(resultMultiple?.success).toBe(true)
+    expect(dataContext.getItem(item2Id)).toBeUndefined()
+    expect(dataContext.getItem(item3Id)).toBeUndefined()
   })
 
   it("get works", () => {

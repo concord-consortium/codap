@@ -4,26 +4,26 @@ export const GraphLegendHelper = {
   verifyLegendDoesNotExist() {
     gle.getLegend().should("not.exist")
   },
-  verifyLegendLabel(name) {
+  verifyLegendLabel(name: string) {
     gle.getLegendName().should("have.text", name)
   },
-  verifyCategoricalLegend(num) {
+  verifyCategoricalLegend(num: number) {
     gle.getCategoricalLegendCategories().should("exist")
     gle.getCategoricalLegendCategories().should("have.length", num)
   },
   verifyNumericLegend() {
     gle.getNumericLegendCategories().should("exist")
   },
-  selectCategoryNameForCategoricalLegend(name) {
+  selectCategoryNameForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).click()
   },
-  selectCategoryColorForCategoricalLegend(name) {
+  selectCategoryColorForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).parent().find("rect").click()
   },
   unselectLegendCategory() {
         gle.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
   },
-  verifyCategoricalLegendKeySelected(name) {
+  verifyCategoricalLegendKeySelected(name: string) {
     gle.getCategoricalLegendCategory(name).parent().find("rect").should("have.class", "legend-rect-selected")
   },
   verifyNumericLegendKeySelected() {
@@ -39,25 +39,25 @@ export const GraphLegendHelper = {
       cy.wrap($category).should("not.have.class", "legend-rect-selected")
     })
   },
-  selectNumericLegendCategory(index) {
+  selectNumericLegendCategory(index: number) {
     gle.getNumericLegendCategories().eq(index).click()
   },
-  verifyLegendQuintileSelected(index) {
+  verifyLegendQuintileSelected(index: number) {
     gle.getNumericLegendCategories().eq(index).should("have.class", "legend-rect-selected")
   },
-  dragAttributeToPlot(name) {
+  dragAttributeToPlot(name: string) {
     cy.dragAttributeToTarget("table", name, "graph-plot")
   },
-  dragAttributeToLegend(name) {
+  dragAttributeToLegend(name: string) {
     cy.dragAttributeToTarget("table", name, "graph-legend")
   },
   openLegendMenu() {
     gle.getLegendAttributeMenu().click()
   },
-  addAttributeToLegend(name) {
+  addAttributeToLegend(name: string) {
     gle.getAttributeFromLegendMenu().contains(name).click()
   },
-  removeAttributeFromLegend(name) {
+  removeAttributeFromLegend(name: string) {
     gle.getAttributeFromLegendMenu().contains(`Remove Legend: ${name}`).click()
   },
   treatLegendAttributeAsCategorical() {
