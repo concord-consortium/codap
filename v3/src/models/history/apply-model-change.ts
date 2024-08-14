@@ -7,7 +7,7 @@ import { withoutUndo } from "./without-undo"
 
 export interface ILogMessage {
   message: string
-  args?: Record<string, string|number|boolean|undefined>
+  args?: Record<string, string | number | boolean | undefined>
 }
 export interface INotification {
   message: DIMessage
@@ -41,17 +41,10 @@ export function applyModelChange(self: IAnyStateTreeNode) {
         if (tileEnv.log) {
           const logInfo = typeof log === "function" ? log() : log
           const message = typeof logInfo === "string" ? logInfo : logInfo?.message
-          const args: Record<string, any> = {}
-          if (typeof logInfo === "object" && logInfo.args) {
-            const keys = Object.keys(logInfo)
-            const values = Object.values(logInfo)
-            for (let i = 0; i < keys.length; i++) {
-              args[keys[i]] = values[i]
-            }
-          }
 
           if (message) {
-            tileEnv.log(message, args)
+            const logArgs = typeof logInfo === "object" ? logInfo.args : undefined
+            tileEnv.log(message, logArgs)
           }
         }
 

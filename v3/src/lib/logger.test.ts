@@ -5,17 +5,27 @@ import { createCodapDocument } from "../models/codap/create-codap-document"
 const fs = require("fs")
 const path = require("path")
 
-// can be useful for debugging tests
-// jest.mock("../lib/debug", () => ({
-//   DEBUG_LOGGER: true
-// }))
+// get a writable reference to libDebug
+const libDebug = require("../lib/debug")
 
 describe("uninitialized logger", () => {
+  let origDebugLogger = libDebug.DEBUG_LOGGER
+  let origIsLoggingEnabled = Logger.isLoggingEnabled
+
   beforeEach(() => {
     mockXhr.setup()
+
+    origDebugLogger = libDebug.DEBUG_LOGGER
+    libDebug.DEBUG_LOGGER = false
+
+    origIsLoggingEnabled = Logger.isLoggingEnabled
+    Logger.isLoggingEnabled = true
   })
 
   afterEach(() => {
+    libDebug.DEBUG_LOGGER = origDebugLogger
+    Logger.isLoggingEnabled = origIsLoggingEnabled
+
     mockXhr.reset()
     mockXhr.teardown()
   })

@@ -1,4 +1,4 @@
-import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
+import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { forwardRef } from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
@@ -28,37 +28,10 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const propertiesModal = useDisclosure()
   const formulaModal = useDisclosure()
-  const columnName = column.name as string
-  const columnId = column.key
-  const attribute = data?.attrFromID(columnId)
-  const collection = data?.getCollectionForAttribute(columnId)
-
-  const toast = useToast()
-
-  const handleMenuItemClick = (menuItem: string) => {
-    // TODO Don't forget to broadcast notifications as these menu items are implemented!
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on ${menuItem} on ${columnName}`,
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    })
-    //TODO: move to respective logs when handlers are implemented
-    switch (menuItem) {
-      case "Fit width":
-        data?.applyModelChange(() => {}, {
-          log: {message:`Fit column width:`, args: {collection: data?.name, attribute: columnName}}
-        })
-        break
-      case "Sort Ascending":
-      case "Sort Descending":
-        data?.applyModelChange(() => {}, {
-          log: { message:`Sort cases by attribute:`, args: {attributeId: attribute?.id, attribute: columnName}}
-        })
-        break
-    }
-  }
+  const attributeId = column.key
+  const attribute = data?.getAttribute(attributeId)
+  // const attributeName = attribute?.name
+  const collection = data?.getCollectionForAttribute(attributeId)
 
   const handleEditPropertiesOpen = () => {
     propertiesModal.onOpen()
@@ -80,36 +53,46 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     onModalOpen(false)
   }
 
+  // const handleSortCases = (item: IMenuItem) => {
+  //   data?.applyModelChange(() => {}, {
+  //     log: { message:`Sort cases by attribute:`, args: { attributeId: attribute?.id, attribute: attributeName }}
+  //   })
+  // }
+
   const handleMenuKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
   }
 
   interface IMenuItem {
-    itemString: string
+    itemKey: string
     // defaults to true if not implemented
-    isEnabled?: () => boolean
-    handleClick?: () => void
+    isEnabled?: (item: IMenuItem) => boolean
+    handleClick?: (item: IMenuItem) => void
   }
 
   const menuItems: IMenuItem[] = [
     {
-      itemString: t("DG.TableController.headerMenuItems.renameAttribute"),
+      itemKey: "DG.TableController.headerMenuItems.renameAttribute",
       handleClick: onRenameAttribute
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.resizeColumn"),
-      handleClick: () => handleMenuItemClick("Fit width")
+      itemKey: "DG.TableController.headerMenuItems.resizeColumn",
+      // handleClick: () => {
+      //   data?.applyModelChange(() => {}, {
+      //     log: {message:`Fit column width:`, args: { collection: data?.name, attribute: attributeName }}
+      //   })
+      // }
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.editAttribute"),
+      itemKey: "DG.TableController.headerMenuItems.editAttribute",
       handleClick: handleEditPropertiesOpen
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.editFormula"),
+      itemKey: "DG.TableController.headerMenuItems.editFormula",
       handleClick: handleEditFormulaOpen
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.deleteFormula"),
+      itemKey: "DG.TableController.headerMenuItems.deleteFormula",
       isEnabled: () => !!(attribute?.editable && attribute?.hasFormula),
       handleClick: () => {
         data?.applyModelChange(() => {
@@ -122,10 +105,10 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       }
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.recoverFormula")
+      itemKey: "DG.TableController.headerMenuItems.recoverFormula"
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.randomizeAttribute"),
+      itemKey: "DG.TableController.headerMenuItems.randomizeAttribute",
       isEnabled: () => !!attribute?.formula?.isRandomFunctionPresent,
       handleClick: () => {
         data?.applyModelChange(() => {
@@ -134,15 +117,15 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       }
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.sortAscending"),
-      handleClick: () => handleMenuItemClick("Sort Ascending")
+      itemKey: "DG.TableController.headerMenuItems.sortAscending",
+      // handleClick: handleSortCases
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.sortDescending"),
-      handleClick: () => handleMenuItemClick("Sort Descending")
+      itemKey: "DG.TableController.headerMenuItems.sortDescending",
+      // handleClick: handleSortCases
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.hideAttribute"),
+      itemKey: "DG.TableController.headerMenuItems.hideAttribute",
       isEnabled: () => {
         // can't hide last attribute of collection
         const visibleAttributes = collection?.attributes
@@ -153,9 +136,9 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       },
       handleClick: () => {
         caseMetadata?.applyModelChange(
-          () => caseMetadata?.setIsHidden(columnId, true),
+          () => caseMetadata?.setIsHidden(attributeId, true),
           {
-            notify: hideAttributeNotification([columnId], data),
+            notify: hideAttributeNotification([attributeId], data),
             undoStringKey: "DG.Undo.caseTable.hideAttribute",
             redoStringKey: "DG.Redo.caseTable.hideAttribute"
           }
@@ -163,7 +146,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       }
     },
     {
-      itemString: t("DG.TableController.headerMenuItems.deleteAttribute"),
+      itemKey: "DG.TableController.headerMenuItems.deleteAttribute",
       isEnabled: () => {
         if (!data) return false
 
@@ -185,10 +168,10 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           attribute.prepareSnapshot()
           // delete the attribute
           data.applyModelChange(() => {
-            result = data.removeAttribute(columnId)
+            result = data.removeAttribute(attributeId)
           }, {
             notify: () => {
-              const notifications = [removeAttributesNotification([columnId], data)]
+              const notifications = [removeAttributesNotification([attributeId], data)]
               if (result?.removedCollectionId) notifications.unshift(deleteCollectionNotification(data))
               return notifications
             },
@@ -204,21 +187,21 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   function isItemEnabled(item: IMenuItem) {
     if (!item.handleClick) return false
     if (!item.isEnabled) return true
-    return item.isEnabled()
+    return item.isEnabled(item)
   }
 
   return (
     <>
       <MenuList ref={ref} data-testid="attribute-menu-list" onKeyDown={handleMenuKeyDown}>
         {menuItems.map(item => (
-          <MenuItem key={item.itemString} isDisabled={!isItemEnabled(item)} onClick={item.handleClick}>
-            {`${item.itemString}${item.handleClick ? "" : " 🚧"}`}
+          <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}>
+            {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}
           </MenuItem>
         ))}
       </MenuList>
-      <EditAttributePropertiesModal attributeId={columnId} isOpen={propertiesModal.isOpen}
+      <EditAttributePropertiesModal attributeId={attributeId} isOpen={propertiesModal.isOpen}
         onClose={handleEditPropertiesClose} />
-      <EditFormulaModal attributeId={columnId} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      <EditFormulaModal attributeId={attributeId} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
     </>
   )
 })

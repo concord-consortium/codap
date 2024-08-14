@@ -77,7 +77,7 @@ class AppState {
       }
     }
     catch (e) {
-      console.error("Error loading document!")
+      console.error("Error loading document!", e)
     }
   }
 
