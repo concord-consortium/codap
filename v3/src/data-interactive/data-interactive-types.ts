@@ -250,6 +250,7 @@ export interface DIAction {
 }
 export type DIRequest = DIAction | DIAction[]
 export type DIRequestResponse = DIHandlerFnResult | DIHandlerFnResult[]
+export type DIRequestCallback = (response: DIRequestResponse) => void
 
 export type DIQueryValue = number | string | boolean
 export type DIQueryFunction = (a?: DIQueryValue, b?: DIQueryValue) => boolean

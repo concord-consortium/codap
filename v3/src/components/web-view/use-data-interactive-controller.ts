@@ -1,12 +1,16 @@
 import iframePhone from "iframe-phone"
+import { autorun } from "mobx"
 import React, { useEffect } from "react"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
-import { DIAction, DIHandler, DIRequest, DIRequestResponse } from "../../data-interactive/data-interactive-types"
+import {
+  DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
+} from "../../data-interactive/data-interactive-types"
 import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { t } from "../../utilities/translation/translate"
+import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
 
 function extractOrigin(url?: string) {
@@ -27,6 +31,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
   useEffect(() => {
     debugLog(DEBUG_PLUGINS, `Establishing connection to ${iframeRef.current}`)
     if (iframeRef.current) {
+      const requestQueue = new RequestQueue()
       const originUrl = extractOrigin(url) ?? ""
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
         () => {
@@ -34,41 +39,51 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           debugLog(DEBUG_PLUGINS, "connection with iframe established")
         })
       const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =
-        (request: DIRequest, callback: (returnValue: DIRequestResponse) => void) =>
+        (request: DIRequest, callback: DIRequestCallback) =>
       {
         debugLog(DEBUG_PLUGINS, `Received data-interactive: ${JSON.stringify(request)}`)
-        let result: DIRequestResponse = { success: false }
-
-        const errorResult = (error: string) => ({ success: false, values: { error }} as const)
-        const processAction = (action: DIAction) => {
-          if (!action) return errorResult(t("V3.DI.Error.noAction"))
-          if (!tile) return errorResult(t("V3.DI.Error.noTile"))
-
-          const resourceSelector = parseResourceSelector(action.resource)
-          const resources = resolveResources(resourceSelector, action.action, tile)
-          const type = resourceSelector.type ?? ""
-          const a = action.action
-          const func = getDIHandler(type)?.[a as keyof DIHandler]
-          if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
-
-          return func?.(resources, action.values) ?? errorResult(t("V3.DI.Error.undefinedResponse"))
-        }
-        if (Array.isArray(request)) {
-          result = request.map(action => processAction(action))
-        } else {
-          result = processAction(request)
-        }
-
-        debugLog(DEBUG_PLUGINS, `Responding with`, result)
-        callback(result)
+        requestQueue.push({ request, callback })
       }
       const rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(handler,
         "data-interactive", iframeRef.current, originUrl, phone)
       rpcEndpoint.call({message: "codap-present"} as any,
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       webViewModel?.setDataInteractiveController(rpcEndpoint)
+
+      const disposer = autorun(() => {
+        if (requestQueue.length > 0) {
+          const { request, callback } = requestQueue.nextItem
+          debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
+          let result: DIRequestResponse = { success: false }
+  
+          const errorResult = (error: string) => ({ success: false, values: { error }} as const)
+          const processAction = (action: DIAction) => {
+            if (!action) return errorResult(t("V3.DI.Error.noAction"))
+            if (!tile) return errorResult(t("V3.DI.Error.noTile"))
+  
+            const resourceSelector = parseResourceSelector(action.resource)
+            const resources = resolveResources(resourceSelector, action.action, tile)
+            const type = resourceSelector.type ?? ""
+            const a = action.action
+            const func = getDIHandler(type)?.[a as keyof DIHandler]
+            if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
+  
+            return func?.(resources, action.values) ?? errorResult(t("V3.DI.Error.undefinedResponse"))
+          }
+          if (Array.isArray(request)) {
+            result = request.map(action => processAction(action))
+          } else {
+            result = processAction(request)
+          }
+  
+          debugLog(DEBUG_PLUGINS, `Responding with`, result)
+          callback(result)
+          requestQueue.shift()
+        }
+      }, { name: "DataInteractiveController request processer autorun" })
       
       return () => {
+        disposer()
         rpcEndpoint.disconnect()
         phone.disconnect()
       }
