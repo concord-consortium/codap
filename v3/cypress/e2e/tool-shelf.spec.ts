@@ -15,7 +15,7 @@ context("codap toolbar", () => {
     cy.log('Setup complete')
   })
   it("will open a new table", () => {
-    c.getIconFromToolShelf("table").click()
+    c.clickIconFromToolShelf("table")
     toolbar.getNewCaseTable().click()
     table.getCollection().should("be.visible")
     c.getComponentTitle("table").should("have.text", "New Dataset")
@@ -23,23 +23,23 @@ context("codap toolbar", () => {
     toolbar.getDatasetListedInToolShelf("New Dataset").should("be.visible")
   })
   it("will open a graph", () => {
-    c.getIconFromToolShelf("graph").click()
+    c.clickIconFromToolShelf("graph")
     graph.getGraphTile().should("be.visible")
     // graphs with no associated data set should not have a title
     c.getComponentTitle("graph").should("have.text", "")
   })
   it("will open a map", () => {
-    c.getIconFromToolShelf("map").click()
+    c.clickIconFromToolShelf("map")
     map.getMapTile().should("be.visible")
     c.getComponentTitle("map").should("have.text", "Map")
   })
   it("will open a slider", () => {
-    c.getIconFromToolShelf("slider").click()
+    c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
   })
   it("will open a calculator", () => {
-    c.getIconFromToolShelf("calc").click()
+    c.clickIconFromToolShelf("calc")
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
