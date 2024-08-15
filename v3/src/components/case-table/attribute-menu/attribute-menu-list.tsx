@@ -178,7 +178,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
             undoStringKey: "DG.Undo.caseTable.deleteAttribute",
             redoStringKey: "DG.Redo.caseTable.deleteAttribute"
           })
-          attribute.completeSnapshot()
         }
       }
     }
