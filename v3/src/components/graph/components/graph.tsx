@@ -4,6 +4,7 @@ import {addDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
@@ -138,28 +139,19 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   }, [dataset, graphModel])
 
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
-           attrIdRemoved?: string) => {
+           attrIdToRemove = "") => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
-    const logMessage = () => {
-      if (attrIdRemoved) {
-        const attrNameToRemove = dataset?.getAttribute(attrIdRemoved)?.name
-        return {message: `attributeRemoved: ${attrIdRemoved}, $${place}`,
-                 args: {removed: attrNameToRemove, from: place}
-                }
-      } else {
-        const attrName = dataset?.getAttribute(attrId)?.name
-        return {message: `attributeAssigned: ${attrId}, $${place}`,
-                 args: {assigned: attrName, to: place}
-                }
-      }
-    }
+    const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+
     graphModel.applyModelChange(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       {
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
-        log: logMessage()
+        log: logStringifiedObjectMessage(
+              attrIdToRemove ? "attributeRemoved: %@" : "attributeAssigned: %@",
+              { attribute: attrName, axis: place })
       }
     )
   }, [dataset, graphModel])
@@ -187,9 +179,9 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
       redoStringKey: "V3.Redo.attributeTreatAs",
-      log: {message: `plotAxisAttributeChangeType: { axis:${place}, attribute: ${attrName}, numeric: ${treatAs} }`,
-            args: {axis: place, attribute: attrName, numeric: treatAs}
-        }
+      log: logStringifiedObjectMessage(
+            "plotAxisAttributeChangeType: %@",
+            {axis: place, attribute: attrName, numeric: treatAs === 'numeric'})
     })
   }, [dataset, graphController, graphModel])
 

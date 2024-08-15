@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react"
+import React from "react"
 import {observer} from "mobx-react-lite"
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { InspectorPalette } from "../../../inspector-panel"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
@@ -30,11 +31,6 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showFuseIntoBars = (plotType === "dotChart" && plotHasExactlyOneCategoricalAxis) ||
                            (plotType === "dotPlot" && pointDisplayType === "bins") ||
                            pointDisplayType === "histogram"
-  const binWidthValueRef = useRef<number>(0)
-
-  useEffect(() => {
-    binWidthValueRef.current = graphModel?.binWidth ?? 0
-  }, [graphModel?.binWidth])
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -58,29 +54,32 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
     if (e.key === "Enter") {
       e.preventDefault()
+      const initialValue = graphModel?.[option]
       const value = Number((e.target as HTMLInputElement).value)
-      setBinOption(option, value)
       graphModel?.applyModelChange(() => {
         setBinOption(option, value)
       }, {
-        log: `Changed ${option} from ${binWidthValueRef.current} to ${value}`,
-        undoStringKey: "DG.Undo.graph.changeBinWidth",
-        redoStringKey: "DG.Redo.graph.changeBinWidth"
+        log: logMessageWithReplacement(
+                    "Changed %@ from %@ to %@",
+                    { option, [`${option}Initial`]: initialValue, [option]: value }),
+        undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
+        redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment"
      })
-      binWidthValueRef.current = value
     }
   }
 
   const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
+    const initialValue = graphModel?.[option]
     const value = Number((e.target as HTMLInputElement).value)
     graphModel?.applyModelChange(() => {
       setBinOption(option, value)
     }, {
-      log: `Changed ${option} from ${binWidthValueRef.current} to ${value}`,
-      undoStringKey: "DG.Undo.graph.changeBinWidth",
-      redoStringKey: "DG.Redo.graph.changeBinWidth"
+      log: logMessageWithReplacement(
+                  "Changed %@ from %@ to %@",
+                  { option, [`${option}Initial`]: initialValue, [option]: value }),
+      undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
+      redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment"
     })
-    binWidthValueRef.current = value
   }
 
   const handleSetFuseIntoBars = (fuseIntoBars: boolean) => {
@@ -93,9 +92,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         graphModel?.pointDescription.setPointStrokeSameAsFill(fuseIntoBars)
       },
       { undoStringKey, redoStringKey,
-        log: { message: "toggleShowAs",
-               args: {type: fuseIntoBars ? "BarChart" : "DotChart"}
-              }
+        log: logMessageWithReplacement("toggleShowAs: %@", { type: fuseIntoBars ? "BarChart" : "DotChart" })
       }
     )
   }

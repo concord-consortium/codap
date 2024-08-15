@@ -7,6 +7,7 @@ import {AxisBounds, AxisPlace, axisPlaceToAxisFn, AxisScaleType, otherPlace} fro
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import {isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import {between} from "../../../utilities/math-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {isAliveSafe} from "../../../utilities/mst-utils"
@@ -115,8 +116,7 @@ export const useSubAxis = ({
           select(subAxisElt)
             .attr("transform", initialTransform)
             .transition().duration(duration)
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore types are incompatible
+            // @ts-expect-error types are incompatible
             .call(axisScale).selectAll("line,path")
             .style("stroke", "lightgrey")
             .style("stroke-opacity", "0.7")
@@ -287,9 +287,9 @@ export const useSubAxis = ({
       displayModel.applyModelChange(() => {},
         { undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
-          log: { message:`Moved category ${dI.catName} into position of ${dI.currentDragPositionCatName}`,
-                  args:{categoryName: dI.catName, dragPosition: dI.currentDragPositionCatName}
-                }
+          log: logMessageWithReplacement(
+                "Moved category %@ into position of %@",
+                {movedCategory: dI.catName, targetCategory: dI.currentDragPositionCatName})
         }
       )
     }, [stopAnimation, renderSubAxis, displayModel]),

@@ -1,14 +1,11 @@
 import iframePhone from "iframe-phone"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
+import { ILogMessage } from "../../lib/log-message"
 import { getTileEnvironment } from "../tiles/tile-environment"
 import { withUndoRedoStrings } from "./codap-undo-types"
 import { withoutUndo } from "./without-undo"
 
-export interface ILogMessage {
-  message: string
-  args?: Record<string, string | number | boolean | undefined>
-}
 export interface INotification {
   message: DIMessage
   callback?: iframePhone.ListenerCallback

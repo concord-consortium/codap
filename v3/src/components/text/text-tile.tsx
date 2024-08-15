@@ -72,7 +72,7 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯
         // For now, we log just the text content, not the full JSON-stringified slate value.
-        log: textDidChange ? `Edited text component: ${textModel.textContent}` : undefined,
+        log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit"
       })

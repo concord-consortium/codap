@@ -1,6 +1,7 @@
 import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
@@ -10,6 +11,10 @@ import { kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey,
          kLSRLUndoRemoveKey } from "./lsrl-adornment-types"
 import { LSRLAdornment } from "./lsrl-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+
+function logLSRLToggle(action: "hide" | "show") {
+  return logMessageWithReplacement("toggleLSRL %@", { action })
+}
 
 const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
@@ -34,7 +39,7 @@ const Controls = observer(function Controls() {
         {
           undoStringKey: undoRedoKeys.undoAdd || "",
           redoStringKey: undoRedoKeys.redoAdd || "",
-          log: { message: `toggleLSRL ${kLSRLType}`, args: {value: "show"}}
+          log: logLSRLToggle("show")
         }
       )
     } else {
@@ -43,7 +48,7 @@ const Controls = observer(function Controls() {
         {
           undoStringKey: undoRedoKeys.undoRemove || "",
           redoStringKey: undoRedoKeys.redoRemove || "",
-          log: { message: `toggleLSRL ${kLSRLType}`, args: {value: "hide"}}
+          log: logLSRLToggle("hide")
         }
       )
     }

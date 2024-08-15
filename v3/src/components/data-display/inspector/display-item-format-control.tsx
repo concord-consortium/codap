@@ -171,7 +171,6 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                 undoStringKey: "DG.Undo.graph.changeStrokeColor",
                 redoStringKey: "DG.Redo.graph.changeStrokeColor",
                 log: "Changed stroke color"
-
               }
             )
           }}>

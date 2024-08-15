@@ -3,6 +3,7 @@ import {drag, select, Selection} from "d3"
 import {tip as d3tip} from "d3-v6-tip"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { IMovablePointAdornmentModel } from "./movable-point-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -95,12 +96,9 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
       {
         undoStringKey: "DG.Undo.graph.moveMovablePoint",
         redoStringKey: "DG.Redo.graph.moveMovablePoint",
-        log: {
-          message: `Move point from (${dragStartPoint.current.x}, ${dragStartPoint.current.y}) to (${xValue
-            }, ${yValue})`,
-          args: {startPointLeft: dragStartPoint.current.x, startPointTop: dragStartPoint.current.y,
-                  endPointLeft: xValue, endPointTop: yValue}
-        }
+        log: logMessageWithReplacement(
+              "Move point from (%@, %@) to (%@, %@)",
+              { xInitial: dragStartPoint.current.x, yInitial: dragStartPoint.current.y, x: xValue, y: yValue})
       }
     )
 

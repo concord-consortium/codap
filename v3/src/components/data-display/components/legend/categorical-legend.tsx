@@ -3,6 +3,7 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 // import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
@@ -227,16 +228,18 @@ export const CategoricalLegend = observer(
     }, [dataConfiguration, setCategoryData, refreshKeys])
 
     const onDragEnd = useCallback(() => {
-      dataConfiguration?.applyModelChange(() => {
-        refreshKeys()
-      }, {
-        undoStringKey: 'DG.Undo.graph.swapCategories',
-        redoStringKey: 'DG.Redo.graph.swapCategories',
-        log: `Swapped categories ${categoriesRef.current?.[dragInfo.current.indexOfCategory]} and ${
-          categoriesRef.current?.[prevCategoryIndex.current]}`
-      })
       duration.current = transitionDuration
       dragInfo.current.indexOfCategory = -1
+      refreshKeys()
+
+      dataConfiguration?.applyModelChange(() => {}, {
+        undoStringKey: 'DG.Undo.graph.swapCategories',
+        redoStringKey: 'DG.Redo.graph.swapCategories',
+        log: logMessageWithReplacement(
+              "Moved category %@ into position of %@",
+              { movedCategory: categoriesRef.current?.[dragInfo.current.indexOfCategory],
+                targetCategory: categoriesRef.current?.[prevCategoryIndex.current] })
+      })
     }, [dataConfiguration, refreshKeys])
 
     const dragBehavior = useMemo(() => drag<SVGGElement, number>()

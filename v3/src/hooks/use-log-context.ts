@@ -1,5 +1,5 @@
 import { DEBUG_LOGGER, debugLog } from "../lib/debug"
-import { ILogMessage } from "../models/history/apply-model-change"
+import { ILogMessage } from "../lib/log-message"
 
 const gPendingLogMessages = new Map<string, ILogMessage>()
 

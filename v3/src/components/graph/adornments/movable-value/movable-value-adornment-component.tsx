@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {valueLabelString} from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
@@ -133,18 +134,16 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
 
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model
-    const logFromValue = model.values.get(instanceKey)?.[dragIndex] !== undefined
-                              ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
-                              : 'undefined'
-    const logToValue = Math.round(dragValue *10)/10
     if (isDragging) {
+      const logFromValue = model.values.get(instanceKey)?.[dragIndex] !== undefined
+                                ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
+                                : 'undefined'
+      const logToValue = Math.round(dragValue *10)/10
       graphModel.applyModelChange(
         () => model.endDrag(dragValue, instanceKey, dragIndex),
         { undoStringKey: "DG.Undo.graph.moveMovableValue",
           redoStringKey: "DG.Redo.graph.moveMovableValue",
-          log: {  message: `Moved value from ${logFromValue} to ${logToValue}`,
-                  args: {from: logFromValue, to: logToValue}
-                }
+          log: logMessageWithReplacement("Moved value from %@ to %@", {from: logFromValue, to: logToValue})
         }
       )
     }
