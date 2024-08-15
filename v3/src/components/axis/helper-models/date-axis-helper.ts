@@ -1,5 +1,5 @@
 import { Selection } from "d3"
-import { AxisHelper } from "./axis-helper"
+import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "../../graph/graphing-types"
 import { isDateAxisModel, IDateAxisModel } from "../models/axis-model"
@@ -176,7 +176,7 @@ const getNextLevelLabelForValue = (level: EDateTimeLevel, date: Date | null) => 
   return getLevelLabelForValue(level, tNextDate)
 }
 
-export type IDateAxisHelperProps = {
+interface IDateAxisHelperArgs extends IAxisHelperArgs {
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
 }
 
@@ -184,15 +184,9 @@ export class DateAxisHelper extends AxisHelper {
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
   maxNumberExtent: number = kDefaultFontHeight
 
-  constructor(...args: [...ConstructorParameters<typeof AxisHelper>, IDateAxisHelperProps]) {
-    const dateAxisProps = args[args.length - 1] as IDateAxisHelperProps,
-      axisHelperProps = args.slice(0, args.length - 1) as ConstructorParameters<typeof AxisHelper>
-    super(...axisHelperProps)
-    this.subAxisSelectionRef = dateAxisProps.subAxisSelectionRef
-  }
-
-  get dataConfig() {
-    return this.displayModel.dataConfiguration
+  constructor(props:IDateAxisHelperArgs) {
+    super(props)
+    this.subAxisSelectionRef = props.subAxisSelectionRef
   }
 
   render() {
@@ -368,22 +362,19 @@ export class DateAxisHelper extends AxisHelper {
         const drawTickAndLabel = (iDateLabel: ILabelDateAndString, drawLabel: boolean) => {
           const refPoint = {x: 0, y: 0}
           let rotation = 0,
-            tickStart = 0,
             pixel = dataToCoordinate(iDateLabel.labelDate.valueOf() / 1000)
           if (!isVertical) {
-            refPoint.y = kAxisTickLength + kAxisGap + kDefaultFontHeight
-            tickStart = 0  // y-value
+            refPoint.y = kAxisTickLength + kAxisGap + kDefaultFontHeight              // y-value
             pixel += rangeMin
             refPoint.x = pixel
             sAS.append('line')
               .attr('style', 'stroke: black')
               .attr('x1', refPoint.x)
               .attr('x2', refPoint.x)
-              .attr('y1', tickStart)
-              .attr('y2', tickStart + kAxisTickLength)
+              .attr('y1', 0)
+              .attr('y2', kAxisTickLength)
           } else {  // 'vertical'
-            rotation = -90
-            tickStart = axisWidth  // x-value
+            rotation = -90              // x-value
             refPoint.x = -kAxisTickLength - kAxisGap
             refPoint.y = pixel
             sAS.append('line')

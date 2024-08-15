@@ -1,6 +1,6 @@
-import { IAbstractNumericAxisModel } from "../../axis/models/axis-model"
+import { IBaseNumericAxisModel } from "../../axis/models/axis-model"
 
-export function getAxisDomains(xAxis?: IAbstractNumericAxisModel, yAxis?: IAbstractNumericAxisModel) {
+export function getAxisDomains(xAxis?: IBaseNumericAxisModel, yAxis?: IBaseNumericAxisModel) {
   // establishes access to the specified axis domains for purposes of MobX observation
   const { domain: xDomain = [0, 1] } = xAxis || {}
   const { domain: yDomain = [0, 1] } = yAxis || {}

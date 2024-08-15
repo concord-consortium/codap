@@ -1,10 +1,10 @@
 import { createContext, useContext } from "react"
-import { IAbstractNumericAxisModel, IAxisModel, isNumericAxisModel } from "../models/axis-model"
+import { IBaseNumericAxisModel, IAxisModel, isNumericAxisModel } from "../models/axis-model"
 import { AxisPlace } from "../axis-types"
 
 export interface IAxisProvider {
   getAxis: (place: AxisPlace) => IAxisModel | undefined
-  getNumericAxis: (place: AxisPlace) => IAbstractNumericAxisModel | undefined
+  getNumericAxis: (place: AxisPlace) => IBaseNumericAxisModel | undefined
 }
 const kDefaultAxisProvider = {
   getAxis: () => undefined,

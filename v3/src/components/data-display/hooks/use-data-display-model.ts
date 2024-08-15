@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react"
 import { IDataDisplayContentModel } from "../models/data-display-content-model"
-import { IAxisModel, isAbstractNumericAxisModel } from "../../axis/models/axis-model"
+import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
 
 const kDefaultDataDisplayModel = {
   // required by useDataDisplayAnimation
@@ -10,7 +10,7 @@ const kDefaultDataDisplayModel = {
   // required by AxisProviderContext
   getAxis: () => undefined,
   getNumericAxis: () => undefined,
-  hasDraggableNumericAxis: (axisModel: IAxisModel) => isAbstractNumericAxisModel(axisModel),
+  hasDraggableNumericAxis: (axisModel: IAxisModel) => isBaseNumericAxisModel(axisModel),
   nonDraggableAxisTicks: (formatter: (value: number) => string) => ({tickValues: [], tickLabels: []})
 } as unknown as IDataDisplayContentModel
 

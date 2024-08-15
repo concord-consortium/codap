@@ -1,6 +1,6 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
-import { IAbstractNumericAxisModel, NumericAxisModel } from "../axis/models/axis-model"
+import { IBaseNumericAxisModel, NumericAxisModel } from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { applyModelChange } from "../../models/history/apply-model-change"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -31,10 +31,10 @@ export const SliderModel = TileContentModel
     get value() {
       return self.globalValue.value
     },
-    getAxis(): IAbstractNumericAxisModel {
+    getAxis(): IBaseNumericAxisModel {
       return self.axis
     },
-    getNumericAxis(): IAbstractNumericAxisModel {
+    getNumericAxis(): IBaseNumericAxisModel {
       return self.axis
     },
     get domain() {

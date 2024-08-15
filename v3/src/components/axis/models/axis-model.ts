@@ -9,7 +9,7 @@ export const AxisModel = types.model("AxisModel", {
   place: types.enumeration([...AxisPlaces]),
   scale: types.optional(types.enumeration([...ScaleTypes]), "ordinal"),
 })
-  .volatile(_self => ({
+  .volatile(self => ({
     transitionDuration: 0
   }))
   .views(self => ({
@@ -74,8 +74,8 @@ export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICa
   return !!axisModel?.isCategorical
 }
 
-export const AbstractNumericAxisModel = AxisModel
-  .named("AbstractNumericAxisModel")
+export const BaseNumericAxisModel = AxisModel
+  .named("BaseNumericAxisModel")
   .props({
     scale: types.optional(types.enumeration([...ScaleTypes]), "linear"),
     lockZero: false,
@@ -122,14 +122,14 @@ export const AbstractNumericAxisModel = AxisModel
     }
   }))
 
-export interface IAbstractNumericAxisModel extends Instance<typeof AbstractNumericAxisModel> {}
-export interface IAbstractNumericAxisModelSnapshot extends SnapshotIn<typeof AbstractNumericAxisModel> {}
+export interface IBaseNumericAxisModel extends Instance<typeof BaseNumericAxisModel> {}
+export interface IBaseNumericAxisModelSnapshot extends SnapshotIn<typeof BaseNumericAxisModel> {}
 
-export function isAbstractNumericAxisModel(axisModel?: IAxisModel): axisModel is IAbstractNumericAxisModel {
+export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is IBaseNumericAxisModel {
   return !!axisModel?.isAbstractNumeric
 }
 
-export const NumericAxisModel = AbstractNumericAxisModel
+export const NumericAxisModel = BaseNumericAxisModel
   .named("NumericAxisModel")
   .props({
     type: types.optional(types.literal("numeric"), "numeric"),
@@ -142,7 +142,7 @@ export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumeri
   return !!axisModel?.isNumeric
 }
 
-export const DateAxisModel = AbstractNumericAxisModel
+export const DateAxisModel = BaseNumericAxisModel
   .named("DateAxisModel")
   .props({
     type: types.optional(types.literal("date"), "date"),

@@ -1,5 +1,5 @@
 import { BaseType, Selection } from "d3"
-import { AxisHelper } from "./axis-helper"
+import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
 import { kAxisTickLength } from "../../graph/graphing-types"
 import { otherPlace } from "../axis-types"
@@ -16,7 +16,7 @@ export interface CatObject {
   index: number
 }
 
-export type ICategoricalAxisHelperProps = {
+export interface ICategoricalAxisHelperArgs extends IAxisHelperArgs {
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
   categoriesSelectionRef: MutableRefObject<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any> | undefined>
   swapInProgress: MutableRefObject<boolean>
@@ -31,19 +31,13 @@ export class CategoricalAxisHelper extends AxisHelper {
   centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
 
-  constructor(...args: [...ConstructorParameters<typeof AxisHelper>, ICategoricalAxisHelperProps]) {
-    const categoricalAxisProps = args[args.length - 1] as ICategoricalAxisHelperProps,
-      axisHelperProps = args.slice(0, args.length - 1) as ConstructorParameters<typeof AxisHelper>
-    super(...axisHelperProps)
-    this.subAxisSelectionRef = categoricalAxisProps.subAxisSelectionRef
-    this.categoriesSelectionRef = categoricalAxisProps.categoriesSelectionRef
-    this.swapInProgress = categoricalAxisProps.swapInProgress
-    this.centerCategoryLabels = categoricalAxisProps.centerCategoryLabels
-    this.dragInfo = categoricalAxisProps.dragInfo
-  }
-
-  get dataConfig() {
-    return this.displayModel.dataConfiguration
+  constructor(props: ICategoricalAxisHelperArgs) {
+    super(props)
+    this.subAxisSelectionRef = props.subAxisSelectionRef
+    this.categoriesSelectionRef = props.categoriesSelectionRef
+    this.swapInProgress = props.swapInProgress
+    this.centerCategoryLabels = props.centerCategoryLabels
+    this.dragInfo = props.dragInfo
   }
 
   render() {

@@ -7,7 +7,12 @@ import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { AxisPlace } from "../axis-types"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {isAbstractNumericAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
+import {
+  IAxisModel,
+  isBaseNumericAxisModel,
+  isCategoricalAxisModel,
+  isNumericAxisModel
+} from "../models/axis-model"
 import { isVertical } from "../../axis-graph-shared"
 import { isAliveSafe } from "../../../utilities/mst-utils"
 import { setNiceDomain } from "../../graph/utilities/graph-utils"
@@ -35,7 +40,7 @@ export const useSubAxis = ({
     dataConfig = displayModel.dataConfiguration,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
-    axisModel = axisProvider.getAxis?.(axisPlace),
+    axisModel = axisProvider.getAxis?.(axisPlace) as IAxisModel,
     isNumeric = isNumericAxisModel(axisModel),
     isCategorical = isCategoricalAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
@@ -51,37 +56,31 @@ export const useSubAxis = ({
       axisOrientation: 'horizontal',
       labelOrientation: 'horizontal'
     }),
+    helperProps =
+      {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating},
     swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
     axisHelper = useMemo(() => {
       let helper: EmptyAxisHelper | NumericAxisHelper | CategoricalAxisHelper | undefined = undefined
-      // todo: See if there is a way to avoid the repetition of the same 7 arguments in each of the following cases
-      switch (axisModel?.type) {
-        case 'empty':
-          helper = new EmptyAxisHelper(
-            displayModel, subAxisIndex, axisPlace, subAxisElt,
-            axisModel, layout, isAnimating
-          )
-          break
-        case 'numeric':
-          helper = new NumericAxisHelper(
-            displayModel, subAxisIndex, axisPlace, subAxisElt,
-            axisModel, layout, isAnimating, {showScatterPlotGridLines})
-          break
-        case 'categorical':
-          helper = new CategoricalAxisHelper(
-            displayModel, subAxisIndex, axisPlace, subAxisElt,
-            axisModel, layout, isAnimating, {
-              centerCategoryLabels, dragInfo,
-              subAxisSelectionRef, categoriesSelectionRef, swapInProgress
-            })
-          break
-        case 'date':
-          subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
-          helper = new DateAxisHelper(
-            displayModel, subAxisIndex, axisPlace, subAxisElt,
-            axisModel, layout, isAnimating, {subAxisSelectionRef})
+      if (axisModel) {
+        switch (axisModel.type) {
+          case 'empty':
+            helper = new EmptyAxisHelper(helperProps)
+            break
+          case 'numeric':
+            helper = new NumericAxisHelper(
+              { ... helperProps, showScatterPlotGridLines})
+            break
+          case 'categorical':
+            helper = new CategoricalAxisHelper(
+              { ...helperProps, centerCategoryLabels, dragInfo,
+                subAxisSelectionRef, categoriesSelectionRef, swapInProgress })
+            break
+          case 'date':
+            subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
+            helper = new DateAxisHelper({...helperProps, subAxisSelectionRef})
+        }
       }
       return helper
     }, [axisModel, axisPlace, displayModel, layout, subAxisElt, subAxisIndex,
@@ -232,7 +231,7 @@ export const useSubAxis = ({
     return mstAutorun(() => {
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
-        if (isAbstractNumericAxisModel(_axisModel)) {
+        if (isBaseNumericAxisModel(_axisModel)) {
           const {domain} = _axisModel || {}
           layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
           renderSubAxis()
@@ -270,10 +269,10 @@ export const useSubAxis = ({
       const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
       layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
       setupCategories()
-    } else if (isAbstractNumericAxisModel(axisModel)) {
+    } else if (isBaseNumericAxisModel(axisModel)) {
       const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []
       layout.getAxisMultiScale(axisPlace)?.setNumericDomain(numericValues)
-      isAbstractNumericAxisModel(axisModel) && setNiceDomain(numericValues, axisModel)
+      isBaseNumericAxisModel(axisModel) && setNiceDomain(numericValues, axisModel)
     }
     renderSubAxis()
   }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])

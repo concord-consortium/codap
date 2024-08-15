@@ -4,20 +4,17 @@ import { isNumericAxisModel } from "../models/axis-model"
 import { transitionDuration } from "../../data-display/data-display-types"
 import { computeBestNumberOfTicks } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
-import { AxisHelper } from "./axis-helper"
+import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 
-export type INumericAxisHelperProps = {
+export interface INumericAxisHelperArgs extends IAxisHelperArgs {
   showScatterPlotGridLines: boolean
 }
-
 export class NumericAxisHelper extends AxisHelper {
   showScatterPlotGridLines: boolean
 
-  constructor(...args: [...ConstructorParameters<typeof AxisHelper>, INumericAxisHelperProps]) {
-    const numericAxisProps = args[args.length - 1] as INumericAxisHelperProps,
-      axisHelperProps = args.slice(0, args.length - 1) as ConstructorParameters<typeof AxisHelper>
-    super(...axisHelperProps)
-    this.showScatterPlotGridLines = numericAxisProps.showScatterPlotGridLines
+  constructor(props: INumericAxisHelperArgs) {
+    super(props)
+    this.showScatterPlotGridLines = props.showScatterPlotGridLines
   }
 
   get newRange() {

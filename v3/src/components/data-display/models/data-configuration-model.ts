@@ -295,8 +295,7 @@ export const DataConfigurationModel = types
         const allCaseIDs = Array.from(self.allCaseIDs)
         const allValues = attrID
           ? allCaseIDs.map((anID: string) => dataDisplayGetNumericValue(dataset, anID, attrID)) : []
-          // ? allCaseIDs.map((anID: string) => dataset?.getNumeric(anID, attrID, true)) : []
-        return allValues.filter(aValue => aValue) as number[]
+        return allValues.filter(aValue => aValue != null)
       }
     }),
     categorySetForAttrRole(role: AttrRole) {

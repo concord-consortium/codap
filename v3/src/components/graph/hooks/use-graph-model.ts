@@ -8,7 +8,7 @@ import { dataDisplayGetNumericValue } from "../../data-display/data-display-valu
 import {setNiceDomain} from "../utilities/graph-utils"
 import {PixiPoints} from "../../data-display/pixi/pixi-points"
 import {IGraphContentModel} from "../models/graph-content-model"
-import {IAbstractNumericAxisModel} from "../../axis/models/axis-model"
+import {IBaseNumericAxisModel} from "../../axis/models/axis-model"
 
 interface IProps {
   graphModel: IGraphContentModel
@@ -52,7 +52,7 @@ export function useGraphModel(props: IProps) {
         if (newPlotType === 'scatterPlot') {
           const values = caseDataArray?.map(({ caseID }) =>
             dataDisplayGetNumericValue(dataset, caseID, yAttrID)) as number[]
-          setNiceDomain(values || [], yAxisModel as IAbstractNumericAxisModel)
+          setNiceDomain(values || [], yAxisModel as IBaseNumericAxisModel)
         }
       }
     })

@@ -31,7 +31,7 @@ import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {
-  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isAbstractNumericAxisModel, isNumericAxisModel,
+  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, isNumericAxisModel,
   NumericAxisModel
 } from "../../axis/models/axis-model"
 import {AdornmentsStore} from "../adornments/adornments-store"
@@ -153,7 +153,7 @@ export const GraphContentModel = DataDisplayContentModel
     getNumericAxis(place: AxisPlace) {
       const axis = self.axes.get(place)
       // Include DataAxisModels
-      return isAbstractNumericAxisModel(axis) ? axis : undefined
+      return isBaseNumericAxisModel(axis) ? axis : undefined
     },
     getAttributeID(place: GraphAttrRole) {
       return self.dataConfiguration.attributeID(place) ?? ''
@@ -556,7 +556,7 @@ export const GraphContentModel = DataDisplayContentModel
         AxisPlaces.forEach((axisPlace: AxisPlace) => {
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
-          if (isAbstractNumericAxisModel(axis)) {
+          if (isBaseNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
             setNiceDomain(numericValues, axis, self.axisDomainOptions)
           }
@@ -668,7 +668,7 @@ export const GraphContentModel = DataDisplayContentModel
     get noPossibleRescales() {
       return self.plotType !== 'casePlot' &&
         !AxisPlaces.find((axisPlace: AxisPlace) => {
-          return isAbstractNumericAxisModel(self.getAxis(axisPlace))
+          return isBaseNumericAxisModel(self.getAxis(axisPlace))
         })
     },
     getTipText(props: IGetTipTextProps) {

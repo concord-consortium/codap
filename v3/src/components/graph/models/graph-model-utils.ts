@@ -32,10 +32,9 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
       : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
   dataConfig?.setPrimaryRole(primaryRole)
   // TODO COLOR: treat color like categorical for now
-  const primaryType = attributeType === 'color' ? 'categorical'
-    : attributeType === 'date' ? 'numeric' : attributeType,
-    secondaryType = otherAttributeType === 'color' ? 'categorical'
-      : otherAttributeType === 'date' ? 'numeric' : otherAttributeType
+  const typeOverrides: Record<string, string> = { color: 'categorical', date: 'numeric' },
+    primaryType = typeOverrides[attributeType] ?? attributeType,
+    secondaryType = typeOverrides[otherAttributeType] ?? otherAttributeType
   // This doesn't actually necessarily index by [primary][secondary], but that doesn't matter.
   graphModel?.setPlotType(plotChoices[primaryType][secondaryType])
 }
@@ -86,6 +85,10 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
           layout.setAxisScaleType(place, 'linear')
           const valuesInSeconds = stringValuesToDateSeconds(attr?.strValues || [])
           setNiceDomain(valuesInSeconds, newAxisModel, graphModel?.axisDomainOptions)
+        }
+        else {
+          const valuesInSeconds = stringValuesToDateSeconds(attr?.strValues || [])
+          setNiceDomain(valuesInSeconds, currAxisModel, graphModel?.axisDomainOptions)
         }
       }
         break

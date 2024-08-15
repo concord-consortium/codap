@@ -1,4 +1,5 @@
 import { getSnapshot } from "mobx-state-tree"
+import { IBaseNumericAxisModel } from "../../components/axis/models/axis-model"
 import { V2GetGraph } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -104,19 +105,19 @@ describe("DataInteractive ComponentHandler Graph", () => {
 
       const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")!.attributeID
       expect(xAttributeName).toBe(graphDataset.getAttribute(xAttributeId)?.name)
-      const xAxis = content.getAxis("bottom") as INumericAxisModel
+      const xAxis = content.getAxis("bottom") as IBaseNumericAxisModel
       expect(xLowerBound).toBe(xAxis.min)
       expect(xUpperBound).toBe(xAxis.max)
 
       const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")!.attributeID
       expect(yAttributeName).toBe(graphDataset.getAttribute(yAttributeId)?.name)
-      const yAxis = content.getAxis("left") as INumericAxisModel
+      const yAxis = content.getAxis("left") as IBaseNumericAxisModel
       expect(yLowerBound).toBe(yAxis.min)
       expect(yUpperBound).toBe(yAxis.max)
 
       const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")!.attributeID
       expect(y2AttributeName).toBe(graphDataset.getAttribute(y2AttributeId)?.name)
-      const y2Axis = content.getAxis("rightNumeric") as INumericAxisModel
+      const y2Axis = content.getAxis("rightNumeric") as IBaseNumericAxisModel
       expect(y2LowerBound).toBe(y2Axis.min)
       expect(y2UpperBound).toBe(y2Axis.max)
     })
