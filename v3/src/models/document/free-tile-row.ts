@@ -161,9 +161,8 @@ export const FreeTileRow = TileRowModel
     },
     setTilePosition(tileId: string, position: { x?: number, y?: number }) {
       const freeTileLayout = self.getNode(tileId)
-      if (freeTileLayout) {
-        const x = position.x ?? freeTileLayout.x
-        const y = position.y ?? freeTileLayout.y
+      if (freeTileLayout && (position.x != null || position.y != null)) {
+        const { x = freeTileLayout.x, y = freeTileLayout.y } = position
         freeTileLayout?.setPosition(x, y)
       }
     }

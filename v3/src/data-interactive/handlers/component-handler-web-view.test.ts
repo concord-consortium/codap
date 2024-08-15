@@ -1,7 +1,9 @@
 import { kTitleBarHeight } from "../../components/constants"
 import { kV2GameType } from "../../components/web-view/web-view-defs"
 import { IWebViewModel, isWebViewModel } from "../../components/web-view/web-view-model"
-import { kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix } from "../../components/web-view/web-view-registration"
+import {
+  kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix
+} from "../../components/web-view/web-view-registration"
 import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { toV3Id } from "../../utilities/codap-utils"
