@@ -1,13 +1,13 @@
-import { ISliderModel, isSliderModel } from "../../components/slider/slider-model"
-import { kSliderIdPrefix } from "../../components/slider/slider-registration"
-import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
+import { V2GetSlider } from "../../data-interactive/data-interactive-component-types"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { toV3Id } from "../../utilities/codap-utils"
-import { V2GetSlider } from "../data-interactive-component-types"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
-import { testGetComponent } from "./component-handler-test-utils"
+import { ISliderModel, isSliderModel } from "./slider-model"
+import { kSliderIdPrefix } from "./slider-registration"
+import { AnimationDirections, AnimationModes } from "./slider-types"
 
 
 describe("DataInteractive ComponentHandler Slider", () => {

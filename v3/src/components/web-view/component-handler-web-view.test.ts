@@ -1,16 +1,16 @@
-import { kTitleBarHeight } from "../../components/constants"
-import { kV2GameType } from "../../components/web-view/web-view-defs"
-import { IWebViewModel, isWebViewModel } from "../../components/web-view/web-view-model"
-import {
-  kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix
-} from "../../components/web-view/web-view-registration"
+import { kTitleBarHeight } from "../constants"
+import { V2Game, V2WebView } from "../../data-interactive/data-interactive-component-types"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { toV3Id } from "../../utilities/codap-utils"
-import { V2Game, V2WebView } from "../data-interactive-component-types"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
-import { testGetComponent } from "./component-handler-test-utils"
+import { kV2GameType } from "./web-view-defs"
+import { IWebViewModel, isWebViewModel } from "./web-view-model"
+import {
+  kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix
+} from "./web-view-registration"
 
 describe("DataInteractive ComponentHandler WebView and Game", () => {
   const handler = diComponentHandler

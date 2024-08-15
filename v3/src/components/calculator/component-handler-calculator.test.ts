@@ -1,12 +1,12 @@
 import { getSnapshot } from "mobx-state-tree"
-import { isCalculatorModel } from "../../components/calculator/calculator-model"
-import { kCalculatorIdPrefix } from "../../components/calculator/calculator-registration"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
+import { setupTestDataset } from "../../data-interactive/handlers/handler-test-utils"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
-import { testGetComponent } from "./component-handler-test-utils"
-import { setupTestDataset } from "./handler-test-utils"
+import { isCalculatorModel } from "./calculator-model"
+import { kCalculatorIdPrefix } from "./calculator-registration"
 
 describe("DataInteractive ComponentHandler Calculator", () => {
   const handler = diComponentHandler

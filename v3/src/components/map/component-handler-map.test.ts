@@ -1,14 +1,14 @@
 import { getSnapshot } from "mobx-state-tree"
-import { kMapIdPrefix } from "../../components/map/map-defs"
-import "../../components/map/map-registration"
-import { IMapContentModel, isMapContentModel } from "../../components/map/models/map-content-model"
+import { V2Map } from "../../data-interactive/data-interactive-component-types"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
+import { setupTestDataset } from "../../data-interactive/handlers/handler-test-utils"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
-import { V2Map } from "../data-interactive-component-types"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
-import { testGetComponent } from "./component-handler-test-utils"
-import { setupTestDataset } from "./handler-test-utils"
+import { kMapIdPrefix } from "./map-defs"
+import "./map-registration"
+import { IMapContentModel, isMapContentModel } from "./models/map-content-model"
 
 
 describe("DataInteractive ComponentHandler Map", () => {
