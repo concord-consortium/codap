@@ -88,11 +88,21 @@ const webViewComponentHandler: DIComponentHandler = {
     const { URL } = values as V2WebView
     return { content: { type: kWebViewTileType, url: URL } as SetRequired<IWebViewSnapshot, "type"> }
   },
+
   get(content) {
     if (isWebViewModel(content)) {
       const type = content.isPlugin ? kV2GameType : kV2WebViewType
       return { type, URL: content.url } as V2Game | V2WebView
     }
+  },
+
+  update(content, values) {
+    if (isWebViewModel(content)) {
+      const { URL } = values as V2WebView
+      if (URL) content.setUrl(URL)
+    }
+
+    return { success: true }
   }
 }
 registerComponentHandler(kV2GameType, webViewComponentHandler)

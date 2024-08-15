@@ -150,14 +150,30 @@ export const diComponentHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
 
-    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
-    const handler = diComponentHandlers.get(v2Type)
-    if (handler) {
-      // TODO: better error message?
-      return handler.update?.(content, values) ?? errorResult(t("V3.DI.Error.notFound"))
-    }
+    let result: DIHandlerFnResult | undefined
+    component.applyModelChange(() => {
+      // Handle updating generic component features
+      const { cannotClose, dimensions, position, title } = values as V2Component
+      if (cannotClose != null) component.setCannotClose(cannotClose)
+      if (title) component.setTitle(title)
+      // TODO Handle string positions?
+      const _position = position && typeof position !== "string" ? position : undefined
+      if (dimensions || _position) {
+        const row = appState.document.content?.findRowContainingTile(component.id)
+        const freeTileRow = row && isFreeTileRow(row) ? row : undefined
+        if (dimensions) freeTileRow?.setTileDimensions(component.id, dimensions)
+        if (_position) freeTileRow?.setTilePosition(component.id, { x: _position.left, y: _position.top })
+      }
 
-    return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))
+      // Handle updating type specific features
+      const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+      const handler = diComponentHandlers.get(v2Type)
+      if (handler) {
+        result = handler.update?.(content, values) ?? { success: true }
+      }
+    })
+
+    return result ?? errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))
   }
 }
 
