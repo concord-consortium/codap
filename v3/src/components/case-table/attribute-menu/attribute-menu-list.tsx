@@ -148,7 +148,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     {
       itemKey: "DG.TableController.headerMenuItems.deleteAttribute",
       isEnabled: () => {
-        if (!data) return false
+        if (!attribute?.deleteable || !data) return false
 
         // If preventTopLevelReorg is true...
         if (preventTopLevelReorg(data)) {
