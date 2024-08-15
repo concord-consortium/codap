@@ -26,9 +26,7 @@ describe("CellTextEditor", () => {
     expect(editor).toHaveClass("rdg-text-editor")
     await user.keyboard("1")
     fireEvent.blur(editor)
-    // fails for some reason even though the function is clearly called
-    // expect(onRowChange).toHaveBeenCalled()
-    expect(onClose).toHaveBeenCalled()
+    expect(onRowChange).toHaveBeenCalled()
   })
 
   it("should render with dataset", async () => {
@@ -42,8 +40,6 @@ describe("CellTextEditor", () => {
     expect(editor).toHaveClass("rdg-text-editor")
     await user.keyboard("1")
     fireEvent.blur(editor)
-    // fails for some reason even though the function is clearly called
-    // expect(onRowChange).toHaveBeenCalled()
-    expect(onClose).toHaveBeenCalled()
+    expect(onRowChange).toHaveBeenCalled()
   })
 })
