@@ -99,5 +99,8 @@ describe("DataInteractive DataContextHandler", () => {
     expect(dataset.title).toEqual(title)
     expect(dataset.description).toEqual(description)
     expect(dataset.managingControllerId).toBe(tile.id)
+
+    expect(handler.update?.({ dataContext: dataset }, { managingController: "__none__" }).success).toBe(true)
+    expect(dataset.managingControllerId).toBe("")
   })
 })
