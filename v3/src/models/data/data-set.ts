@@ -423,8 +423,8 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .actions(self => ({
-  setManagingControllerId(id: string) {
-    self.managingControllerId = id
+  setManagingControllerId(id?: string) {
+    self.managingControllerId = id ?? ""
   },
   moveAttribute(attributeID: string, options?: IMoveAttributeCollectionOptions): IAttributeChangeResult {
     let removedCollectionId: string | undefined
