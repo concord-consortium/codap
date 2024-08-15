@@ -1,19 +1,20 @@
+import { kTitleBarHeight } from "../../components/constants"
 import { kV2GameType } from "../../components/web-view/web-view-defs"
 import { IWebViewModel, isWebViewModel } from "../../components/web-view/web-view-model"
-import { kWebViewIdPrefix } from "../../components/web-view/web-view-registration"
+import { kDefaultWebViewHeight, kDefaultWebViewWidth, kWebViewIdPrefix } from "../../components/web-view/web-view-registration"
 import { appState } from "../../models/app-state"
+import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { toV3Id } from "../../utilities/codap-utils"
 import { V2Game, V2WebView } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
 import { testGetComponent } from "./component-handler-test-utils"
 
-
 describe("DataInteractive ComponentHandler WebView and Game", () => {
   const handler = diComponentHandler
   const documentContent = appState.document.content!
 
-  it("create and get webView and game work", () => {
+  it("create, get, and update webView and game work", () => {
     // Create a blank webView
     expect(documentContent.tileMap.size).toBe(0)
     const result = handler.create!({}, { type: "webView" })
@@ -45,6 +46,31 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
       const { URL } = values as V2WebView
       expect(URL).toBe((webViewTile.content as IWebViewModel).url)
     })
+
+    // Update webView
+    expect(tile2.cannotClose).toBe(false)
+    expect(tile2.title).toBe("Web Page")
+    const row = appState.document.content?.findRowContainingTile(tile2.id)
+    const freeTileRow = row && isFreeTileRow(row) ? row : undefined
+    const tileLayout = freeTileRow?.getNode(tile2.id)
+    expect(tileLayout?.x).toBe(100)
+    expect(tileLayout?.y).toBe(100)
+    expect(tileLayout?.height).toBe(kDefaultWebViewHeight + kTitleBarHeight)
+    expect(tileLayout?.width).toBe(kDefaultWebViewWidth)
+    const newValue = 50
+    const title = "New Title"
+    expect(handler.update?.({ component: tile2 }, {
+      cannotClose: true,
+      dimensions: { height: newValue, width: newValue },
+      position: { left: newValue, top: newValue },
+      title
+    }).success).toBe(true)
+    expect(tile2.cannotClose).toBe(true)
+    expect(tile2.title).toBe(title)
+    expect(tileLayout?.x).toBe(newValue)
+    expect(tileLayout?.y).toBe(newValue)
+    expect(tileLayout?.height).toBe(newValue)
+    expect(tileLayout?.width).toBe(newValue)
 
     // Create game with url
     const multidataUrl = "https://codap.concord.org/multidata-plugin/"
