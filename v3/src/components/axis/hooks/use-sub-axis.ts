@@ -23,6 +23,7 @@ import { EmptyAxisHelper } from "../helper-models/axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 
 export interface IUseSubAxis {
   subAxisIndex: number
