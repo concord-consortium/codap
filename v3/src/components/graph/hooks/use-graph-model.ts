@@ -3,11 +3,12 @@ import {useCallback, useEffect} from "react"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {matchCirclesToData} from "../../data-display/data-display-utils"
+import { matchCirclesToData } from "../../data-display/data-display-utils"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import {setNiceDomain} from "../utilities/graph-utils"
 import {PixiPoints} from "../../data-display/pixi/pixi-points"
 import {IGraphContentModel} from "../models/graph-content-model"
-import {INumericAxisModel} from "../../axis/models/axis-model"
+import {IBaseNumericAxisModel} from "../../axis/models/axis-model"
 
 interface IProps {
   graphModel: IGraphContentModel
@@ -49,8 +50,9 @@ export function useGraphModel(props: IProps) {
         startAnimation()
         // In case the y-values have changed we rescale
         if (newPlotType === 'scatterPlot') {
-          const values = caseDataArray?.map(({ caseID }) => dataset?.getNumeric(caseID, yAttrID)) as number[]
-          setNiceDomain(values || [], yAxisModel as INumericAxisModel)
+          const values = caseDataArray?.map(({ caseID }) =>
+            dataDisplayGetNumericValue(dataset, caseID, yAttrID)) as number[]
+          setNiceDomain(values || [], yAxisModel as IBaseNumericAxisModel)
         }
       }
     })

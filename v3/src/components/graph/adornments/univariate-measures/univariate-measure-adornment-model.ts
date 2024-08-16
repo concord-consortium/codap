@@ -4,6 +4,7 @@ import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel }
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 
 export const MeasureInstance = types.model("MeasureInstance", {
   labelCoords: types.maybe(PointModel)
@@ -43,7 +44,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       const casesInPlot = dataConfig.subPlotCases(cellKey)
       const caseValues: number[] = []
       casesInPlot.forEach(caseId => {
-        const caseValue = dataset?.getNumeric(caseId, attrId)
+        const caseValue = dataDisplayGetNumericValue(dataset, caseId, attrId)
         if (isFiniteNumber(caseValue)) {
           caseValues.push(caseValue)
         }

@@ -1,6 +1,6 @@
 import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
-import {addDisposer, isAlive} from "mobx-state-tree"
+import {isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
@@ -36,7 +36,6 @@ import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {Adornments} from "../adornments/adornments"
@@ -66,6 +65,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     abovePointsGroupRef = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
+    prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
 
@@ -123,20 +123,46 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
 
-  useEffect(function handleDeleteAttribute() {
-    return dataset && addDisposer(dataset, onAnyAction(dataset, action => {
-      if (isRemoveAttributeAction(action)) {
-        const [attrId] = action.args
-        graphModel.dataConfiguration.rolesForAttribute(attrId).forEach(role => {
-          if (role === "yPlus") {
-            graphModel.dataConfiguration.removeYAttributeWithID(attrId)
-          } else {
-            graphModel.setAttributeID(role as GraphAttrRole, "", "")
+  useEffect(function handleAttributeCollectionMapChange() {
+
+    const constructAttrCollections = () => {
+      const graphAttrs = graphModel.dataConfiguration.attributes
+      const attrCollections: Record<string, string> = {}
+      graphAttrs.forEach(attrId => {
+        const collection = dataset?.getCollectionForAttribute(attrId)?.id
+        collection && (attrCollections[attrId] = collection)
+      })
+      return attrCollections
+    }
+
+    prevAttrCollectionsMapRef.current = constructAttrCollections()
+
+    return dataset && mstReaction(
+      () => {
+        return constructAttrCollections()
+      },
+      attrCollections => {
+        Object.entries(prevAttrCollectionsMapRef.current).forEach(([attrId, collectionId]) => {
+          if (!attrCollections[attrId]) { // attribute was removed
+            graphModel.dataConfiguration.rolesForAttribute(attrId).forEach(role => {
+              if (role === "yPlus") {
+                graphModel.dataConfiguration.removeYAttributeWithID(attrId)
+              } else {
+                graphModel.setAttributeID(role as GraphAttrRole, "", "")
+              }
+            })
+          }
+          else if (attrCollections[attrId] !== collectionId) { // attribute was moved to a different collection
+            // todo: Make sure this works once PT Story https://www.pivotaltracker.com/story/show/188117637 is fixed
+            graphModel.dataConfiguration._updateFilteredCasesCollectionID()
+            graphModel.dataConfiguration._invalidateCases()
+            graphController.callMatchCirclesToData()
           }
         })
-      }
-    }))
-  }, [dataset, graphModel])
+        prevAttrCollectionsMapRef.current = attrCollections
+      }, {name: "handleAttrConfigurationChange", equals: comparer.structural}, dataset
+    )
+  }, [dataset, graphController, graphModel])
 
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
            attrIdToRemove = "") => {

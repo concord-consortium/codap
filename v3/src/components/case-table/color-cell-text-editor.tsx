@@ -78,11 +78,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
 
   const { isOpen: isPaletteOpen, onToggle: togglePalette } = useDisclosure()
 
-  function handleSwatchPointerDown(event: React.PointerEvent) {
-    // prevent blurring the input
-    event.preventDefault()
-  }
-
   function handleSwatchClick(event: React.MouseEvent) {
     togglePalette()
   }
@@ -91,15 +86,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
-  function handleInputBlur() {
-    !isPaletteOpen && acceptValue()
-  }
-
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt
                     value={inputValue}
                     onChange={handleInputColorChange}
-                    onBlur={handleInputBlur}
                   />
 
   return swatchStyle
@@ -113,7 +103,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
           >
             <PopoverTrigger>
               <button className="cell-edit-color-swatch"
-                onPointerDown={handleSwatchPointerDown}
                 onClick={handleSwatchClick}>
                 <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
               </button>

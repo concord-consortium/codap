@@ -88,7 +88,7 @@ export const diDataContextHandler: DIHandler = {
 
         if (managingController) {
           const tile = findTileFromNameOrId(managingController)
-          if (tile) dataContext.setManagingControllerId(tile.id)
+          dataContext.setManagingControllerId(tile?.id)
         }
 
         if (sort?.attr) {

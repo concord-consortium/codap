@@ -158,6 +158,13 @@ export const FreeTileRow = TileRowModel
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
       const freeTileLayout = self.getNode(tileId)
       freeTileLayout?.setSize(dimensions.width, dimensions.height)
+    },
+    setTilePosition(tileId: string, position: { x?: number, y?: number }) {
+      const freeTileLayout = self.getNode(tileId)
+      if (freeTileLayout && (position.x != null || position.y != null)) {
+        const { x = freeTileLayout.x, y = freeTileLayout.y } = position
+        freeTileLayout?.setPosition(x, y)
+      }
     }
   }))
 export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}

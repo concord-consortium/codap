@@ -1,15 +1,15 @@
-import {ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal} from "d3"
-import {reaction} from "mobx"
-import {isAlive} from "mobx-state-tree"
-import {useCallback, useEffect, useRef} from "react"
-import {mstAutorun} from "../../../utilities/mst-autorun"
-import {graphPlaceToAttrRole} from "../../data-display/data-display-types"
-import {maxWidthOfStringsD3} from "../../data-display/data-display-utils"
-import {useDataConfigurationContext} from "../../data-display/hooks/use-data-configuration-context"
-import {AxisPlace, AxisScaleType, axisGap} from "../axis-types"
-import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {IAxisModel, isNumericAxisModel} from "../models/axis-model"
-import {collisionExists, getStringBounds, isScaleLinear} from "../axis-utils"
+import { ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal } from "d3"
+import { reaction } from "mobx"
+import { isAlive } from "mobx-state-tree"
+import { useCallback, useEffect, useRef } from "react"
+import { mstAutorun } from "../../../utilities/mst-autorun"
+import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
+import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
+import { AxisPlace, AxisScaleType, axisGap } from "../axis-types"
+import { useAxisLayoutContext } from "../models/axis-layout-context"
+import { IAxisModel, isDateAxisModel, isNumericAxisModel } from "../models/axis-model"
+import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
@@ -31,14 +31,14 @@ interface IGetTicksProps {
 }
 
 const getTicks = (props: IGetTicksProps) => {
-  const { d3Scale, multiScale, pointDisplayType, displayModel } = props
+  const {d3Scale, multiScale, pointDisplayType, displayModel} = props
   if (!isScaleLinear(d3Scale)) return []
 
-  let ticks: string[] = []
+  let ticks: string[]
   if (pointDisplayType === "bins" && displayModel && multiScale) {
     const formatter = (value: number) => multiScale.formatValueForScale(value)
-    const { tickValues, tickLabels } = displayModel.nonDraggableAxisTicks(formatter)
-    ticks = tickValues.map((tickValue, i) => {
+    const {tickValues, tickLabels} = displayModel.nonDraggableAxisTicks(formatter)
+    ticks = tickValues.map((_tickValue, i) => {
       return tickLabels[i]
     })
   } else {
@@ -48,7 +48,7 @@ const getTicks = (props: IGetTicksProps) => {
   return ticks
 }
 
-export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUseAxis) => {
+export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseAxis) => {
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContext(),
     axisProvider = useAxisProviderContext(),
@@ -98,7 +98,7 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
     let ticks: string[] = []
     switch (type) {
       case 'numeric': {
-        ticks = getTicks({ d3Scale, multiScale, pointDisplayType, displayModel })
+        ticks = getTicks({d3Scale, multiScale, pointDisplayType, displayModel})
         desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
           ? Math.max(getStringBounds(ticks[0]).width, getStringBounds(ticks[ticks.length - 1]).width) + axisGap
           : numbersHeight + axisGap
@@ -108,85 +108,92 @@ export const useAxis = ({ axisPlace, axisTitle = "", centerCategoryLabels }: IUs
         desiredExtent += collision ? maxLabelExtent : getStringBounds().height
         break
       }
-    }
-    return desiredExtent
-  }, [dataConfiguration, axisPlace, axisTitle, multiScale, ordinalScale, categories, centerCategoryLabels, attrRole,
-      type, displayModel])
-
-  // update d3 scale and axis when scale type changes
-  useEffect(() => {
-    if (axisModel) {
-      const disposer = reaction(
-        () => {
-          const {place: aPlace, scale: scaleType} = axisModel
-          return {place: aPlace, scaleType}
-        },
-        ({place: aPlace, scaleType}) => {
-          layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
-        }, {name: "useAxis [scaleType]"}
-      )
-      return () => disposer()
-    }
-  }, [isNumeric, axisModel, layout])
-
-  // update d3 scale and axis when axis domain changes
-  useEffect(function installDomainSync() {
-    if (isNumeric) {
-      return mstAutorun(() => {
-        const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
-        if (_axisModel && !isAlive(_axisModel)) {
-          console.warn("useAxis.installDomainSync skipping sync of defunct axis model")
-          return
+      case 'date': {
+        if (isDateAxisModel(axisModel)) {
+          desiredExtent += getNumberOfLevelsForDateAxis(axisModel.min, axisModel.max) * numbersHeight + axisGap
         }
-        _axisModel?.domain && multiScale?.setNumericDomain(_axisModel?.domain)
-        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      }, { name: "useAxis.installDomainSync" }, axisProvider)
+        break
+      }
     }
-    // Note axisModelChanged as a dependent. Shouldn't be necessary.
-  }, [axisModelChanged, isNumeric, multiScale, axisPlace, layout, computeDesiredExtent, axisProvider])
+  return desiredExtent
+}, [dataConfiguration, axisPlace, axisTitle, multiScale, ordinalScale, categories, centerCategoryLabels,
+            attrRole, type, displayModel, axisModel]
+)
 
-  // update d3 scale and axis when layout/range changes
-  useEffect(() => {
+// update d3 scale and axis when scale type changes
+useEffect(() => {
+  if (axisModel) {
     const disposer = reaction(
       () => {
-        return layout.getAxisLength(axisPlace)
+        const {place: aPlace, scale: scaleType} = axisModel
+        return {place: aPlace, scaleType}
       },
-      () => {
-        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      }, {name: "useAxis [axisRange]"}
+      ({place: aPlace, scaleType}) => {
+        layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
+      }, {name: "useAxis [scaleType]"}
     )
     return () => disposer()
-  }, [axisModel, layout, axisPlace, computeDesiredExtent])
+  }
+}, [isNumeric, axisModel, layout])
 
-  // update d3 scale and axis when pointDisplayType changes
-  useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return displayModel.pointDisplayType
-      },
-      () => {
-        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      }, {name: "useAxis [pointDisplayType]"}
-    )
-    return () => disposer()
-  }, [axisModel, layout, axisPlace, computeDesiredExtent, displayModel.pointDisplayType])
+// update d3 scale and axis when axis domain changes
+useEffect(function installDomainSync() {
+  if (isNumeric) {
+    return mstAutorun(() => {
+      const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
+      if (_axisModel && !isAlive(_axisModel)) {
+        console.warn("useAxis.installDomainSync skipping sync of defunct axis model")
+        return
+      }
+      _axisModel?.domain && multiScale?.setNumericDomain(_axisModel?.domain)
+      layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+    }, {name: "useAxis.installDomainSync"}, axisProvider)
+  }
+  // Note axisModelChanged as a dependent. Shouldn't be necessary.
+}, [axisModelChanged, isNumeric, multiScale, axisPlace, layout, computeDesiredExtent, axisProvider])
 
-  // Set desired extent when things change
-  useEffect(() => {
-    layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-  }, [computeDesiredExtent, axisPlace, attributeID, layout])
+// update d3 scale and axis when layout/range changes
+useEffect(() => {
+  const disposer = reaction(
+    () => {
+      return layout.getAxisLength(axisPlace)
+    },
+    () => {
+      layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+    }, {name: "useAxis [axisRange]"}
+  )
+  return () => disposer()
+}, [axisModel, layout, axisPlace, computeDesiredExtent])
 
-  // Set desired extent when repetitions of my multiscale changes
-  useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return layout.getAxisMultiScale(axisPlace)?.repetitions
-      },
-      () => {
-        layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      }, {name: "useAxis [axis repetitions]"}
-    )
-    return () => disposer()
-  }, [computeDesiredExtent, axisPlace, layout])
+// update d3 scale and axis when pointDisplayType changes
+useEffect(() => {
+  const disposer = reaction(
+    () => {
+      return displayModel.pointDisplayType
+    },
+    () => {
+      layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+    }, {name: "useAxis [pointDisplayType]"}
+  )
+  return () => disposer()
+}, [axisModel, layout, axisPlace, computeDesiredExtent, displayModel.pointDisplayType])
+
+// Set desired extent when things change
+useEffect(() => {
+  layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+}, [computeDesiredExtent, axisPlace, attributeID, layout])
+
+// Set desired extent when repetitions of my multiscale changes
+useEffect(() => {
+  const disposer = reaction(
+    () => {
+      return layout.getAxisMultiScale(axisPlace)?.repetitions
+    },
+    () => {
+      layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+    }, {name: "useAxis [axis repetitions]"}
+  )
+  return () => disposer()
+}, [computeDesiredExtent, axisPlace, layout])
 
 }

@@ -19,7 +19,7 @@ import { IDataConfigurationModel } from "./data-configuration-model"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
 import { IGetTipTextProps } from "../data-tip-types"
-import { IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
+import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
@@ -41,7 +41,7 @@ export const DataDisplayContentModel = TileContentModel
       return false
     },
     hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
-      return isNumericAxisModel(axisModel) && self.pointDisplayType !== "bins"
+      return isBaseNumericAxisModel(axisModel) && self.pointDisplayType !== "bins"
     },
     nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       // derived models should override

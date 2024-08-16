@@ -7,6 +7,7 @@ import { ScaleLinear } from "d3"
 import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
 import { appState } from "../../../models/app-state"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useRef, useState } from "react"
 import { ICase } from "../../../models/data/data-set-types"
 
@@ -42,7 +43,7 @@ export const useDotPlotDragDrop = () => {
     // Record the current values, so we can change them during the drag and restore them when done
     const {selection} = dataConfig || {}
     selection?.forEach((anID: string) => {
-      const itsValue = dataset?.getNumeric(anID, primaryAttrID) || undefined
+      const itsValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) || undefined
       if (itsValue != null) {
         selectedDataObjects.current[anID] = itsValue
       }
@@ -60,7 +61,7 @@ export const useDotPlotDragDrop = () => {
         const caseValues: ICase[] = []
         const {selection} = dataConfig || {}
         selection?.forEach(anID => {
-          const currValue = Number(dataset?.getNumeric(anID, primaryAttrID))
+          const currValue = Number(dataDisplayGetNumericValue(dataset, anID, primaryAttrID))
           if (isFinite(currValue)) {
             caseValues.push({__id__: anID, [primaryAttrID]: currValue + delta})
           }

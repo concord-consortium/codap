@@ -1,6 +1,6 @@
 import { fixYear, isDateString, parseDate } from "./date-parser"
 import { goodTickValue, isFiniteNumber, isNumber } from "./math-utils"
-import { getDefaultLanguage } from "./translation/translate"
+import { getDefaultLanguage, translate } from "./translation/translate"
 
 export enum EDateTimeLevel {
   eSecond = 0,
@@ -30,6 +30,21 @@ export const secondsConverter = {
   kMonth: ((((1000) * 60) * 60) * 24) * 30,
   kYear: ((((1000) * 60) * 60) * 24) * 365
 }
+
+export const shortMonthNames = [
+  'DG.Formula.DateShortMonthJanuary',
+  'DG.Formula.DateShortMonthFebruary',
+  'DG.Formula.DateShortMonthMarch',
+  'DG.Formula.DateShortMonthApril',
+  'DG.Formula.DateShortMonthMay',
+  'DG.Formula.DateShortMonthJune',
+  'DG.Formula.DateShortMonthJuly',
+  'DG.Formula.DateShortMonthAugust',
+  'DG.Formula.DateShortMonthSeptember',
+  'DG.Formula.DateShortMonthOctober',
+  'DG.Formula.DateShortMonthNovember',
+  'DG.Formula.DateShortMonthDecember'
+].map(m => { return translate(m) })
 
 /**
  * 1. Compute the outermost date-time level that changes from the
@@ -203,4 +218,11 @@ export function convertToDate(date: any): Date | null {
     return createDate(Number(date))
   }
   return null
+}
+
+export function stringValuesToDateSeconds(values: string[]): number[] {
+  return values.map(value => {
+    const date = parseDate(value, true)
+    return date ? date.getTime() / 1000 : NaN
+  }).filter(isFiniteNumber)
 }

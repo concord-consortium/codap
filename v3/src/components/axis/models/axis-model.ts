@@ -23,6 +23,12 @@ export const AxisModel = types.model("AxisModel", {
     get isCategorical() {
       return self.type === "categorical"
     },
+    get isDate() {
+      return self.type === "date"
+    },
+    get isBaseNumeric() {
+      return this.isNumeric || this.isDate
+    },
     get isUpdatingDynamically() {
       return false
     }
@@ -68,16 +74,15 @@ export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICa
   return !!axisModel?.isCategorical
 }
 
-export const NumericAxisModel = AxisModel
-  .named("NumericAxisModel")
+export const BaseNumericAxisModel = AxisModel
+  .named("BaseNumericAxisModel")
   .props({
-    type: types.optional(types.literal("numeric"), "numeric"),
     scale: types.optional(types.enumeration([...ScaleTypes]), "linear"),
     lockZero: false,
     min: types.number,
     max: types.number
   })
-  .volatile(self => ({
+  .volatile(_self => ({
     dynamicMin: undefined as number | undefined,
     dynamicMax: undefined as number | undefined
   }))
@@ -116,6 +121,20 @@ export const NumericAxisModel = AxisModel
       self.lockZero = lockZero
     }
   }))
+
+export interface IBaseNumericAxisModel extends Instance<typeof BaseNumericAxisModel> {}
+export interface IBaseNumericAxisModelSnapshot extends SnapshotIn<typeof BaseNumericAxisModel> {}
+
+export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is IBaseNumericAxisModel {
+  return !!axisModel?.isBaseNumeric
+}
+
+export const NumericAxisModel = BaseNumericAxisModel
+  .named("NumericAxisModel")
+  .props({
+    type: types.optional(types.literal("numeric"), "numeric"),
+  })
+
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 export interface INumericAxisModelSnapshot extends SnapshotIn<typeof NumericAxisModel> {}
 
@@ -123,7 +142,19 @@ export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumeri
   return !!axisModel?.isNumeric
 }
 
-export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel)
-export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel
+export const DateAxisModel = BaseNumericAxisModel
+  .named("DateAxisModel")
+  .props({
+    type: types.optional(types.literal("date"), "date"),
+  })
+export interface IDateAxisModel extends Instance<typeof DateAxisModel> {}
+export interface IDateAxisModelSnapshot extends SnapshotIn<typeof DateAxisModel> {}
+
+export function isDateAxisModel(axisModel?: IAxisModel): axisModel is IDateAxisModel {
+  return !!axisModel?.isDate
+}
+
+export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel, DateAxisModel)
+export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel | IDateAxisModel
 export type IAxisModelSnapshotUnion =
-  IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot | INumericAxisModelSnapshot
+  IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot | INumericAxisModelSnapshot | IDateAxisModelSnapshot
