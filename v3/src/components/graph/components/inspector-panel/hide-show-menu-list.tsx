@@ -21,7 +21,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       ),
       {
         undoStringKey: "DG.Undo.hideSelectedCases",
-        redoStringKey: "DG.Redo.hideSelectedCases"
+        redoStringKey: "DG.Redo.hideSelectedCases",
+        log: `Hide ${dataConfig?.selection.length} selected cases`
       }
     )
   }
@@ -33,7 +34,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       ),
       {
         undoStringKey: "DG.Undo.hideUnselectedCases",
-        redoStringKey: "DG.Redo.hideUnselectedCases"
+        redoStringKey: "DG.Redo.hideUnselectedCases",
+        log: "Hide unselected cases"
       }
     )
   }
@@ -49,7 +51,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       },
       {
         undoStringKey: "DG.Undo.displayOnlySelected",
-        redoStringKey: "DG.Redo.displayOnlySelected"
+        redoStringKey: "DG.Redo.displayOnlySelected",
+        log: "Display only selected cases"
       }
     )
   }
@@ -63,7 +66,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       },
       {
         undoStringKey: "DG.Undo.showAllCases",
-        redoStringKey: "DG.Redo.showAllCases"
+        redoStringKey: "DG.Redo.showAllCases",
+        log: "Show all cases"
       }
     )
   }

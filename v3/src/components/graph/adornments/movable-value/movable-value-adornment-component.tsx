@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {drag, select, Selection} from "d3"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {useAxisLayoutContext} from "../../../axis/models/axis-layout-context"
 import {valueLabelString} from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
@@ -134,16 +135,15 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
   const handleDragEnd = useCallback(() => {
     const { isDragging, dragIndex, dragValue } = model
     if (isDragging) {
+      const logFromValue = model.values.get(instanceKey)?.[dragIndex] !== undefined
+                                ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
+                                : 'undefined'
+      const logToValue = Math.round(dragValue *10)/10
       graphModel.applyModelChange(
         () => model.endDrag(dragValue, instanceKey, dragIndex),
-        {
-          undoStringKey: "DG.Undo.graph.moveMovableValue",
+        { undoStringKey: "DG.Undo.graph.moveMovableValue",
           redoStringKey: "DG.Redo.graph.moveMovableValue",
-          log: `Moved value from ${
-                  model.values.get(instanceKey)?.[dragIndex] !== undefined
-                        ? Math.round(model.values.get(instanceKey)![dragIndex] * 10) / 10
-                        : 'undefined'
-                } to ${Math.round(dragValue *10)/10}`
+          log: logMessageWithReplacement("Moved value from %@ to %@", {from: logFromValue, to: logToValue})
         }
       )
     }

@@ -3,6 +3,7 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 // import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
@@ -84,7 +85,7 @@ export const CategoricalLegend = observer(
         currentDragPosition: {x: 0, y: 0}
       }),
       duration = useRef(0)
-
+    const prevCategoryIndex = useRef(0)
     const
       keysElt = useRef(null)
 
@@ -101,31 +102,31 @@ export const CategoricalLegend = observer(
       }
     }, [dataConfiguration])
 
-      const computeLayout = useCallback(() => {
-        categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
-        const numCategories = categoriesRef.current?.length,
-          lod: Layout = layoutData.current
-        lod.fullWidth = tileWidth
-        lod.maxWidth = 0
-        categoriesRef.current?.forEach(cat => {
-          lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
-        })
-        lod.maxWidth += keySize + padding
-        lod.numColumns = Math.max(Math.floor(lod.fullWidth / lod.maxWidth), 1)
-        lod.columnWidth = lod.fullWidth / lod.numColumns
-        lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
-        setCategoryData()
-        layoutData.current = lod
-      }, [dataConfiguration, setCategoryData, tileWidth])
+    const computeLayout = useCallback(() => {
+      categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+      const numCategories = categoriesRef.current?.length,
+        lod: Layout = layoutData.current
+      lod.fullWidth = tileWidth
+      lod.maxWidth = 0
+      categoriesRef.current?.forEach(cat => {
+        lod.maxWidth = Math.max(lod.maxWidth, measureText(cat, kDataDisplayFont))
+      })
+      lod.maxWidth += keySize + padding
+      lod.numColumns = Math.max(Math.floor(lod.fullWidth / lod.maxWidth), 1)
+      lod.columnWidth = lod.fullWidth / lod.numColumns
+      lod.numRows = Math.ceil((numCategories ?? 0) / lod.numColumns)
+      setCategoryData()
+      layoutData.current = lod
+    }, [dataConfiguration, setCategoryData, tileWidth])
 
-      const computeDesiredExtent = useCallback(() => {
-        if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
-          return 0
-        }
-        computeLayout()
-        const lod = layoutData.current
-        return lod.numRows * (keySize + padding) + labelHeight + axisGap
-      }, [computeLayout, dataConfiguration])
+    const computeDesiredExtent = useCallback(() => {
+      if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
+        return 0
+      }
+      computeLayout()
+      const lod = layoutData.current
+      return lod.numRows * (keySize + padding) + labelHeight + axisGap
+    }, [computeLayout, dataConfiguration])
 
     const refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
@@ -201,81 +202,92 @@ export const CategoricalLegend = observer(
       duration.current = 0
     }, [])
 
-      const onDrag = useCallback((event: { dx: number; dy: number }) => {
-        if (event.dx !== 0 || event.dy !== 0) {
-          const dI = dragInfo.current,
-            lod = layoutData.current,
-            numCategories = categoriesRef.current?.length ?? 0,
-            newDragPosition = {
-              x: dI.currentDragPosition.x + event.dx,
-              y: dI.currentDragPosition.y + event.dy
-            },
-            newCatIndex = coordinatesToCatIndex(lod, numCategories, newDragPosition)
-          if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
-            // swap the two categories
-            dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
-            dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
-            categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
-            setCategoryData()
-            dI.indexOfCategory = newCatIndex
-          } else {
-            refreshKeys()
-          }
-          dI.currentDragPosition = newDragPosition
+    const onDrag = useCallback((event: { dx: number; dy: number }) => {
+      if (event.dx !== 0 || event.dy !== 0) {
+        const dI = dragInfo.current,
+          lod = layoutData.current,
+          numCategories = categoriesRef.current?.length ?? 0,
+          newDragPosition = {
+            x: dI.currentDragPosition.x + event.dx,
+            y: dI.currentDragPosition.y + event.dy
+          },
+          newCatIndex = coordinatesToCatIndex(lod, numCategories, newDragPosition)
+        if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory) {
+          // swap the two categories
+          dataConfiguration?.storeAllCurrentColorsForAttrRole('legend')
+          dataConfiguration?.swapCategoriesForAttrRole('legend', dI.indexOfCategory, newCatIndex)
+          categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+          setCategoryData()
+          prevCategoryIndex.current = dI.indexOfCategory
+          dI.indexOfCategory = newCatIndex
+        } else {
+          refreshKeys()
         }
-      }, [dataConfiguration, setCategoryData, refreshKeys])
+        dI.currentDragPosition = newDragPosition
+      }
+    }, [dataConfiguration, setCategoryData, refreshKeys])
 
-      const onDragEnd = useCallback(() => {
-        duration.current = transitionDuration
-        dragInfo.current.indexOfCategory = -1
-        refreshKeys()
-      }, [refreshKeys])
-     const dragBehavior = useMemo(() => drag<SVGGElement, number>()
-        .on("start", onDragStart)
-        .on("drag", onDrag)
-        .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
-     const setupKeys = useCallback(() => {
-        categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
-        const numCategories = categoriesRef.current?.length
-        const hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__")
-        if (keysElt.current && categoryData.current) {
-          select(keysElt.current).selectAll('legend-key').remove() // start fresh
+    const onDragEnd = useCallback(() => {
+      duration.current = transitionDuration
+      dragInfo.current.indexOfCategory = -1
+      refreshKeys()
 
-          if (hasCategories) {
-            const keysSelection = select(keysElt.current)
-              .selectAll<SVGGElement, number>('g')
-              .data(range(0, numCategories ?? 0))
-              .join(
-                enter => enter
-                  .append('g')
-                  .attr('class', 'legend-key')
-                  .attr('data-testid', 'legend-key')
-                  .call(dragBehavior)
-              )
-            keysSelection.each(function () {
-              const sel = select<SVGGElement, number>(this),
-                size = sel.selectAll<SVGRectElement, number>('rect').size()
-              if (size === 0) {
-                const handleClick = (event: any, i: number) => {
-                  const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
-                  if (caseIds) {
-                    // This is breaking the graph-legend cypress test
-                    // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
-                    if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
-                    else dataConfiguration?.dataset?.setSelectedCases(caseIds)
-                  }
+      dataConfiguration?.applyModelChange(() => {}, {
+        undoStringKey: 'DG.Undo.graph.swapCategories',
+        redoStringKey: 'DG.Redo.graph.swapCategories',
+        log: logMessageWithReplacement(
+              "Moved category %@ into position of %@",
+              { movedCategory: categoriesRef.current?.[dragInfo.current.indexOfCategory],
+                targetCategory: categoriesRef.current?.[prevCategoryIndex.current] })
+      })
+    }, [dataConfiguration, refreshKeys])
+
+    const dragBehavior = useMemo(() => drag<SVGGElement, number>()
+      .on("start", onDragStart)
+      .on("drag", onDrag)
+      .on("end", onDragEnd), [onDrag, onDragEnd, onDragStart])
+    const setupKeys = useCallback(() => {
+      categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+      const numCategories = categoriesRef.current?.length
+      const hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__")
+      if (keysElt.current && categoryData.current) {
+        select(keysElt.current).selectAll('legend-key').remove() // start fresh
+
+        if (hasCategories) {
+          const keysSelection = select(keysElt.current)
+            .selectAll<SVGGElement, number>('g')
+            .data(range(0, numCategories ?? 0))
+            .join(
+              enter => enter
+                .append('g')
+                .attr('class', 'legend-key')
+                .attr('data-testid', 'legend-key')
+                .call(dragBehavior)
+            )
+          keysSelection.each(function () {
+            const sel = select<SVGGElement, number>(this),
+              size = sel.selectAll<SVGRectElement, number>('rect').size()
+            if (size === 0) {
+              const handleClick = (event: any, i: number) => {
+                const caseIds = dataConfiguration?.getCasesForLegendValue(categoryData.current[i].category)
+                if (caseIds) {
+                  // This is breaking the graph-legend cypress test
+                  // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
+                  if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
+                  else dataConfiguration?.dataset?.setSelectedCases(caseIds)
                 }
-                sel.append('rect')
-                  .attr('width', keySize)
-                  .attr('height', keySize)
-                  .on('click', handleClick)
-                sel.append('text')
-                  .on('click', handleClick)
               }
-            })
-          }
+              sel.append('rect')
+                .attr('width', keySize)
+                .attr('height', keySize)
+                .on('click', handleClick)
+              sel.append('text')
+                .on('click', handleClick)
+            }
+          })
         }
-      }, [dataConfiguration, dragBehavior])
+      }
+    }, [dataConfiguration, dragBehavior])
 
     useEffect(function respondToSelectionChange() {
       return onAnyAction(dataset, action => {

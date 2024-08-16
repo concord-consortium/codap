@@ -23,6 +23,7 @@ import { EmptyAxisHelper } from "../helper-models/axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -51,6 +52,7 @@ export const useSubAxis = ({
       initialOffset: 0,
       currentOffset: 0,
       currentDragPosition: 0,
+      currentDragPositionCatName: '',
       categories: [],
       bandwidth: 0,
       axisOrientation: 'horizontal',
@@ -136,6 +138,7 @@ export const useSubAxis = ({
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
+          dI.currentDragPositionCatName = catToMoveBefore
         } else {
           renderSubAxis()
         }
@@ -148,7 +151,15 @@ export const useSubAxis = ({
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
       stopAnimation() // disable animation for final placement
       renderSubAxis()
-    }, [stopAnimation, renderSubAxis]),
+      displayModel.applyModelChange(() => {},
+        { undoStringKey: "DG.Undo.graph.swapCategories",
+          redoStringKey: "DG.Redo.graph.swapCategories",
+          log: logMessageWithReplacement(
+                "Moved category %@ into position of %@",
+                {movedCategory: dI.catName, targetCategory: dI.currentDragPositionCatName})
+        }
+      )
+    }, [stopAnimation, renderSubAxis, displayModel]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)

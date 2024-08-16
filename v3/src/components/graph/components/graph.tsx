@@ -4,6 +4,7 @@ import {isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
@@ -18,7 +19,7 @@ import {DroppablePlot} from "./droppable-plot"
 import {ScatterDots} from "./scatterdots"
 import {CaseDots} from "./casedots"
 import {DotChart} from "./dot-chart"
-import { DotPlotDots } from "./dotplotdots"
+import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "../../data-display/components/marquee"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
@@ -163,17 +164,23 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     )
   }, [dataset, graphController, graphModel])
 
-  const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
+  const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
+           attrIdToRemove = "") => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
+    const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+
     graphModel.applyModelChange(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       {
         undoStringKey: "DG.Undo.axisAttributeChange",
-        redoStringKey: "DG.Redo.axisAttributeChange"
+        redoStringKey: "DG.Redo.axisAttributeChange",
+        log: logStringifiedObjectMessage(
+              attrIdToRemove ? "attributeRemoved: %@" : "attributeAssigned: %@",
+              { attribute: attrName, axis: place })
       }
     )
-  }, [graphModel])
+  }, [dataset, graphModel])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
@@ -186,17 +193,21 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
       setNiceDomain(yValues, yAxisModel, graphModel.axisDomainOptions)
     } else {
-      dataset && handleChangeAttribute(place, dataset, '')
+      dataset && handleChangeAttribute(place, dataset, '', idOfAttributeToRemove)
     }
   }, [dataset, graphModel, handleChangeAttribute])
 
   const handleTreatAttrAs = useCallback((place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
+    const attrName = dataset?.getAttribute(_attrId)?.name
     dataset && graphModel.applyModelChange(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       graphController?.handleAttributeAssignment()
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
-      redoStringKey: "V3.Redo.attributeTreatAs"
+      redoStringKey: "V3.Redo.attributeTreatAs",
+      log: logStringifiedObjectMessage(
+            "plotAxisAttributeChangeType: %@",
+            {axis: place, attribute: attrName, numeric: treatAs === 'numeric'})
     })
   }, [dataset, graphController, graphModel])
 
