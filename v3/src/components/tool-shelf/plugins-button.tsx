@@ -1,30 +1,34 @@
 import React from "react"
-import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
+import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
-import { PluginData, useStandardPlugins } from "../../hooks/use-standard-plugins"
+import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
-import { IWebViewModel } from "../web-view/web-view-model"
+import { isWebViewModel } from "../web-view/web-view-model"
 import { kRootPluginUrl, processPluginUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
+import { PluginData, PluginMenuConfig } from "./plugin-config-types"
+import _standardPlugins from "./standard-plugins.json"
+const standardPlugins = _standardPlugins as PluginMenuConfig
 
 import "./plugins-button.scss"
 
 interface IPluginItemProps {
-  pluginData: PluginData
+  pluginData: PluginData | null
 }
 function PluginItem({ pluginData }: IPluginItemProps) {
   const documentContent = useDocumentContent()
 
   function handleClick() {
+    if (!pluginData) return
     documentContent?.applyModelChange(
       () => {
         const baseUrl = `${kRootPluginUrl}${pluginData.path}`
         const url = processPluginUrl(baseUrl)
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
-        if (tile) (tile.content as IWebViewModel).setUrl(url)
+        if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
       }, {
         undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
         redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] })
@@ -32,7 +36,7 @@ function PluginItem({ pluginData }: IPluginItemProps) {
     )
   }
 
-  return (
+  return pluginData ? (
     <MenuItem
       data-testid="tool-shelf-plugins-option"
       onClick={handleClick}
@@ -42,11 +46,13 @@ function PluginItem({ pluginData }: IPluginItemProps) {
         <span className="plugin-selection-title">{pluginData.title}</span>
       </div>
     </MenuItem>
-  )
+  ) : <MenuDivider/>
 }
 
 export function PluginsButton() {
-  const { plugins } = useStandardPlugins()
+  const { plugins: remotePlugins } = useRemotePluginsConfig()
+  const pluginItems: Array<PluginData | null> =
+          remotePlugins.length ? [...standardPlugins, null, ...remotePlugins] : standardPlugins
 
   return (
     <Menu isLazy>
@@ -60,8 +66,8 @@ export function PluginsButton() {
       </MenuButton>
       <MenuList>
         {
-          plugins.length
-            ? plugins.map(pd => <PluginItem key={pd.title} pluginData={pd} />)
+          pluginItems.length
+            ? pluginItems.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
             : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
         }
       </MenuList>
