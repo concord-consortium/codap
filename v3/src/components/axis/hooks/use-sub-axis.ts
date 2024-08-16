@@ -56,12 +56,12 @@ export const useSubAxis = ({
       axisOrientation: 'horizontal',
       labelOrientation: 'horizontal'
     }),
-    helperProps =
-      {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating},
     swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
     axisHelper = useMemo(() => {
+      const helperProps =
+        {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
       let helper: EmptyAxisHelper | NumericAxisHelper | CategoricalAxisHelper | undefined = undefined
       if (axisModel) {
         switch (axisModel.type) {
@@ -83,8 +83,8 @@ export const useSubAxis = ({
         }
       }
       return helper
-    }, [axisModel, axisPlace, displayModel, layout, subAxisElt, subAxisIndex,
-      showScatterPlotGridLines, isAnimating, centerCategoryLabels]),
+    }, [displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating,
+      showScatterPlotGridLines, centerCategoryLabels]),
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)

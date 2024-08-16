@@ -294,7 +294,10 @@ export const DataConfigurationModel = types
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.allCaseIDs)
         const allValues = attrID
-          ? allCaseIDs.map((anID: string) => dataDisplayGetNumericValue(dataset, anID, attrID)) : []
+          ? allCaseIDs.map((anID: string) => {
+            const value = dataDisplayGetNumericValue(dataset, anID, attrID)
+            return isFiniteNumber(value) ? value : null
+          }) : []
         return allValues.filter(aValue => aValue != null)
       }
     }),

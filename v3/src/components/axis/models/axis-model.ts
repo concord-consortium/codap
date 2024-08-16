@@ -26,7 +26,7 @@ export const AxisModel = types.model("AxisModel", {
     get isDate() {
       return self.type === "date"
     },
-    get isAbstractNumeric() {
+    get isBaseNumeric() {
       return this.isNumeric || this.isDate
     },
     get isUpdatingDynamically() {
@@ -126,7 +126,7 @@ export interface IBaseNumericAxisModel extends Instance<typeof BaseNumericAxisMo
 export interface IBaseNumericAxisModelSnapshot extends SnapshotIn<typeof BaseNumericAxisModel> {}
 
 export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is IBaseNumericAxisModel {
-  return !!axisModel?.isAbstractNumeric
+  return !!axisModel?.isBaseNumeric
 }
 
 export const NumericAxisModel = BaseNumericAxisModel

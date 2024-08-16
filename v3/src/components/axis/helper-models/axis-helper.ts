@@ -1,6 +1,6 @@
 import { select } from "d3"
 import { isVertical } from "../../axis-graph-shared"
-import { AxisBounds, AxisPlace, axisPlaceToAxisFn } from "../axis-types"
+import { AxisBounds, axisPlaceToAxisFn } from "../axis-types"
 import { IAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
@@ -23,7 +23,6 @@ export class AxisHelper {
   layout: IAxisLayout
   isAnimating: () => boolean
   multiScale: MultiScale | undefined
-  axisPlace: AxisPlace
 
   constructor(props: IAxisHelperArgs) {
     this.displayModel = props.displayModel
@@ -32,8 +31,11 @@ export class AxisHelper {
     this.axisModel = props.axisModel
     this.layout = props.layout
     this.isAnimating = props.isAnimating
-    this.axisPlace = props.axisModel.place
     this.multiScale = this.layout.getAxisMultiScale(this.axisPlace)
+  }
+
+  get axisPlace() {
+    return this.axisModel.place
   }
 
   get dataConfig() {

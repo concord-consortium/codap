@@ -176,7 +176,7 @@ const getNextLevelLabelForValue = (level: EDateTimeLevel, date: Date | null) => 
   return getLevelLabelForValue(level, tNextDate)
 }
 
-interface IDateAxisHelperArgs extends IAxisHelperArgs {
+export interface IDateAxisHelperArgs extends IAxisHelperArgs {
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
 }
 
@@ -258,7 +258,6 @@ export class DateAxisHelper extends AxisHelper {
       }
 
       const drawInnerLabels = (level: EDateTimeLevel, iIncrement: number) => {
-        const axisWidth = this.layout.getComputedBounds(this.axisPlace)?.width ?? 0
 
         const getLabelForIncrementedDateAtLevel = (iLevel: number, iDate: Date, iIncrementBy: number) => {
           let tResultDate: Date = new Date(),
