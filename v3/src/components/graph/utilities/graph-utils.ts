@@ -5,7 +5,7 @@ import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-point
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
-import {IAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
+import { IAxisModel, isDateAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
   from "../../../utilities/color-utils"
@@ -62,6 +62,11 @@ export function setNiceDomain(values: number[], axisModel: IAxisModel, options?:
       niceMin = 0
     }
     axisModel.setDomain(niceMin, niceMax)
+  }
+  else if (isDateAxisModel(axisModel)) {
+    const [minDateAsSecs, maxDateAsSecs] = extent(values, d => d) as [number, number],
+      addend = 0.1 * Math.abs(maxDateAsSecs - minDateAsSecs)
+    axisModel.setDomain(minDateAsSecs - addend, maxDateAsSecs + addend)
   }
 }
 
