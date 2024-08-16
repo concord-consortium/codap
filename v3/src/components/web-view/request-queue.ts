@@ -3,14 +3,11 @@ import { DIRequest, DIRequestCallback } from "../../data-interactive/data-intera
 
 type RequestPair = { request: DIRequest, callback: DIRequestCallback }
 export class RequestQueue {
+  @observable
   requestQueue: Array<RequestPair> = []
 
   constructor() {
-    makeObservable(this, {
-      requestQueue: observable,
-      push: action,
-      shift: action
-    })
+    makeObservable(this)
   }
 
   get length() {
@@ -21,10 +18,12 @@ export class RequestQueue {
     return this.requestQueue[0]
   }
 
+  @action
   push(pair: RequestPair) {
     this.requestQueue.push(pair)
   }
 
+  @action
   shift() {
     return this.requestQueue.shift()
   }
