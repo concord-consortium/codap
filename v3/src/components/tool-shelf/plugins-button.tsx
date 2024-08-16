@@ -24,7 +24,8 @@ function PluginItem({ pluginData }: IPluginItemProps) {
     if (!pluginData) return
     documentContent?.applyModelChange(
       () => {
-        const baseUrl = `${kRootPluginUrl}${pluginData.path}`
+        const isRelativeUrl = pluginData.path.startsWith("/")
+        const baseUrl = isRelativeUrl ? `${kRootPluginUrl}${pluginData.path}` : pluginData.path
         const url = processPluginUrl(baseUrl)
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
