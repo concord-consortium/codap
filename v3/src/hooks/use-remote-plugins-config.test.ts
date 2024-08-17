@@ -1,6 +1,14 @@
 import { renderHook, waitFor } from "@testing-library/react"
 import { useRemotePluginsConfig } from "./use-remote-plugins-config"
 
+// mock urlParams to have a morePlugins parameter
+// url doesn't matter since response is mocked below
+jest.mock("../utilities/url-params", () => ({
+  urlParams: {
+    morePlugins: "https://codap-resources.s3.amazonaws.com/plugins/published-plugins.json"
+  }
+}))
+
 describe("useStandardPlugins", () => {
 
   it("handles fetch throwing an error", async () => {

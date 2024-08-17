@@ -4,7 +4,10 @@ import { PluginMenuConfig } from "../components/tool-shelf/plugin-config-types"
 import { urlParams } from "../utilities/url-params"
 
 export function useRemotePluginsConfig() {
-  const morePluginsUrl = useMemo(() => `${urlParams.morePlugins}`, [])
+  const morePluginsParam = urlParams.morePlugins
+  const morePluginsUrl = useMemo(() => {
+    return typeof morePluginsParam === "string" ? morePluginsParam : undefined
+  }, [morePluginsParam])
   const [status, setStatus] = useState<"initial" | "pending" | "complete" | "error">("initial")
   const [plugins, setPlugins] = useState<PluginMenuConfig>([])
 
@@ -23,8 +26,10 @@ export function useRemotePluginsConfig() {
       }
     }
 
-    // TODO: retry periodically on failure; perhaps a built-in default configuration
-    retrievePluginMenuConfig(morePluginsUrl)
+    // TODO: retry periodically on failure?
+    if (morePluginsUrl) {
+      retrievePluginMenuConfig(morePluginsUrl)
+    }
   }, [morePluginsUrl])
 
   return { status, plugins }
