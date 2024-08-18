@@ -84,6 +84,10 @@ export class AxisHelper {
       .style("stroke-opacity", "0.7")
   }
 
+  render() {
+    /* istanbul ignore next */
+    throw new Error("Subclass should override")
+  }
 }
 
 export class EmptyAxisHelper extends AxisHelper {

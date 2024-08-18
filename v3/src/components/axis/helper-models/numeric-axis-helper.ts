@@ -57,11 +57,9 @@ export class NumericAxisHelper extends AxisHelper {
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }
-    select(this.subAxisElt)
+    this.subAxisElt && select(this.subAxisElt)
       .attr("transform", this.initialTransform)
       .transition().duration(duration)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore types are incompatible
       .call(axisScale).selectAll("line,path")
       .style("stroke", "lightgrey")
       .style("stroke-opacity", "0.7")

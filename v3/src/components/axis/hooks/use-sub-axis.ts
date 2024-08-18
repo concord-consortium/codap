@@ -19,7 +19,7 @@ import { setNiceDomain } from "../../graph/utilities/graph-utils"
 import { DragInfo } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
-import { EmptyAxisHelper } from "../helper-models/axis-helper"
+import { AxisHelper, EmptyAxisHelper } from "../helper-models/axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
@@ -31,6 +31,25 @@ export interface IUseSubAxis {
   subAxisElt: SVGGElement | null
   showScatterPlotGridLines: boolean
   centerCategoryLabels: boolean
+}
+
+// associate axis helpers with axis models
+const sAxisHelpers = new WeakMap<IAxisModel, AxisHelper[]>()
+
+function getAxisHelper(axisModel: IAxisModel, subAxisIndex: number) {
+  return sAxisHelpers.get(axisModel)?.[subAxisIndex]
+}
+
+function setAxisHelper(axisModel: IAxisModel, subAxisIndex: number, axisHelper: AxisHelper) {
+  let axisHelpers = sAxisHelpers.get(axisModel)
+  if (axisHelpers) {
+    axisHelpers[subAxisIndex] = axisHelper
+  }
+  else {
+    axisHelpers = []
+    axisHelpers[subAxisIndex] = axisHelper
+    sAxisHelpers.set(axisModel, axisHelpers)
+  }
 }
 
 export const useSubAxis = ({
@@ -61,32 +80,6 @@ export const useSubAxis = ({
     swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
-    axisHelper = useMemo(() => {
-      const helperProps =
-        {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
-      let helper: EmptyAxisHelper | NumericAxisHelper | CategoricalAxisHelper | undefined = undefined
-      if (axisModel) {
-        switch (axisModel.type) {
-          case 'empty':
-            helper = new EmptyAxisHelper(helperProps)
-            break
-          case 'numeric':
-            helper = new NumericAxisHelper(
-              { ... helperProps, showScatterPlotGridLines})
-            break
-          case 'categorical':
-            helper = new CategoricalAxisHelper(
-              { ...helperProps, centerCategoryLabels, dragInfo,
-                subAxisSelectionRef, categoriesSelectionRef, swapInProgress })
-            break
-          case 'date':
-            subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
-            helper = new DateAxisHelper({...helperProps, subAxisSelectionRef})
-        }
-      }
-      return helper
-    }, [displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating,
-      showScatterPlotGridLines, centerCategoryLabels]),
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
@@ -97,8 +90,8 @@ export const useSubAxis = ({
       const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
-      axisHelper?.render()
-    }, [axisProvider, axisPlace, layout, axisHelper]),
+      _axisModel && getAxisHelper(_axisModel, subAxisIndex)?.render()
+    }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {
       const dI = dragInfo.current
@@ -214,6 +207,34 @@ export const useSubAxis = ({
       })
 
     }, [axisPlace, dataConfig, dragBehavior, subAxisElt])
+
+  // update axis helper
+  useEffect(() => {
+    let helper: Maybe<AxisHelper>
+    const helperProps =
+      {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
+    if (axisModel) {
+      switch (axisModel.type) {
+        case 'empty':
+          helper = new EmptyAxisHelper(helperProps)
+          break
+        case 'numeric':
+          helper = new NumericAxisHelper(
+            { ...helperProps, showScatterPlotGridLines })
+          break
+        case 'categorical':
+          helper = new CategoricalAxisHelper(
+            { ...helperProps, centerCategoryLabels, dragInfo,
+              subAxisSelectionRef, categoriesSelectionRef, swapInProgress })
+          break
+        case 'date':
+          subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
+          helper = new DateAxisHelper({ ...helperProps, subAxisSelectionRef })
+      }
+    }
+    if (helper) setAxisHelper(axisModel, subAxisIndex, helper)
+  }, [axisModel, centerCategoryLabels, displayModel, isAnimating, layout,
+      showScatterPlotGridLines, subAxisElt, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
