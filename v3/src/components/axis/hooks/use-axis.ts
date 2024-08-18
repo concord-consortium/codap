@@ -3,6 +3,7 @@ import { reaction } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import { mstAutorun } from "../../../utilities/mst-autorun"
+import { mstReaction } from "../../../utilities/mst-reaction"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
@@ -154,13 +155,13 @@ useEffect(function installDomainSync() {
 
 // update d3 scale and axis when layout/range changes
 useEffect(() => {
-  const disposer = reaction(
+  const disposer = mstReaction(
     () => {
       return layout.getAxisLength(axisPlace)
     },
     () => {
       layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-    }, {name: "useAxis [axisRange]"}
+    }, {name: "useAxis [axisRange]"}, axisModel
   )
   return () => disposer()
 }, [axisModel, layout, axisPlace, computeDesiredExtent])
