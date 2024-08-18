@@ -229,7 +229,7 @@ export const useSubAxis = ({
           break
         case 'date':
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
-          helper = new DateAxisHelper({ ...helperProps, subAxisSelectionRef })
+          helper = new DateAxisHelper({ ...helperProps, showScatterPlotGridLines, subAxisSelectionRef })
       }
     }
     if (helper) setAxisHelper(axisModel, subAxisIndex, helper)
