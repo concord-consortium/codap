@@ -9,6 +9,7 @@ import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
@@ -51,7 +52,8 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       webViewModel?.setDataInteractiveController(rpcEndpoint)
 
       const disposer = autorun(() => {
-        if (requestQueue.length > 0) {
+        const canProcessRequest = !uiState.editingTable
+        if (canProcessRequest && requestQueue.length > 0) {
           const { request, callback } = requestQueue.nextItem
           debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
           let result: DIRequestResponse = { success: false }

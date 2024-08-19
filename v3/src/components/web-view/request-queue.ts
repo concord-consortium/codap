@@ -3,7 +3,7 @@ import { DIRequest, DIRequestCallback } from "../../data-interactive/data-intera
 
 type RequestPair = { request: DIRequest, callback: DIRequestCallback }
 export class RequestQueue {
-  @observable
+  @observable.shallow
   requestQueue: Array<RequestPair> = []
 
   constructor() {

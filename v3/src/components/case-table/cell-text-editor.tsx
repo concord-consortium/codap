@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { selectAllCases } from "../../models/data/data-set-utils"
+import { uiState } from "../../models/ui-state"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -20,6 +21,7 @@ import { TRenderEditCellProps } from "./case-table-types"
 function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.focus()
   input?.select()
+  uiState.setEditingTable(true)
 }
 
 export default function CellTextEditor({ row, column, onRowChange, onClose }: TRenderEditCellProps) {
@@ -36,12 +38,15 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     onRowChange({ ...row, [column.key]: value })
   }
 
+  const handleBlur = () => uiState.setEditingTable(false)
+
   return (
     <input
       data-testid="cell-text-editor"
       className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
+      onBlur={handleBlur}
       onChange={(event) => handleChange(event.target.value)}
     />
   )

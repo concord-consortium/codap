@@ -6,6 +6,7 @@ import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "re
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { selectAllCases } from "../../models/data/data-set-utils"
+import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
@@ -27,6 +28,7 @@ import { ColorPicker } from "./color-picker"
 function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.focus()
   input?.select()
+  uiState.setEditingTable(true)
 }
 
 const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'>((props, ref) => {
@@ -86,9 +88,14 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
+  function handleBlur() {
+    uiState.setEditingTable(false)
+  }
+
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt
                     value={inputValue}
+                    onBlur={handleBlur}
                     onChange={handleInputColorChange}
                   />
 

@@ -12,6 +12,9 @@ export class UIState {
   private focusTileId = ""
   @observable
   private hoverTileId = ""
+  // the id of the table the user is currently editing
+  @observable
+  private _editingTable = false
   // rulerState is used by graph inspector to manage the visibility univariate measure groups
   @observable
   rulerState: RulerState = {
@@ -33,6 +36,10 @@ export class UIState {
     return this.hoverTileId
   }
 
+  get editingTable() {
+    return this._editingTable
+  }
+
   isFocusedTile(tileId?: string) {
     return this.focusTileId === tileId
   }
@@ -49,6 +56,11 @@ export class UIState {
   @action
   setHoveredTile(tileId = "") {
     this.hoverTileId = tileId
+  }
+
+  @action
+  setEditingTable(editingTable = false) {
+    this._editingTable = editingTable
   }
 
   getRulerStateVisibility(key: RulerStateKey) {
