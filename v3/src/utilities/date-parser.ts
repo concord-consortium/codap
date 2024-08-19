@@ -1,3 +1,4 @@
+import { isStdISODateString, parseStdISODateString } from "./date-iso-utils"
 import { isFiniteNumber } from "./math-utils"
 import { t } from "./translation/translate"
 
@@ -244,6 +245,9 @@ export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
     return iValue
   }
   iValue = String(iValue)
+  if (isStdISODateString(iValue)) {
+    return parseStdISODateString(iValue)
+  }
   let match
   let dateSpec: DateSpec | false
   let groupMap: GroupMap | null = null
@@ -307,13 +311,4 @@ export function isDateString(iValue: any, iLoose?: boolean) {
     }
     return spec.regex.test(iValue)
   }) || (!!iLoose && parseDateV3(iValue) != null)
-}
-
-// Regular expression to match ISO 8601 date strings as produced by Date.toISOString.
-// Note that this regular expression is more strict than the one used in parseDate (isoDateTimeRE) which supports
-// additional formats.
-const browserIsoDatePattern = /^([+-]\d{6}|\d{4})-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/
-
-export function isBrowserISOString(value: string): boolean {
-  return browserIsoDatePattern.test(value)
 }
