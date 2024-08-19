@@ -14,12 +14,8 @@ const newCollectionName = "New Dataset"
 
 beforeEach(() => {
   // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-  cy.log('Starting test setup')
   const queryParams = "?sample=mammals&scrollBehavior=auto"
   const url = `${Cypress.config("index")}${queryParams}`
-  cy.intercept("GET", "https://codap-resources.s3.amazonaws.com/plugins/published-plugins.json", {
-    fixture: "mockPublishedPlugins.json"
-  })
   cy.visit(url)
   cy.wait(1000)
   table.getNumOfAttributes().should("equal", numOfAttributes.toString())
@@ -28,7 +24,6 @@ beforeEach(() => {
     lastRowIndex = Number($cases) - 1
     middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
   })
-  cy.log('Setup complete')
 })
 
 context("case table ui", () => {

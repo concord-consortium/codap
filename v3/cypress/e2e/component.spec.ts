@@ -2,12 +2,10 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 
 context("Component UI", () => {
   beforeEach(function () {
-    cy.log('Starting test setup')
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
-    cy.log('Setup complete')
   })
 
   it("moves components by dragging", () => {

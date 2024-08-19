@@ -6,12 +6,10 @@ const calculatorName = "Calculator"
 
 context("Calculator", () => {
   beforeEach(function () {
-      cy.log('Starting test setup')
       const queryParams = "?sample=mammals&dashboard&mouseSensor"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(2500) // Ensuring the page and components are fully loaded.
-      cy.log('Setup complete')
   })
   it("populates default title", () => {
     c.getComponentTitle("calculator").should("contain", calculatorName)

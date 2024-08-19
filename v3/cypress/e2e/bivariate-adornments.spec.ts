@@ -4,12 +4,10 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 
 context("Graph adornments", () => {
   beforeEach(function () {
-    cy.log('Starting test setup')
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
-    cy.log('Setup complete')
   })
 
   it("adds a least squares line to graph when Least Squares Line checkbox is checked", () => {

@@ -3,13 +3,11 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 
 context("attribute types", () => {
   beforeEach(() => {
-    cy.log('Starting test setup')
     const filename = "cypress/fixtures/attribute-types.codap"
     const url = `${Cypress.config("index")}`
     cy.visit(url)
     cy.wait(3000)
     cfm.openLocalDoc(filename)
-    cy.log('Setup complete')
   })
 
   describe("attribute types are rendered correctly", () => {
