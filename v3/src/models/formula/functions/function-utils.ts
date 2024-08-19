@@ -1,6 +1,7 @@
 import { MathNode } from "mathjs"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
+import { checkDate } from "../../../utilities/date-utils"
 import { isValueNonEmpty } from "../../../utilities/math-utils"
+import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { CurrentScope, MathJSPartitionedMap } from "../formula-types"
 export { isNumber, isValueNonEmpty } from "../../../utilities/math-utils"
 
@@ -12,6 +13,11 @@ export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !==
 
 export const
 equal = (a: any, b: any): boolean => {
+  // Date objects are compared numerically as seconds
+    const [isADate, aDate] = checkDate(a)
+    const [isBDate, bDate] = checkDate(b)
+    if (isADate) a = aDate.valueOf() / 1000
+    if (isBDate) b = bDate.valueOf() / 1000
   // Checks below might seem redundant once the data set cases start using typed values, but they are not.
   // Note that user might still compare a string with a number unintentionally, and it makes sense to try to cast
   // values when possible, so that the comparison can be performed without forcing users to think about types.

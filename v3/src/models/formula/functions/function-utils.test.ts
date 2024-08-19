@@ -25,6 +25,8 @@ describe("equal", () => {
     expect(equal("1", "1")).toBe(true)
     expect(equal(true, "true")).toBe(true)
     expect(equal("true", true)).toBe(true)
+    const now = new Date()
+    expect(equal(now, new Date(now))).toBe(true)
   })
 
   it("should return false for unequal values", () => {
@@ -35,6 +37,8 @@ describe("equal", () => {
     expect(equal(true, "false")).toBe(false)
     expect(equal("true", false)).toBe(false)
     expect(equal(true, 1)).toBe(false)
+    const now = new Date()
+    expect(equal(now, new Date(Date.now() + 3600))).toBe(false)
   })
 })
 

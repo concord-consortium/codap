@@ -122,6 +122,13 @@ export function isDate(iValue: any): iValue is Date {
   return iValue instanceof Date
 }
 
+// returns whether the specified value is interpretable as a date, and if so its date value
+export function checkDate(value: any): [false] | [true, Date] {
+  if (value instanceof Date) return [true, value]
+  const result = parseDate(value)
+  return result ? [true, result] : [false]
+}
+
 /**
  * Default formatting for Date objects.
  * @param date {Date | number | string | null }
@@ -130,8 +137,8 @@ export function isDate(iValue: any): iValue is Date {
  */
 export function formatDate(x: Date | number | string | null, precision: DatePrecision = DatePrecision.None):
   string | null {
-  const formatPrecisions: Record<DatePrecision, any> = {
-    [DatePrecision.None]: null,
+  const formatPrecisions: Record<DatePrecision, Intl.DateTimeFormatOptions> = {
+    [DatePrecision.None]: {},
     [DatePrecision.Year]: { year: 'numeric' },
     [DatePrecision.Month]: { year: 'numeric', month: 'numeric' },
     [DatePrecision.Day]: { year: 'numeric', month: 'numeric', day: 'numeric' },
@@ -140,7 +147,7 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
     [DatePrecision.Second]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
       second: 'numeric' },
     [DatePrecision.Millisecond]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric',
-      minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 }
+      minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions
   }
 
   const precisionFormat = formatPrecisions[precision] || formatPrecisions.minute
