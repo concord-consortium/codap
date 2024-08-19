@@ -18,6 +18,78 @@ export const operators = {
     evaluateOperator: (a: any, b: any) => !equal(a, b)
   },
 
+  smaller: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      const [isADate, aDate] = checkDate(a)
+      const [isBDate, bDate] = checkDate(b)
+      if (isADate) a = aDate.valueOf() / 1000
+      if (isBDate) b = bDate.valueOf() / 1000
+      // compare numerically if possible
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+      if (isANumber && isBNumber) return aNumber < bNumber
+      // compare as strings
+      return String(a) < String(b)
+    }
+  },
+
+  smallerEq: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      const [isADate, aDate] = checkDate(a)
+      const [isBDate, bDate] = checkDate(b)
+      if (isADate) a = aDate.valueOf() / 1000
+      if (isBDate) b = bDate.valueOf() / 1000
+      // compare numerically if possible
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+      if (isANumber && isBNumber) return aNumber <= bNumber
+      // compare as strings
+      return String(a) <= String(b)
+    }
+  },
+
+  larger: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      const [isADate, aDate] = checkDate(a)
+      const [isBDate, bDate] = checkDate(b)
+      if (isADate) a = aDate.valueOf() / 1000
+      if (isBDate) b = bDate.valueOf() / 1000
+      // compare numerically if possible
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+      if (isANumber && isBNumber) return aNumber > bNumber
+      // compare as strings
+      return String(a) > String(b)
+    }
+  },
+
+  largerEq: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      if (a == null || b == null || Number.isNaN(a) || Number.isNaN(b)) return false
+      const [isADate, aDate] = checkDate(a)
+      const [isBDate, bDate] = checkDate(b)
+      if (isADate) a = aDate.valueOf() / 1000
+      if (isBDate) b = bDate.valueOf() / 1000
+      // compare numerically if possible
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+      if (isANumber && isBNumber) return aNumber >= bNumber
+      // compare as strings
+      return String(a) >= String(b)
+    }
+  },
+
   add: {
     isOperator: true,
     numOfRequiredArguments: 2,
