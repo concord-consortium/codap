@@ -137,8 +137,7 @@ export function checkDate(value: any): [false] | [true, Date] {
  */
 export function formatDate(x: Date | number | string | null, precision: DatePrecision = DatePrecision.None):
   string | null {
-  const formatPrecisions: Record<DatePrecision, Intl.DateTimeFormatOptions> = {
-    [DatePrecision.None]: {},
+  const formatPrecisions: Partial<Record<DatePrecision, Intl.DateTimeFormatOptions>> = {
     [DatePrecision.Year]: { year: 'numeric' },
     [DatePrecision.Month]: { year: 'numeric', month: 'numeric' },
     [DatePrecision.Day]: { year: 'numeric', month: 'numeric', day: 'numeric' },
@@ -149,8 +148,6 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
     [DatePrecision.Millisecond]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric',
       minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions
   }
-
-  const precisionFormat = formatPrecisions[precision] || formatPrecisions.minute
 
   if (!(x && (isDate(x) || isDateString(x) || isFiniteNumber(x)))) {
     return null
@@ -166,8 +163,19 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
     x = new Date(x)
   }
 
+  // not convertible to a date
+  if (typeof x === "string") return null
+
+  // default to minutes if the value contains time information, or days if it doesn't
+  let precisionFormat = formatPrecisions[precision]
+  if (!precisionFormat) {
+    precisionFormat = (x.getHours() > 0 || x.getMinutes() > 0)
+                        ? formatPrecisions.minute
+                        : formatPrecisions.day
+  }
+
   const locale = getDefaultLanguage()
-  return new Intl.DateTimeFormat(locale, precisionFormat).format(x as Date)
+  return new Intl.DateTimeFormat(locale, precisionFormat).format(x)
 }
 
 /**
