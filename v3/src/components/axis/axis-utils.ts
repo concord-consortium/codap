@@ -1,4 +1,5 @@
 import {ScaleLinear} from "d3"
+import { determineLevels } from "../../utilities/date-utils"
 import {kAxisGap, kAxisTickLength} from "../graph/graphing-types"
 import {kDataDisplayFont} from "../data-display/data-display-types"
 import {AxisPlace} from "./axis-types"
@@ -102,6 +103,7 @@ export interface DragInfo {
   initialOffset: number
   currentOffset: number
   currentDragPosition: number
+  currentDragPositionCatName: string
   categorySet?: ICategorySet
   categories: string[]
   bandwidth: number
@@ -232,4 +234,9 @@ export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): nu
 
 export const isScaleLinear = (scale: any): scale is ScaleLinear<number, number> => {
   return (scale as ScaleLinear<number, number>).interpolate !== undefined
+}
+
+export const getNumberOfLevelsForDateAxis = (minDateInSecs: number, maxDateInSecs: number) => {
+  const levels = determineLevels(1000 * minDateInSecs, 1000 * maxDateInSecs)
+  return levels.outerLevel !== levels.innerLevel ? 2 : 1
 }

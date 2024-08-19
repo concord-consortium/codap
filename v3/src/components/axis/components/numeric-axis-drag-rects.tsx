@@ -2,17 +2,18 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {reaction} from "mobx"
 import {drag, ScaleContinuousNumeric, select} from "d3"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
 import {RectIndices, selectDragRects} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {INumericAxisModel} from "../models/axis-model"
+import {IBaseNumericAxisModel} from "../models/axis-model"
 import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
 
 import "./axis.scss"
 
 interface IProps {
-  axisModel: INumericAxisModel
+  axisModel: IBaseNumericAxisModel
   axisWrapperElt: SVGGElement | null
   numSubAxes?: number
   subAxisIndex?: number
@@ -117,7 +118,8 @@ export const NumericAxisDragRects = observer(
           axisModel.applyModelChange(
             () => axisModel.setDomain(...axisModel.domain), {
               undoStringKey: dilating ? "DG.Undo.axisDilate" : "DG.Undo.axisDrag",
-              redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag"
+              redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag",
+              log: logStringifiedObjectMessage("dragEnd: %@", {lower: axisModel.domain[0], upper: axisModel.domain[1]})
             })
           dragging = false
           dilating = false

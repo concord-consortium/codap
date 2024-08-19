@@ -7,10 +7,8 @@ import { WebViewTileElements as webView } from "../support/elements/web-view-til
 
 context("codap plugins", () => {
   beforeEach(function () {
-    cy.log('Starting test setup')
     const url = `${Cypress.config("index")}?sample=mammals&dashboard`
     cy.visit(url)
-    cy.log('Setup complete')
   })
   const openAPITester = () => {
     const url='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'

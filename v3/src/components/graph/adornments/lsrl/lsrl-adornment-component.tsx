@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { drag, select, Selection } from "d3"
+import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
+import { safeGetSnapshot } from "../../../../utilities/mst-utils"
 import { Point } from "../../../data-display/data-display-types"
 import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts,
          lsrlEquationString } from "../../utilities/graph-utils"
@@ -53,6 +55,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const lineObjectsRef = useRef<ILineObject[]>([])
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
+  const logFn = useRef<Maybe<LogMessageFn>>()
 
   const getLines = useCallback(() => {
     return dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig, interceptLocked)
@@ -112,7 +115,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
           () => lines?.[lineIndex]?.setEquationCoords({x: left, y: top}),
           {
             undoStringKey: "DG.Undo.graph.repositionEquation",
-            redoStringKey: "DG.Redo.graph.repositionEquation"
+            redoStringKey: "DG.Redo.graph.repositionEquation",
+            log: logFn.current
           }
         )
       }
@@ -315,7 +319,13 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
       const equation = equationDiv.select<HTMLElement>(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`)
       equation?.call(
-        drag<HTMLElement, unknown>().on("drag", (e) => handleMoveEquation(e, false, lineIndex))
+        drag<HTMLElement, unknown>()
+          .on("start", (e) => {
+            logFn.current = logModelChangeFn(
+                              "Moved equation from (%@, %@) to (%@, %@)",
+                              () => safeGetSnapshot(lines[lineIndex].equationCoords) ?? { x: "default", y: "default" })
+          })
+          .on("drag", (e) => handleMoveEquation(e, false, lineIndex))
           .on("end", (e) => handleMoveEquation(e, true, lineIndex))
       )
     }

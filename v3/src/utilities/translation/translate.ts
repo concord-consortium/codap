@@ -76,7 +76,7 @@ export function getDefaultLanguage () {
   return defaultLang
 }
 
-type VarValue = string | number | undefined
+type VarValue = string | number | boolean | undefined
 interface ITranslateOptions {
   lang?: string
   count?: number

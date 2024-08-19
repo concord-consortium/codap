@@ -8,7 +8,8 @@ import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } fro
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {PlotProps} from "../graphing-types"
-import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
+import { handleClickOnCase, setPointSelection } from "../../data-display/data-display-utils"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {getScreenCoord, setPointCoordinates} from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
@@ -97,8 +98,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
     selection?.forEach(anID => {
       selectedDataObjects.current[anID] = {
-        x: dataset?.getNumeric(anID, xAttrID) ?? 0,
-        y: dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]) ?? 0
+        x: dataDisplayGetNumericValue(dataset, anID, xAttrID) ?? 0,
+        y: dataDisplayGetNumericValue(dataset, anID, secondaryAttrIDsRef.current[plotNumRef.current]) ?? 0
       }
     })
   }, [dataConfiguration, dataset, stopAnimation])
@@ -118,8 +119,8 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           caseValues: ICase[] = [],
           { selection } = dataConfiguration || {}
         selection?.forEach((anID: string) => {
-          const currX = Number(dataset?.getNumeric(anID, xAttrID)),
-            currY = Number(dataset?.getNumeric(anID, secondaryAttrIDsRef.current[plotNumRef.current]))
+          const currX = Number(dataDisplayGetNumericValue(dataset, anID, xAttrID)),
+            currY = Number(dataDisplayGetNumericValue(dataset, anID, secondaryAttrIDsRef.current[plotNumRef.current]))
           if (isFinite(currX) && isFinite(currY)) {
             caseValues.push({
               __id__: anID,

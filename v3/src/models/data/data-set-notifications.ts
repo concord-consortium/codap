@@ -134,25 +134,37 @@ export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
 // selectCasesNotification returns a function that will later be called to determine if the selection
 // actually changed and a notification is necessary to broadcast
 export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
-  const oldSelection = Array.from(dataset.selection)
-  const oldSelectionSet = new Set(oldSelection)
+  const getSelectedCaseIds = (selectedItemIds: Set<string>) => {
+    const caseIds: string[] = []
+    Array.from(dataset.caseInfoMap.values()).forEach(aCase => {
+      if (aCase.childItemIds.every(itemId => selectedItemIds.has(itemId))) caseIds.push(aCase.groupedCase.__id__)
+    })
+    return caseIds
+  }
+  const oldSelectedItemIds = Array.from(dataset.selection)
+  const oldSelectedItemIdSet = new Set(oldSelectedItemIds)
+  const oldSelectedCaseIds = getSelectedCaseIds(oldSelectedItemIdSet)
+  const oldSelectedCaseIdSet = new Set(oldSelectedCaseIds)
 
   return () => {
-    const newSelection = Array.from(dataset.selection)
-    const newSelectionSet = new Set(newSelection)
-    const addedCaseIds = newSelection.filter(caseId => !oldSelectionSet.has(caseId))
-    const removedCaseIds = oldSelection.filter(caseId => !newSelectionSet.has(caseId))
+    const newSelectedItemIds = Array.from(dataset.selection)
+    const newSelectedItemIdSet = new Set(newSelectedItemIds)
+    const newSelectedCaseIds = getSelectedCaseIds(newSelectedItemIdSet)
+    const newSelectedCaseIdSet = new Set(newSelectedCaseIds)
+    const addedCaseIds = newSelectedCaseIds.filter(caseId => !oldSelectedCaseIdSet.has(caseId))
+    const removedCaseIds = oldSelectedCaseIds.filter(caseId => !newSelectedCaseIdSet.has(caseId))
 
     // Only send a notification if the selection has actually changed
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
 
-    const convertCaseIdsToV2FullCases = (caseIds: string[]) => {
-      return caseIds.map(caseId => {
-        const c = dataset.getItem(caseId)
-        return c && convertCaseToV2FullCase(c, dataset)
+    const convertCaseIdsToV2FullCases = (_caseIds: string[]) => {
+      return _caseIds.map(caseId => {
+        const c = dataset.caseInfoMap.get(caseId)
+        return c && convertCaseToV2FullCase(c.groupedCase, dataset)
       }).filter(c => !!c)
     }
-    const _cases = convertCaseIdsToV2FullCases(extend ? addedCaseIds : newSelection)
+    const caseIds = extend ? addedCaseIds : newSelectedCaseIds
+    const _cases = convertCaseIdsToV2FullCases(caseIds)
     const cases = extend
       ? _cases.length > 0 ? _cases : undefined
       : _cases

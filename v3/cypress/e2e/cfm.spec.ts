@@ -4,12 +4,10 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 
 context("CloudFileManager", () => {
   beforeEach(function () {
-    cy.log('Starting test setup')
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
-    cy.log('Setup complete')
   })
   it("Opens Mammals example document via CFM Open dialog", () => {
     // hamburger menu is hidden initially
