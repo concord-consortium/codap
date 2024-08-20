@@ -10,13 +10,19 @@ context("codap plugins", () => {
     const url = `${Cypress.config("index")}?sample=mammals&dashboard`
     cy.visit(url)
   })
+    const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
   const openAPITester = () => {
-    const url='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
     toolbar.getOptionsButton().click()
     toolbar.getWebViewButton().click()
-    webView.enterUrl(url)
+    webView.enterUrl(apiTesterUrl)
     cy.wait(1000)
   }
+
+  it('will open plugin specified in url parameter', () => {
+    const url = `${Cypress.config("index")}?di=${apiTesterUrl}`
+    cy.visit(url)
+    webView.getTitle().should("contain.text", "CODAP API Tester")
+  })
 
   it('will handle plugin requests', () => {
     openAPITester()
