@@ -83,6 +83,9 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
             callback(result)
             requestQueue.shift()
           }
+          // TODO Only increment if a table may have changed
+          // - many actions and resources could be ignored
+          // - could specify which dataContext has been updated
           uiState.incrementRequestBatchesProcessed()
         }
       }, { name: "DataInteractiveController request processer autorun" })
