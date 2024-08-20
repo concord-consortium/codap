@@ -3,14 +3,18 @@ import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/re
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { DEBUG_PLUGINS } from "../../lib/debug"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
 import { kRootPluginUrl, processPluginUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { PluginData, PluginMenuConfig } from "./plugin-config-types"
+import _debugPlugins from "./debug-plugins.json"
 import _standardPlugins from "./standard-plugins.json"
+const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
 const standardPlugins = _standardPlugins as PluginMenuConfig
+const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 import "./plugins-button.scss"
 
@@ -53,7 +57,7 @@ function PluginItem({ pluginData }: IPluginItemProps) {
 export function PluginsButton() {
   const { plugins: remotePlugins } = useRemotePluginsConfig()
   const pluginItems: Array<PluginData | null> =
-          remotePlugins.length ? [...standardPlugins, null, ...remotePlugins] : standardPlugins
+          remotePlugins.length ? [...combinedPlugins, null, ...remotePlugins] : combinedPlugins
 
   return (
     <Menu isLazy>
