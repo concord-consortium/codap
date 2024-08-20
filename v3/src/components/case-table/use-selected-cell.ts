@@ -1,6 +1,8 @@
-import { useCallback, useRef } from "react"
+import { reaction } from "mobx"
+import { useCallback, useEffect, useRef } from "react"
 import { DataGridHandle } from "react-data-grid"
-import { TCellSelectArgs, TColumn } from "./case-table-types"
+import { uiState } from "../../models/ui-state"
+import { TCellSelectArgs, TColumn, TRow } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface ISelectedCell {
@@ -9,7 +11,7 @@ interface ISelectedCell {
   rowIdx: number
 }
 
-export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>, columns: TColumn[]) {
+export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>, columns: TColumn[], rows?: TRow[]) {
   const collectionTableModel = useCollectionTableModel()
   const selectedCell = useRef<Maybe<ISelectedCell>>()
 
@@ -34,7 +36,23 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
-  // Return refreshSelectedCell?
+  useEffect(() => {
+    return reaction(
+      () => uiState.requestBatchesProcessed,
+      requestBatchesProcessed => {
+        if (selectedCell.current) {
+          const { columnId, rowId } = selectedCell.current
+          const idx = columns.findIndex(column => column.key === columnId)
+          const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
+          if (rowIdx != null) {
+            const position = { idx, rowIdx }
+            collectionTableModel?.scrollRowIntoView(rowIdx)
+            gridRef.current?.selectCell(position, true)        
+          }
+        }
+      }
+    )
+  })
 
   return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow }
 }

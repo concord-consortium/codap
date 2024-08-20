@@ -12,9 +12,12 @@ export class UIState {
   private focusTileId = ""
   @observable
   private hoverTileId = ""
-  // the id of the table the user is currently editing
+  // true if the user is currently editing a table
   @observable
   private _editingTable = false
+  // the number of request batches that have been processed
+  @observable
+  private _requestBatchesProcessed = 0
   // rulerState is used by graph inspector to manage the visibility univariate measure groups
   @observable
   rulerState: RulerState = {
@@ -40,6 +43,10 @@ export class UIState {
     return this._editingTable
   }
 
+  get requestBatchesProcessed() {
+    return this._requestBatchesProcessed
+  }
+
   isFocusedTile(tileId?: string) {
     return this.focusTileId === tileId
   }
@@ -61,6 +68,11 @@ export class UIState {
   @action
   setEditingTable(editingTable = false) {
     this._editingTable = editingTable
+  }
+
+  @action
+  incrementRequestBatchesProcessed() {
+    this._requestBatchesProcessed += 1
   }
 
   getRulerStateVisibility(key: RulerStateKey) {

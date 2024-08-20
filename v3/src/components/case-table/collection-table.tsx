@@ -80,23 +80,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
-  const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns)
-
-  function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
-    // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
-    // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
-    // next row. To achieve this in RDG, we provide this callback, which is called before RDG
-    // handles the event internally. If we get an enter/return key while in edit mode, we handle
-    // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
-    if (args.mode === "EDIT" && event.key === "Enter") {
-      // complete the cell edit
-      args.onClose(true)
-      // prevent RDG from handling the event
-      event.preventGridDefault()
-      navigateToNextRow(event.shiftKey)
-    }
-  }
-
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string) => {
     const attr = dataSet.attrFromID(attrId)
     attr && onNewCollectionDrop(dataSet, attrId, collectionId)
@@ -189,6 +172,23 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       return _rows
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
+
+  const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
+
+  function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
+    // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
+    // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
+    // next row. To achieve this in RDG, we provide this callback, which is called before RDG
+    // handles the event internally. If we get an enter/return key while in edit mode, we handle
+    // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
+    if (args.mode === "EDIT" && event.key === "Enter") {
+      // complete the cell edit
+      args.onClose(true)
+      // prevent RDG from handling the event
+      event.preventGridDefault()
+      navigateToNextRow(event.shiftKey)
+    }
+  }
 
   if (!data || !rows || !visibleAttributes.length) return null
 

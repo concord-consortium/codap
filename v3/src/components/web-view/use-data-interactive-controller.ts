@@ -54,7 +54,6 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const disposer = autorun(() => {
         const canProcessRequest = !uiState.editingTable
         if (canProcessRequest && requestQueue.length > 0) {
-          // setProcessingFlag
           while (requestQueue.length > 0) {
             const { request, callback } = requestQueue.nextItem
             debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
@@ -84,7 +83,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
             callback(result)
             requestQueue.shift()
           }
-          // clearProcessingFlag
+          uiState.incrementRequestBatchesProcessed()
         }
       }, { name: "DataInteractiveController request processer autorun" })
       
