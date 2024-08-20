@@ -9,7 +9,7 @@ import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/use-cloud-file-manager"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
-import { addDefaultComponents, createDefaultTileOfType } from "../models/codap/add-default-content"
+import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
 import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
@@ -20,7 +20,6 @@ import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
-import { isFreeTileRow } from "../models/document/free-tile-row"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
@@ -102,14 +101,16 @@ export const App = observer(function App() {
         }
       }
 
-      if (typeof urlParams.di === "string") {
-        const plugin = createDefaultTileOfType(kWebViewTileType)
-        const row = appState.document.content?.getRowByIndex(0)
-        if (isWebViewModel(plugin?.content) && row) {
-          plugin.content.setUrl(urlParams.di)
-          const pluginOptions = isFreeTileRow(row) ? { x: 5, y: 5 } : undefined
-          appState.document.content?.insertTileInRow(plugin, row, pluginOptions)
-        }
+      const { di } = urlParams
+      if (typeof di === "string") {
+        // setTimeout ensures that other components have been rendered,
+        // which is necessary to properly position the plugin.
+        setTimeout(() => {
+          appState.document.content?.applyModelChange(() => {
+            const plugin = appState.document.content?.createOrShowTile?.(kWebViewTileType)
+            if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+          })
+        })
       }
 
       appState.enableUndoRedoMonitoring()
