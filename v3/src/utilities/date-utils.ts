@@ -122,6 +122,13 @@ export function isDate(iValue: any): iValue is Date {
   return iValue instanceof Date
 }
 
+// returns whether the specified value is interpretable as a date, and if so its date value
+export function checkDate(value: any): [false] | [true, Date] {
+  if (value instanceof Date) return [true, value]
+  const result = parseDate(value)
+  return result ? [true, result] : [false]
+}
+
 /**
  * Default formatting for Date objects.
  * @param date {Date | number | string | null }
@@ -130,8 +137,7 @@ export function isDate(iValue: any): iValue is Date {
  */
 export function formatDate(x: Date | number | string | null, precision: DatePrecision = DatePrecision.None):
   string | null {
-  const formatPrecisions: Record<DatePrecision, any> = {
-    [DatePrecision.None]: null,
+  const formatPrecisions: Partial<Record<DatePrecision, Intl.DateTimeFormatOptions>> = {
     [DatePrecision.Year]: { year: 'numeric' },
     [DatePrecision.Month]: { year: 'numeric', month: 'numeric' },
     [DatePrecision.Day]: { year: 'numeric', month: 'numeric', day: 'numeric' },
@@ -140,10 +146,8 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
     [DatePrecision.Second]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
       second: 'numeric' },
     [DatePrecision.Millisecond]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric',
-      minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 }
+      minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions
   }
-
-  const precisionFormat = formatPrecisions[precision] || formatPrecisions.minute
 
   if (!(x && (isDate(x) || isDateString(x) || isFiniteNumber(x)))) {
     return null
@@ -159,8 +163,19 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
     x = new Date(x)
   }
 
+  // not convertible to a date
+  if (typeof x === "string") return null
+
+  // default to minutes if the value contains time information, or days if it doesn't
+  let precisionFormat = formatPrecisions[precision]
+  if (!precisionFormat) {
+    precisionFormat = (x.getHours() > 0 || x.getMinutes() > 0)
+                        ? formatPrecisions.minute
+                        : formatPrecisions.day
+  }
+
   const locale = getDefaultLanguage()
-  return new Intl.DateTimeFormat(locale, precisionFormat).format(x as Date)
+  return new Intl.DateTimeFormat(locale, precisionFormat).format(x)
 }
 
 /**

@@ -114,6 +114,14 @@ export const isValueNonEmpty = (value: any) => value !== "" && value != null
 // It allows for strings that can be converted to numbers and treats Infinity and -Infinity as valid numbers.
 export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 
+// returns whether the value can be interpreted as a number and if so, its value
+export function checkNumber(value: any) : [false] | [true, number] {
+  if (typeof value === "number") return [true, value]
+  if (value == null || value === "") return [false]
+  const result = Number(value)
+  return isNaN(result) ? [false] : [true, result]
+}
+
 export const extractNumeric = (v: any) => {
   if (!isValueNonEmpty(v)) {
     return null
@@ -257,4 +265,3 @@ export function fitGaussianGradientDescent(points: {x:number, y:number}[], amp:n
 
   return { mu: muSigma[0], sigma: muSigma[1] }
 }
-
