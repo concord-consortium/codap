@@ -21,7 +21,6 @@ import { TRenderEditCellProps } from "./case-table-types"
 function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.focus()
   input?.select()
-  uiState.setEditingTable(true)
 }
 
 export default function CellTextEditor({ row, column, onRowChange, onClose }: TRenderEditCellProps) {
@@ -33,12 +32,18 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     selectAllCases(data, false)
   }, [data])
 
+  // Inform the ui that we're editing a table while this component exists.
+  useEffect(() => {
+    uiState.setEditingTable(true)
+    return () => {
+      uiState.setEditingTable(false)
+    }
+  }, [])
+
   const handleChange = (value: string) => {
     valueRef.current = value
     onRowChange({ ...row, [column.key]: value })
   }
-
-  const handleBlur = () => uiState.setEditingTable(false)
 
   return (
     <input
@@ -46,7 +51,6 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
-      onBlur={handleBlur}
       onChange={(event) => handleChange(event.target.value)}
     />
   )

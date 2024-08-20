@@ -34,5 +34,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
+  // Return refreshSelectedCell?
+
   return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow }
 }

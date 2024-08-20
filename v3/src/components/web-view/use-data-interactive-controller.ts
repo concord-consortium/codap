@@ -54,33 +54,37 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const disposer = autorun(() => {
         const canProcessRequest = !uiState.editingTable
         if (canProcessRequest && requestQueue.length > 0) {
-          const { request, callback } = requestQueue.nextItem
-          debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
-          let result: DIRequestResponse = { success: false }
-  
-          const errorResult = (error: string) => ({ success: false, values: { error }} as const)
-          const processAction = (action: DIAction) => {
-            if (!action) return errorResult(t("V3.DI.Error.noAction"))
-            if (!tile) return errorResult(t("V3.DI.Error.noTile"))
-  
-            const resourceSelector = parseResourceSelector(action.resource)
-            const resources = resolveResources(resourceSelector, action.action, tile)
-            const type = resourceSelector.type ?? ""
-            const a = action.action
-            const func = getDIHandler(type)?.[a as keyof DIHandler]
-            if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
-  
-            return func?.(resources, action.values) ?? errorResult(t("V3.DI.Error.undefinedResponse"))
+          // setProcessingFlag
+          while (requestQueue.length > 0) {
+            const { request, callback } = requestQueue.nextItem
+            debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
+            let result: DIRequestResponse = { success: false }
+    
+            const errorResult = (error: string) => ({ success: false, values: { error }} as const)
+            const processAction = (action: DIAction) => {
+              if (!action) return errorResult(t("V3.DI.Error.noAction"))
+              if (!tile) return errorResult(t("V3.DI.Error.noTile"))
+    
+              const resourceSelector = parseResourceSelector(action.resource)
+              const resources = resolveResources(resourceSelector, action.action, tile)
+              const type = resourceSelector.type ?? ""
+              const a = action.action
+              const func = getDIHandler(type)?.[a as keyof DIHandler]
+              if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
+    
+              return func?.(resources, action.values) ?? errorResult(t("V3.DI.Error.undefinedResponse"))
+            }
+            if (Array.isArray(request)) {
+              result = request.map(action => processAction(action))
+            } else {
+              result = processAction(request)
+            }
+    
+            debugLog(DEBUG_PLUGINS, `Responding with`, result)
+            callback(result)
+            requestQueue.shift()
           }
-          if (Array.isArray(request)) {
-            result = request.map(action => processAction(action))
-          } else {
-            result = processAction(request)
-          }
-  
-          debugLog(DEBUG_PLUGINS, `Responding with`, result)
-          callback(result)
-          requestQueue.shift()
+          // clearProcessingFlag
         }
       }, { name: "DataInteractiveController request processer autorun" })
       

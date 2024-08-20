@@ -28,7 +28,6 @@ import { ColorPicker } from "./color-picker"
 function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.focus()
   input?.select()
-  uiState.setEditingTable(true)
 }
 
 const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'>((props, ref) => {
@@ -62,6 +61,14 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     selectAllCases(data, false)
   }, [data])
 
+  // Inform the ui that we're editing a table while this component exists.
+  useEffect(() => {
+    uiState.setEditingTable(true)
+    return () => {
+      uiState.setEditingTable(false)
+    }
+  }, [])
+
   // commits the change and closes the editor
   const acceptValue = useCallback(() => {
     onRowChange({ ...row, [column.key]: inputValue }, true)
@@ -88,14 +95,9 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
-  function handleBlur() {
-    uiState.setEditingTable(false)
-  }
-
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt
                     value={inputValue}
-                    onBlur={handleBlur}
                     onChange={handleInputColorChange}
                   />
 
