@@ -54,6 +54,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const disposer = autorun(() => {
         const canProcessRequest = !uiState.editingTable
         if (canProcessRequest && requestQueue.length > 0) {
+          let tableModified = false
           while (requestQueue.length > 0) {
             const { request, callback } = requestQueue.nextItem
             debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
@@ -71,7 +72,15 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
               const func = getDIHandler(type)?.[a as keyof DIHandler]
               if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
     
-              return func?.(resources, action.values) ?? errorResult(t("V3.DI.Error.undefinedResponse"))
+              const actionResult = func?.(resources, action.values)
+              if (actionResult &&
+                ["create", "delete", "notify"].includes(a) &&
+                !["component", "global", "interactiveFrame"].includes(type)
+              ) {
+                // Increment request batches processed if a table may have been modified
+                tableModified = true
+              }
+              return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
             }
             if (Array.isArray(request)) {
               result = request.map(action => processAction(action))
@@ -86,7 +95,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           // TODO Only increment if a table may have changed
           // - many actions and resources could be ignored
           // - could specify which dataContext has been updated
-          uiState.incrementRequestBatchesProcessed()
+          if (tableModified) uiState.incrementRequestBatchesProcessed()
         }
       }, { name: "DataInteractiveController request processer autorun" })
       

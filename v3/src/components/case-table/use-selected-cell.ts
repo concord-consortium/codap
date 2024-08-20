@@ -21,6 +21,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     selectedCell.current = columnId && rowId
                             ? { columnId, rowId, rowIdx: args.rowIdx }
                             : undefined
+    console.log(`!!! selectedCell.current`, selectedCell.current)
   }, [])
 
   const navigateToNextRow = useCallback((back = false) => {
@@ -40,16 +41,21 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     return reaction(
       () => uiState.requestBatchesProcessed,
       requestBatchesProcessed => {
-        if (selectedCell.current) {
-          const { columnId, rowId } = selectedCell.current
-          const idx = columns.findIndex(column => column.key === columnId)
-          const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
-          if (rowIdx != null) {
-            const position = { idx, rowIdx }
-            collectionTableModel?.scrollRowIntoView(rowIdx)
-            gridRef.current?.selectCell(position, true)        
+        console.log(`... requestBatchesProcessed`, requestBatchesProcessed)
+        setTimeout(() => {
+          if (selectedCell.current) {
+            console.log(`--- selectedCell.current`, selectedCell.current)
+            const { columnId, rowId } = selectedCell.current
+            const idx = columns.findIndex(column => column.key === columnId)
+            const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
+            if (rowIdx != null) {
+              const position = { idx, rowIdx }
+              console.log(` -- position`, position)
+              collectionTableModel?.scrollRowIntoView(rowIdx)
+              gridRef.current?.selectCell(position, true)        
+            }
           }
-        }
+        })
       }
     )
   })
