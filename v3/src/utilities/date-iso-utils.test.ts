@@ -25,7 +25,7 @@ describe('formatStdISODateString', () => {
 })
 
 describe('formatStdISODateString & parseStdISODateString', () => {
-  test('demonstrate round-trip fidelity', () => {
+  test('demonstrates round-trip fidelity', () => {
     const date1Str = formatStdISODateString(new Date())
     expect(formatStdISODateString(parseStdISODateString(date1Str))).toBe(date1Str)
     const date2Str = formatStdISODateString(new Date(2023, 7, 17, 15, 30, 45, 123))
