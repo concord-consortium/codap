@@ -331,11 +331,12 @@ export const useSubAxis = ({
     }
   }, [dataConfig, updateDomainAndRenderSubAxis])
 
-  // update d3 scale and axis when layout/range changes
+  // Render when axis length or number of sub-axes changes
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.getAxisLength(axisPlace)
+        return [layout.getAxisLength(axisPlace),
+          layout.getAxisMultiScale(axisPlace)?.repetitions]
       },
       () => {
         renderSubAxis()

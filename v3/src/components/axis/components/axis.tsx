@@ -1,4 +1,5 @@
 import React from "react"
+import { observer } from "mobx-react-lite"
 import {range} from "d3"
 import {AxisPlace} from "../axis-types"
 import {useAxis} from "../hooks/use-axis"
@@ -13,10 +14,10 @@ interface IProps {
   centerCategoryLabels?: boolean
 }
 
-export const Axis = ({
+export const Axis = observer(function Axis ({
                        axisPlace, showScatterPlotGridLines = false,
                        centerCategoryLabels = true,
-                     }: IProps) => {
+                     }: IProps) {
   const
     layout = useAxisLayoutContext()
 
@@ -44,4 +45,4 @@ export const Axis = ({
       </g>
     </>
   )
-}
+})
