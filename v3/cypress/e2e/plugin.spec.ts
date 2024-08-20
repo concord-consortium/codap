@@ -10,7 +10,7 @@ context("codap plugins", () => {
     const url = `${Cypress.config("index")}?sample=mammals&dashboard`
     cy.visit(url)
   })
-    const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
+  const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
   const openAPITester = () => {
     toolbar.getOptionsButton().click()
     toolbar.getWebViewButton().click()
