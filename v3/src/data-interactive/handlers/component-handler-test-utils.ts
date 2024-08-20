@@ -5,12 +5,12 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { kComponentTypeV3ToV2Map, V2Component } from "../data-interactive-component-types"
 import { DIHandler } from "../data-interactive-types"
 
-type specificTileTest = (tile: ITileModel, values: V2Component) => void
+type specificTileGetTest = (tile: ITileModel, values: V2Component) => void
 interface IOptions {
   type?: string
 }
 export function testGetComponent(
-  tile: ITileModel, handler: DIHandler, extraTest?: specificTileTest, options?: IOptions
+  tile: ITileModel, handler: DIHandler, extraTest?: specificTileGetTest, options?: IOptions
 ) {
   const getResult = handler.get!({ component: tile })
   expect(getResult.success).toBe(true)
@@ -28,6 +28,19 @@ export function testGetComponent(
   const { left, top } = row.getTilePosition(tile.id)
   expect((position as any).left).toBe(left)
   expect((position as any).top).toBe(top)
+
+  extraTest?.(tile, values)
+}
+
+type specificTileUpdateTest = (tile: ITileModel, values: Partial<V2Component>) => void
+
+export function testUpdateComponent(
+  tile: ITileModel, handler: DIHandler, values: Partial<V2Component>, extraTest?: specificTileUpdateTest
+) {
+  const updateResult = handler.update!({ component: tile }, values)
+  expect(updateResult.success).toBe(true)
+
+  // TODO: fill out generic tile update code
 
   extraTest?.(tile, values)
 }
