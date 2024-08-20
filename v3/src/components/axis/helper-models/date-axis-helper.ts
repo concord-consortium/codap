@@ -1,11 +1,12 @@
 import { Selection } from "d3"
-import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
+import { measureTextExtent } from "../../../hooks/use-measure-text"
+import { otherPlace } from "../axis-types"
+import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "../../graph/graphing-types"
 import { isDateAxisModel, IDateAxisModel } from "../models/axis-model"
-import {convertToDate, createDate, determineLevels, EDateTimeLevel, shortMonthNames}
-          from "../../../utilities/date-utils"
-import { measureTextExtent } from "../../../hooks/use-measure-text"
+import { convertToDate, createDate, determineLevels, EDateTimeLevel, shortMonthNames }
+  from "../../../utilities/date-utils"
 
 type ILabelDateAndString = {
   labelDate: Date
@@ -49,7 +50,7 @@ const getLevelLabelForValue = (level: EDateTimeLevel, date: Date | null): ILabel
   return {labelString, labelDate}
 }
 
-const findFirstDateAboveOrAtLevel = (level: number, date: Date, gap:number) => {
+const findFirstDateAboveOrAtLevel = (level: number, date: Date, gap: number) => {
   let resultDate: Date = new Date(),
     labelString = '',
     year = date.getFullYear(),
@@ -177,16 +178,23 @@ const getNextLevelLabelForValue = (level: EDateTimeLevel, date: Date | null) => 
 }
 
 export interface IDateAxisHelperArgs extends IAxisHelperArgs {
+  showScatterPlotGridLines: boolean
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
 }
 
 export class DateAxisHelper extends AxisHelper {
+  showScatterPlotGridLines: boolean
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
   maxNumberExtent: number = kDefaultFontHeight
 
-  constructor(props:IDateAxisHelperArgs) {
+  constructor(props: IDateAxisHelperArgs) {
     super(props)
+    this.showScatterPlotGridLines = props.showScatterPlotGridLines
     this.subAxisSelectionRef = props.subAxisSelectionRef
+  }
+
+  get newRange() {
+    return this.isVertical ? [this.rangeMax, this.rangeMin] : [this.rangeMin, this.rangeMax]
   }
 
   render() {
@@ -197,6 +205,79 @@ export class DateAxisHelper extends AxisHelper {
       const dataToCoordinate = (dataValue: number) => {
         const proportion = (dataValue - lowerBoundsSeconds) / (upperBoundsSeconds - lowerBoundsSeconds)
         return isVertical ? rangeMax - proportion * this.subAxisLength : rangeMin + proportion * this.subAxisLength
+      }
+
+      const getLabelForIncrementedDateAtLevel = (iLevel: number, iDate: Date, iIncrementBy: number) => {
+        let tResultDate: Date = new Date(),
+          tLabelString = ''
+        let tYear = iDate.getFullYear(),
+          tMonth = iDate.getMonth(),
+          tDayOfMonth = iDate.getDate(),
+          tHour = iDate.getHours(),
+          tMinute = iDate.getMinutes(),
+          tSecond = iDate.getSeconds(),
+          tMinuteString, tSecondString
+        switch (iLevel) {
+          case EDateTimeLevel.eYear:
+            tYear += iIncrementBy
+            tResultDate = new Date(tYear, 0, 1)
+            tLabelString = String(tYear)
+            break
+          case EDateTimeLevel.eMonth:
+            tMonth += iIncrementBy
+            while (tMonth > 12) {
+              tYear++
+              tMonth -= 12
+            }
+            tResultDate = new Date(tYear, tMonth, 1)
+            tLabelString = shortMonthNames[tResultDate.getMonth()]
+            break
+          case EDateTimeLevel.eDay:
+            tDayOfMonth += iIncrementBy
+            tResultDate = new Date(tYear, tMonth, tDayOfMonth)
+            tDayOfMonth = tResultDate.getDate()
+            tLabelString = String(tDayOfMonth)
+            break
+          case EDateTimeLevel.eHour:
+            tHour += iIncrementBy
+            while (tHour > 24) {
+              tDayOfMonth++
+              tHour -= 24
+            }
+            tResultDate = new Date(tYear, tMonth, tDayOfMonth, tHour)
+            tHour = tResultDate.getHours()
+            tLabelString = `${tHour}:00`
+            break
+          case EDateTimeLevel.eMinute:
+            tMinute += iIncrementBy
+            tResultDate = new Date(tYear, tMonth, tDayOfMonth, tHour, tMinute)
+            tMinute = tResultDate.getMinutes()
+            tMinuteString = tMinute < 10 ? `0${tMinute}` : String(tMinute)
+            tLabelString = `${tHour}:${tMinuteString}`
+            break
+          case EDateTimeLevel.eSecond:
+            tSecond += iIncrementBy
+            tResultDate = new Date(tYear, tMonth, tDayOfMonth, tHour, tMinute, tSecond)
+            tSecond = tResultDate.getSeconds()
+            tMinuteString = tMinute < 10 ? `0${tMinute}` : String(tMinute)
+            tSecondString = tSecond < 10 ? `0${tSecond}` : String(tSecond)
+            tLabelString = `${tHour}:${tMinuteString}:${tSecondString}`
+            break
+          default:
+        }
+
+        return {labelString: tLabelString, labelDate: tResultDate}
+      }
+
+      const forEachTickDo = (iDoF: (worldTickCoord: number, screenTickCoord: number) => void) => {
+        let dateLabel = findFirstDateAboveOrAtLevel(levels.innerLevel, lowerBoundsDate, levels.increment),
+          value: number
+        while (dateLabel.labelDate < upperBoundsDate) {
+          value = dateLabel.labelDate.valueOf()
+          iDoF(value, dataToCoordinate(value / 1000))
+          dateLabel = getLabelForIncrementedDateAtLevel(levels.innerLevel, dateLabel.labelDate,
+            levels.increment)
+        }
       }
 
       const dateAxisModel = this.axisModel as IDateAxisModel,
@@ -258,68 +339,6 @@ export class DateAxisHelper extends AxisHelper {
       }
 
       const drawInnerLabels = (level: EDateTimeLevel, iIncrement: number) => {
-
-        const getLabelForIncrementedDateAtLevel = (iLevel: number, iDate: Date, iIncrementBy: number) => {
-          let tResultDate: Date = new Date(),
-            tLabelString = ''
-          let tYear = iDate.getFullYear(),
-            tMonth = iDate.getMonth(),
-            tDayOfMonth = iDate.getDate(),
-            tHour = iDate.getHours(),
-            tMinute = iDate.getMinutes(),
-            tSecond = iDate.getSeconds(),
-            tMinuteString, tSecondString
-          switch (iLevel) {
-            case EDateTimeLevel.eYear:
-              tYear += iIncrementBy
-              tResultDate = new Date(tYear, 0, 1)
-              tLabelString = String(tYear)
-              break
-            case EDateTimeLevel.eMonth:
-              tMonth += iIncrementBy
-              while (tMonth > 12) {
-                tYear++
-                tMonth -= 12
-              }
-              tResultDate = new Date(tYear, tMonth, 1)
-              tLabelString = shortMonthNames[tResultDate.getMonth()]
-              break
-            case EDateTimeLevel.eDay:
-              tDayOfMonth += iIncrementBy
-              tResultDate = new Date(tYear, tMonth, tDayOfMonth)
-              tDayOfMonth = tResultDate.getDate()
-              tLabelString = String(tDayOfMonth)
-              break
-            case EDateTimeLevel.eHour:
-              tHour += iIncrementBy
-              while (tHour > 24) {
-                tDayOfMonth++
-                tHour -= 24
-              }
-              tResultDate = new Date(tYear, tMonth, tDayOfMonth, tHour)
-              tHour = tResultDate.getHours()
-              tLabelString = `${tHour}:00`
-              break
-            case EDateTimeLevel.eMinute:
-              tMinute += iIncrementBy
-              tResultDate = new Date(tYear, tMonth, tDayOfMonth, tHour, tMinute)
-              tMinute = tResultDate.getMinutes()
-              tMinuteString = tMinute < 10 ? `0${tMinute}` : String(tMinute)
-              tLabelString = `${tHour}:${tMinuteString}`
-              break
-            case EDateTimeLevel.eSecond:
-              tSecond += iIncrementBy
-              tResultDate = new Date(tYear, tMonth, tDayOfMonth, tHour, tMinute, tSecond)
-              tSecond = tResultDate.getSeconds()
-              tMinuteString = tMinute < 10 ? `0${tMinute}` : String(tMinute)
-              tSecondString = tSecond < 10 ? `0${tSecond}` : String(tSecond)
-              tLabelString = `${tHour}:${tMinuteString}:${tSecondString}`
-              break
-            default:
-          }
-
-          return {labelString: tLabelString, labelDate: tResultDate}
-        }
 
         const findDrawValueModulus = (innerLevel: number, firstDateLabel: ILabelDateAndString) => {
           let interval = 1,
@@ -407,7 +426,18 @@ export class DateAxisHelper extends AxisHelper {
           tCounter = (tCounter + 1) % drawValueModulus
           dateLabel = getLabelForIncrementedDateAtLevel(level, dateLabel.labelDate, iIncrement)
         }
+      }
 
+      const renderScatterPlotGridLines = () => {
+        const gridLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0
+        forEachTickDo((worldTickCoord, screenTickCoord) => {
+          sAS.append('line')
+            .attr('x1', isVertical ? 0 : screenTickCoord)
+            .attr('x2', isVertical ? gridLength : screenTickCoord)
+            .attr('y1', isVertical ? screenTickCoord : 0)
+            .attr('y2', isVertical ? screenTickCoord : -gridLength)
+            .style('stroke', 'lightgray')
+        })
       }
 
       const levels = determineLevels(lowerBoundsMS, upperBoundsMS),
@@ -418,6 +448,7 @@ export class DateAxisHelper extends AxisHelper {
         drawOuterLabels(levels.outerLevel)
       }
       drawInnerLabels(levels.innerLevel, levels.increment)
+      this.showScatterPlotGridLines && renderScatterPlotGridLines()
     }
 
     const isVertical = this.isVertical,
