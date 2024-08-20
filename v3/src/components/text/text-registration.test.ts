@@ -1,3 +1,7 @@
+import { V2Text } from "../../data-interactive/data-interactive-component-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent, testUpdateComponent } from "../../data-interactive/handlers/component-handler-test-utils"
+import { appState } from "../../models/app-state"
 import { DocumentContentModel } from "../../models/document/document-content"
 import { FreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
@@ -83,5 +87,57 @@ describe("Text registration", () => {
       insertTile: mockInsertTile
     })
     expect(tileWithInvalidComponent).toBeUndefined()
+  })
+})
+
+describe("text component handler", () => {
+  const documentContent = appState.document.content!
+  const diHandler = diComponentHandler
+
+  it("can create an empty text tile and retrieve its contents", () => {
+    expect(documentContent.tileMap.size).toBe(0)
+    const emptyTextTileResult = diHandler.create!({}, { type: "text" })
+    expect(emptyTextTileResult.success).toBe(true)
+    expect(documentContent.tileMap.size).toBe(1)
+    const [tileId, tile] = Array.from(documentContent.tileMap.entries())[0]
+    expect(isTextModel(tile.content)).toBe(true)
+    expect((tile.content as ITextModel).textContent).toBe("")
+
+    testGetComponent(tile, diHandler, (textTile, values) => {
+      const { text } = values as V2Text
+      expect(isTextModel(textTile.content)).toBe(true)
+      const textContent = textTile.content as ITextModel
+      expect(textContent.value).toBe(text)
+    })
+
+    documentContent.deleteTile(tileId)
+    expect(documentContent.tileMap.size).toBe(0)
+  })
+
+  it("can create a text tile with default text content and retrieve its contents", () => {
+    expect(documentContent.tileMap.size).toBe(0)
+    // creating empty text tile
+    const emptyTextTileResult = diHandler.create!({}, { type: "text", text: "To be, or not to be" })
+    expect(emptyTextTileResult.success).toBe(true)
+    expect(documentContent.tileMap.size).toBe(1)
+    const [tileId, tile] = Array.from(documentContent.tileMap.entries())[0]
+    expect(isTextModel(tile.content)).toBe(true)
+    expect((tile.content as ITextModel).textContent).toBe("To be, or not to be")
+
+    testGetComponent(tile, diHandler, (textTile, values) => {
+      const { text } = values as V2Text
+      expect(isTextModel(textTile.content)).toBe(true)
+      const textContent = textTile.content as ITextModel
+      expect(textContent.value).toBe(text)
+    })
+
+    const newValues: Partial<V2Text> = { text: "To be, or not to be, that is the question." }
+    testUpdateComponent(tile, diHandler, newValues, (textTile, values) => {
+      expect(isTextModel(tile.content)).toBe(true)
+      expect((tile.content as ITextModel).textContent).toBe(newValues.text)
+    })
+
+    documentContent.deleteTile(tileId)
+    expect(documentContent.tileMap.size).toBe(0)
   })
 })

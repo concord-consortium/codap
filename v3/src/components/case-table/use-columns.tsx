@@ -9,14 +9,15 @@ import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { parseColor } from "../../utilities/color-utils"
+import { isStdISODateString } from "../../utilities/date-iso-utils"
+import { parseDate } from "../../utilities/date-parser"
+import { DatePrecision, formatDate } from "../../utilities/date-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { isCaseEditable } from "../../utilities/plugin-utils"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
-import { isBrowserISOString, parseDate } from "../../utilities/date-parser"
-import { DatePrecision, formatDate } from "../../utilities/date-utils"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -62,7 +63,7 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
   // This is because CODAP v3 stores all the case values as strings natively, and we cannot simply check if the value
   // is an instance of the `Date` class (as it will never be). Date.toISOString() is the native way of serializing dates
   // in CODAP v3 (check `importValueToString` from attribute.ts).
-  if (isBrowserISOString(str) || userType === "date" && str !== "") {
+  if (isStdISODateString(str) || userType === "date" && str !== "") {
     const date = parseDate(str, true)
     if (date) {
       // TODO: add precision support for date formatting

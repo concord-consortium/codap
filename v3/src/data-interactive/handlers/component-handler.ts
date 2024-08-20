@@ -153,7 +153,7 @@ export const diComponentHandler: DIHandler = {
     let result: DIHandlerFnResult | undefined
     component.applyModelChange(() => {
       // Handle updating generic component features
-      const { cannotClose, dimensions, position, title } = values as V2Component
+      const { cannotClose, dimensions, position, title } = values as Partial<V2Component>
       if (cannotClose != null) component.setCannotClose(cannotClose)
       if (title) component.setTitle(title)
       // TODO Handle string positions?

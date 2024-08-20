@@ -1,3 +1,5 @@
+import { isStdISODateString, parseStdISODateString } from "./date-iso-utils"
+import { isFiniteNumber } from "./math-utils"
 import { t } from "./translation/translate"
 
 /**
@@ -218,14 +220,19 @@ export function extractDateProps(match: string[], map: GroupMap): DateSpec {
 }
 
 export function isValidDateSpec(dateSpec: DateSpec) {
+  // Note: we're allowing out-of-range values with the overflow/underflow
+  // semantics defined by the Date constructor:
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date.
+  // This mirrors the v2 behavior (which was the result of an apparent coding bug) but has the
+  // advantage of giving reasonable interpretations to constructions that would otherwise fail.
   const isValid =
-    !isNaN(dateSpec.year) &&
-    (!isNaN(dateSpec.month) && (1 <= dateSpec.month && dateSpec.month <= 12)) &&
-    (!isNaN(dateSpec.day) && (1 <= dateSpec.day && dateSpec.day <= 31)) &&
-    (!isNaN(dateSpec.hour) && (0 <= dateSpec.hour && dateSpec.hour <= 23)) &&
-    (!isNaN(dateSpec.min) && (0 <= dateSpec.min && dateSpec.min <= 59)) &&
-    (!isNaN(dateSpec.sec) && (0 <= dateSpec.sec && dateSpec.sec <= 59)) &&
-    !isNaN(dateSpec.subsec)
+    isFiniteNumber(dateSpec.year) &&
+    isFiniteNumber(dateSpec.month) &&
+    isFiniteNumber(dateSpec.day) &&
+    isFiniteNumber(dateSpec.hour) &&
+    isFiniteNumber(dateSpec.min) &&
+    isFiniteNumber(dateSpec.sec) &&
+    isFiniteNumber(dateSpec.subsec)
 
   return isValid ? dateSpec : false
 }
@@ -238,6 +245,9 @@ export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
     return iValue
   }
   iValue = String(iValue)
+  if (isStdISODateString(iValue)) {
+    return parseStdISODateString(iValue)
+  }
   let match
   let dateSpec: DateSpec | false
   let groupMap: GroupMap | null = null
@@ -301,13 +311,4 @@ export function isDateString(iValue: any, iLoose?: boolean) {
     }
     return spec.regex.test(iValue)
   }) || (!!iLoose && parseDateV3(iValue) != null)
-}
-
-// Regular expression to match ISO 8601 date strings as produced by Date.toISOString.
-// Note that this regular expression is more strict than the one used in parseDate (isoDateTimeRE) which supports
-// additional formats.
-const browserIsoDatePattern = /^([+-]\d{6}|\d{4})-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/
-
-export function isBrowserISOString(value: string): boolean {
-  return browserIsoDatePattern.test(value)
 }
