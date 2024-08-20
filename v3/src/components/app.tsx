@@ -107,7 +107,7 @@ export const App = observer(function App() {
         // which is necessary to properly position the plugin.
         setTimeout(() => {
           appState.document.content?.applyModelChange(() => {
-            const plugin = appState.document.content?.createOrShowTile?.(kWebViewTileType)
+            const plugin = appState.document.content?.createTile?.(kWebViewTileType)
             if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
           })
         })
