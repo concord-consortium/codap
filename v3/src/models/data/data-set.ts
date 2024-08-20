@@ -151,6 +151,8 @@ export const DataSet = V2Model.named("DataSet").props({
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
+  // incremented when collection parent/child links are updated
+  syncCollectionLinksCount: 0,
   transactionCount: 0,
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
@@ -330,6 +332,11 @@ export const DataSet = V2Model.named("DataSet").props({
     else {
       self.itemInfoMap.set(itemId, { index, caseIds: [caseId] })
     }
+  }
+}))
+.actions(self => ({
+  incSyncCollectionLinksCount() {
+    ++self.syncCollectionLinksCount
   }
 }))
 .extend(self => {
@@ -1101,6 +1108,7 @@ export const DataSet = V2Model.named("DataSet").props({
             invalidate: () => self.invalidateCases()
           }
           syncCollectionLinks(self.collections, itemData)
+          self.incSyncCollectionLinksCount()
           self.invalidateCases()
         },
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }

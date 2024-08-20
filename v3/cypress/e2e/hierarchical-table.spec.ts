@@ -9,7 +9,7 @@ context("hierarchical collections", () => {
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
-    cy.wait(2500)
+    cy.wait(1000)
   })
   hierarchical.tests.forEach((h: HierarchicalTest) => {
     // FIXME: enable skipped tests
@@ -23,13 +23,11 @@ context("hierarchical collections", () => {
           table.moveAttributeToParent(attribute.name, attribute.move)
           table.getColumnHeaders(collection.index+1).should("not.contain", attribute.name)
           table.getAttribute(attribute.name, collection.index).should("have.text", attribute.name)
-          cy.wait(2000)
         })
         table.getCollectionTitle(collection.index).should("have.text", collection.name)
         table.getColumnHeaders(collection.index).should("have.length", collection.attributes.length+1)
         table.getNumOfRows().should("contain", collection.cases+2) // +1 for the header row, +1 for input row
         table.verifyAttributeValues(collection.attributes, values, collection.index)
-        cy.wait(2000)
 
         cy.log("Testing expanding/collapsing...")
         table.verifyCollapseAllGroupsButton(collection.index+1)

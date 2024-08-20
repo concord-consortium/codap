@@ -59,10 +59,10 @@ export const CollectionModel = V2Model
   caseGroupMap: new Map<string, CaseInfo>()
 }))
 .actions(self => ({
-  setParent(parent: ICollectionModel) {
+  setParent(parent?: ICollectionModel) {
     self.parent = parent
   },
-  setChild(child: ICollectionModel) {
+  setChild(child?: ICollectionModel) {
     self.child = child
   },
   setItemData(itemData: IItemData) {
@@ -323,12 +323,14 @@ export const CollectionModel = V2Model
       self.groupKeyCaseIds = new Map<string, string>(self._groupKeyCaseIds)
     }
 
-    // changes to this collection's attributes invalidate grouping and persistent ids
+    // changes to a parent collection's attributes invalidate grouping and persistent ids
     addDisposer(self, reaction(
       () => self.sortedDataAttributes.map(attr => attr.id),
       () => {
-        self.groupKeyCaseIds.clear()
-        if (self.child) self.itemData.invalidate()
+        if (self.child) {
+          self.groupKeyCaseIds.clear()
+          self.itemData.invalidate()
+        }
       }, { name: "CollectionModel.sortedDataAttributes reaction", equals: comparer.structural }
     ))
   },
@@ -371,11 +373,17 @@ export function isCollectionModel(model?: IAnyStateTreeNode): model is ICollecti
 
 export function syncCollectionLinks(collections: ICollectionModel[], itemData: IItemData) {
   collections.forEach((collection, index) => {
+    if (index === 0) {
+      collection.setParent()
+    }
     if (index > 0) {
       collection.setParent(collections[index - 1])
     }
     if (index < collections.length - 1) {
       collection.setChild(collections[index + 1])
+    }
+    if (index === collections.length - 1) {
+      collection.setChild()
     }
     collection.setItemData(itemData)
   })

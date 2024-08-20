@@ -123,6 +123,18 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
 
+  // Respond to collection addition/removal. Note that this can fire in addition to the collection
+  // map changes reaction below, but that fires too early, so this gives the graph another chance.
+  useEffect(() => {
+    return dataset && mstReaction(
+      () => dataset.syncCollectionLinksCount,
+      () => {
+        graphModel.dataConfiguration._updateFilteredCasesCollectionID()
+        graphModel.dataConfiguration._invalidateCases()
+        graphController.callMatchCirclesToData()
+      }, { name: "Graph.mstReaction [syncCollectionLinksCount]" }, dataset)
+  }, [dataset, graphController, graphModel.dataConfiguration])
+
   useEffect(function handleAttributeCollectionMapChange() {
 
     const constructAttrCollections = () => {
