@@ -35,6 +35,7 @@ export const TextModel = TileContentModel
   }))
   .actions(self => ({
     setValue(value: EditorValue) {
+      console.log(`... value`, value)
       self.isSettingValue = true
       self.value = editorValueToModelValue(value)
       self.isSettingValue = false

@@ -113,7 +113,7 @@ export interface V2GetSlider extends V2Slider {
   value?: number
 }
 export interface V2Text extends V2Component {
-  text?: string
+  text?: string | any
   type: "text"
 }
 export interface V2WebView extends V2Component {
