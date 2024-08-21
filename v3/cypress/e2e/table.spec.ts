@@ -3,30 +3,30 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
-const numOfAttributes = 10
-const firstRowIndex = 2
-let lastRowIndex = -1
-let middleRowIndex = -1
-let numOfCases = "0"
-const collectionName = "Mammals"
-const renamedCollectionName = "Animals"
-const newCollectionName = "New Dataset"
-
-beforeEach(() => {
-  // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-  const queryParams = "?sample=mammals&scrollBehavior=auto"
-  const url = `${Cypress.config("index")}${queryParams}`
-  cy.visit(url)
-  cy.wait(1000)
-  table.getNumOfAttributes().should("equal", numOfAttributes.toString())
-  table.getNumOfRows().then($cases => {
-    numOfCases = $cases ?? "0"
-    lastRowIndex = Number($cases) - 1
-    middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
-  })
-})
-
 context("case table ui", () => {
+  const numOfAttributes = 10
+  const firstRowIndex = 2
+  let lastRowIndex = -1
+  let middleRowIndex = -1
+  let numOfCases = "0"
+  const collectionName = "Mammals"
+  const renamedCollectionName = "Animals"
+  const newCollectionName = "New Dataset"
+
+  beforeEach(() => {
+    // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(1000)
+    table.getNumOfAttributes().should("equal", numOfAttributes.toString())
+    table.getNumOfRows().then($cases => {
+      numOfCases = $cases ?? "0"
+      lastRowIndex = Number($cases) - 1
+      middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
+    })
+  })
+
   describe("table view", () => {
     it("populates title bar from sample data", () => {
       c.getComponentTitle("table").should("contain", collectionName)
