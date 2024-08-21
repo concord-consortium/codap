@@ -100,6 +100,19 @@ export const App = observer(function App() {
           addDefaultComponents()
         }
       }
+
+      const { di } = urlParams
+      if (typeof di === "string") {
+        // setTimeout ensures that other components have been rendered,
+        // which is necessary to properly position the plugin.
+        setTimeout(() => {
+          appState.document.content?.applyModelChange(() => {
+            const plugin = appState.document.content?.createTile?.(kWebViewTileType)
+            if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+          })
+        })
+      }
+
       appState.enableUndoRedoMonitoring()
       Logger.initializeLogger(appState.document)
     }

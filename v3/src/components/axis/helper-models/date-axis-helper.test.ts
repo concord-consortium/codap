@@ -47,6 +47,7 @@ describe("DateAxisHelper", () => {
         getAxisLength: jest.fn().mockReturnValue(100)
       } as unknown as IAxisLayout,
       isAnimating: jest.fn().mockReturnValue(false),
+      showScatterPlotGridLines: false,
       subAxisSelectionRef
     }
     dateAxisHelper = new DateAxisHelper(props)

@@ -281,7 +281,6 @@ export const TableTileElements = {
     attributes.forEach(a => {
       const attribute = a.name
       for (let rowIndex = 0; rowIndex < values[attribute].length; rowIndex++) {
-        cy.wait(1000)
         this.getAttributeValue(attribute, rowIndex+2, collectionIndex).then(cell => {
           expect(values[attribute]).to.include(cell.text())
         })
