@@ -745,7 +745,7 @@
       }
     ],
     "examples": [
-      "greatCircleDistance(40.66, 74, 37.8, 122.4) returns 4128, the distance in kilometers between New York and San Francisco"
+      "greatCircleDistance(40.66, -74, 37.8, -122.4) returns 4128, the distance in kilometers between New York and San Francisco"
     ]
   },
   "if": {
