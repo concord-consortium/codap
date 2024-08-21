@@ -140,4 +140,58 @@ describe("text component handler", () => {
     documentContent.deleteTile(tileId)
     expect(documentContent.tileMap.size).toBe(0)
   })
+
+  it("can create and then update a text tile with slate type text content and retrieve its contents", () => {
+    expect(documentContent.tileMap.size).toBe(0)
+    // creating empty text tile
+    const emptyTextTileResult = diHandler.create!({}, {
+      type: "text",
+      text: {
+        object: "value",
+        document: {
+          children: [{
+            type: "paragraph",
+            children: [{
+              text: "To be, or not to be"
+            }]
+          }]
+        },
+        objTypes: { paragraph: "block" }
+      }
+    })
+    expect(emptyTextTileResult.success).toBe(true)
+    expect(documentContent.tileMap.size).toBe(1)
+    const [tileId, tile] = Array.from(documentContent.tileMap.entries())[0]
+    expect(isTextModel(tile.content)).toBe(true)
+    expect((tile.content as ITextModel).textContent).toBe("To be, or not to be")
+
+    testGetComponent(tile, diHandler, (textTile, values) => {
+      const { text } = values as V2Text
+      expect(isTextModel(textTile.content)).toBe(true)
+      const textContent = textTile.content as ITextModel
+      expect(textContent.value).toBe(text)
+    })
+
+    const newValues: Partial<V2Text> = {
+      text: {
+        object: "value",
+        document: {
+          children: [{
+            type: "paragraph",
+            children: [{
+              text: "To be, or not to be, that is the question."
+            }]
+          }]
+        },
+        objTypes: { paragraph: "block" }
+      }
+    }
+    testUpdateComponent(tile, diHandler, newValues, (textTile, values) => {
+      expect(isTextModel(tile.content)).toBe(true)
+      expect((tile.content as ITextModel).textContent).toBe("To be, or not to be, that is the question.")
+    })
+
+    documentContent.deleteTile(tileId)
+    expect(documentContent.tileMap.size).toBe(0)
+  })
 })
