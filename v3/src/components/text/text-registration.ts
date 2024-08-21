@@ -1,4 +1,4 @@
-import { EditorValue, textToSlate } from "@concord-consortium/slate-editor"
+import { textToSlate } from "@concord-consortium/slate-editor"
 import { SetRequired } from "type-fest"
 import { V2Text } from "../../data-interactive/data-interactive-component-types"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -14,6 +14,7 @@ import { ComponentTitleBar } from "../component-title-bar"
 import { kTextTileClass, kTextTileType, kV2TextType } from "./text-defs"
 import { editorValueToModelValue, isTextModel, ITextSnapshot, modelValueToEditorValue, TextModel } from "./text-model"
 import { TextTile } from "./text-tile"
+import { SlateDocument } from "./text-types"
 import TextIcon from "../../assets/icons/icon-text.svg"
 
 export const kTextIdPrefix = "TEXT"
@@ -45,18 +46,18 @@ registerTileComponentInfo({
   defaultHeight: 100
 })
 
-function importTextToModelValue(text?: string | EditorValue) {
+function importTextToModelValue(text?: string | SlateDocument) {
   // According to a comment in the v2 code: "Prior to build 0535 this was simple text.
   // As of 0535 it is a JSON representation of the rich text content."
   // For v3, we make sure we're always dealing with rich-text JSON.
-  console.log(`--- importTextToModelValue`, text)
   if (typeof text === "string") {
     const json = safeJsonParse(text)
     return text != null && json != null && typeof json === "object"
             ? text
             : editorValueToModelValue(textToSlate(text))
+  } else if (text?.document?.children) {
+    return editorValueToModelValue(text.document.children)
   }
-  if (text) return editorValueToModelValue(text)
 }
 
 registerV2TileImporter("DG.TextView", ({ v2Component, insertTile }) => {
@@ -95,13 +96,10 @@ registerComponentHandler(kV2TextType, {
   update(content, values) {
     if (isTextModel(content)) {
       const { text } = values as V2Text
-      if (text) {
-        if (typeof text === "string") {
-          const modelValue = importTextToModelValue(text)
-          content.setValueAndUpdate(modelValueToEditorValue(modelValue))
-        } else {
-          content.setValueAndUpdate(text.document.children)
-        }
+      if (typeof text === "string") {
+        content.setValueAndUpdate(modelValueToEditorValue(importTextToModelValue(text)))
+      } else if (text?.document?.children) {
+        content.setValueAndUpdate(text.document.children)
       }
     }
 

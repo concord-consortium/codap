@@ -5,6 +5,7 @@ import { kGraphTileType, kV2GraphType } from "../components/graph/graph-defs"
 import { kMapTileType, kV2MapType } from "../components/map/map-defs"
 import { kSliderTileType, kV2SliderType } from "../components/slider/slider-defs"
 import { kTextTileType, kV2TextType } from "../components/text/text-defs"
+import { SlateDocument } from "../components/text/text-types"
 import { kV2GameType, kV2WebViewType, kWebViewTileType } from "../components/web-view/web-view-defs"
 
 // export const kV2ImageType = "image"
@@ -113,7 +114,7 @@ export interface V2GetSlider extends V2Slider {
   value?: number
 }
 export interface V2Text extends V2Component {
-  text?: string | any
+  text?: string | SlateDocument
   type: "text"
 }
 export interface V2WebView extends V2Component {
