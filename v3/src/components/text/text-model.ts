@@ -34,10 +34,15 @@ export const TextModel = TileContentModel
     }
   }))
   .actions(self => ({
-    setValue(value: EditorValue) {
-      console.log(`... value`, value)
-      self.isSettingValue = true
+    setValueAndUpdate(value: EditorValue) {
       self.value = editorValueToModelValue(value)
+    }
+  }))
+  .actions(self => ({
+    setValue(value: EditorValue) {
+      // The component will not update when isSettingValue is true
+      self.isSettingValue = true
+      self.setValueAndUpdate(value)
       self.isSettingValue = false
     }
   }))

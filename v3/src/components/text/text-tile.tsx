@@ -18,14 +18,15 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   const textOnFocus = useRef("")
 
   const [initialValue, setInitialValue] = useState(() => modelValueToEditorValue(textModel?.value))
+  // changes to this value trigger a remount of the slate editor
+  const mountKey = useRef(0)
   const editor = useMemo(() => {
     // slate doesn't have a convenient API for replacing the value in an existing editor,
     // so we create a new editor instance when the value changes externally (e.g. undo/redo).
     initialValue  // eslint-disable-line no-unused-expressions
+    ++mountKey.current
     return createEditor()
   }, [initialValue])
-  // changes to this value trigger a remount of the slate editor
-  const mountKey = useRef(0)
 
   useEffect(() => {
     return tile && mstReaction(

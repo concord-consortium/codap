@@ -98,9 +98,9 @@ registerComponentHandler(kV2TextType, {
       if (text) {
         if (typeof text === "string") {
           const modelValue = importTextToModelValue(text)
-          content.setValue(modelValueToEditorValue(modelValue))
+          content.setValueAndUpdate(modelValueToEditorValue(modelValue))
         } else {
-          content.setValue(text.document.children)
+          content.setValueAndUpdate(text.document.children)
         }
       }
     }
