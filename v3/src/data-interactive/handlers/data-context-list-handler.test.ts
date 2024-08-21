@@ -13,7 +13,7 @@ describe("DataInteractive DataContextHandler", () => {
 
     expect(handler.get?.({}).success).toBe(false)
 
-    const result = handler.get?.({ dataContextList: [dataset] })!
+    const result = handler.get!({ dataContextList: [dataset] })
     expect(result.success).toBe(true)
     const values = result.values as DIDataContext[]
     expect(values.length).toBe(1)
