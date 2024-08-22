@@ -104,6 +104,8 @@ DG.React.ready(function () {
             function selectNewCases(iCaseIDs) {
               var tCases = iCaseIDs.map( function( iID) {
                 return iDataContext.getCaseByID( iID);
+              }).filter(function(iCase) { // Filter because of a subtle bug having to do with empty children
+                return !SC.none(iCase);
               });
               iDataContext.doSelectCases( {
                 operation: 'selectCases',
