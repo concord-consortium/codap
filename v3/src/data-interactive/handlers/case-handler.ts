@@ -25,9 +25,18 @@ export const diCaseHandler: DIHandler = {
       })
       itemIds = dataContext.addCases(newCaseData)
     })
+    dataContext.validateCases()
 
-    // TODO Include case ids as id in the returned values
-    return { success: true, values: itemIds.map(id => ({ itemID: toV2Id(id) })) }
+    return {
+      success: true,
+      values: itemIds.map(id => {
+        const caseId = dataContext.itemIdChildCaseMap.get(id)?.groupedCase.__id__
+        return ({
+          id: caseId ? toV2Id(caseId) : undefined,
+          itemID: toV2Id(id)
+        })
+      })
+    }
   },
   update(resources: DIResources, values?: DIValues) {
     return updateCasesBy(resources, values)
