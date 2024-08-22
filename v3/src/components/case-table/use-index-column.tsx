@@ -136,7 +136,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick 
   }
 
   const isInputRow = caseId === kInputRowKey
-  const classes = clsx("codap-index-content", { collapsed: collapsedCases != null, "input-row": isInputRow })
+  const classes = clsx("codap-index-content", { collapsed: !!collapsedCases, "input-row": isInputRow })
 
   // input row
   if (isInputRow) {
@@ -168,7 +168,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick 
     <Menu isLazy>
       <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
                   onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-        {index != null ? `${index + 1}` : ""}
+        {cellContents}
       </MenuButton>
       <VisuallyHidden id="sr-index-menu-instructions">
         Press Enter to open the menu.

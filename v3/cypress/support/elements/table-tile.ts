@@ -64,7 +64,6 @@ export const TableTileElements = {
   insertCase() {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Insert Case")
-    cy.wait(500)
   },
   insertCases(num_of_cases: number, location: string) {
     this.getIndexMenu().should("be.visible")
@@ -76,7 +75,6 @@ export const TableTileElements = {
   deleteCase() {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Delete Case")
-    cy.wait(500)
   },
   getInsertCasesModalHeader() {
     return cy.get("[data-testid=codap-modal-header]")
