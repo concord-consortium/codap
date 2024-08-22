@@ -1,13 +1,13 @@
 
-beforeEach(() => {
-  // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-  const queryParams = "?sample=mammals&scrollBehavior=auto"
-  const url = `${Cypress.config("index")}${queryParams}`
-  cy.visit(url)
-  cy.wait(2000)
-})
-
 context("case card", () => {
+  beforeEach(() => {
+    // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2000)
+  })
+
   describe("case card", () => {
     it("can switch from case table to case card view and back", () => {
       const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"

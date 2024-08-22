@@ -10,7 +10,13 @@ module.exports = {
     { // rules specific to Jest tests
       files: ["src/**/*.test.*", "src/test/**"],
       rules: {
-        "jest/no-focused-tests": "warn"
+        "jest/no-focused-tests": "error"
+      }
+    },
+    { // rules specific to Cypress tests
+      files: ["cypress/**"],
+      rules: {
+        "mocha/no-exclusive-tests": "error"
       }
     }
   ]
