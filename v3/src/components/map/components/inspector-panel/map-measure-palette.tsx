@@ -6,6 +6,7 @@ import {InspectorPalette} from "../../../inspector-panel"
 import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 import {isMapContentModel} from "../../models/map-content-model"
 import {isMapPointLayerModel} from "../../models/map-point-layer-model"
+import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 
 interface IProps {
   tile?: ITileModel
@@ -34,7 +35,8 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                           layer.gridModel.setIsVisible(!layer.gridModel.isVisible)
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Grid`,
-                          redoStringKey: `DG.Redo.map.${op}Grid`
+                          redoStringKey: `DG.Redo.map.${op}Grid`,
+                          log: logStringifiedObjectMessage("mapAction: ", {mapAction: `${op}Grid`})
                         })
                       }}
             >
@@ -48,7 +50,8 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                           layer.setPointsAreVisible(!layer.pointsAreVisible)
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Points`,
-                          redoStringKey: `DG.Redo.map.${op}Points`
+                          redoStringKey: `DG.Redo.map.${op}Points`,
+                          log: logStringifiedObjectMessage("mapAction: ", {mapAction: `${op}Grid`})
                         })
                       }}
             >
@@ -62,7 +65,8 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                           layer.setConnectingLinesAreVisible(!layer.connectingLinesAreVisible)
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Lines`,
-                          redoStringKey: `DG.Redo.map.${op}Lines`
+                          redoStringKey: `DG.Redo.map.${op}Lines`,
+                          log: logStringifiedObjectMessage("mapAction: ", {mapAction: `${op}Grid`})
                         })
                       }}
             >

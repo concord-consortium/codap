@@ -1,6 +1,7 @@
+import { LatLng } from "leaflet"
 import { t } from "../utilities/translation/translate"
 
-export type LoggableValue = string | number | boolean | undefined
+export type LoggableValue = string | number | boolean | LatLng |undefined
 export type LoggableObject = Record<string, LoggableValue>
 
 export interface ILogMessage {

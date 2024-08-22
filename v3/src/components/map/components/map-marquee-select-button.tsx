@@ -5,6 +5,7 @@ import {Button, Portal, Tooltip} from "@chakra-ui/react"
 import {translate} from "../../../utilities/translation/translate"
 import {IMapContentModel} from "../models/map-content-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 
 interface IProps {
   mapModel: IMapContentModel
@@ -19,11 +20,17 @@ export const MapMarqueeSelectButton = observer(function MapMarqueeSelectButton({
     )
 
   const handleClick = () => {
-    if (mapModel.marqueeMode === 'unclicked') {
-      mapModel.setMarqueeMode('selected')
-    } else {
-      mapModel.setMarqueeMode('unclicked')
-    }
+    mapModel.applyModelChange(() => {
+      if (mapModel.marqueeMode === 'unclicked') {
+        mapModel.setMarqueeMode('selected')
+      } else {
+        mapModel.setMarqueeMode('unclicked')
+      }
+    }, {
+      undoStringKey: 'DG.Undo.map.toggleMarqueeSelect',
+      redoStringKey: 'DG.Redo.map.toggleMarqueeSelect',
+      log:logStringifiedObjectMessage("marqueeToolSelect", {marqueeMode: mapModel.marqueeMode})
+    })
   }
 
   if (atLeastOnePointsLayerIsVisible) {

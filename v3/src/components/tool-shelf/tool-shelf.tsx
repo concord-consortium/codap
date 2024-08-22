@@ -19,6 +19,7 @@ import { OptionsShelfButton } from "./options-button"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./tool-shelf.scss"
 
@@ -118,7 +119,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
     document?.content?.applyModelChange(() => {
       document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
-    }, { undoStringKey, redoStringKey, log: `Create ${tileType} tile` })
+    }, { undoStringKey, redoStringKey, log: logMessageWithReplacement("Create %@ tile", { tileType }) })
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

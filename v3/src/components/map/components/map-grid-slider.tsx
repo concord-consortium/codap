@@ -1,13 +1,15 @@
-import React, {MutableRefObject} from "react"
+import React, {MutableRefObject, useRef} from "react"
 import {Portal, Slider, SliderTrack, SliderFilledTrack, SliderThumb,} from "@chakra-ui/react"
 import {IMapContentModel} from "../models/map-content-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 
 export const MapGridSlider = function MapGridSlider(props: {
   mapModel: IMapContentModel
   mapRef: MutableRefObject<HTMLDivElement | null>
 }) {
   const {mapModel, mapRef} = props
+  const prevGridMultiplier = useRef(0)
 
   const handleChange = (value: number) => {
     mapModel.layers.forEach(layer => {
@@ -27,7 +29,9 @@ export const MapGridSlider = function MapGridSlider(props: {
       },
       {
         undoStringKey: "DG.Undo.map.changeGridSize",
-        redoStringKey: "DG.Redo.map.changeGridSize"
+        redoStringKey: "DG.Redo.map.changeGridSize",
+        log: logStringifiedObjectMessage("changeGridMultiplier",
+                {from: prevGridMultiplier.current, to: value})
       }
     )
   }
