@@ -7,9 +7,9 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import './slider.scss'
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 interface IProps {
   sliderContainer: HTMLDivElement
@@ -69,7 +69,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
             undoStringKey: "DG.Undo.slider.change",
             redoStringKey: "DG.Redo.slider.change",
             log: logMessageWithReplacement("sliderThumbDrag: { name: %@ = value: %@ }",
-                  {name: sliderModel?.name, newValue: sliderValue})
+                  {name: sliderModel?.name, value: sliderValue})
           }
         )
       }

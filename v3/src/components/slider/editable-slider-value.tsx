@@ -52,7 +52,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
           undoStringKey: "DG.Undo.slider.change",
           redoStringKey: "DG.Redo.slider.change",
           log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
-               {expression: sliderModel.name, newValue: inputValue})
+               {name: sliderModel.name, value: inputValue})
         }
       )
     }

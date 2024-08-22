@@ -29,7 +29,7 @@ export const SliderSettingsPalette =
       }, {
         undoStringKey: "DG.Undo.slider.changeMultiples",
         redoStringKey: "DG.Redo.slider.changeMultiples",
-        log: logStringifiedObjectMessage("sliderMaxPerSecond: %@",
+        log: logStringifiedObjectMessage("sliderMultiplesOf: %@",
               {name: sliderModel.name, restrictMultiplesOf: multipleOf})
       })
     }
