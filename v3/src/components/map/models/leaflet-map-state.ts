@@ -20,7 +20,7 @@ interface IAdjustMapViewOptions {
   // if undo/redo strings are not specified, the action is not undoable
   undoStringKey?: string
   redoStringKey?: string
-  log?: ILogMessage
+  log?: () => ILogMessage
 }
 
 export class LeafletMapState {
@@ -236,12 +236,13 @@ export class LeafletMapState {
   @action
   adjustMapView({
     center, zoom, fitBounds, invalidateSize = false, animate = false,
-    debounceMS = 200, timeoutMS = 100, undoStringKey = "", redoStringKey = ""
+    debounceMS = 200, timeoutMS = 100, undoStringKey = "", redoStringKey = "", log
   }: IAdjustMapViewOptions) {
     if (!this.leafletMap) return
 
     this.undoStringKey = undoStringKey
     this.redoStringKey = redoStringKey
+    this.log = log
 
     if (!this.completeMapViewChange) {
       this.completeMapViewChange = debounce(() => {
