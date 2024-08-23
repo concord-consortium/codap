@@ -9,7 +9,15 @@ export const MapGridSlider = function MapGridSlider(props: {
   mapRef: MutableRefObject<HTMLDivElement | null>
 }) {
   const {mapModel, mapRef} = props
-  const prevGridMultiplier = useRef(0)
+
+  const getAverageGridMultiplier = () => {
+    const gridMultipliers = mapModel.layers
+      .filter(isMapPointLayerModel)
+      .map(layer => layer.gridModel.gridMultiplier)
+    return gridMultipliers.reduce((a, b) => a + b, 0) / gridMultipliers.length
+  }
+
+  const prevGridMultiplier = useRef(getAverageGridMultiplier())
 
   const handleChange = (value: number) => {
     mapModel.layers.forEach(layer => {
@@ -30,17 +38,11 @@ export const MapGridSlider = function MapGridSlider(props: {
       {
         undoStringKey: "DG.Undo.map.changeGridSize",
         redoStringKey: "DG.Redo.map.changeGridSize",
-        log: logStringifiedObjectMessage("changeGridMultiplier",
+        log: logStringifiedObjectMessage("Map grid size changed: %@",
                 {from: prevGridMultiplier.current, to: value})
       }
     )
-  }
-
-  const getAverageGridMultiplier = () => {
-    const gridMultipliers = mapModel.layers
-      .filter(isMapPointLayerModel)
-      .map(layer => layer.gridModel.gridMultiplier)
-    return gridMultipliers.reduce((a, b) => a + b, 0) / gridMultipliers.length
+    prevGridMultiplier.current = value
   }
 
   return (

@@ -14,7 +14,6 @@ import th from "./lang/th.json"
 import tr from "./lang/tr.json"
 import zhHans from "./lang/zh-Hans.json"
 import zhTW from "./lang/zh-TW.json"
-import { LatLng } from "leaflet"
 
 type LanguageFileContent = Record<string, string>
 interface LanguageFileEntry {
@@ -77,7 +76,7 @@ export function getDefaultLanguage () {
   return defaultLang
 }
 
-type VarValue = string | number | boolean | LatLng | undefined
+type VarValue = string | number | boolean | undefined
 interface ITranslateOptions {
   lang?: string
   count?: number

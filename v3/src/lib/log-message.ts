@@ -1,7 +1,6 @@
-import { LatLng } from "leaflet"
 import { t } from "../utilities/translation/translate"
 
-export type LoggableValue = string | number | boolean | LatLng |undefined
+export type LoggableValue = string | number | boolean | undefined
 export type LoggableObject = Record<string, LoggableValue>
 
 export interface ILogMessage {
@@ -16,7 +15,7 @@ export function logMessageWithReplacement(message: string, args: LoggableObject)
   return { message: t(message, { vars: Object.values(args) }), args }
 }
 
-function stringify(obj: LoggableObject) {
+export function stringify(obj: LoggableObject | object) {
   const values = Object.entries(obj).map(([key, value]) => `${key}: ${value}`).join(", ")
   return `{ ${values} }`
 }
@@ -31,7 +30,12 @@ export function logStringifiedObjectMessage(message: string, args: LoggableObjec
 // to capture the final values and generate the log message.
 // e.g. logModelChange("Moved equation from (%@, %@) to (%@, %@)", () => lines?.[lineIndex]?.equationCoords)
 type ModelStateFn = (arg?: any) => LoggableObject
-export function logModelChangeFn(message: string, modelStateFn: ModelStateFn, initialArg?: any): LogMessageFn {
+interface LMCOptions {
+  initialArg?: any
+  initialKeyFn?: (finalKey: string) => string
+}
+export function logModelChangeFn(message: string, modelStateFn: ModelStateFn, options?: LMCOptions): LogMessageFn {
+  const { initialArg, initialKeyFn = ((key: string) => `${key}Initial`) } = options || {}
   // capture the relevant initial state of the model
   const initial = modelStateFn(initialArg)
   return (finalArg?: any) => {
@@ -40,7 +44,7 @@ export function logModelChangeFn(message: string, modelStateFn: ModelStateFn, in
     // combine initial and final values as replacement string values
     const vars = [...Object.values(initial), ...Object.values(final)]
     // append `Initial` to property names of initial values
-    const argsInitial = Object.fromEntries(Object.entries(initial).map(([key, value]) => [`${key}Initial`, value]))
+    const argsInitial = Object.fromEntries(Object.entries(initial).map(([key, value]) => [initialKeyFn(key), value]))
     // final logged object contains initial and final values
     const args = { ...argsInitial, ...final }
     return { message: t(message, { vars }), args }
