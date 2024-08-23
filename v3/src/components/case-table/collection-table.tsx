@@ -29,6 +29,7 @@ import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -170,7 +171,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }, {
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
-      redoStringKey: "DG.Redo.caseTable.createAttribute"
+      redoStringKey: "DG.Redo.caseTable.createAttribute",
+      log: logStringifiedObjectMessage("attributeCreate",
+              {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""})
     })
   }
 

@@ -14,6 +14,7 @@ import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 interface IProps {
   onDrop?: (dataSet: IDataSet, attrId: string) => void
@@ -98,7 +99,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
-      log: "Expand/Collapse all",
+      log: logMessageWithReplacement("%@ all", { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }),
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
@@ -111,7 +112,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     }, {
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
-      log: `${caseMetadata?.isCollapsed(parentCaseId) ? "Collapse" : "Expand"} case ${parentCaseId}`
+      log: logMessageWithReplacement("%@ case %@",
+              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId })
     })
     // scroll to the first expanded/collapsed child case (if necessary)
     const parentCase = data?.caseInfoMap.get(parentCaseId)

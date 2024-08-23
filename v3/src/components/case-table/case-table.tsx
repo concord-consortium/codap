@@ -17,6 +17,7 @@ import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 
 import "./case-table.scss"
 
@@ -78,7 +79,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   }, [syncTableScroll])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
-    if (dataSet.attrFromID(attrId)) {
+    const attr = dataSet.attrFromID(attrId)
+    if (attr) {
       let collection: ICollectionModel | undefined
 
       // Determine if the old collection will become empty and therefore get removed
@@ -99,7 +101,9 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
           return notifications
         },
         undoStringKey: "DG.Undo.caseTable.createCollection",
-        redoStringKey: "DG.Redo.caseTable.createCollection"
+        redoStringKey: "DG.Redo.caseTable.createCollection",
+        log: logStringifiedObjectMessage("createCollection",
+                {collectionName: collection?.name, attr: attr.name})
       })
     }
   }, [])
