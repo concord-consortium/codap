@@ -13,6 +13,7 @@ import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { logModelChangeFn } from "../../lib/log-message"
 
 // wrapper component because RDG doesn't like observer components as header cell renderers
 export function ColumnHeader(props: TRenderHeaderCellProps) {
@@ -121,7 +122,8 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
           }
         },
         undoStringKey: "DG.Undo.caseTable.editAttribute",
-        redoStringKey: "DG.Redo.caseTable.editAttribute"
+        redoStringKey: "DG.Redo.caseTable.editAttribute",
+        log: logModelChangeFn("Change attribute name from %@ to %@", () => ({ name: editingAttribute?.name }))
       })
     }
     setEditingAttrId("")

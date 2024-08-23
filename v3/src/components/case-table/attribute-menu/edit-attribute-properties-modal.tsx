@@ -8,6 +8,7 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 
 import "./attribute-menu.scss"
 
@@ -71,7 +72,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       }, {
         notify: updateAttributesNotification([attribute], data),
         undoStringKey: "DG.Undo.caseTable.editAttribute",
-        redoStringKey: "DG.Redo.caseTable.editAttribute"
+        redoStringKey: "DG.Redo.caseTable.editAttribute",
+        log: logMessageWithReplacement("edit attribute %@", { name: attribute.name })
       })
     }
     closeModal()

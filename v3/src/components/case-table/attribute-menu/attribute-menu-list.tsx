@@ -14,6 +14,7 @@ import { t } from "../../../utilities/translation/translate"
 import { TColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 
 interface IProps {
   column: TColumn
@@ -100,7 +101,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
         }, {
           // TODO Should also broadcast notify component edit formula notification
           undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-          redoStringKey: "DG.Undo.caseTable.editAttributeFormula"
+          redoStringKey: "DG.Undo.caseTable.editAttributeFormula",
+          log: logMessageWithReplacement("Clear formula for attribute %@", { name: attribute?.name})
         })
       }
     },
@@ -140,7 +142,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           {
             notify: hideAttributeNotification([attributeId], data),
             undoStringKey: "DG.Undo.caseTable.hideAttribute",
-            redoStringKey: "DG.Redo.caseTable.hideAttribute"
+            redoStringKey: "DG.Redo.caseTable.hideAttribute",
+            log: logMessageWithReplacement("Hide attribute %@", { name: attribute?.name })
           }
         )
       }
@@ -176,7 +179,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
               return notifications
             },
             undoStringKey: "DG.Undo.caseTable.deleteAttribute",
-            redoStringKey: "DG.Redo.caseTable.deleteAttribute"
+            redoStringKey: "DG.Redo.caseTable.deleteAttribute",
+            log: logMessageWithReplacement("Delete attribute %@", { name: attribute.name })
           })
         }
       }
