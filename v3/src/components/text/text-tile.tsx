@@ -49,7 +49,6 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
           if (!textModel.isSettingValue) {
             // set the new value and remount the editor
             setInitialValue(modelValueToEditorValue(textModel?.value))
-            ++mountKey.current
           }
         }
       }))
@@ -68,7 +67,7 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
     if (textModel && !textModel.isEquivalent(editor.children)) {
       const textDidChange = textOnFocus.current !== textModel.textContent
       textModel?.applyModelChange(() => {
-        textModel.setValue(editor.children)
+        textModel.setValueFromEditor(editor.children)
       }, {
         // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯

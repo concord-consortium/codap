@@ -1,3 +1,4 @@
+import { SlateExchangeValue } from "@concord-consortium/slate-editor"
 import { kCalculatorTileType, kV2CalculatorType } from "../components/calculator/calculator-defs"
 import { kCaseCardTileType, kV2CaseCardType } from "../components/case-card/case-card-defs"
 import { kCaseTableTileType, kV2CaseTableType } from "../components/case-table/case-table-defs"
@@ -5,7 +6,6 @@ import { kGraphTileType, kV2GraphType } from "../components/graph/graph-defs"
 import { kMapTileType, kV2MapType } from "../components/map/map-defs"
 import { kSliderTileType, kV2SliderType } from "../components/slider/slider-defs"
 import { kTextTileType, kV2TextType } from "../components/text/text-defs"
-import { SlateDocument } from "../components/text/text-types"
 import { kV2GameType, kV2WebViewType, kWebViewTileType } from "../components/web-view/web-view-defs"
 
 // export const kV2ImageType = "image"
@@ -114,7 +114,7 @@ export interface V2GetSlider extends V2Slider {
   value?: number
 }
 export interface V2Text extends V2Component {
-  text?: string | SlateDocument
+  text?: string | SlateExchangeValue
   type: "text"
 }
 export interface V2WebView extends V2Component {

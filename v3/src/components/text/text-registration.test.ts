@@ -155,8 +155,7 @@ describe("text component handler", () => {
               text: "To be, or not to be"
             }]
           }]
-        },
-        objTypes: { paragraph: "block" }
+        }
       }
     })
     expect(emptyTextTileResult.success).toBe(true)
@@ -182,8 +181,7 @@ describe("text component handler", () => {
               text: "To be, or not to be, that is the question."
             }]
           }]
-        },
-        objTypes: { paragraph: "block" }
+        }
       }
     }
     testUpdateComponent(tile, diHandler, newValues, (textTile, values) => {
