@@ -3,6 +3,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
+import { getTitle } from "../models/tiles/tile-content-info"
 import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
@@ -10,10 +11,11 @@ import { t } from "../utilities/translation/translate"
 
 import "./component-title-bar.scss"
 
-export const ComponentTitleBar = observer(function ComponentTitleBar(
-    { tile, getTitle, children, onHandleTitleChange, onMinimizeTile, onCloseTile }: ITileTitleBarProps) {
+export const ComponentTitleBar = observer(function ComponentTitleBar({
+  tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
+}: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
-  const title = getTitle?.() || tile?.title || t("DG.AppController.createDataSet.name")
+  const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(title)
   const tileId = tile?.id || ""
@@ -27,6 +29,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
+        log: `Title changed to ${nextValue}`,
         undoStringKey: "DG.Undo.component.componentTitleChange",
         redoStringKey: "DG.Redo.component.componentTitleChange"
       })
@@ -34,14 +37,16 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
   }
 
   const handleSubmit = (nextValue: string) => {
-    if (onHandleTitleChange) {
-      onHandleTitleChange(nextValue)
-    } else {
-      handleChangeTitle(nextValue)
+    if (!preventTitleChange) {
+      if (onHandleTitleChange) {
+        onHandleTitleChange(nextValue)
+      } else {
+        handleChangeTitle(nextValue)
+      }
+      // Assume the title was successfully changed if nextValue is not empty.
+      setEditingTitle(nextValue || title)
+      setIsEditing(false)
     }
-    // Assume the title was successfully changed if nextValue is not empty.
-    setEditingTitle(nextValue || title)
-    setIsEditing(false)
   }
 
   const handleCancel = (previousValue: string) => {
@@ -50,8 +55,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
   }
 
   const handleTitleClick = () => {
-    setIsEditing(true)
-    setEditingTitle(title)
+    if (!preventTitleChange) {
+      setIsEditing(true)
+      setEditingTitle(title)
+    }
   }
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -73,7 +80,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
       <div className="title-bar" data-testid="component-title-bar">
-        {isEditing
+        {isEditing && !preventTitleChange
           ? <Input value={editingTitle} className="title-text-input" data-testid="title-text-input" autoFocus={true}
               onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}

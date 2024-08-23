@@ -22,7 +22,7 @@ export const useMaxAttrValueWidths = (data?: IDataSet) => {
       attr.strValues.forEach(str => {
         const width = Math.ceil(measureText(str))
         if (width > maxWidth) {
-          caseId = data?.caseIDFromIndex(i) || ""
+          caseId = data?.itemIDFromIndex(i) || ""
           maxWidth = width
         }
         maxWidth = Math.max(width, maxWidth)

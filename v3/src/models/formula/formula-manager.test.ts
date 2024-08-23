@@ -92,8 +92,8 @@ describe("FormulaManager", () => {
       manager.addDataSet(dataSet)
       manager.addAdapters([adapter])
 
-      expect(dataSet.getValueAtIndex(0, dataSet.attrFromName("foo")?.id || "")).toMatch(/Circular reference/)
-      expect(dataSet.getValueAtIndex(0, dataSet.attrFromName("bar")?.id || "")).toMatch(/Circular reference/)
+      expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("foo")?.id || "")).toMatch(/Circular reference/)
+      expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("bar")?.id || "")).toMatch(/Circular reference/)
     })
   })
 

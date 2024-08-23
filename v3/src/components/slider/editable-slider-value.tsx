@@ -6,6 +6,7 @@ import React, {useState, useEffect} from "react"
 import {MultiScale} from "../axis/models/multi-scale"
 import {ISliderModel} from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import './slider.scss'
 
@@ -47,9 +48,11 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
           sliderModel.setValue(inputValue)
         },
         {
-          notifications: () => valueChangeNotification(sliderModel.value, sliderModel.name),
+          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name),
           undoStringKey: "DG.Undo.slider.change",
-          redoStringKey: "DG.Redo.slider.change"
+          redoStringKey: "DG.Redo.slider.change",
+          log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
+               {name: sliderModel.name, value: inputValue})
         }
       )
     }

@@ -1,38 +1,42 @@
 import { create, all, MathNode } from 'mathjs'
-import { FormulaMathJsScope } from '../formula-mathjs-scope'
 import {
-  CODAPMathjsFunctionRegistry, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc, FValue,
-  FValueOrArray
+  CODAPMathjsFunctionRegistry, CurrentScope, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc,
+  FValue, FValueOrArray
 } from '../formula-types'
-import { equal, evaluateNode } from './function-utils'
+import { evaluateNode, getRootScope } from './function-utils'
 import { arithmeticFunctions } from './arithmetic-functions'
+import { dateFunctions } from './date-functions'
 import { stringFunctions } from './string-functions'
 import { lookupFunctions } from './lookup-functions'
 import { otherFunctions } from './other-functions'
 import { aggregateFunctions } from './aggregate-functions'
 import { semiAggregateFunctions } from './semi-aggregate-functions'
+import { operators } from './operators'
 
 export const math = create(all)
 
 // Each aggregate function needs to be evaluated with `withAggregateContext` method.
 export const evaluateRawWithAggregateContext = (fn: EvaluateRawFunc): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
+    const scope = getRootScope(currentScope)
     // withAggregateContext returns result of the callback function
-    return scope.withAggregateContext(() => fn(args, mathjs, scope))
+    return scope.withAggregateContext(() => fn(args, mathjs, currentScope))
   }
 }
 
 export const evaluateRawWithDefaultArg = (fn: EvaluateRawFunc, numOfRequiredArguments: number): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
+    const scope = getRootScope(currentScope)
     if (scope.defaultArgumentNode && args.length < numOfRequiredArguments) {
-      return fn([...args, scope.defaultArgumentNode], mathjs, scope)
+      return fn([...args, scope.defaultArgumentNode], mathjs, currentScope)
     }
-    return fn(args, mathjs, scope)
+    return fn(args, mathjs, currentScope)
   }
 }
 
 export const evaluateToEvaluateRaw = (fn: EvaluateFuncWithAggregateContextSupport): EvaluateRawFunc => {
-  return (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => {
+  return (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
+    const scope = getRootScope(currentScope)
     return fn(...(args.map(arg => evaluateNode(arg, scope))))
   }
 }
@@ -61,22 +65,11 @@ export const evaluateWithAggregateContextSupport = (fn: EvaluateFunc): EvaluateF
 }
 
 export const fnRegistry = {
-  // equal(a, b) or a == b
-  // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
-  // MathJs doesn't allow that by default, as it assumes that equal operator can be used only with numbers.
-  equal: {
-    isOperator: true,
-    numOfRequiredArguments: 2,
-    evaluateOperator: equal
-  },
-
-  unequal: {
-    isOperator: true,
-    numOfRequiredArguments: 2,
-    evaluateOperator: (a: any, b: any) => !equal(a, b)
-  },
+  ...operators,
 
   ...arithmeticFunctions,
+
+  ...dateFunctions,
 
   ...stringFunctions,
 

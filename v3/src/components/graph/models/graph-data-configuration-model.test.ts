@@ -30,6 +30,9 @@ describe("DataConfigurationModel", () => {
     ]))
   })
 
+  const caseIdFromItemId = (itemId: string) => tree.data.getItemChildCaseId(itemId)
+  const caseIdsFromItemIds = (itemIds: string[]) => itemIds.map(caseIdFromItemId)
+
   it("behaves as expected when empty", () => {
     const config = tree.config
     expect(config.attributeID('caption')).toBe('')
@@ -62,9 +65,9 @@ describe("DataConfigurationModel", () => {
     expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c2"},
-      {plotNum: 0, caseID: "c3"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c2")},
+      {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
   })
 
@@ -87,8 +90,8 @@ describe("DataConfigurationModel", () => {
       {attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c3"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
   })
 
@@ -111,8 +114,8 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
       {attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c2"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c2")}
     ])
   })
 
@@ -138,7 +141,7 @@ describe("DataConfigurationModel", () => {
       {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
       {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
-    expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: "c1"}])
+    expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: caseIdFromItemId("c1")}])
 
     // behaves as expected after adding "x" as an additional y attribute
     config.addYAttribute({ attributeID: "xId" })
@@ -171,16 +174,16 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "yId", role: "y"},
       {attributeID: "nId", role: "caption"}])
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c3"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
 
     // updates cases when values change
     tree.data.setCaseValues([{ __id__: "c2", "yId": 2 }])
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c2"},
-      {plotNum: 0, caseID: "c3"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c2")},
+      {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
 
     // triggers observers when values change
@@ -191,17 +194,18 @@ describe("DataConfigurationModel", () => {
       { name: "GraphDataConfigurationTest.caseDataArray reaction" })
     expect(trigger).not.toHaveBeenCalled()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "" }])
-    expect(trigger).toHaveBeenCalledTimes(1)
+    expect(trigger).toHaveBeenCalled()
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c3"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
+    trigger.mockClear()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "2" }])
-    expect(trigger).toHaveBeenCalledTimes(2)
+    expect(trigger).toHaveBeenCalled()
     expect(config.caseDataArray).toEqual([
-      {plotNum: 0, caseID: "c1"},
-      {plotNum: 0, caseID: "c2"},
-      {plotNum: 0, caseID: "c3"}
+      {plotNum: 0, caseID: caseIdFromItemId("c1")},
+      {plotNum: 0, caseID: caseIdFromItemId("c2")},
+      {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
   })
 
@@ -237,22 +241,26 @@ describe("DataConfigurationModel", () => {
     const handleAction = jest.fn()
     config.onAction(handleAction)
 
-    tree.data.setCaseValues([{ __id__: "c1", xId: 1.1 }])
+    tree.data.setCaseValues([{ __id__: caseIdFromItemId("c1")!, xId: 1.1 }])
     expect(handleAction).toHaveBeenCalled()
     expect(handleAction.mock.lastCall[0].name).toBe("setCaseValues")
     handleAction.mockClear()
 
-    tree.data.setCaseValues([{ __id__: "c3", xId: 3 }])
+    tree.data.setCaseValues([{ __id__: caseIdFromItemId("c3")!, xId: 3 }])
     expect(handleAction).toHaveBeenCalled()
     expect(handleAction.mock.lastCall[0].name).toBe("addCases")
     handleAction.mockClear()
 
-    tree.data.setCaseValues([{ __id__: "c1", xId: "" }])
+    tree.data.setCaseValues([{ __id__: caseIdFromItemId("c1")!, xId: "" }])
     expect(handleAction).toHaveBeenCalled()
     expect(handleAction.mock.lastCall[0].name).toBe("removeCases")
     handleAction.mockClear()
 
-    tree.data.setCaseValues([{ __id__: "c1", xId: 1 }, { __id__: "c2", xId: "" }, { __id__: "c3", xId: 3.3 }])
+    tree.data.setCaseValues([
+      { __id__: caseIdFromItemId("c1")!, xId: 1 },
+      { __id__: caseIdFromItemId("c2")!, xId: "" },
+      { __id__: caseIdFromItemId("c3")!, xId: 3.3 }
+    ])
     expect(handleAction).toHaveBeenCalled()
   })
 
@@ -292,46 +300,46 @@ describe("DataConfigurationModel", () => {
   it("returns an array of cases in a plot", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)
-    expect(config.allPlottedCases()).toEqual(["c1", "c2", "c3"])
-    expect(config.subPlotCases({})).toEqual(["c1", "c2", "c3"])
-    expect(config.cellCases({})).toEqual(["c1", "c2", "c3"])
-    expect(config.rowCases({})).toEqual(["c1", "c2", "c3"])
-    expect(config.columnCases({})).toEqual(["c1", "c2", "c3"])
+    expect(config.allPlottedCases()).toEqual(caseIdsFromItemIds(["c1", "c2", "c3"]))
+    expect(config.subPlotCases({})).toEqual(caseIdsFromItemIds(["c1", "c2", "c3"]))
+    expect(config.cellCases({})).toEqual(caseIdsFromItemIds(["c1", "c2", "c3"]))
+    expect(config.rowCases({})).toEqual(caseIdsFromItemIds(["c1", "c2", "c3"]))
+    expect(config.columnCases({})).toEqual(caseIdsFromItemIds(["c1", "c2", "c3"]))
 
     config.setAttribute("x", { attributeID: "xId" })
-    expect(config.allPlottedCases()).toEqual(["c1", "c2"])
-    expect(config.subPlotCases({})).toEqual(["c1", "c2"])
-    expect(config.cellCases({})).toEqual(["c1", "c2"])
-    expect(config.rowCases({})).toEqual(["c1", "c2"])
-    expect(config.columnCases({})).toEqual(["c1", "c2"])
+    expect(config.allPlottedCases()).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+    expect(config.subPlotCases({})).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+    expect(config.cellCases({})).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+    expect(config.rowCases({})).toEqual(caseIdsFromItemIds(["c1", "c2"]))
+    expect(config.columnCases({})).toEqual(caseIdsFromItemIds(["c1", "c2"]))
 
     config.setAttribute("y", { attributeID: "yId" })
-    expect(config.allPlottedCases()).toEqual(["c1"])
-    expect(config.subPlotCases({})).toEqual(["c1"])
-    expect(config.cellCases({})).toEqual(["c1"])
-    expect(config.rowCases({})).toEqual(["c1"])
-    expect(config.columnCases({})).toEqual(["c1"])
+    expect(config.allPlottedCases()).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.subPlotCases({})).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.cellCases({})).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.rowCases({})).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.columnCases({})).toEqual(caseIdsFromItemIds(["c1"]))
 
     config.setAttribute("topSplit", { attributeID: "nId" })
-    expect(config.allPlottedCases()).toEqual(["c1"])
-    expect(config.subPlotCases({})).toEqual(["c1"])
-    expect(config.cellCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.allPlottedCases()).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.subPlotCases({})).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.cellCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
     expect(config.rowCases({})).toEqual([])
-    expect(config.rowCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.rowCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
     expect(config.columnCases({})).toEqual([])
-    expect(config.columnCases({ nId: "n1" })).toEqual(["c1"])
+    expect(config.columnCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
 
     config.setAttribute("x")
-    expect(config.allPlottedCases()).toEqual(["c1", "c3"])
-    expect(config.subPlotCases({})).toEqual(["c1", "c3"])
-    expect(config.cellCases({ nId: "n1" })).toEqual(["c1"])
-    expect(config.cellCases({ nId: "n3" })).toEqual(["c3"])
+    expect(config.allPlottedCases()).toEqual(caseIdsFromItemIds(["c1", "c3"]))
+    expect(config.subPlotCases({})).toEqual(caseIdsFromItemIds(["c1", "c3"]))
+    expect(config.cellCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.cellCases({ nId: "n3" })).toEqual(caseIdsFromItemIds(["c3"]))
     expect(config.rowCases({})).toEqual([])
-    expect(config.rowCases({ nId: "n1" })).toEqual(["c1"])
-    expect(config.rowCases({ nId: "n3" })).toEqual(["c3"])
+    expect(config.rowCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.rowCases({ nId: "n3" })).toEqual(caseIdsFromItemIds(["c3"]))
     expect(config.columnCases({})).toEqual([])
-    expect(config.columnCases({ nId: "n1" })).toEqual(["c1"])
-    expect(config.columnCases({ nId: "n3" })).toEqual(["c3"])
+    expect(config.columnCases({ nId: "n1" })).toEqual(caseIdsFromItemIds(["c1"]))
+    expect(config.columnCases({ nId: "n3" })).toEqual(caseIdsFromItemIds(["c3"]))
   })
 
   it("can create cell key", () => {

@@ -71,6 +71,7 @@ module.exports = {
     "keyword-spacing": ["warn"],
     "max-len": ["warn", { code: 120, ignoreUrls: true }],
     "no-bitwise": "error",
+    "no-constant-binary-expression": "error",
     "no-debugger": "off",
     "no-duplicate-imports": "error",
     "no-sequences": "error",
@@ -140,7 +141,7 @@ module.exports = {
         "@typescript-eslint/no-var-requires": "off",
         "jest/no-disabled-tests": "off",
         "jest/no-done-callback": "off",
-        "jest/no-focused-tests": "off"  // enabled in .eslintrc.build.js
+        "jest/no-focused-tests": "warn" // error in .eslintrc.build.js
       }
     },
     { // rules specific to Cypress tests
@@ -149,14 +150,20 @@ module.exports = {
         node: true,
         "cypress/globals": true
       },
-      plugins: ["cypress"],
-      extends: ["plugin:cypress/recommended"],
+      plugins: ["cypress", "mocha"],
+      extends: ["plugin:cypress/recommended", "plugin:mocha/recommended"],
       rules: {
         "@typescript-eslint/no-require-imports": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-var-requires": "off",
         "cypress/no-unnecessary-waiting": "off",
-        "cypress/unsafe-to-chain-command": "off"  // FIXME: eight errors reported
+        "cypress/unsafe-to-chain-command": "off", // FIXME: multiple errors reported
+        "mocha/consistent-spacing-between-blocks": "off",
+        "mocha/max-top-level-suites": "off",
+        "mocha/no-exclusive-tests": "warn", // error in .eslintrc.build.js
+        "mocha/no-mocha-arrows": "off",
+        "mocha/no-setup-in-describe": "off",
+        "mocha/no-skipped-tests": "off",
       }
     },
     { // Lint configs in the base v3 directory

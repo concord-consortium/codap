@@ -14,6 +14,8 @@ import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
 import { serializeDocument } from "./document/serialize-document"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
 import { getSharedModelManager } from "./tiles/tile-environment"
+import { Logger } from "../lib/logger"
+import { t } from "../utilities/translation/translate"
 
 type AppMode = "normal" | "performance"
 
@@ -27,6 +29,8 @@ class AppState {
   // enables/disables performance mode globally, e.g. for a/b testing
   @observable
   private isPerformanceEnabled = true
+
+  private version = ""
 
   constructor() {
     this.currentDocument = createCodapDocument()
@@ -44,7 +48,7 @@ class AppState {
   }
 
   @action
-  setDocument(snap: IDocumentModelSnapshot) {
+  setDocument(snap: IDocumentModelSnapshot, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
     this.disableUndoRedoMonitoring()
 
@@ -52,6 +56,16 @@ class AppState {
       const document = createCodapDocument(snap)
       if (document) {
         this.currentDocument = document
+        if (metadata) {
+          const metadataEntries = Object.entries(metadata)
+          metadataEntries.forEach(([key, value]) => {
+            if (value != null) {
+              this.currentDocument.setProperty(key, value)
+            }
+          })
+        }
+        const docTitle = this.currentDocument.getDocumentTitle()
+        this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
         // monitor document changes for undo/redo
         this.enableUndoRedoMonitoring()
 
@@ -61,10 +75,11 @@ class AppState {
         manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
           gDataBroker.addSharedDataSet(model)
         })
+        Logger.updateDocument(document)
       }
     }
     catch (e) {
-      console.error("Error loading document!")
+      console.error("Error loading document!", e)
     }
   }
 
@@ -86,6 +101,14 @@ class AppState {
   @action
   disablePerformance() {
     this.isPerformanceEnabled = false
+  }
+
+  setVersion(version: string) {
+    this.version = version
+  }
+
+  getVersion() {
+    return this.version
   }
 
   @computed

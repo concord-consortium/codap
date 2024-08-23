@@ -1,11 +1,13 @@
+import { V2GetSlider } from "../../data-interactive/data-interactive-component-types"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
-import { toV3Id } from "../../utilities/codap-utils"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
-import { kSliderIdPrefix } from "../../components/slider/slider-registration"
-import { ISliderModel, isSliderModel } from "../../components/slider/slider-model"
-import { AnimationDirections, AnimationModes } from "../../components/slider/slider-types"
+import { toV3Id } from "../../utilities/codap-utils"
+import { ISliderModel, isSliderModel } from "./slider-model"
+import { kSliderIdPrefix } from "./slider-registration"
+import { AnimationDirections, AnimationModes } from "./slider-types"
 
 
 describe("DataInteractive ComponentHandler Slider", () => {
@@ -14,7 +16,7 @@ describe("DataInteractive ComponentHandler Slider", () => {
   globalManager?.addValueSnapshot({ name: "global", value: 10 })
   const handler = diComponentHandler
 
-  it("create slider works", async () => {
+  it("create and get slider work", async () => {
     // Create slider with no value specified
     expect(documentContent.tileMap.size).toBe(0)
     const newValueResult = handler.create!({}, { type: "slider" })
@@ -47,6 +49,20 @@ describe("DataInteractive ComponentHandler Slider", () => {
     expect(oldValueContent.axis.max).toBe(100)
     expect(oldValueContent.animationDirection).toBe(AnimationDirections[0])
     expect(oldValueContent.animationMode).toBe(AnimationModes[1])
+
+    // Get slider
+    testGetComponent(oldValueTile, handler, (sliderTile, values) => {
+      const {
+        animationDirection, animationMode, globalValueName, lowerBound, upperBound, value
+      } = values as V2GetSlider
+      const sliderContent = sliderTile.content as ISliderModel
+      expect(animationDirection).toBe(AnimationDirections.findIndex(v => v === sliderContent.animationDirection))
+      expect(animationMode).toBe(AnimationModes.findIndex(v => v === sliderContent.animationMode))
+      expect(globalValueName).toBe(sliderContent.globalValue.name)
+      expect(lowerBound).toBe(sliderContent.axis.min)
+      expect(upperBound).toBe(sliderContent.axis.max)
+      expect(value).toBe(sliderContent.globalValue.value)
+    })
 
     // Cannot create slider with duplicate global value
     const duplicateResult = handler.create!({}, { type: "slider", globalValueName: "global" })

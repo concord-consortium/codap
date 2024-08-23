@@ -1,2 +1,5 @@
 export const kWebViewTileType = "CodapWebView"
+export const kV2GameType = "game"
+export const kV2GuideViewType = "guideView"
+export const kV2WebViewType = "webView"
 export const kWebViewTileClass = "codap-web-view"

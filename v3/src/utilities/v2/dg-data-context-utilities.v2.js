@@ -4,6 +4,7 @@ import { SC } from "../../v2/sc-compat"
 import {
   createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification
 } from "../../models/data/data-set-notifications"
+import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
 DG.DataContextUtilities = {
@@ -259,7 +260,7 @@ DG.DataContextUtilities = {
     tCaseMetadata?.applyModelChange(
       () => tCaseMetadata?.setIsHidden(iAttrID, true),
       {
-        notifications: hideAttributeNotification([iAttrID], iContext.data),
+        notify: hideAttributeNotification([iAttrID], iContext.data),
         undoStringKey: "DG.Undo.caseTable.hideAttribute",
         redoStringKey: "DG.Redo.caseTable.hideAttribute"
       }
@@ -329,7 +330,7 @@ DG.DataContextUtilities = {
    */
   deleteAttributeFormula (iDataContext, iAttrID, iUpdateFunc) {
     // show an alert that this has not been implemented yet
-    console.log("This feature has not been implemented yet.")
+    console.warn("This feature has not been implemented yet.")
     alert("This feature has not been implemented yet.")
 
     // var tRef = iDataContext?.getAttrRefByID(iAttrID),
@@ -665,7 +666,7 @@ DG.UndoHistory.execute(DG.Command.create({
         // caseIndex = collection.getCaseIndexByID(iCase.get('id'))
 
     iContext.data.applyModelChange(() => {
-      iContext.data.setCaseValues([{ __id__: iCase.get('id'), [tAttrID]: newValue }])
+      setCaseValuesWithCustomUndoRedo(iContext.data, [{ __id__: iCase.get('id'), [tAttrID]: newValue }])
     }, {
       undoStringKey: "DG.Undo.caseTable.editCellValue",
       redoStringKey: "DG.Redo.caseTable.editCellValue",

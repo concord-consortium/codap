@@ -51,7 +51,7 @@ export const HideShowMenuList = () => {
     caseMetadata?.applyModelChange(
       () => caseMetadata?.showAllAttributes(),
       {
-        notifications: [
+        notify: [
           hideAttributeNotification(hiddenAttrIds, data, "unhideAttributes"),
           hideAttributeNotification(hiddenAttrIds, data, "showAttributes")
         ],

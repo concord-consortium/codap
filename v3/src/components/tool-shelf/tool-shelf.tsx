@@ -16,6 +16,7 @@ import { DEBUG_UNDO } from "../../lib/debug"
 import { IDocumentModel } from "../../models/document/document"
 import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
+import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 
@@ -23,6 +24,9 @@ import "./tool-shelf.scss"
 
 // Type for components known to have shelf properties
 type IShelfTileComponentInfo = SetRequired<ITileComponentInfo, "shelf">
+export function isShelfTileComponent(info?: ITileComponentInfo): info is IShelfTileComponentInfo {
+  return !!info && "shelf" in info && info.shelf != null
+}
 
 interface IRightButtonEntry {
   className?: string
@@ -75,7 +79,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       icon: <TileListIcon className="icon-tile-list"/>,
       label: t("DG.ToolButtonData.tileListMenu.title"),
-      hint: t("DG.ToolButtonData.tileListMenu.toolTip")
+      hint: t("DG.ToolButtonData.tileListMenu.toolTip"),
+      button: <TilesListShelfButton key={t("DG.ToolButtonData.tileListMenu.title")} />
     },
     {
       icon: <OptionsIcon className="icon-options"/>,
@@ -105,21 +110,15 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   }
 
   const keys = getTileComponentKeys()
-  const tileComponentInfo = keys.map(key => getTileComponentInfo(key))
-    .filter(info => info?.shelf != null) as IShelfTileComponentInfo[]
+  const tileComponentInfo = keys.map(key => getTileComponentInfo(key)).filter(info => isShelfTileComponent(info))
   tileComponentInfo.sort((a, b) => a.shelf.position - b.shelf.position)
 
   function handleTileButtonClick(tileType: string) {
-    const undoRedoStringKeysMap: Record<string, [string, string]> = {
-      Calculator: ["DG.Undo.toggleComponent.add.calcView", "DG.Redo.toggleComponent.add.calcView"],
-      CodapSlider: ["DG.Undo.sliderComponent.create", "DG.Redo.sliderComponent.create"],
-      Graph: ["DG.Undo.graphComponent.create", "DG.Redo.graphComponent.create"],
-      Map: ["DG.Undo.map.create", "DG.Redo.map.create"]
-    }
-    const [undoStringKey = "", redoStringKey = ""] = undoRedoStringKeysMap[tileType] || []
+    const tileInfo = getTileComponentInfo(tileType)
+    const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
     document?.content?.applyModelChange(() => {
-      document?.content?.createOrShowTile?.(tileType)
-    }, { undoStringKey, redoStringKey })
+      document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
+    }, { undoStringKey, redoStringKey, log: `Create ${tileType} tile` })
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

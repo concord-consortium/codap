@@ -9,8 +9,11 @@ import { IDataSet } from "../../models/data/data-set"
 import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { parseColor } from "../../utilities/color-utils"
+import { isStdISODateString } from "../../utilities/date-iso-utils"
+import { parseDate } from "../../utilities/date-parser"
+import { DatePrecision, formatDate } from "../../utilities/date-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
-import { isCaseEditable } from "../web-view/collaborator-utils"
+import { isCaseEditable } from "../../utilities/plugin-utils"
 import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
@@ -50,6 +53,29 @@ export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number
     const formatStr = attr?.format ?? kDefaultFormatStr
     const formatter = getNumFormatter(formatStr)
     if (formatter) str = formatter(num)
+  }
+
+  // Dates
+  // Note that CODAP v2 formats dates in the case table ONLY if the user explicitly specifies the type as "date".
+  // Dates are not interpreted as dates and formatted by default. However, V3 adds one exception to this rule:
+  // if the date string is strictly an ISO string produced by the browser's Date.toISOString(), it will be treated as
+  // a Date object that should be formatted. The main reason for this is to format the results of date formulas.
+  // This is because CODAP v3 stores all the case values as strings natively, and we cannot simply check if the value
+  // is an instance of the `Date` class (as it will never be). Date.toISOString() is the native way of serializing dates
+  // in CODAP v3 (check `importValueToString` from attribute.ts).
+  if (isStdISODateString(str) || userType === "date" && str !== "") {
+    const date = parseDate(str, true)
+    if (date) {
+      // TODO: add precision support for date formatting
+      const formattedDate = formatDate(date, DatePrecision.None)
+      return {
+        value: str,
+        content: <span className="cell-span" key={key}>{formattedDate || `"${str}"`}</span>
+      }
+    } else {
+      // If the date is not valid, wrap it in quotes (CODAP V2 behavior).
+      str = `"${str}"`
+    }
   }
 
   return {

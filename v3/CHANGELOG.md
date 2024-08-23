@@ -1,6 +1,130 @@
 # Changelog
 
-## Version 3.0.0-pre.1652 - June 14, 2024
+## Version 3.0.0-pre.1782 - August 12, 2024
+
+### ✨ Features & Improvements:
+- **PT-181846581:** Case table rows of multiple children can be collapsed
+- **PT-181846596:** Each collection in a case table has its own header where its name and number of cases are shown
+- **PT-181840926:** The **Text** icon causes a new text component to appear.
+- **PT-188095789:** Auto-focus newly created text component
+- **PT-181889964:** Attribute menu **Delete Formula (Keeping Values)**
+- **PT-188009741:** DI Collection Labels
+- **PT-187738952:** DI Get Component Requests
+- **PT-182089941:** CODAP logs user actions to the CC log server
+- **PT-188095695:** Formulas are not getting evaluated on restore
+
+### 🐞 Bug Fixes:
+- **PT-187833677:** Crash on undo of adding multiple-y attribute to graph
+- **PT-187452500:** Drop target highlights show on top of other tiles during attribute drags
+- **PT-187949371:** Bug: Case table can auto-scroll vertically on attribute drag
+- **PT-188045173:** Input Row doesn't work in Collaborative plugin
+- **PT-188050066:** Collaborative: Sharing Existing Tables
+- **PT-188066180:** "Failure to fetch" plugin info with network issues
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  179710 bytes |                            2.33% |
+|  index.js | 5879153 bytes |                            7.67% |
+
+## Version 3.0.0-pre.1762 - July 24, 2024
+
+### ✨ Features & Improvements:
+- **PT-181846592:** Each table in a case table has its own **input row**
+- **PT-187967544:** Case table: enter key should advance to next row
+- **PT-187810613:** The user can create a new attribute using a command in the case table's **ruler** menu
+- **PT-187881303:** An ICI url parameter allows the user to display an "informal confidence interval" on a box plot.
+- **PT-181909481:** Selection of points in graphs and maps
+- **PT-187799270:** There is a full set of date-time functions
+- **PT-187965959:** **DateTime** Date Support in Case Table
+- **PT-188007822:** Add `number` formula to CODAP v3, support dates
+- **PT-187932225:** Drag and drop modals
+- **PT-187950451:** Update to mathjs 12.4.3 (or latest v12 version)
+- **PT-187797451:** DI Get and Update InteractiveFrame Requests
+- **PT-187737794:** DI Notify ItemSearch ItemOrder
+- **PT-187994058:** DI create/update component caseTable horizontalScrollOffset
+- **PT-187738935:** DI Get CaseFormulaSearch
+- **PT-187985989:** DI Update interactiveFrame preventTopLevelReorg
+- **PT-187792879:** Plugin component shows version number in titlebar
+
+### 🐞 Bug Fixes:
+- **PT-187931119:** Changed parent case values are not immediately displayed in tables
+- **PT-187931309:** Creating a new collection does not result in a reorder of the child collection
+- **PT-187931070:** Table doesn't update immediately in response to notify itemSearch itemOrder API requests
+- **PT-187948687:** MST warning on undo create case table
+- **PT-187949749:** Redo of component creation results in invisible components
+- **PT-187951353:** In case table, `useRows.handleRowsChange` is called twice after editing cell and pressing enter
+- **PT-184879695:** Initial click on case table row isn't selecting the case unless the case table already has focus
+- **PT-187735631:** Missing connecting lines in case table after hiding last attribute in collection
+- **PT-187808979:** The dialog box for entering a URL for a web page should be very close in appearance to that of V2
+- **PT-187127871:** Undo fails to restore deleted cases after insertion
+- **PT-187944324:** Redo of changing case table to card results fails
+- **PT-187949333:** Index Ordering Issue When Creating Hierarchy and Flattening the Table
+- **PT-187693749:** Collapsed rows selection in case table is broken
+- **PT-187597588:** Undo functionality fails after delete cases from inspector menu
+- **PT-187444682:** Index is sticking when flattening table in Coasters
+- **PT-187548205:** Deleting the last attribute of the ungrouped collection does not result in the ungrouped collection being removed
+- **PT-187967231:** Undo fails after dragging State to child collection in Roller Coasters
+- **PT-187986400:** Clicking on collapsed group brings up index menu
+- **PT-187237814:** Undo attribute description change results in incorrect attribute header tooltip
+- **PT-187423850:** Fix title of component in Four Seals Example document
+- **PT-188009575:** Formula Engine Doesn't Recognize >= and <=
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  175606 bytes |                            0.77% |
+|  index.js | 5460271 bytes |                            1.69% |
+
+## Version 3.0.0-pre.1731 - July 12, 2024
+
+### ✨ Features & Improvements:
+- **PT-186227299:** Automation for Inspector menu options of case table
+- **PT-187425766:** Persistent ids for cases in hierarchical collections
+- **PT-187838529:** User can display a "gaussian fit" normal curve on a histogram
+- **PT-187850012:** When the std err and gaussian fit adornments are both showing the gaussian fit label should show the std err computed from estimate of standard deviation
+- **PT-187881286:** A gaussianFit URL parameter allows user to display a gaussian fit normal curve on a histogram
+- **PT-187737737:** DI Get CaseSearch Requests
+- **PT-187737791:** DI Update DataContext ManagingController and Update InteractiveFrame
+- **PT-187718437:** DI Create Component Requests
+- **PT-185315714:** Pressing the **new attribute** button in the case table moves editor focus to the new attribute name.
+- **PT-187864576:** Fix Collaborative plugin
+- **PT-187263038:** Bring back undo/redo graph legend tests
+- **PT-187323679:** Add checks for undo/redo in axis.spec.ts
+
+### 🐞 Bug Fixes:
+- **PT-187262957:** Scatterplot points compress to single point after Undo in various plots
+- **PT-187401397:** Legend Box Compression on Window Resize with Multiple Axes
+- **PT-187793171:** Can't redo axis change
+- **PT-187638145:** Level not created in hierarchy when using Choosy in mammals dataset
+- **PT-187309840:** No cases text persists on table in Parachutes sample document
+- **PT-187319588:** Categorical label persists on graph after removal in plot with numerical/categorical variables
+- **PT-187841073:** Unable to add second y-attribute to scatterplot
+- **PT-187849639:** Multidata plugin in nested table or card view mode shows a white background
+- **PT-187849648:** Sensor interactive creates new time column when frequency is changed
+- **PT-187849622:** Multidata plugin issues with newly added datasets
+- **PT-187751419:** Restore of bar chart and histogram doesn't show bars
+- **PT-187879648:** Least squares line is not properly split by categorical legend
+- **PT-187811059:** Map **Measure** menu ui tuneup
+- **PT-187849761:** Click and drag on component title bar title misbehaves
+- **PT-187811163:** **Insert Cases** dialog box tuneup
+- **PT-187811193:** The graph's camera menu is not bringing up a menu
+- **PT-187849983:** The list of example documents should have the same order as they do in V2
+- **PT-187809039:** Case table/card icons at left of title bar are wrong
+- **PT-187810830:** **Attribute Properties** dialog box tuneup
+- **PT-187573237:** The attribute menu in case card is crashing for most items
+- **PT-187810451:** Formatting for graph configuration menu is awkward
+- **PT-187937515:** Graph Camera Menu Click Issue
+- **PT-187906401:** Case card doesn't show units
+- **PT-187878126:** Failure to add new category to graph axis
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  174269 bytes |                            0.13% |
+|  index.js | 5415545 bytes |                            0.44% |
+
+## Version 3.0.0-pre.1696 - June 14, 2024
 
 ### ✨ Features & Improvements:
 - **PT-187459320:** Graph has option to Show Measures for Selection

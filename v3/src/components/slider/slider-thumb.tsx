@@ -7,6 +7,7 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import './slider.scss'
 
@@ -52,7 +53,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       if (sliderValue != null && sliderModel) {
         sliderModel.applyModelChange(
           () => sliderModel.setDynamicValue(sliderValue),
-          { notifications: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+          { notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
         )
       }
       e.preventDefault()
@@ -66,7 +67,9 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
           () => sliderModel.setValue(sliderValue),
           {
             undoStringKey: "DG.Undo.slider.change",
-            redoStringKey: "DG.Redo.slider.change"
+            redoStringKey: "DG.Redo.slider.change",
+            log: logMessageWithReplacement("sliderThumbDrag: { name: %@ = value: %@ }",
+                  {name: sliderModel?.name, value: sliderValue})
           }
         )
       }

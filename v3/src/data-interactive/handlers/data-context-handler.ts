@@ -12,7 +12,7 @@ import {
 } from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { getAttribute } from "../data-interactive-utils"
-import { findTileFromV2Id } from "../resource-parser-utils"
+import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { dataContextNotFoundResult } from "./di-results"
 
@@ -46,7 +46,7 @@ export const diDataContextHandler: DIHandler = {
         values: basicDataSetInfo(dataSet)
       }
     }, {
-      notifications: dataContextCountChangedNotification
+      notify: dataContextCountChangedNotification
     })
   },
 
@@ -57,7 +57,7 @@ export const diDataContextHandler: DIHandler = {
     appState.document.applyModelChange(() => {
       gDataBroker.removeDataSet(dataContext.id)
     }, {
-      notifications: [dataContextCountChangedNotification, dataContextDeletedNotification(dataContext)]
+      notify: [dataContextCountChangedNotification, dataContextDeletedNotification(dataContext)]
     })
 
     return { success: true }
@@ -87,8 +87,8 @@ export const diDataContextHandler: DIHandler = {
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
 
         if (managingController) {
-          const tile = findTileFromV2Id(managingController)
-          if (tile) dataContext.setManagingControllerId(tile.id)
+          const tile = findTileFromNameOrId(managingController)
+          dataContext.setManagingControllerId(tile?.id)
         }
 
         if (sort?.attr) {

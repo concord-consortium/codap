@@ -1,9 +1,11 @@
 import { SetRequired } from "type-fest"
+import { caseTableCardComponentHandler } from "../case-table-card-common/case-table-card-handler"
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseTableComponent } from "./case-table-component"
-import { kCaseTableTileType } from "./case-table-defs"
+import { kCaseTableTileType, kV2CaseTableType } from "./case-table-defs"
 import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
@@ -12,6 +14,8 @@ import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isCodapV2Attribute, isV2TableComponent } from "../../v2/codap-v2-types"
 import { CaseTableInspector } from "./case-table-inspector"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { t } from "../../utilities/translation/translate"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -20,6 +24,10 @@ registerTileContentInfo({
   prefix: kCaseTableIdPrefix,
   modelClass: CaseTableModel,
   defaultContent: () => ({ type: kCaseTableTileType }),
+  getTitle: (tile) => {
+    const data = tile.content && getTileDataSet(tile.content)
+    return data?.title || t("DG.DocumentController.caseTableTitle")
+  },
   hideOnClose: true
 })
 
@@ -34,7 +42,9 @@ registerTileComponentInfo({
     ButtonComponent: CaseTableToolShelfButton,
     position: 1,
     labelKey: "DG.ToolButtonData.tableButton.title",
-    hintKey: "DG.ToolButtonData.tableButton.toolTip"
+    hintKey: "DG.ToolButtonData.tableButton.toolTip",
+    undoStringKey: "V3.Undo.caseTable.create",
+    redoStringKey: "V3.Redo.caseTable.create"
   },
   defaultWidth: 580,
   defaultHeight: 200
@@ -43,7 +53,7 @@ registerTileComponentInfo({
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
-  const { guid, componentStorage: { title = "", _links_, attributeWidths } } = v2Component
+  const { guid, componentStorage: { name, title = "", _links_, attributeWidths } } = v2Component
 
   const content: SetRequired<ICaseTableSnapshot, "columnWidths"> = {
     type: kCaseTableTileType,
@@ -63,7 +73,9 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
     }
   })
 
-  const tableTileSnap: ITileModelSnapshotIn = { id: toV3Id(kCaseTableIdPrefix, guid), title, content }
+  const tableTileSnap: ITileModelSnapshotIn = {
+    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content
+  }
   const tableTile = insertTile(tableTileSnap)
 
   // Make sure metadata knows this is the table tile and it is the last shown
@@ -78,3 +90,5 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
 
   return tableTile
 })
+
+registerComponentHandler(kV2CaseTableType, caseTableCardComponentHandler)

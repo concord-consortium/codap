@@ -1,13 +1,14 @@
 import { getSnapshot } from "mobx-state-tree"
-import { setupTestDataset, testCases } from "../../data-interactive/handlers/handler-test-utils"
-import { appState } from "../../models/app-state"
-import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { setupTestDataset, testCases } from "../data-interactive/handlers/handler-test-utils"
+import { appState } from "../models/app-state"
+import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import {
-  getPreventAttributeDeletion, getRespectEditableItemAttribute, isCaseEditable, isItemEditable
-} from "./collaborator-utils"
-import { kWebViewTileType } from "./web-view-defs"
-import { IWebViewModel } from "./web-view-model"
-import "./web-view-registration"
+  allowEmptyAttributeDeletion, preventAttributeDeletion, preventDataContextReorg,
+  respectEditableItemAttribute, isCaseEditable, isItemEditable
+} from "./plugin-utils"
+import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { IWebViewModel } from "../components/web-view/web-view-model"
+import "../components/web-view/web-view-registration"
 
 describe('Collaborator Utils', () => {
   it("plugins can control datasets", () => {
@@ -22,22 +23,32 @@ describe('Collaborator Utils', () => {
 
     // Dataset has values of managing controller
     webView1.setPreventAttributeDeletion(true)
-    expect(getPreventAttributeDeletion(dataSet)).toBe(false)
-    expect(getRespectEditableItemAttribute(dataSet)).toBe(false)
+    webView1.setPreventDataContextReorg(true)
+    expect(allowEmptyAttributeDeletion(dataSet)).toBe(true)
+    expect(preventAttributeDeletion(dataSet)).toBe(false)
+    expect(preventDataContextReorg(dataSet)).toBe(false)
+    expect(respectEditableItemAttribute(dataSet)).toBe(false)
     dataSet.setManagingControllerId(tile1.id)
-    expect(getPreventAttributeDeletion(dataSet)).toBe(true)
-    expect(getRespectEditableItemAttribute(dataSet)).toBe(false)
+    expect(allowEmptyAttributeDeletion(dataSet)).toBe(true)
+    expect(preventAttributeDeletion(dataSet)).toBe(true)
+    expect(preventDataContextReorg(dataSet)).toBe(true)
+    expect(respectEditableItemAttribute(dataSet)).toBe(false)
 
     // Changing the managing controller's values changes the dataset's values
+    webView1.setAllowEmptyAttributeDeletion(false)
     webView1.setRespectEditableItemAttribute(true)
-    expect(getPreventAttributeDeletion(dataSet)).toBe(true)
-    expect(getRespectEditableItemAttribute(dataSet)).toBe(true)
+    expect(allowEmptyAttributeDeletion(dataSet)).toBe(false)
+    expect(preventAttributeDeletion(dataSet)).toBe(true)
+    expect(preventDataContextReorg(dataSet)).toBe(true)
+    expect(respectEditableItemAttribute(dataSet)).toBe(true)
 
     // Changing the managing controller changes the dataset's values
     webView2.setRespectEditableItemAttribute(true)
     dataSet.setManagingControllerId(tile2.id)
-    expect(getPreventAttributeDeletion(dataSet)).toBe(false)
-    expect(getRespectEditableItemAttribute(dataSet)).toBe(true)
+    expect(allowEmptyAttributeDeletion(dataSet)).toBe(true)
+    expect(preventAttributeDeletion(dataSet)).toBe(false)
+    expect(preventDataContextReorg(dataSet)).toBe(false)
+    expect(respectEditableItemAttribute(dataSet)).toBe(true)
   })
 
   it("determines item and case editability", () => {
@@ -60,7 +71,7 @@ describe('Collaborator Utils', () => {
       { __id__: item4Id, [editableAttribute.id]: "false" },
       { __id__: item5Id, [editableAttribute.id]: "true" }
     ])
-    dataSet.validateCaseGroups()
+    dataSet.validateCases()
     const collection2 = dataSet.getCollectionByName("collection2")!
     const case0Id = collection2.caseIds[0]
     const case2Id = collection2.caseIds[2]

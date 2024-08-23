@@ -1,50 +1,44 @@
 import { format } from "d3"
 import { reaction } from "mobx"
+import { onPatch } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
-import { symDom, TRow, TRowsChangeData } from "./case-table-types"
-import { useCollectionTableModel } from "./use-collection-table-model"
+import { useDebouncedCallback } from "use-debounce"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
-import { updateCasesNotification } from "../../models/data/data-set-notifications"
-import { ICase, IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
+import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import {
+  IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
+} from "../../models/data/data-set-types"
+import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
-import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
-  const casesRef = useRef<readonly ICase[]>([])
-
-  useEffect(() => {
-    return mstReaction(
-      () => data?.getCasesForCollection(collectionId) ?? [],
-      cases => {
-        casesRef.current = cases
-        resetRowCache()
-      },
-      { name: "useRows.cases reaction", fireImmediately: true }, data)
-  })
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
     if (!collectionTableModel) return
     const { rowCache } = collectionTableModel
     rowCache.clear()
+    const cases = data?.getCasesForCollection(collectionId) ?? []
     let prevParent: string | undefined
-    casesRef.current.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
+    cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
       const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
       rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
       prevParent = parent
     })
-  }, [collectionTableModel])
+  }, [collectionId, collectionTableModel, data])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
     if (!collectionTableModel) return
@@ -60,18 +54,19 @@ export const useRows = () => {
     prf.measure("Table.useRows[syncRowsToRdg]", () => {
       // RDG memoizes the grid, so we need to pass a new rows array to trigger a render.
       const newRows = prf.measure("Table.useRows[syncRowsToRdg-copy]", () => {
-        return casesRef.current.map(({ __id__ }) => {
+        const cases = data?.getCasesForCollection(collectionId) ?? []
+        return cases.map(({ __id__ }) => {
           const row = rowCache.get(__id__)
           const parentId = row?.[symParent]
           const isCollapsed = parentId && caseMetadata?.isCollapsed(parentId)
           return !isCollapsed || row?.[symFirstChild] ? row : undefined
-        }).filter(c => !!c) as TRow[]
+        }).filter(c => !!c)
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
         collectionTableModel.resetRows(newRows || [])
       })
     })
-  }, [caseMetadata, collectionTableModel])
+  }, [caseMetadata, collectionId, collectionTableModel, data])
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
@@ -79,7 +74,7 @@ export const useRows = () => {
       const domRows = grid?.querySelectorAll(".rdg-row")
       domRows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = data?.caseIDFromIndex(rowIndex)
+        const caseId = data?.itemIDFromIndex(rowIndex)
         const cells = row.querySelectorAll(".rdg-cell")
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
@@ -97,6 +92,16 @@ export const useRows = () => {
       })
     })
   }, [data, setCachedDomAttr])
+
+  const resetRowCacheAndSyncRows = useDebouncedCallback(() => {
+    resetRowCache()
+    if (appState.appMode === "performance") {
+      syncRowsToDom()
+    }
+    else {
+      syncRowsToRdg()
+    }
+  })
 
   useEffect(() => {
     const disposer = reaction(() => appState.appMode, mode => {
@@ -117,19 +122,19 @@ export const useRows = () => {
 
     // rebuild the entire cache after grouping changes
     const reactionDisposer = reaction(
-      () => data?.isValidCaseGroups,
-      isValid => {
-        if (isValid) {
-          resetRowCache()
-          if (appState.appMode === "performance") {
-            syncRowsToDom()
-          }
-          else {
-            syncRowsToRdg()
-          }
+      () => data?.isValidCases && data?.validationCount,
+      validation => {
+        if (typeof validation === "number") {
+          resetRowCacheAndSyncRows()
         }
       }, { name: "useRows.useEffect.reaction [collectionGroups]", fireImmediately: true }
     )
+
+    const onPatchDisposer = data && onPatch(data, ({ op, path, value }) => {
+      if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+        resetRowCacheAndSyncRows()
+      }
+    })
 
     // update the affected rows on data changes without grouping changes
     const beforeAnyActionDisposer = data && onAnyAction(data, action => {
@@ -138,7 +143,7 @@ export const useRows = () => {
         // have to determine the lowest index before the cases are actually removed
         lowestIndex.current = Math.min(
           ...caseIds
-            .map(id => data.caseIndexFromID(id) ?? -1)
+            .map(id => data.getItemIndex(id) ?? -1)
             .filter(index => index >= 0)
         )
       }
@@ -155,8 +160,7 @@ export const useRows = () => {
         // some actions (more with hierarchical data sets) require rebuilding the entire row cache
         if (alwaysResetRowCacheActions.includes(action.name) ||
             (isHierarchical && hierarchicalResetRowCacheActions.includes(action.name))) {
-          resetRowCache()
-          updateRows = true
+          resetRowCacheAndSyncRows()
         }
 
         // non-hierarchical data sets can respond more efficiently to some actions
@@ -165,7 +169,7 @@ export const useRows = () => {
             lowestIndex.current = index != null ? index : data.items.length
             const casesToUpdate = []
             for (let i=0; i<_cases.length; ++i) {
-              lowestIndex.current = Math.min(lowestIndex.current, data.caseIndexFromID(_cases[i].__id__) ?? Infinity)
+              lowestIndex.current = Math.min(lowestIndex.current, data.getItemIndex(_cases[i].__id__) ?? Infinity)
             }
             for (let j=lowestIndex.current; j < data.items.length; ++j) {
               casesToUpdate.push(data.items[j])
@@ -209,7 +213,7 @@ export const useRows = () => {
     const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
-        const caseGroup = data?.caseGroupMap.get(caseId)
+        const caseGroup = data?.caseInfoMap.get(caseId)
         const childCaseIds = caseGroup?.childCaseIds ?? caseGroup?.childItemIds
         const firstChildCaseId = childCaseIds?.[0]
         if (firstChildCaseId) {
@@ -224,26 +228,107 @@ export const useRows = () => {
     })
     return () => {
       reactionDisposer?.()
+      onPatchDisposer?.()
       beforeAnyActionDisposer?.()
       afterAnyActionDisposer?.()
       metadataDisposer?.()
     }
-  }, [caseMetadata, collectionTableModel, data, resetRowCache, syncRowsToDom, syncRowsToRdg])
+  }, [caseMetadata, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows, syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset
+    const collection = data?.getCollection(collectionTableModel?.collectionId)
+    const inputRowIndex = collectionTableModel?.inputRowIndex
     const caseValues = changes.indexes.map(index => _rows[index] as ICase)
+    const casesToUpdate: ICase[] = []
+    const casesToCreate: ICaseCreation[] = []
+    caseValues.forEach(aCase => {
+      if (aCase.__id__ === kInputRowKey) {
+        const { __id__, ...others } = aCase
+
+        // Do not add a new item if no actual values are specified.
+        // This can happen when a user starts editing a cell in the input row, but then navigates away with
+        // the cell left blank
+        if (!Object.values(others).some(value => !!value)) return
+
+        // Find values inherited from parent case
+        const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
+          ? inputRowIndex > 0 ? inputRowIndex - 1 : 1
+          : _rows.length - 2
+        const prevRowId = _rows[prevRowIndex].__id__
+        const prevRow = collectionTableModel?.rowCache.get(prevRowId)
+        const parentId = prevRow?.[symParent]
+        const parentValues = data?.getParentValues(parentId ?? "") ?? {}
+
+        casesToCreate.push({ ...others, ...parentValues })
+      } else {
+        casesToUpdate.push(aCase)
+      }
+    })
+
+    const creatingCases = casesToCreate.length > 0
+    const undoStringKey = creatingCases ? "DG.Undo.caseTable.createNewCase" : "DG.Undo.caseTable.editCellValue"
+    const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
+
+    // We track case ids between updates and additions so we can make proper notifications afterwards
+    let oldCaseIds = new Set(collection?.caseIds ?? [])
+    let updatedCaseIds: string[] = []
+    const newCaseIds: string[] = []
     data?.applyModelChange(
-      () => data.setCaseValues(caseValues),
+      () => {
+        // Update existing cases
+        if (casesToUpdate.length > 0) {
+          setCaseValuesWithCustomUndoRedo(data, casesToUpdate)
+          if (collection?.id === data.childCollection.id) {
+            // The child collection's case ids are persistent, so we can just use the casesToUpdate to
+            // determine which case ids to use in the updateCasesNotification
+            updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
+          } else {
+            // Other collections have cases whose ids change when values change due to updated case grouping,
+            // so we have to check which case ids were not present before updating to determine which case ids
+            // to use in the updateCasesNotification
+            collection?.caseIds.forEach(caseId => {
+              if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
+            })
+          }
+          oldCaseIds = new Set(collection?.caseIds ?? [])
+        }
+
+        // Create new cases
+        if (creatingCases) {
+          const options: IAddCasesOptions = {}
+          if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
+            options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
+            collectionTableModel.setInputRowIndex(collectionTableModel.inputRowIndex + 1)
+          }
+          data.addCases(casesToCreate, options)
+          // Make sure things are updated since adding cases invalidates grouping
+          // TODO Would it be better to make collection.caseIds a getter that automatically validates the cases?
+          data.validateCases()
+          // We look for case ids that weren't present before adding the new cases to determine which case ids
+          // should be included in the createCasesNotification
+          collection?.caseIds.forEach(caseId => {
+            if (!oldCaseIds.has(caseId)) newCaseIds.push(caseId)
+          })
+        }
+      },
       {
-        // TODO notifications should be () => updateCasesNotification, but that won't work well
-        // until case ids are persistent
-        notifications: updateCasesNotification(data, caseValues),
-        undoStringKey: "DG.Undo.caseTable.editCellValue",
-        redoStringKey: "DG.Redo.caseTable.editCellValue"
+        notify: () => {
+          const notifications = []
+          if (updatedCaseIds.length > 0) {
+            const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
+              .filter(caseGroup => !!caseGroup)
+              .map(caseGroup => caseGroup.groupedCase)
+            notifications.push(updateCasesNotification(data, updatedCases))
+          }
+          if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
+          return notifications
+        },
+        undoStringKey,
+        redoStringKey
       }
     )
-  }, [data])
+  }, [collectionTableModel, data])
 
   return { handleRowsChange }
 }

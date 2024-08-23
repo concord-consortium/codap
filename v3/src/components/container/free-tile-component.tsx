@@ -1,7 +1,9 @@
+import { useMergeRefs } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { PointerEvent, useCallback, useEffect, useRef, useState } from "react"
+import { ComponentWrapperContext } from "../../hooks/use-component-wrapper-context"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
@@ -11,50 +13,62 @@ import { kTitleBarHeight } from "../constants"
 import { urlParams } from "../../utilities/url-params"
 
 interface IProps {
-  row: IFreeTileRow;
-  tile: ITileModel;
-  onCloseTile: (tileId: string) => void;
+  row: IFreeTileRow
+  tile: ITileModel
+  onCloseTile: (tileId: string) => void
 }
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
+  const { active } = useDndContext()
+  const componentRef = useRef<HTMLDivElement | null>(null)
+  const { id: tileId, content: { type: tileType } } = tile
+  const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
   const [resizingTileStyle, setResizingTileStyle] =
     useState<{left: number, top: number, width?: number, height?: number, zIndex?: number, transition: string}>()
   const [resizingTileId, setResizingTileId] = useState("")
-  const tileId = tile.id
-  const tileType = tile.content.type
   const rowTile = row.tiles.get(tileId)
   const { x: left, y: top, width, height, zIndex } = rowTile || {}
-  const { active } = useDndContext()
-  const tileStyle: React.CSSProperties = { left, top, width, height, zIndex }
+  // when animating creation, use the default creation style on the first render
+  const tileStyle: React.CSSProperties = useDefaultCreationStyle
+          ? { left: 0, top: 0, width: 0, height: kTitleBarHeight, zIndex }
+          : { left, top, width, height, zIndex }
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
+
+  useEffect(() => {
+    // after the first render, render the actual style; CSS transitions will handle the animation
+    setUseDefaultCreationStyle(false)
+  }, [])
+
   const {setNodeRef, transform} = useDraggableTile(draggableOptions,
     activeDrag => {
     const dragTileId = getDragTileId(activeDrag)
     if (dragTileId) {
       if (isFreeTileRow(row)) {
-        row.moveTileToTop(dragTileId)
+        const allowBringToFront = dragTileId === tile.id ? tile.content.allowBringToFront : true
+        row.moveTileToTop(dragTileId, allowBringToFront)
       }
     }
   })
+  const mergedComponentRef = useMergeRefs<HTMLDivElement | null>(componentRef, setNodeRef)
 
   const handleMinimizeTile = useCallback(() => {
     rowTile?.setMinimized(!rowTile.isMinimized)
   }, [rowTile])
 
-  const handleResizePointerDown = useCallback((e: React.PointerEvent, mtile: IFreeTileLayout, direction: string) => {
-    const startWidth = mtile.width
-    const startHeight = mtile.height
+  const handleResizePointerDown = useCallback((e: PointerEvent, tileLayout: IFreeTileLayout, direction: string) => {
+    const startWidth = tileLayout.width
+    const startHeight = tileLayout.height
     const startPosition = {x: e.pageX, y: e.pageY}
 
-    let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = mtile.x
+    let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = tileLayout.x
     // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
     // the pointer down event location, which moves the entire component to the right by the same number of pixels.
     // So we force it to always be the left position of the component
     // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
-    const startLeft = mtile.x
+    const startLeft = tileLayout.x
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
-      setResizingTileId(mtile.tileId)
+      setResizingTileId(tileLayout.tileId)
       const xDelta = pointerMoveEvent.pageX - startPosition.x
       const yDelta = pointerMoveEvent.pageY - startPosition.y
       const addIfDefined = (x: number | undefined, delta: number) => x != null ? x + delta : x
@@ -71,9 +85,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       }
 
       setResizingTileStyle({
-        left: resizingLeft, top: mtile.y,
+        left: resizingLeft, top: tileLayout.y,
         width: resizingWidth, height: resizingHeight,
-        zIndex: mtile.zIndex,
+        zIndex: tileLayout.zIndex,
         transition: "none"
       })
     }
@@ -81,8 +95,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
       document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
       row.applyModelChange(() => {
-        mtile.setSize(resizingWidth, resizingHeight)
-        mtile.setPosition(resizingLeft, mtile.y)
+        tileLayout.setSize(resizingWidth, resizingHeight)
+        tileLayout.setPosition(resizingLeft, tileLayout.y)
       }, {
         undoStringKey: "DG.Undo.componentResize",
         redoStringKey: "DG.Redo.componentResize"
@@ -150,19 +164,21 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   if (!info || rowTile?.isHidden) return null
 
   return (
-    <div id={tileId} className={classes} style={style} key={tileId} ref={setNodeRef}>
-      {tile && rowTile &&
-        <CodapComponent tile={tile}
-          isMinimized={rowTile.isMinimized}
-          onMinimizeTile={handleMinimizeTile}
-          onCloseTile={onCloseTile}
-          onBottomRightPointerDown={handleBottomRightPointerDown}
-          onBottomLeftPointerDown={handleBottomLeftPointerDown}
-          onRightPointerDown={handleRightPointerDown}
-          onBottomPointerDown={handleBottomPointerDown}
-          onLeftPointerDown={handleLeftPointerDown}
-        />
-      }
-    </div>
+    <ComponentWrapperContext.Provider value={componentRef}>
+      <div id={tileId} className={classes} style={style} key={tileId} ref={mergedComponentRef}>
+        {tile && rowTile &&
+          <CodapComponent tile={tile}
+            isMinimized={rowTile.isMinimized}
+            onMinimizeTile={handleMinimizeTile}
+            onCloseTile={onCloseTile}
+            onBottomRightPointerDown={handleBottomRightPointerDown}
+            onBottomLeftPointerDown={handleBottomLeftPointerDown}
+            onRightPointerDown={handleRightPointerDown}
+            onBottomPointerDown={handleBottomPointerDown}
+            onLeftPointerDown={handleLeftPointerDown}
+          />
+        }
+      </div>
+    </ComponentWrapperContext.Provider>
   )
 })

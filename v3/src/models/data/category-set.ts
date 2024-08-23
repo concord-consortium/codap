@@ -1,6 +1,7 @@
 import { observable, runInAction } from "mobx"
 import {
-  addDisposer, getEnv, hasEnv, IAnyStateTreeNode, Instance, isValidReference, resolveIdentifier, types
+  addDisposer, getEnv, hasEnv, IAnyStateTreeNode, IDisposer, Instance, ISerializedActionCall, isValidReference,
+  resolveIdentifier, types
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -58,7 +59,8 @@ export const CategorySet = types.model("CategorySet", {
   moves: types.array(types.frozen<ICategoryMove>())
 })
 .volatile(self => ({
-  handleAttributeInvalidated: undefined as ((attrId: string) => void) | undefined
+  provisionalAttributeActionDisposer: undefined as Maybe<IDisposer>,
+  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>
 }))
 .actions(self => ({
   onAttributeInvalidated(handler: (attrId: string) => void) {
@@ -200,17 +202,32 @@ export const CategorySet = types.model("CategorySet", {
   }
 }))
 .actions(self => ({
+  handleAttributeAction(action: ISerializedActionCall) {
+    const actionsInvalidatingCategories = [
+      "clearFormula", "setDisplayExpression", "addValue", "addValues", "setValue", "setValues", "removeValues"
+    ]
+    if (actionsInvalidatingCategories.includes(action.name)) {
+      self.invalidate()
+    }
+  }
+}))
+.actions(self => ({
+  afterCreate() {
+    // invalidate the cached categories when necessary
+    // afterAttach isn't called for provisional category sets, so we need to listen here
+    const hasProvisionalDataSet = !!getProvisionalDataSet(self)
+    if (hasProvisionalDataSet && isValidReference(() => self.attribute)) {
+      const provisionalDisposer = onAnyAction(self.attribute, action => self.handleAttributeAction(action))
+      self.provisionalAttributeActionDisposer = provisionalDisposer
+      addDisposer(self, () => self.provisionalAttributeActionDisposer?.())
+    }
+  },
   afterAttach() {
     // invalidate the cached categories when necessary
     if (isValidReference(() => self.attribute)) {
-      addDisposer(self, onAnyAction(self.attribute, action => {
-        const actionsInvalidatingCategories = [
-          "clearFormula", "setDisplayExpression", "addValue", "addValues", "setValue", "setValues", "removeValues"
-        ]
-        if (actionsInvalidatingCategories.includes(action.name)) {
-          self.invalidate()
-        }
-      }))
+      self.provisionalAttributeActionDisposer?.()
+      self.provisionalAttributeActionDisposer = undefined
+      addDisposer(self, onAnyAction(self.attribute, action => self.handleAttributeAction(action)))
     }
   },
   move(value: string, beforeValue?: string) {

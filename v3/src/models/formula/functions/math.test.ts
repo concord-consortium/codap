@@ -1,9 +1,8 @@
 import { MathNode, SymbolNode, parse } from "mathjs"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import {
   evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport
 } from "./math"
-import { FValue, FValueOrArray } from "../formula-types"
+import { FValue, FValueOrArray, MathJSPartitionedMap } from "../formula-types"
 
 describe("evaluateRawWithAggregateContext", () => {
   it("should call provided function within withAggregateContext", () => {
@@ -17,11 +16,12 @@ describe("evaluateRawWithAggregateContext", () => {
         scope.aggregateContext = false
       }
     }
+    const currentScope = { a: scope, b: new Map() } as any as MathJSPartitionedMap
     let result = false
     const mockFn = jest.fn(() => { result = scope.aggregateContext; return "" })
 
-    evaluateRawWithAggregateContext(mockFn)(args, mathjs, scope as any as FormulaMathJsScope)
-    expect(mockFn).toHaveBeenCalledWith(args, mathjs, scope)
+    evaluateRawWithAggregateContext(mockFn)(args, mathjs, currentScope)
+    expect(mockFn).toHaveBeenCalledWith(args, mathjs, currentScope)
     expect(result).toBeTruthy()
   })
 })
@@ -33,11 +33,12 @@ describe("evaluateRawWithDefaultArg", () => {
     const scope = {
       defaultArgumentNode: { name: "default" }
     }
+    const currentScope = { a: scope, b: new Map() } as any as MathJSPartitionedMap
     const mockFn = jest.fn((_args: MathNode[]) => (_args[0] as SymbolNode).name)
 
     const numOfReqArgs = 1
-    const res = evaluateRawWithDefaultArg(mockFn, numOfReqArgs)(args, mathjs, scope as any as FormulaMathJsScope)
-    expect(mockFn).toHaveBeenCalledWith([scope.defaultArgumentNode], mathjs, scope)
+    const res = evaluateRawWithDefaultArg(mockFn, numOfReqArgs)(args, mathjs, currentScope)
+    expect(mockFn).toHaveBeenCalledWith([scope.defaultArgumentNode], mathjs, currentScope)
     expect(res).toEqual("default")
   })
 
@@ -47,11 +48,12 @@ describe("evaluateRawWithDefaultArg", () => {
     const scope = {
       defaultArgumentNode: { name: "default" }
     }
+    const currentScope = { a: scope, b: new Map() } as any as MathJSPartitionedMap
     const mockFn = jest.fn((_args: MathNode[]) => (_args[0] as SymbolNode).name)
 
     const res =
-      evaluateRawWithDefaultArg(mockFn, 1)(args as any as MathNode[], mathjs, scope as any as FormulaMathJsScope)
-    expect(mockFn).toHaveBeenCalledWith(args, mathjs, scope)
+      evaluateRawWithDefaultArg(mockFn, 1)(args as any as MathNode[], mathjs, currentScope)
+    expect(mockFn).toHaveBeenCalledWith(args, mathjs, currentScope)
     expect(res).toEqual("provided")
   })
 })
@@ -61,9 +63,10 @@ describe("evaluateToEvaluateRaw", () => {
     const args = [ parse("1"), parse("2") ]
     const mathjs = {}
     const scope = {}
+    const currentScope = { a: scope, b: new Map() } as any as MathJSPartitionedMap
     const mockFn = jest.fn((a: FValueOrArray, b: FValueOrArray) => Number(a) + Number(b))
 
-    const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, scope as any as FormulaMathJsScope)
+    const res = evaluateToEvaluateRaw(mockFn)(args as any as MathNode[], mathjs, currentScope)
     expect(mockFn).toHaveBeenCalledWith(1, 2)
     expect(res).toEqual(3)
   })

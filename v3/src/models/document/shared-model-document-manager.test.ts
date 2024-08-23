@@ -105,6 +105,9 @@ registerTileContentInfo({
   modelClass: TestTile,
   defaultContent(options) {
     throw new Error("Function not implemented.")
+  },
+  getTitle() {
+    return "Test"
   }
 })
 registerTileComponentInfo({

@@ -239,6 +239,7 @@
               "colormap": {},
               "editable": false,
               "guid": 4,
+              "cid": "MammalCID",
               "precision": 2,
               "unit": null
             },

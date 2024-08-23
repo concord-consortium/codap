@@ -10,7 +10,7 @@ export const SliderTileElements = {
   getVariableNameInput(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-variable-name-text-input]")
   },
-  changeVariableName(name, index = 0) {
+  changeVariableName(name: string, index = 0) {
     this.getVariableName(index).click()
     this.getVariableNameInput(index).clear()
     this.getVariableNameInput(index).type(`${name}{enter}`)
@@ -21,7 +21,7 @@ export const SliderTileElements = {
   getVariableValueInput(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]")
   },
-  changeVariableValue(value, index = 0) {
+  changeVariableValue(value: number | string, index = 0) {
     this.getVariableValueInput(index).click()
     this.getVariableValueInput(index).clear()
     this.getVariableValueInput(index).type(`${value}{enter})`)
@@ -58,12 +58,12 @@ export const SliderTileElements = {
   getMultipleRestriction() {
     return c.getInspectorPanel().find("[data-testid=slider-restrict-multiples]")
   },
-  setMultipleRestriction(multiple, index = 0) {
+  setMultipleRestriction(multiple: string, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getMultipleRestriction().find("input").type(`${multiple}{enter}`)
   },
-  checkMultipleRestriction(multiple, index = 0) {
+  checkMultipleRestriction(multiple: string, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getMultipleRestriction().find("input").invoke("attr", "value").should("contain", multiple)
@@ -72,12 +72,12 @@ export const SliderTileElements = {
   getAnimationRate() {
     return c.getInspectorPanel().find("[data-testid=slider-animation-rate]")
   },
-  setAnimationRate(rate, index = 0) {
+  setAnimationRate(rate: number, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationRate().find("input").type(`${rate}{enter}`)
   },
-  checkAnimationRate(rate, index = 0) {
+  checkAnimationRate(rate: number, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationRate().find("input").invoke("attr", "value").should("contain", rate)
@@ -86,7 +86,7 @@ export const SliderTileElements = {
   getAnimationDirection() {
     return c.getInspectorPanel().find("[data-testid=slider-animation-direction]")
   },
-  setAnimationDirection(direction, index = 0) {
+  setAnimationDirection(direction: string, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationDirection().select(direction)
@@ -95,7 +95,7 @@ export const SliderTileElements = {
   getAnimationRepetition() {
     return c.getInspectorPanel().find("[data-testid=slider-animation-repetition]")
   },
-  setAnimationRepetition(repetition, index = 0) {
+  setAnimationRepetition(repetition: string, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
     this.getAnimationRepetition().select(repetition)

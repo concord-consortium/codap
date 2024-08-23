@@ -9,28 +9,33 @@ const noIFResult = {success: false, values: {error: t("V3.DI.Error.interactiveFr
 
 export const diInteractiveFrameHandler: DIHandler = {
   get(resources: DIResources) {
-    // TODO: Fix many hard coded values
     const { interactiveFrame } = resources
-    if (interactiveFrame) {
-      const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
-      const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
-      const values: DIInteractiveFrame = {
-        dimensions,
-        externalUndoAvailable: true,
-        id: toV2Id(interactiveFrame.id),
-        name: interactiveFrame.title,
-        preventAttributeDeletion: webViewContent?.preventAttributeDeletion,
-        preventBringToFront: false,
-        preventDataContextReorg: false,
-        respectEditableItemAttribute: webViewContent?.respectEditableItemAttribute,
-        savedState: webViewContent?.state,
-        standaloneUndoModeAvailable: false,
-        title: interactiveFrame.title,
-        version: "0.1",
-      }
-      return { success: true, values }
+    if (!interactiveFrame) return noIFResult
+    
+    const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
+    const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
+    const {
+      allowEmptyAttributeDeletion, preventAttributeDeletion, preventBringToFront, preventDataContextReorg,
+      preventTopLevelReorg, respectEditableItemAttribute, state: savedState, version
+    } = webViewContent ?? {}
+    const values: DIInteractiveFrame = {
+      allowEmptyAttributeDeletion,
+      codapVersion: appState.getVersion(),
+      dimensions,
+      externalUndoAvailable: true, // TODO Fix hard coded value
+      id: toV2Id(interactiveFrame.id),
+      name: interactiveFrame.title,
+      preventAttributeDeletion,
+      preventBringToFront,
+      preventDataContextReorg,
+      preventTopLevelReorg,
+      respectEditableItemAttribute,
+      savedState,
+      standaloneUndoModeAvailable: false, // TODO Fix hard coded value
+      title: interactiveFrame.title,
+      version,
     }
-    return noIFResult
+    return { success: true, values }
   },
   // Notify needs to handle:
   // dirty: true
@@ -38,26 +43,35 @@ export const diInteractiveFrameHandler: DIHandler = {
   // request: openGuideConfiguration | indicateBusy | indicateIdle
   // cursorMode: true
   notify: diNotImplementedYet,
-  update(resources: DIResources, _values?: DIValues) {
-    // TODO: Expand to handle additional values
+  update(resources: DIResources, values?: DIValues) {
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noIFResult
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     // CODAP v2 seems to ignore interactiveFrame updates when an array is passed for values
-    if (Array.isArray(_values)) return { success: true }
+    if (Array.isArray(values)) return { success: true }
 
-    const values = _values as DIInteractiveFrame
-    const { dimensions, name, preventAttributeDeletion, respectEditableItemAttribute, title } = values
+    const {
+      allowEmptyAttributeDeletion, cannotClose, dimensions, name, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, title, version
+    } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
+      if (allowEmptyAttributeDeletion != null) {
+        webViewContent?.setAllowEmptyAttributeDeletion(allowEmptyAttributeDeletion)
+      }
+      if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
+      if (name) interactiveFrame.setTitle(name)
       if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
+      if (preventBringToFront != null) webViewContent?.setPreventBringToFront(preventBringToFront)
+      if (preventDataContextReorg != null) webViewContent?.setPreventDataContextReorg(preventDataContextReorg)
+      if (preventTopLevelReorg != null) webViewContent?.setPreventTopLevelReorg(preventTopLevelReorg)
       if (respectEditableItemAttribute != null) {
         webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)
       }
-      if (name) interactiveFrame.setTitle(name)
       if (title) interactiveFrame.setTitle(title)
+      if (version) webViewContent?.setVersion(version)
     })
     return { success: true }
   }

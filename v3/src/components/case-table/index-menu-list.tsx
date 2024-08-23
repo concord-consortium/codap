@@ -1,8 +1,11 @@
-import { MenuItem, MenuList, useDisclosure, useToast } from "@chakra-ui/react"
+import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { InsertCasesModal } from "./insert-cases-modal"
+import { insertCasesWithCustomUndoRedo, removeCasesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { t } from "../../utilities/translation/translate"
+import { IInsertSpec, InsertCasesModal } from "./insert-cases-modal"
+import { isItemEditable } from "../../utilities/plugin-utils"
+import { ICaseCreation } from "../../models/data/data-set-types"
 
 interface IProps {
   caseId: string
@@ -10,46 +13,73 @@ interface IProps {
 }
 
 export const IndexMenuList = ({caseId, index}: IProps) => {
-  const toast = useToast()
   const data = useDataSetContext()
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const deleteCasesItemText = data?.selection.size === 1
-                                ? t("DG.CaseTable.indexMenu.deleteCase")
-                                : t("DG.CaseTable.indexMenu.deleteCases")
+  const { isOpen, onOpen: onOpenInsertCasesModal, onClose: onCloseInsertCasesModal } = useDisclosure()
+  const deletableSelectedItems = data?.selection
+    ? Array.from(data.selection).filter(itemId => isItemEditable(data, itemId))
+    : []
+  const disableEdits = deletableSelectedItems.length < 1
 
-  const handleInsertCase = () => {
-    data?.addCases([{}], {before: caseId})
+  function handleCloseInsertCasesModel(insertSpec?: IInsertSpec) {
+    const { count, position } = insertSpec || {}
+    if (data && count && position) {
+      const casesToInsert: ICaseCreation[] = Array<ICaseCreation>(count).fill({})
+      insertCasesWithCustomUndoRedo(data, casesToInsert, { [position]: caseId })
+    }
+    onCloseInsertCasesModal()
   }
 
-  const handleInsertCases = () => {
-    onOpen()
+  interface IMenuItem {
+    itemKey: string
+    // defaults to true if not implemented
+    isEnabled?: (item: IMenuItem) => boolean
+    handleClick?: (item: IMenuItem) => void
   }
 
-  const handleMenuItemClick = (menuItem: string) => {
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on ${menuItem} on index=${index} id=${caseId}`,
-      status: 'success',
-      duration: 9000,
-      isClosable: true,
-    })
-  }
-
-  const handleDeleteCases = () => {
-    data?.removeCases(Array.from(data.selection))
-  }
+  const menuItems: IMenuItem[] = [
+    {
+      itemKey: "DG.CaseTable.indexMenu.moveEntryRow"
+    },
+    {
+      itemKey: "DG.CaseTable.indexMenu.insertCase",
+      isEnabled: () => !disableEdits,
+      handleClick: () => {
+        if (data) {
+          insertCasesWithCustomUndoRedo(data, [{}], { before: caseId })
+        }
+      }
+    },
+    {
+      itemKey: "DG.CaseTable.indexMenu.insertCases",
+      isEnabled: () => !disableEdits,
+      handleClick: () => onOpenInsertCasesModal()
+    },
+    {
+      itemKey: `DG.CaseTable.indexMenu.delete${deletableSelectedItems.length === 1 ? "Case" : "Cases" }`,
+      isEnabled: () => deletableSelectedItems.length >= 1,
+      handleClick: () => {
+        if (data?.selection.size) {
+          removeCasesWithCustomUndoRedo(data, deletableSelectedItems)
+        }
+      }
+    }
+  ]
 
   return (
     <>
-      <MenuList data-testid="index-menu-list" >
-        <MenuItem onClick={()=>handleMenuItemClick("Move Data Entry Row")}>
-          {t("DG.CaseTable.indexMenu.moveEntryRow")}
-        </MenuItem>
-        <MenuItem onClick={handleInsertCase}>{t("DG.CaseTable.indexMenu.insertCase")}</MenuItem>
-        <MenuItem onClick={handleInsertCases}>{t("DG.CaseTable.indexMenu.insertCases")}</MenuItem>
-        <MenuItem onClick={handleDeleteCases}>{deleteCasesItemText}</MenuItem>
+      <MenuList data-testid="index-menu-list">
+        {
+          menuItems.map(item => {
+            const isDisabled = !item.handleClick || item.isEnabled?.(item) === false
+            return (
+              <MenuItem key={item.itemKey} isDisabled={isDisabled} onClick={() => item.handleClick?.(item)}>
+                {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}
+              </MenuItem>
+            )
+          })
+        }
       </MenuList>
-      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={onClose}/>
+      <InsertCasesModal caseId={caseId} isOpen={isOpen} onClose={handleCloseInsertCasesModel}/>
     </>
   )
 }

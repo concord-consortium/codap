@@ -1,28 +1,33 @@
+import {
+  Button, FormControl, FormLabel, HStack, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
+  NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
+  Radio, RadioGroup, Tooltip
+} from "@chakra-ui/react"
 import React, { useRef, useState } from "react"
-import { Button, FormControl, FormLabel, HStack, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
-  NumberDecrementStepper, NumberIncrementStepper, NumberInput,
-  NumberInputField, NumberInputStepper, Radio, RadioGroup, Tooltip } from "@chakra-ui/react"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
+
+export interface IInsertSpec {
+  count: number
+  position: "before" | "after"
+}
 
 interface IProps {
   caseId: string
   isOpen: boolean
-  onClose: () => void
+  onClose: (insertSpec?: IInsertSpec) => void
 }
 
 export const InsertCasesModal: React.FC<IProps> =
   ({caseId, isOpen, onClose}: IProps) => {
-  const data = useDataSetContext()
   const [numCasesToInsert, setNumCasesToInsert] = useState(1)
-  const [insertPosition, setInsertPosition] = useState("after")
+  const [insertPosition, setInsertPosition] = useState<"before" | "after">("after")
   const numCasesToInsertRef = useRef<HTMLInputElement | null>(null)
 
   const handleSubmit = (e: React.KeyboardEvent<HTMLElement>) => {
     const key = e.key
     if (key === "Enter") {
-      insertCases()
+      onClose({ count: numCasesToInsert, position: insertPosition })
     }
   }
 
@@ -34,23 +39,12 @@ export const InsertCasesModal: React.FC<IProps> =
     setNumCasesToInsert(parseInt(value, 10))
   }
 
-  const insertCases = () => {
-    onClose()
-    const casesToAdd = []
-    if (numCasesToInsert) {
-      for (let i=0; i < numCasesToInsert; i++) {
-        casesToAdd.push({})
-      }
-    }
-    data?.addCases(casesToAdd, {[insertPosition]: caseId})
-  }
-
   const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),
                     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
-                    onClick: onClose },
+                    onClick: () => onClose() },
                  {  label: t("DG.CaseTable.insertCasesDialog.applyBtnTitle"),
                     tooltip: t("DG.CaseTable.insertCasesDialog.applyBtnTooltip"),
-                    onClick: insertCases,
+                    onClick: () => onClose({ count: numCasesToInsert, position: insertPosition }),
                     default: true }
                 ]
 
@@ -58,14 +52,14 @@ export const InsertCasesModal: React.FC<IProps> =
     <CodapModal
       initialRef={numCasesToInsertRef}
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => onClose()}
       modalWidth={"215px"}
       modalHeight={"130px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title">{t("DG.CaseTable.insertCasesDialog.title")}</div>
-        <ModalCloseButton onClick={onClose} data-testid="modal-close-button"/>
+        <ModalCloseButton onClick={() => onClose()} data-testid="modal-close-button"/>
       </ModalHeader>
       <ModalBody>
         <FormControl display="flex" flexDirection="column">
@@ -78,7 +72,7 @@ export const InsertCasesModal: React.FC<IProps> =
               <NumberInputField ref={numCasesToInsertRef} placeholder="0"/>
               <NumberInputStepper>
                 <NumberIncrementStepper data-testid="num-case-input-increment-up"/>
-                <NumberDecrementStepper data-testid="num-case-input-incement-down"/>
+                <NumberDecrementStepper data-testid="num-case-input-increment-down"/>
               </NumberInputStepper>
             </NumberInput>
           </FormLabel>

@@ -7,7 +7,7 @@ import {
   getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
 } from "./utils/collection-utils"
 import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
-import { CaseGroup, ICase, IGroupedCase, symParent } from "../data/data-set-types"
+import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
 import { IFormula } from "./formula"
 import { observeDatasetHierarchyChanges } from "./formula-observers"
@@ -70,7 +70,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
 
     const calculateSameLevelGroups = () => {
       const formulaCollection = dataSet.collections[collectionIndex]
-      formulaCollection?.caseGroups.forEach((group: CaseGroup) => processCase(group.groupedCase))
+      formulaCollection?.caseGroups.forEach((group: CaseInfo) => processCase(group.groupedCase))
     }
 
     // Note that order of execution of these functions is critical. First, we need to calculate child collection groups,
@@ -94,7 +94,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
 
     const formulaCollection = dataSet.collections[collectionIndex]
     if (formulaCollection) {
-      formulaCollection.caseGroups.forEach((group: CaseGroup) =>
+      formulaCollection.caseGroups.forEach((group: CaseInfo) =>
         caseChildrenCount[group.groupedCase.__id__] =
           group.childCaseIds ? group.childCaseIds.length : group.childItemIds.length
       )
@@ -242,7 +242,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
       const formulaDependencies = getFormulaDependencies(formula.canonical, attributeId)
 
       const localDatasetAttributeDependencies: ILocalAttributeDependency[] =
-        formulaDependencies.filter(d => d.type === "localAttribute") as ILocalAttributeDependency[]
+        formulaDependencies.filter(d => d.type === "localAttribute")
       for (const dependency of localDatasetAttributeDependencies) {
         const dependencyAttribute = dataSet.attrFromID(dependency.attrId)
         if (isValidFormulaAttr(dependencyAttribute)) {
@@ -251,7 +251,7 @@ export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
       }
 
       const lookupDependencies: ILookupDependency[] =
-        formulaDependencies.filter(d => d.type === "lookup") as ILookupDependency[]
+        formulaDependencies.filter(d => d.type === "lookup")
       for (const dependency of lookupDependencies) {
         const externalDataSet = dataSets.get(dependency.dataSetId)
         const dependencyAttribute = externalDataSet?.attrFromID(dependency.attrId)

@@ -3,6 +3,7 @@ import { IGraphDataConfigurationModel } from "../models/graph-data-configuration
 import { GraphLayout } from "../models/graph-layout"
 import { ILineDescription, ISquareOfResidual } from "../adornments/shared-adornment-types"
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 
 export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraphDataConfigurationModel) {
   const { dataset: data, yAttributeIDs: yAttrIDs = [], hasY2Attribute, numberOfPlots = 1 } = dataConfiguration || {}
@@ -18,7 +19,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
   const topScale = layout.getAxisScale('top') as ScaleBand<string> | undefined
 
   function getXCoord(caseID: string) {
-    const xValue = data?.getNumeric(caseID, xAttrID) ?? NaN
+    const xValue = dataDisplayGetNumericValue(data, caseID, xAttrID) ?? NaN
     const topValue = data?.getStrValue(caseID, topSplitID) ?? ''
     const topCoord = (topValue && topScale?.(topValue)) || 0
     return xScale(xValue) / numExtraPrimaryBands + topCoord
@@ -26,7 +27,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
 
   function getYCoord(caseID: string, plotNum = 0) {
     const yAttrID = yAttrIDs[plotNum]
-    const yValue = data?.getNumeric(caseID, yAttrID) ?? NaN
+    const yValue = dataDisplayGetNumericValue(data, caseID, yAttrID) ?? NaN
     const yScale = y2Scale && plotNum === numberOfPlots - 1 ? y2Scale : y1Scale
     const rightValue = data?.getStrValue(caseID, rightSplitID) ?? ''
     const rightCoord = ((rightValue && rightScale?.(rightValue)) || 0)
@@ -34,9 +35,9 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
   }
 
   function getCaseCoords(caseID: string, plotNum = 0) {
-    const xValue = data?.getNumeric(caseID, xAttrID) ?? NaN
+    const xValue = dataDisplayGetNumericValue(data, caseID, xAttrID) ?? NaN
     const yAttrID = yAttrIDs[plotNum]
-    const yValue = data?.getNumeric(caseID, yAttrID) ?? NaN
+    const yValue = dataDisplayGetNumericValue(data, caseID, yAttrID) ?? NaN
     const rightValue = data?.getStrValue(caseID, rightSplitID) ?? ""
     const rightCoord = (rightValue && rightScale?.(rightValue)) || 0
     const xCoord = getXCoord(caseID)

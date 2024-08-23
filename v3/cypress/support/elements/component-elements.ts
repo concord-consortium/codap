@@ -30,22 +30,22 @@ export const ComponentElements = {
     tableHideShowButton: "Show all cases or hide selected/unselected cases",
     tableRulerButton: "Make new attributes. Export case data."
   },
-  getComponentSelector(component) {
+  getComponentSelector(component: string) {
     return cy.get(`.codap-component[data-testid$=${component}]`)
   },
-  getComponentTile(component, index = 0) {
+  getComponentTile(component: string, index = 0) {
     return this.getComponentSelector(component).then(element => {
       return element.eq(index)
     })
   },
-  getComponentTitleBar(component, index = 0) {
+  getComponentTitleBar(component: string, index = 0) {
     return this.getComponentTile(component, index).find(".component-title-bar")
   },
-  checkComponentFocused(component, focused = true, index = 0) {
+  checkComponentFocused(component: string, focused = true, index = 0) {
     const check = `${focused ? "" : "not."}have.class`
     this.getComponentTitleBar(component, index).should(check, "focusTile")
   },
-  getComponentTitle(component, index = 0) {
+  getComponentTitle(component: string, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=title-text]")
   },
   changeComponentTitle(component: string, title: string, index = 0) {
@@ -55,32 +55,38 @@ export const ComponentElements = {
   getInspectorPanel() {
     return cy.get("[data-testid=inspector-panel]")
   },
-  getMinimizeButton(component, index = 0) {
+  getMinimizeButton(component: string, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=component-minimize-button]")
   },
-  getCloseButton(component, index = 0) {
+  getCloseButton(component: string, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=component-close-button]")
   },
-  getResizeControl(component, index = 0) {
+  getResizeControl(component: string, index = 0) {
     return this.getComponentTile(component, index).find(".codap-component-corner.bottom-right")
   },
-  checkToolTip(element, tooltipText) {
+  checkToolTip(element: JQuery<HTMLElement>, tooltipText: string) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)
   },
-  getIconFromToolshelf(component) {
+  getIconFromToolShelf(component: string) {
     return toolbar.getToolShelfIcon(component)
   },
-  selectTile(component, index = 0) {
+  clickIconFromToolShelf(component: string) {
+    this.getIconFromToolShelf(component).click()
+    // Without this wait(), visibility tests intermittently fail because the tile
+    // has zero width and/or height initially before animating to its final size.
+    cy.wait(100)
+  },
+  selectTile(component: string, index = 0) {
     cy.get(".codap-container").click("bottom")
     this.getComponentTile(component, index).click()
   },
-  checkComponentDoesNotExist(component) {
+  checkComponentDoesNotExist(component: string) {
     this.getComponentSelector(component).should("not.exist")
   },
-  checkComponentExists(component) {
+  checkComponentExists(component: string) {
     this.getComponentSelector(component).should("exist")
   },
-  moveComponent(component, x, index = 0) {
+  moveComponent(component: string, x: number, index = 0) {
     this.getComponentTitle(component, index)
       .trigger("mousedown", { force: true })
       .wait(100)
@@ -88,7 +94,7 @@ export const ComponentElements = {
       .wait(100)
       .trigger("mouseup", { force: true })
   },
-  closeComponent(component, index = 0) {
+  closeComponent(component: string, index = 0) {
     this.selectTile(component, index)
     this.getCloseButton(component, index).click({ force: true })
   }

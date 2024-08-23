@@ -1,6 +1,7 @@
 import iframePhone from "iframe-phone"
 import { addDisposer, onAction } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
+import { Logger } from "../../lib/logger"
 import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
@@ -21,11 +22,6 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   const sharedModelManager = new SharedModelDocumentManager()
   const formulaManager = new FormulaManager()
   const adapterApi = formulaManager.getAdapterApi()
-  formulaManager.addAdapters([
-    new AttributeFormulaAdapter(adapterApi),
-    new PlottedValueFormulaAdapter(adapterApi),
-    new PlottedFunctionFormulaAdapter(adapterApi)
-  ])
   const fullEnvironment: ITileEnvironment & {documentEnv: IDocumentEnvironment} = {
     sharedModelManager,
     formulaManager,
@@ -33,6 +29,14 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   }
   try {
     const document = DocumentModel.create(snapshot, fullEnvironment)
+
+    // initialize formula adapters after the document has been created
+    formulaManager.addAdapters([
+      new AttributeFormulaAdapter(adapterApi),
+      new PlottedValueFormulaAdapter(adapterApi),
+      new PlottedFunctionFormulaAdapter(adapterApi)
+    ])
+
     addDisposer(document, onAction(document, (call) => {
       if (!document.content || !call.path?.match(/\/content\/tileMap\//)) {
         return
@@ -49,6 +53,12 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
       .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
 
+    // configure logging
+    fullEnvironment.log = function(event: string, args?: Record<string, unknown>) {
+      Logger.log(event, args)
+    }
+
+    // configure notifications
     fullEnvironment.notify = function(message: DIMessage, callback: iframePhone.ListenerCallback) {
       document.content?.broadcastMessage(message, callback)
     }

@@ -1,12 +1,12 @@
 import { getSnapshot } from "mobx-state-tree"
-import { isCalculatorModel } from "../../components/calculator/calculator-model"
-import { kCalculatorIdPrefix } from "../../components/calculator/calculator-registration"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
+import { setupTestDataset } from "../../data-interactive/handlers/handler-test-utils"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
-import { setupTestDataset } from "./handler-test-utils"
-
+import { isCalculatorModel } from "./calculator-model"
+import { kCalculatorIdPrefix } from "./calculator-registration"
 
 describe("DataInteractive ComponentHandler Calculator", () => {
   const handler = diComponentHandler
@@ -14,7 +14,7 @@ describe("DataInteractive ComponentHandler Calculator", () => {
   const { dataset } = setupTestDataset()
   documentContent.createDataSet(getSnapshot(dataset))
 
-  it("create works", () => {
+  it("create and get work", () => {
     // Create a calculator tile
     expect(documentContent.tileMap.size).toBe(0)
     const result = handler.create!({}, { type: "calculator", name: "calc" })
@@ -40,5 +40,7 @@ describe("DataInteractive ComponentHandler Calculator", () => {
     expect(documentContent.isTileHidden(tile.id)).toBe(false)
     const result2Values = result2.values as DIComponentInfo
     expect(result2Values.id).toBe(resultValues.id)
+
+    testGetComponent(tile, handler)
   })
 })

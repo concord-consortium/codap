@@ -39,7 +39,8 @@ export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as c
 export type PlotType = typeof PlotTypes[number]
 
 export const kAxisTickLength = 4,
-  kAxisGap = 2
+  kAxisGap = 2,
+  kDefaultFontHeight = 12
 
 export const kGraphClass = "graph-plot"
 export const kGraphClassSelector = `.${kGraphClass}`

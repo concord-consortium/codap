@@ -1,8 +1,10 @@
+import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
-import {addDisposer, isAlive} from "mobx-state-tree"
+import {isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
@@ -17,7 +19,7 @@ import {DroppablePlot} from "./droppable-plot"
 import {ScatterDots} from "./scatterdots"
 import {CaseDots} from "./casedots"
 import {DotChart} from "./dot-chart"
-import { DotPlotDots } from "./dotplotdots"
+import {DotPlotDots} from "./dotplotdots"
 import {Marquee} from "../../data-display/components/marquee"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
@@ -34,7 +36,6 @@ import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {isRemoveAttributeAction} from "../../../models/data/data-set-actions"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {Adornments} from "../adornments/adornments"
@@ -64,6 +65,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     abovePointsGroupRef = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
+    prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
 
@@ -84,7 +86,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         } else {
           graphController.callMatchCirclesToData()
         }
-      }, {name: "Graph.handleFilteredCasesChange"}, graphModel
+      }, {name: "Graph.handleFilteredCasesChange", equals: comparer.structural}, graphModel
     )
   }, [graphController, graphModel])
 
@@ -121,32 +123,76 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       {name: "Graph.handleAttributeConfigurationChange"}, graphModel)
   }, [graphController, graphModel])
 
-  useEffect(function handleDeleteAttribute() {
-    return dataset && addDisposer(dataset, onAnyAction(dataset, action => {
-      if (isRemoveAttributeAction(action)) {
-        const [attrId] = action.args
-        graphModel.dataConfiguration.rolesForAttribute(attrId).forEach(role => {
-          if (role === "yPlus") {
-            graphModel.dataConfiguration.removeYAttributeWithID(attrId)
-          } else {
-            graphModel.setAttributeID(role as GraphAttrRole, "", "")
+  // Respond to collection addition/removal. Note that this can fire in addition to the collection
+  // map changes reaction below, but that fires too early, so this gives the graph another chance.
+  useEffect(() => {
+    return dataset && mstReaction(
+      () => dataset.syncCollectionLinksCount,
+      () => {
+        graphModel.dataConfiguration._updateFilteredCasesCollectionID()
+        graphModel.dataConfiguration._invalidateCases()
+        graphController.callMatchCirclesToData()
+      }, { name: "Graph.mstReaction [syncCollectionLinksCount]" }, dataset)
+  }, [dataset, graphController, graphModel.dataConfiguration])
+
+  useEffect(function handleAttributeCollectionMapChange() {
+
+    const constructAttrCollections = () => {
+      const graphAttrs = graphModel.dataConfiguration.attributes
+      const attrCollections: Record<string, string> = {}
+      graphAttrs.forEach(attrId => {
+        const collection = dataset?.getCollectionForAttribute(attrId)?.id
+        collection && (attrCollections[attrId] = collection)
+      })
+      return attrCollections
+    }
+
+    prevAttrCollectionsMapRef.current = constructAttrCollections()
+
+    return dataset && mstReaction(
+      () => {
+        return constructAttrCollections()
+      },
+      attrCollections => {
+        Object.entries(prevAttrCollectionsMapRef.current).forEach(([attrId, collectionId]) => {
+          if (!attrCollections[attrId]) { // attribute was removed
+            graphModel.dataConfiguration.rolesForAttribute(attrId).forEach(role => {
+              if (role === "yPlus") {
+                graphModel.dataConfiguration.removeYAttributeWithID(attrId)
+              } else {
+                graphModel.setAttributeID(role as GraphAttrRole, "", "")
+              }
+            })
+          }
+          else if (attrCollections[attrId] !== collectionId) { // attribute was moved to a different collection
+            // todo: Make sure this works once PT Story https://www.pivotaltracker.com/story/show/188117637 is fixed
+            graphModel.dataConfiguration._updateFilteredCasesCollectionID()
+            graphModel.dataConfiguration._invalidateCases()
+            graphController.callMatchCirclesToData()
           }
         })
-      }
-    }))
-  }, [dataset, graphModel])
+        prevAttrCollectionsMapRef.current = attrCollections
+      }, {name: "handleAttrConfigurationChange", equals: comparer.structural}, dataset
+    )
+  }, [dataset, graphController, graphModel])
 
-  const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
+  const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
+           attrIdToRemove = "") => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
+    const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+
     graphModel.applyModelChange(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       {
         undoStringKey: "DG.Undo.axisAttributeChange",
-        redoStringKey: "DG.Redo.axisAttributeChange"
+        redoStringKey: "DG.Redo.axisAttributeChange",
+        log: logStringifiedObjectMessage(
+              attrIdToRemove ? "attributeRemoved: %@" : "attributeAssigned: %@",
+              { attribute: attrName, axis: place })
       }
     )
-  }, [graphModel])
+  }, [dataset, graphModel])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
@@ -159,17 +205,21 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
       setNiceDomain(yValues, yAxisModel, graphModel.axisDomainOptions)
     } else {
-      dataset && handleChangeAttribute(place, dataset, '')
+      dataset && handleChangeAttribute(place, dataset, '', idOfAttributeToRemove)
     }
   }, [dataset, graphModel, handleChangeAttribute])
 
   const handleTreatAttrAs = useCallback((place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
+    const attrName = dataset?.getAttribute(_attrId)?.name
     dataset && graphModel.applyModelChange(() => {
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       graphController?.handleAttributeAssignment()
     }, {
       undoStringKey: "V3.Undo.attributeTreatAs",
-      redoStringKey: "V3.Redo.attributeTreatAs"
+      redoStringKey: "V3.Redo.attributeTreatAs",
+      log: logStringifiedObjectMessage(
+            "plotAxisAttributeChangeType: %@",
+            {axis: place, attribute: attrName, numeric: treatAs === 'numeric'})
     })
   }, [dataset, graphController, graphModel])
 

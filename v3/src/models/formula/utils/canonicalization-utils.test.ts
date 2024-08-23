@@ -77,10 +77,23 @@ describe("customizeDisplayFormula", () => {
     expect(customizeDisplayFormula("a = b")).toEqual("a == b")
     expect(customizeDisplayFormula("a = b = c")).toEqual("a == b == c")
   })
-  it("doesn't replace unequality operator", () => {
+  it("doesn't replace double equality operator", () => {
+    expect(customizeDisplayFormula("a == 1")).toEqual("a == 1")
+    expect(customizeDisplayFormula("a == b")).toEqual("a == b")
+    expect(customizeDisplayFormula("a == b = c = d == e")).toEqual("a == b == c == d == e")
+  })
+  it("doesn't replace inequality operators", () => {
     expect(customizeDisplayFormula("a != 1")).toEqual("a != 1")
     expect(customizeDisplayFormula("a != b")).toEqual("a != b")
     expect(customizeDisplayFormula("a != b = c = d != e")).toEqual("a != b == c == d != e")
+
+    expect(customizeDisplayFormula("a <= 1")).toEqual("a <= 1")
+    expect(customizeDisplayFormula("a <= b")).toEqual("a <= b")
+    expect(customizeDisplayFormula("a <= b = c = d <= e")).toEqual("a <= b == c == d <= e")
+
+    expect(customizeDisplayFormula("a >= 1")).toEqual("a >= 1")
+    expect(customizeDisplayFormula("a >= b")).toEqual("a >= b")
+    expect(customizeDisplayFormula("a >= b = c = d >= e")).toEqual("a >= b == c == d >= e")
   })
 })
 

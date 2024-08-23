@@ -44,7 +44,7 @@
 
 import { comparer, observable, reaction, runInAction } from "mobx"
 import {
-  addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, ReferenceIdentifier, SnapshotIn, types
+  addDisposer, addMiddleware, getEnv, hasEnv, Instance, isAlive, onPatch, ReferenceIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
@@ -52,15 +52,13 @@ import {
   CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
 } from "./collection"
 import {
-  CaseGroup, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
-  ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions
+  CaseInfo, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
+  ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions,
+  IMoveItemsOptions, ItemInfo
 } from "./data-set-types"
-/* eslint-disable import/no-cycle */
+// eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
-import { ISetCaseValuesCustomPatch, setCaseValuesCustomUndoRedo } from "./data-set-undo"
-/* eslint-enable import/no-cycle */
 import { applyModelChange } from "../history/apply-model-change"
-import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -145,39 +143,52 @@ export const DataSet = V2Model.named("DataSet").props({
   // map from attribute name to attribute id
   attrNameMap: observable.map<string, string>({}, { name: "attrNameMap" }),
   // map from case IDs to indices
-  itemIDMap: new Map<string, number>(),
+  itemInfoMap: new Map<string, ItemInfo>(),
   // MobX-observable set of selected case IDs
   selection: observable.set<string>(),
   selectionChanges: 0,
   // map from case ID to the CaseGroup it represents
-  caseGroupMap: new Map<string, CaseGroup>(),
+  caseInfoMap: new Map<string, CaseInfo>(),
+  // map from item ID to the child case containing it
+  itemIdChildCaseMap: new Map<string, CaseInfo>(),
+  // incremented when collection parent/child links are updated
+  syncCollectionLinksCount: 0,
   transactionCount: 0,
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
   managingControllerId: ""
 }))
 .extend(self => {
-  const _isValidCaseGroups = observable.box<boolean>(false)
+  const _validationCount = observable.box<number>(0)
+  const _isValidCases = observable.box<boolean>(false)
   return {
     views: {
-      get isValidCaseGroups() {
-        return _isValidCaseGroups.get()
+      get validationCount() {
+        return _validationCount.get()
       },
-      invalidateCaseGroups() {
-        runInAction(() => _isValidCaseGroups.set(false))
+      get isValidCases() {
+        return _isValidCases.get()
       },
-      setValidCaseGroups() {
-        runInAction(() => _isValidCaseGroups.set(true))
+      invalidateCases() {
+        runInAction(() => _isValidCases.set(false))
+      },
+      setValidCases() {
+        if (!_isValidCases.get()) {
+          runInAction(() => {
+            _validationCount.set(_validationCount.get() + 1)
+            _isValidCases.set(true)
+          })
+        }
       }
     }
   }
 })
 .volatile(() => {
   let cachingCount = 0
-  const caseCache = new Map<string, ICase>()
+  const itemCache = new Map<string, IItem>()
   return {
-    get caseCache() {
-      return caseCache
+    get itemCache() {
+      return itemCache
     },
     isCaching() {
       // Do not use getter here, as the result would be cached and not updated when cachingCount changes.
@@ -185,7 +196,7 @@ export const DataSet = V2Model.named("DataSet").props({
       return cachingCount > 0
     },
     clearCache() {
-      caseCache.clear()
+      itemCache.clear()
     },
     beginCaching() {
       return ++cachingCount
@@ -261,11 +272,6 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   get items(): readonly IItem[] {
     return self.itemIds.map(id => ({ __id__: id }))
-  },
-  get parentCollections() {
-    const _parentCollections = [...self.collections]
-    _parentCollections.splice(_parentCollections.length - 1, 1)
-    return _parentCollections
   }
 }))
 .views(self => ({
@@ -286,6 +292,51 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   getAttributeByName(name: string) {
     return self.attributesMap.get(self.attrNameMap.get(name) ?? "")
+  },
+  hasItem(itemId: string) {
+    return !!self.itemInfoMap.get(itemId)
+  },
+  getItemIndex(itemId: string) {
+    return self.itemInfoMap.get(itemId)?.index
+  },
+  getItemIndexForCaseOrItem(caseOrItemId: string) {
+    const caseInfo = self.caseInfoMap.get(caseOrItemId)
+    // for cases, returns index of first item
+    const itemId = caseInfo ? caseInfo.childItemIds[0] : caseOrItemId
+    return this.getItemIndex(itemId)
+  },
+  getItemCaseIds(itemId: string): readonly string[] {
+    return self.itemInfoMap.get(itemId)?.caseIds ?? []
+  },
+  getItemChildCaseId(itemId: string) {
+    const itemInfo = self.itemInfoMap.get(itemId)
+    if (!itemInfo) return
+    const childCaseIndex = itemInfo.caseIds.length - 1
+    return itemInfo.caseIds[childCaseIndex]
+  },
+  itemIDFromIndex(index: number) {
+    return self.items[index]?.__id__
+  },
+  nextItemID(id: string) {
+    const index = this.getItemIndex(id),
+          nextItem = (index != null) && (index < self.items.length - 1)
+                      ? self.items[index + 1] : undefined
+    return nextItem?.__id__
+  },
+  addItemInfo(itemId: string, index: number, caseId: string) {
+    const itemInfo = self.itemInfoMap.get(itemId)
+    if (itemInfo) {
+      itemInfo.index = index
+      itemInfo.caseIds.push(caseId)
+    }
+    else {
+      self.itemInfoMap.set(itemId, { index, caseIds: [caseId] })
+    }
+  }
+}))
+.actions(self => ({
+  incSyncCollectionLinksCount() {
+    ++self.syncCollectionLinksCount
   }
 }))
 .extend(self => {
@@ -313,10 +364,6 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.collections.find(coll => coll.getAttribute(attributeId))
   }
 
-  function getCollectionForCase(caseId: string): ICollectionModel | undefined {
-    return self.collections.find(coll => coll.hasCase(caseId))
-  }
-
   function getUniqueCollectionName(name: string) {
     let suffix = 1
     let collectionName = name
@@ -335,7 +382,6 @@ export const DataSet = V2Model.named("DataSet").props({
       // get collection from attribute
       // undefined => attribute not present in dataset
       getCollectionForAttribute,
-      getCollectionForCase,
       getUniqueCollectionName
     },
     actions: {
@@ -375,8 +421,6 @@ export const DataSet = V2Model.named("DataSet").props({
           })
           if (attrId && attrCollection) attrCollection.removeAttribute(`${attrId}`)
         })
-        // recalculate groups
-        self.invalidateCaseGroups()
         return newCollection
       },
       removeCollection(collection: ICollectionModel) {
@@ -386,8 +430,8 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 })
 .actions(self => ({
-  setManagingControllerId(id: string) {
-    self.managingControllerId = id
+  setManagingControllerId(id?: string) {
+    self.managingControllerId = id ?? ""
   },
   moveAttribute(attributeID: string, options?: IMoveAttributeCollectionOptions): IAttributeChangeResult {
     let removedCollectionId: string | undefined
@@ -420,15 +464,15 @@ export const DataSet = V2Model.named("DataSet").props({
       }
       dstCollection.addAttribute(attribute, options)
       // update grouping
-      self.invalidateCaseGroups()
+      self.invalidateCases()
     }
     return { removedCollectionId }
   }
 }))
 .views(self => ({
-  validateCaseGroups() {
-    if (!self.isValidCaseGroups) {
-      self.caseGroupMap.clear()
+  validateCases() {
+    if (!self.isValidCases) {
+      self.caseInfoMap.clear()
       self.collections.forEach((collection, index) => {
         // update the cases
         collection.updateCaseGroups()
@@ -438,16 +482,24 @@ export const DataSet = V2Model.named("DataSet").props({
         const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
         collection.completeCaseGroups(parentCaseGroups)
         // update the caseGroupMap
-        collection.caseGroups.forEach(group => self.caseGroupMap.set(group.groupedCase.__id__, group))
+        collection.caseGroups.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
       })
-      self.setValidCaseGroups()
+      self.itemIdChildCaseMap.clear()
+      self.childCollection.caseGroups.forEach(caseGroup => {
+        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
+      })
+      self.setValidCases()
     }
   }
 }))
 .views(self => ({
   childCases() {
-    self.validateCaseGroups()
+    self.validateCases()
     return self.collections[self.collections.length - 1].cases
+  },
+  getCollectionForCase(caseId: string): ICollectionModel | undefined {
+    self.validateCases()
+    return self.collections.find(coll => coll.hasCase(caseId))
   }
 }))
 .actions(self => ({
@@ -475,22 +527,22 @@ export const DataSet = V2Model.named("DataSet").props({
     return childIndex >= 0 ? self.collections[childIndex] : undefined
   },
   getGroupsForCollection(collectionId?: string) {
-    self.validateCaseGroups()
+    self.validateCases()
     return self.getCollection(collectionId)?.caseGroups ?? []
   }
 }))
 .views(self => ({
   getCasesForCollection(collectionId?: string): readonly ICase[] {
-    self.validateCaseGroups()
+    self.validateCases()
     return self.getCollection(collectionId)?.cases ?? []
   },
   getParentCase(caseId: string, collectionId?: string) {
-    self.validateCaseGroups()
+    self.validateCases()
     const parentCollectionId = self.getCollection(collectionId)?.parent?.id
     return self.getCollection(parentCollectionId)?.findParentCaseGroup(caseId)
   },
   getCollectionForAttributes(attributeIds: string[]) {
-    self.validateCaseGroups()
+    self.validateCases()
     for (let i = self.collections.length - 1; i >= 0; --i) {
       const collection = self.collections[i]
       if (attributeIds.some(attrId => collection.getAttribute(attrId))) {
@@ -501,6 +553,21 @@ export const DataSet = V2Model.named("DataSet").props({
   getCasesForAttributes(attributeIds: string[]) {
     const collection = this.getCollectionForAttributes(attributeIds)
     return collection?.cases ?? []
+  },
+  getItemsForCases(cases: ICase[]) {
+    const items: IItem[] = []
+    cases.forEach(aCase => {
+      // convert each case change to a change to each underlying item
+      const caseGroup = self.caseInfoMap.get(aCase.__id__)
+      if (caseGroup?.childItemIds?.length) {
+        items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
+      }
+      else {
+        // items can be added directly
+        items.push(aCase)
+      }
+    })
+    return items
   }
 }))
 .extend(self => {
@@ -510,7 +577,7 @@ export const DataSet = V2Model.named("DataSet").props({
   const attrIDFromName = (name: string) => self.attrNameMap.get(name)
 
   function getItem(itemID: string, options?: IGetCaseOptions): ICase | undefined {
-    const index = self.itemIDMap.get(itemID)
+    const index = self.getItemIndex(itemID)
     if (index == null) { return undefined }
 
     const { canonical = true, numeric = true } = options || {}
@@ -539,8 +606,8 @@ export const DataSet = V2Model.named("DataSet").props({
     return id ? getItem(id, options) : undefined
   }
 
-  function setCaseValues(caseValues: ICase) {
-    const index = self.itemIDMap.get(caseValues.__id__)
+  function setItemValues(caseValues: ICase) {
+    const index = self.getItemIndex(caseValues.__id__)
     if (index == null) { return }
     for (const key in caseValues) {
       if (key !== "__id__") {
@@ -568,71 +635,47 @@ export const DataSet = V2Model.named("DataSet").props({
         return id ? self.getAttribute(id) : undefined
       },
       attrIDFromName,
-      caseIndexFromID(id: string) {
-        return self.itemIDMap.get(id)
-      },
-      caseIDFromIndex(index: number) {
-        return getItemAtIndex(index)?.__id__
-      },
-      nextCaseID(id: string) {
-        const index = self.itemIDMap.get(id),
-              nextCase = (index != null) && (index < self.items.length - 1)
-                          ? self.items[index + 1] : undefined
-        return nextCase?.__id__
+      hasCase(caseId: string) {
+        return !!self.caseInfoMap.get(caseId)
       },
       getValue(caseID: string, attributeID: string) {
-        // The values of a pseudo-case are considered to be the values of the first real case.
-        // For grouped attributes, these will be the grouped values. Clients shouldn't be
-        // asking for ungrouped values from pseudo-cases.
-        const pseudoCase = self.caseGroupMap.get(caseID)
-        const _caseId = pseudoCase ? pseudoCase?.childItemIds[0] : caseID
-        const index = self.itemIDMap.get(_caseId)
-        return index != null ? this.getValueAtIndex(index, attributeID) : undefined
+        const index = self.getItemIndexForCaseOrItem(caseID)
+        return index != null ? this.getValueAtItemIndex(index, attributeID) : undefined
       },
-      getValueAtIndex(index: number, attributeID: string) {
-          if (self.isCaching()) {
-            const caseID = self.items[index]?.__id__
-            const cachedCase = self.caseCache.get(caseID)
-            if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
-              return cachedCase[attributeID]
-            }
-          }
-          const attr = self.getAttribute(attributeID)
-          return attr?.value(index)
-      },
-      getStrValue(caseID: string, attributeID: string) {
-        // The values of a pseudo-case are considered to be the values of the first real case.
-        // For grouped attributes, these will be the grouped values. Clients shouldn't be
-        // asking for ungrouped values from pseudo-cases.
-        const pseudoCase = self.caseGroupMap.get(caseID)
-        const _caseId = pseudoCase ? pseudoCase.childItemIds[0] : caseID
-        const index = self.itemIDMap.get(_caseId)
-        return index != null ? this.getStrValueAtIndex(index, attributeID) : ""
-      },
-      getStrValueAtIndex(index: number, attributeID: string) {
+      getValueAtItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
           const caseID = self.items[index]?.__id__
-          const cachedCase = self.caseCache.get(caseID)
+          const cachedCase = self.itemCache.get(caseID)
+          if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
+            return cachedCase[attributeID]
+          }
+        }
+        const attr = self.getAttribute(attributeID)
+        return attr?.value(index)
+      },
+      getStrValue(caseID: string, attributeID: string) {
+        const index = self.getItemIndexForCaseOrItem(caseID)
+        return index != null ? this.getStrValueAtItemIndex(index, attributeID) : ""
+      },
+      getStrValueAtItemIndex(itemIndex: number, attributeID: string) {
+        if (self.isCaching()) {
+          const caseID = self.items[itemIndex]?.__id__
+          const cachedCase = self.itemCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
             return cachedCase[attributeID]?.toString()
           }
         }
         const attr = self.getAttribute(attributeID)
-        return attr?.value(index) ?? ""
+        return attr?.value(itemIndex) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
-        // The values of a pseudo-case are considered to be the values of the first real case.
-        // For grouped attributes, these will be the grouped values. Clients shouldn't be
-        // asking for ungrouped values from pseudo-cases.
-        const pseudoCase = self.caseGroupMap.get(caseID)
-        const _caseId = pseudoCase ? pseudoCase.childItemIds[0] : caseID
-        const index = _caseId ? self.itemIDMap.get(_caseId) : undefined
-        return index != null ? this.getNumericAtIndex(index, attributeID) : undefined
+        const index = self.getItemIndexForCaseOrItem(caseID)
+        return index != null ? this.getNumericAtItemIndex(index, attributeID) : undefined
       },
-      getNumericAtIndex(index: number, attributeID: string) {
+      getNumericAtItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
           const caseID = self.items[index]?.__id__
-          const cachedCase = self.caseCache.get(caseID)
+          const cachedCase = self.itemCache.get(caseID)
           if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
             return Number(cachedCase[attributeID])
           }
@@ -643,7 +686,7 @@ export const DataSet = V2Model.named("DataSet").props({
       getItem,
       getItems,
       getItemAtIndex,
-      getCasesAtIndex(start = 0, options?: IGetCasesOptions) {
+      getItemsAtIndex(start = 0, options?: IGetCasesOptions) {
         const { count = self.items.length } = options || {}
         const endIndex = Math.min(start + count, self.items.length),
               cases = []
@@ -652,9 +695,13 @@ export const DataSet = V2Model.named("DataSet").props({
         }
         return cases
       },
+      getFirstItemForCase(caseId: string, options: IGetCasesOptions) {
+        const itemId = self.caseInfoMap.get(caseId)?.childItemIds[0]
+        return itemId ? getItem(itemId, { numeric: false }) : undefined
+      },
       isCaseSelected(caseId: string) {
         // a pseudo-case is selected if all of its individual cases are selected
-        const group = self.caseGroupMap.get(caseId)
+        const group = self.caseInfoMap.get(caseId)
         return group
                 ? group.childItemIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
@@ -775,12 +822,32 @@ export const DataSet = V2Model.named("DataSet").props({
         return result
       },
 
+      // TODO: This is really adding items rather than cases. A true addCases would treat any
+      // provided ids as case ids rather than item ids, would allow the client to specify a
+      // target collection and/or parent case, etc. Not sure at the moment whether there
+      // should be two separate functions or whether one function can suffice, and if the
+      // latter, whether it should be named addCases or addItems.
       addCases(cases: ICaseCreation[], options?: IAddCasesOptions) {
         const { before, after } = options || {}
 
-        const beforePosition = before ? self.itemIDMap.get(before) : undefined
-        const _afterPosition = after ? self.itemIDMap.get(after) : undefined
-        const afterPosition = _afterPosition != null ? _afterPosition + 1 : undefined
+        const beforePosition = before
+          ? self.getItemIndex(before) ?? self.getItemIndex(self.caseInfoMap.get(before)?.childItemIds[0] ?? "")
+          : undefined
+        const getAfterPosition = () => {
+          if (!after) return
+
+          // If after is an item id, return one index after that item
+          const afterItemIndex = self.getItemIndex(after)
+          if (afterItemIndex != null) return afterItemIndex + 1
+
+          // If after is a case id, find its last item and return one index after that
+          const afterCase = self.caseInfoMap.get(after)
+          if (!afterCase?.childItemIds.length) return
+          const afterCaseItemId = afterCase.childItemIds[afterCase.childItemIds.length - 1]
+          const afterCaseItemIndex = self.getItemIndex(afterCaseItemId)
+          if (afterCaseItemIndex) return afterCaseItemIndex + 1
+        }
+        const afterPosition = getAfterPosition()
         const insertPosition = beforePosition ?? afterPosition ?? self.items.length
 
         // insert/append cases and empty values
@@ -789,9 +856,9 @@ export const DataSet = V2Model.named("DataSet").props({
         if (insertPosition < self.items.length) {
           self.itemIds.splice(insertPosition, 0, ...ids)
           // update the indices of cases after the insert
-          self.itemIDMap.forEach((caseIndex, caseId) => {
-            if (caseIndex >= insertPosition) {
-              self.itemIDMap.set(caseId, caseIndex + cases.length)
+          self.itemInfoMap.forEach((itemInfo, caseId) => {
+            if (itemInfo.index >= insertPosition) {
+              itemInfo.index += cases.length
             }
           })
           // insert values for each attribute
@@ -806,9 +873,9 @@ export const DataSet = V2Model.named("DataSet").props({
             attr.setLength(self.items.length)
           })
         }
-        // update the indices for the appended cases
+        // add the itemInfo for the appended cases
         ids.forEach((caseId, index) => {
-          self.itemIDMap.set(caseId, insertPosition + index)
+          self.itemInfoMap.set(caseId, { index: insertPosition + index, caseIds: [] })
         })
 
         // copy any values provided
@@ -829,76 +896,100 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // invalidate the affected attributes
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
-
-        // invalidate collectionGroups (including childCases)
-        self.invalidateCaseGroups()
         return ids
       },
 
-      // Supports regular cases or pseudo-cases, but not mixing the two.
-      // For pseudo-cases, will set the values of all cases in the group
+      // Supports items or cases, but not mixing the two.
+      // For cases, will set the values of all items in the group
       // regardless of whether the attribute is grouped or not.
       // `affectedAttributes` are not used in the function, but are present as a potential
       // optimization for responders, as all arguments are available to `onAction` listeners.
       // For instance, a scatter plot that is dragging many points but affecting only two
       // attributes can indicate that, which can enable more efficient responses.
       setCaseValues(cases: ICase[], affectedAttributes?: string[]) {
-        const items: IItem[] = []
-        cases.forEach(aCase => {
-          // convert each parent case change to a change to each underlying item
-          const caseGroup = self.caseGroupMap.get(aCase.__id__)
-          if (caseGroup?.childCaseIds?.length) {
-            items.push(...caseGroup.childItemIds.map(id => ({ ...aCase, __id__: id })))
-          }
-        })
-        const _cases = items.length > 0 ? items : cases
-        const before = getItems(_cases.map(({ __id__ }) => __id__))
+        const items = self.getItemsForCases(cases)
+
         if (self.isCaching()) {
           // update the cases in the cache
-          _cases.forEach(aCase => {
-            const cached = self.caseCache.get(aCase.__id__)
+          items.forEach(item => {
+            const cached = self.itemCache.get(item.__id__)
             if (!cached) {
-              self.caseCache.set(aCase.__id__, { ...aCase })
+              self.itemCache.set(item.__id__, { ...item })
             }
             else {
-              Object.assign(cached, aCase)
+              Object.assign(cached, item)
             }
           })
         }
         else {
-          _cases.forEach((caseValues) => {
-            setCaseValues(caseValues)
+          items.forEach((caseValues) => {
+            setItemValues(caseValues)
           })
         }
-        // custom undo/redo since values aren't observed all the way down
-        const after = getItems(_cases.map(({ __id__ }) => __id__))
-        withCustomUndoRedo<ISetCaseValuesCustomPatch>({
-          type: "DataSet.setCaseValues",
-          data: { dataId: self.id, before, after }
-        }, setCaseValuesCustomUndoRedo)
 
         // only changes to parent collection attributes invalidate grouping
-        items.length && self.invalidateCaseGroups()
+        items.length && self.invalidateCases()
       },
 
       removeCases(caseIDs: string[]) {
-        caseIDs.forEach((caseID) => {
-          const index = self.itemIDMap.get(caseID)
-          if (index != null) {
-            self.itemIds.splice(index, 1)
-            self.attributes.forEach((attr) => {
-              attr.removeValues(index)
-            })
-            self.selection.delete(caseID)
-            self.itemIDMap.delete(caseID)
-            for (let i = index; i < self.items.length; ++i) {
-              const id = self.items[i].__id__
-              self.itemIDMap.set(id, i)
-            }
-          }
+        // Remove the items last -> first, so we only have to update itemInfo once
+        const items = caseIDs.map(id => ({ id, index: self.getItemIndex(id) }))
+          .filter(info => info.index != null) as { id: string, index: number }[]
+        items.sort((a, b) => b.index - a.index)
+        const firstIndex = items[items.length - 1]?.index ?? -1
+        items.forEach(({ id: caseID, index }) => {
+          self.itemIds.splice(index, 1)
+          self.attributes.forEach((attr) => {
+            attr.removeValues(index)
+          })
+          self.selection.delete(caseID)
+          self.itemInfoMap.delete(caseID)
         })
-        // invalidate case groups (including childCases)
-        self.invalidateCaseGroups()
+        if (firstIndex >= 0) {
+          for (let i = firstIndex; i < self.itemIds.length; ++i) {
+            const itemId = self.itemIds[i]
+            const itemInfo = self.itemInfoMap.get(itemId)
+            if (itemInfo) itemInfo.index = i
+          }
+        }
+      },
+
+      moveItems(itemIds: string[], options?: IMoveItemsOptions) {
+        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
+          .sort((a: number, b: number) => b - a) // Reverse order
+        const items = indices.map(index => {
+          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
+          self.attributes.forEach(attr => item.values.push({
+            strValue: attr.strValues[index],
+            numValue: attr.numValues[index]
+          }))
+          return item
+        }).reverse() // Normal order
+
+        // Remove from ordered arrays
+        indices.forEach(index => {
+          self.itemIds.splice(index, 1)
+          self.attributes.forEach(attr => attr.removeValues(index))
+        })
+
+        // Determine position to re-insert items
+        const beforeIndex = options?.before ? self.itemIds.indexOf(options.before) : undefined
+        const afterIndex = options?.after ? self.itemIds.indexOf(options.after) + 1 : undefined
+        const insertIndex = afterIndex ?? beforeIndex ?? self.itemIds.length
+
+        // Add back to ordered arrays
+        self.itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
+        self.attributes.forEach((attr, index) => {
+          attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
+          attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
+        })
+
+        // Fix indices
+        for (let i = 0; i < self.itemIds.length; ++i) {
+          const itemId = self.itemIds[i]
+          const itemInfo = self.itemInfoMap.get(itemId)
+          if (itemInfo) itemInfo.index = i
+        }
       },
 
       selectAll(select = true) {
@@ -914,9 +1005,9 @@ export const DataSet = V2Model.named("DataSet").props({
       selectCases(caseIds: string[], select = true) {
         const ids: string[] = []
         caseIds.forEach(id => {
-          const pseudoCase = self.caseGroupMap.get(id)
-          if (pseudoCase) {
-            ids.push(...pseudoCase.childItemIds)
+          const caseInfo = self.caseInfoMap.get(id)
+          if (caseInfo) {
+            ids.push(...caseInfo.childItemIds)
           } else {
             ids.push(id)
           }
@@ -935,9 +1026,9 @@ export const DataSet = V2Model.named("DataSet").props({
       setSelectedCases(caseIds: string[]) {
         const ids: string[] = []
         caseIds.forEach(id => {
-          const pseudoCase = self.caseGroupMap.get(id)
-          if (pseudoCase) {
-            ids.push(...pseudoCase.childItemIds)
+          const caseInfo = self.caseInfoMap.get(id)
+          if (caseInfo) {
+            ids.push(...caseInfo.childItemIds)
           } else {
             ids.push(id)
           }
@@ -950,7 +1041,7 @@ export const DataSet = V2Model.named("DataSet").props({
 })
 .views(self => ({
   getParentValues(parentId: string) {
-    const parentCase = self.caseGroupMap.get(parentId)
+    const parentCase = self.caseInfoMap.get(parentId)
     const parentCollection = self.getCollection(parentCase?.collectionId)
     const values: Record<string, string> = {}
     parentCollection?.allAttributes.forEach(attr => {
@@ -974,7 +1065,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
     // build itemIDMap
     self.items.forEach((aCase, index) => {
-      self.itemIDMap.set(aCase.__id__, index)
+      self.itemInfoMap.set(aCase.__id__, { index, caseIds: [] })
     })
 
     // make sure attributes have appropriate length, including attributes with formulas
@@ -1012,18 +1103,27 @@ export const DataSet = V2Model.named("DataSet").props({
           // update parent/child links and provide access to item data
           const itemData: IItemData = {
             itemIds: () => self.itemIds,
-            getValue: (itemId: string, attrId: string) => self.getStrValue(itemId, attrId) ?? "",
-            invalidate: () => self.invalidateCaseGroups()
+            getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
+            addItemInfo: (itemId, index, caseId) => self.addItemInfo(itemId, index, caseId),
+            invalidate: () => self.invalidateCases()
           }
           syncCollectionLinks(self.collections, itemData)
-          self.invalidateCaseGroups()
+          self.incSyncCollectionLinksCount()
+          self.invalidateCases()
         },
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
       ))
+
+      // when items are added/removed...
+      addDisposer(self, onPatch(self, ({ op, path, value }) => {
+        if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+          self.invalidateCases()
+        }
+      }))
     }
   },
   commitCache() {
-    self.setCaseValues(Array.from(self.caseCache.values()))
+    self.setCaseValues(Array.from(self.itemCache.values()))
   },
   endCaching(commitCache = false) {
     if (self._endCaching() === 0) {

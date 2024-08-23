@@ -93,7 +93,7 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
           if (isPartialSelectionAction(action)) {
             const caseIds = action.args[0]
             const caseIndices = caseIds.map(id => collectionCaseIndexFromId(id, data, collectionId))
-                                       .filter(index => index != null) as number[]
+                                       .filter(index => index != null)
             const isSelecting = ((action.name === "selectCases") && action.args[1]) || true
             isSelecting && caseIndices.length && onScrollClosestRowIntoView(collectionId, caseIndices)
           }

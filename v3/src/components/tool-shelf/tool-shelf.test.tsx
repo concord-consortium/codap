@@ -8,13 +8,18 @@ import { IDocumentModel } from "../../models/document/document"
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
 
+// The PluginsButton is tested elsewhere
+jest.mock("./plugins-button", () => ({
+  PluginsButton: () => null
+}))
+
 describe("Tool shelf", () => {
 
   beforeEach(() => {
     const consoleWarn = console.warn
     jest.spyOn(console, "warn").mockImplementation((...args: any[]) => {
       // ignore the expected warning, but allow others
-      if (args[0] !== "Unable to load plugin data.") {
+      if (!`${args[0]}`.startsWith("Unable to load plugin data")) {
         consoleWarn(...args)
       }
     })

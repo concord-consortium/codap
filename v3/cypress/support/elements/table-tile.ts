@@ -1,4 +1,8 @@
 import { ComponentElements as c } from "./component-elements"
+type TestAttributes = Array<{ name: string, move: string }>
+type TestValues = Record<string, string[]>
+
+type OptString = string | null | undefined
 
 export const TableTileElements = {
   getTableTile(index = 0) {
@@ -6,6 +10,9 @@ export const TableTileElements = {
   },
   getCaseTableGrid() {
     return cy.get("[data-testid=collection-table-grid]")
+  },
+  getCaseTableGridForCollection(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]")
   },
   getNumOfAttributes() {
     return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-colcount")
@@ -32,20 +39,24 @@ export const TableTileElements = {
   getColumnHeaders(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[role=columnheader]")
   },
-  getColumnHeader(index, collectionIndex = 1) {
+  getColumnHeader(index: number, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[data-testid=codap-column-header-content]").eq(index)
   },
   // doesn't work in more recent chakra versions
   // getColumnHeaderTooltip() {
   //   return cy.get("[data-testid=case-table-attribute-tooltip]")
   // },
-  getIndexRow(rowNum: number, collectionIndex = 1) {
+  getSelectedRow(rowNum: number, collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid]
+      [role=row][aria-rowindex="${rowNum}"][aria-selected="true"]`)
+  },
+  getIndexCellInRow(rowNum: number, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid=collection-table-grid]
       [role=row][aria-rowindex="${rowNum}"]
       [data-testid=codap-index-content-button]`)
   },
   openIndexMenuForRow(rowNum: number, collectionIndex = 1) {
-    this.getIndexRow(rowNum, collectionIndex).click("top")
+    this.getIndexCellInRow(rowNum, collectionIndex).click("top")
   },
   getIndexMenu() {
     return cy.get("[data-testid=index-menu-list]")
@@ -53,19 +64,17 @@ export const TableTileElements = {
   insertCase() {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Insert Case")
-    cy.wait(500)
   },
-  insertCases(num_of_cases, location) {
+  insertCases(num_of_cases: number, location: string) {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Insert Cases...")
-    cy.get("[data-testid=num-case-input] input").type(num_of_cases)
+    cy.get("[data-testid=num-case-input] input").type(`${num_of_cases}`)
     cy.get(`[data-testid="add-${location}"]`).click()
     cy.get("[data-testid=\"Insert Cases-button\"]").contains("Insert Cases").click()
   },
   deleteCase() {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Delete Case")
-    cy.wait(500)
   },
   getInsertCasesModalHeader() {
     return cy.get("[data-testid=codap-modal-header]")
@@ -79,54 +88,57 @@ export const TableTileElements = {
   getAttributeHeader() {
     return cy.get("[data-testid^=codap-attribute-button]")
   },
-  getAttribute(name, collectionIndex = 1) {
+  getAttribute(name: string, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
-  getCasetableAttribute(name) {
+  getAttributeInput(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
+  },
+  getCaseTableAttribute(name: string) {
     return this.getTableTile().find(`[data-testid^="codap-attribute-button ${name}"]`)
   },
-  openAttributeMenu(name, collectionIndex = 1) {
-    this.getAttribute(name, collectionIndex).click()
+  openAttributeMenu(name: string, collectionIndex = 1) {
+    this.getAttribute(name, collectionIndex).click({force: true})
   },
-  getAttributeMenuItem(item) {
+  getAttributeMenuItem(item: string) {
     return cy.get("[data-testid=attribute-menu-list] button").contains(item)
   },
-  selectMenuItemFromAttributeMenu(item) {
+  selectMenuItemFromAttributeMenu(item: string) {
     this.getAttributeMenuItem(item).click({ force: true })
   },
-  renameColumnName(newName) {
+  renameColumnName(newName: string) {
     cy.get("[data-testid=column-name-input]").wait(250).type(newName)
   },
   // Edit Attribute Property Dialog
-  enterAttributeName(name) {
+  enterAttributeName(name: string) {
     cy.get("[data-testid=attr-name-input]").type(name)
   },
-  enterAttributeDescription(text) {
+  enterAttributeDescription(text: string) {
     cy.get("[data-testid=attr-description-input]").type(text)
   },
-  selectAttributeType(type) {
+  selectAttributeType(type: string) {
     cy.get("[data-testid=attr-type-select]").select(type)
   },
-  enterAttributeUnit(unit) {
+  enterAttributeUnit(unit: string) {
     cy.get("[data-testid=attr-unit-input]").type(unit)
   },
-  selectAttributePrecision(number) {
-    cy.get("[data-testid=attr-precision-select]").select(number)
+  selectAttributePrecision(precision: string) {
+    cy.get("[data-testid=attr-precision-select]").select(precision)
   },
-  selectAttributeEditableState(state) {
+  selectAttributeEditableState(state: string) {
     cy.get("[data-testid=attr-editable-radio] span").contains(state).click()
   },
   // Edit Dataset Information Dialog
-  enterInfoName(name) {
+  enterInfoName(name: string) {
     cy.get("[data-testid=dataset-name-input]").type(name)
   },
-  enterInfoSource(source) {
+  enterInfoSource(source: string) {
    cy.get("[data-testid=dataset-source-input]").type(source)
   },
-  enterInfoDate(date) {
+  enterInfoDate(date: string) {
     cy.get("[data-testid=dataset-date-input]").type(date)
   },
-  enterInfoDescription(description) {
+  enterInfoDescription(description: string) {
     cy.get("[data-testid=dataset-description-input]").type(description)
   },
   getApplyButton() {
@@ -135,7 +147,8 @@ export const TableTileElements = {
   getCancelButton() {
     return cy.get("[data-testid=Cancel-button]")
   },
-  editAttributeProperties(attr, name, description, type, unit, precision, editable) {
+  editAttributeProperties(attr: string, name?: OptString, description?: OptString, type?: OptString,
+                          unit?: OptString, precision?: OptString, editable?: OptString) {
     this.openAttributeMenu(attr)
     this.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
     if (name !== "") {
@@ -156,9 +169,9 @@ export const TableTileElements = {
     if (editable != null) {
       this.selectAttributeEditableState(editable)
     }
-    this.getApplyButton().click()
+    this.getApplyButton().click({force: true})
   },
-  editDatasetInformation(name, source, date, description) {
+  editDatasetInformation(name: string, source: string, date: string, description: string) {
     this.getDatasetInfoButton().click()
     if (name !== "") {
        this.enterInfoName(`{selectAll}{backspace}${name}`)
@@ -178,7 +191,7 @@ export const TableTileElements = {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
   },
   // returns the .cell-span within the cell
-  getCell(column: number, row: number, collectionIndex = 1) {
+  getCell(column: number | string, row: number | string, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"] .cell-span`)
   },
   verifyCellSwatchColor(row: number, column: number, rgbColorStr: string, collection = 1) {
@@ -195,31 +208,31 @@ export const TableTileElements = {
     .invoke("getPropertyValue", "background")
     .should("contain", rgbColorStr)
   },
-  verifyRowSelected(row) {
+  verifyRowSelected(row: number) {
     cy.get(`[data-testid=case-table] [aria-rowindex="${row}"]`).invoke("attr", "aria-selected")
       .should("contain", true)
   },
-  verifyRowSelectedWithCellValue(cell) {
+  verifyRowSelectedWithCellValue(cell: string) {
     cy.get(`[data-testid=case-table] [aria-selected=true]`).should("contain", cell)
   },
   showAllAttributes() {
     cy.get("[data-testid=hide-show-button]").click()
     cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show 1 Hidden Attribute").click()
   },
-  createNewTableFromToolshelf() {
-    c.getIconFromToolshelf("table").click()
+  createNewTableFromToolShelf() {
+    c.getIconFromToolShelf("table").click()
     cy.get("[data-testid=tool-shelf-table-new]").click()
   },
-  createNewClipboardTableFromToolshelf() {
-    c.getIconFromToolshelf("table").click()
+  createNewClipboardTableFromToolShelf() {
+    c.getIconFromToolShelf("table").click()
     cy.get("[data-testid=tool-shelf-table-new-clipboard]").click()
   },
-  openExistingTableFromToolshelf(name: string) {
-    c.getIconFromToolshelf("table").click()
+  openExistingTableFromToolShelf(name: string) {
+    c.getIconFromToolShelf("table").click()
     cy.get(`[data-testid=tool-shelf-table-${name}]`).click()
   },
-  deleteDataSetFromToolshelf(index = 0) {
-    c.getIconFromToolshelf("table").click()
+  deleteDataSetFromToolShelf(index = 0) {
+    c.getIconFromToolShelf("table").click()
     cy.get(`.tool-shelf-menu-trash-icon`).eq(index).click()
     cy.get(`.delete-data-set-button-delete`).click()
   },
@@ -262,21 +275,20 @@ export const TableTileElements = {
   selectItemFromRulerMenu(item: string) {
     this.getRulerMenuItem(item).click({ force: true })
   },
-  verifyAttributeValues(attributes, values, collectionIndex = 1) {
+  verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {
       const attribute = a.name
       for (let rowIndex = 0; rowIndex < values[attribute].length; rowIndex++) {
-        cy.wait(1000)
         this.getAttributeValue(attribute, rowIndex+2, collectionIndex).then(cell => {
           expect(values[attribute]).to.include(cell.text())
         })
       }
     })
   },
-  getAttributeValue(attribute, rowIndex, collectionIndex = 1) {
+  getAttributeValue(attribute: string, rowIndex: number, collectionIndex = 1) {
     return this.getAttribute(attribute, collectionIndex).parent().parent().then($header => {
       return cy.wrap($header).invoke("attr", "aria-colindex").then(colIndex => {
-        return this.getCell(colIndex, rowIndex, collectionIndex)
+        return this.getCell(colIndex!, rowIndex, collectionIndex)
       })
     })
   },
@@ -307,22 +319,22 @@ export const TableTileElements = {
   collapseAllGroups(collectionIndex = 1) {
     this.getCollapseAllGroupsButton(collectionIndex).click()
   },
-  getCollapsedIndex(rowIndex, collectionIndex = 1) {
-    return this.getIndexRow(rowIndex, collectionIndex)
+  getCollapsedIndex(rowIndex: number, collectionIndex = 1) {
+    return this.getIndexCellInRow(rowIndex, collectionIndex)
   },
-  getRowExpandCollapseButton(rowIndex, collectionIndex = 1) {
+  getRowExpandCollapseButton(rowIndex: number, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(".spacer-mid-layer .expand-collapse-button img")
       .eq(Number(rowIndex)-2)
   },
-  verifyRowCollapsedButton(rowIndex, collectionIndex = 1) {
+  verifyRowCollapsedButton(rowIndex: number, collectionIndex = 1) {
     this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "closed")
   },
-  verifyRowExpandedButton(rowIndex, collectionIndex = 1) {
+  verifyRowExpandedButton(rowIndex: number, collectionIndex = 1) {
     this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "open")
   },
-  verifyCollapsedRows(childCases, collectionIndex = 1) {
+  verifyCollapsedRows(childCases: string[], collectionIndex = 1) {
     for (let childCaseIndex = 0; childCaseIndex < childCases.length; childCaseIndex++) {
-      this.getIndexRow(childCaseIndex+2, collectionIndex).then(indexCell => {
+      this.getIndexCellInRow(childCaseIndex+2, collectionIndex).then(indexCell => {
         expect(childCases).to.include(indexCell.text())
       })
     }
@@ -332,57 +344,57 @@ export const TableTileElements = {
       .click({force:true})
     cy.get("[data-testid=column-name-input]").type("{enter}")
   },
-  deleteAttrbute(attributeName, collectionIndex = 1) {
+  deleteAttribute(attributeName: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Delete Attribute")
     this.getAttribute(attributeName, collectionIndex).should("not.exist")
   },
-  renameAttribute(attributeName, newAttributeName, collectionIndex = 1) {
+  renameAttribute(attributeName: string, newAttributeName: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Rename")
     this.renameColumnName(`${newAttributeName}{enter}`)
     // this.getAttribute(newAttributeName, collectionIndex).should("exist")
   },
-  addFormula(attributeName, formula, collectionIndex = 1) {
+  addFormula(attributeName: string, formula: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Edit Formula...")
     this.addFormulaInModal(attributeName, formula)
   },
-  editFormula(attributeName, formula, collectionIndex = 1) {
+  editFormula(attributeName: string, formula: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Edit Formula...")
     this.clearFormulaInModal(attributeName)
     this.addFormula(attributeName, formula, collectionIndex)
   },
-  checkFormulaExists(attributeName, formula, collectionIndex = 1) {
+  checkFormulaExists(attributeName: string, formula: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Edit Formula...")
     this.checkFormulaInModal(attributeName, formula)
   },
-  addFormulaInModal(attributeName, formula) {
+  addFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
     cy.get("[data-testid=attr-formula-input]").type(formula, {force:true})
     cy.get("[data-testid=Apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
-  clearFormulaInModal(attributeName) {
+  clearFormulaInModal(attributeName: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
     cy.get("[data-testid=attr-formula-input]").type(`{selectAll}{del}`)
     cy.get("[data-testid=Apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
-  checkFormulaInModal(attributeName, formula) {
+  checkFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
     cy.get("[data-testid=attr-formula-input]").should("have.text", formula)
     cy.get("[data-testid=Cancel-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
-  verifyFormulaValues(attribute, values, collectionIndex = 1) {
+  verifyFormulaValues(attribute: string, values: Array<any>, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {
       this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", values[rowIndex].toString())
     }
   },
-  verifyFormulaError(attribute, error, collectionIndex = 1) {
+  verifyFormulaError(attribute: string, error: any, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < error.cases; rowIndex++) {
       this.getAttributeValue(attribute, rowIndex+2, collectionIndex).should("have.text", error.value)
     }

@@ -72,7 +72,11 @@ for (const lang of candidates) {
   }
 }
 
-type VarValue = string | number | undefined
+export function getDefaultLanguage () {
+  return defaultLang
+}
+
+type VarValue = string | number | boolean | undefined
 interface ITranslateOptions {
   lang?: string
   count?: number

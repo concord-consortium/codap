@@ -10,6 +10,7 @@ import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-v
 export interface ITileEnvironment {
   sharedModelManager?: ISharedModelManager
   formulaManager?: FormulaManager
+  log?: (event: string, args?: Record<string, unknown>) => void
   notify?: (message: DIMessage, callback: iframePhone.ListenerCallback) => void
 }
 
@@ -27,8 +28,4 @@ export function getFormulaManager(node?: IAnyStateTreeNode) {
 
 export function getGlobalValueManager(sharedModelManager?: ISharedModelManager) {
   return sharedModelManager?.getSharedModelsByType(kGlobalValueManagerType)?.[0] as IGlobalValueManager | undefined
-}
-
-export function notify(node: IAnyStateTreeNode, message: DIMessage, callback: iframePhone.ListenerCallback) {
-  getTileEnvironment(node)?.notify?.(message, callback)
 }

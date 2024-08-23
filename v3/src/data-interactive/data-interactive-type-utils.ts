@@ -48,7 +48,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
 
   const _collection = dataContext.getCollectionForCase(caseId)
   const collectionId = _collection?.id
-  const caseGroup = dataContext.caseGroupMap.get(caseId)
+  const caseGroup = dataContext.caseInfoMap.get(caseId)
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
 
@@ -81,7 +81,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
   const id = toV2Id(caseId)
 
-  const caseGroup = dataContext.caseGroupMap.get(caseId)
+  const caseGroup = dataContext.caseInfoMap.get(caseId)
   const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
   const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
@@ -106,13 +106,13 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { name, type, title, description, deleteable, editable, id, precision } = attribute
+  const { cid, name, type, title, description, deleteable, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
   return {
     name,
     type,
     title,
-    cid: id,
+    cid,
     // colorMap
     // defaultMin: self.defaultMin, // TODO Where should this come from?
     // defaultMax: self.defaultMax, // TODO Where should this come from?

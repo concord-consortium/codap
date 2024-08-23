@@ -26,8 +26,10 @@
  */
 
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { parseColor } from "../../utilities/color-utils"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
+import { parseColor } from "../../utilities/color-utils"
+import { formatStdISODateString } from "../../utilities/date-iso-utils"
+import { isDateString } from "../../utilities/date-parser"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
@@ -39,14 +41,23 @@ export const kDefaultFormatStr = ".3~f"
 const isDevelopment = () => process.env.NODE_ENV !== "production"
 const isProduction = () => process.env.NODE_ENV === "production"
 
-export type IValueType = string | number | boolean | undefined
+export type IValueType = string | number | boolean | Date | undefined
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
 }
 
-export function importValueToString(value: IValueType) {
-  return value == null ? "" : typeof value === "string" ? value : value.toString()
+export function importValueToString(value: IValueType): string {
+  if (value == null) {
+    return ""
+  }
+  if (typeof value === "string") {
+    return value
+  }
+  if (value instanceof Date) {
+    return formatStdISODateString(value)
+  }
+  return value.toString()
 }
 
 export const attributeTypes = [
@@ -59,6 +70,7 @@ export function isAttributeType(type?: string | null): type is AttributeType {
 
 export const Attribute = V2Model.named("Attribute").props({
   id: typeV3Id(kAttrIdPrefix),
+  _cid: types.maybe(types.string), // cid was a v2 property that is used by some plugins (Collaborative)
   clientKey: "",
   sourceID: types.maybe(types.string),
   description: types.maybe(types.string),
@@ -129,6 +141,13 @@ export const Attribute = V2Model.named("Attribute").props({
     self.changeCount // eslint-disable-line no-unused-expressions
     return self.strValues.reduce((prev, current) => parseColor(current) ? ++prev : prev, 0)
   }),
+  getDateCount: cachedFnFactory<number>(() => {
+    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
+    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
+    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
+    self.changeCount // eslint-disable-line no-unused-expressions
+    return self.strValues.reduce((prev, current) => isDateString(current) ? ++prev : prev, 0)
+  }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
   },
@@ -137,6 +156,9 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   get shouldSerializeValues() {
     return !this.hasFormula
+  },
+  get cid() {
+    return self._cid ?? self.id
   }
 }))
 .actions(self => ({
@@ -145,6 +167,9 @@ export const Attribute = V2Model.named("Attribute").props({
     self.getEmptyCount.invalidate()
     self.getNumericCount.invalidate()
     self.getStrictColorCount.invalidate()
+  },
+  setCid(cid?: string) {
+    self._cid = cid
   }
 }))
 .actions(self => ({
@@ -214,6 +239,10 @@ export const Attribute = V2Model.named("Attribute").props({
     // only infer numeric if all non-empty values are numeric (CODAP2)
     const numCount = self.getNumericCount()
     if (numCount > 0 && numCount === this.length - self.getEmptyCount()) return "numeric"
+
+    // only infer date if all non-empty values are dates
+    const dateCount = self.getDateCount()
+    if (dateCount > 0 && dateCount === this.length - self.getEmptyCount()) return "date"
 
     return "categorical"
   },

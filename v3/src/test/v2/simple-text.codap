@@ -1,0 +1,38 @@
+{
+    "name": "Untitled Document",
+    "guid": 1,
+    "id": 1,
+    "components": [
+        {
+            "type": "DG.TextView",
+            "guid": 2,
+            "id": 2,
+            "componentStorage": {
+                "text": "This is some simple text.",
+                "title": "Text",
+                "name": "Text",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 300,
+                "height": 100,
+                "zIndex": 103,
+                "left": 5,
+                "top": 5,
+                "isVisible": true,
+                "right": 305,
+                "bottom": 105
+            },
+            "savedHeight": null
+        }
+    ],
+    "contexts": [],
+    "globalValues": [],
+    "appName": "DG",
+    "appVersion": "2.0",
+    "appBuildNum": "0727",
+    "lang": "en",
+    "idCount": 2,
+    "metadata": {}
+}

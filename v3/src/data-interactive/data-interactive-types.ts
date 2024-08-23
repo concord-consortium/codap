@@ -8,7 +8,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 
-export type DICaseValue = string | number | boolean | undefined
+export type DICaseValue = string | number | boolean | Date | undefined
 export type DICaseValues = Record<string, DICaseValue>
 export interface DIFullCase {
   children?: number[]
@@ -78,7 +78,9 @@ export interface DIGetCaseResult {
   caseIndex?: number
 }
 export interface DIInteractiveFrame {
+  allowEmptyAttributeDeletion?: boolean
   cannotClose?: boolean
+  codapVersion?: string
   dimensions?: {
     height?: number
     width?: number
@@ -89,6 +91,7 @@ export interface DIInteractiveFrame {
   preventAttributeDeletion?: boolean
   preventBringToFront?: boolean
   preventDataContextReorg?: boolean
+  preventTopLevelReorg?: boolean
   respectEditableItemAttribute?: boolean
   savedState?: unknown
   standaloneUndoModeAvailable?: boolean
@@ -97,7 +100,9 @@ export interface DIInteractiveFrame {
 }
 export type DIItem = DICaseValues
 export type DIItemValues = DIItem | { id?: string | number, values: DIItem }
+type DICollectionLabels = Partial<ICollectionLabels>
 export interface DICreateCollection {
+  labels?: DICollectionLabels
   name?: string
   title?: string
   parent?: string
@@ -116,7 +121,7 @@ export interface DIDeleteCollectionResult {
 }
 export interface DIUpdateCollection {
   title?: string
-  labels?: Partial<ICollectionLabels>
+  labels?: DICollectionLabels
 }
 export interface DIUpdateItemResult {
   changedCases?: number[]
@@ -143,13 +148,14 @@ export interface DIResources {
   attributeLocation?: IAttribute
   caseByID?: ICase
   caseByIndex?: ICase
-  caseFormulaSearch?: DICase[]
+  caseFormulaSearch?: ICase[]
   caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
+  error?: string
   global?: IGlobalValue
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
@@ -192,6 +198,10 @@ export interface DIErrorResult {
 
 export type DIHandlerFnResult = DISuccessResult | DIErrorResult
 
+export function isErrorResult(result: unknown): result is DIErrorResult {
+  return result != null && typeof result === "object" && "success" in result && !result.success
+}
+
 export type DIHandlerFn = (resources: DIResources, values?: DIValues, metadata?: DIMetadata) => DIHandlerFnResult
 
 export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}} as const
@@ -217,6 +227,7 @@ export interface DIResourceSelector {
   case?: string
   caseByID?: string
   caseByIndex?: string
+  caseFormulaSearch?: string
   caseSearch?: string
   collection?: string
   component?: string

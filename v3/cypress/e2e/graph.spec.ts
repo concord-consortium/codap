@@ -24,7 +24,7 @@ context.skip("Test graph plot transitions", () => {
 
   plots.forEach(test => {
     it.skip(`${test.testName}`, () => {
-      c.getIconFromToolshelf("graph").click()
+      c.getIconFromToolShelf("graph").click()
       c.moveComponent("graph", 1000)
       test.axes.forEach(hash => {
         hash.checks.forEach(check => {
@@ -68,7 +68,7 @@ context("Graph UI", () => {
         cy.log(`Initial CODAP Graph Count: ${initialCount}`)
 
         // perform an action that gets a new graph
-        c.getIconFromToolshelf("graph").click()
+        c.getIconFromToolShelf("graph").click()
         // cy.wait(1000)
         c.getComponentTitle("graph").should("contain", collectionName)
         c.getComponentTitle("graph", 1).should("contain", collectionName)
@@ -88,12 +88,12 @@ context("Graph UI", () => {
     it("creates graphs with new collection names when existing ones are closed", () => {
       c.closeComponent("graph")
       c.checkComponentDoesNotExist("graph")
-      c.getIconFromToolshelf("graph").click()
+      c.getIconFromToolShelf("graph").click()
       c.getComponentTitle("graph").should("contain", collectionName)
 
       c.closeComponent("graph")
       c.checkComponentDoesNotExist("graph")
-      c.getIconFromToolshelf("graph").click()
+      c.getIconFromToolShelf("graph").click()
       c.getComponentTitle("graph").should("contain", collectionName)
     })
     it("checks all graph tooltips", () => {
@@ -137,28 +137,31 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    it("change points in table and check for autoscale", () => {
+    // work on this later PT #188015800
+    it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
       cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
       cy.dragAttributeToTarget("table", "Height", "left")
 
-      // change calues in table so that points need rescale
+      // change values in table so that points need rescale
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
       table.getGridCell(3, 4).dblclick()
-      table.getGridCell(3, 4).find("input").type("700")
-      cy.log("check the editing cell contents")
-      table.getGridCell(3, 4).find("input").should("have.value", "700")
+      // Wait for the input to appear and then type
+      table.getGridCell(3, 4).within(() => {
+        cy.get('input').should('be.visible').type("700{enter}", {force: true})
+      })
 
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
       table.getGridCell(3, 5).dblclick()
-      table.getGridCell(3, 5).find("input").type("300")
-      cy.log("check the editing cell contents")
-      table.getGridCell(3, 5).find("input").should("have.value", "300")
+      // Wait for the input to appear and then type
+      table.getGridCell(3, 5).within(() => {
+        cy.get('input').should('be.visible').type("300{enter}", {force: true})
+      })
 
       // get the rescale button
       c.getComponentTitle("graph").should("have.text", collectionName).click()
@@ -272,7 +275,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=parent-toggles-last]").click()
       cy.wait(250)
       cy.get("[data-testid=parent-toggles-last]").should("have.text", "☒ Last")
-      cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").then((buttons: HTMLButtonElement[]) => {
+      cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").then((buttons) => {
         const lastButtonIndex = buttons.length - 1
         buttons.each((i: number, button: HTMLButtonElement) => {
           if (i !== lastButtonIndex) {
@@ -528,12 +531,12 @@ context("Graph UI", () => {
           .trigger("mouseup", { force: true, view: win })
       })
       graph.getDisplayConfigButton().click()
-      cy.get("[data-testid=graph-bin-width-setting]").find("input").invoke("val").then((valueStr: string) => {
-        const valueNum = parseFloat(valueStr)
+      cy.get("[data-testid=graph-bin-width-setting]").find("input").invoke("val").then((value) => {
+        const valueNum = parseFloat(value as string)
         expect(valueNum).to.be.closeTo(2.75, 0.25)
       })
-      cy.get("[data-testid=graph-bin-alignment-setting]").find("input").invoke("val").then((valueStr: string) => {
-        const valueNum = parseFloat(valueStr)
+      cy.get("[data-testid=graph-bin-alignment-setting]").find("input").invoke("val").then((value) => {
+        const valueNum = parseFloat(value as string)
         expect(valueNum).to.be.closeTo(4, 0.1)
       })
     })

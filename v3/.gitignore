@@ -5,8 +5,6 @@ node_modules
 npm-error.log
 .DS_Store
 .env*
-.eslintcache
-.eslintcache.build
 .nyc_output
 .yalc
 yalc.lock

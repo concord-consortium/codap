@@ -1,4 +1,5 @@
 import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
+import { toV2Id } from "../../utilities/codap-utils"
 import { IDataSet } from "../data/data-set"
 import { ITileContentModel } from "../tiles/tile-content"
 import { ITileModel } from "../tiles/tile-model"
@@ -11,6 +12,12 @@ import { ISharedDataSet, isSharedDataSet, kSharedDataSetType, SharedDataSet } fr
 export function getSharedDataSets(node: IAnyStateTreeNode): ISharedDataSet[] {
   const sharedModelManager = getSharedModelManager(node)
   return sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
+}
+
+export function getDataSetByNameOrId(node: IAnyStateTreeNode, nameOrId?: string): Maybe<IDataSet> {
+  return getSharedDataSets(node).find(({ dataSet }) => {
+    return dataSet.id === nameOrId || dataSet.name === nameOrId || `${toV2Id(dataSet.id)}` === nameOrId
+  })?.dataSet
 }
 
 export function getSharedDataSetFromDataSetId(node: IAnyStateTreeNode, id: string): ISharedDataSet | undefined {
@@ -42,7 +49,7 @@ export function getTileDataSet(tile: ITileContentModel): IDataSet | undefined {
 }
 
 export function getAllTileDataSets(tile: ITileContentModel): ISharedDataSet[] {
-  return getTileSharedModels(tile).filter(m => isSharedDataSet(m)) as ISharedDataSet[]
+  return getTileSharedModels(tile).filter(m => isSharedDataSet(m))
 }
 
 export function getTileCaseMetadata(tile: ITileContentModel) {
@@ -51,7 +58,7 @@ export function getTileCaseMetadata(tile: ITileContentModel) {
 }
 
 export function getAllTileCaseMetadata(tile: ITileContentModel): ISharedCaseMetadata[] {
-  return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m)) as ISharedCaseMetadata[]
+  return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m))
 }
 
 export function isTileLinkedToDataSet(tile: ITileContentModel, dataSet: IDataSet) {

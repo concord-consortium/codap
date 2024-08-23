@@ -1,6 +1,6 @@
 import {
-  CalculatedColumn, CellClickArgs, ColSpanArgs, Column, RenderCellProps, RenderEditCellProps, Renderers,
-  RenderHeaderCellProps, RenderRowProps, RowsChangeData
+  CalculatedColumn, CellClickArgs, CellKeyDownArgs, CellSelectArgs, ColSpanArgs, Column, RenderCellProps,
+  RenderEditCellProps, Renderers, RenderHeaderCellProps, RenderRowProps, RowsChangeData
 } from "react-data-grid"
 import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
 
@@ -24,6 +24,8 @@ export interface TRenderCellProps extends RenderCellProps<TRow> {}
 export interface TRenderHeaderCellProps extends RenderHeaderCellProps<TRow> {}
 export interface TRenderRowProps extends RenderRowProps<TRow> {}
 export interface TCellClickArgs extends CellClickArgs<TRow> {}
+export interface TCellSelectArgs extends CellSelectArgs<TRow> {}
+export type TCellKeyDownArgs = CellKeyDownArgs<TRow>
 export type TColSpanArgs = ColSpanArgs<TRow, unknown>
 
 export interface IBaseTableScrollInfo {
@@ -44,5 +46,7 @@ export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: nu
 
 // used in lieu of attribute id for index column for ReactDataGrid
 export const kIndexColumnKey = "__index__"
+
+export const kInputRowKey = "__input__"
 
 export const kDefaultColumnWidth = 80

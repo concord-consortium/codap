@@ -35,7 +35,7 @@ context("Calculator", () => {
     c.changeComponentTitle("calculator", newCalculatorName)
     c.getComponentTitle("calculator").should("have.text", newCalculatorName)
 
-    c.getIconFromToolshelf("calc").click()
+    c.getIconFromToolShelf("calc").click()
     c.checkComponentDoesNotExist("calculator")
 
     cy.log("Check undo/redo of close and open calculator component")
@@ -48,7 +48,7 @@ context("Calculator", () => {
     toolbar.getRedoTool().click()
     c.checkComponentDoesNotExist("calculator")
 
-    c.getIconFromToolshelf("calc").click()
+    c.getIconFromToolShelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })
@@ -69,7 +69,7 @@ context("Calculator", () => {
     toolbar.getRedoTool().click()
     c.checkComponentDoesNotExist("calculator")
 
-    c.getIconFromToolshelf("calc").click()
+    c.getIconFromToolShelf("calc").click()
     c.checkComponentExists("calculator")
     c.getComponentTitle("calculator").should("contain", newCalculatorName)
   })

@@ -5,6 +5,7 @@
 import { ScaleBand, ScaleLinear, max, range } from "d3"
 import { CaseData } from "../../data-display/d3-types"
 import { IDataSet } from "../../../models/data/data-set"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { AxisPlace } from "../../axis/axis-types"
@@ -88,12 +89,12 @@ export interface IAdjustCoordForStacks {
 export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
   const { anID, binWidth = 0, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned = false,
           minBinEdge = 0, numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
-  const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? NaN
+  const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN
   const binNumber = determineBinForCase(caseValue, binWidth, minBinEdge) ?? 0
   const binMidpoint = ((minBinEdge + binNumber * binWidth) - binWidth / 2) / numExtraPrimaryBands
   const primaryCoord = isBinned
     ? primaryAxisScale(binMidpoint)
-    : primaryAxisScale(dataset?.getNumeric(anID, primaryAttrID) ?? NaN) / numExtraPrimaryBands
+    : primaryAxisScale(dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN) / numExtraPrimaryBands
   const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
   const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? "__main__") ?? 0 : 0
   return { primaryCoord, extraPrimaryCoord }
@@ -153,7 +154,7 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
   if (primaryAxisScale) {
     dataConfig?.caseDataArray.forEach((aCaseData: CaseData) => {
       const anID = aCaseData.caseID
-      const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
+      const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const numerator = primaryAxisScale(caseValue) / numExtraPrimaryBands
       const bin = totalNumberOfBins
         ? determineBinForCase(caseValue, binWidth, minBinEdge)

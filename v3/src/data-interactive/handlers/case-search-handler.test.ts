@@ -1,7 +1,7 @@
 import { toV2Id } from "../../utilities/codap-utils"
 import { DIFullCase } from "../data-interactive-types"
-import { setupTestDataset } from "./handler-test-utils"
 import { diCaseSearchHandler } from "./case-search-handler"
+import { setupTestDataset } from "./handler-test-utils"
 
 
 describe("DataInteractive CaseSearchHandler", () => {
@@ -21,7 +21,7 @@ describe("DataInteractive CaseSearchHandler", () => {
     const values = result.values as DIFullCase[]
     caseSearch.forEach((item, index) => {
       expect(values[index].id).toBe(toV2Id(item.__id__))
-      const itemIndex = dataContext.caseIndexFromID(dataContext.caseGroupMap.get(item.__id__)!.childItemIds[0])!
+      const itemIndex = dataContext.getItemIndex(dataContext.caseInfoMap.get(item.__id__)!.childItemIds[0])!
       collection.attributes.forEach(attribute => {
         expect(attribute && values[index].values?.[attribute.name]).toBe(attribute?.value(itemIndex))
       })

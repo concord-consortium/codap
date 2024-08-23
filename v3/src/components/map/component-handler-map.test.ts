@@ -1,12 +1,14 @@
 import { getSnapshot } from "mobx-state-tree"
-import { kMapIdPrefix } from "../../components/map/map-defs"
-import "../../components/map/map-registration"
-import { IMapContentModel, isMapContentModel } from "../../components/map/models/map-content-model"
+import { V2Map } from "../../data-interactive/data-interactive-component-types"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
+import { setupTestDataset } from "../../data-interactive/handlers/handler-test-utils"
 import { appState } from "../../models/app-state"
 import { toV3Id } from "../../utilities/codap-utils"
-import { DIComponentInfo } from "../data-interactive-types"
-import { diComponentHandler } from "./component-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { kMapIdPrefix } from "./map-defs"
+import "./map-registration"
+import { IMapContentModel, isMapContentModel } from "./models/map-content-model"
 
 
 describe("DataInteractive ComponentHandler Map", () => {
@@ -15,7 +17,7 @@ describe("DataInteractive ComponentHandler Map", () => {
   const { dataset } = setupTestDataset()
   documentContent.createDataSet(getSnapshot(dataset))
 
-  it("create map works", async () => {
+  it("create and get map work", async () => {
     // Create a map tile with no options
     expect(documentContent.tileMap.size).toBe(0)
     const vanillaResult = handler.create!({}, { type: "map" })
@@ -51,5 +53,10 @@ describe("DataInteractive ComponentHandler Map", () => {
     // the legend attribute gets properly assigned. Probably only one of the following two checks will be necessary.
     // expect(tileContent.dataConfiguration?.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
     // expect(tileContent.layers.find(layer => layer.dataConfiguration.attributeID("legend") === a1.id)).toBeDefined()
+
+    testGetComponent(tile, handler, (mapTile, values) => {
+      const { dataContext } = values as V2Map
+      expect(dataContext).toBe((mapTile.content as IMapContentModel).dataConfiguration?.dataset?.name)
+    })
   })
 })

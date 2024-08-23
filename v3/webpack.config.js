@@ -52,9 +52,12 @@ module.exports = (env, argv) => {
     devServer: {
       static: 'dist',
       hot: true,
-      https: {
-        key: path.resolve(os.homedir(), '.localhost-ssl/localhost.key'),
-        cert: path.resolve(os.homedir(), '.localhost-ssl/localhost.pem'),
+      server: {
+        type: 'https',
+        options: {
+          key: path.resolve(os.homedir(), '.localhost-ssl/localhost.key'),
+          cert: path.resolve(os.homedir(), '.localhost-ssl/localhost.pem')
+        }
       },
       client: {
         overlay: {
@@ -125,7 +128,8 @@ module.exports = (env, argv) => {
                   // required for :import from scss files
                   // cf. https://github.com/webpack-contrib/css-loader#separating-interoperable-css-only-and-css-module-features
                   // v6 changed from `compileType` to `mode`
-                  mode: 'icss'
+                  mode: 'icss',
+                  namedExport: false
                 }
               }
             },

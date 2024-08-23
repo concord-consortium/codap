@@ -6,6 +6,7 @@ import TableIcon from "../../assets/icons/icon-table.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { updateDataContextNotification } from "../../models/data/data-set-notifications"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { preventDataContextReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
@@ -55,11 +56,10 @@ export const CaseTableCardTitleBar =
   observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
     const tileInfo = getTileInfo(tile?.content.type)
     const data = tile?.content && getTileDataSet(tile?.content)
-    // title reflects DataSet title
-    const getTitle = () => data?.title ?? ""
     const [showSwitchMessage, setShowSwitchMessage] = useState(false)
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
+    const preventTitleChange = preventDataContextReorg(data)
 
     useOutsideClick({
       ref: cardTableToggleRef,
@@ -76,6 +76,7 @@ export const CaseTableCardTitleBar =
       documentContent?.applyModelChange(() => {
         tile && documentContent && toggleCardTable(documentContent, tile.id)
       }, {
+        log: `Toggle component: ${suffix}`,
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
       })
@@ -87,7 +88,7 @@ export const CaseTableCardTitleBar =
         data?.applyModelChange(() => {
           data.setTitle(newTitle)
         }, {
-          notifications: () => updateDataContextNotification(data),
+          notify: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
           redoStringKey: "DG.Redo.component.componentTitleChange"
         })
@@ -110,8 +111,9 @@ export const CaseTableCardTitleBar =
     const cardOrTableIconClass = tileInfo.iconClass
 
     return (
-      <ComponentTitleBar tile={tile} getTitle={getTitle} {...others}
-                         onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}>
+      <ComponentTitleBar tile={tile} {...others}
+                         onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
+                         preventTitleChange={preventTitleChange}>
         <div className="header-left"
              title={caseTableOrCardToggleString}
              onClick={handleShowCardTableToggleMessage}

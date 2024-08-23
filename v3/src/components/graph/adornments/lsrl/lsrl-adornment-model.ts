@@ -1,5 +1,6 @@
 import { Instance, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
+import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
 import { kLSRLType } from "./lsrl-adornment-types"
@@ -79,8 +80,8 @@ export const LSRLAdornmentModel = AdornmentModel
     const casesInPlot = dataConfig.subPlotCases(cellKey)
     const caseValues: Point[] = []
     casesInPlot.forEach(caseId => {
-      const caseValueX = dataset?.getNumeric(caseId, xAttrId)
-      const caseValueY = dataset?.getNumeric(caseId, yAttrId)
+      const caseValueX = dataDisplayGetNumericValue(dataset, caseId, xAttrId)
+      const caseValueY = dataDisplayGetNumericValue(dataset, caseId, yAttrId)
       const caseValueLegend = dataset?.getValue(caseId, legendAttrId)
       const isValidX = caseValueX && Number.isFinite(caseValueX)
       const isValidY = caseValueY && Number.isFinite(caseValueY)

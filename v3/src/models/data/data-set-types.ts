@@ -42,6 +42,13 @@ export interface IAddCasesOptions {
   canonicalize?: boolean;
 }
 
+export interface IMoveItemsOptions {
+  // id of item before/after which to move items
+  // if not specified, items are moved to end
+  before?: string;
+  after?: string;
+}
+
 export interface IAddAttributeOptions {
   // id of attribute before which to insert new cases
   // if not specified, new attribute is appended
@@ -90,9 +97,9 @@ export interface IGroupedCase extends ICase {
   [symIndex]?: number
 }
 
-// represents a case in a collection which have a set of common grouped values
+// represents a case in a collection which has a set of common grouped values
 // and potentially a set of child cases.
-export interface CaseGroup {
+export interface CaseInfo {
   // id of collection containing the group
   collectionId: string
   // object that represents the case
@@ -103,4 +110,10 @@ export interface CaseGroup {
   childItemIds: string[]
   // stringified version of grouped case values for easy comparison/categorization
   groupKey: string
+}
+
+export interface ItemInfo {
+  index: number
+  // ids of cases associated with this item from parent-most collection (0) to child-most (n-1)
+  caseIds: string[]
 }

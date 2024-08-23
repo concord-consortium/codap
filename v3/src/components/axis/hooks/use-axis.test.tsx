@@ -4,7 +4,7 @@ import { Instance, types } from "mobx-state-tree"
 import React from "react"
 import { SliderAxisLayout } from "../../slider/slider-layout"
 import { AxisLayoutContext } from "../models/axis-layout-context"
-import { INumericAxisModel, NumericAxisModel } from "../models/axis-model"
+import { IBaseNumericAxisModel, NumericAxisModel } from "../models/axis-model"
 import {IUseAxis, useAxis} from "./use-axis"
 import { AxisProviderContext } from "./use-axis-provider-context"
 
@@ -24,7 +24,7 @@ interface ITestAxisProvider extends Instance<typeof TestAxisProvider> {}
 describe("useAxis", () => {
 
   let provider: ITestAxisProvider
-  let axisModel: INumericAxisModel
+  let axisModel: IBaseNumericAxisModel
   let layout: SliderAxisLayout
   let axisElt: SVGGElement
   let useAxisOptions: IUseAxis

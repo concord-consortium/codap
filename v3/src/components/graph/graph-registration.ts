@@ -1,13 +1,15 @@
 import { SetRequired } from "type-fest"
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { kGraphIdPrefix, kGraphTileClass, kGraphTileType } from "./graph-defs"
+import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { graphComponentHandler } from "./graph-component-handler"
+import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from "./graph-defs"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
-import { GraphContentModel, IGraphContentModelSnapshot } from "./models/graph-content-model"
+import { ComponentTitleBar } from "../component-title-bar"
+import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
-import { GraphComponentTitleBar } from "./components/graph-component-title-bar"
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
@@ -36,12 +38,16 @@ registerTileContentInfo({
       }]
     }
     return graphTileSnapshot
+  },
+  getTitle: (tile: ITileLikeModel) => {
+    const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
+    return tile.title || data?.title || ""
   }
 })
 
 registerTileComponentInfo({
   type: kGraphTileType,
-  TitleBar: GraphComponentTitleBar,
+  TitleBar: ComponentTitleBar,
   Component: GraphComponent,
   InspectorPanel: GraphInspector,
   tileEltClass: kGraphTileClass,
@@ -49,10 +55,14 @@ registerTileComponentInfo({
   shelf: {
     position: 2,
     labelKey: "DG.ToolButtonData.graphButton.title",
-    hintKey: "DG.ToolButtonData.graphButton.toolTip"
+    hintKey: "DG.ToolButtonData.graphButton.toolTip",
+    undoStringKey: "DG.Undo.graphComponent.create",
+    redoStringKey: "DG.Redo.graphComponent.create"
   },
   defaultWidth: 300,
   defaultHeight: 300
 })
 
 registerV2TileImporter("DG.GraphView", v2GraphImporter)
+
+registerComponentHandler(kV2GraphType, graphComponentHandler)

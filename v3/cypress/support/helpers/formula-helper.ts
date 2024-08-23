@@ -20,12 +20,12 @@ export const FormulaHelper = {
     table.renameAttribute(currentAttributeName, newAttributeName, collectionIndex)
   },
   deleteAttribute(attributeName: string, collectionIndex = 1) {
-    table.deleteAttrbute(attributeName, collectionIndex)
+    table.deleteAttribute(attributeName, collectionIndex)
   },
   addFormula(attributeName: string, formula: string, collectionIndex = 1) {
     table.addFormula(attributeName, formula, collectionIndex)
   },
-  verifyValues(attributeName: string, values: object, collectionIndex = 1) {
+  verifyValues(attributeName: string, values: Array<any>, collectionIndex = 1) {
     table.verifyFormulaValues(attributeName, values, collectionIndex)
   },
   checkFormulaExists(attributeName: string, formula: string, collectionIndex = 1) {
@@ -35,7 +35,7 @@ export const FormulaHelper = {
     table.editFormula(attributeName, formula, collectionIndex)
   },
   createNewDataset() {
-    table.createNewTableFromToolshelf()
+    table.createNewTableFromToolShelf()
   },
   insertCases(rowIndex: number, numOfCases: number) {
     table.openIndexMenuForRow(rowIndex)
@@ -48,7 +48,7 @@ export const FormulaHelper = {
     slider.changeVariableValue(sliderValue)
   },
   addSlider() {
-    c.getIconFromToolshelf("slider").click()
+    c.getIconFromToolShelf("slider").click()
   },
   deleteSlider() {
     c.closeComponent("slider")

@@ -1,15 +1,17 @@
 import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
-import {comparer, reaction} from "mobx"
+import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
+import { isFiniteNumber } from "../../../utilities/math-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
+import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
@@ -88,7 +90,7 @@ export const DataConfigurationModel = types
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
-    filteredCases: [] as FilteredCases[],
+    filteredCases: observable.array<FilteredCases>([], { deep: false }),
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
     pointsNeedUpdating: false,
     casesChangeCount: 0
@@ -162,7 +164,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearFilteredCases() {
       self.filteredCases.forEach(aFilteredCases => aFilteredCases.destroy())
-      self.filteredCases = []
+      self.filteredCases.clear()
     },
     beforeDestroy() {
       this.clearFilteredCases()
@@ -188,7 +190,7 @@ export const DataConfigurationModel = types
         if (["caption", "legend"].includes(role)) return true
         switch (self.attributeType(role as AttrRole)) {
           case "numeric":
-            return isFinite(data.getNumeric(caseID, attributeID) ?? NaN)
+            return isFiniteNumber(data.getNumeric(caseID, attributeID))
           default:
             // for now, all other types must just be non-empty
             return !!data.getValue(caseID, attributeID)
@@ -285,10 +287,20 @@ export const DataConfigurationModel = types
     })
   }))
   .views(self => ({
-    numericValuesForAttrRole(role: AttrRole): number[] {
-      return self.valuesForAttrRole(role).map((aValue: string) => Number(aValue))
-        .filter((aValue: number) => isFinite(aValue))
-    },
+    numericValuesForAttrRole: cachedFnWithArgsFactory({
+      key: (role: AttrRole) => role,
+      calculate: (role: AttrRole) => {
+        const attrID = self.attributeID(role)
+        const dataset = self.dataset
+        const allCaseIDs = Array.from(self.allCaseIDs)
+        const allValues = attrID
+          ? allCaseIDs.map((anID: string) => {
+            const value = dataDisplayGetNumericValue(dataset, anID, attrID)
+            return isFiniteNumber(value) ? value : null
+          }) : []
+        return allValues.filter(aValue => aValue != null)
+      }
+    }),
     categorySetForAttrRole(role: AttrRole) {
       if (self.metadata) {
         const attributeID = self.attributeID(role) || ''
@@ -522,6 +534,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearCasesCache() {
       self.valuesForAttrRole.invalidateAll()
+      self.numericValuesForAttrRole.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       // increment observable change count

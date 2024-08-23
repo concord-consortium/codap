@@ -33,7 +33,7 @@ export interface ILookupDependency {
 
 export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
 
-export type FValue = string | number | boolean
+export type FValue = string | number | boolean | Date
 
 export type FValueOrArray = FValue | FValue[]
 
@@ -41,7 +41,14 @@ export type EvaluateFunc = (...args: FValue[]) => FValue
 
 export type EvaluateFuncWithAggregateContextSupport = (...args: (FValueOrArray)[]) => FValueOrArray
 
-export type EvaluateRawFunc = (args: MathNode[], mathjs: any, scope: FormulaMathJsScope) => FValueOrArray
+// MathJS v12.3.2 introduced the concept of PartitionedMap, replacing the previous concepts of scopes and sub-scopes.
+// The parent scope is still available as the `a` property of the PartitionedMap.
+// For more information, see: https://github.com/josdejong/mathjs/pull/3150
+export type MathJSPartitionedMap = { a: CurrentScope, b: Map<string, any>}
+
+export type CurrentScope = MathJSPartitionedMap | FormulaMathJsScope
+
+export type EvaluateRawFunc = (args: MathNode[], mathjs: any, currentScope: CurrentScope) => FValueOrArray
 
 export type CaseList = ICase[] | "ALL_CASES"
 

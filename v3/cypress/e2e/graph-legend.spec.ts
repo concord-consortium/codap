@@ -42,6 +42,7 @@ context("Test legend with various attribute types", () => {
     glh.verifyLegendLabel(arrayOfAttributes[7])
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
 
+    cy.log("test undo/redo for categorical legend with categorical attribute on x axis")
     // Undo add legend to graph and verify removal
     toolbar.getUndoTool().click()
     cy.wait(2500)
@@ -76,6 +77,7 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[7])
 
+    cy.log("test undo/redo for categorical legend with categorical attribute on y axis")
     // Undo the removal of attributes from axis and legend
     toolbar.getUndoTool().click() // Undo remove from legend
     toolbar.getUndoTool().click() // Undo remove from axis
@@ -112,11 +114,10 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[7])
 
+    cy.log("test undo/redo for categorical legend with numerical attribute on x axis")
     // Undo the removal of attributes
     toolbar.getUndoTool().click() // Undo remove from legend
-    cy.wait(2500)
     toolbar.getUndoTool().click() // Undo remove from axis
-    cy.wait(2500)
 
     // Verify the attributes are restored on the axis and legend
     ah.verifyAxisLabel("bottom", arrayOfAttributes[2])
@@ -124,20 +125,11 @@ context("Test legend with various attribute types", () => {
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
 
     // Redo the removal of attributes
-    // Note: Redo button disables in Cypress at this step.
-    // The disable doesn't happen in CODAP though.
-    // Used force:true so that test can happen.
-
-    // Note: this test has become flaky. Will comment out for now.
-    // This may have to do with PT #187262957.
-    // toolbar.getRedoTool().click({force: true}) // Redo remove from legend
-    // cy.wait(2500)
-    // toolbar.getRedoTool().click({force: true}) // Redo remove from axis
-    // cy.wait(2500)
+    toolbar.getRedoTool().click({force: true}) // Redo remove from legend
+    toolbar.getRedoTool().click({force: true}) // Redo remove from axis
 
     // Verify the attributes are removed from the legend
-    // glh.verifyLegendDoesNotExist()
-
+    glh.verifyLegendDoesNotExist()
   })
   it("will draw categorical legend with numerical attribute on y axis and test undo", () => {
 
@@ -156,6 +148,7 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[7])
 
+    cy.log("test undo/redo for categorical legend with numerical attribute on y axis")
     // Undo the removal of attributes
     toolbar.getUndoTool().click() // Undo remove from legend
     toolbar.getUndoTool().click() // Undo remove from axis
@@ -166,15 +159,11 @@ context("Test legend with various attribute types", () => {
     glh.verifyCategoricalLegend(arrayOfValues[7].values.length)
 
     // Redo the removal of attributes
-    // Note: Redo button disables in Cypress at this step.
-    // The disable doesn't happen in CODAP though.
-    // Used force:true so that test can happen.
-
-    // toolbar.getRedoTool().click() // Redo remove from legend
-    // toolbar.getRedoTool().click() // Redo remove from axis
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
 
     // Verify the attributes are removed from the legend
-    // glh.verifyLegendDoesNotExist()
+    glh.verifyLegendDoesNotExist()
   })
   it("will draw numeric legend with categorical attribute on x axis and test undo", () => {
     // Initial setup: Drag categorical attribute to x-axis and numerical attribute to plot area
@@ -192,6 +181,7 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
 
+    cy.log("test undo/redo for numeric legend with categorical attribute on x axis")
     // Undo the removal of attributes
     toolbar.getUndoTool().click() // Undo remove from legend
     toolbar.getUndoTool().click() // Undo remove from axis
@@ -224,6 +214,7 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
 
+    cy.log("test undo/redo for numeric legend with categorical attribute on y axis")
     // Undo the removal of attributes
     toolbar.getUndoTool().click() // Undo remove from legend
     toolbar.getUndoTool().click() // Undo remove from axis
@@ -235,18 +226,11 @@ context("Test legend with various attribute types", () => {
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
 
     // Redo the removal of attributes
-    // Note: Redo button disables in Cypress at this step.
-    // The disable doesn't happen in CODAP though.
-    // Used force:true so that test can happen.
-
-    // Note: this test has become flaky. Will comment out for now.
-    // This may have to do with PT #187262957.
-
-    // toolbar.getRedoTool().click({force: true}) // Redo remove from legend
-    // toolbar.getRedoTool().click({force: true}) // Redo remove from axis
+    toolbar.getRedoTool().click({force: true}) // Redo remove from legend
+    toolbar.getRedoTool().click({force: true}) // Redo remove from axis
 
     // Verify the attributes are removed from the legend
-    // glh.verifyLegendDoesNotExist()
+    glh.verifyLegendDoesNotExist()
   })
   it("will draw numeric legend with numerical attribute on x axis and test undo", () => {
     // Setup: Drag numerical attributes to x-axis and plot area
@@ -264,6 +248,7 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
 
+    cy.log("test undo/redo for numeric legend with numerical attributes on x axis")
     // Undo the removal of attributes
     toolbar.getUndoTool().click() // Undo remove from legend
     toolbar.getUndoTool().click() // Undo remove from axis
@@ -273,19 +258,16 @@ context("Test legend with various attribute types", () => {
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
 
+    cy.log("test undo/redo for numeric legend with numerical attribute on x axis")
     // Redo the removal of attributes
     // Note: Redo button disables in Cypress at this step.
     // The disable doesn't happen in CODAP though.
     // Used force:true so that test can happen.
-
-    // Note: this test has become flaky. Will comment out for now.
-    // This may have to do with PT #187262957.
-
-    // toolbar.getRedoTool().click() // Redo remove from legend
-    // toolbar.getRedoTool().click() // Redo remove from axis
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
 
     // Verify the attributes are removed from the legend
-    // glh.verifyLegendDoesNotExist()
+    glh.verifyLegendDoesNotExist()
   })
   it("will draw numeric legend with numerical attribute on y axis and test undo", () => {
     // Initial setup: Drag numerical attribute to y-axis and another numerical attribute to plot area
@@ -303,6 +285,7 @@ context("Test legend with various attribute types", () => {
     glh.openLegendMenu()
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
 
+    cy.log("test undo/redo for draw numeric legend with numerical attribute on y axis")
     // Undo the removal of attributes
     toolbar.getUndoTool().click() // Undo remove from legend
     toolbar.getUndoTool().click() // Undo remove from axis
@@ -312,19 +295,16 @@ context("Test legend with various attribute types", () => {
     glh.verifyLegendLabel(arrayOfAttributes[3])
     glh.verifyNumericLegend()
 
-    // Note: this test has become flaky. Will comment out for now.
-    // This may have to do with PT #187262957.
-
     // Note: Redo button disables in Cypress at this step.
     // The disable doesn't happen in CODAP though.
     // Used force:true so that test can happen.
 
     // Redo the removal of attributes
-    // toolbar.getRedoTool().click() // Redo remove from legend
-    // toolbar.getRedoTool().click() // Redo remove from axis
+    toolbar.getRedoTool().click() // Redo remove from legend
+    toolbar.getRedoTool().click() // Redo remove from axis
 
     // Verify the attributes are removed from the legend
-    // glh.verifyLegendDoesNotExist()
+    glh.verifyLegendDoesNotExist()
   })
 })
 

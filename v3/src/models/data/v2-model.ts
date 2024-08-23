@@ -35,13 +35,12 @@ export interface IV2ModelSnapshot extends SnapshotIn<typeof V2Model> {}
 export interface V2ModelStorage {
   id: number
   guid: number
-  cid?: string | null
   name: string
   title?: string | null
 }
 
 export function isV2ModelSnapshot(snap?: any): snap is IV2ModelSnapshot {
-  return snap?.guid != null || snap?.cid != null
+  return snap?.guid != null
 }
 
 export function v2NameTitleToV3Title(name: string, v2Title?: string | null) {

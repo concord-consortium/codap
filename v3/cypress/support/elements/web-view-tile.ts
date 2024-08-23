@@ -3,12 +3,13 @@ export const WebViewTileElements = {
     return cy.get(`.chakra-modal__content`)
   },
   enterUrl(url: string) {
+    cy.get(`[data-testid=web-view-url-input]`).clear()
     cy.get(`[data-testid=web-view-url-input]`).type(url)
     cy.get(`[data-testid=OK-button]`).click()
   },
   getIFrame() {
     // These functions were stolen from v2's commands.js
-    const getIframeDocument = (selector, position) => {
+    const getIframeDocument = (selector: string, position: number) => {
       return cy.get(selector).eq(position).get("iframe")
       // Cypress yields jQuery element, which has the real
       // DOM element under property "0".
@@ -18,8 +19,8 @@ export const WebViewTileElements = {
       // https://on.cypress.io/its
       .its(`${position}.contentDocument`).should('exist')
     }
-    
-    const getIframeBody = (selector, position=0) => {
+
+    const getIframeBody = (selector: string, position=0) => {
       // get the document
       return getIframeDocument(selector, position)
       // automatically retries until body is loaded

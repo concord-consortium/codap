@@ -16,7 +16,7 @@ export const diDataContextListHandler: DIHandler = {
         return {
           name: dataSet.name,
           guid: id,
-          title: dataSet.name, // TODO: DataSets don't have titles in v3
+          title: dataSet._title,
           id
         }
       })

@@ -21,6 +21,7 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
         appBuildNum: build.buildNumber
       })
       wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${pkg.version} (${build.buildNumber})`))
+      appState.setVersion(pkg.version)
       break
     // case "requiresUserInteraction":
     //   break
@@ -41,12 +42,13 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     //   break
     case "openedFile": {
       const content = event.data.content
+      const metadata = event.data.metadata
       if (isCodapV2Document(content)) {
-        const v2Document = new CodapV2Document(content)
+        const v2Document = new CodapV2Document(content, metadata)
         importV2Document(v2Document)
       }
       else {
-        appState.setDocument(content)
+        appState.setDocument(content, metadata)
       }
       break
     }

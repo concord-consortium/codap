@@ -13,7 +13,7 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   if (!dataContext) return dataContextNotFoundResult
   if (!aCase) return caseNotFoundResult
 
-  const pseudoCase = dataContext.caseGroupMap.get(aCase.__id__)
+  const pseudoCase = dataContext.caseInfoMap.get(aCase.__id__)
   const caseIds = pseudoCase?.childItemIds ?? [aCase.__id__]
 
   dataContext.applyModelChange(() => {
@@ -23,16 +23,17 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true as const, values: [toV2Id(aCase.__id__)] }
 }
 
-export function deleteItem(resources: DIResources, item?: ICase) {
+export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   const { dataContext } = resources
   if (!dataContext) return dataContextNotFoundResult
   if (!item) return itemNotFoundResult
 
+  const itemIds = Array.isArray(item) ? item : [item.__id__]
   dataContext.applyModelChange(() => {
-    dataContext.removeCases([item.__id__])
+    dataContext.removeCases(itemIds)
   })
 
-  return { success: true as const, values: [toV2Id(item.__id__)] }
+  return { success: true as const, values: itemIds.map(itemId => toV2Id(itemId)) }
 }
 
 export function getCaseBy(resources: DIResources, aCase?: ICase) {
@@ -110,7 +111,7 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       const { id } = aCase
       const v3CaseId = id ? toV3CaseId(id) : undefined
       const v3ItemId = id ? toV3ItemId(id) : undefined
-      const dcCase = v3CaseId ? dataContext.caseGroupMap.get(v3CaseId) : undefined
+      const dcCase = v3CaseId ? dataContext.caseInfoMap.get(v3CaseId) : undefined
       const dcItem = v3ItemId ? dataContext.getItem(v3ItemId) : undefined
       const v3Id = dcCase ? v3CaseId : v3ItemId
       if (id && aCase.values && v3Id && (dcItem || dcCase)) {

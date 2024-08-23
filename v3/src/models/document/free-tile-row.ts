@@ -66,6 +66,7 @@ export interface IFreeTileInRowOptions extends ITileInRowOptions {
   width?: number
   height?: number
   zIndex?: number
+  animateCreation?: boolean
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
               !!options && ("x" in options && options.x != null) && ("y" in options && options.y != null)
@@ -81,6 +82,10 @@ export const FreeTileRow = TileRowModel
     tiles: types.map(FreeTileLayout), // tile id => layout
     maxZIndex: 0
   })
+  .volatile(self => ({
+    // tile ids of tiles created by user whose creation should be animated
+    animateCreationTiles: new Set<string>()
+  }))
   .views(self => ({
     get acceptDefaultInsert() {
       return true
@@ -121,6 +126,10 @@ export const FreeTileRow = TileRowModel
     getTileDimensions(tileId: string) {
       const freeTileLayout = self.getNode(tileId)
       return { width: freeTileLayout?.width, height: freeTileLayout?.height }
+    },
+    getTilePosition(tileId: string) {
+      const freeTileLayout = self.getNode(tileId)
+      return { left: freeTileLayout?.x, top: freeTileLayout?.y }
     }
   }))
   .actions(self => ({
@@ -131,20 +140,31 @@ export const FreeTileRow = TileRowModel
       self.maxZIndex = zIndex
     },
     insertTile(tileId: string, options?: ITileInRowOptions) {
-      const { x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex() } =
-        isFreeTileInRowOptions(options) ? options : {}
+      const {
+        x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex(), animateCreation = false
+      } = isFreeTileInRowOptions(options) ? options : {}
       self.tiles.set(tileId, { tileId, x, y, width, height, zIndex })
+      animateCreation && self.animateCreationTiles.add(tileId)
     },
     removeTile(tileId: string) {
       self.tiles.delete(tileId)
     },
-    moveTileToTop(tileId: string) {
+    moveTileToTop(tileId: string, allowBringToFront = true) {
+      if (!allowBringToFront) return
+
       withoutUndo({ suppressWarning: true })
       self.getNode(tileId)?.setZIndex(this.nextZIndex())
     },
     setTileDimensions(tileId: string, dimensions: { width?: number, height?: number }) {
       const freeTileLayout = self.getNode(tileId)
       freeTileLayout?.setSize(dimensions.width, dimensions.height)
+    },
+    setTilePosition(tileId: string, position: { x?: number, y?: number }) {
+      const freeTileLayout = self.getNode(tileId)
+      if (freeTileLayout && (position.x != null || position.y != null)) {
+        const { x = freeTileLayout.x, y = freeTileLayout.y } = position
+        freeTileLayout?.setPosition(x, y)
+      }
     }
   }))
 export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}

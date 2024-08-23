@@ -23,11 +23,10 @@ export function createAttribute(value: DIAttribute, dataContext: IDataSet, colle
 export function createCollection(v2collection: DICollection, dataContext: IDataSet, metadata?: ISharedCaseMetadata) {
   // TODO How should we handle duplicate names?
   // TODO How should we handle missing names?
-  // TODO Handle labels
-  const { attrs, cid, name: collectionName, title: collectionTitle } = v2collection
+  const { attrs, cid, labels, name: collectionName, title: collectionTitle } = v2collection
   const _title = v2NameTitleToV3Title(collectionName ?? "", collectionTitle)
   const options: IAddCollectionOptions = { after: dataContext.childCollection?.id }
-  const collection = dataContext.addCollection({ id: cid, name: collectionName, _title }, options)
+  const collection = dataContext.addCollection({ id: cid, labels, name: collectionName, _title }, options)
 
   attrs?.forEach(attr => {
     createAttribute(attr, dataContext, collection, metadata)
@@ -37,6 +36,7 @@ export function createCollection(v2collection: DICollection, dataContext: IDataS
 }
 
 export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataContext?: IDataSet) {
+  if (value?.cid != null) attribute.setCid(value.cid)
   if (value?.description != null) attribute.setDescription(value.description)
   if (value?.editable != null) attribute.setEditable(!!value.editable)
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)

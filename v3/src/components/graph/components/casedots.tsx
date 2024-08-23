@@ -85,10 +85,10 @@ export const CaseDots = function CaseDots(props: {
       xLength = layout.getAxisMultiScale('bottom')?.length ?? 0,
       yLength = layout.getAxisMultiScale('left')?.length ?? 0,
       getScreenX = (anID: string) => {
-        return pointRadius + randomPointsRef.current[anID].x * (xLength - 2 * pointRadius)
+        return pointRadius + randomPointsRef.current[anID]?.x * (xLength - 2 * pointRadius)
       },
       getScreenY = (anID: string) => {
-        return yLength - (pointRadius + randomPointsRef.current[anID].y * (yLength - 2 * pointRadius))
+        return yLength - (pointRadius + randomPointsRef.current[anID]?.y * (yLength - 2 * pointRadius))
       },
       getLegendColor = dataConfiguration?.attributeID('legend')
         ? dataConfiguration?.getLegendColorForCase : undefined

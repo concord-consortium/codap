@@ -1,7 +1,7 @@
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIItem, DIItemValues, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIItem, DIItemValues, DINewCase, DIResources, DIValues } from "../data-interactive-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 
@@ -18,7 +18,7 @@ export const diItemHandler: DIHandler = {
     _items.forEach(item => {
       let newItem: DIItem
       if (typeof item.values === "object") {
-        newItem = item.values
+        newItem = item.values as DIItem
       } else {
         newItem = item as DIItem
       }
@@ -32,29 +32,28 @@ export const diItemHandler: DIHandler = {
       items.push(newItem)
     })
 
-    const newCaseIds: Record<string, number[]> = {}
+    const newCaseIds: Record<string, string[]> = {}
     let itemIDs: string[] = []
     dataContext.applyModelChange(() => {
       // Get case ids from before new items are added
-      const oldCaseIds: Record<string, Set<number>> = {}
+      const oldCaseIds: Record<string, Set<string>> = {}
       dataContext.collections.forEach(collection => {
-        oldCaseIds[collection.id] = new Set(collection.caseIds.map(caseId => toV2Id(caseId)))
+        oldCaseIds[collection.id] = new Set(collection.caseIds)
       })
 
       // Add items and update cases
       itemIDs = dataContext.addCases(items, { canonicalize: true })
-      dataContext.validateCaseGroups()
+      dataContext.validateCases()
 
       // Find newly added cases by comparing current cases to previous cases
       dataContext.collections.forEach(collection => {
         newCaseIds[collection.id] = []
         collection.caseIds.forEach(caseId => {
-          const v2CaseId = toV2Id(caseId)
-          if (!oldCaseIds[collection.id].has(v2CaseId)) newCaseIds[collection.id].push(v2CaseId)
+          if (!oldCaseIds[collection.id].has(caseId)) newCaseIds[collection.id].push(caseId)
         })
       })
     }, {
-      notifications: () => {
+      notify: () => {
         const notifications = []
         for (const collectionId in newCaseIds) {
           const caseIds = newCaseIds[collectionId]
@@ -66,21 +65,27 @@ export const diItemHandler: DIHandler = {
       }
     })
 
-    const caseIDs: number[] = []
+    let caseIDs: string[] = []
     for (const collectionId in newCaseIds) {
-      caseIDs.concat(newCaseIds[collectionId])
+      caseIDs = caseIDs.concat(newCaseIds[collectionId])
     }
     return {
       success: true,
-      caseIDs,
+      caseIDs: caseIDs.map(caseID => toV2Id(caseID)),
       itemIDs: itemIDs.map(itemID => toV2Id(itemID))
     }
   },
 
-  delete(resources: DIResources) {
+  delete(resources: DIResources, values?: DIValues) {
     const { item } = resources
 
-    return deleteItem(resources, item)
+    let itemIds: string[] | undefined
+    if (!item && values && Array.isArray(values)) {
+      itemIds = (values as DINewCase[]).map(aCase => aCase.id != null && toV3ItemId(aCase.id))
+        .filter(id => !!id) as string[]
+    }
+
+    return deleteItem(resources, item ?? itemIds)
   },
 
   get(resources: DIResources) {

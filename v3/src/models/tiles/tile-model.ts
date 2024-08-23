@@ -1,13 +1,14 @@
 import { cloneDeep } from "lodash"
 import { getParent, getSnapshot, getType,
   Instance, SnapshotIn, SnapshotOut, types, ISerializedActionCall } from "mobx-state-tree"
+import { applyModelChange } from "../history/apply-model-change"
+import { StringBuilder } from "../../utilities/string-builder"
+import { v3Id, typeV3Id } from "../../utilities/codap-utils"
+import { V2Model } from "../data/v2-model"
+import { DisplayUserTypeEnum } from "../stores/user-types"
+import { ITileContentModel } from "./tile-content"
 import { findMetadata, getTileContentInfo, ITileExportOptions } from "./tile-content-info"
 import { TileContentUnion } from "./tile-content-union"
-import { ITileContentModel } from "./tile-content"
-import { DisplayUserTypeEnum } from "../stores/user-types"
-import { StringBuilder } from "../../utilities/string-builder"
-import { applyModelChange } from "../history/apply-model-change"
-import { v3Id, typeV3Id } from "../../utilities/codap-utils"
 
 // generally negotiated with app, e.g. single column width for table
 export const kDefaultMinWidth = 60
@@ -55,12 +56,10 @@ export function setTileTitleFromContent(tileContentModel: ITileContentModel, tit
   getTileModel(tileContentModel)?.setTitle(title)
 }
 
-export const TileModel = types
-  .model("TileModel", {
+export const TileModel = V2Model.named("TileModel")
+  .props({
     // if not provided, will be generated
     id: typeV3Id("TILE"),
-    // all tiles can have a title
-    title: types.maybe(types.string),
     // whether to restrict display to certain users
     display: DisplayUserTypeEnum,
     // e.g. "TextContentModel", ...
@@ -69,9 +68,12 @@ export const TileModel = types
     transitionComplete: types.maybe(types.boolean)
   })
   .preProcessSnapshot(snapshot => {
+    // early development versions of v3 had a `title` property
+    const _title = snapshot._title ?? ((snapshot as any).title || undefined)
     const tileType = snapshot.content.type
     const preProcessor = getTileContentInfo(tileType)?.tileSnapshotPreProcessor
-    return preProcessor ? preProcessor(snapshot) : snapshot
+    const snap = { ...snapshot, _title }
+    return preProcessor ? preProcessor(snap) : snap
   })
   .views(self => ({
     // generally negotiated with tile, e.g. single column width for table
@@ -106,8 +108,9 @@ export const TileModel = types
       if (includeId) {
         builder.pushLine(`"id": "${self.id}",`, 2)
       }
-      if (!excludeTitle && self.title) {
-        builder.pushLine(`"title": "${self.title}",`, 2)
+      if (self.name) builder.pushLine(`"name": "${self.name}"`, 2)
+      if (!excludeTitle && self._title) {
+        builder.pushLine(`"_title": "${self._title}",`, 2)
       }
       builder.pushBlock(`"content": ${contentJson}`, 2)
       options?.rowHeight && builder.pushLine(`"layout": { "height": ${options.rowHeight} }`, 2)
@@ -116,9 +119,6 @@ export const TileModel = types
     }
   }))
   .actions(self => ({
-    setTitle(title: string) {
-      self.title = title
-    },
     setCannotClose(cannotClose: boolean) {
       self.cannotClose = cannotClose
     },

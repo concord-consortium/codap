@@ -1,10 +1,14 @@
+import { caseTableCardComponentHandler } from "../case-table-card-common/case-table-card-handler"
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { CaseCardComponent } from "./case-card-component"
-import { kCaseCardTileType } from "./case-card-defs"
+import { kCaseCardTileType, kV2CaseCardType } from "./case-card-defs"
 import { CaseCardModel } from "./case-card-model"
 import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
 import CardIcon from '../../assets/icons/icon-case-card.svg'
+import { t } from "../../utilities/translation/translate"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
 /*
 import { CaseCardInspector } from "./case-card-inspector"
 */
@@ -16,6 +20,10 @@ registerTileContentInfo({
   prefix: kCaseCardIdPrefix,
   modelClass: CaseCardModel,
   defaultContent: () => ({ type: kCaseCardTileType }),
+  getTitle: (tile) => {
+    const data = tile.content && getTileDataSet(tile.content)
+    return data?.title || t("DG.DocumentController.caseTableTitle")
+  },
   hideOnClose: true
 })
 
@@ -29,6 +37,8 @@ registerTileComponentInfo({
   defaultWidth: 200,
   defaultHeight: 400
 })
+
+registerComponentHandler(kV2CaseCardType, caseTableCardComponentHandler)
 
 /*
 registerV2TileImporter("DG.CardView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {

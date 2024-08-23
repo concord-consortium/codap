@@ -7,7 +7,6 @@ import { withoutUndo } from "../history/without-undo"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { ITileModel } from "../tiles/tile-model"
 import { DocumentContentModel, IDocumentContentSnapshotIn } from "./document-content"
-import { IDocumentMetadata } from "./document-metadata"
 import { IDocumentProperties } from "./document-types"
 import { ISharedModelDocumentManager } from "./shared-model-document-manager"
 import { typedId } from "../../utilities/js-utils"
@@ -35,10 +34,6 @@ export const DocumentModel = Tree.named("Document")
     get hasContent() {
       return !!self.content
     },
-    get metadata(): IDocumentMetadata {
-      const { key, type, createdAt, title, properties } = self
-      return { key, type, createdAt, title, properties: properties.toJSON() }
-    },
     getProperty(key: string) {
       return self.properties.get(key)
     },
@@ -48,6 +43,9 @@ export const DocumentModel = Tree.named("Document")
     },
     copyProperties(): IDocumentProperties {
       return self.properties.toJSON()
+    },
+    getDocumentTitle() {
+      return self.properties.get("filename")?.split(".")[0]
     },
     get canUndo() {
       return !!self.treeManagerAPI?.undoManager.canUndo

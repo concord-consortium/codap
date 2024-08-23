@@ -10,6 +10,7 @@ import { useGraphLayoutContext } from "./use-graph-layout-context"
 import { AxisPlace } from "../../axis/axis-types"
 import { GraphAttrRole } from "../../data-display/data-display-types"
 import { setPointSelection } from "../../data-display/data-display-utils"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
@@ -86,7 +87,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     let primaryScreenCoord = primaryCoord + extraPrimaryCoord
 
     if (graphModel.pointDisplayType !== "histogram") {
-      const caseValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
+      const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(caseValue, binWidth, minBinEdge)
       primaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "primary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
@@ -112,7 +113,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
 
     if (graphModel.pointDisplayType !== "histogram") {
       const onePixelOffset = primaryIsBottom ? -1 : 1
-      const casePrimaryValue = dataset?.getNumeric(anID, primaryAttrID) ?? -1
+      const casePrimaryValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(casePrimaryValue, binWidth, minBinEdge)
       secondaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "secondary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,

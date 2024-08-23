@@ -9,9 +9,11 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
+import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
-import { useCollectionTableModel } from "./use-collection-table-model"
+import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface IProps {
   onDrop?: (dataSet: IDataSet, attrId: string) => void
@@ -27,12 +29,22 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
+  const preventCollectionDrop = preventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
-    const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
-    dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
+    if (!preventCollectionDrop) {
+      const { dataSet, attributeId: dragAttributeID } = getDragAttributeInfo(_active) || {}
+      if (preventAttributeMove(dataSet, dragAttributeID)) return
+      dataSet && dragAttributeID && onDrop?.(dataSet, dragAttributeID)
+    }
   })
 
-  const classes = clsx("collection-table-spacer", { active: !!getDragAttributeInfo(active), over: isOver, parentMost })
+  const dragAttributeInfo = getDragAttributeInfo(active)
+  const preventAttributeDrag = preventAttributeMove(data, dragAttributeInfo?.attributeId)
+  const preventDrop = preventAttributeDrag || preventCollectionDrop
+  const isOverAndCanDrop = isOver && !preventDrop
+
+  const classes = clsx("collection-table-spacer",
+    { active: !!dragAttributeInfo && !preventDrop, over: isOverAndCanDrop, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
   const tableSpacerDivRef = useRef<HTMLElement | null>(null)
@@ -41,7 +53,22 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   const msgStyle: React.CSSProperties =
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
-  const indexRanges = childTableModel?.parentIndexRanges
+  const indexRanges = useMemo(() => {
+    const _indexRanges = childTableModel?.parentIndexRanges
+
+    // Add curve information for the parent input row
+    if (_indexRanges && parentTableModel?.inputRowIndex != null) {
+      const parentInputRowIndex = parentTableModel.inputRowIndex
+      if (parentInputRowIndex >= 0 && parentInputRowIndex < _indexRanges.length) {
+        const { firstChildIndex } = _indexRanges[parentInputRowIndex]
+        _indexRanges.splice(parentInputRowIndex, 0, {
+          id: kInputRowKey, firstChildIndex, lastChildIndex: firstChildIndex - 1
+        })
+      }
+    }
+
+    return _indexRanges
+  }, [childTableModel?.parentIndexRanges, parentTableModel?.inputRowIndex])
 
   const handleRef = (element: HTMLElement | null) => {
     tableSpacerDivRef.current = element
@@ -67,10 +94,11 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
   //   }
   // }
 
-  function handleTopClick() {
+  function handleExpandCollapseAllClick() {
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
+      log: "Expand/Collapse all",
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
@@ -78,10 +106,16 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
 
   function handleExpandCollapseClick(parentCaseId: string) {
     // collapse the parent case
-    caseMetadata?.setIsCollapsed(parentCaseId, !caseMetadata?.isCollapsed(parentCaseId))
+    caseMetadata?.applyModelChange(() => {
+      caseMetadata?.setIsCollapsed(parentCaseId, !caseMetadata?.isCollapsed(parentCaseId))
+    }, {
+      undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
+      redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
+      log: `${caseMetadata?.isCollapsed(parentCaseId) ? "Collapse" : "Expand"} case ${parentCaseId}`
+    })
     // scroll to the first expanded/collapsed child case (if necessary)
-    const parentPseudoCase = data?.caseGroupMap.get(parentCaseId)
-    const firstChildId = parentPseudoCase?.childCaseIds?.[0] || parentPseudoCase?.childItemIds?.[0]
+    const parentCase = data?.caseInfoMap.get(parentCaseId)
+    const firstChildId = parentCase?.childCaseIds?.[0] || parentCase?.childItemIds?.[0]
     const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
   }
@@ -94,7 +128,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
       {parentCollectionId && parentTableModel && childTableModel && visibleParentAttributes.length > 0 &&
         <>
           <div className="spacer-top">
-            {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleTopClick}
+            {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleExpandCollapseAllClick}
               title={topButtonTooltip} />}
           </div>
           <div className="spacer-mid">
@@ -110,18 +144,20 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
               })}
             </svg>
             <div className="spacer-mid-layer">
-              {parentCases?.map((value, index) => (
-                <ExpandCollapseButton key={value.__id__} isCollapsed={!!caseMetadata?.isCollapsed(value.__id__)}
-                  onClick={() => handleExpandCollapseClick(value.__id__)}
-                  styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
-                />
-              ))}
+              {indexRanges?.map(({ id }, index) => {
+                if (id !== kInputRowKey) {
+                  return <ExpandCollapseButton key={id} isCollapsed={!!caseMetadata?.isCollapsed(id)}
+                    onClick={() => handleExpandCollapseClick(id)}
+                    styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
+                  />
+                }
+              })}
             </div>
           </div>
         </>
       }
 
-      <div className="drop-message" style={msgStyle}>{isOver ? dropMessage : ""}</div>
+      <div className="drop-message" style={msgStyle}>{isOverAndCanDrop ? dropMessage : ""}</div>
     </div>
   )
 })

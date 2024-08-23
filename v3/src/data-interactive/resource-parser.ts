@@ -7,7 +7,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
-import { findTileFromV2Id, parseSearchQuery } from "./resource-parser-utils"
+import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
  * A resource selector identifies a CODAP resource. It is either a group
@@ -99,9 +99,8 @@ export function resolveResources(
   const dataContext = result.dataContext
 
   if (resourceSelector.component) {
-    // TODO Get tile by name?
     const { component } = resourceSelector
-    result.component = findTileFromV2Id(component)
+    result.component = findTileFromNameOrId(component)
   }
 
   if (resourceSelector.global) {
@@ -144,12 +143,11 @@ export function resolveResources(
   }
 
   const getCaseById = (caseId: string) =>
-    dataContext?.caseGroupMap.get(caseId)?.groupedCase ?? dataContext?.getItem(caseId)
+    dataContext?.caseInfoMap.get(caseId)?.groupedCase
 
   if (resourceSelector.caseByID) {
     const caseId = toV3CaseId(resourceSelector.caseByID)
-    const itemId = toV3ItemId(resourceSelector.caseByID)
-    result.caseByID = getCaseById(caseId) ?? getCaseById(itemId)
+    result.caseByID = getCaseById(caseId)
   }
 
   if (resourceSelector.caseByIndex && collection) {
@@ -173,11 +171,11 @@ export function resolveResources(
     if (valid) {
       result.caseSearch = []
       dataContext.getCasesForCollection(collection.id).forEach(caseGroup => {
-        const aCase = dataContext.caseGroupMap.get(caseGroup.__id__)
+        const aCase = dataContext.caseInfoMap.get(caseGroup.__id__)
         const itemId = aCase?.childItemIds[0]
         const item = dataContext.getItem(itemId ?? caseGroup.__id__)
         if (item) {
-          const itemIndex = dataContext.caseIndexFromID(item.__id__)
+          const itemIndex = dataContext.getItemIndex(item.__id__)
           if (func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))) {
             result.caseSearch?.push(aCase?.groupedCase ?? item)
           }
@@ -186,9 +184,19 @@ export function resolveResources(
     }
   }
 
-  // if (resourceSelector.caseFormulaSearch) {
-  //   result.caseFormulaSearch = collection && collection.searchCasesByFormula(resourceSelector.caseFormulaSearch);
-  // }
+  if (resourceSelector.caseFormulaSearch && collection && dataContext) {
+    result.caseFormulaSearch = []
+    const { valid, caseIds, error } =
+      evaluateCaseFormula(resourceSelector.caseFormulaSearch, dataContext, collection)
+    if (valid && caseIds) {
+      caseIds.forEach(caseId => {
+        const caseGroup = collection.getCaseGroup(caseId)
+        if (caseGroup) result.caseFormulaSearch?.push(caseGroup.groupedCase)
+      })
+    } else {
+      result.error = error
+    }
+  }
 
   if (resourceSelector.item) {
     const index = Number(resourceSelector.item)
@@ -206,7 +214,7 @@ export function resolveResources(
     const { func, left, right, valid } = parseSearchQuery(resourceSelector.itemSearch, dataContext)
     if (valid) {
       result.itemSearch = dataContext.items.filter(aCase => {
-        const itemIndex = dataContext.caseIndexFromID(aCase.__id__)
+        const itemIndex = dataContext.getItemIndex(aCase.__id__)
         return func(getOperandValue(itemIndex, left), getOperandValue(itemIndex, right))
       })
     }
@@ -214,7 +222,7 @@ export function resolveResources(
 
   if (resourceSelector.itemByCaseID) {
     const caseId = toV3CaseId(resourceSelector.itemByCaseID)
-    const itemId = dataContext?.caseGroupMap.get(caseId)?.childItemIds[0]
+    const itemId = dataContext?.caseInfoMap.get(caseId)?.childItemIds[0]
     if (itemId) result.itemByCaseID = dataContext?.getItem(itemId)
   }
 

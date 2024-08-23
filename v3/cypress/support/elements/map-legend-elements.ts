@@ -11,7 +11,7 @@ export const MapLegendElements = {
   getCategoricalLegendCategories() {
     return this.getLegend().find("[data-testid=legend-key]")
   },
-  getCategoricalLegendCategory(name) {
+  getCategoricalLegendCategory(name: string) {
     return this.getCategoricalLegendCategories().contains(name)
   },
   getNumericLegendCategories() {

@@ -1,5 +1,6 @@
+import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {
-  CategoricalAxisModel, EmptyAxisModel, isNumericAxisModel, NumericAxisModel
+  CategoricalAxisModel, DateAxisModel, EmptyAxisModel, isDateAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import { AxisPlace, AxisPlaces } from "../../axis/axis-types"
 import { axisPlaceToAttrRole, graphPlaceToAttrRole } from "../../data-display/data-display-types"
@@ -31,9 +32,11 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
       : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
   dataConfig?.setPrimaryRole(primaryRole)
   // TODO COLOR: treat color like categorical for now
-  const primaryType = attributeType === 'color' ? 'categorical' : attributeType
+  const typeOverrides: Record<string, string> = { color: 'categorical', date: 'numeric' },
+    primaryType = typeOverrides[attributeType] ?? attributeType,
+    secondaryType = typeOverrides[otherAttributeType] ?? otherAttributeType
   // This doesn't actually necessarily index by [primary][secondary], but that doesn't matter.
-  graphModel?.setPlotType(plotChoices[primaryType][otherAttributeType])
+  graphModel?.setPlotType(plotChoices[primaryType][secondaryType])
 }
 
 function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
@@ -72,6 +75,21 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
         }
         layout.getAxisMultiScale(place)?.
           setCategorySet(dataConfig?.categorySetForAttrRole(attrRole))
+      }
+        break
+      case 'date': {
+        if (!currAxisModel || !isDateAxisModel(currAxisModel)) {
+          const newAxisModel = DateAxisModel.create({place, min: 0, max: 1})
+          graphModel?.setAxis(place, newAxisModel)
+          dataConfig?.setAttributeType(attrRole, 'date')
+          layout.setAxisScaleType(place, 'linear')
+          const valuesInSeconds = stringValuesToDateSeconds(attr?.strValues || [])
+          setNiceDomain(valuesInSeconds, newAxisModel, graphModel?.axisDomainOptions)
+        }
+        else {
+          const valuesInSeconds = stringValuesToDateSeconds(attr?.strValues || [])
+          setNiceDomain(valuesInSeconds, currAxisModel, graphModel?.axisDomainOptions)
+        }
       }
         break
       case 'empty': {
