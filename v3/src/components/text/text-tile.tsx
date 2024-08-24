@@ -18,14 +18,15 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   const textOnFocus = useRef("")
 
   const [initialValue, setInitialValue] = useState(() => modelValueToEditorValue(textModel?.value))
+  // changes to this value trigger a remount of the slate editor
+  const mountKey = useRef(0)
   const editor = useMemo(() => {
     // slate doesn't have a convenient API for replacing the value in an existing editor,
     // so we create a new editor instance when the value changes externally (e.g. undo/redo).
     initialValue  // eslint-disable-line no-unused-expressions
+    ++mountKey.current
     return createEditor()
   }, [initialValue])
-  // changes to this value trigger a remount of the slate editor
-  const mountKey = useRef(0)
 
   useEffect(() => {
     return tile && mstReaction(
@@ -48,7 +49,6 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
           if (!textModel.isSettingValue) {
             // set the new value and remount the editor
             setInitialValue(modelValueToEditorValue(textModel?.value))
-            ++mountKey.current
           }
         }
       }))
@@ -67,7 +67,7 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
     if (textModel && !textModel.isEquivalent(editor.children)) {
       const textDidChange = textOnFocus.current !== textModel.textContent
       textModel?.applyModelChange(() => {
-        textModel.setValue(editor.children)
+        textModel.setValueFromEditor(editor.children)
       }, {
         // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯

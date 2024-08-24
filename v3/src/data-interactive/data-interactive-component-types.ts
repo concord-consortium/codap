@@ -1,3 +1,4 @@
+import { SlateExchangeValue } from "@concord-consortium/slate-editor"
 import { kCalculatorTileType, kV2CalculatorType } from "../components/calculator/calculator-defs"
 import { kCaseCardTileType, kV2CaseCardType } from "../components/case-card/case-card-defs"
 import { kCaseTableTileType, kV2CaseTableType } from "../components/case-table/case-table-defs"
@@ -113,7 +114,7 @@ export interface V2GetSlider extends V2Slider {
   value?: number
 }
 export interface V2Text extends V2Component {
-  text?: string
+  text?: string | SlateExchangeValue
   type: "text"
 }
 export interface V2WebView extends V2Component {
