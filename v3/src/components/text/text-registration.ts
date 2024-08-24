@@ -1,4 +1,4 @@
-import { textToSlate } from "@concord-consortium/slate-editor"
+import { SlateExchangeValue, textToSlate } from "@concord-consortium/slate-editor"
 import { SetRequired } from "type-fest"
 import { V2Text } from "../../data-interactive/data-interactive-component-types"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -45,14 +45,17 @@ registerTileComponentInfo({
   defaultHeight: 100
 })
 
-function importTextToModelValue(text?: string) {
+function importTextToModelValue(text?: string | SlateExchangeValue) {
   // According to a comment in the v2 code: "Prior to build 0535 this was simple text.
   // As of 0535 it is a JSON representation of the rich text content."
   // For v3, we make sure we're always dealing with rich-text JSON.
-  const json = safeJsonParse(text)
-  return text != null && json != null && typeof json === "object"
-          ? text
-          : editorValueToModelValue(textToSlate(text ?? ""))
+  if (typeof text === "string") {
+    const json = safeJsonParse(text)
+    return text != null && json != null && typeof json === "object"
+            ? text
+            : editorValueToModelValue(textToSlate(text))
+  }
+  return editorValueToModelValue(text?.document?.children ?? [])
 }
 
 registerV2TileImporter("DG.TextView", ({ v2Component, insertTile }) => {
@@ -91,9 +94,10 @@ registerComponentHandler(kV2TextType, {
   update(content, values) {
     if (isTextModel(content)) {
       const { text } = values as V2Text
-      if (text) {
-        const modelValue = importTextToModelValue(text)
-        content.setValue(modelValueToEditorValue(modelValue))
+      if (typeof text === "string") {
+        content.setValue(modelValueToEditorValue(importTextToModelValue(text)))
+      } else if (text?.document?.children) {
+        content.setValue(text.document.children)
       }
     }
 
