@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { parse } from "mathjs"
 import { typedId } from "../../utilities/js-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
@@ -8,7 +8,17 @@ import { isRandomFunctionPresent } from "./utils/misc"
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORM")),
   display: "",
+  _canonical: ""
+})
+.volatile(self => ({
   canonical: ""
+}))
+.preProcessSnapshot(snap => {
+  if (isOriginalFormulaSnapshot(snap)) {
+    const { canonical, ...others } = snap as IOriginalFormulaSnapshot
+    return { ...others, _canonical: canonical }
+  }
+  return snap
 })
 .views(self => ({
   get formulaManager() {
@@ -43,5 +53,24 @@ export const Formula = types.model("Formula", {
     self.formulaManager?.recalculateFormula(self.id)
   }
 }))
+.actions(self => ({
+  afterCreate() {
+    self.canonical = self._canonical
+  },
+  prepareSnapshot() {
+    self._canonical = self.canonical
+  }
+}))
 
 export interface IFormula extends Instance<typeof Formula> {}
+
+export const OriginalFormula = types.model("Formula", {
+  id: types.optional(types.identifier, () => typedId("FORM")),
+  display: "",
+  canonical: ""
+})
+interface IOriginalFormulaSnapshot extends SnapshotIn<typeof OriginalFormula> {}
+
+export function isOriginalFormulaSnapshot(snap: any): snap is IOriginalFormulaSnapshot {
+  return snap != null && typeof snap === "object" && typeof snap.canonical === "string"
+}

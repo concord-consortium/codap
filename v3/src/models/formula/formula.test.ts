@@ -1,13 +1,16 @@
-import { Formula } from "./formula"
+import { getSnapshot } from "mobx-state-tree"
+import { Formula, OriginalFormula } from "./formula"
 
 jest.mock("./utils/misc", () => ({
   isRandomFunctionPresent: (fn: string) => fn.includes("random")
 }))
 
 describe("Formula", () => {
-  it("should have an empty display by default", () => {
+  it("should be empty by default", () => {
     const formula = Formula.create()
     expect(formula.display).toBe("")
+    expect(formula._canonical).toBe("")
+    expect(formula.canonical).toBe("")
   })
 
   it("should be valid when display is set to a valid expression", () => {
@@ -61,5 +64,31 @@ describe("Formula", () => {
     const formulaWithEnv = Formula.create({ display: "1 + 2" }, env)
     formulaWithEnv.rerandomize()
     expect(env.formulaManager.recalculateFormula).toHaveBeenCalledTimes(1)
+  })
+
+  it("can process legacy formula snapshots", () => {
+    const old = OriginalFormula.create({ display: "1 + 2", canonical: "1 + 2" })
+    const f = Formula.create(getSnapshot(old))
+    expect(f.display).toBe("1 + 2")
+    expect(f._canonical).toBe("1 + 2")
+    expect(f.canonical).toBe("1 + 2")
+  })
+
+  it("copies volatile canonical property to serialized _canonical property in prepareSnapshot", () => {
+    const f = Formula.create({ display: "1 + 2", _canonical: "1 + 2" })
+    expect(f.display).toBe("1 + 2")
+    expect(f._canonical).toBe("1 + 2")
+    expect(f.canonical).toBe("1 + 2")
+    f.setDisplayExpression("π")
+    f.setCanonicalExpression("π")
+    expect(f.display).toBe("π")
+    // serialized property not updated
+    expect(f._canonical).toBe("1 + 2")
+    expect(f.canonical).toBe("π")
+    f.prepareSnapshot()
+    expect(f.display).toBe("π")
+    // serialized property updated
+    expect(f._canonical).toBe("π")
+    expect(f.canonical).toBe("π")
   })
 })

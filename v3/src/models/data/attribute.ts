@@ -207,6 +207,7 @@ export const Attribute = V2Model.named("Attribute").props({
       withoutUndo({ suppressWarning: true })
       self.values = undefined
     }
+    self.formula?.prepareSnapshot()
   },
   // should be called after retrieving snapshot (i.e. after serialization)
   completeSnapshot() {

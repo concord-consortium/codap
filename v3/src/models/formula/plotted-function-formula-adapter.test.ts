@@ -11,7 +11,7 @@ const getTestEnv = () => {
   const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
-  const adornment = PlottedFunctionAdornmentModel.create({ formula: { display: "1 + 2 + x", canonical: "1 + 2 + x" }})
+  const adornment = PlottedFunctionAdornmentModel.create({ formula: { display: "1 + 2 + x", _canonical: "1 + 2 + x" }})
   const dataConfig = GraphDataConfigurationModel.create({ })
   const mockData: Record<string, Record<string, any>> = {
     id: {
