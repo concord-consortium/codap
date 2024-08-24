@@ -5,11 +5,12 @@ import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const getTestEnv = () => {
   const dataSet = createDataSet({
-    attributes: [{ name: "foo", formula: { display: "1 + 2", _canonical: "1 + 2" } }]
+    attributes: [{ name: "foo", formula: { display: "1 + 2" } }]
   })
   dataSet.addCases([{ __id__: "1" }])
   const attribute = dataSet.attributes[0]
   const formula = attribute.formula!
+  formula.setCanonicalExpression(formula.display)
   const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
   const context = { dataSet, formula }
   const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
@@ -87,13 +88,14 @@ describe("AttributeFormulaAdapter", () => {
     it("should setup observer detecting hierarchy updates", () => {
       const dataSet = createDataSet({
         attributes: [
-          { name: "foo", formula: { display: "1 + 2", _canonical: "1 + 2" } },
+          { name: "foo", formula: { display: "1 + 2" } },
           { name: "bar" }
         ]
       })
       dataSet.addCases([{ __id__: "1" }])
       const attribute = dataSet.attributes[0]
       const formula = attribute.formula!
+      formula.setCanonicalExpression(formula.display)
       const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
       const context = { dataSet, formula }
       const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
