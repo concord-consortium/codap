@@ -13,6 +13,7 @@ import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { toggleCardTable } from "./case-table-card-utils"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./case-table-card-title-bar.scss"
 
@@ -76,7 +77,7 @@ export const CaseTableCardTitleBar =
       documentContent?.applyModelChange(() => {
         tile && documentContent && toggleCardTable(documentContent, tile.id)
       }, {
-        log: `Toggle component: ${suffix}`,
+        log: logMessageWithReplacement("Toggle component: %@", {componentType: suffix}),
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
       })
