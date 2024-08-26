@@ -36,7 +36,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const handleChange = (value: string) => {
     valueRef.current = value
     onRowChange({ ...row, [column.key]: value })
-    setPendingLogMessage("editCellValue", { message: "edit cell value attr name: %@ caseId: %@ from %@ to %@",
+    setPendingLogMessage("editCellValue", { message: "edit cell value",
       args: {attrId: column.key, caseId: row.__id__,
               from: initialValueRef.current, to: valueRef.current }})
   }

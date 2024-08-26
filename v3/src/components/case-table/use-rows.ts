@@ -334,7 +334,7 @@ export const useRows = () => {
         log: logMessage
       }
     )
-  }, [collectionTableModel, data])
+  }, [collectionTableModel, data, getPendingLogMessage])
 
   return { handleRowsChange }
 }

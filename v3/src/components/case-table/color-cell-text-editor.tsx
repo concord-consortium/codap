@@ -72,7 +72,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
     onRowChange({ ...row, [column.key]: value })
-    setPendingLogMessage("editCellValue", {message: "edit cell value attr name: %@ caseId: %@ from %@ to %@",
+    setPendingLogMessage("editCellValue", {message: "edit cell value",
       args: {attrId: column.key, caseId: row.__id__, from: prevInputValue.current, to: value }})
 
   }, [column.key, onRowChange, row, setPendingLogMessage])
