@@ -165,6 +165,7 @@ export const MapContentModel = DataDisplayContentModel
               self.applyModelChange(() => {
                 self.syncCenterAndZoomFromMap()
               }, {
+                log: self.leafletMapState.log,
                 undoStringKey: self.leafletMapState.undoStringKey,
                 redoStringKey: self.leafletMapState.redoStringKey
               })

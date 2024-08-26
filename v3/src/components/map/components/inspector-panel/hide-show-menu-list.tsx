@@ -6,6 +6,7 @@ import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {t} from "../../../../utilities/translation/translate"
 import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 interface IProps {
   tile?: ITileModel
@@ -33,7 +34,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       () => mapModel?.hideSelectedCases(),
       {
         undoStringKey: "DG.Undo.hideSelectedCases",
-        redoStringKey: "DG.Redo.hideSelectedCases"
+        redoStringKey: "DG.Redo.hideSelectedCases",
+        log: logMessageWithReplacement("Hide %@ selected cases", {numSelected})
       }
     )
   }
@@ -43,7 +45,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       () => mapModel?.hideUnselectedCases(),
       {
         undoStringKey: "DG.Undo.hideUnselectedCases",
-        redoStringKey: "DG.Redo.hideUnselectedCases"
+        redoStringKey: "DG.Redo.hideUnselectedCases",
+        log: logMessageWithReplacement(`Hide %@ unselected cases`, {numUnselected})
       }
     )
   }
