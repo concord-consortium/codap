@@ -44,7 +44,7 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
       {
         undoStringKey: "V3.Undo.map.inspector.changeMapBaseLayer",
         redoStringKey: "V3.Redo.map.inspector.changeMapBaseLayer",
-        log: logStringifiedObjectMessage("Map base layer changed: ", {value: layerName}),
+        log: logStringifiedObjectMessage("Map base layer changed: %@", {value: layerName}),
       }
     )
   }

@@ -36,7 +36,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Grid`,
                           redoStringKey: `DG.Redo.map.${op}Grid`,
-                          log: logStringifiedObjectMessage("mapAction: ", {mapAction: `${op}Grid`})
+                          log: logStringifiedObjectMessage("mapAction: %@", {mapAction: `${op}Grid`})
                         })
                       }}
             >
@@ -51,7 +51,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Points`,
                           redoStringKey: `DG.Redo.map.${op}Points`,
-                          log: logStringifiedObjectMessage("mapAction: ", {mapAction: `${op}Grid`})
+                          log: logStringifiedObjectMessage("mapAction: %@", {mapAction: `${op}Grid`})
                         })
                       }}
             >
@@ -66,7 +66,7 @@ export const MapMeasurePalette = ({tile, panelRect, buttonRect, setShowPalette}:
                         }, {
                           undoStringKey: `DG.Undo.map.${op}Lines`,
                           redoStringKey: `DG.Redo.map.${op}Lines`,
-                          log: logStringifiedObjectMessage("mapAction: ", {mapAction: `${op}Grid`})
+                          log: logStringifiedObjectMessage("mapAction: %@", {mapAction: `${op}Grid`})
                         })
                       }}
             >

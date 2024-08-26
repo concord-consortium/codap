@@ -29,7 +29,7 @@ export const MapMarqueeSelectButton = observer(function MapMarqueeSelectButton({
     }, {
       undoStringKey: 'DG.Undo.map.toggleMarqueeSelect',
       redoStringKey: 'DG.Redo.map.toggleMarqueeSelect',
-      log:logStringifiedObjectMessage("marqueeToolSelect", {marqueeMode: mapModel.marqueeMode})
+      log: logStringifiedObjectMessage("marqueeToolSelect: %@", {marqueeMode: mapModel.marqueeMode})
     })
   }
 

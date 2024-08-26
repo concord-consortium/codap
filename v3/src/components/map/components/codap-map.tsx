@@ -44,7 +44,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
       {
         undoStringKey: "V3.Undo.mapLegendAttributeChange",
         redoStringKey: "V3.Redo.mapLegendAttributeChange",
-        log: logStringifiedObjectMessage("legendAttributeChange: ", {to_attribute: dataSet.attrFromID(attrId)?.name})
+        log: logStringifiedObjectMessage("legendAttributeChange: %@", {to_attribute: dataSet.attrFromID(attrId)?.name})
       }
     )
   }, [mapModel])
