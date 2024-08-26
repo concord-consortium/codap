@@ -10,6 +10,7 @@ import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
 import { ColorPicker } from "./color-picker"
+import { useLoggingContext } from "../../hooks/use-log-context"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -55,6 +56,8 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
   // show the color swatch if the initial value appears to be a color (no change mid-edit)
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
+  const { setPendingLogMessage } = useLoggingContext()
+  const prevInputValue = useRef(inputValue)
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -63,13 +66,16 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   // commits the change and closes the editor
   const acceptValue = useCallback(() => {
     onRowChange({ ...row, [column.key]: inputValue }, true)
-  }, [column, inputValue, onRowChange, row])
+  }, [column.key, inputValue, onRowChange, row])
 
   // updates the value locally without committing the changes
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
     onRowChange({ ...row, [column.key]: value })
-  }, [column, onRowChange, row])
+    setPendingLogMessage("editCellValue", {message: "edit cell value attr name: %@ caseId: %@ from %@ to %@",
+      args: {attrId: column.key, caseId: row.__id__, from: prevInputValue.current, to: value }})
+
+  }, [column.key, onRowChange, row, setPendingLogMessage])
 
   // rejects any local changes and closes the editor
   const rejectValue = useCallback(() => {

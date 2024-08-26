@@ -19,12 +19,15 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { logMessageWithReplacement } from "../../lib/log-message"
+import { useLoggingContext } from "../../hooks/use-log-context"
 
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
+  const { getPendingLogMessage } = useLoggingContext()
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
@@ -269,7 +272,9 @@ export const useRows = () => {
     const creatingCases = casesToCreate.length > 0
     const undoStringKey = creatingCases ? "DG.Undo.caseTable.createNewCase" : "DG.Undo.caseTable.editCellValue"
     const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
-
+    const logMessage = creatingCases
+                        ? logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length })
+                        : getPendingLogMessage("editCellValue")
     // We track case ids between updates and additions so we can make proper notifications afterwards
     let oldCaseIds = new Set(collection?.caseIds ?? [])
     let updatedCaseIds: string[] = []
@@ -325,7 +330,8 @@ export const useRows = () => {
           return notifications
         },
         undoStringKey,
-        redoStringKey
+        redoStringKey,
+        log: logMessage
       }
     )
   }, [collectionTableModel, data])
