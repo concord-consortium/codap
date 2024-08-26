@@ -43,13 +43,19 @@ export const diSelectionListHandler: DIHandler = {
     return updateSelection("Create", dataContext, values, dataContext?.setSelectedCases)
   },
   get(resources: DIResources) {
-    const { dataContext } = resources
+    const { collection, dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    const caseIds = Array.from(dataContext.selection)
-    // TODO Include collectionID and collectionName
-    const values = caseIds.map(caseID => ({ caseID: toV2Id(caseID) }))
-    // TODO Filter based on collection
+    const itemIds = new Set(dataContext.selection)
+    const _values = Array.from(dataContext.caseInfoMap.values())
+      // Only include cases where all child items are selected
+      .filter(aCase => !aCase.childItemIds.some(itemId => !itemIds.has(itemId)))
+      .map(aCase => ({
+        caseID: toV2Id(aCase.groupedCase.__id__),
+        collectionID: toV2Id(aCase.collectionId),
+        collectionName: dataContext.getCollection(aCase.collectionId)?.name
+      }))
+    const values = collection ? _values.filter(value => value.collectionID === toV2Id(collection.id)) : _values
     return {
       success: true,
       values
