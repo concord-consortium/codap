@@ -13,6 +13,7 @@ describe("DataInteractive SelectionListHandler", () => {
   beforeEach(function() {
     dataset = DataSet.create({ name: "data" })
     dataset.addCases([{ __id__: caseId1 }, { __id__: caseId2 }])
+    dataset.validateCases()
   })
 
   const selection = () => Array.from(dataset.selection)
@@ -25,8 +26,9 @@ describe("DataInteractive SelectionListHandler", () => {
 
     dataset.setSelectedCases([caseId1])
     const result = handler.get?.({ dataContext: dataset })
+    const caseId = toV2Id(dataset.itemIdChildCaseMap.get(caseId1)!.groupedCase.__id__)
     expect(result?.values && Array.isArray(result.values) &&
-      (result.values as DICase[]).map(c => c.caseID).includes(toV2Id(caseId1))).toBe(true)
+      (result.values as DICase[]).map(c => c.caseID).includes(caseId)).toBe(true)
   })
 
   it("create works as expected", () => {
