@@ -3,6 +3,7 @@ import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseCardTileType } from "./case-card-defs"
+import { ICollectionModel } from "../../models/data/collection"
 
 export const CaseCardModel = TileContentModel
   .named("CaseCardModel")
@@ -21,6 +22,17 @@ export const CaseCardModel = TileContentModel
     attributeColumnWidth(collectionId: string) {
       return self.attributeColumnWidths.get(collectionId)
     },
+  }))
+  .views(self => ({
+    caseLineage(caseId?: string) {
+      if (!caseId) return undefined
+      return self.data?.itemInfoMap.get(caseId)
+    },
+    groupChildCases(collection: ICollectionModel, caseId: string) {
+      const parentCollectionGroups = self.data?.getGroupsForCollection(collection.parent?.id)
+      const group = parentCollectionGroups?.find(g => g.groupedCase.__id__ === caseId)
+      return collection.cases.filter((c: any) => group?.childCaseIds?.includes(c.__id__))
+    }
   }))
   .actions(self => ({
     setAttributeColumnWidth(collectionId: string, width?: number) {
